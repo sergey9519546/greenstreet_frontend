@@ -35,10 +35,10 @@ import { AnimatePresence, motion } from "motion/react";
 import React, { useEffect, useState } from "react";
 import { auth, db, loginWithGoogle, logoutUser } from "../firebase";
 import { AuditLog, ComplianceReviewResponse, GroundingSource } from "../types";
+import CommunicationsArchiveTab from "./CommunicationsArchiveTab";
 import EmployeeComplianceTab from "./EmployeeComplianceTab";
 import FirmComplianceTab from "./FirmComplianceTab";
 import ThirdPartyComplianceTab from "./ThirdPartyComplianceTab";
-import CommunicationsArchiveTab from "./CommunicationsArchiveTab";
 
 // Helper to determine tailwind severity color classes
 const getSeverityClass = (sev: string) => {
@@ -517,7 +517,9 @@ export default function ComplianceDashboard({
             </div>
             <div className="space-y-1">
               <div className="flex justify-between items-center text-xs font-bold">
-                <label htmlFor="auth-password" className="text-slate-500">Password</label>
+                <label htmlFor="auth-password" className="text-slate-500">
+                  Password
+                </label>
                 <span className="text-[#004041]/60 font-medium">
                   Auto-prefilled for prototype
                 </span>
@@ -1822,7 +1824,10 @@ export default function ComplianceDashboard({
                 <form onSubmit={handleSaveFirmConfig} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label htmlFor="firm-name" className="text-xs font-bold text-slate-500">
+                      <label
+                        htmlFor="firm-name"
+                        className="text-xs font-bold text-slate-500"
+                      >
                         Firm Name
                       </label>
                       <input
@@ -1841,7 +1846,10 @@ export default function ComplianceDashboard({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label htmlFor="advisory-crd" className="text-xs font-bold text-slate-500">
+                      <label
+                        htmlFor="advisory-crd"
+                        className="text-xs font-bold text-slate-500"
+                      >
                         Advisory SEC CRD ID
                       </label>
                       <input
@@ -1863,7 +1871,10 @@ export default function ComplianceDashboard({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label htmlFor="primary-regulator" className="text-xs font-bold text-slate-500">
+                      <label
+                        htmlFor="primary-regulator"
+                        className="text-xs font-bold text-slate-500"
+                      >
                         Primary Regulator
                       </label>
                       <select
@@ -1888,7 +1899,10 @@ export default function ComplianceDashboard({
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label htmlFor="allowed-licenses" className="text-xs font-bold text-slate-500">
+                      <label
+                        htmlFor="allowed-licenses"
+                        className="text-xs font-bold text-slate-500"
+                      >
                         Permitted Advisor Registrations
                       </label>
                       <input
@@ -1909,7 +1923,10 @@ export default function ComplianceDashboard({
                   </div>
 
                   <div className="space-y-1">
-                    <label htmlFor="auto-disclaimer" className="text-xs font-bold text-slate-500">
+                    <label
+                      htmlFor="auto-disclaimer"
+                      className="text-xs font-bold text-slate-500"
+                    >
                       Default appending disclaimer text warnings:
                     </label>
                     <textarea

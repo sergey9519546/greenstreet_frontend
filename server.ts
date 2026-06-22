@@ -9,7 +9,7 @@ import { createServer as createViteServer } from "vite";
 dns.setDefaultResultOrder("ipv4first");
 
 const app = express();
-const PORT = 3000;
+const PORT = 3005;
 
 app.use(express.json());
 
