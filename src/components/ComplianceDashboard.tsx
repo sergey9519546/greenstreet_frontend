@@ -1966,107 +1966,63 @@ export default function ComplianceDashboard({
                 className="bg-white rounded-2xl border border-slate-200 p-6 md:p-10 shadow-sm max-w-4xl mx-auto w-full text-left"
               >
                 {/* User Requested Swatches Display */}
-                <div style={{ marginBottom: "4rem" }}>
-                  <div
-                    style={{
-                      fontSize: "1.5rem",
-                      fontWeight: 600,
-                      letterSpacing: "var(--ls, -0.025em)",
-                      marginBottom: ".35rem",
-                      color: "#002D2E",
-                    }}
-                  >
+                <div className="mb-16">
+                  <div className="text-2xl font-semibold tracking-tight mb-1.5 text-[#002D2E]">
                     Color
                   </div>
-                  <div
-                    style={{
-                      fontSize: ".9375rem",
-                      opacity: 0.65,
-                      marginBottom: "1.5rem",
-                      color: "#003738",
-                    }}
-                  >
+                  <div className="text-[0.9375rem] opacity-65 mb-6 text-[#003738]">
                     Swatch tokens · midnight-green ground with a pistachio /
                     lemon-lime accent family
                   </div>
-                  <div
-                    className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
-                    style={{ gap: "1rem" }}
-                  >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                     {[
                       {
                         name: "Midnight Green (Base)",
                         hex: "#002D2E",
                         desc: "System base ground canvas style",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#002D2E",
-                        },
+                        swatchClass: "h-24 bg-[#002D2E]",
                       },
                       {
                         name: "Forest Green (Primary)",
                         hex: "#003738",
                         desc: "Corporate body text / rich ground",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#003738",
-                        },
+                        swatchClass: "h-24 bg-[#003738]",
                       },
                       {
                         name: "Emerald Green (Core)",
                         hex: "#004041",
                         desc: "Structural outline / high visual core",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#004041",
-                        },
+                        swatchClass: "h-24 bg-[#004041]",
                       },
                       {
                         name: "Pistachio (Background)",
                         hex: "#EEEFD3",
                         desc: "Soft warm primary tone surface background",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#EEEFD3",
-                          border: "1px solid rgba(0,45,46,0.1)",
-                        },
+                        swatchClass: "h-24 bg-[#EEEFD3] border border-[#002D2E]/10",
                       },
                       {
                         name: "Lemon-Lime (High Accent)",
                         hex: "#D8D958",
                         desc: "Vibrant high-contrast warnings/charts",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#D8D958",
-                        },
+                        swatchClass: "h-24 bg-[#D8D958]",
                       },
                       {
                         name: "Vibrant Mint (Success)",
                         hex: "#4DBD97",
                         desc: "CTA components, badges & status triggers",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#4DBD97",
-                        },
+                        swatchClass: "h-24 bg-[#4DBD97]",
                       },
                       {
                         name: "Crisp Off-White",
                         hex: "#FAFBFD",
                         desc: "Active data surface backdrop grids",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#FAFBFD",
-                          border: "1px solid rgba(0,45,46,0.1)",
-                        },
+                        swatchClass: "h-24 bg-[#FAFBFD] border border-[#002D2E]/10",
                       },
                       {
                         name: "Deep Obsidian (Contrast)",
                         hex: "#0C1A1A",
                         desc: "Contrast neutral typography color weight",
-                        swatchStyle: {
-                          height: "6rem",
-                          backgroundColor: "#0C1A1A",
-                        },
+                        swatchClass: "h-24 bg-[#0C1A1A]",
                       },
                     ].map((c) => (
                       <div
@@ -2076,34 +2032,15 @@ export default function ComplianceDashboard({
                           setCopiedColor(c.hex);
                           setTimeout(() => setCopiedColor(""), 1500);
                         }}
-                        className="group cursor-pointer bg-[#FAFBFD] transition-all duration-300 hover:-translate-y-1 hover:shadow-md overflow-hidden border"
-                        style={{
-                          borderRadius: "var(--r, 12px)",
-                          borderColor: "rgba(0, 45, 46, 0.15)",
-                        }}
+                        className="group cursor-pointer bg-[#FAFBFD] transition-all duration-300 hover:-translate-y-1 hover:shadow-md overflow-hidden border border-[#002D2E]/15 rounded-xl"
                       >
-                        <div style={c.swatchStyle}></div>
-                        <div
-                          style={{ padding: ".85rem 1rem", background: "#fff" }}
-                        >
-                          <div
-                            style={{
-                              fontSize: ".9375rem",
-                              fontWeight: 600,
-                              color: "#002D2E",
-                            }}
-                          >
+                        <div className={c.swatchClass}></div>
+                        <div className="px-4 py-[0.85rem] bg-white">
+                          <div className="text-[0.9375rem] font-semibold text-[#002D2E]">
                             {c.name}
                           </div>
                           <div className="flex items-center justify-between mt-1">
-                            <div
-                              style={{
-                                fontSize: ".8125rem",
-                                opacity: 0.6,
-                                fontVariantNumeric: "tabular-nums",
-                                color: "#003738",
-                              }}
-                            >
+                            <div className="text-[0.8125rem] opacity-60 tabular-nums text-[#003738]">
                               {c.hex}
                             </div>
                             <span className="text-[10px] font-mono font-bold text-[#4DBD97]">
