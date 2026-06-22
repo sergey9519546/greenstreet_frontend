@@ -110,7 +110,7 @@ export default function ComplianceDashboard({
     "What are the strict marketing rule disclosure requirements for showing client testimonials?",
   );
   const [isSearching, setIsSearching] = useState(false);
-  const [thinkingMode, setThinkingMode] = useState(false); // High Thinking Level flag (gemini-3.1-pro-preview + HIGH thinkingLevel)
+  const [thinkingMode, setThinkingMode] = useState(false); // High Thinking Level flag (gemini-2.5-pro + HIGH thinkingLevel)
   const [searchResult, setSearchResult] = useState<{
     answer: string;
     sources: GroundingSource[];
@@ -1387,7 +1387,7 @@ export default function ComplianceDashboard({
                     <div className="flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-mint" />
                       <span>
-                        Deep Reasoning Thinking Mode (gemini-3.1-pro-preview
+                        Deep Reasoning Thinking Mode (gemini-2.5-pro
                         with high thinking steps)
                       </span>
                     </div>

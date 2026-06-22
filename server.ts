@@ -18,19 +18,26 @@ let aiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
   if (!aiClient) {
     const key = process.env.GEMINI_API_KEY;
-    if (!key) {
+    if (!key || key === "MY_GEMINI_API_KEY") {
       console.warn(
-        "WARNING: GEMINI_API_KEY is not defined in the environment. AI features will fail with explicit error responses.",
+        "WARNING: GEMINI_API_KEY is missing or default. Using Vertex AI via Application Default Credentials.",
       );
-    }
-    aiClient = new GoogleGenAI({
-      apiKey: key || "",
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
+      aiClient = new GoogleGenAI({
+        vertexai: {
+          project: "project-34827ae3-34d1-4d2c-a7d",
+          location: "us-central1"
+        }
+      });
+    } else {
+      aiClient = new GoogleGenAI({
+        apiKey: key,
+        httpOptions: {
+          headers: {
+            "User-Agent": "aistudio-build",
+          },
         },
-      },
-    });
+      });
+    }
   }
   return aiClient;
 }
@@ -48,12 +55,6 @@ app.post("/api/compliance/review", async (req, res) => {
     }
 
     const ai = getGeminiClient();
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(503).json({
-        error:
-          "GEMINI_API_KEY is missing. Please add your Gemini API Key in the Settings > Secrets configuration panel to use this feature.",
-      });
-    }
 
     const systemInstruction = `
       You are an expert Chief Compliance Officer (CCO) specialized in SEC (Investment Advisers Act Rule 206(4)-1) and FINRA (Rule 2210) advertising rules.
@@ -68,7 +69,7 @@ app.post("/api/compliance/review", async (req, res) => {
     `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: `Perform a compliance review on the following text:\n\n"${content}"`,
       config: {
         systemInstruction,
@@ -204,16 +205,10 @@ app.post("/api/compliance/sec-search", async (req, res) => {
     }
 
     const ai = getGeminiClient();
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(503).json({
-        error:
-          "GEMINI_API_KEY is missing. Please configure your API key to enable Search Grounding.",
-      });
-    }
 
     // Google Search Grounding is enabled by adding { googleSearch: {} } as a tool.
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: `Search and summarize real, up-to-date SEC or FINRA rules regarding this query: "${query}". Provide the corresponding rule numbers and official guidance. Ensure search grounding is activated.`,
       config: {
         systemInstruction:
@@ -249,16 +244,10 @@ app.post("/api/compliance/jurisdiction-maps", async (req, res) => {
     }
 
     const ai = getGeminiClient();
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(503).json({
-        error:
-          "GEMINI_API_KEY is missing. Please configure your key in Secrets.",
-      });
-    }
 
     // This query requests details on nearest FINRA and SEC offices, state regulators, and local state Blue Sky laws.
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-2.5-flash",
       contents: `Identify the SEC regional offices, FINRA district offices, and state-level Blue Sky authorities near or governing the address: "${address}". 
                  Outline specific regional registration requirements or Blue Sky constraints for investment advisors or broker-dealers in this state.`,
       config: {
@@ -284,7 +273,7 @@ app.post("/api/compliance/jurisdiction-maps", async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// High Thinking Executive Guide Endpoint (gemini-3.1-pro-preview with HIGH thinking config)
+// High Thinking Executive Guide Endpoint (gemini-2.5-pro with HIGH thinking config)
 // -------------------------------------------------------------
 app.post("/api/compliance/think-guide", async (req, res) => {
   try {
@@ -294,16 +283,10 @@ app.post("/api/compliance/think-guide", async (req, res) => {
     }
 
     const ai = getGeminiClient();
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(503).json({
-        error:
-          "GEMINI_API_KEY is missing. High Thinking reasoning cannot progress without a valid API key.",
-      });
-    }
 
-    // Call gemini-3.1-pro-preview using ThinkingLevel.HIGH with no maxOutputTokens limit.
+    // Call gemini-2.5-pro using ThinkingLevel.HIGH with no maxOutputTokens limit.
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-2.5-pro",
       contents: `Deconstruct this complex SEC/FINRA compliance inquiry with comprehensive, step-by-step audit analysis:\n\n"${question}"`,
       config: {
         systemInstruction:
