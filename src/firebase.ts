@@ -1,6 +1,13 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, where, DocumentData, getDocs } from "firebase/firestore";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut
+} from "firebase/auth";
+import {
+  getFirestore
+} from "firebase/firestore";
 
 // Config matches the generated firebase-applet-config.json file
 const firebaseConfig = {
@@ -9,7 +16,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDbhJW82HLr2xxCsaMcWT7NicKW3RkXpYo",
   authDomain: "project-34827ae3-34d1-4d2c-a7d.firebaseapp.com",
   storageBucket: "project-34827ae3-34d1-4d2c-a7d.firebasestorage.app",
-  messagingSenderId: "979007666870"
+  messagingSenderId: "979007666870",
 };
 
 // Initialize Firebase
