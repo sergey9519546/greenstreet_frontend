@@ -3,11 +3,9 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signOut
+  signOut,
 } from "firebase/auth";
-import {
-  getFirestore
-} from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 // Config matches the generated firebase-applet-config.json file
 const firebaseConfig = {
@@ -23,7 +21,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = getFirestore(
+  app,
+  "ai-studio-ec90656a-daaa-4e6c-89d0-5e4a012cc880",
+);
 export const googleProvider = new GoogleAuthProvider();
 
 // Google login popup helper
