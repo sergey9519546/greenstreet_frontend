@@ -88,7 +88,7 @@ export default function FirmComplianceTab() {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-[#fbfcfa] border border-midnight-green/10 p-6 rounded-xl shadow-sm flex items-center gap-4 transition hover:border-midnight-green/20">
-          <div className="w-12 h-12 bg-emerald/20 text-[#006565] rounded-lg flex items-center justify-center">
+          <div className="w-12 h-12 bg-emerald/20 text-rain-forest rounded-lg flex items-center justify-center">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
@@ -206,7 +206,7 @@ export default function FirmComplianceTab() {
                     className={`text-[9px] font-extrabold px-2 py-0.5 rounded-md ${
                       task.regulator === "SEC"
                         ? "bg-midnight-green text-pistachio"
-                        : "bg-emerald/20 text-[#006565]"
+                        : "bg-emerald/20 text-rain-forest"
                     }`}
                   >
                     {task.regulator}
@@ -262,7 +262,10 @@ export default function FirmComplianceTab() {
                     </div>
                   )}
                 </div>
-                <button className="p-2 border border-midnight-green/10 hover:border-midnight-green/30 text-midnight-green/70 hover:text-midnight-green rounded-lg transition">
+                <button
+                  title="View details"
+                  className="p-2 border border-midnight-green/10 hover:border-midnight-green/30 text-midnight-green/70 hover:text-midnight-green rounded-lg transition"
+                >
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>

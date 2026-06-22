@@ -435,7 +435,7 @@ export default function ComplianceDashboard({
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-pistachio flex items-center justify-center p-4 relative font-sans">
-        <div className="absolute inset-0 bg-[#004041]/10 bg-[radial-gradient(#4dbd97_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[#004041]/10 bg-[radial-gradient(#4dbd97_1px,transparent_1px)] bg-size-[24px_24px] pointer-events-none" />
 
         <div className="max-w-md w-full bg-white rounded-2xl border border-slate-100 shadow-2xl p-8 relative z-10 text-[#004041]">
           <button
@@ -517,16 +517,18 @@ export default function ComplianceDashboard({
             </div>
             <div className="space-y-1">
               <div className="flex justify-between items-center text-xs font-bold">
-                <label className="text-slate-500">Password</label>
+                <label htmlFor="auth-password" className="text-slate-500">Password</label>
                 <span className="text-[#004041]/60 font-medium">
                   Auto-prefilled for prototype
                 </span>
               </div>
               <input
+                id="auth-password"
                 type="password"
                 required
                 value={authPassword}
                 onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="••••••••"
                 className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-mint rounded-xl outline-none text-sm transition font-mono"
               />
             </div>
@@ -1154,6 +1156,7 @@ export default function ComplianceDashboard({
                         </label>
                         <select
                           value={copyCategory}
+                          title="Select distribution channel"
                           onChange={(e) => setCopyCategory(e.target.value)}
                           className="w-full px-3 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs sm:text-sm font-semibold outline-none text-[#004041]"
                         >
@@ -1220,7 +1223,7 @@ export default function ComplianceDashboard({
                       <div className="text-center pt-2 pb-4 border-b border-slate-100">
                         <div className="relative inline-flex items-center justify-center p-3 mb-2">
                           <span
-                            className={`text-5xl font-black font-display font-mono ${
+                            className={`text-5xl font-black font-mono ${
                               reviewResult.complianceScore > 80
                                 ? "text-green-600"
                                 : reviewResult.complianceScore > 50
@@ -1390,6 +1393,7 @@ export default function ComplianceDashboard({
                       <input
                         type="checkbox"
                         checked={thinkingMode}
+                        title="Enable Deep Reasoning Thinking Mode"
                         onChange={(e) => setThinkingMode(e.target.checked)}
                         className="sr-only peer"
                       />
@@ -1632,7 +1636,7 @@ export default function ComplianceDashboard({
 
                   {auditLogs.length === 0 ? (
                     <div className="p-12 text-center text-slate-500">
-                      <History className="w-10 h-10 border-1 mx-auto mb-2 opacity-50 text-slate-400" />
+                      <History className="w-10 h-10 border mx-auto mb-2 opacity-50 text-slate-400" />
                       <p className="text-xs">
                         No active logs fetched from Cloud. Launch compliance
                         reviews to build immutable registers.
@@ -1756,7 +1760,7 @@ export default function ComplianceDashboard({
                             <div className="font-bold text-slate-700">
                               Advisory Counsel Output:
                             </div>
-                            <p className="bg-slate-50 text-[11px] p-3 rounded-lg text-slate-700 whitespace-pre-wrap text-[11px] max-h-[250px] overflow-y-auto font-light leading-relaxed">
+                            <p className="bg-slate-50 text-[11px] p-3 rounded-lg text-slate-700 whitespace-pre-wrap max-h-[250px] overflow-y-auto font-light leading-relaxed">
                               {selectedLog.output.answer || selectedLog.output}
                             </p>
                           </div>
@@ -1768,7 +1772,7 @@ export default function ComplianceDashboard({
                             <div className="font-bold text-slate-700">
                               Jurisdiction advice:
                             </div>
-                            <p className="bg-slate-50 text-[11px] p-3 rounded-lg text-slate-700 whitespace-pre-wrap text-[11px] max-h-[250px] overflow-y-auto font-light leading-relaxed">
+                            <p className="bg-slate-50 text-[11px] p-3 rounded-lg text-slate-700 whitespace-pre-wrap max-h-[250px] overflow-y-auto font-light leading-relaxed">
                               {selectedLog.output.advice || selectedLog.output}
                             </p>
                           </div>
@@ -1818,10 +1822,11 @@ export default function ComplianceDashboard({
                 <form onSubmit={handleSaveFirmConfig} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500">
+                      <label htmlFor="firm-name" className="text-xs font-bold text-slate-500">
                         Firm Name
                       </label>
                       <input
+                        id="firm-name"
                         type="text"
                         required
                         value={firmConfig.firmName}
@@ -1831,14 +1836,16 @@ export default function ComplianceDashboard({
                             firmName: e.target.value,
                           })
                         }
+                        placeholder="e.g. Greenstreet Capital"
                         className="w-full px-4 py-2.5 bg-slate-50 focus:bg-white border rounded-xl outline-none text-xs sm:text-sm transition text-[#004041]"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500">
+                      <label htmlFor="advisory-crd" className="text-xs font-bold text-slate-500">
                         Advisory SEC CRD ID
                       </label>
                       <input
+                        id="advisory-crd"
                         type="text"
                         required
                         value={firmConfig.advisoryCRD}
@@ -1848,6 +1855,7 @@ export default function ComplianceDashboard({
                             advisoryCRD: e.target.value,
                           })
                         }
+                        placeholder="e.g. 123456"
                         className="w-full px-4 py-2.5 bg-slate-50 focus:bg-white border rounded-xl outline-none text-xs sm:text-sm font-mono tracking-tight transition text-[#004041]"
                       />
                     </div>
@@ -1855,10 +1863,12 @@ export default function ComplianceDashboard({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500">
+                      <label htmlFor="primary-regulator" className="text-xs font-bold text-slate-500">
                         Primary Regulator
                       </label>
                       <select
+                        id="primary-regulator"
+                        title="Select primary regulator"
                         value={firmConfig.primaryRegulator}
                         onChange={(e) =>
                           setFirmConfig({
@@ -1878,10 +1888,11 @@ export default function ComplianceDashboard({
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500">
+                      <label htmlFor="allowed-licenses" className="text-xs font-bold text-slate-500">
                         Permitted Advisor Registrations
                       </label>
                       <input
+                        id="allowed-licenses"
                         type="text"
                         required
                         value={firmConfig.allowedLicenses}
@@ -1891,16 +1902,18 @@ export default function ComplianceDashboard({
                             allowedLicenses: e.target.value,
                           })
                         }
+                        placeholder="e.g. Series 65, Series 66"
                         className="w-full px-4 py-2.5 bg-slate-50 focus:bg-white border rounded-xl outline-none text-xs sm:text-sm transition text-[#004041]"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500">
+                    <label htmlFor="auto-disclaimer" className="text-xs font-bold text-slate-500">
                       Default appending disclaimer text warnings:
                     </label>
                     <textarea
+                      id="auto-disclaimer"
                       rows={3}
                       required
                       value={firmConfig.autoDisclaimer}
@@ -1910,6 +1923,7 @@ export default function ComplianceDashboard({
                           autoDisclaimer: e.target.value,
                         })
                       }
+                      placeholder="Enter legal disclaimer text..."
                       className="w-full p-4 bg-slate-50 border focus:border-mint rounded-xl outline-none text-xs sm:text-sm font-mono transition text-[#004041]"
                     />
                   </div>

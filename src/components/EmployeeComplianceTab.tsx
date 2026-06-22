@@ -68,7 +68,7 @@ export default function EmployeeComplianceTab() {
         </div>
         
         <div className="bg-[#fbfcfa] border border-midnight-green/10 p-6 rounded-xl shadow-sm flex items-center gap-4 transition hover:border-midnight-green/20">
-          <div className="w-12 h-12 bg-emerald/20 text-[#006565] rounded-lg flex items-center justify-center">
+          <div className="w-12 h-12 bg-emerald/20 text-rain-forest rounded-lg flex items-center justify-center">
             <CheckCircle className="w-5 h-5" />
           </div>
           <div>
@@ -113,6 +113,7 @@ export default function EmployeeComplianceTab() {
                 <label className="text-xs font-bold text-midnight-green/70 mb-1 block">Action</label>
                 <select 
                   value={action}
+                  title="Select action type"
                   onChange={e => setAction(e.target.value as "BUY" | "SELL")}
                   className="w-full px-3 py-2.5 bg-mint/10 border border-midnight-green/15 rounded-lg outline-none focus:border-emerald text-sm font-semibold text-midnight-green"
                 >
