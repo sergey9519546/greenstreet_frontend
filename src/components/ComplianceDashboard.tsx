@@ -36,6 +36,9 @@ import React, { useEffect, useState } from "react";
 import { auth, db, loginWithGoogle, logoutUser } from "../firebase";
 import { AuditLog, ComplianceReviewResponse, GroundingSource } from "../types";
 import EmployeeComplianceTab from "./EmployeeComplianceTab";
+import FirmComplianceTab from "./FirmComplianceTab";
+import ThirdPartyComplianceTab from "./ThirdPartyComplianceTab";
+import CommunicationsArchiveTab from "./CommunicationsArchiveTab";
 
 // Helper to determine tailwind severity color classes
 const getSeverityClass = (sev: string) => {
@@ -2180,59 +2183,11 @@ export default function ComplianceDashboard({
             {/* NEW MODULES PLACEHOLDERS */}
             {activeTab === "employee" && <EmployeeComplianceTab />}
 
-            {activeTab === "firm" && (
-              <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="p-12 bg-white border border-slate-100 rounded-2xl shadow-sm text-center my-8"
-              >
-                <Shield className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-display font-extrabold text-[#004041] mb-2">
-                  Firm Compliance
-                </h3>
-                <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  This module will handle Regulatory Calendars, Policies &
-                  Procedures, and Task Management.
-                </p>
-              </motion.div>
-            )}
+            {activeTab === "firm" && <FirmComplianceTab />}
 
-            {activeTab === "vendors" && (
-              <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="p-12 bg-white border border-slate-100 rounded-2xl shadow-sm text-center my-8"
-              >
-                <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-display font-extrabold text-[#004041] mb-2">
-                  Third Party Risk
-                </h3>
-                <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  This module will handle Vendor Due Diligence and Risk
-                  Assessments.
-                </p>
-              </motion.div>
-            )}
+            {activeTab === "vendors" && <ThirdPartyComplianceTab />}
 
-            {activeTab === "archive" && (
-              <motion.div
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="p-12 bg-white border border-slate-100 rounded-2xl shadow-sm text-center my-8"
-              >
-                <History className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-display font-extrabold text-[#004041] mb-2">
-                  Communications Archive
-                </h3>
-                <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  This module will handle Email, Slack, and Teams 17a-4
-                  compliant archiving with smart lexicons.
-                </p>
-              </motion.div>
-            )}
+            {activeTab === "archive" && <CommunicationsArchiveTab />}
           </AnimatePresence>
         </div>
 
