@@ -1,0 +1,22 @@
+`(function(){\n
+  (function() {
+    var el = document.getElementById('hs-booking');
+    var src = el.dataset.src;
+    var email = '';
+    if (email) {
+      src += '&email=' + encodeURIComponent(email);
+    }
+
+    // Append current page as source
+    var sourcePage = window.location.pathname
+      .replace(/^\\\\\\/|\\\\\\/\\\$/g, '')  // strip leading/trailing slashes
+      .replace(/\\//g, '_')      // replace inner slashes with underscores
+      || 'homepage';
+    src += '&source=' + encodeURIComponent(sourcePage);
+
+    if (window.location.search) {
+      src += window.location.search.replace('?', '&');
+    }
+    el.dataset.src = src;
+  })();
+\n})();`
