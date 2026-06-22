@@ -504,7 +504,30 @@ export default function MarketingSite(props: {
      data-src="https://meetings-na2.hubspot.com/mark-michael/greenboard-book-a-demo-page?embed=true"
      style={{ minWidth: "320px", maxHeight: "800px" }}>
 </div>
-<SafeScript     attrs={``}     code={"(function(){\n\n  (function() {\n    var el = document.getElementById('hs-booking');\n    var src = el.dataset.src;\n    var email = '';\n    if (email) {\n      src += '&email=' + encodeURIComponent(email);\n    }\n\n    // Append current page as source\n    var sourcePage = window.location.pathname\n      .replace(/^\\/|\\/$/g, '')  // strip leading/trailing slashes\n      .replace(/\\//g, '_')      // replace inner slashes with underscores\n      || 'homepage';\n    src += '&source=' + encodeURIComponent(sourcePage);\n\n    if (window.location.search) {\n      src += window.location.search.replace('?', '&');\n    }\n    el.dataset.src = src;\n  })();\n\n})();"} />
+<SafeScript     attrs={``}     code={`(function(){
+
+  (function() {
+    var el = document.getElementById('hs-booking');
+    var src = el.dataset.src;
+    var email = '';
+    if (email) {
+      src += '&email=' + encodeURIComponent(email);
+    }
+
+    // Append current page as source
+    var sourcePage = window.location.pathname
+      .replace(/^\/|\/$/g, '')  // strip leading/trailing slashes
+      .replace(/\//g, '_')      // replace inner slashes with underscores
+      || 'homepage';
+    src += '&source=' + encodeURIComponent(sourcePage);
+
+    if (window.location.search) {
+      src += window.location.search.replace('?', '&');
+    }
+    el.dataset.src = src;
+  })();
+
+})();`} />
 <script  type="text/javascript" src="https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js"  />
 {/* End of Meetings Embed Script */}</div></div><div className="booking-popup-bk"></div></div><div data-wf--calendly-popup---partner--variant="base" className="booking-popup-wrap is-partner"><div className="booking-popup"><div className="booking-embed w-embed w-iframe w-script">{/* Start of Meetings Embed Script */}
 <style>{}</style>
@@ -513,16 +536,783 @@ export default function MarketingSite(props: {
      data-src="https://meetings-na2.hubspot.com/mark-michael/greenboard-book-a-demo-page?embed=true"
      style={{ minWidth: "320px", minHeight: "800px" }}>
 </div>
-<SafeScript     attrs={``}     code={"(function(){\n\n  (function() {\n    var el = document.getElementById('hs-booking');\n    var src = el.dataset.src;\n    var email = '';\n    if (email) {\n      src += '&email=' + encodeURIComponent(email);\n    }\n    if (window.location.search) {\n      src += window.location.search.replace('?', '&');\n    }\n    el.dataset.src = src;\n  })();\n\n})();"} />
+<SafeScript     attrs={``}     code={`(function(){
+
+  (function() {
+    var el = document.getElementById('hs-booking');
+    var src = el.dataset.src;
+    var email = '';
+    if (email) {
+      src += '&email=' + encodeURIComponent(email);
+    }
+    if (window.location.search) {
+      src += window.location.search.replace('?', '&');
+    }
+    el.dataset.src = src;
+  })();
+
+})();`} />
 <script  type="text/javascript" src="https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js"  />
 {/* End of Meetings Embed Script */}</div></div><div className="booking-popup-bk"></div></div></div><div className="soa-form-popup"><div className="div-block-28"><div className="solution_wrap"><div className="solution_contain u-container"><div className="form-popup-content u-theme-light"><div className="solution_content"><div className="div-block-29"><h2 className="u-text-style-h2"><strong>Get The System of Action Whitepaper<br/></strong></h2><div><strong>‍</strong>Or learn more <a href="/blog/system-of-action">here</a></div></div><div className="form_main_wrap w-form"><form id="wf-form-System-Action-Form" name="wf-form-System-Action-Form" data-name="System Action Form" method="get" className="form_main_list" data-wf-page-id="67d0a8a9156b7b7bd46ffdee" data-wf-element-id="36c3eccc-d02e-516c-90f8-10b76b19eeec"><label className="form_main_field_wrap"><input className="form_main_field_input w-input" maxLength="256" name="firstname" data-name="firstname" placeholder="First name" type="text" id="firstname" required=""/></label><label className="form_main_field_wrap"><input className="form_main_field_input w-input" maxLength="256" name="lastname" data-name="lastname" placeholder="Last name" type="text" id="lastname" required=""/></label><label className="form_main_field_wrap"><input className="form_main_field_input w-input" maxLength="256" name="Email" data-name="Email" placeholder="Email" type="email" id="Email" required=""/></label><button id="" className="u-btn-group u-mt-7"><div data-wf--btn-main--style="secondary" className="btn_main_wrap w-variant-e85564cd-af30-a478-692b-71732aefb3ab"><div aria-hidden="true" className="btn_main_text">Submit</div><div className="btn-arrow-wrap"><div className="btn_main_icon w-embed"><svg width="100%" height="100%" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"/>
-</svg></div></div></div></button></form><div className="form_main_success_wrap w-form-done"><div className="form_main_success_text u-text-style-large">The whitepaper will be sent to your email inbox shortly!</div></div><div className="form_main_error_wrap w-form-fail"><div className="form_main_error_text">Oops! Something went wrong while submitting the form.</div></div></div></div></div></div></div></div><div className="form-poopup-bk"></div></div></div><script  src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=67d0a8a9156b7b7bd46ffdfd" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossOrigin="anonymous"  /><script  src="https://cdn.prod.website-files.com/67d0a8a9156b7b7bd46ffdfd/js/greenboard-00.schunk.57706da51b32327c.js" type="text/javascript" integrity="sha384-DdGVyYD82VuxNgcdOSKeQxyJJO3TzzQJDZygqOeEl/MFgYsfK5JdgRbBhKhQqn5R" crossOrigin="anonymous"  /><script  src="https://cdn.prod.website-files.com/67d0a8a9156b7b7bd46ffdfd/js/greenboard-00.0d162371.8614de198f9d7870.js" type="text/javascript" integrity="sha384-YD3vxTUHpuKt36ak3jRiHaigAahCXLJmuOazCcJipWVonZoVFOsFDZTfsX6QBzdX" crossOrigin="anonymous"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/gsap.min.js" type="text/javascript"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/ScrollTrigger.min.js" type="text/javascript"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/Observer.min.js" type="text/javascript"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/Flip.min.js" type="text/javascript"  /><SafeScript     attrs={`type="text/javascript" `}     code={"(function(){\ngsap.registerPlugin(ScrollTrigger,Observer,Flip);\n})();"} /><script  src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"  />
+</svg></div></div></div></button></form><div className="form_main_success_wrap w-form-done"><div className="form_main_success_text u-text-style-large">The whitepaper will be sent to your email inbox shortly!</div></div><div className="form_main_error_wrap w-form-fail"><div className="form_main_error_text">Oops! Something went wrong while submitting the form.</div></div></div></div></div></div></div></div><div className="form-poopup-bk"></div></div></div><script  src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=67d0a8a9156b7b7bd46ffdfd" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossOrigin="anonymous"  /><script  src="https://cdn.prod.website-files.com/67d0a8a9156b7b7bd46ffdfd/js/greenboard-00.schunk.57706da51b32327c.js" type="text/javascript" integrity="sha384-DdGVyYD82VuxNgcdOSKeQxyJJO3TzzQJDZygqOeEl/MFgYsfK5JdgRbBhKhQqn5R" crossOrigin="anonymous"  /><script  src="https://cdn.prod.website-files.com/67d0a8a9156b7b7bd46ffdfd/js/greenboard-00.0d162371.8614de198f9d7870.js" type="text/javascript" integrity="sha384-YD3vxTUHpuKt36ak3jRiHaigAahCXLJmuOazCcJipWVonZoVFOsFDZTfsX6QBzdX" crossOrigin="anonymous"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/gsap.min.js" type="text/javascript"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/ScrollTrigger.min.js" type="text/javascript"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/Observer.min.js" type="text/javascript"  /><script  src="https://cdn.prod.website-files.com/gsap/3.15.0/Flip.min.js" type="text/javascript"  /><SafeScript     attrs={`type="text/javascript" `}     code={`(function(){
+gsap.registerPlugin(ScrollTrigger,Observer,Flip);
+})();`} /><script  src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"  />
 {/* [Attributes by Finsweet] CMS Filter */}
 <script  async src="https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsfilter@1/cmsfilter.js"  />
 {/* [Attributes by Finsweet] CMS Load */}
 <script  async src="https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsload@1/cmsload.js"  /> 
-<SafeScript     attrs={``}     code={"(function(){\n\n  \n  $('.announcement-close').on('click', function () {\n  $('.announcement').hide();\n});\n\n// console.log('allo')\ngsap.registerPlugin(ScrollTrigger);\nlet lenis;\nlet showAnim;\nlet mm = gsap.matchMedia();\nfunction isSafari() {\n  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);\n}\n\n//Desktop Only\nmm.add(\"(min-width: 992px)\", () => {\n  //NAVBAR BUTTON REVEAL ON SCROLL\n  gsap.set(\".nav-btn\", { minWidth: \"0rem\" });\n\n  let tlNavbar = gsap.timeline({\n    paused: true,\n    defaults: { ease: \"power3.out\" },\n  });\n  tlNavbar.to(\".nav-btn\", { minWidth: \"14rem\", duration: 0.55 });\n\n  ScrollTrigger.create({\n    trigger: \"body\",\n    start: \"top+=75 top\",\n    onEnter: () => tlNavbar.play(),\n    onLeaveBack: () => {\n      gsap.to(\".nav-btn .btn_main_wrap\", {\n        opacity: 0,\n        duration: 0.15,\n      });\n      gsap.to(\".nav-btn\", {\n        minWidth: \"0rem\",\n        duration: 0.55,\n        ease: 'power3.out',\n        onComplete: () => {\n          gsap.set(\".nav-btn .btn_main_wrap\", {\n            opacity: 1,\n          });\n          tlNavbar.pause(0);\n        },\n      });\n    },\n  });\n});\n//Tablet Only\nmm.add(\"(max-width: 991px)\", () => {});\n\n// var lenisActive = false;\n// $(document).ready(function() {\n//         if (Webflow.env('editor') != undefined) {\n//           console.log('Editor is loaded: do not load custom js');\n//         } else\n//         if (!isSafari())\n//         {\n//         lenisActive = true;\n//         // Initialize Lenis\n//         const lenis = new Lenis({\n//         autoRaf: true,\n//         });\n\n// // Synchronize Lenis scrolling with GSAP's ScrollTrigger plugin\n// lenis.on('scroll', ScrollTrigger.update);\n\n// // Add Lenis's requestAnimationFrame (raf) method to GSAP's ticker\n// // This ensures Lenis's smooth scroll animation updates on each GSAP tick\n// gsap.ticker.add((time) => {\n//   lenis.raf(time * 1000); // Convert time from seconds to milliseconds\n// });\n\n// // Disable lag smoothing in GSAP to prevent any delay in scroll animations\n// gsap.ticker.lagSmoothing(0);\n\n//         }\n\n// });\n\n// function resetWebflow(data) {\n//   let dom = $(new DOMParser().parseFromString(data.next.html, \"text/html\")).find(\"html\");\n//   // reset webflow interactions\n//   $(\"html\").attr(\"data-wf-page\", dom.attr(\"data-wf-page\"));\n//   window.Webflow && window.Webflow.destroy();\n//   window.Webflow && window.Webflow.ready();\n//   window.Webflow && window.Webflow.require(\"ix2\").init();\n//   // reset w--current class\n//   $(\".w--current\").removeClass(\"w--current\");\n//   $(\"a\").each(function () {\n//     if ($(this).attr(\"href\") === window.location.pathname) {\n//       $(this).addClass(\"w--current\");\n//     }\n//   });\n\n// }\n// barba.hooks.before((data) => {\n//   window.fsAttributes.destroy();\n// });\n// // Global hook running before any transition\n// barba.hooks.leave((data) => {\n\n// });\n// barba.hooks.enter((data) => {\n//   // gsap.set(data.next.container, { position: \"fixed\", top: 0, left: 0, width: \"100%\" });\n// });\n// barba.hooks.after((data) => {\n\n//   // gsap.set(data.next.container, { position: \"relative\" });\n//   let triggers = gsap.utils.toArray(ScrollTrigger.getAll());\n//   triggers.forEach(trigger => {\n//   trigger.kill();\n//   });\n//   allpages();\n//   window.fsAttributes.cmsfilter.init();\n//   window.fsAttributes.cmsload.init();\n//   $(window).scrollTop(0);\n//   $('video[[autoPlay=\"true\"]=\"true\"]').each(function() {\n//     this.play();\n//   });\n//   resetWebflow(data);\n//   if (lenisActive) {\n//     lenis.scrollTo(0, {offset: 0, immediate: true, duration: 0})\n//     } else {\n//     window.scrollTo(0, 0);\n//     }\n\n// });\n\n// barba.init({\n//   preventRunning: true,\n//   timeout: 5000,\n//   transitions: [{\n//     name: 'transition',\n//     before(){\n//     },\n//     leave(data) {\n//       return gsap.to(data.current.container, {\n//         // opacity: 0,\n//         duration: 0.3,\n//         ease: Expo.easeIn,\n//       });\n// },\n// enter(data) {\n//   gsap.from($(data.next.container).find('.u-container'), {\n//     // opacity: 0,\n//     duration: 3,\n//     ease: Expo.easeOut,\n//   });\n// },\n\n//       after(){\n//     }\n//   }\n// ],\n//   views: [\n//     {\n//       namespace: \"home\",\n//       afterEnter(data) {\n//       },\n//     },\n//     {\n//       namespace: \"about\",\n//       afterEnter(data) {\n//       },\n//     },\n//   ]\n// });\n\n// Dont refresh page on current link\nlet pagetitle;\nfunction allpages() {\n  //ANIMATION OF THE HAMB MENU\n  let menuClick = true;\n  let menuMobiletl = gsap.timeline({\n    paused: true,\n    defaults: {\n      duration: 0.4,\n      ease: \"power4.inOut\",\n    },\n  });\n  menuMobiletl\n    .to(\".burger-line.middle\", {\n      marginTop: \"calc(0rem - 1px)\",\n      marginBottom: \"calc(0rem - 1px)\",\n    })\n    .set(\".burger-line.middle\", { opacity: 0, duration: 0.2 }, \"<0.2\")\n    .to(\".burger-line.top\", { rotate: \"45deg\" }, \"<\")\n    .to(\".burger-line.bottom\", { rotate: \"-45deg\" }, \"<\")\n    .set(\".menu-mobile-wrap\", { display: \"flex\" }, \"<\")\n    .from(\".menu-mobile-wrap\", { opacity: 0, duration: 0.2 }, \"<0.1\");\n  $(\".burger-wrap\").on(\"click\", function () {\n    if (menuClick) {\n      menuMobiletl.play();\n      menuClick = false;\n    } else {\n      menuMobiletl.reverse();\n      menuClick = true;\n    }\n  });\n\n  // $(\"a\").on(\"click\", function (e) {\n  //   pagetitle = $(this).find(\".page-title\").text();\n  //   let url = $(this).attr(\"href\");\n  //   let windowurl = window.location.pathname;\n  //   console.log(pagetitle);\n  //   if (url === windowurl) {\n  //     e.stopPropagation();\n  //     e.preventDefault();\n  //   }\n  // });\n\n  \n\n\n\n  $('[class*=\"drawer-top\"], [drawer-top]').on(\"click\", function () {\n    console.log('drawer')\n    var $element = $(this).closest(\".drawer-item, [drawer-parent]\");\n    var clickCount = $element.data(\"clickCount\") || 0; // Get the current click count or set it to 0\n\n    if (clickCount === 1) {\n      $element.removeClass(\"open\");\n      setTimeout(function () {\n        ScrollTrigger.refresh();\n      }, 600);\n    } else {\n      $element.siblings().removeClass(\"open\").data(\"clickCount\", 0);\n      $element.addClass(\"open\");\n      setTimeout(function () {\n        ScrollTrigger.refresh();\n      }, 600);\n    }\n\n    clickCount++;\n    if (clickCount > 1) clickCount = 0; // Reset the click count after the second click\n\n    $element.data(\"clickCount\", clickCount); // Store the updated click count\n  });\n\n  $(\".swiper\").each(function () {\n  let $swiper = $(this);\n\n  // 1) Try inside the swiper first\n  let prev = $swiper.find(\".is-prev\")[0];\n  let next = $swiper.find(\".is-next\")[0];\n  let nav  = $swiper.find(\".swiper-pagination\")[0];\n\n  // 2) Fallback: look inside parent .home-swiper-wrap\n  if (!prev || !next || !nav) {\n    let $wrap = $swiper.closest(\".home-swiper-wrap\");\n    if ($wrap.length) {\n      prev = prev || $wrap.find(\".is-prev\")[0];\n      next = next || $wrap.find(\".is-next\")[0];\n      nav  = nav  || $wrap.find(\".swiper-pagination\")[0];\n    }\n  }\n\n  // bail if empty collection\n  if ($swiper.find(\"div.w-dyn-empty\").length) return;\n\n  let loop = $swiper.data(\"loop\");\n  let centered = $swiper.data(\"centered\");\n  let axis = $swiper.data(\"axis\");\n  let autoPlay = $swiper.data(\"autoPlay\");\n  let speed = $swiper.data(\"speed\") || 600;\n  let delay = $swiper.data(\"delay\") || 5000;\n  let reverseDirection = $swiper.data(\"reverse\");\n\n  new Swiper($swiper.find(\".swiper-container\")[0], {\n    grabCursor: true,\n    speed: speed,\n    loop: loop,\n    autoPlay: autoPlay\n      ? {\n          delay: delay,\n          reverseDirection: reverseDirection === true ? true : undefined,\n        }\n      : false,\n    centeredSlides: centered,\n    slidesPerView: \"auto\",\n    slidesPerGroup: 1,\n    navigation: {\n      nextEl: next,\n      prevEl: prev,\n    },\n    mousewheel: {\n      forceToAxis: axis === false ? false : true,\n      invert: false,\n      sensitivity: 1.5,\n    },\n    pagination: {\n      el: nav,\n      clickable: true,\n    },\n  });\n});\n\n  //TESTIMONIAL HOVER\n  $(\".testimonial_logo_card_link\").hover(\n    function () {\n      // On hover in\n      var index = $(this).parent().index();\n      $(\".testimonial_card_client\").css(\"opacity\", \"0\"); // Reset all\n      $(\".testimonial_card_client\").eq(index).css(\"opacity\", \"1\");\n    },\n    function () {\n      // On hover out\n      $(\".testimonial_card_client\").css(\"opacity\", \"0\");\n    }\n  );\n\n  //SOLUTION LIST HOVER\n  $(\".solution_list .list-item\").hover(\n    function () {\n      // On hover in\n      var index = $(this).index();\n      $(\".solution_visual_wrap .g_visual_wrap\").css(\"opacity\", \"0\"); // Reset all\n      $(\".solution_visual_wrap .g_visual_wrap\")\n        .eq(index + 1)\n        .css(\"opacity\", \"1\");\n    },\n    function () {\n      // On hover out\n      $(\".solution_visual_wrap .g_visual_wrap\").css(\"opacity\", \"0\"); // Reset all\n      $(\".solution_visual_wrap .g_visual_wrap\").first().css(\"opacity\", \"1\");\n    }\n  );\n\n  //HOW IT WORKS - STEPS SCROLL\n  $(\".step_height\").each(function (index) {\n    let wrap = $(this);\n    let cardList = wrap.find(\".step-cards-list\");\n\n    let tl = gsap.timeline({\n      scrollTrigger: {\n        trigger: wrap,\n        start: \"top -10%\",\n        end: \"bottom 110%\",\n        scrub: 0.1,\n        invalidateOnRefresh: true, // ðŸ’¡ ensures values are recalculated on resize/refresh\n      },\n      defaults: { ease: \"none\" },\n    });\n\n    tl.to(cardList, {\n      xPercent: -100,\n      x: () => {\n        let tabWidth =\n          wrap.find(\".step_tab_content_list_wrap\").outerWidth() || 0;\n        return tabWidth;\n      },\n    });\n  });\n  $(\".scroll-horizontal-trigger\").each(function (index) {\n    const $trigger = $(this);\n\n    // Get the corresponding .step_tab_link\n    const $stepTabLink = $(\".step_tab_link\").eq(index);\n    const $highlight = $stepTabLink.find(\".step_tab_line_highlighted\");\n    const $content = $stepTabLink.find(\".step_tab_link_content\");\n    const $icon = $stepTabLink.find(\".step_tab_link_icon\");\n\n    // Highlight line animation (width)\n    gsap.fromTo(\n      $highlight[0],\n      { width: \"0%\" },\n      {\n        width: \"100%\",\n        scrollTrigger: {\n          trigger: $trigger[0],\n          start: \"top center\",\n          end: \"bottom center\",\n          scrub: true,\n        },\n      }\n    );\n\n    // Timeline for content slide + icon fade\n    const tl = gsap.timeline({\n      scrollTrigger: {\n        trigger: $trigger[0],\n        start: \"top center\",\n        end: \"top top\",\n        scrub: true,\n      },\n    });\n\n    tl.fromTo(\n      $content[0],\n      { x: \"-1.85rem\" },\n      { x: \"0rem\", ease: \"power2.out\" },\n      0\n    )\n      .fromTo($icon[0], { opacity: 0 }, { opacity: 1, ease: \"power2.out\" }, 0)\n      .fromTo(\n        $stepTabLink[0],\n        { opacity: 0.5 },\n        { opacity: 1, ease: \"power2.out\" },\n        0\n      );\n\n    // NEW: Animate visual image\n    const $contentWrap = $(\".step_tab_content_list_wrap\").eq(index);\n    const $image = $contentWrap.find(\".step_tab_content_visual_image\");\n\n    let fromX = 25;\n    let toX = -25;\n    let start = \"top bottom\";\n    let end = \"bottom top\";\n\n    // First item special case\n    if (index === 0) {\n      fromX = 0;\n      toX = -25;\n      start = \"top top\";\n      end = \"bottom top\";\n    }\n\n    // Last item special case\n    const isLast = index === $(\".scroll-horizontal-trigger\").length - 1;\n    if (isLast) {\n      fromX = 25;\n      toX = 0;\n      start = \"top bottom\";\n      end = \"top top\";\n    }\n\n    gsap.fromTo(\n      $image[0],\n      { xPercent: fromX },\n      {\n        xPercent: toX,\n        ease: \"none\",\n        scrollTrigger: {\n          trigger: $trigger[0],\n          start: start,\n          end: end,\n          scrub: true,\n        },\n      }\n    );\n  });\n\n\n  $(\".scroll-horizontal-trigger\").each(function (index) {\n    const $trigger = $(this);\n    const $layout = $(\".step_layout\");\n    const $wrap = $(\".step_tab_content_list_wrap\").eq(index);\n  \n    ScrollTrigger.create({\n      trigger: $trigger[0],\n      start: \"top center\",\n      end: \"bottom center\",\n      onEnter: () => applyColors(index),\n      onEnterBack: () => applyColors(index)\n    });\n  \n    function applyColors(idx) {\n      const $targetWrap = $(\".step_tab_content_list_wrap\").eq(idx);\n      const textColor = $targetWrap.data(\"color\");\n      const bgColor = $targetWrap.data(\"background\");\n  \n      if (textColor && bgColor) {\n        gsap.to($layout, {\n          backgroundColor: \"#\" + bgColor,\n          color: \"#\" + textColor,\n          duration: 0.5,\n          overwrite: \"auto\",\n          ease: \"power2.out\"\n        });\n      }\n    }\n  });\n\n// --- OLD CALENDLY LOGIC ---\n  \n// helper: one timeline per popup (scoped)\n//function createCalendlyTL($wrap) {\n//  const $bk    = $wrap.find('.calendly-popup-bk');\n//  const $popup = $wrap.find('.calendly-popup');\n\n//  const tl = gsap.timeline({ paused: true });\n//  tl.set($wrap, { display: 'flex' })\n//    .fromTo($bk,    { opacity: 0 }, { opacity: 0.4, duration: 0.3 }, 0)\n//    .fromTo($popup, { yPercent: 20, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);\n\n//  $bk.on('click', () => tl.reverse());\n//  tl.eventCallback('onReverseComplete', () => $wrap.css('display', 'none'));\n\n//  return tl;\n//}\n \n\n// timelines\n//const calendlyDemoTL    = createCalendlyTL($('.calendly-popup-wrap.is-bookdemo'));\n//const calendlyPartnerTL = createCalendlyTL($('.calendly-popup-wrap.is-partner'));\n\n// triggers\n//$('a[href*=\"book-a-demo\"]').on('click', function (e) {\n//  e.preventDefault();\n//  calendlyDemoTL.play(0);\n//});\n//\n//$('a[href=\"/become-a-partner\"]').on('click', function (e) {\n//  e.preventDefault();\n//  calendlyPartnerTL.play(0);\n//});\n  \n// --- OLD CALENDLY LOGIC ---\n\n\n// --- HUBSPOT MEETINGS REDIRECT ---\n  $('a[href*=\"book-a-demo\"], a[href*=\"book-demo\"]').on('click', function(e) {\n    if ($(this).attr('href').includes('partner')) return;\n\n    e.preventDefault();\n\n    var email = $(\".hero_form_field_input\").val() || \"\";\n    var url = new URL(this.href, window.location.origin);\n\n    if (email) {\n      url.searchParams.set('email', email);\n    }\n\n    var currentParams = new URLSearchParams(window.location.search);\n    currentParams.forEach(function(value, key) {\n      if (!url.searchParams.has(key)) {\n        url.searchParams.set(key, value);\n      }\n    });\n\n    window.location.href = url.toString();\n  });\n  // --- END HUBSPOT MEETINGS REDIRECT ---\n\n  \n\n  //TEXT ROTATE WORDS\n  $(\"[text-rotate]\").each(function () {\n    const words = [\n      \"informed\",\n      \"consistent\",\n      \"efficient\",\n      \"diligent\",\n    ];\n    const $wordSpan = $(this);\n    let index = 0;\n\n    function changeWord() {\n      // Animate out current word\n      gsap.to($wordSpan, {\n        duration: 0.4,\n        opacity: 0,\n        y: -10,\n        onComplete: function () {\n          // Update word\n          index = (index + 1) % words.length;\n          $wordSpan.text(words[index]);\n\n          // Animate in new word\n          gsap.to($wordSpan, {\n            duration: 0.4,\n            opacity: 1,\n            y: 0,\n          });\n        },\n      });\n    }\n\n    // Loop every 2.5 seconds\n    setInterval(changeWord, 2500);\n  });\n\n  //USE CASE LIST\n  $(\".usecase_sticky_wrap\").each(function () {\n    const toY = $(this).find(\".usecase_card_wrap\").length - 1;\n    const line = $(this).find(\".usecase_card_line\");\n\n    gsap.set(line, { height: \"0%\" });\n    gsap\n      .timeline({\n        scrollTrigger: {\n          trigger: $(this),\n          start: \"top top\",\n          end: \"bottom bottom\",\n          scrub: true,\n        },\n      })\n      .to(\".usecase_card_wrap\", {\n        yPercent: -toY * 100,\n        ease: \"none\",\n      })\n      .to(line, { height: \"100%\", ease: \"none\" }, \"<\");\n  });\n\n  //TEAM IMAGES LIST\n  $(\".team_wrap\").each(function () {\n    const $root = $(this);\n    const $pinHeight = $root.find(\".team_sticky_wrap\");\n    const $container = $root.find(\".team_sticky\");\n\n    ScrollTrigger.create({\n      trigger: $pinHeight[0],\n      start: \"top top\",\n      end: \"bottom bottom\",\n      pin: $container[0],\n    });\n\n    let gap = 30;\n    const $images = $root.find(\".team_image\");\n    const distPerImage =\n      ($pinHeight.outerHeight() - window.innerHeight) / $images.length;\n\n    gsap.set($images, {\n      y: -gap * ($images.length - 1),\n      z: -gap * ($images.length - 1),\n    });\n\n    $images.each(function (index) {\n      const image = this;\n\n      const tl = gsap.timeline({\n        scrollTrigger: {\n          trigger: $pinHeight[0],\n          start: \"top top+=\" + distPerImage * index,\n          end: \"bottom bottom+=\" + distPerImage * index,\n          scrub: 0.5,\n        },\n      });\n\n      for (let i = 0; i < $images.length - 1; i++) {\n        tl.to(image, {\n          y: \"+=\" + gap,\n          z: \"+=\" + gap,\n          ease: \"back.inOut(3)\",\n        });\n      }\n\n      tl.to(image, {\n        yPercent: 80,\n        y: \"50vh\",\n        scale: 1.2,\n        rotation: (Math.random() - 0.5) * 50,\n        ease: \"power4.in\",\n      });\n    });\n  });\n}\nallpages();\n\n// // Animation Scroll\n// $(\".section\").each(function() {\n//   // Create a GSAP timeline for the section\n//   let tl = gsap.timeline({\n//     scrollTrigger: {\n//       trigger: $(this),\n//       start: \"top bottom\",\n//       end: \"bottom top\",\n//       scrub: true,\n//       // toggleActions: \"play none reverse none\",\n//     }\n//   });\n//   tl\n//   .from($(this).find(\".line\"), {\n//     opacity: 0,\n//     y: '1rem',\n//     duration: 0.25,\n//     stagger: 0.05,\n//     ease: Expo.easeOut,\n//   })\n// });\n\nfunction socialShare() {\n  var postUrl = window.location.href;\n  var postTitle = document.title;\n\n  // Set social share links\n  $(\".social-share .facebook\").attr(\n    \"href\",\n    \"https://www.facebook.com/sharer/sharer.php?u=\" +\n      encodeURIComponent(postUrl)\n  );\n\n  $(\".social-share .twitter\").attr(\n    \"href\",\n    \"https://twitter.com/intent/tweet?url=\" +\n      encodeURIComponent(postUrl) +\n      \"&text=\" +\n      encodeURIComponent(postTitle)\n  );\n\n  $(\".social-share .linkedin\").attr(\n    \"href\",\n    \"https://www.linkedin.com/sharing/share-offsite/?url=\" +\n      encodeURIComponent(postUrl)\n  );\n\n  // Copy link to clipboard\n  $(\".social-share .copy-link\").on(\"click\", function (e) {\n    e.preventDefault(); // Prevent default link behavior\n\n    navigator.clipboard\n      .writeText(postUrl)\n      .then(function () {\n        alert(\"Link copied to clipboard!\");\n      })\n      .catch(function (err) {\n        console.error(\"Failed to copy: \", err);\n      });\n  });\n}\nsocialShare();\n\n// When .feature_layout reaches 6.5rem from top, scrub opacity and scale of previous .feature_layout\n$(\".feature_layout\").each(function (i, el) {\n  gsap\n    .timeline({\n      scrollTrigger: {\n        trigger: el,\n        start: \"top center\",\n        end: \"top 20%\",\n        // markers: true,\n        scrub: 1,\n      },\n    })\n    .to($(el).prev(\".feature_layout\"), {\n      // opacity: 0.4,\n      scale: 0.9,\n      ease: \"none\",\n    })\n    .to($(el).prev(\".feature_layout\").find('.feature_content, .feature_visual_wrap'), {\n      // opacity: 0.4,\n      scale: 0.97,\n      ease: \"none\",\n    },'<')\n    .to(\n      $(el).prev(\".feature_layout\").find(\".op-abs\"),\n      {\n        opacity: 0.8,\n        // scale: 0.9,\n        ease: \"none\",\n      },\n      \"<\"\n    );\n});\n\n\n})();"} />
+<SafeScript     attrs={``}     code={`(function(){
+
+  
+  $('.announcement-close').on('click', function () {
+  $('.announcement').hide();
+});
+
+// console.log('allo')
+gsap.registerPlugin(ScrollTrigger);
+let lenis;
+let showAnim;
+let mm = gsap.matchMedia();
+function isSafari() {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
+//Desktop Only
+mm.add("(min-width: 992px)", () => {
+  //NAVBAR BUTTON REVEAL ON SCROLL
+  gsap.set(".nav-btn", { minWidth: "0rem" });
+
+  let tlNavbar = gsap.timeline({
+    paused: true,
+    defaults: { ease: "power3.out" },
+  });
+  tlNavbar.to(".nav-btn", { minWidth: "14rem", duration: 0.55 });
+
+  ScrollTrigger.create({
+    trigger: "body",
+    start: "top+=75 top",
+    onEnter: () => tlNavbar.play(),
+    onLeaveBack: () => {
+      gsap.to(".nav-btn .btn_main_wrap", {
+        opacity: 0,
+        duration: 0.15,
+      });
+      gsap.to(".nav-btn", {
+        minWidth: "0rem",
+        duration: 0.55,
+        ease: 'power3.out',
+        onComplete: () => {
+          gsap.set(".nav-btn .btn_main_wrap", {
+            opacity: 1,
+          });
+          tlNavbar.pause(0);
+        },
+      });
+    },
+  });
+});
+//Tablet Only
+mm.add("(max-width: 991px)", () => {});
+
+// var lenisActive = false;
+// $(document).ready(function() {
+//         if (Webflow.env('editor') != undefined) {
+//           console.log('Editor is loaded: do not load custom js');
+//         } else
+//         if (!isSafari())
+//         {
+//         lenisActive = true;
+//         // Initialize Lenis
+//         const lenis = new Lenis({
+//         autoRaf: true,
+//         });
+
+// // Synchronize Lenis scrolling with GSAP's ScrollTrigger plugin
+// lenis.on('scroll', ScrollTrigger.update);
+
+// // Add Lenis's requestAnimationFrame (raf) method to GSAP's ticker
+// // This ensures Lenis's smooth scroll animation updates on each GSAP tick
+// gsap.ticker.add((time) => {
+//   lenis.raf(time * 1000); // Convert time from seconds to milliseconds
+// });
+
+// // Disable lag smoothing in GSAP to prevent any delay in scroll animations
+// gsap.ticker.lagSmoothing(0);
+
+//         }
+
+// });
+
+// function resetWebflow(data) {
+//   let dom = $(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
+//   // reset webflow interactions
+//   $("html").attr("data-wf-page", dom.attr("data-wf-page"));
+//   window.Webflow && window.Webflow.destroy();
+//   window.Webflow && window.Webflow.ready();
+//   window.Webflow && window.Webflow.require("ix2").init();
+//   // reset w--current class
+//   $(".w--current").removeClass("w--current");
+//   $("a").each(function () {
+//     if ($(this).attr("href") === window.location.pathname) {
+//       $(this).addClass("w--current");
+//     }
+//   });
+
+// }
+// barba.hooks.before((data) => {
+//   window.fsAttributes.destroy();
+// });
+// // Global hook running before any transition
+// barba.hooks.leave((data) => {
+
+// });
+// barba.hooks.enter((data) => {
+//   // gsap.set(data.next.container, { position: "fixed", top: 0, left: 0, width: "100%" });
+// });
+// barba.hooks.after((data) => {
+
+//   // gsap.set(data.next.container, { position: "relative" });
+//   let triggers = gsap.utils.toArray(ScrollTrigger.getAll());
+//   triggers.forEach(trigger => {
+//   trigger.kill();
+//   });
+//   allpages();
+//   window.fsAttributes.cmsfilter.init();
+//   window.fsAttributes.cmsload.init();
+//   $(window).scrollTop(0);
+//   $('video[[autoPlay="true"]="true"]').each(function() {
+//     this.play();
+//   });
+//   resetWebflow(data);
+//   if (lenisActive) {
+//     lenis.scrollTo(0, {offset: 0, immediate: true, duration: 0})
+//     } else {
+//     window.scrollTo(0, 0);
+//     }
+
+// });
+
+// barba.init({
+//   preventRunning: true,
+//   timeout: 5000,
+//   transitions: [{
+//     name: 'transition',
+//     before(){
+//     },
+//     leave(data) {
+//       return gsap.to(data.current.container, {
+//         // opacity: 0,
+//         duration: 0.3,
+//         ease: Expo.easeIn,
+//       });
+// },
+// enter(data) {
+//   gsap.from($(data.next.container).find('.u-container'), {
+//     // opacity: 0,
+//     duration: 3,
+//     ease: Expo.easeOut,
+//   });
+// },
+
+//       after(){
+//     }
+//   }
+// ],
+//   views: [
+//     {
+//       namespace: "home",
+//       afterEnter(data) {
+//       },
+//     },
+//     {
+//       namespace: "about",
+//       afterEnter(data) {
+//       },
+//     },
+//   ]
+// });
+
+// Dont refresh page on current link
+let pagetitle;
+function allpages() {
+  //ANIMATION OF THE HAMB MENU
+  let menuClick = true;
+  let menuMobiletl = gsap.timeline({
+    paused: true,
+    defaults: {
+      duration: 0.4,
+      ease: "power4.inOut",
+    },
+  });
+  menuMobiletl
+    .to(".burger-line.middle", {
+      marginTop: "calc(0rem - 1px)",
+      marginBottom: "calc(0rem - 1px)",
+    })
+    .set(".burger-line.middle", { opacity: 0, duration: 0.2 }, "<0.2")
+    .to(".burger-line.top", { rotate: "45deg" }, "<")
+    .to(".burger-line.bottom", { rotate: "-45deg" }, "<")
+    .set(".menu-mobile-wrap", { display: "flex" }, "<")
+    .from(".menu-mobile-wrap", { opacity: 0, duration: 0.2 }, "<0.1");
+  $(".burger-wrap").on("click", function () {
+    if (menuClick) {
+      menuMobiletl.play();
+      menuClick = false;
+    } else {
+      menuMobiletl.reverse();
+      menuClick = true;
+    }
+  });
+
+  // $("a").on("click", function (e) {
+  //   pagetitle = $(this).find(".page-title").text();
+  //   let url = $(this).attr("href");
+  //   let windowurl = window.location.pathname;
+  //   console.log(pagetitle);
+  //   if (url === windowurl) {
+  //     e.stopPropagation();
+  //     e.preventDefault();
+  //   }
+  // });
+
+  
+
+
+
+  $('[class*="drawer-top"], [drawer-top]').on("click", function () {
+    console.log('drawer')
+    var $element = $(this).closest(".drawer-item, [drawer-parent]");
+    var clickCount = $element.data("clickCount") || 0; // Get the current click count or set it to 0
+
+    if (clickCount === 1) {
+      $element.removeClass("open");
+      setTimeout(function () {
+        ScrollTrigger.refresh();
+      }, 600);
+    } else {
+      $element.siblings().removeClass("open").data("clickCount", 0);
+      $element.addClass("open");
+      setTimeout(function () {
+        ScrollTrigger.refresh();
+      }, 600);
+    }
+
+    clickCount++;
+    if (clickCount > 1) clickCount = 0; // Reset the click count after the second click
+
+    $element.data("clickCount", clickCount); // Store the updated click count
+  });
+
+  $(".swiper").each(function () {
+  let $swiper = $(this);
+
+  // 1) Try inside the swiper first
+  let prev = $swiper.find(".is-prev")[0];
+  let next = $swiper.find(".is-next")[0];
+  let nav  = $swiper.find(".swiper-pagination")[0];
+
+  // 2) Fallback: look inside parent .home-swiper-wrap
+  if (!prev || !next || !nav) {
+    let $wrap = $swiper.closest(".home-swiper-wrap");
+    if ($wrap.length) {
+      prev = prev || $wrap.find(".is-prev")[0];
+      next = next || $wrap.find(".is-next")[0];
+      nav  = nav  || $wrap.find(".swiper-pagination")[0];
+    }
+  }
+
+  // bail if empty collection
+  if ($swiper.find("div.w-dyn-empty").length) return;
+
+  let loop = $swiper.data("loop");
+  let centered = $swiper.data("centered");
+  let axis = $swiper.data("axis");
+  let autoPlay = $swiper.data("autoPlay");
+  let speed = $swiper.data("speed") || 600;
+  let delay = $swiper.data("delay") || 5000;
+  let reverseDirection = $swiper.data("reverse");
+
+  new Swiper($swiper.find(".swiper-container")[0], {
+    grabCursor: true,
+    speed: speed,
+    loop: loop,
+    autoPlay: autoPlay
+      ? {
+          delay: delay,
+          reverseDirection: reverseDirection === true ? true : undefined,
+        }
+      : false,
+    centeredSlides: centered,
+    slidesPerView: "auto",
+    slidesPerGroup: 1,
+    navigation: {
+      nextEl: next,
+      prevEl: prev,
+    },
+    mousewheel: {
+      forceToAxis: axis === false ? false : true,
+      invert: false,
+      sensitivity: 1.5,
+    },
+    pagination: {
+      el: nav,
+      clickable: true,
+    },
+  });
+});
+
+  //TESTIMONIAL HOVER
+  $(".testimonial_logo_card_link").hover(
+    function () {
+      // On hover in
+      var index = $(this).parent().index();
+      $(".testimonial_card_client").css("opacity", "0"); // Reset all
+      $(".testimonial_card_client").eq(index).css("opacity", "1");
+    },
+    function () {
+      // On hover out
+      $(".testimonial_card_client").css("opacity", "0");
+    }
+  );
+
+  //SOLUTION LIST HOVER
+  $(".solution_list .list-item").hover(
+    function () {
+      // On hover in
+      var index = $(this).index();
+      $(".solution_visual_wrap .g_visual_wrap").css("opacity", "0"); // Reset all
+      $(".solution_visual_wrap .g_visual_wrap")
+        .eq(index + 1)
+        .css("opacity", "1");
+    },
+    function () {
+      // On hover out
+      $(".solution_visual_wrap .g_visual_wrap").css("opacity", "0"); // Reset all
+      $(".solution_visual_wrap .g_visual_wrap").first().css("opacity", "1");
+    }
+  );
+
+  //HOW IT WORKS - STEPS SCROLL
+  $(".step_height").each(function (index) {
+    let wrap = $(this);
+    let cardList = wrap.find(".step-cards-list");
+
+    let tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: wrap,
+        start: "top -10%",
+        end: "bottom 110%",
+        scrub: 0.1,
+        invalidateOnRefresh: true, // ðŸ’¡ ensures values are recalculated on resize/refresh
+      },
+      defaults: { ease: "none" },
+    });
+
+    tl.to(cardList, {
+      xPercent: -100,
+      x: () => {
+        let tabWidth =
+          wrap.find(".step_tab_content_list_wrap").outerWidth() || 0;
+        return tabWidth;
+      },
+    });
+  });
+  $(".scroll-horizontal-trigger").each(function (index) {
+    const $trigger = $(this);
+
+    // Get the corresponding .step_tab_link
+    const $stepTabLink = $(".step_tab_link").eq(index);
+    const $highlight = $stepTabLink.find(".step_tab_line_highlighted");
+    const $content = $stepTabLink.find(".step_tab_link_content");
+    const $icon = $stepTabLink.find(".step_tab_link_icon");
+
+    // Highlight line animation (width)
+    gsap.fromTo(
+      $highlight[0],
+      { width: "0%" },
+      {
+        width: "100%",
+        scrollTrigger: {
+          trigger: $trigger[0],
+          start: "top center",
+          end: "bottom center",
+          scrub: true,
+        },
+      }
+    );
+
+    // Timeline for content slide + icon fade
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: $trigger[0],
+        start: "top center",
+        end: "top top",
+        scrub: true,
+      },
+    });
+
+    tl.fromTo(
+      $content[0],
+      { x: "-1.85rem" },
+      { x: "0rem", ease: "power2.out" },
+      0
+    )
+      .fromTo($icon[0], { opacity: 0 }, { opacity: 1, ease: "power2.out" }, 0)
+      .fromTo(
+        $stepTabLink[0],
+        { opacity: 0.5 },
+        { opacity: 1, ease: "power2.out" },
+        0
+      );
+
+    // NEW: Animate visual image
+    const $contentWrap = $(".step_tab_content_list_wrap").eq(index);
+    const $image = $contentWrap.find(".step_tab_content_visual_image");
+
+    let fromX = 25;
+    let toX = -25;
+    let start = "top bottom";
+    let end = "bottom top";
+
+    // First item special case
+    if (index === 0) {
+      fromX = 0;
+      toX = -25;
+      start = "top top";
+      end = "bottom top";
+    }
+
+    // Last item special case
+    const isLast = index === $(".scroll-horizontal-trigger").length - 1;
+    if (isLast) {
+      fromX = 25;
+      toX = 0;
+      start = "top bottom";
+      end = "top top";
+    }
+
+    gsap.fromTo(
+      $image[0],
+      { xPercent: fromX },
+      {
+        xPercent: toX,
+        ease: "none",
+        scrollTrigger: {
+          trigger: $trigger[0],
+          start: start,
+          end: end,
+          scrub: true,
+        },
+      }
+    );
+  });
+
+
+  $(".scroll-horizontal-trigger").each(function (index) {
+    const $trigger = $(this);
+    const $layout = $(".step_layout");
+    const $wrap = $(".step_tab_content_list_wrap").eq(index);
+  
+    ScrollTrigger.create({
+      trigger: $trigger[0],
+      start: "top center",
+      end: "bottom center",
+      onEnter: () => applyColors(index),
+      onEnterBack: () => applyColors(index)
+    });
+  
+    function applyColors(idx) {
+      const $targetWrap = $(".step_tab_content_list_wrap").eq(idx);
+      const textColor = $targetWrap.data("color");
+      const bgColor = $targetWrap.data("background");
+  
+      if (textColor && bgColor) {
+        gsap.to($layout, {
+          backgroundColor: "#" + bgColor,
+          color: "#" + textColor,
+          duration: 0.5,
+          overwrite: "auto",
+          ease: "power2.out"
+        });
+      }
+    }
+  });
+
+// --- OLD CALENDLY LOGIC ---
+  
+// helper: one timeline per popup (scoped)
+//function createCalendlyTL($wrap) {
+//  const $bk    = $wrap.find('.calendly-popup-bk');
+//  const $popup = $wrap.find('.calendly-popup');
+
+//  const tl = gsap.timeline({ paused: true });
+//  tl.set($wrap, { display: 'flex' })
+//    .fromTo($bk,    { opacity: 0 }, { opacity: 0.4, duration: 0.3 }, 0)
+//    .fromTo($popup, { yPercent: 20, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);
+
+//  $bk.on('click', () => tl.reverse());
+//  tl.eventCallback('onReverseComplete', () => $wrap.css('display', 'none'));
+
+//  return tl;
+//}
+ 
+
+// timelines
+//const calendlyDemoTL    = createCalendlyTL($('.calendly-popup-wrap.is-bookdemo'));
+//const calendlyPartnerTL = createCalendlyTL($('.calendly-popup-wrap.is-partner'));
+
+// triggers
+//$('a[href*="book-a-demo"]').on('click', function (e) {
+//  e.preventDefault();
+//  calendlyDemoTL.play(0);
+//});
+//
+//$('a[href="/become-a-partner"]').on('click', function (e) {
+//  e.preventDefault();
+//  calendlyPartnerTL.play(0);
+//});
+  
+// --- OLD CALENDLY LOGIC ---
+
+
+// --- HUBSPOT MEETINGS REDIRECT ---
+  $('a[href*="book-a-demo"], a[href*="book-demo"]').on('click', function(e) {
+    if ($(this).attr('href').includes('partner')) return;
+
+    e.preventDefault();
+
+    var email = $(".hero_form_field_input").val() || "";
+    var url = new URL(this.href, window.location.origin);
+
+    if (email) {
+      url.searchParams.set('email', email);
+    }
+
+    var currentParams = new URLSearchParams(window.location.search);
+    currentParams.forEach(function(value, key) {
+      if (!url.searchParams.has(key)) {
+        url.searchParams.set(key, value);
+      }
+    });
+
+    window.location.href = url.toString();
+  });
+  // --- END HUBSPOT MEETINGS REDIRECT ---
+
+  
+
+  //TEXT ROTATE WORDS
+  $("[text-rotate]").each(function () {
+    const words = [
+      "informed",
+      "consistent",
+      "efficient",
+      "diligent",
+    ];
+    const $wordSpan = $(this);
+    let index = 0;
+
+    function changeWord() {
+      // Animate out current word
+      gsap.to($wordSpan, {
+        duration: 0.4,
+        opacity: 0,
+        y: -10,
+        onComplete: function () {
+          // Update word
+          index = (index + 1) % words.length;
+          $wordSpan.text(words[index]);
+
+          // Animate in new word
+          gsap.to($wordSpan, {
+            duration: 0.4,
+            opacity: 1,
+            y: 0,
+          });
+        },
+      });
+    }
+
+    // Loop every 2.5 seconds
+    setInterval(changeWord, 2500);
+  });
+
+  //USE CASE LIST
+  $(".usecase_sticky_wrap").each(function () {
+    const toY = $(this).find(".usecase_card_wrap").length - 1;
+    const line = $(this).find(".usecase_card_line");
+
+    gsap.set(line, { height: "0%" });
+    gsap
+      .timeline({
+        scrollTrigger: {
+          trigger: $(this),
+          start: "top top",
+          end: "bottom bottom",
+          scrub: true,
+        },
+      })
+      .to(".usecase_card_wrap", {
+        yPercent: -toY * 100,
+        ease: "none",
+      })
+      .to(line, { height: "100%", ease: "none" }, "<");
+  });
+
+  //TEAM IMAGES LIST
+  $(".team_wrap").each(function () {
+    const $root = $(this);
+    const $pinHeight = $root.find(".team_sticky_wrap");
+    const $container = $root.find(".team_sticky");
+
+    ScrollTrigger.create({
+      trigger: $pinHeight[0],
+      start: "top top",
+      end: "bottom bottom",
+      pin: $container[0],
+    });
+
+    let gap = 30;
+    const $images = $root.find(".team_image");
+    const distPerImage =
+      ($pinHeight.outerHeight() - window.innerHeight) / $images.length;
+
+    gsap.set($images, {
+      y: -gap * ($images.length - 1),
+      z: -gap * ($images.length - 1),
+    });
+
+    $images.each(function (index) {
+      const image = this;
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: $pinHeight[0],
+          start: "top top+=" + distPerImage * index,
+          end: "bottom bottom+=" + distPerImage * index,
+          scrub: 0.5,
+        },
+      });
+
+      for (let i = 0; i < $images.length - 1; i++) {
+        tl.to(image, {
+          y: "+=" + gap,
+          z: "+=" + gap,
+          ease: "back.inOut(3)",
+        });
+      }
+
+      tl.to(image, {
+        yPercent: 80,
+        y: "50vh",
+        scale: 1.2,
+        rotation: (Math.random() - 0.5) * 50,
+        ease: "power4.in",
+      });
+    });
+  });
+}
+allpages();
+
+// // Animation Scroll
+// $(".section").each(function() {
+//   // Create a GSAP timeline for the section
+//   let tl = gsap.timeline({
+//     scrollTrigger: {
+//       trigger: $(this),
+//       start: "top bottom",
+//       end: "bottom top",
+//       scrub: true,
+//       // toggleActions: "play none reverse none",
+//     }
+//   });
+//   tl
+//   .from($(this).find(".line"), {
+//     opacity: 0,
+//     y: '1rem',
+//     duration: 0.25,
+//     stagger: 0.05,
+//     ease: Expo.easeOut,
+//   })
+// });
+
+function socialShare() {
+  var postUrl = window.location.href;
+  var postTitle = document.title;
+
+  // Set social share links
+  $(".social-share .facebook").attr(
+    "href",
+    "https://www.facebook.com/sharer/sharer.php?u=" +
+      encodeURIComponent(postUrl)
+  );
+
+  $(".social-share .twitter").attr(
+    "href",
+    "https://twitter.com/intent/tweet?url=" +
+      encodeURIComponent(postUrl) +
+      "&text=" +
+      encodeURIComponent(postTitle)
+  );
+
+  $(".social-share .linkedin").attr(
+    "href",
+    "https://www.linkedin.com/sharing/share-offsite/?url=" +
+      encodeURIComponent(postUrl)
+  );
+
+  // Copy link to clipboard
+  $(".social-share .copy-link").on("click", function (e) {
+    e.preventDefault(); // Prevent default link behavior
+
+    navigator.clipboard
+      .writeText(postUrl)
+      .then(function () {
+        alert("Link copied to clipboard!");
+      })
+      .catch(function (err) {
+        console.error("Failed to copy: ", err);
+      });
+  });
+}
+socialShare();
+
+// When .feature_layout reaches 6.5rem from top, scrub opacity and scale of previous .feature_layout
+$(".feature_layout").each(function (i, el) {
+  gsap
+    .timeline({
+      scrollTrigger: {
+        trigger: el,
+        start: "top center",
+        end: "top 20%",
+        // markers: true,
+        scrub: 1,
+      },
+    })
+    .to($(el).prev(".feature_layout"), {
+      // opacity: 0.4,
+      scale: 0.9,
+      ease: "none",
+    })
+    .to($(el).prev(".feature_layout").find('.feature_content, .feature_visual_wrap'), {
+      // opacity: 0.4,
+      scale: 0.97,
+      ease: "none",
+    },'<')
+    .to(
+      $(el).prev(".feature_layout").find(".op-abs"),
+      {
+        opacity: 0.8,
+        // scale: 0.9,
+        ease: "none",
+      },
+      "<"
+    );
+});
+
+
+})();`} />
 {/* Google Tag Manager (noscript) */}
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WB2F5WH6"
 height="0" width="0" style={{ display: "none", visibility: "hidden" }}></iframe></noscript>
@@ -533,11 +1323,45 @@ This script listens for a `meetingBookSucceeded` postMessage event
 from the embedded HubSpot meetings widget and pushes a `hubspot_meeting_booked`
 event into the dataLayer for Google Tag Manager (GTM) to use as a trigger.
 */}
-<SafeScript     attrs={``}     code={"(function(){\n\n  window.dataLayer = window.dataLayer || [];\n  window.addEventListener('message', function(e) {\n    if (!e.data) return;\n    try {\n      var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;\n    } catch (err) {\n      var data = e.data;\n    }\n    if (data.meetingBookSucceeded) {\n      window.dataLayer.push({\n        event: 'hubspot_meeting_booked'\n      });\n      console.log('GTM: hubspot_meeting_booked pushed to dataLayer');\n    }\n  });\n\n})();"} />
+<SafeScript     attrs={``}     code={`(function(){
+
+  window.dataLayer = window.dataLayer || [];
+  window.addEventListener('message', function(e) {
+    if (!e.data) return;
+    try {
+      var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    } catch (err) {
+      var data = e.data;
+    }
+    if (data.meetingBookSucceeded) {
+      window.dataLayer.push({
+        event: 'hubspot_meeting_booked'
+      });
+      console.log('GTM: hubspot_meeting_booked pushed to dataLayer');
+    }
+  });
+
+})();`} />
 {/* End listener script */}
 
 {/* Start of Require Work Emails in Forms */}
-<SafeScript     attrs={``}     code={"(function(){\n\ndocument.addEventListener('DOMContentLoaded', function() {\n  var blocked = /(@gmail\\.|@yahoo\\.|@hotmail\\.|@outlook\\.|@aol\\.|@icloud\\.|@live\\.|@msn\\.|@protonmail\\.|@me\\.com|@mac\\.com)/i;\n  var input = document.querySelector('input[type=\"email\"]');\n  if (!input) return;\n\n  input.addEventListener('input', function() {\n    if (blocked.test(input.value)) {\n      input.setCustomValidity('Please use your work email.');\n    } else {\n      input.setCustomValidity('');\n    }\n  });\n});\n\n})();"} />
+<SafeScript     attrs={``}     code={`(function(){
+
+document.addEventListener('DOMContentLoaded', function() {
+  var blocked = /(@gmail\.|@yahoo\.|@hotmail\.|@outlook\.|@aol\.|@icloud\.|@live\.|@msn\.|@protonmail\.|@me\.com|@mac\.com)/i;
+  var input = document.querySelector('input[type="email"]');
+  if (!input) return;
+
+  input.addEventListener('input', function() {
+    if (blocked.test(input.value)) {
+      input.setCustomValidity('Please use your work email.');
+    } else {
+      input.setCustomValidity('');
+    }
+  });
+});
+
+})();`} />
 {/* End of Require Work Emails in Forms */}
 
 
@@ -546,7 +1370,48 @@ event into the dataLayer for Google Tag Manager (GTM) to use as a trigger.
 {/* Start of Clay Web Intent Code */}
 <script  src="https://static.claydar.com/init.v1.js?id=cLdrmDs6Z0"  />
 {/* End of Clay Web Intent Code */}
-<SafeScript     attrs={``}     code={"(function(){\n\n\n  const popup = document.querySelector('.soa-form-popup');\nconst bg = popup.querySelector('.form-poopup-bk');\nconst content = popup.querySelector('.form-popup-content');\nconst triggers = document.querySelectorAll('[data-open-soa]');\n\nconst tl = gsap.timeline({\n  paused: true,\n  onStart: () => popup.style.display = 'block',\n  onReverseComplete: () => popup.style.display = 'none'\n});\n\ntl.from(bg, { autoAlpha: 0, duration: 0.4, ease: 'power2.out' })\n  .from(content, { autoAlpha: 0, y: 40, duration: 0.5, ease: 'power3.out' }, '-=0.2');\n\nconst open = () => {\n  history.pushState({ soa: true }, '');\n  tl.play();\n};\n\nconst close = () => {\n  if (history.state?.soa) history.back();\n  else tl.reverse();\n};\n\ntriggers.forEach(t => t.addEventListener('click', e => {\n  e.preventDefault();\n  open();\n}));\n\nbg.addEventListener('click', close);\n\ndocument.addEventListener('keydown', e => {\n  if (e.key === 'Escape' && tl.progress() > 0) close();\n});\n\nwindow.addEventListener('popstate', () => tl.reverse());\n  \n\n})();"} /><script  src="https://hubspotv2.use1-marketplace-1p-apps-prod-red.if.webflow.services/static/disable-hubspot-chatbot.js" type="text/javascript" async defer  /><script  src="https://js.hs-scripts.com/243932974.js" type="text/javascript" async defer  />
+<SafeScript     attrs={``}     code={`(function(){
+
+
+  const popup = document.querySelector('.soa-form-popup');
+const bg = popup.querySelector('.form-poopup-bk');
+const content = popup.querySelector('.form-popup-content');
+const triggers = document.querySelectorAll('[data-open-soa]');
+
+const tl = gsap.timeline({
+  paused: true,
+  onStart: () => popup.style.display = 'block',
+  onReverseComplete: () => popup.style.display = 'none'
+});
+
+tl.from(bg, { autoAlpha: 0, duration: 0.4, ease: 'power2.out' })
+  .from(content, { autoAlpha: 0, y: 40, duration: 0.5, ease: 'power3.out' }, '-=0.2');
+
+const open = () => {
+  history.pushState({ soa: true }, '');
+  tl.play();
+};
+
+const close = () => {
+  if (history.state?.soa) history.back();
+  else tl.reverse();
+};
+
+triggers.forEach(t => t.addEventListener('click', e => {
+  e.preventDefault();
+  open();
+}));
+
+bg.addEventListener('click', close);
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && tl.progress() > 0) close();
+});
+
+window.addEventListener('popstate', () => tl.reverse());
+  
+
+})();`} /><script  src="https://hubspotv2.use1-marketplace-1p-apps-prod-red.if.webflow.services/static/disable-hubspot-chatbot.js" type="text/javascript" async defer  /><script  src="https://js.hs-scripts.com/243932974.js" type="text/javascript" async defer  />
       {showBrandTokens && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div 
