@@ -45,7 +45,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1,
+.page_wrap h1,
 .u-text-style-h1 {
   font-family: var(--font-display) !important;
   font-size: 5.5rem !important; /* 88px */
@@ -54,7 +54,7 @@ h1,
   letter-spacing: -0.02em !important;
 }
 
-h2,
+.page_wrap h2,
 .u-text-style-h2 {
   font-family: var(--font-display) !important;
   font-size: 3rem !important; /* 48px */
@@ -63,7 +63,7 @@ h2,
   letter-spacing: -0.02em !important;
 }
 
-h3,
+.page_wrap h3,
 .u-text-style-h3 {
   font-family: var(--font-display) !important;
   font-size: 2.5rem !important; /* 40px */
@@ -72,7 +72,7 @@ h3,
   letter-spacing: -0.02em !important;
 }
 
-h4,
+.page_wrap h4,
 .u-text-style-h4 {
   font-family: var(--font-display) !important;
   font-size: 1.5rem !important; /* 24px */
@@ -98,7 +98,7 @@ h4,
   letter-spacing: -0.02em !important;
 }
 
-p,
+.page_wrap p,
 .u-text-style-body {
   font-size: 1rem !important; /* 16px */
   line-height: 1.35 !important;
@@ -161,6 +161,24 @@ p,
 .animate-marquee-left:hover,
 .animate-marquee-right:hover {
   animation-play-state: paused;
+}
+
+/* Pulse for LIVE indicator on Today's Market strip */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+
+/* FAQ disclosure indicator rotates when open */
+details[open] > summary > span:last-child {
+  transform: rotate(45deg);
+}
+details > summary > span:last-child {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+details > summary::-webkit-details-marker {
+  display: none;
 }
 
 /* ---- Embedded Style ---- */

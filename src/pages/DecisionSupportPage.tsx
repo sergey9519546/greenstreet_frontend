@@ -1,0 +1,174 @@
+// @ts-nocheck
+import React, { useState, useMemo } from "react";
+import { PageShell, card, sectionTitle } from "./PageShell";
+import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
+import { solveDSCR } from "../engine/engine";
+import { buildEngineInputs } from "../engine/inputs";
+import type { PropertyInputs, BorrowerProfile, LoanStructure } from "../engine/types";
+
+const MINT = "#4DBD97";
+const CREAM = "#003738";
+const YELLOW = "#D8D958";
+
+function fmt$(n: number) { return "$" + Math.round(n).toLocaleString("en-US"); }
+
+export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
+  const [purchasePrice, setPurchasePrice] = useState(425000);
+  const [downPct, setDownPct] = useState(25);
+  const [monthlyRent, setMonthlyRent] = useState(3000);
+  const [rate, setRate] = useState(7.0);
+  const [ltvFloor, setLtvFloor] = useState(75);
+  const [fico, setFico] = useState(740);
+  const [annualTaxes, setAnnualTaxes] = useState(5000);
+  const [annualInsurance, setAnnualInsurance] = useState(2000);
+  const [hoa, setHoa] = useState(0);
+
+  const result = useMemo(() => {
+    try {
+      const req = {
+        purchasePrice,
+        loanAmount: purchasePrice * (1 - downPct / 100),
+        monthlyRent,
+        state: "TX",
+        ficoScore: fico,
+        propertyType: "SFR" as const,
+        annualTaxes,
+        annualInsurance,
+        hoa,
+      };
+      const inputs = buildEngineInputs(req);
+      const deal = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
+      const cashInvested = purchasePrice - deal.loanAmount;
+      const year1CoC = deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12 > 0 ? ((deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12) / cashInvested) * 100 : 0;
+      const afterTaxIRR = Math.max(0, result?.afterTaxIRR || 0);
+      const track2DSCR = deal.dualTrackDSCR.track2.dscr;
+      const verdict = computeVerdict({
+        track1DSCR: deal.dscr,
+        track2DSCR,
+        lenderMinDSCR: 1.0,
+        lenderMinLoan: 75000,
+        ltvCap: 80,
+        currentRate: rate,
+        dealBreakRate: deal.dealBreakRate,
+        cushionBps: deal.rateHeadroomBps,
+        afterTaxIRR: Math.max(0, (year1CoC / 100) * 5),
+        track2Acknowledgment: track2DSCR >= 1.0,
+        acqScore: 75,
+        executionRiskScore: 75,
+        pDSCRLessThan1: 5,
+        fifthPctDSCR: 1.0,
+        armResetStress: null,
+        insuranceStatus: "CLEAR",
+        strLegalityStatus: "CLEAR",
+        brrrrStatus: "PROCEED",
+        lenderRankingTop: null,
+        killSwitchConditions: [],
+        twoQuoteSatisfied: true,
+      });
+      const kill = computeDealKillCheck(deal.dscr, deal.dealBreakRate, rate, fico, false, false, track2DSCR, "LTR", 75, 425000, deal.loanAmount, 0.0483, deal.rateHeadroomBps);
+      const acq = computeAcquisitionScore(deal, null, null, inputs.property, inputs.borrower, inputs.loan, "LTR", null, null);
+      const grade = computeReturnGrade((year1CoC / 100) * 5, track2DSCR);
+      return { deal, verdict, kill, acq, grade, year1CoC, track2DSCR, afterTaxIRR };
+    } catch (e) {
+      return null;
+    }
+  }, [purchasePrice, downPct, monthlyRent, rate, ltvFloor, fico, annualTaxes, annualInsurance, hoa]);
+
+  return (
+    <PageShell
+      title="Decision Support (IC Memo)"
+      subtitle="Calls engine.computeVerdict + computeDealKillCheck + computeAcquisitionScore + computeReturnGrade. Returns the yes/no, the binding constraint, and an A/B/C/D/F grade."
+      onBack={onBack} onNavigate={onNavigate}
+    >
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
+        <div style={{ ...card }}>
+          <div style={sectionTitle}>Deal Inputs</div>
+          {[
+            { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
+            { label: "Down Payment", value: downPct, set: setDownPct, step: 1, suffix: "%" },
+            { label: "Note Rate", value: rate, set: setRate, step: 0.125, suffix: "%" },
+            { label: "Monthly Rent", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
+            { label: "FICO", value: fico, set: setFico, step: 5 },
+            { label: "Annual Taxes", value: annualTaxes, set: setAnnualTaxes, step: 250, prefix: "$" },
+            { label: "Annual Insurance", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$" },
+            { label: "Monthly HOA", value: hoa, set: setHoa, step: 25, prefix: "$" },
+          ].map((f) => (
+            <div key={f.label} style={{ marginBottom: "10px" }}>
+              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
+              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "rgba(0,55,56,0.05)", border: "1px solid rgba(0,55,56,0.4)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
+            </div>
+          ))}
+        </div>
+
+        <div>
+          {!result ? (
+            <div style={{ ...card, textAlign: "center", padding: "40px" }}>
+              <p style={{ color: "#ff6b6b" }}>Engine returned no result.</p>
+            </div>
+          ) : (
+            <>
+              <div style={{ ...card, textAlign: "center", borderColor: result.verdict.verdict === "PROCEED" ? MINT : result.verdict.verdict === "RESTRUCTURE" ? YELLOW : "#ff6b6b" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "12px" }}>Verdict</div>
+                <div style={{ fontSize: "60px", fontWeight: 800, color: result.verdict.verdict === "PROCEED" ? MINT : result.verdict.verdict === "RESTRUCTURE" ? YELLOW : "#ff6b6b", lineHeight: 1 }}>{result.verdict.verdict}</div>
+                <div style={{ fontSize: "13px", color: "#aaa", marginTop: "12px" }}>
+                  Binding: <strong style={{ color: CREAM }}>{result.verdict.bindingConstraint}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginTop: "20px" }}>
+                {[
+                  { label: "Track 1 DSCR", value: result.deal.dscr.toFixed(2) + "x", color: result.deal.dscr >= 1.25 ? MINT : result.deal.dscr >= 1.0 ? YELLOW : "#ff6b6b" },
+                  { label: "Track 2 DSCR", value: result.track2DSCR.toFixed(2) + "x", color: result.track2DSCR >= 1.25 ? MINT : result.track2DSCR >= 1.0 ? YELLOW : "#ff6b6b" },
+                  { label: "Rate Cushion", value: `${result.deal.rateHeadroomBps} bps`, color: result.deal.rateHeadroomBps > 50 ? MINT : "#ff6b6b" },
+                  { label: "Acq Score", value: `${result.acq.score}/100`, color: result.acq.score >= 75 ? MINT : result.acq.score >= 60 ? YELLOW : "#ff6b6b" },
+                ].map((m) => (
+                  <div key={m.label} style={{ background: "rgba(0,55,56,0.04)", borderRadius: "10px", padding: "12px", textAlign: "center" }}>
+                    <div style={{ fontSize: "10px", color: "#888", letterSpacing: "0.1em", textTransform: "uppercase" }}>{m.label}</div>
+                    <div style={{ fontSize: "20px", fontWeight: 800, color: m.color, marginTop: "4px" }}>{m.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ ...card, marginTop: "20px" }}>
+                <div style={sectionTitle}>Kill-Criterion Checklist ({result.kill.criteria.length} flagged, {result.kill.allClear ? "all clear" : "review"})</div>
+                {result.kill.criteria.length === 0 ? (
+                  <p style={{ color: MINT, fontSize: "14px", padding: "12px 0" }}>No blockers or warnings.</p>
+                ) : (
+                  result.kill.criteria.map((k, i) => {
+                    const color = k.severity === "BLOCKER" ? "#ff6b6b" : k.severity === "WARNING" ? YELLOW : "#018582";
+                    return (
+                      <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: CREAM, fontWeight: 600, fontSize: "14px" }}>{k.criterion}</span>
+                          <span style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "20px", background: `${color}33`, color, border: `1px solid ${color}` }}>{k.severity}</span>
+                        </div>
+                        <p style={{ color: "#888", fontSize: "12px", marginTop: "4px" }}>{k.detail}</p>
+                        <p style={{ color: "#aaa", fontSize: "12px", marginTop: "4px" }}><strong style={{ color: MINT }}>Action:</strong> {k.action}</p>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "20px" }}>
+                <div style={{ ...card, textAlign: "center" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT }}>Return Grade</div>
+                  <div style={{ fontSize: "60px", fontWeight: 800, color: result.grade === "A" || result.grade === "B" ? MINT : result.grade === "C" ? YELLOW : "#ff6b6b", lineHeight: 1, marginTop: "8px" }}>{result.grade}</div>
+                </div>
+                <div style={{ ...card, textAlign: "center" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT }}>Acquisition Score</div>
+                  <div style={{ fontSize: "60px", fontWeight: 800, color: result.acq.score >= 75 ? MINT : result.acq.score >= 60 ? YELLOW : "#ff6b6b", lineHeight: 1, marginTop: "8px" }}>{result.acq.score}</div>
+                  <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>{result.acq.band}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(77,189,151,0.08)", borderRadius: "10px", border: "1px solid rgba(77,189,151,0.2)", fontSize: "12px", color: "#aaa", lineHeight: 1.6 }}>
+                <strong style={{ color: MINT }}>Engine:</strong> src/engine/decisionSupport.ts → computeVerdict + computeDealKillCheck + computeReturnGrade. PROCEED requires: T1 ≥ lender min + 5bps cushion, T2 ≥ 1.0 (or negative-carry ack), Grade ≥ B, cushion ≥ 50bps, no blockers, ≥1 eligible lender.
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </PageShell>
+  );
+}

@@ -1,318 +1,200 @@
-import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
-import "dotenv/config";
 import express from "express";
-import dns from "node:dns";
 import path from "path";
 import { createServer as createViteServer } from "vite";
+import Anthropic from "@anthropic-ai/sdk";
+import dns from "node:dns";
+import fs from "node:fs";
 
-// Fix Node.js DNS resolving preference for localhost in development environments
+import { buildEngineInputs } from './src/engine/inputs';
+import {
+  solveDSCR,
+  matchLenders,
+  scoreLenderMatch,
+  checkPPPLegal,
+  computeBreakevenResult,
+  generateStructureOptions,
+} from './src/engine/index';
+
 dns.setDefaultResultOrder("ipv4first");
 
 const app = express();
-const PORT = 3005;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json());
 
-// Lazy-loaded Gemini AI client instantiator
-let aiClient: GoogleGenAI | null = null;
-function getGeminiClient(): GoogleGenAI {
+// ── Static marketing page (rebranded Webflow dump) ─────────────────────
+// Served at "/" so the original Webflow visual loads verbatim. Webflow CSS,
+// jQuery, GSAP, Swiper, HubSpot all execute as designed.
+const MARKETING_PATHS = new Set([
+  "/", "/index.html",
+]);
+const marketingHtml = fs.existsSync(path.join(process.cwd(), "marketing-page.html"))
+  ? fs.readFileSync(path.join(process.cwd(), "marketing-page.html"), "utf-8")
+  : null;
+
+function isMarketingRoute(reqPath: string): boolean {
+  // Serve the static marketing page at "/" only. All other routes
+  // (/dscrgo, /tools/*, /about, /blog, /case-studies, etc.) go to the
+  // React app where React Router handles them.
+  return MARKETING_PATHS.has(reqPath);
+}
+
+if (marketingHtml) {
+  app.get("/", (_req, res) => {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(marketingHtml);
+  });
+  app.get("/index.html", (_req, res) => {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(marketingHtml);
+  });
+  console.log(`[marketing] serving rebranded Webflow dump at / (${marketingHtml.length} bytes)`);
+}
+
+let aiClient: Anthropic | null = null;
+function getClaudeClient(): Anthropic {
   if (!aiClient) {
-    const key = process.env.GEMINI_API_KEY;
-    if (!key || key === "MY_GEMINI_API_KEY") {
-      console.warn(
-        "WARNING: GEMINI_API_KEY is missing or default. Using Vertex AI via Application Default Credentials.",
-      );
-      aiClient = new GoogleGenAI({
-        vertexai: {
-          project: "project-34827ae3-34d1-4d2c-a7d",
-          location: "us-central1"
-        }
-      });
-    } else {
-      aiClient = new GoogleGenAI({
-        apiKey: key,
-        httpOptions: {
-          headers: {
-            "User-Agent": "aistudio-build",
-          },
-        },
-      });
-    }
+    aiClient = new Anthropic({
+      apiKey: process.env.ANTHROPIC_AUTH_TOKEN || "",
+      baseURL: process.env.ANTHROPIC_BASE_URL || "https://api.z.ai/api/anthropic",
+    });
   }
   return aiClient;
 }
 
-// -------------------------------------------------------------
-// SEC/FINRA Compliance Marketing Content Reviewer Endpoint
-// -------------------------------------------------------------
-app.post("/api/compliance/review", async (req, res) => {
+const MODEL = "claude-sonnet-4-6";
+
+// ---------------------------------------------------------------
+// DSCR Solve — deterministic, no LLM
+// ---------------------------------------------------------------
+app.post("/api/dscr/solve", (req, res) => {
   try {
-    const { content, category } = req.body;
-    if (!content) {
-      return res
-        .status(400)
-        .json({ error: "Content field is required for compliance review." });
-    }
+    const { property, borrower, loan, strategy } = buildEngineInputs(req.body);
+    const deal = solveDSCR(property, borrower, loan, strategy);
 
-    const ai = getGeminiClient();
+    // Top 3 lenders — small provenance summary only
+    const fitResults = matchLenders(property, borrower, loan, strategy, deal.solvedRate);
+    const scoreResult = scoreLenderMatch(fitResults, loan, borrower, strategy);
+    const topLenders = scoreResult.topPicks.map(p => ({
+      name: p.lenderName,
+      score: p.totalScore,
+      tier: p.tier,
+      rank: p.rankAmongEligible,
+      topReasons: p.topReasons.slice(0, 2),
+    }));
 
-    const systemInstruction = `
-      You are an expert Chief Compliance Officer (CCO) specialized in SEC (Investment Advisers Act Rule 206(4)-1) and FINRA (Rule 2210) advertising rules.
-      Analyze the provided marketing content (category: ${category || "General Advice"}) and flag specific compliance issues.
-      You must evaluate for:
-      1. Promissory Claims: Guarantees of returns, "risk-free", "double your money", "ensure success", or oversimplified wealth creation.
-      2. Omissions of Risk Disclosures: High returns stated without a corresponding notice that investing involves substantial risk of loss.
-      3. Prominent Praise / Testimonials: Unbalanced testimonials or third-party ratings without showing the source, date, and conditions, or claiming past performance predicts future results.
-      4. Required Advisor Disclosures: Crucial warning labels and disclosure copy that MUST be added to make this piece compliant.
-      
-      Classify results and calculate a safety compliance score from 0 to 100.
-    `;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Perform a compliance review on the following text:\n\n"${content}"`,
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          required: [
-            "promissoryClaims",
-            "omissionsOfRisk",
-            "prominentPraise",
-            "requiredDisclosures",
-            "complianceScore",
-            "overallSummary",
-          ],
-          properties: {
-            complianceScore: {
-              type: Type.INTEGER,
-              description:
-                "Overall safety score from 0 (extremely non-compliant) to 100 (fully compliant).",
-            },
-            overallSummary: {
-              type: Type.STRING,
-              description:
-                "Brief professional summary of the marketing copy from a compliance perspective.",
-            },
-            promissoryClaims: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                required: [
-                  "textSegment",
-                  "explanation",
-                  "severity",
-                  "suggestedRewrite",
-                ],
-                properties: {
-                  textSegment: {
-                    type: Type.STRING,
-                    description: "The violating phrase or sentence.",
-                  },
-                  explanation: {
-                    type: Type.STRING,
-                    description: "Why this violates SEC/FINRA rules.",
-                  },
-                  severity: {
-                    type: Type.STRING,
-                    description: "HIGH, MEDIUM, or LOW.",
-                  },
-                  suggestedRewrite: {
-                    type: Type.STRING,
-                    description: "A compliant alternative phrase.",
-                  },
-                },
-              },
-            },
-            omissionsOfRisk: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                required: ["explanation", "suggestedDisclaimer"],
-                properties: {
-                  explanation: {
-                    type: Type.STRING,
-                    description: "Why risk warning is omitted here.",
-                  },
-                  suggestedDisclaimer: {
-                    type: Type.STRING,
-                    description:
-                      "Specific disclaimer copy that must be appended.",
-                  },
-                },
-              },
-            },
-            prominentPraise: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                required: ["textSegment", "explanation", "suggestedFix"],
-                properties: {
-                  textSegment: {
-                    type: Type.STRING,
-                    description:
-                      "The testimonial, award, or past-performance claim.",
-                  },
-                  explanation: {
-                    type: Type.STRING,
-                    description: "Requirement violation description.",
-                  },
-                  suggestedFix: {
-                    type: Type.STRING,
-                    description:
-                      "How to balance this praise (e.g. adding dates, criteria).",
-                  },
-                },
-              },
-            },
-            requiredDisclosures: {
-              type: Type.ARRAY,
-              description:
-                "A list of standard legal disclaimers recommended based on the file content.",
-              items: {
-                type: Type.STRING,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const resultText = response.text;
-    if (!resultText) {
-      throw new Error("No output generated from compliance reviewer model.");
-    }
-
-    const parsedData = JSON.parse(resultText.trim());
-    return res.json(parsedData);
-  } catch (error: any) {
-    console.error("Compliance review endpoint error:", error);
-    return res
-      .status(500)
-      .json({ error: error.message || "Internal compliance engine failure." });
+    return res.json({ deal, topLenders });
+  } catch (err: any) {
+    console.error("solve error:", err);
+    return res.status(500).json({ error: err.message || "Engine solve failed." });
   }
 });
 
-// -------------------------------------------------------------
-// SEC & FINRA Interactive Rule Search (with Google Search Grounding)
-// -------------------------------------------------------------
-app.post("/api/compliance/sec-search", async (req, res) => {
+// ---------------------------------------------------------------
+// Sensitivity / Breakeven — deterministic, no LLM
+// ---------------------------------------------------------------
+app.post("/api/dscr/sensitivity", (req, res) => {
   try {
-    const { query } = req.body;
-    if (!query) {
-      return res.status(400).json({ error: "Search query is required." });
-    }
+    const { property, borrower, loan, strategy } = buildEngineInputs(req.body);
+    const deal = solveDSCR(property, borrower, loan, strategy);
 
-    const ai = getGeminiClient();
+    const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
+    const sensitivity = computeBreakevenResult(
+      deal.qualifyingRent,
+      deal.monthlyPITIA.total,
+      deal.loanAmount,
+      deal.solvedRate,
+      termYears,
+      property.annualTaxes,
+      property.annualInsurance,
+      property.hoa,
+      property.floodInsurance ?? 0,
+      property.purchasePrice,
+      loan.ltv,
+    );
 
-    // Google Search Grounding is enabled by adding { googleSearch: {} } as a tool.
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Search and summarize real, up-to-date SEC or FINRA rules regarding this query: "${query}". Provide the corresponding rule numbers and official guidance. Ensure search grounding is activated.`,
-      config: {
-        systemInstruction:
-          "You are an AI Compliance Counsel. Provide precise details, rule references, dates, and citation labels. State points clearly with markdown.",
-        tools: [{ googleSearch: {} }],
-      },
-    });
-
-    // Extract grounding metadata to output search links on client side
-    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-
-    return res.json({
-      answer: response.text,
-      sources: groundingMetadata?.groundingChunks || [],
-      metadata: groundingMetadata,
-    });
-  } catch (error: any) {
-    console.error("Regulatory rule search error:", error);
-    return res.status(500).json({
-      error: error.message || "Failed to complete search grounding query.",
-    });
+    return res.json({ deal, sensitivity });
+  } catch (err: any) {
+    console.error("sensitivity error:", err);
+    return res.status(500).json({ error: err.message || "Sensitivity computation failed." });
   }
 });
 
-// -------------------------------------------------------------
-// Location-Based Compliance Advisor (with Google Maps context/Search)
-// -------------------------------------------------------------
-app.post("/api/compliance/jurisdiction-maps", async (req, res) => {
+// ---------------------------------------------------------------
+// Loan Optimizer — deterministic, no LLM
+// ---------------------------------------------------------------
+app.post("/api/dscr/optimize", (req, res) => {
   try {
-    const { address } = req.body;
-    if (!address) {
-      return res.status(400).json({ error: "Address is required." });
-    }
-
-    const ai = getGeminiClient();
-
-    // This query requests details on nearest FINRA and SEC offices, state regulators, and local state Blue Sky laws.
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Identify the SEC regional offices, FINRA district offices, and state-level Blue Sky authorities near or governing the address: "${address}". 
-                 Outline specific regional registration requirements or Blue Sky constraints for investment advisors or broker-dealers in this state.`,
-      config: {
-        systemInstruction:
-          "Identify official geographic regulatory bodies, regional office details, addresses, and important Blue Sky rule codes.",
-        tools: [{ googleSearch: {} }], // Combine with search as state constraints vary!
-      },
-    });
-
-    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-
-    return res.json({
-      advice: response.text,
-      sources: groundingMetadata?.groundingChunks || [],
-      metadata: groundingMetadata,
-    });
-  } catch (error: any) {
-    console.error("Jurisdiction lookup error:", error);
-    return res.status(500).json({
-      error: error.message || "Failed to process location compliance details.",
-    });
+    const { property, borrower, loan, strategy } = buildEngineInputs(req.body);
+    const options = generateStructureOptions(property, borrower, loan, strategy);
+    return res.json({ options });
+  } catch (err: any) {
+    console.error("optimize error:", err);
+    return res.status(500).json({ error: err.message || "Optimizer failed." });
   }
 });
 
-// -------------------------------------------------------------
-// High Thinking Executive Guide Endpoint (gemini-2.5-pro with HIGH thinking config)
-// -------------------------------------------------------------
-app.post("/api/compliance/think-guide", async (req, res) => {
+// ---------------------------------------------------------------
+// State PPP / Prepay Rules — deterministic, no LLM
+// ---------------------------------------------------------------
+app.post("/api/dscr/state", (req, res) => {
   try {
-    const { question } = req.body;
-    if (!question) {
-      return res.status(400).json({ error: "Question is required." });
-    }
+    const { state, entityType = "LLC", loanAmount = 400000, unitCount = 1, productType = "FIXED" } = req.body;
+    if (!state) return res.status(400).json({ error: "state required" });
 
-    const ai = getGeminiClient();
-
-    // Call gemini-2.5-pro using ThinkingLevel.HIGH with no maxOutputTokens limit.
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
-      contents: `Deconstruct this complex SEC/FINRA compliance inquiry with comprehensive, step-by-step audit analysis:\n\n"${question}"`,
-      config: {
-        systemInstruction:
-          "You are the Principal Regulatory Analyst. Deconstruct the inquiry. Outline historical precedents, SEC Risk Alerts, and comprehensive enforcement audit points.",
-        thinkingConfig: {
-          thinkingLevel: ThinkingLevel.HIGH, // Sets thinking level to HIGH.
-        },
-      },
-    });
-
-    return res.json({
-      thoughtfulResponse: response.text,
-      // Pass back a simulated thought indicator or let the client display it
-    });
-  } catch (error: any) {
-    console.error("High thinking guide analysis failure:", error);
-    return res.status(500).json({
-      error:
-        error.message || "Failed to execute High Thinking model generation.",
-    });
+    const abbrev = (state || "").trim().toUpperCase().slice(0, 2);
+    const ppp = checkPPPLegal(abbrev, entityType, loanAmount, unitCount, productType);
+    return res.json({ state: abbrev, ppp });
+  } catch (err: any) {
+    console.error("state error:", err);
+    return res.status(500).json({ error: err.message || "State lookup failed." });
   }
 });
 
-// -------------------------------------------------------------
-// Serve static client assets and hot middleware
-// -------------------------------------------------------------
+// ---------------------------------------------------------------
+// Narrate — ONLY LLM endpoint: takes a computed result, returns
+// a 2-3 sentence plain-English explanation. No numbers generated.
+// ---------------------------------------------------------------
+app.post("/api/narrate", async (req, res) => {
+  if (!process.env.ANTHROPIC_AUTH_TOKEN) {
+    return res.status(503).json({ error: "ANTHROPIC_AUTH_TOKEN not set." });
+  }
+  try {
+    const { deal, context } = req.body;
+    if (!deal) return res.status(400).json({ error: "deal result required" });
+
+    const ai = getClaudeClient();
+    const { dscr, solvedRate, dealBreakRate, rateHeadroomBps, dualTrackDSCR } = deal;
+
+    const prompt = `DSCR underwriting result for a broker to explain to a borrower:
+- DSCR: ${dscr.toFixed(2)}x
+- Solved Rate: ${solvedRate.toFixed(3)}%
+- Deal-Break Rate: ${dealBreakRate.toFixed(3)}% (${rateHeadroomBps} bps headroom)
+- Track 1 (lender qual): ${dualTrackDSCR.track1.passes ? "PASSES" : "FAILS"}
+- Track 2 (investor survival): ${dualTrackDSCR.track2.passes ? "PASSES" : "FAILS"}
+- Summary: ${dualTrackDSCR.verdict.summary}
+${context ? `\nAdditional context: ${context}` : ""}
+
+Write 2-3 sentences in plain English for a real estate investor who is NOT a finance expert. Focus on what this means for their deal. Do NOT recite the numbers back verbatim — interpret them. Do NOT mention Claude or AI.`;
+
+    const response = await ai.messages.create({
+      model: MODEL,
+      max_tokens: 200,
+      system: "You are a DSCR lending advisor. Write plain, honest, broker-to-client language. Never generate new numbers. 2-3 sentences max.",
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text = response.content[0].type === "text" ? response.content[0].text : "";
+    return res.json({ narrative: text });
+  } catch (err: any) {
+    console.error("narrate error:", err);
+    return res.status(500).json({ error: err.message || "Narration failed." });
+  }
+});
+
+// ---------------------------------------------------------------
+// Vite dev middleware + production static
+// ---------------------------------------------------------------
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
@@ -323,15 +205,13 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
+    app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(
-      `Server successfully started. Running full-stack on http://0.0.0.0:${PORT}`,
-    );
+    console.log(`Greenstreet DSCR Engine → http://0.0.0.0:${PORT}`);
   });
 }
 

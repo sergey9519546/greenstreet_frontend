@@ -1,0 +1,67 @@
+// @ts-nocheck
+import React from "react";
+import { PageShell } from "./PageShell";
+import { Eyebrow, Body, Card, Button, Grid, Heading } from "../components/wf";
+import { swatch } from "../theme";
+
+const VALUES = [
+  { icon: "⚡", title: "Speed is the product", body: "In non-QM, the broker who quotes in minutes wins the deal. Everything we build optimizes time-to-quote first." },
+  { icon: "🔍", title: "Show the math", body: "Every rate and DSCR we display can be traced to its inputs. No black boxes, no mystery overlays." },
+  { icon: "🤝", title: "Brokers stay in control", body: "We're a wholesale partner, not a competitor. Your borrower is always yours. We process behind the scenes." },
+  { icon: "🗺️", title: "Compliance built in", body: "50-state prepay and usury rules live inside every quote, so a legal structure in Texas never becomes a trap in New Jersey." },
+];
+
+const STATS = [
+  { val: "11", label: "Verified DSCR lenders" },
+  { val: "50", label: "States with PPP rules mapped" },
+  { val: "2026", label: "Founded" },
+  { val: "$5B", label: "Origination target by 2028" },
+];
+
+export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
+  return (
+    <PageShell
+      title="About Greenstreet"
+      subtitle="Building the fastest path from a rental property to a fundable DSCR loan."
+      onBack={onBack} onNavigate={onNavigate}
+    >
+      <div style={{ maxWidth: "760px", marginBottom: "clamp(40px,5vw,64px)" }}>
+        <Eyebrow>Our mission</Eyebrow>
+        <Body size="large" muted style={{ marginBottom: "20px" }}>
+          DSCR is the fastest-growing corner of the mortgage market, and it's still run on spreadsheets and PDF rate sheets. We founded Greenstreet Finance after watching brokers re-key the same deal into four lender portals before lunch — losing borrowers to whoever quoted first.
+        </Body>
+        <Body size="large" muted>
+          We think investment-property brokers deserve the same tooling a desk trader has: one deal in, every eligible lender and rate out, with the state rules already checked. That's the Greenstreet Deal Engine, and it's just the first step toward a two-sided platform connecting brokers directly to the lenders who fund their deals.
+        </Body>
+      </div>
+
+      <Grid min="200px" gap="16px" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
+        {STATS.map((s) => (
+          <Card key={s.label} style={{ textAlign: "center" }}>
+            <div style={{ color: swatch.rainforest, fontWeight: 800, fontSize: "clamp(30px,3.4vw,40px)", letterSpacing: "-0.02em" }}>{s.val}</div>
+            <div style={{ color: swatch.rainforest, fontSize: "13px", marginTop: "4px" }}>{s.label}</div>
+          </Card>
+        ))}
+      </Grid>
+
+      <Eyebrow>What we believe</Eyebrow>
+      <Grid min="280px" gap="20px" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
+        {VALUES.map((v) => (
+          <Card key={v.title} hover>
+            <div style={{ fontSize: "28px", marginBottom: "12px" }}>{v.icon}</div>
+            <div style={{ color: swatch.midnight, fontWeight: 700, fontSize: "18px", marginBottom: "8px" }}>{v.title}</div>
+            <Body size="small" muted>{v.body}</Body>
+          </Card>
+        ))}
+      </Grid>
+
+      {/* Dark CTA band — replaces the old invisible rainforest-on-tint card */}
+      <Card theme="dark" style={{ maxWidth: "640px" }}>
+        <Eyebrow style={{ color: swatch.lemon }}>Work with us</Eyebrow>
+        <div style={{ color: swatch.pistachio, fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>We're hiring across engineering, lending, and broker success.</div>
+        <Body muted style={{ marginBottom: "20px", color: "#9fb0a8" }}>See the open roles and how we work.</Body>
+        <Button variant="primary" href="/careers" onClick={(e) => { e.preventDefault(); onNavigate("careers"); }}>View careers →</Button>
+      </Card>
+    </PageShell>
+  );
+}

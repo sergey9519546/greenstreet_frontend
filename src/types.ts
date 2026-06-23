@@ -1,28 +1,19 @@
-export interface PromissoryClaimViolation {
-  textSegment: string;
-  explanation: string;
+export interface DSCRIssue {
+  category: string;
+  description: string;
   severity: "HIGH" | "MEDIUM" | "LOW";
-  suggestedRewrite: string;
+  resolution: string;
 }
 
-export interface OmissionOfRisk {
-  explanation: string;
-  suggestedDisclaimer: string;
-}
-
-export interface ProminentPraiseViolation {
-  textSegment: string;
-  explanation: string;
-  suggestedFix: string;
-}
-
-export interface ComplianceReviewResponse {
-  complianceScore: number;
-  overallSummary: string;
-  promissoryClaims: PromissoryClaimViolation[];
-  omissionsOfRisk: OmissionOfRisk[];
-  prominentPraise: ProminentPraiseViolation[];
-  requiredDisclosures: string[];
+export interface DSCRAnalysisResponse {
+  dscrRatio: number;
+  monthlyPayment: number;
+  pitia: number;
+  decision: "APPROVE" | "DECLINE" | "REFER";
+  decisionSummary: string;
+  recommendedLenders: string[];
+  issues: DSCRIssue[];
+  recommendations: string[];
 }
 
 export interface GroundingSource {
@@ -31,29 +22,24 @@ export interface GroundingSource {
   snippet?: string;
 }
 
-export interface RegulatorySearchResponse {
+export interface LenderSearchResponse {
   answer: string;
   sources: GroundingSource[];
-  metadata?: any;
 }
 
-export interface MapJurisdictionResponse {
+export interface StateRulesResponse {
+  stateName: string;
   advice: string;
-  sources: GroundingSource[];
-  metadata?: any;
-}
-
-export interface ThinkingGuideResponse {
-  thoughtfulResponse: string;
+  keyRules: string[];
 }
 
 export interface AuditLog {
   id?: string;
   userId: string;
   userEmail: string;
-  type: "review" | "search" | "jurisdiction" | "guide";
+  type: "analyze" | "lender-search" | "state-rules";
   title: string;
   timestamp: string;
   input: string;
-  output: any; // Stored result JSON or rich string structure
+  output: any;
 }
