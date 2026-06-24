@@ -1,10 +1,12 @@
 // @ts-nocheck
 import React from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+import { PageShell, AnimatedCard, AnimatedButton, AnimatedNumber, sectionTitle } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 export default function BrokersPortalPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
   return (
@@ -14,20 +16,28 @@ export default function BrokersPortalPage({ onBack, onNavigate }: { onBack: () =
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "40px" }}>
-        <div style={{ padding: "32px", background: "rgba(0,101,101,0.08)", borderRadius: "14px", border: "1px solid rgba(0,101,101,0.22)" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, color: MINT, marginBottom: "12px", lineHeight: 1.2 }}>24 hours saved per week</h2>
+        <AnimatedCard hoverScale={true} style={{ padding: "32px", background: "rgba(0,101,101,0.08)", borderRadius: "14px", border: "1px solid rgba(0,101,101,0.22)" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, color: MINT, marginBottom: "12px", lineHeight: 1.2 }}>
+            <AnimatedNumber value={24} format={(v) => Math.round(v).toString()} /> hours saved per week
+          </h2>
           <p style={{ fontSize: "15px", color: "#4a5d5d", lineHeight: 1.6, marginBottom: "20px" }}>
             Per broker. On average. The DSCR solver, lender matching, and state-rule checks mean you stop second-guessing your quote and move on.
           </p>
-          <a href="/dscrgo" style={{ display: "inline-block", padding: "12px 28px", background: MINT, color: "#002D2E", borderRadius: "8px", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>Sign in to portal →</a>
-        </div>
-        <div style={{ padding: "32px", background: "rgba(216,217,88,0.08)", borderRadius: "14px", border: "1px solid rgba(216,217,88,0.2)" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, color: YELLOW, marginBottom: "12px", lineHeight: 1.2 }}>20% more deals priced per week</h2>
+          <AnimatedButton onClick={() => onNavigate("portal")} showArrow={true}>
+            Sign in to portal
+          </AnimatedButton>
+        </AnimatedCard>
+        <AnimatedCard hoverScale={true} style={{ padding: "32px", background: "rgba(216,217,88,0.08)", borderRadius: "14px", border: "1px solid rgba(216,217,88,0.2)" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, color: YELLOW, marginBottom: "12px", lineHeight: 1.2 }}>
+            <AnimatedNumber value={20} format={(v) => Math.round(v) + "%"} /> more deals priced per week
+          </h2>
           <p style={{ fontSize: "15px", color: "#4a5d5d", lineHeight: 1.6, marginBottom: "20px" }}>
             Brokers on the platform price 20% more deals per week. Most of those wouldn't have penciled out before the engine caught the missing compensating factors.
           </p>
-          <a href="/book-demo" style={{ display: "inline-block", padding: "12px 28px", background: YELLOW, color: "#002D2E", borderRadius: "8px", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>Book a demo →</a>
-        </div>
+          <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true} style={{ background: YELLOW, borderColor: YELLOW }}>
+            Book a demo
+          </AnimatedButton>
+        </AnimatedCard>
       </div>
 
       <div style={sectionTitle}>What You Get on Day 1</div>
@@ -40,15 +50,15 @@ export default function BrokersPortalPage({ onBack, onNavigate }: { onBack: () =
           { title: "Structure Optimizer", desc: "IO vs 30yr P&I vs 40yr amortization vs ARM. The engine ranks structures by Track 1 DSCR and projected monthly savings.", icon: "5" },
           { title: "IC Memo Export", desc: "Generate a credit-committee-ready memo in 30 seconds. Includes return stack, lender ranking, and assumption disclosure.", icon: "6" },
         ].map((f) => (
-          <div key={f.title} style={{ ...card, display: "flex", flexDirection: "column", gap: "10px" }}>
+          <AnimatedCard key={f.title} hoverScale={true} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: MINT, color: "#002D2E", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>{f.icon}</div>
             <h3 style={{ fontSize: "17px", fontWeight: 700, color: CREAM, lineHeight: 1.3 }}>{f.title}</h3>
             <p style={{ fontSize: "13px", color: "#4a5d5d", lineHeight: 1.5, flex: 1 }}>{f.desc}</p>
-          </div>
+          </AnimatedCard>
         ))}
       </div>
 
-      <div style={{ ...card, marginBottom: "32px" }}>
+      <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
         <div style={sectionTitle}>The Workflow</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
           {[
@@ -64,9 +74,9 @@ export default function BrokersPortalPage({ onBack, onNavigate }: { onBack: () =
             </div>
           ))}
         </div>
-      </div>
+      </AnimatedCard>
 
-      <div style={{ ...card, marginBottom: "32px" }}>
+      <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
         <div style={sectionTitle}>What Brokers Tell Us</div>
         {[
           { quote: "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it - lower down payment, IO for year one. We closed in 19 days.", name: "Alex Stickelman", role: "CCO & COO, Root Financial" },
@@ -79,14 +89,18 @@ export default function BrokersPortalPage({ onBack, onNavigate }: { onBack: () =
             <p style={{ fontSize: "11px", color: "#5a6b6b" }}>{t.role}</p>
           </div>
         ))}
-      </div>
+      </AnimatedCard>
 
       <div style={{ marginTop: "32px", padding: "32px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
         <h3 style={{ fontSize: "24px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Ready to price your next DSCR deal?</h3>
         <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Free for individual brokers. White-label pricing for broker shops with 5+ users.</p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-          <a href="/dscrgo" style={{ display: "inline-block", padding: "12px 28px", background: MINT, color: "#002D2E", borderRadius: "8px", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>Open the Portal</a>
-          <a href="/book-demo" style={{ display: "inline-block", padding: "12px 28px", background: "transparent", color: MINT, border: `1px solid ${MINT}`, borderRadius: "8px", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>Book a Demo</a>
+          <AnimatedButton onClick={() => onNavigate("portal")} showArrow={true}>
+            Open the Portal
+          </AnimatedButton>
+          <AnimatedButton onClick={() => onNavigate("rate-quiz")} variant="secondary" showArrow={true}>
+            Book a Demo
+          </AnimatedButton>
         </div>
       </div>
     </PageShell>

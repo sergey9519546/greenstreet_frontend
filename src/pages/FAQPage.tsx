@@ -1,10 +1,12 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const FADED = "rgba(0,55,56,0.15)";
+import { PageShell, AnimatedCard, AnimatedButton, sectionTitle } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const FADED = swatch.midnightFaded;
 const AS_OF = "Jun 22, 2026";
 
 // Source attribution per answer — added 2026-06-22 refresh.
@@ -104,13 +106,12 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
     >
       <div style={{ maxWidth: "800px" }}>
         {FAQS.map((faq, i) => (
-          <div key={i} style={{ marginBottom: "8px" }}>
+          <AnimatedCard key={i} hoverScale={true} style={{ padding: 0, marginBottom: "8px", overflow: "hidden" }}>
             <button
               onClick={() => setOpen(open === i ? null : i)}
               style={{
                 width: "100%", textAlign: "left", background: "#e8e9bf",
-                border: `1px solid ${open === i ? MINT : FADED}`,
-                borderRadius: open === i ? "12px 12px 0 0" : "12px",
+                border: "none",
                 color: open === i ? MINT : CREAM,
                 padding: "18px 24px", cursor: "pointer", fontSize: "16px", fontWeight: 600,
                 fontFamily: "Outfit, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -122,8 +123,8 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             </button>
             {open === i && (
               <div style={{
-                background: "rgba(0,101,101,0.07)", border: `1px solid ${MINT}`, borderTop: "none",
-                borderRadius: "0 0 12px 12px", padding: "20px 24px",
+                background: "rgba(0,101,101,0.07)", borderTop: `1px solid ${MINT}`,
+                padding: "20px 24px",
                 color: "#3f5252", fontSize: "15px", lineHeight: 1.7,
               }}>
                 {faq.a}
@@ -137,7 +138,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 </div>
               </div>
             )}
-          </div>
+          </AnimatedCard>
         ))}
       </div>
 
@@ -161,19 +162,15 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
         </span>
       </div>
 
-      <div style={{ marginTop: "32px", ...card, maxWidth: "600px" }}>
+      <AnimatedCard hoverScale={false} style={{ marginTop: "32px", maxWidth: "600px" }}>
         <div style={sectionTitle}>Still have questions?</div>
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
           Call a DSCR specialist. Most questions get answered the same business day.
         </p>
-        <a href="tel:+13324551462" style={{
-          display: "inline-block", padding: "14px 28px", background: MINT,
-          color: "#002D2E", borderRadius: "10px", fontWeight: 700, fontSize: "15px",
-          textDecoration: "none",
-        }}>
+        <AnimatedButton onClick={() => window.location.href = "tel:+13324551462"} showArrow={true}>
           Call +1 (332) 455-1462
-        </a>
-      </div>
+        </AnimatedButton>
+      </AnimatedCard>
     </PageShell>
   );
 }

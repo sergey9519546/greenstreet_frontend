@@ -1,11 +1,17 @@
 // @ts-nocheck
 import React from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedButton,
+} from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
-const FADED = "rgba(0,55,56,0.15)";
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
+const FADED = swatch.midnightFaded;
 const AS_OF = "Jun 22, 2026";
 
 const STEPS = [
@@ -22,7 +28,6 @@ const WHY = [
   { icon: "📍", title: "50-State PPP Compliance", body: "We track prepay laws across all 50 states, refreshed Q2 2026. You get flagged before you structure a deal in OH, PA, NJ, or MN with compliance traps." },
 ];
 
-// Partner economics — refreshed against Apr 2026 sweep. Sources cited below.
 const ECONOMICS = [
   { label: "Typical Origination", val: "1.0–2.0%", note: "Of loan amount at close", src: "Industry convention · lender published" },
   { label: "YSP on Rate", val: "0.50–1.50%", note: "Rate buyup / premium pricing", src: "Reg Z §1026.36(d) · broker comp rules" },
@@ -40,11 +45,11 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
       <div style={sectionTitle}>Why Greenstreet Finance</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px", marginBottom: "60px" }}>
         {WHY.map(w => (
-          <div key={w.title} style={card}>
+          <AnimatedCard key={w.title} themeName="light" hoverScale={true}>
             <div style={{ fontSize: "28px", marginBottom: "12px" }}>{w.icon}</div>
             <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "8px" }}>{w.title}</div>
-            <div style={{ color: "#4a5d5d", fontSize: "14px", lineHeight: 1.6 }}>{w.body}</div>
-          </div>
+            <div style={{ color: "rgba(0,55,56,0.8)", fontSize: "14px", lineHeight: 1.6 }}>{w.body}</div>
+          </AnimatedCard>
         ))}
       </div>
 
@@ -52,26 +57,25 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
       <div style={sectionTitle}>How It Works</div>
       <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "60px", maxWidth: "720px" }}>
         {STEPS.map(s => (
-          <div key={s.n} style={{ ...card, display: "grid", gridTemplateColumns: "60px 1fr", gap: "20px", alignItems: "start" }}>
+          <AnimatedCard key={s.n} style={{ display: "grid", gridTemplateColumns: "60px 1fr", gap: "20px", alignItems: "center" }} hoverScale={true}>
             <div style={{ color: MINT, fontWeight: 900, fontSize: "28px" }}>{s.n}</div>
             <div>
               <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "6px" }}>{s.title}</div>
-              <div style={{ color: "#4a5d5d", fontSize: "14px", lineHeight: 1.6 }}>{s.body}</div>
+              <div style={{ color: "rgba(0,55,56,0.8)", fontSize: "14px", lineHeight: 1.6 }}>{s.body}</div>
             </div>
-          </div>
+          </AnimatedCard>
         ))}
       </div>
 
-      {/* Fee structure — refreshed with per-row src */}
-      <div style={{ ...card, maxWidth: "640px", marginBottom: "40px" }}>
+      {/* Fee structure */}
+      <AnimatedCard style={{ maxWidth: "640px", marginBottom: "40px" }} hoverScale={false}>
         <div style={sectionTitle}>Partner Economics</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
           {ECONOMICS.map(e => (
             <div key={e.label} style={{ textAlign: "center" }}>
               <div style={{ color: MINT, fontWeight: 800, fontSize: "24px" }}>{e.val}</div>
               <div style={{ color: CREAM, fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{e.label}</div>
-              <div style={{ color: "#647474", fontSize: "12px" }}>{e.note}</div>
-              {/* Source attribution — added 2026-06-22 refresh */}
+              <div style={{ color: "rgba(0,55,56,0.6)", fontSize: "12px" }}>{e.note}</div>
               <div style={{
                 marginTop: "8px", paddingTop: "8px", borderTop: `1px dashed ${FADED}`,
                 fontSize: "10px", color: MINT, fontFamily: "JetBrains Mono, monospace",
@@ -81,33 +85,25 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
             </div>
           ))}
         </div>
-      </div>
+      </AnimatedCard>
 
       {/* CTA */}
-      <div style={{ ...card, maxWidth: "600px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
+      <AnimatedCard style={{ maxWidth: "600px", borderColor: MINT, background: "rgba(0,101,101,0.06)" }} hoverScale={false}>
         <div style={sectionTitle}>Ready to Submit a Deal?</div>
-        <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
+        <p style={{ color: "rgba(0,55,56,0.8)", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
           We pre-screen same day. Submit the property address, rent, and FICO and we'll come back with a full structure.
         </p>
         <div style={{ display: "flex", gap: "12px" }}>
-          <a href="mailto:deals@greenstreetfinance.com" style={{
-            display: "inline-block", padding: "14px 24px", background: MINT,
-            color: "#002D2E", borderRadius: "10px", fontWeight: 700, fontSize: "15px",
-            textDecoration: "none",
-          }}>
+          <AnimatedButton onClick={() => window.location.href = "mailto:deals@greenstreetfinance.com"}>
             Submit a Deal
-          </a>
-          <a href="tel:+13324551462" style={{
-            display: "inline-block", padding: "14px 24px", background: "transparent",
-            color: MINT, border: `1px solid ${MINT}`, borderRadius: "10px", fontWeight: 700, fontSize: "15px",
-            textDecoration: "none",
-          }}>
+          </AnimatedButton>
+          <AnimatedButton variant="secondary" onClick={() => window.location.href = "tel:+13324551462"}>
             Call Us
-          </a>
+          </AnimatedButton>
         </div>
-      </div>
+      </AnimatedCard>
 
-      {/* Freshness signal — added 2026-06-22 */}
+      {/* Freshness signal */}
       <div style={{
         marginTop: "24px", padding: "14px 18px",
         background: "rgba(216,217,88,0.12)", borderRadius: "10px",

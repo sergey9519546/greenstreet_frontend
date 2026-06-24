@@ -1,10 +1,12 @@
 // @ts-nocheck
 import React from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+import { PageShell, AnimatedCard, AnimatedButton, AnimatedNumber, sectionTitle } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 const STUDIES = [
   {
@@ -60,12 +62,27 @@ const STUDIES = [
   },
 ];
 
-function StudyCard({ s }: any) {
+function renderMetricValue(val: string) {
+  const numMatch = val.match(/([\d.]+)/);
+  if (!numMatch) return val;
+  const num = parseFloat(numMatch[1]);
+  const parts = val.split(numMatch[1]);
+  const prefix = parts[0] || "";
+  const suffix = parts[1] || "";
+  const decimals = numMatch[1].includes(".") ? numMatch[1].split(".")[1].length : 0;
   return (
-    <a href={`/case-studies/${s.slug}`} style={{ textDecoration: "none" }}>
-      <div style={{ ...card, height: "100%", display: "flex", flexDirection: "column", cursor: "pointer", transition: "border-color 0.15s" }}
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = MINT)}
-        onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,55,56,0.15)")}>
+    <span>
+      {prefix}
+      <AnimatedNumber value={num} format={(v) => v.toFixed(decimals)} />
+      {suffix}
+    </span>
+  );
+}
+
+function StudyCard({ s, onNavigate }: any) {
+  return (
+    <a href={`/case-studies/${s.slug}`} style={{ textDecoration: "none" }} onClick={(e) => { e.preventDefault(); onNavigate(`case-studies/${s.slug}`); }}>
+      <AnimatedCard hoverScale={true} style={{ height: "100%", display: "flex", flexDirection: "column", cursor: "pointer" }}>
         <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "14px" }}>
           <span style={{ padding: "3px 10px", background: "rgba(0,101,101,0.1)", color: MINT, borderRadius: "20px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em" }}>{s.type}</span>
         </div>
@@ -75,13 +92,13 @@ function StudyCard({ s }: any) {
         <div style={{ display: "flex", gap: "20px", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid #ffffff" }}>
           {s.metrics.map((m: any) => (
             <div key={m.label}>
-              <div style={{ color: MINT, fontWeight: 800, fontSize: "18px" }}>{m.val}</div>
+              <div style={{ color: MINT, fontWeight: 800, fontSize: "18px" }}>{renderMetricValue(m.val)}</div>
               <div style={{ color: "#647474", fontSize: "11px" }}>{m.label}</div>
             </div>
           ))}
         </div>
         <div style={{ color: MINT, fontSize: "14px", fontWeight: 600, marginTop: "18px" }}>Read the deal →</div>
-      </div>
+      </AnimatedCard>
     </a>
   );
 }
@@ -96,16 +113,16 @@ export default function CaseStudiesPage({ onBack, onNavigate, path }: { onBack: 
       <PageShell title={study.company} subtitle={`${study.type} · ${study.location}`} onBack={onBack} onNavigate={onNavigate}>
         <div style={{ maxWidth: "780px" }}>
           {/* Metrics banner */}
-          <div style={{ ...card, background: "rgba(0,101,101,0.08)", borderColor: MINT, marginBottom: "36px" }}>
+          <AnimatedCard hoverScale={false} style={{ background: "rgba(0,101,101,0.08)", borderColor: MINT, marginBottom: "36px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "24px" }}>
               {study.metrics.map((m: any) => (
                 <div key={m.label} style={{ textAlign: "center" }}>
-                  <div style={{ color: MINT, fontWeight: 900, fontSize: "32px" }}>{m.val}</div>
+                  <div style={{ color: MINT, fontWeight: 900, fontSize: "32px" }}>{renderMetricValue(m.val)}</div>
                   <div style={{ color: "#5a6b6b", fontSize: "13px" }}>{m.label}</div>
                 </div>
               ))}
             </div>
-          </div>
+          </AnimatedCard>
 
           <h2 style={{ color: CREAM, fontSize: "28px", fontWeight: 800, lineHeight: 1.2, marginBottom: "32px" }}>{study.headline}</h2>
 
@@ -121,11 +138,13 @@ export default function CaseStudiesPage({ onBack, onNavigate, path }: { onBack: 
             <div style={{ color: MINT, fontSize: "15px", fontStyle: "normal", fontWeight: 600, marginTop: "12px" }}>— {study.person}, {study.company}</div>
           </blockquote>
 
-          <div style={{ ...card, marginTop: "40px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
+          <AnimatedCard hoverScale={false} style={{ marginTop: "40px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
             <div style={sectionTitle}>Your deal could be next</div>
             <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6 }}>Model your scenario the same way these investors did.</p>
-            <a href="/deal-analyzer" style={{ display: "inline-block", padding: "13px 26px", background: MINT, color: "#002D2E", borderRadius: "10px", fontWeight: 700, fontSize: "15px", textDecoration: "none" }}>Open the Deal Analyzer →</a>
-          </div>
+            <AnimatedButton onClick={() => onNavigate("deal-analyzer")} showArrow={true}>
+              Open the Deal Analyzer
+            </AnimatedButton>
+          </AnimatedCard>
         </div>
       </PageShell>
     );
@@ -138,7 +157,7 @@ export default function CaseStudiesPage({ onBack, onNavigate, path }: { onBack: 
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "24px" }}>
-        {STUDIES.map((s) => <StudyCard key={s.slug} s={s} />)}
+        {STUDIES.map((s) => <StudyCard key={s.slug} s={s} onNavigate={onNavigate} />)}
       </div>
     </PageShell>
   );

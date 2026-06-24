@@ -1,5 +1,6 @@
-// @ts-nocheck
 import React, { useEffect, useRef, useState } from "react";
+import { AnimatedCard, AnimatedButton } from "./PageShell";
+import { swatch } from "../theme";
 
 // Blue "how it works" band — recreation of greenboard.com's step_tab scroll motion,
 // rebuilt for Greenstreet's DSCR flow:
@@ -7,11 +8,11 @@ import React, { useEffect, useRef, useState } from "react";
 //   • each step's dot lights up as the fill passes it
 //   • cards stagger-reveal (fade + rise) the first time the band enters view
 //   • the active step lifts and brightens
-const NAVY = "#06283d";       // section bg (deep blue)
-const NAVY_2 = "#0a3a55";     // raised panel
-const CYAN = "#4dc4ff";       // active accent / progress line
-const ICE = "#bfe6ff";        // light blue text
-const LEMON = "#d8d958";      // brand CTA pop
+const NAVY = swatch.midnight;       // section bg (deep green/midnight)
+const NAVY_2 = swatch.darkTeal;     // raised panel (dark teal)
+const CYAN = swatch.emerald;        // active accent / progress line (emerald)
+const ICE = swatch.pistachio;       // warm light text (pistachio)
+const LEMON = swatch.lemon;         // brand CTA pop (lemon)
 
 const STEPS = [
   {
@@ -181,7 +182,9 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
                 </div>
 
                 {/* Card cell */}
-                <div
+                <AnimatedCard
+                  themeName="dark"
+                  hoverScale={false}
                   style={{
                     background: on ? NAVY_2 : "rgba(10,58,85,0.4)",
                     border: `1px solid ${isActive ? CYAN : on ? "rgba(77,196,255,0.45)" : "rgba(191,230,255,0.12)"}`,
@@ -198,7 +201,7 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
                     <span style={{ fontSize: "clamp(18px, 2.2vw, 22px)", fontWeight: 700, color: "#fff" }}>{s.title}</span>
                   </div>
                   <p style={{ fontSize: "15px", lineHeight: 1.65, color: ICE, opacity: 0.9, margin: 0 }}>{s.body}</p>
-                </div>
+                </AnimatedCard>
               </div>
             );
           })}
@@ -206,19 +209,12 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
 
         {/* CTA */}
         <div style={{ marginTop: "clamp(40px, 5vw, 64px)", display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
-          <a
-            href="/rate-quiz"
-            onClick={(e) => { if (onCTA) { e.preventDefault(); onCTA(); } }}
-            style={{
-              background: LEMON, color: NAVY, padding: "14px 28px", borderRadius: "8px",
-              fontWeight: 700, fontSize: "15px", textDecoration: "none",
-              border: `0.094rem solid ${LEMON}`, transition: "background-color 0.15s, color 0.15s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = LEMON; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = LEMON; e.currentTarget.style.color = NAVY; }}
+          <AnimatedButton
+            themeName="dark"
+            onClick={onCTA}
           >
-            Get my rate in 4 questions →
-          </a>
+            Get my rate in 4 questions
+          </AnimatedButton>
           <span style={{ fontSize: "14px", color: ICE, opacity: 0.7 }}>No email. No signup. No credit pull.</span>
         </div>
       </div>

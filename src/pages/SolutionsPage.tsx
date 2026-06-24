@@ -1,9 +1,10 @@
-// @ts-nocheck
 import React from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
+import { PageShell, AnimatedCard } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
 
 const AUDIENCES = [
   { href: "/brokers", icon: "🤝", title: "Mortgage Brokers", desc: "Submit a deal once, get the best structure across 11 lenders. Keep your borrower, earn the spread.", cta: "For Brokers" },
@@ -21,15 +22,21 @@ export default function SolutionsPage({ onBack, onNavigate }: { onBack: () => vo
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px,1fr))", gap: "20px" }}>
         {AUDIENCES.map((a) => (
-          <a key={a.href} href={a.href} style={{ textDecoration: "none" }}>
-            <div style={{ ...card, height: "100%", display: "flex", flexDirection: "column", cursor: "pointer", transition: "border-color 0.15s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = MINT)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,55,56,0.15)")}>
+          <a
+            key={a.href}
+            href={a.href}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(a.href.replace("/", "") as any);
+            }}
+            style={{ textDecoration: "none" }}
+          >
+            <AnimatedCard hoverScale={true} style={{ height: "100%", display: "flex", flexDirection: "column", padding: "28px" }}>
               <div style={{ fontSize: "32px", marginBottom: "14px" }}>{a.icon}</div>
               <div style={{ color: CREAM, fontWeight: 700, fontSize: "20px", marginBottom: "10px" }}>{a.title}</div>
               <p style={{ color: "#4a5d5d", fontSize: "15px", lineHeight: 1.6, flex: 1 }}>{a.desc}</p>
               <div style={{ color: MINT, fontSize: "14px", fontWeight: 600, marginTop: "20px" }}>{a.cta} →</div>
-            </div>
+            </AnimatedCard>
           </a>
         ))}
       </div>

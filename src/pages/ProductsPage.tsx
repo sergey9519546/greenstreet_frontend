@@ -1,9 +1,10 @@
-// @ts-nocheck
 import React from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
+import { PageShell, AnimatedCard } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
 
 const TOOLS = [
   { href: "/deal-analyzer", icon: "📊", title: "Deal Analyzer", desc: "Full DSCR analysis — Track 1 and Track 2, break-even rate, cash-on-cash. The core engine.", tag: "Most used" },
@@ -29,10 +30,16 @@ export default function ProductsPage({ onBack, onNavigate }: { onBack: () => voi
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px,1fr))", gap: "20px" }}>
         {TOOLS.map((t) => (
-          <a key={t.href} href={t.href} style={{ textDecoration: "none" }}>
-            <div style={{ ...card, height: "100%", display: "flex", flexDirection: "column", cursor: "pointer", transition: "border-color 0.15s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = MINT)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,55,56,0.15)")}>
+          <a
+            key={t.href}
+            href={t.href}
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(t.href.replace("/", "") as any);
+            }}
+            style={{ textDecoration: "none" }}
+          >
+            <AnimatedCard hoverScale={true} style={{ height: "100%", display: "flex", flexDirection: "column", padding: "28px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div style={{ fontSize: "30px", marginBottom: "14px" }}>{t.icon}</div>
                 {t.tag && <span style={{ padding: "3px 10px", background: "rgba(216,217,88,0.15)", color: "#8a6d00", borderRadius: "20px", fontSize: "11px", fontWeight: 700 }}>{t.tag}</span>}
@@ -40,7 +47,7 @@ export default function ProductsPage({ onBack, onNavigate }: { onBack: () => voi
               <div style={{ color: CREAM, fontWeight: 700, fontSize: "18px", marginBottom: "8px" }}>{t.title}</div>
               <p style={{ color: "#4a5d5d", fontSize: "14px", lineHeight: 1.6, flex: 1 }}>{t.desc}</p>
               <div style={{ color: MINT, fontSize: "14px", fontWeight: 600, marginTop: "18px" }}>Open →</div>
-            </div>
+            </AnimatedCard>
           </a>
         ))}
       </div>

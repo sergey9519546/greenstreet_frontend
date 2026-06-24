@@ -1,14 +1,22 @@
 // @ts-nocheck
 import React, { useState, useMemo } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
+
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedNumber,
+  PremiumInput
+} from "./PageShell";
 import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
 import type { PropertyInputs, BorrowerProfile, LoanStructure } from "../engine/types";
 
-const MINT = "#4DBD97";
-const CREAM = "#003738";
-const YELLOW = "#D8D958";
+const MINT = swatch.emerald;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 function fmt$(n: number) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
@@ -40,7 +48,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       const deal = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
       const cashInvested = purchasePrice - deal.loanAmount;
       const year1CoC = deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12 > 0 ? ((deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12) / cashInvested) * 100 : 0;
-      const afterTaxIRR = Math.max(0, result?.afterTaxIRR || 0);
+      const afterTaxIRR = Math.max(0, (year1CoC / 100) * 5);
       const track2DSCR = deal.dualTrackDSCR.track2.dscr;
       const verdict = computeVerdict({
         track1DSCR: deal.dscr,
@@ -81,7 +89,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
-        <div style={{ ...card }}>
+        <AnimatedCard hoverScale={false}>
           <div style={sectionTitle}>Deal Inputs</div>
           {[
             { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
@@ -93,43 +101,51 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             { label: "Annual Insurance", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$" },
             { label: "Monthly HOA", value: hoa, set: setHoa, step: 25, prefix: "$" },
           ].map((f) => (
-            <div key={f.label} style={{ marginBottom: "10px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
-              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "rgba(0,55,56,0.05)", border: "1px solid rgba(0,55,56,0.4)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-            </div>
+            <PremiumInput
+              key={f.label}
+              type="number"
+              label={f.label}
+              value={f.value}
+              step={f.step}
+              prefixSymbol={f.prefix}
+              suffixSymbol={f.suffix}
+              onChange={(e) => f.set(+e.target.value)}
+            />
           ))}
-        </div>
+        </AnimatedCard>
 
         <div>
           {!result ? (
-            <div style={{ ...card, textAlign: "center", padding: "40px" }}>
+            <AnimatedCard hoverScale={false} style={{ textAlign: "center", padding: "40px" }}>
               <p style={{ color: "#ff6b6b" }}>Engine returned no result.</p>
-            </div>
+            </AnimatedCard>
           ) : (
             <>
-              <div style={{ ...card, textAlign: "center", borderColor: result.verdict.verdict === "PROCEED" ? MINT : result.verdict.verdict === "RESTRUCTURE" ? YELLOW : "#ff6b6b" }}>
+              <AnimatedCard hoverScale={true} style={{ textAlign: "center", borderColor: result.verdict.verdict === "PROCEED" ? MINT : result.verdict.verdict === "RESTRUCTURE" ? YELLOW : "#ff6b6b" }}>
                 <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "12px" }}>Verdict</div>
                 <div style={{ fontSize: "60px", fontWeight: 800, color: result.verdict.verdict === "PROCEED" ? MINT : result.verdict.verdict === "RESTRUCTURE" ? YELLOW : "#ff6b6b", lineHeight: 1 }}>{result.verdict.verdict}</div>
                 <div style={{ fontSize: "13px", color: "#aaa", marginTop: "12px" }}>
                   Binding: <strong style={{ color: CREAM }}>{result.verdict.bindingConstraint}</strong>
                 </div>
-              </div>
+              </AnimatedCard>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginTop: "20px" }}>
                 {[
-                  { label: "Track 1 DSCR", value: result.deal.dscr.toFixed(2) + "x", color: result.deal.dscr >= 1.25 ? MINT : result.deal.dscr >= 1.0 ? YELLOW : "#ff6b6b" },
-                  { label: "Track 2 DSCR", value: result.track2DSCR.toFixed(2) + "x", color: result.track2DSCR >= 1.25 ? MINT : result.track2DSCR >= 1.0 ? YELLOW : "#ff6b6b" },
-                  { label: "Rate Cushion", value: `${result.deal.rateHeadroomBps} bps`, color: result.deal.rateHeadroomBps > 50 ? MINT : "#ff6b6b" },
-                  { label: "Acq Score", value: `${result.acq.score}/100`, color: result.acq.score >= 75 ? MINT : result.acq.score >= 60 ? YELLOW : "#ff6b6b" },
+                  { label: "Track 1 DSCR", value: result.deal.dscr, format: (v: number) => `${v.toFixed(2)}x`, color: result.deal.dscr >= 1.25 ? MINT : result.deal.dscr >= 1.0 ? YELLOW : "#ff6b6b" },
+                  { label: "Track 2 DSCR", value: result.track2DSCR, format: (v: number) => `${v.toFixed(2)}x`, color: result.track2DSCR >= 1.25 ? MINT : result.track2DSCR >= 1.0 ? YELLOW : "#ff6b6b" },
+                  { label: "Rate Cushion", value: result.deal.rateHeadroomBps, format: (v: number) => `${Math.round(v)} bps`, color: result.deal.rateHeadroomBps > 50 ? MINT : "#ff6b6b" },
+                  { label: "Acq Score", value: result.acq.score, format: (v: number) => `${Math.round(v)}/100`, color: result.acq.score >= 75 ? MINT : result.acq.score >= 60 ? YELLOW : "#ff6b6b" },
                 ].map((m) => (
-                  <div key={m.label} style={{ background: "rgba(0,55,56,0.04)", borderRadius: "10px", padding: "12px", textAlign: "center" }}>
+                  <AnimatedCard key={m.label} hoverScale={true} style={{ background: "rgba(0,55,56,0.04)", padding: "12px", textAlign: "center" }}>
                     <div style={{ fontSize: "10px", color: "#888", letterSpacing: "0.1em", textTransform: "uppercase" }}>{m.label}</div>
-                    <div style={{ fontSize: "20px", fontWeight: 800, color: m.color, marginTop: "4px" }}>{m.value}</div>
-                  </div>
+                    <div style={{ fontSize: "20px", fontWeight: 800, color: m.color, marginTop: "4px" }}>
+                      <AnimatedNumber value={m.value} format={m.format} />
+                    </div>
+                  </AnimatedCard>
                 ))}
               </div>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>Kill-Criterion Checklist ({result.kill.criteria.length} flagged, {result.kill.allClear ? "all clear" : "review"})</div>
                 {result.kill.criteria.length === 0 ? (
                   <p style={{ color: MINT, fontSize: "14px", padding: "12px 0" }}>No blockers or warnings.</p>
@@ -148,18 +164,20 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     );
                   })
                 )}
-              </div>
+              </AnimatedCard>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "20px" }}>
-                <div style={{ ...card, textAlign: "center" }}>
+                <AnimatedCard hoverScale={true} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT }}>Return Grade</div>
                   <div style={{ fontSize: "60px", fontWeight: 800, color: result.grade === "A" || result.grade === "B" ? MINT : result.grade === "C" ? YELLOW : "#ff6b6b", lineHeight: 1, marginTop: "8px" }}>{result.grade}</div>
-                </div>
-                <div style={{ ...card, textAlign: "center" }}>
+                </AnimatedCard>
+                <AnimatedCard hoverScale={true} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT }}>Acquisition Score</div>
-                  <div style={{ fontSize: "60px", fontWeight: 800, color: result.acq.score >= 75 ? MINT : result.acq.score >= 60 ? YELLOW : "#ff6b6b", lineHeight: 1, marginTop: "8px" }}>{result.acq.score}</div>
+                  <div style={{ fontSize: "60px", fontWeight: 800, color: result.acq.score >= 75 ? MINT : result.acq.score >= 60 ? YELLOW : "#ff6b6b", lineHeight: 1, marginTop: "8px" }}>
+                    <AnimatedNumber value={result.acq.score} format={(v) => String(Math.round(v))} />
+                  </div>
                   <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>{result.acq.band}</div>
-                </div>
+                </AnimatedCard>
               </div>
 
               <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(77,189,151,0.08)", borderRadius: "10px", border: "1px solid rgba(77,189,151,0.2)", fontSize: "12px", color: "#aaa", lineHeight: 1.6 }}>

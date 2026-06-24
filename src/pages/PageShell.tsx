@@ -70,6 +70,22 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
   const mainRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    // Dynamic SEO
+    if (title) {
+      document.title = `${title} | Greenstreet Finance`;
+    }
+    if (subtitle) {
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute("content", subtitle);
+      }
+    }
+    
+    // Scroll to top on mount
+    window.scrollTo(0, 0);
+  }, [title, subtitle]);
+
+  useEffect(() => {
     const g = (window as any).gsap;
     const ST = (window as any).ScrollTrigger;
     if (!g || !ST) return;
@@ -145,53 +161,84 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
           .gs-mobile-menu a:last-child { border-bottom: none; margin-top: 12px; background: ${LEMON}; color: ${MIDNIGHT}; text-align: center; border-radius: 8px; padding: 12px; font-weight: 700; }
         }
       `}</style>
-      {/* Global nav — full-width with inner padding */}
-      <nav style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "20px clamp(1.5rem, 4vw, 4rem)",
-        borderBottom: `1px solid ${FADED}`,
-        background: PISTACHIO,
-        position: "sticky", top: 0, zIndex: 50,
-      }}>
-        <Logo variant="dark" size={20} href="/" onClick={(e) => { e.preventDefault(); onBack(); }} />
-        {/* Desktop nav */}
-        <div className="gs-nav-links">
-          <a href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}
-             style={{ color: RAINFOREST, fontWeight: 700, fontSize: "15px", textDecoration: "none" }}>DSCRGo</a>
-          {NAV.map((n) => (
-            <a key={n.view} href={`/${n.view}`}
-               onClick={(e) => { e.preventDefault(); onNavigate(n.view); }}
-               style={{ color: MIDNIGHT, fontSize: "15px", textDecoration: "none", fontWeight: 500, cursor: "pointer" }}>
-              {n.label}
+      {/* Webflow Design System Navbar */}
+      <nav className="nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
+        <div className="nav-contain u-container">
+          <div className="nav-wrap">
+            <a className="nav-logo-wrap w-inline-block" href="/" onClick={(e) => { e.preventDefault(); onBack(); }}>
+              <div className="nav-logo w-embed">
+                <span style={{
+                  fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
+                  fontSize: "24px",
+                  fontWeight: 600,
+                  letterSpacing: "-0.04em",
+                  color: "currentColor",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1,
+                  display: "inline-block"
+                }}>Greenstreet Finance</span>
+              </div>
             </a>
-          ))}
-          <a href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}
-             style={{ color: MIDNIGHT, fontSize: "15px", textDecoration: "underline", textUnderlineOffset: "4px", cursor: "pointer" }}>Login</a>
-          <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); }}
-             style={{
-               background: LEMON, color: MIDNIGHT, padding: "12px 24px", borderRadius: "8px",
-               fontWeight: 700, fontSize: "15px", textDecoration: "none", border: `0.094rem solid ${LEMON}`,
-               transition: "background-color 0.15s, color 0.15s", cursor: "pointer",
-             }}
-             onMouseEnter={(e) => { e.currentTarget.style.background = MIDNIGHT; e.currentTarget.style.color = MINT_BG; e.currentTarget.style.borderColor = MIDNIGHT; }}
-             onMouseLeave={(e) => { e.currentTarget.style.background = LEMON; e.currentTarget.style.color = MIDNIGHT; e.currentTarget.style.borderColor = LEMON; }}
-          >Book a demo</a>
+            
+            <div className="nav-links-contain" style={{ display: "flex", alignItems: "center" }}>
+              <div className="nav-links-wrap" style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+                <a className="nav-link w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                  <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>DSCRGo</div>
+                </a>
+                <a className="nav-link w-inline-block" href="/products" onClick={(e) => { e.preventDefault(); onNavigate("products"); }}>
+                  <div className="nav_links_text">Product</div>
+                </a>
+                <a className="nav-link w-inline-block" href="/solutions" onClick={(e) => { e.preventDefault(); onNavigate("solutions"); }}>
+                  <div className="nav_links_text">Who We Serve</div>
+                </a>
+                <a className="nav-link w-inline-block" href="/blog" onClick={(e) => { e.preventDefault(); onNavigate("blog"); }}>
+                  <div className="nav_links_text">Resources</div>
+                </a>
+                <a className="nav-link w-inline-block" href="/about" onClick={(e) => { e.preventDefault(); onNavigate("about"); }}>
+                  <div className="nav_links_text">About</div>
+                </a>
+                <a className="nav-link is-underline w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                  <div>Login</div>
+                </a>
+                <div className="nav-btn">
+                  <div className="btn_main_wrap" data-wf--btn-main--style="secondary">
+                    <a className="g_clickable_link w-inline-block" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); }}>
+                      <span className="g_clickable_text u-sr-only">Book a demo</span>
+                    </a>
+                    <div aria-hidden="true" className="btn_main_text" onClick={() => onNavigate("rate-quiz")}>Book a demo</div>
+                    <div className="btn-arrow-wrap">
+                      <div className="btn_main_icon w-embed">
+                        <svg fill="none" height="100%" viewBox="0 0 24 25" width="100%" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Burger toggle for mobile */}
+            <div className="burger-wrap" style={{ display: "none", cursor: "pointer" }} onClick={() => setMenuOpen(!menuOpen)}>
+              <div className="burger-line top"></div>
+              <div className="burger-line middle"></div>
+              <div className="burger-line bottom"></div>
+            </div>
+          </div>
         </div>
-        {/* Hamburger */}
-        <button className="gs-hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
-          <span style={{ display: "block", width: 22, height: 2, background: MIDNIGHT, borderRadius: 2 }} />
-          <span style={{ display: "block", width: 22, height: 2, background: MIDNIGHT, borderRadius: 2 }} />
-          <span style={{ display: "block", width: 22, height: 2, background: MIDNIGHT, borderRadius: 2 }} />
-        </button>
-        {/* Mobile dropdown */}
-        <div className="gs-mobile-menu">
-          <a href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); closeMenu(); }}>DSCRGo</a>
-          {NAV.map((n) => (
-            <a key={n.view} href={`/${n.view}`} onClick={(e) => { e.preventDefault(); onNavigate(n.view); closeMenu(); }}>{n.label}</a>
-          ))}
-          <a href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); closeMenu(); }}>Login</a>
-          <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); closeMenu(); }}>Book a demo</a>
-        </div>
+
+        {/* Mobile dropdown menu rendering */}
+        {menuOpen && (
+          <div className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
+            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>DSCRGo</a>
+            <a href="/products" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("products"); setMenuOpen(false); }}>Product</a>
+            <a href="/solutions" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("solutions"); setMenuOpen(false); }}>Who We Serve</a>
+            <a href="/blog" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("blog"); setMenuOpen(false); }}>Resources</a>
+            <a href="/about" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("about"); setMenuOpen(false); }}>About</a>
+            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
+            <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); setMenuOpen(false); }}>Book a demo</a>
+          </div>
+        )}
       </nav>
 
       {/* Page header — dark hero band matching Webflow marketing page treatment */}
@@ -222,50 +269,105 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
       {/* Blue animated "How It Works" band — on every inner page */}
       <HowItWorks onCTA={() => onNavigate("rate-quiz")} />
 
-      {/* Global footer — full-width */}
-      <footer style={{ background: MIDNIGHT, color: PISTACHIO, marginTop: "40px" }}>
-        <div style={{
-          padding: "56px clamp(1.5rem, 4vw, 4rem) 40px",
-          display: "grid",
-          gridTemplateColumns: "minmax(220px, 1.4fr) repeat(4, minmax(0, 1fr))",
-          gap: "clamp(24px, 3vw, 56px)",
-        }}>
-          <div>
-            <div style={{ marginBottom: "14px" }}>
-              <Logo variant="light" size={20} href="/" onClick={(e) => { e.preventDefault(); onNavigate("marketing"); }} />
-            </div>
-            <p style={{ fontSize: "13px", color: "#9fb0a8", lineHeight: 1.6, maxWidth: "280px" }}>
-              The fastest path from a rental property to a fundable DSCR loan.
-            </p>
+      {/* Webflow Design System Footer */}
+      <div className="footer_component">
+        <footer className="footer_wrap">
+          <h2 className="footer_title u-sr-only">Footer</h2>
+          <div className="footer_contain u-container">
+            <a aria-current="page" className="footer_logo_wrap w-inline-block w--current" href="/" onClick={(e) => { e.preventDefault(); onNavigate("marketing"); }}>
+              <div className="footer_logo w-embed">
+                <span style={{
+                  fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
+                  fontSize: "24px",
+                  fontWeight: 600,
+                  letterSpacing: "-0.04em",
+                  color: "currentColor",
+                  whiteSpace: "nowrap",
+                  lineHeight: 1,
+                  display: "inline-block"
+                }}>Greenstreet Finance</span>
+              </div>
+            </a>
+            <nav className="footer_layout u-grid-autofit">
+              <section className="footer_group_wrap u-column-2">
+                <h3 className="footer_group_title u-text-style-h4 u-mb-2">Product</h3>
+                <div className="footer_group_list u-grid-column-2">
+                  <a className="footer_link_wrap w-inline-block" href="/dscr-calculator" onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }}>
+                    <div className="footer_link_text u-weight-bold">DSCR Calculator</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/deal-analyzer" onClick={(e) => { e.preventDefault(); onNavigate("deal-analyzer"); }}>
+                    <div className="footer_link_text u-weight-bold">Deal Analyzer</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate("lender-intel"); }}>
+                    <div className="footer_link_text u-weight-bold">Lender Intelligence</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={(e) => { e.preventDefault(); onNavigate("state-laws"); }}>
+                    <div className="footer_link_text u-weight-bold">State Regulations</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={(e) => { e.preventDefault(); onNavigate("borrower-profiles"); }}>
+                    <div className="footer_link_text u-weight-bold">DSCR Borrower Profiles</div>
+                  </a>
+                </div>
+              </section>
+              <section className="footer_group_wrap">
+                <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
+                <div className="footer_group_list">
+                  <a className="footer_link_wrap w-inline-block" href="/brokers" onClick={(e) => { e.preventDefault(); onNavigate("brokers"); }}>
+                    <div className="footer_link_text u-weight-bold">Mortgage Brokers</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/investors" onClick={(e) => { e.preventDefault(); onNavigate("investors"); }}>
+                    <div className="footer_link_text u-weight-bold">Private Funds</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); }}>
+                    <div className="footer_link_text u-weight-bold">Rate Quiz</div>
+                  </a>
+                </div>
+              </section>
+              <section className="footer_group_wrap">
+                <h3 className="footer_group_title u-text-style-h4 u-mb-2">Company</h3>
+                <div className="footer_group_list">
+                  <a className="footer_link_wrap w-inline-block" href="/about" onClick={(e) => { e.preventDefault(); onNavigate("about"); }}>
+                    <div className="footer_link_text u-weight-bold">About</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/careers" onClick={(e) => { e.preventDefault(); onNavigate("careers"); }}>
+                    <div className="footer_link_text u-weight-bold">Jobs</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/security.html">
+                    <div className="footer_link_text u-weight-bold">Security & Privacy</div>
+                  </a>
+                </div>
+              </section>
+              <section className="footer_group_wrap">
+                <h3 className="footer_group_title u-text-style-h4 u-mb-2">Resources</h3>
+                <div className="footer_group_list">
+                  <a className="footer_link_wrap w-inline-block" href="/blog" onClick={(e) => { e.preventDefault(); onNavigate("blog"); }}>
+                    <div className="footer_link_text u-weight-bold">Greenstreet Guidance</div>
+                  </a>
+                  <a className="footer_link_wrap w-inline-block" href="/case-studies" onClick={(e) => { e.preventDefault(); onNavigate("case-studies"); }}>
+                    <div className="footer_link_text u-weight-bold">Customer Stories</div>
+                  </a>
+                </div>
+              </section>
+            </nav>
           </div>
-          {FOOTER.map((col) => (
-            <div key={col.h}>
-              <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "14px" }}>{col.h}</div>
-              {col.links.map((l) => (
-                <a key={l.label} href={(l as any).href ?? `/${l.view}`}
-                   onClick={(e) => { e.preventDefault(); if ((l as any).href) { window.history.pushState({}, "", (l as any).href); window.dispatchEvent(new PopStateEvent("popstate")); } else { onNavigate(l.view); } }}
-                   style={{ display: "block", color: "#b9c7c0", fontSize: "13px", textDecoration: "none", marginBottom: "9px", cursor: "pointer" }}>
-                  {l.label}
+          <div className="footer_bottom_wrap">
+            <div className="footer_bottom_contain u-container">
+              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved.</div>
+              <div className="footer_bottom_list">
+                <a className="footer_bottom_link_wrap w-inline-block" href="/privacy-policy" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/privacy-policy"); window.dispatchEvent(new PopStateEvent("popstate")); }}>
+                  <div className="footer_bottom_link_text u-text-style-small">Privacy Policy</div>
                 </a>
-              ))}
+                <a className="footer_bottom_link_wrap w-inline-block" href="/terms-of-service" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/terms-of-service"); window.dispatchEvent(new PopStateEvent("popstate")); }}>
+                  <div className="footer_bottom_link_text u-text-style-small">Terms of Service</div>
+                </a>
+                <a className="footer_bottom_link_wrap w-inline-block" href="/security.html">
+                  <div className="footer_bottom_link_text u-text-style-small">Data Privacy & Security</div>
+                </a>
+              </div>
             </div>
-          ))}
-        </div>
-        <div style={{
-          padding: "20px clamp(1.5rem, 4vw, 4rem) 40px",
-          borderTop: "1px solid rgba(255,255,255,0.1)",
-          display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px",
-          fontSize: "12px", color: "#8a9a93",
-        }}>
-          <span>© 2026 Greenstreet Finance. All rights reserved.</span>
-          <span style={{ display: "flex", gap: "20px" }}>
-            <a href="/privacy-policy" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/privacy-policy"); window.dispatchEvent(new PopStateEvent("popstate")); }}
-               style={{ color: "#8a9a93", textDecoration: "none", cursor: "pointer" }}>Privacy Policy</a>
-            <a href="/terms-of-service" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/terms-of-service"); window.dispatchEvent(new PopStateEvent("popstate")); }}
-               style={{ color: "#8a9a93", textDecoration: "none", cursor: "pointer" }}>Terms of Service</a>
-          </span>
-        </div>
-      </footer>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
@@ -285,3 +387,12 @@ export const sectionTitle: React.CSSProperties = {
   color: RAINFOREST,
   marginBottom: "20px",
 };
+
+// Re-export premium UI components for easy access in all pages
+export {
+  AnimatedCard,
+  AnimatedButton,
+  AnimatedNumber,
+  PremiumInput,
+  PremiumSlider,
+} from "../components/PremiumUI";

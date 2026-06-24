@@ -1,7 +1,6 @@
-// @ts-nocheck
 import React from "react";
-import { PageShell } from "./PageShell";
-import { Eyebrow, Body, Card, Button, Grid, Heading } from "../components/wf";
+import { PageShell, AnimatedCard, AnimatedButton, AnimatedNumber } from "./PageShell";
+import { Eyebrow, Body, Grid } from "../components/wf";
 import { swatch } from "../theme";
 
 const VALUES = [
@@ -12,10 +11,10 @@ const VALUES = [
 ];
 
 const STATS = [
-  { val: "11", label: "Verified DSCR lenders" },
-  { val: "50", label: "States with PPP rules mapped" },
-  { val: "2026", label: "Founded" },
-  { val: "$5B", label: "Origination target by 2028" },
+  { val: 11, format: (v: number) => Math.round(v).toString(), label: "Verified DSCR lenders" },
+  { val: 50, format: (v: number) => Math.round(v).toString(), label: "States with PPP rules mapped" },
+  { val: 2026, format: (v: number) => Math.round(v).toString(), label: "Founded" },
+  { val: 5, format: (v: number) => `$${Math.round(v)}B`, label: "Origination target by 2028" },
 ];
 
 export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
@@ -37,31 +36,35 @@ export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; 
 
       <Grid min="200px" gap="16px" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
         {STATS.map((s) => (
-          <Card key={s.label} style={{ textAlign: "center" }}>
-            <div style={{ color: swatch.rainforest, fontWeight: 800, fontSize: "clamp(30px,3.4vw,40px)", letterSpacing: "-0.02em" }}>{s.val}</div>
+          <AnimatedCard key={s.label} hoverScale={true} style={{ textAlign: "center" }}>
+            <div style={{ color: swatch.rainforest, fontWeight: 800, fontSize: "clamp(30px,3.4vw,40px)", letterSpacing: "-0.02em" }}>
+              <AnimatedNumber value={s.val} format={s.format} />
+            </div>
             <div style={{ color: swatch.rainforest, fontSize: "13px", marginTop: "4px" }}>{s.label}</div>
-          </Card>
+          </AnimatedCard>
         ))}
       </Grid>
 
       <Eyebrow>What we believe</Eyebrow>
       <Grid min="280px" gap="20px" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
         {VALUES.map((v) => (
-          <Card key={v.title} hover>
+          <AnimatedCard key={v.title} hoverScale={true}>
             <div style={{ fontSize: "28px", marginBottom: "12px" }}>{v.icon}</div>
             <div style={{ color: swatch.midnight, fontWeight: 700, fontSize: "18px", marginBottom: "8px" }}>{v.title}</div>
             <Body size="small" muted>{v.body}</Body>
-          </Card>
+          </AnimatedCard>
         ))}
       </Grid>
 
       {/* Dark CTA band — replaces the old invisible rainforest-on-tint card */}
-      <Card theme="dark" style={{ maxWidth: "640px" }}>
+      <AnimatedCard themeName="dark" hoverScale={false} style={{ maxWidth: "640px" }}>
         <Eyebrow style={{ color: swatch.lemon }}>Work with us</Eyebrow>
         <div style={{ color: swatch.pistachio, fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>We're hiring across engineering, lending, and broker success.</div>
         <Body muted style={{ marginBottom: "20px", color: "#9fb0a8" }}>See the open roles and how we work.</Body>
-        <Button variant="primary" href="/careers" onClick={(e) => { e.preventDefault(); onNavigate("careers"); }}>View careers →</Button>
-      </Card>
+        <AnimatedButton themeName="dark" variant="primary" onClick={() => onNavigate("careers")}>
+          View careers
+        </AnimatedButton>
+      </AnimatedCard>
     </PageShell>
   );
 }

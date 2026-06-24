@@ -1,0 +1,6 @@
+{
+  "name": "Greenboard SEC FINRA Compliance Platform",
+  "description": "An AI-native system of action for SEC and FINRA compliance featuring automated marketing reviews, SEC/FINRA regulatory search grounding, and jurisdictional analysis.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

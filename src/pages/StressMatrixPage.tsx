@@ -1,13 +1,21 @@
 // @ts-nocheck
 import React, { useState, useMemo } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
+
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedNumber,
+  PremiumInput
+} from "./PageShell";
 import { computeStressMatrix, riskZoneColor, riskZoneLabel, classifyRiskZone } from "../engine/stressMatrix";
 import { calculatePI, calculatePITIA } from "../engine/engine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
 
-const MINT = "#4DBD97";
-const CREAM = "#003738";
-const YELLOW = "#D8D958";
+const MINT = swatch.emerald;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 export default function StressMatrixPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
   const [purchasePrice, setPurchasePrice] = useState(425000);
@@ -68,7 +76,7 @@ export default function StressMatrixPage({ onBack, onNavigate }: { onBack: () =>
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "40px", alignItems: "start" }}>
-        <div style={{ ...card }}>
+        <AnimatedCard hoverScale={false}>
           <div style={sectionTitle}>Base Deal</div>
           {[
             { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
@@ -79,27 +87,33 @@ export default function StressMatrixPage({ onBack, onNavigate }: { onBack: () =>
             { label: "Annual Insurance", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$" },
             { label: "Monthly HOA", value: hoa, set: setHoa, step: 25, prefix: "$" },
           ].map((f) => (
-            <div key={f.label} style={{ marginBottom: "10px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
-              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "rgba(0,55,56,0.05)", border: "1px solid rgba(0,55,56,0.4)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-            </div>
+            <PremiumInput
+              key={f.label}
+              type="number"
+              label={f.label}
+              value={f.value}
+              step={f.step}
+              prefixSymbol={f.prefix}
+              suffixSymbol={f.suffix}
+              onChange={(e) => f.set(+e.target.value)}
+            />
           ))}
           <div style={{ ...sectionTitle, marginTop: "20px" }}>Zone Distribution ({result?.totalCells || 0} cells)</div>
-          <Row label="SAFE / COMFORTABLE" value={`${(result?.safeZonePct ?? 0).toFixed(0)}%`} highlight={MINT} />
-          <Row label="FRAGILE / DEAL_BREAK" value={`${(result?.fragileZonePct ?? 0).toFixed(0)}%`} highlight="#ff6b6b" />
+          <Row label="SAFE / COMFORTABLE" value={<AnimatedNumber value={result?.safeZonePct ?? 0} format={(v) => `${v.toFixed(0)}%`} />} highlight={MINT} />
+          <Row label="FRAGILE / DEAL_BREAK" value={<AnimatedNumber value={result?.fragileZonePct ?? 0} format={(v) => `${v.toFixed(0)}%`} />} highlight="#ff6b6b" />
           {result && (
             <p style={{ marginTop: "12px", fontSize: "12px", color: "#aaa", lineHeight: 1.5 }}>{result.summary}</p>
           )}
-        </div>
+        </AnimatedCard>
 
         <div>
           {!result ? (
-            <div style={{ ...card, textAlign: "center", padding: "40px" }}>
+            <AnimatedCard hoverScale={false} style={{ textAlign: "center", padding: "40px" }}>
               <p style={{ color: "#ff6b6b" }}>Engine returned no result.</p>
-            </div>
+            </AnimatedCard>
           ) : (
             <>
-              <div style={{ ...card }}>
+              <AnimatedCard hoverScale={true}>
                 <div style={sectionTitle}>Rate × Rent Shock Heatmap (engine.computeStressMatrix)</div>
                 <div style={{ fontSize: "11px", color: "#888", marginBottom: "12px" }}>Rows: rate offsets ({result.rateAxis.length} bps steps from −150 to +200). Columns: rent offsets ({result.rentAxis.length} pct steps from −25 to +20). Numbers are Track 1 DSCR.</div>
                 <div style={{ overflowX: "auto" }}>
@@ -142,7 +156,7 @@ export default function StressMatrixPage({ onBack, onNavigate }: { onBack: () =>
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </AnimatedCard>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px", marginTop: "16px" }}>
                 {(["SAFE", "COMFORTABLE", "MARGINAL", "FRAGILE", "DEAL_BREAK"] as const).map((zone) => (
@@ -164,7 +178,7 @@ export default function StressMatrixPage({ onBack, onNavigate }: { onBack: () =>
   );
 }
 
-function Row({ label, value, highlight }: { label: string; value: string; highlight?: string }) {
+function Row({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(0,55,56,0.1)", fontSize: "14px" }}>
       <span style={{ color: "#888" }}>{label}</span>

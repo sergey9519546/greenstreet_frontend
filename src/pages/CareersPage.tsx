@@ -1,9 +1,10 @@
-// @ts-nocheck
 import React, { useState } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
+import { PageShell, AnimatedCard, AnimatedButton, sectionTitle } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
 
 const ROLES = [
   { title: "Account Executive", team: "Sales", location: "Remote (US)", type: "Full-time",
@@ -38,7 +39,15 @@ export default function CareersPage({ onBack, onNavigate }: { onBack: () => void
       <div style={sectionTitle}>Open Roles</div>
       <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "860px" }}>
         {ROLES.map((r, i) => (
-          <div key={r.title} style={{ ...card, borderColor: open === i ? MINT : "rgba(0,55,56,0.15)", transition: "border-color 0.15s" }}>
+          <AnimatedCard
+            key={r.title}
+            hoverScale={true}
+            style={{
+              borderColor: open === i ? MINT : "rgba(0,55,56,0.15)",
+              transition: "border-color 0.15s, transform 0.3s, box-shadow 0.3s",
+              padding: "28px"
+            }}
+          >
             <div onClick={() => setOpen(open === i ? null : i)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
               <div>
                 <div style={{ color: CREAM, fontWeight: 700, fontSize: "18px" }}>{r.title}</div>
@@ -49,24 +58,30 @@ export default function CareersPage({ onBack, onNavigate }: { onBack: () => void
             {open === i && (
               <div style={{ marginTop: "18px", paddingTop: "18px", borderTop: "1px solid rgba(0,55,56,0.12)" }}>
                 <p style={{ color: "#465a5a", fontSize: "15px", lineHeight: 1.7, marginBottom: "18px" }}>{r.body}</p>
-                <a href="mailto:careers@greenstreetfinance.com" style={{ display: "inline-block", padding: "12px 24px", background: MINT, color: "#002D2E", borderRadius: "10px", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>
-                  Apply for this role →
-                </a>
+                <AnimatedButton
+                  variant="primary"
+                  onClick={() => { window.location.href = "mailto:careers@greenstreetfinance.com"; }}
+                >
+                  Apply for this role
+                </AnimatedButton>
               </div>
             )}
-          </div>
+          </AnimatedCard>
         ))}
       </div>
 
-      <div style={{ ...card, marginTop: "48px", maxWidth: "600px" }}>
+      <AnimatedCard hoverScale={false} style={{ marginTop: "48px", maxWidth: "600px", padding: "28px" }}>
         <div style={sectionTitle}>Don't see your role?</div>
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
           We're always glad to meet sharp people in lending, engineering, and design. Send us a note.
         </p>
-        <a href="mailto:careers@greenstreetfinance.com" style={{ display: "inline-block", padding: "14px 28px", background: "transparent", color: MINT, border: `1px solid ${MINT}`, borderRadius: "10px", fontWeight: 700, fontSize: "15px", textDecoration: "none" }}>
+        <AnimatedButton
+          variant="secondary"
+          onClick={() => { window.location.href = "mailto:careers@greenstreetfinance.com"; }}
+        >
           careers@greenstreetfinance.com
-        </a>
-      </div>
+        </AnimatedButton>
+      </AnimatedCard>
     </PageShell>
   );
 }

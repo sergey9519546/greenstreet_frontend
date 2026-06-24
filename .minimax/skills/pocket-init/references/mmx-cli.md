@@ -39,7 +39,7 @@ mmx config set --key region --value global  # For Global (default)
 ```bash
 # Text chat
 mmx text chat --message "Hello"
-mmx text chat --model MiniMax-M2.7-highspeed --message "Hello"
+mmx text chat --model MiniMax-M3-highspeed --message "Hello"
 mmx text chat --system "You are a translator" --message "Translate: hello"
 
 # Image generation

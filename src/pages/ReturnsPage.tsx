@@ -1,12 +1,20 @@
 // @ts-nocheck
 import React, { useState, useMemo } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
+
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedNumber,
+  PremiumInput
+} from "./PageShell";
 import { computeReturns, computeHoldMatrix } from "../engine/returnsEngine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
 
-const MINT = "#4DBD97";
-const CREAM = "#003738";
-const YELLOW = "#D8D958";
+const MINT = swatch.emerald;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 function fmt$(n: number) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
@@ -78,7 +86,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
-        <div style={{ ...card }}>
+        <AnimatedCard hoverScale={false}>
           <div style={sectionTitle}>Deal Inputs</div>
           {[
             { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
@@ -89,10 +97,16 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             { label: "Annual Insurance", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$" },
             { label: "Monthly HOA", value: hoa, set: setHoa, step: 25, prefix: "$" },
           ].map((f) => (
-            <div key={f.label} style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
-              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "rgba(0,55,56,0.05)", border: "1px solid rgba(0,55,56,0.4)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-            </div>
+            <PremiumInput
+              key={f.label}
+              type="number"
+              label={f.label}
+              value={f.value}
+              step={f.step}
+              prefixSymbol={f.prefix}
+              suffixSymbol={f.suffix}
+              onChange={(e) => f.set(+e.target.value)}
+            />
           ))}
           <div style={{ ...sectionTitle, marginTop: "20px" }}>Exit Assumptions</div>
           {[
@@ -101,48 +115,56 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             { label: "Rent Growth (annual)", value: rentGrowth, set: setRentGrowth, step: 0.5, suffix: "%" },
             { label: "Prepay at Exit", value: prepayAtExit, set: setPrepayAtExit, step: 1, suffix: "%" },
           ].map((f) => (
-            <div key={f.label} style={{ marginBottom: "12px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
-              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "rgba(0,55,56,0.05)", border: "1px solid rgba(0,55,56,0.4)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-            </div>
+            <PremiumInput
+              key={f.label}
+              type="number"
+              label={f.label}
+              value={f.value}
+              step={f.step}
+              prefixSymbol={f.prefix}
+              suffixSymbol={f.suffix}
+              onChange={(e) => f.set(+e.target.value)}
+            />
           ))}
-        </div>
+        </AnimatedCard>
 
         <div>
           {!result ? (
-            <div style={{ ...card, textAlign: "center", padding: "40px" }}>
+            <AnimatedCard hoverScale={false} style={{ textAlign: "center", padding: "40px" }}>
               <p style={{ color: "#ff6b6b" }}>Engine returned no result. Adjust inputs.</p>
-            </div>
+            </AnimatedCard>
           ) : (
             <>
-              <div style={{ ...card, textAlign: "center", borderColor: verdictColor }}>
+              <AnimatedCard hoverScale={true} style={{ textAlign: "center", borderColor: verdictColor }}>
                 <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "12px" }}>Levered IRR (Year {holdYears} Exit)</div>
-                <div style={{ fontSize: "60px", fontWeight: 800, color: verdictColor, lineHeight: 1 }}>{result.ret.leveredIRR.toFixed(1)}%</div>
+                <div style={{ fontSize: "60px", fontWeight: 800, color: verdictColor, lineHeight: 1 }}>
+                  <AnimatedNumber value={result.ret.leveredIRR} format={(v) => `${v.toFixed(1)}%`} />
+                </div>
                 <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: verdictColor, margin: "8px 0 16px" }}>{verdictLabel}</div>
                 <div style={{ fontSize: "14px", color: "#aaa" }}>
-                  Equity multiple: <strong style={{ color: CREAM }}>{result.ret.equityMultiple.toFixed(2)}x</strong> · Cash invested: {fmt$(result.ret.cashInvested)}
+                  Equity multiple: <strong style={{ color: CREAM }}><AnimatedNumber value={result.ret.equityMultiple} format={(v) => `${v.toFixed(2)}x`} /></strong> · Cash invested: <AnimatedNumber value={result.ret.cashInvested} format={fmt$} />
                 </div>
-              </div>
+              </AnimatedCard>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>Returns Stack (Year 1, engine output)</div>
-                <Row label="Entry Cap Rate" value={`${result.ret.entryCapRate.toFixed(2)}%`} />
-                <Row label="Yield on Cost" value={`${result.ret.yieldOnCost.toFixed(2)}%`} />
-                <Row label="Debt Yield" value={`${result.ret.debtYield.toFixed(2)}%`} />
-                <Row label="Year 1 Cash-on-Cash" value={`${result.ret.year1CashOnCash.toFixed(1)}%`} highlight={result.ret.year1CashOnCash >= 8 ? MINT : YELLOW} />
-                <Row label="Break-even Occupancy" value={`${result.ret.breakEvenOccupancy.toFixed(1)}%`} />
-                <Row label="Levered IRR (Pre-tax)" value={`${result.ret.leveredIRR.toFixed(1)}%`} highlight={verdictColor} />
-                <Row label="Unlevered IRR" value={`${result.ret.unleveredIRR.toFixed(1)}%`} />
-              </div>
+                <Row label="Entry Cap Rate" value={<AnimatedNumber value={result.ret.entryCapRate} format={(v) => `${v.toFixed(2)}%`} />} />
+                <Row label="Yield on Cost" value={<AnimatedNumber value={result.ret.yieldOnCost} format={(v) => `${v.toFixed(2)}%`} />} />
+                <Row label="Debt Yield" value={<AnimatedNumber value={result.ret.debtYield} format={(v) => `${v.toFixed(2)}%`} />} />
+                <Row label="Year 1 Cash-on-Cash" value={<AnimatedNumber value={result.ret.year1CashOnCash} format={(v) => `${v.toFixed(1)}%`} />} highlight={result.ret.year1CashOnCash >= 8 ? MINT : YELLOW} />
+                <Row label="Break-even Occupancy" value={<AnimatedNumber value={result.ret.breakEvenOccupancy} format={(v) => `${v.toFixed(1)}%`} />} />
+                <Row label="Levered IRR (Pre-tax)" value={<AnimatedNumber value={result.ret.leveredIRR} format={(v) => `${v.toFixed(1)}%`} />} highlight={verdictColor} />
+                <Row label="Unlevered IRR" value={<AnimatedNumber value={result.ret.unleveredIRR} format={(v) => `${v.toFixed(1)}%`} />} />
+              </AnimatedCard>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>Exit Math (engine output)</div>
-                <Row label="Exit value (cap rate applied)" value={fmt$(result.ret.exitValue)} />
-                <Row label="Net to seller at exit" value={fmt$(result.ret.netExitProceeds)} highlight={MINT} />
-                <Row label="Prepay penalty at exit" value={fmt$(result.ret.prepayPenaltyAtExit)} />
-              </div>
+                <Row label="Exit value (cap rate applied)" value={<AnimatedNumber value={result.ret.exitValue} format={fmt$} />} />
+                <Row label="Net to seller at exit" value={<AnimatedNumber value={result.ret.netExitProceeds} format={fmt$} />} highlight={MINT} />
+                <Row label="Prepay penalty at exit" value={<AnimatedNumber value={result.ret.prepayPenaltyAtExit} format={fmt$} />} />
+              </AnimatedCard>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>Hold × Rent Growth × Exit Cap Matrix (engine.computeHoldMatrix)</div>
                 <div style={{ overflowX: "auto", marginTop: "8px" }}>
                   <table style={{ width: "100%", fontSize: "11px", borderCollapse: "collapse" }}>
@@ -162,7 +184,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                             const color = c.verdict === "ROBUST" ? MINT : c.verdict === "STABLE" ? YELLOW : c.verdict === "CONDITIONAL" ? "#018582" : c.verdict === "FRAGILE" ? "#ff6b6b" : "#888";
                             return (
                               <td key={c.rentGrowthPct} style={{ padding: "6px 4px", textAlign: "right", color, fontWeight: 700, background: c.verdict === "ROBUST" ? "rgba(77,189,151,0.08)" : "transparent" }}>
-                                {c.leveredIRR.toFixed(1)}%
+                                <AnimatedNumber value={c.leveredIRR} format={(v) => `${v.toFixed(1)}%`} />
                               </td>
                             );
                           })}
@@ -171,7 +193,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </AnimatedCard>
 
               <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(77,189,151,0.08)", borderRadius: "10px", border: "1px solid rgba(77,189,151,0.2)", fontSize: "12px", color: "#aaa", lineHeight: 1.6 }}>
                 <strong style={{ color: MINT }}>Engine:</strong> src/engine/returnsEngine.ts → computeReturns + computeHoldMatrix. {result.ret.holdMatrix.length * result.ret.holdMatrix[0]?.cells?.length || 16} cells in the sensitivity matrix. Each cell uses proper amortization for remaining balance.
@@ -184,7 +206,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   );
 }
 
-function Row({ label, value, highlight }: { label: string; value: string; highlight?: string }) {
+function Row({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(0,55,56,0.1)", fontSize: "14px" }}>
       <span style={{ color: "#888" }}>{label}</span>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Greenstreet themed logo — replacement for "heavy uppercase sans with letter-as-icon" archetype.
+  Layout: bold geometric letterform where the round letter is replaced by a colored mark.
+  Theme palette: MIDNIGHT, PISTACHIO, MINT, LEMON, RAINFOREST, EMERALD.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" role="img" aria-label="Themed institutional logo 04">
+  <title>Themed logo — integrated mark archetype</title>
+  <g font-family='"Outfit Variable", Outfit, Arial, sans-serif' font-weight="800" font-size="48" letter-spacing="-0.02em">
+    <!-- K -->
+    <text x="0" y="48" fill="#003738">K</text>
+    <!-- R -->
+    <text x="36" y="48" fill="#003738">R</text>
+    <!-- integrated mark replacing O: emerald disc with lemon inner ring -->
+    <g transform="translate(78,10)">
+      <circle cx="14" cy="14" r="14" fill="#003738"/>
+      <circle cx="14" cy="14" r="9" fill="#4dbd97"/>
+      <circle cx="14" cy="14" r="4" fill="#d8d958"/>
+    </g>
+    <!-- L -->
+    <text x="118" y="48" fill="#003738">L</text>
+    <!-- L -->
+    <text x="152" y="48" fill="#003738">L</text>
+  </g>
+</svg>

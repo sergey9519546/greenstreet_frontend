@@ -1,11 +1,20 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
-const FADED = "rgba(0,55,56,0.15)";
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedButton,
+  AnimatedNumber,
+  PremiumSlider,
+} from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
+const FADED = swatch.midnightFaded;
 const AS_OF = "Jun 22, 2026";
 
 // Per-lender "lastVerified" — added 2026-06-22 refresh.
@@ -39,7 +48,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
     return true;
   }).sort((a, b) => b.confidence - a.confidence);
 
-  const EMERALD = "#4dbd97";
+  const EMERALD = swatch.emerald;
   const confColor = (c: number) => c >= 80 ? MINT : c >= 70 ? YELLOW : "#5a6b6b";
   const verifiedColor = (v: string) => {
     const verifiedDate = new Date(v);
@@ -57,51 +66,56 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
       onBack={onBack} onNavigate={onNavigate}
     >
       {/* Filters */}
-      <div style={{ ...card, marginBottom: "40px" }}>
+      <AnimatedCard hoverScale={false} style={{ marginBottom: "40px" }}>
         <div style={sectionTitle}>Filter by Deal Parameters</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "32px", alignItems: "end" }}>
-          <div>
-            <label style={{ display: "block", color: MINT, fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
-              Borrower FICO ({minFICO})
-            </label>
-            <input type="range" min={620} max={800} step={20} value={minFICO} onChange={e => setMinFICO(+e.target.value)} style={{ width: "100%", accentColor: MINT }} />
-            <div style={{ display: "flex", justifyContent: "space-between", color: "#6a7a7a", fontSize: "11px" }}>
-              <span>620</span><span>680</span><span>720</span><span>760</span><span>800</span>
-            </div>
-          </div>
-          <div>
-            <label style={{ display: "block", color: MINT, fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
-              Deal DSCR ({minDSCR.toFixed(2)}x)
-            </label>
-            <input type="range" min={0.75} max={1.50} step={0.05} value={minDSCR} onChange={e => setMinDSCR(+e.target.value)} style={{ width: "100%", accentColor: MINT }} />
-            <div style={{ display: "flex", justifyContent: "space-between", color: "#6a7a7a", fontSize: "11px" }}>
-              <span>0.75</span><span>1.00</span><span>1.25</span><span>1.50</span>
-            </div>
-          </div>
-          <div>
-            <label style={{ display: "block", color: MINT, fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
-              Needed LTV ({maxLTV}%)
-            </label>
-            <input type="range" min={65} max={85} step={5} value={maxLTV} onChange={e => setMaxLTV(+e.target.value)} style={{ width: "100%", accentColor: MINT }} />
-            <div style={{ display: "flex", justifyContent: "space-between", color: "#6a7a7a", fontSize: "11px" }}>
-              <span>65%</span><span>70%</span><span>75%</span><span>80%</span><span>85%</span>
-            </div>
-          </div>
-          <div>
-            <label style={{ display: "block", color: MINT, fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+          <PremiumSlider
+            label="Borrower FICO"
+            min={620}
+            max={800}
+            step={20}
+            value={minFICO}
+            onChange={setMinFICO}
+            formatValue={(val) => String(val)}
+            ticks={[620, 680, 720, 760, 800]}
+          />
+          <PremiumSlider
+            label="Deal DSCR"
+            min={0.75}
+            max={1.50}
+            step={0.05}
+            value={minDSCR}
+            onChange={setMinDSCR}
+            formatValue={(val) => val.toFixed(2) + "x"}
+            ticks={[0.75, 1.00, 1.25, 1.50]}
+          />
+          <PremiumSlider
+            label="Needed LTV"
+            min={65}
+            max={85}
+            step={5}
+            value={maxLTV}
+            onChange={setMaxLTV}
+            formatValue={(val) => val + "%"}
+            ticks={[65, 70, 75, 80, 85]}
+          />
+          <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "8px" }}>
               Property Type
-            </label>
-            <button onClick={() => setNeedsSTR(!needsSTR)} style={{
-              padding: "10px 20px", borderRadius: "8px", border: "1px solid",
-              borderColor: needsSTR ? MINT : FADED,
-              background: needsSTR ? "rgba(0,101,101,0.12)" : "transparent",
-              color: needsSTR ? MINT : "#5a6b6b", cursor: "pointer", fontSize: "14px", fontFamily: "Outfit, sans-serif",
-            }}>
+            </span>
+            <AnimatedButton
+              type="button"
+              variant={needsSTR ? "primary" : "secondary"}
+              showArrow={false}
+              onClick={() => setNeedsSTR(!needsSTR)}
+              style={{ width: "100%", height: "46px" }}
+            >
               {needsSTR ? "✓ STR Only" : "STR / Airbnb?"}
-            </button>
+            </AnimatedButton>
+            <div style={{ height: "15px" }} />
           </div>
         </div>
-      </div>
+      </AnimatedCard>
 
       {/* Results */}
       <div style={{ marginBottom: "12px", color: "#5a6b6b", fontSize: "13px" }}>
@@ -109,7 +123,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {filtered.map(l => (
-          <div key={l.name} style={{ ...card, display: "grid", gridTemplateColumns: "200px 1fr auto", gap: "24px", alignItems: "center" }}>
+          <AnimatedCard key={l.name} hoverScale={true} style={{ display: "grid", gridTemplateColumns: "200px 1fr auto", gap: "24px", alignItems: "center" }}>
             <div>
               <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>{l.name}</div>
               <div style={{ color: "#5a6b6b", fontSize: "12px" }}>{l.states}</div>
@@ -141,15 +155,17 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
               </div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ color: confColor(l.confidence), fontWeight: 800, fontSize: "22px" }}>{l.confidence}</div>
+              <div style={{ color: confColor(l.confidence), fontWeight: 800, fontSize: "22px" }}>
+                <AnimatedNumber value={l.confidence} format={(v) => Math.round(v).toString()} />
+              </div>
               <div style={{ color: "#6a7a7a", fontSize: "11px" }}>confidence</div>
             </div>
-          </div>
+          </AnimatedCard>
         ))}
         {filtered.length === 0 && (
-          <div style={{ ...card, textAlign: "center", color: "#5a6b6b", padding: "40px" }}>
+          <AnimatedCard hoverScale={false} style={{ textAlign: "center", color: "#5a6b6b", padding: "40px" }}>
             No lenders match these parameters. Try adjusting DSCR or LTV.
-          </div>
+          </AnimatedCard>
         )}
       </div>
 

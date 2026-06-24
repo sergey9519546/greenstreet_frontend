@@ -1,10 +1,20 @@
 // @ts-nocheck
 import React, { useState, useMemo } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedButton,
+  AnimatedNumber,
+  PremiumInput,
+  PremiumSlider
+} from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
   const [step, setStep] = useState(0);
@@ -62,11 +72,18 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
       sub: "Pull the middle of three scores. ITIN borrowers use the same range.",
       control: (
         <div>
-          <input type="range" min={580} max={850} step={5} value={fico} onChange={(e) => setFico(+e.target.value)} style={{ width: "100%", accentColor: MINT }} />
-          <div style={{ display: "flex", justifyContent: "space-between", color: "#5a6b6b", fontSize: "11px", marginTop: "6px" }}>
+          <PremiumSlider
+            label="Borrower's FICO"
+            min={580}
+            max={850}
+            step={5}
+            value={fico}
+            onChange={setFico}
+            formatValue={(val) => String(val)}
+          />
+          <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(0, 55, 56, 0.4)", fontSize: "11px", marginTop: "-12px" }}>
             <span>580</span><span>660</span><span>700</span><span>740</span><span>780</span><span>850</span>
           </div>
-          <div style={{ marginTop: "16px", textAlign: "center", fontSize: "32px", fontWeight: 800, color: MINT }}>{fico}</div>
         </div>
       ),
     },
@@ -76,12 +93,19 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
       control: (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
           {(["SFR", "2-4 Unit", "Condo", "STR"] as const).map((t) => (
-            <button key={t} onClick={() => { setPropertyType(t); setIsSTR(t === "STR"); }} style={{
-              padding: "16px", borderRadius: "10px", cursor: "pointer",
-              border: `1px solid ${propertyType === t ? MINT : "rgba(0,55,56,0.22)"}`,
-              background: propertyType === t ? "rgba(0,101,101,0.12)" : "transparent",
-              color: propertyType === t ? MINT : "#4a5d5d", fontSize: "15px", fontWeight: 600,
-            }}>{t}</button>
+            <AnimatedButton
+              key={t}
+              showArrow={false}
+              onClick={() => { setPropertyType(t); setIsSTR(t === "STR"); }}
+              style={{
+                padding: "16px", borderRadius: "10px", cursor: "pointer",
+                border: `1px solid ${propertyType === t ? MINT : "rgba(0,55,56,0.22)"}`,
+                background: propertyType === t ? "rgba(0,101,101,0.12)" : "transparent",
+                color: propertyType === t ? MINT : "#4a5d5d", fontSize: "15px", fontWeight: 600,
+              }}
+            >
+              {t}
+            </AnimatedButton>
           ))}
         </div>
       ),
@@ -90,20 +114,31 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
       q: "What's the LTV?",
       sub: "Standard pricing is best at 75% or below. Above 80% only Defy and a few others will quote.",
       control: (
-        <div>
-          <input type="range" min={60} max={90} step={1} value={ltv} onChange={(e) => setLtv(+e.target.value)} style={{ width: "100%", accentColor: MINT }} />
-          <div style={{ display: "flex", justifyContent: "space-between", color: "#5a6b6b", fontSize: "11px", marginTop: "6px" }}>
-            <span>60%</span><span>70%</span><span>75%</span><span>80%</span><span>85%</span><span>90%</span>
-          </div>
-          <div style={{ marginTop: "16px", textAlign: "center", fontSize: "32px", fontWeight: 800, color: MINT }}>{ltv}%</div>
-        </div>
+        <PremiumSlider
+          label="LTV"
+          min={60}
+          max={90}
+          step={1}
+          value={ltv}
+          onChange={setLtv}
+          formatValue={(val) => `${val}%`}
+          ticks={[60, 70, 75, 80, 85, 90]}
+        />
       ),
     },
     {
       q: "Which state is the property in?",
       sub: "NJ, NY, MD, KS add 0.25% for entity-only or restricted PPP workarounds.",
       control: (
-        <input type="text" maxLength={2} value={state} onChange={(e) => setState(e.target.value.toUpperCase())} style={{ width: "100%", background: "#ffffff", border: "1px solid rgba(0,55,56,0.22)", color: CREAM, borderRadius: "8px", padding: "12px 16px", fontSize: "20px", textAlign: "center", fontWeight: 700, outline: "none", letterSpacing: "0.2em" }} placeholder="TX" />
+        <PremiumInput
+          type="text"
+          maxLength={2}
+          label="State"
+          value={state}
+          onChange={(e) => setState(e.target.value.toUpperCase())}
+          placeholder="TX"
+          style={{ fontWeight: 700 }}
+        />
       ),
     },
   ];
@@ -121,30 +156,45 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
               <div key={i} style={{ flex: 1, height: "4px", borderRadius: "2px", background: i <= step ? MINT : "rgba(0,55,56,0.15)" }} />
             ))}
           </div>
-          <div style={{ ...card }}>
+          <AnimatedCard hoverScale={false}>
             <div style={sectionTitle}>Question {step + 1} of {questions.length}</div>
             <h2 style={{ fontSize: "28px", fontWeight: 700, color: CREAM, marginBottom: "8px", lineHeight: 1.2 }}>{questions[step].q}</h2>
             <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "24px", lineHeight: 1.5 }}>{questions[step].sub}</p>
             {questions[step].control}
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "32px" }}>
-              <button onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0} style={{
-                background: "transparent", border: "1px solid rgba(0,55,56,0.22)", color: step === 0 ? "#6a7a7a" : CREAM,
-                borderRadius: "8px", padding: "10px 20px", fontSize: "14px", cursor: step === 0 ? "not-allowed" : "pointer",
-              }}>← Back</button>
-              <button onClick={() => setStep(Math.min(questions.length, step + 1))} style={{
-                background: MINT, color: "#002D2E", border: "none", borderRadius: "8px",
-                padding: "10px 24px", fontSize: "14px", fontWeight: 700, cursor: "pointer",
-              }}>{step === questions.length - 1 ? "See my rate →" : "Next →"}</button>
+              <AnimatedButton
+                showArrow={false}
+                onClick={() => setStep(Math.max(0, step - 1))}
+                disabled={step === 0}
+                style={{
+                  background: "transparent", border: "1px solid rgba(0,55,56,0.22)", color: step === 0 ? "#6a7a7a" : CREAM,
+                  borderRadius: "8px", padding: "10px 20px", fontSize: "14px", cursor: step === 0 ? "not-allowed" : "pointer",
+                }}
+              >
+                ← Back
+              </AnimatedButton>
+              <AnimatedButton
+                showArrow={true}
+                onClick={() => setStep(Math.min(questions.length, step + 1))}
+                style={{
+                  background: MINT, color: "#002D2E", border: "none", borderRadius: "8px",
+                  padding: "10px 24px", fontSize: "14px", fontWeight: 700, cursor: "pointer",
+                }}
+              >
+                {step === questions.length - 1 ? "See my rate" : "Next"}
+              </AnimatedButton>
             </div>
-          </div>
+          </AnimatedCard>
         </div>
       )}
 
       {step >= questions.length && (
         <div style={{ maxWidth: "640px", margin: "0 auto" }}>
-          <div style={{ ...card, borderColor: result.tierColor, textAlign: "center" }}>
+          <AnimatedCard hoverScale={true} style={{ borderColor: result.tierColor, textAlign: "center" }}>
             <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT }}>Your Indicative Rate</div>
-            <div style={{ fontSize: "72px", fontWeight: 800, color: result.tierColor, lineHeight: 1, marginTop: "8px" }}>{result.baseRate.toFixed(3)}%</div>
+            <div style={{ fontSize: "72px", fontWeight: 800, color: result.tierColor, lineHeight: 1, marginTop: "8px" }}>
+              <AnimatedNumber value={result.baseRate} format={(v) => `${v.toFixed(3)}%`} />
+            </div>
             <div style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: result.tierColor, margin: "8px 0 16px" }}>{result.tier} TIER</div>
             <p style={{ fontSize: "14px", color: "#4a5d5d", lineHeight: 1.6, marginBottom: "20px" }}>{result.tierInfo}</p>
             {!result.eligible && (
@@ -153,9 +203,9 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
                 <p style={{ fontSize: "12px", color: "#4a5d5d", marginTop: "4px" }}>This state/FICO/LTV combo won't qualify at most lenders. Talk to a specialist before locking a rate.</p>
               </div>
             )}
-          </div>
+          </AnimatedCard>
 
-          <div style={{ ...card, marginTop: "20px" }}>
+          <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
             <div style={sectionTitle}>Where to Shop This Quote</div>
             {[
               { name: "Griffin Funding", note: "Best rate tier, $150K-$20M, all 50+DC, 620 FICO" },
@@ -169,10 +219,19 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
                 <div style={{ color: "#4a5d5d", fontSize: "12px", marginTop: "2px" }}>{l.note}</div>
               </div>
             ))}
-          </div>
+          </AnimatedCard>
 
           <div style={{ textAlign: "center", marginTop: "24px" }}>
-            <button onClick={() => setStep(0)} style={{ background: "transparent", border: "1px solid rgba(0,55,56,0.22)", color: CREAM, borderRadius: "8px", padding: "10px 24px", fontSize: "14px", cursor: "pointer" }}>Start over</button>
+            <AnimatedButton
+              showArrow={false}
+              onClick={() => setStep(0)}
+              style={{
+                background: "transparent", border: "1px solid rgba(0,55,56,0.22)", color: CREAM,
+                borderRadius: "8px", padding: "10px 24px", fontSize: "14px", cursor: "pointer"
+              }}
+            >
+              Start over
+            </AnimatedButton>
           </div>
 
           <p style={{ fontSize: "11px", color: "#647474", textAlign: "center", marginTop: "20px", lineHeight: 1.5 }}>

@@ -19,7 +19,6 @@ pres.writeFile({ fileName: "Presentation.pptx" });
 ## Layout Dimensions
 
 Slide dimensions (coordinates in inches):
-
 - `LAYOUT_16x9`: 10" x 5.625" (default)
 - `LAYOUT_16x10`: 10" x 6.25"
 - `LAYOUT_4x3`: 10" x 7.5"
@@ -239,7 +238,6 @@ slide.addImage({
 Install: `npm install -g react-icons react react-dom sharp`
 
 Popular icon sets in react-icons:
-
 - `react-icons/fa` - Font Awesome
 - `react-icons/md` - Material Design
 - `react-icons/hi` - Heroicons
@@ -341,7 +339,6 @@ slide.addChart(pres.charts.BAR, chartData, {
 ```
 
 **Key styling options:**
-
 - `chartColors: [...]` - hex colors for series/segments
 - `chartArea: { fill, border, roundedCorners }` - chart background
 - `catGridLine/valGridLine: { color, style, size }` - grid lines (`style: "none"` to hide)
@@ -371,14 +368,12 @@ titleSlide.addText("My Title", { placeholder: "title" });
 These issues cause file corruption, visual bugs, or broken output. Avoid them.
 
 1. **NEVER use "#" with hex colors** - causes file corruption
-
    ```javascript
    color: "FF0000"      // CORRECT
    color: "#FF0000"     // WRONG
    ```
 
 2. **NEVER encode opacity in hex color strings** - 8-char colors (e.g., `"00000020"`) corrupt the file. Use the `opacity` property instead.
-
    ```javascript
    shadow: { type: "outer", blur: 6, offset: 2, color: "00000020" }          // CORRUPTS FILE
    shadow: { type: "outer", blur: 6, offset: 2, color: "000000", opacity: 0.12 }  // CORRECT
@@ -393,7 +388,6 @@ These issues cause file corruption, visual bugs, or broken output. Avoid them.
 6. **Each presentation needs fresh instance** - don't reuse `pptxgen()` objects
 
 7. **NEVER reuse option objects across calls** - PptxGenJS mutates objects in-place (e.g. converting shadow values to EMU). Sharing one object between multiple calls corrupts the second shape.
-
    ```javascript
    const shadow = { type: "outer", blur: 6, offset: 2, color: "000000", opacity: 0.15 };
    slide.addShape(pres.shapes.RECTANGLE, { shadow, ... });  // second call gets already-converted values
@@ -405,7 +399,6 @@ These issues cause file corruption, visual bugs, or broken output. Avoid them.
    ```
 
 8. **Don't use `ROUNDED_RECTANGLE` with accent borders** - rectangular overlay bars won't cover rounded corners. Use `RECTANGLE` instead.
-
    ```javascript
    // WRONG: Accent bar doesn't cover rounded corners
    slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 1, y: 1, w: 3, h: 1.5, fill: { color: "FFFFFF" } });

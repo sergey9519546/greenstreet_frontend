@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Greenstreet themed logo — replacement for "stacked icon + lowercase + uppercase sub" archetype.
+  Layout: icon-on-top, lowercase wordmark, wide-tracked uppercase subline.
+  Theme palette: MIDNIGHT, PISTACHIO, MINT, LEMON, RAINFOREST, EMERALD.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" role="img" aria-label="Themed institutional logo 05">
+  <title>Themed logo — mountain stacked</title>
+  <!-- twin mountains in emerald and midnight -->
+  <g transform="translate(76,4)">
+    <path d="M0 36 L24 6 L40 24 L52 14 L72 36 Z" fill="#4dbd97"/>
+    <path d="M16 36 L34 16 L52 36 Z" fill="#003738"/>
+    <line x1="34" y1="16" x2="42" y2="24" stroke="#eeefd3" stroke-width="1.5" fill="none"/>
+  </g>
+  <g transform="translate(0,52)">
+    <text x="120" y="20" text-anchor="middle" font-family='"Outfit Variable", Outfit, Arial, sans-serif' font-size="22" font-weight="500" letter-spacing="0.06em" fill="#2A4D57">fiduciary</text>
+    <text x="120" y="40" text-anchor="middle" font-family='"Outfit Variable", Outfit, Arial, sans-serif' font-size="9" font-weight="500" letter-spacing="0.4em" fill="#006565">FINANCIAL ADVISORS</text>
+  </g>
+</svg>

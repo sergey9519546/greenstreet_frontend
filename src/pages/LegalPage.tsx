@@ -1,8 +1,5 @@
-// @ts-nocheck
 import React from "react";
-import { PageShell, sectionTitle } from "./PageShell";
-
-const CREAM = "#003738";
+import { PageShell, AnimatedCard, AnimatedButton, sectionTitle } from "./PageShell";
 
 const PRIVACY = {
   title: "Privacy Policy",
@@ -39,15 +36,35 @@ export default function LegalPage({ onBack, onNavigate, path }: { onBack: () => 
     <PageShell title={doc.title} subtitle={doc.subtitle} onBack={onBack} onNavigate={onNavigate}>
       <div style={{ maxWidth: "740px" }}>
         <div style={{ color: "#5a6b6b", fontSize: "13px", marginBottom: "40px" }}>{doc.updated}</div>
-        {doc.sections.map((s) => (
-          <div key={s.h} style={{ marginBottom: "32px" }}>
-            <div style={sectionTitle}>{s.h}</div>
-            <p style={{ color: "#3f5252", fontSize: "16px", lineHeight: 1.75 }}>{s.p}</p>
-          </div>
-        ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {doc.sections.map((s) => (
+            <AnimatedCard key={s.h} hoverScale={true}>
+              <div style={sectionTitle}>{s.h}</div>
+              <p style={{ color: "#3f5252", fontSize: "16px", lineHeight: 1.75, margin: 0 }}>{s.p}</p>
+            </AnimatedCard>
+          ))}
+        </div>
         <div style={{ marginTop: "48px", display: "flex", gap: "16px" }}>
-          <a href="/privacy-policy" style={{ color: CREAM, fontSize: "14px", textDecoration: doc === PRIVACY ? "underline" : "none", textUnderlineOffset: "4px" }}>Privacy Policy</a>
-          <a href="/terms-of-service" style={{ color: CREAM, fontSize: "14px", textDecoration: doc === TERMS ? "underline" : "none", textUnderlineOffset: "4px" }}>Terms of Service</a>
+          <AnimatedButton
+            variant={doc === PRIVACY ? "primary" : "secondary"}
+            showArrow={false}
+            onClick={() => {
+              window.history.pushState({}, "", "/privacy-policy");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+          >
+            Privacy Policy
+          </AnimatedButton>
+          <AnimatedButton
+            variant={doc === TERMS ? "primary" : "secondary"}
+            showArrow={false}
+            onClick={() => {
+              window.history.pushState({}, "", "/terms-of-service");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+          >
+            Terms of Service
+          </AnimatedButton>
         </div>
       </div>
     </PageShell>

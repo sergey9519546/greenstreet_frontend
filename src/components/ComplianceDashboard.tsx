@@ -23,16 +23,16 @@ import PortfolioPage from "../pages/PortfolioPage";
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function dscrColor(dscr: number): string {
-  if (dscr >= 1.25) return "text-emerald-600";
-  if (dscr >= 1.10) return "text-green-600";
-  if (dscr >= 1.00) return "text-yellow-600";
+  if (dscr >= 1.25) return "text-emerald";
+  if (dscr >= 1.10) return "text-rain-forest";
+  if (dscr >= 1.00) return "text-lemon-lime";
   if (dscr >= 0.75) return "text-orange-500";
   return "text-red-600";
 }
 function dscrBg(dscr: number): string {
-  if (dscr >= 1.25) return "bg-emerald-50 border-emerald-200";
-  if (dscr >= 1.10) return "bg-green-50 border-green-200";
-  if (dscr >= 1.00) return "bg-yellow-50 border-yellow-200";
+  if (dscr >= 1.25) return "bg-emerald/10 border-emerald/20";
+  if (dscr >= 1.10) return "bg-rain-forest/10 border-rain-forest/20";
+  if (dscr >= 1.00) return "bg-lemon-lime/10 border-lemon-lime/20";
   if (dscr >= 0.75) return "bg-orange-50 border-orange-200";
   return "bg-red-50 border-red-200";
 }
@@ -44,9 +44,9 @@ function dscrLabel(dscr: number): string {
   return "DEAL BREAK";
 }
 function pppBadgeColor(status: string) {
-  if (status === "ALLOWED") return "bg-emerald-100 text-emerald-700 border-emerald-200";
-  if (status === "PROHIBITED") return "bg-red-100 text-red-700 border-red-200";
-  if (status === "CONDITIONAL") return "bg-yellow-100 text-yellow-700 border-yellow-200";
+  if (status === "ALLOWED") return "bg-emerald/20 text-emerald border-emerald/30";
+  if (status === "PROHIBITED") return "bg-red-500/20 text-red-500 border-red-500/30";
+  if (status === "CONDITIONAL") return "bg-lemon-lime/20 text-lemon-lime border-lemon-lime/30";
   return "bg-slate-100 text-slate-700 border-slate-200";
 }
 const fmt$ = (n: number) => `$${Math.round(n).toLocaleString()}`;
@@ -208,8 +208,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   // ── Auth loading ───────────────────────────────────────────────────────────
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#003738] flex flex-col items-center justify-center text-[#EEEFD3] p-4">
-        <RefreshCw className="w-10 h-10 animate-spin text-[#4dbd97] mb-4" />
+      <div className="min-h-screen bg-[#003738] flex flex-col items-center justify-center text-pistachio p-4">
+        <RefreshCw className="w-10 h-10 animate-spin text-emerald mb-4" />
         <p className="text-sm font-semibold tracking-wider font-mono">LOADING DSCR ENGINE...</p>
       </div>
     );
@@ -218,14 +218,14 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   // ── Auth screen ────────────────────────────────────────────────────────────
   if (!currentUser && !demoMode) {
     return (
-      <div className="min-h-screen bg-[#EEEFD3] flex items-center justify-center p-4 relative font-sans">
-        <div className="absolute inset-0 bg-[#004041]/10 bg-[radial-gradient(#4dbd97_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
-        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-100 shadow-2xl p-8 relative z-10 text-[#004041]">
-          <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-[#4dbd97] mb-6 transition">
+      <div className="min-h-screen bg-pistachio flex items-center justify-center p-4 relative font-sans">
+        <div className="absolute inset-0 bg-dark-teal/10 bg-[radial-gradient(var(--color-emerald)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-100 shadow-2xl p-8 relative z-10 text-dark-teal">
+          <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-emerald mb-6 transition">
             <ArrowLeft className="w-3.5 h-3.5" /><span>Back</span>
           </button>
           <div className="text-center mb-8">
-            <div className="w-12 h-12 rounded-xl bg-[#004041] text-[#4dbd97] font-extrabold text-2xl flex items-center justify-center mx-auto mb-3 shadow">G</div>
+            <div className="w-12 h-12 rounded-xl bg-dark-teal text-emerald font-extrabold text-2xl flex items-center justify-center mx-auto mb-3 shadow">G</div>
             <h3 className="font-display text-2xl font-bold tracking-tight">DSCR Deal Engine</h3>
             <p className="text-slate-500 text-xs mt-1">Underwriting math runs server-side. Sign in to start pricing deals.</p>
           </div>
@@ -235,11 +235,11 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             </div>
           )}
           <button onClick={() => setDemoMode(true)}
-            className="w-full py-2.5 border border-dashed border-slate-200 hover:border-[#004041] bg-slate-50 rounded-xl text-xs font-semibold text-slate-500 hover:text-[#004041] transition mb-3">
+            className="w-full py-2.5 border border-dashed border-slate-200 hover:border-dark-teal bg-slate-50 rounded-xl text-xs font-semibold text-slate-500 hover:text-dark-teal transition mb-3">
             Try demo (no account needed)
           </button>
           <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { setAuthError(e.message); } }}
-            className="w-full py-3.5 border border-slate-200 hover:border-[#004041] bg-white rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
+            className="w-full py-3.5 border border-slate-200 hover:border-dark-teal bg-white rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -253,14 +253,14 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             <span className="relative z-10 bg-white px-3 font-semibold uppercase tracking-wider">or email</span>
           </div>
           <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }} className="space-y-3">
-            <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="broker@yourfirm.com" className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-sm transition" />
-            <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-sm transition font-mono" />
-            <button type="submit" className="w-full py-3.5 bg-[#004041] text-[#EEEFD3] hover:bg-[#4dbd97] hover:text-[#004041] text-sm font-bold rounded-xl transition shadow mt-4 active:scale-[0.98]">
+            <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="broker@yourfirm.com" className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition" />
+            <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono" />
+            <button type="submit" className="w-full py-3.5 bg-dark-teal text-pistachio hover:bg-emerald hover:text-dark-teal text-sm font-bold rounded-xl transition shadow mt-4 active:scale-[0.98]">
               {isSignUpMode ? "Create Account" : "Access Engine"}
             </button>
           </form>
           <div className="mt-4 text-center">
-            <button onClick={() => setIsSignUpMode(!isSignUpMode)} className="text-xs text-slate-500 hover:text-[#004041] font-semibold transition">
+            <button onClick={() => setIsSignUpMode(!isSignUpMode)} className="text-xs text-slate-500 hover:text-dark-teal font-semibold transition">
               {isSignUpMode ? "Already registered? Sign in" : "New broker? Create account"}
             </button>
           </div>
@@ -295,40 +295,40 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row antialiased font-sans">
 
       {/* Sidebar */}
-      <aside className="w-full md:w-60 bg-[#004041] text-[#EEEFD3] shrink-0 border-r border-[#0c2f30] flex flex-col justify-between py-6">
+      <aside className="w-full md:w-60 bg-dark-teal text-pistachio shrink-0 border-r border-midnight-green/30 flex flex-col justify-between py-6">
         <div>
           <div className="px-5 mb-8 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-white/10 text-[#4dbd97] flex items-center justify-center font-bold text-lg">G</div>
+            <div className="w-8 h-8 rounded-lg bg-white/10 text-emerald flex items-center justify-center font-bold text-lg">G</div>
             <span className="font-bold text-lg text-white tracking-tight">Greenstreet</span>
           </div>
           <nav className="space-y-1 px-3">
             {tabs.map(({ key, icon, label, count }: any) => (
               <button key={key} onClick={() => { setActiveTab(key); setSelectedLog(null); }}
-                className={`w-full px-3 py-2.5 text-left text-sm rounded-xl font-semibold flex items-center gap-3 transition ${activeTab === key ? "bg-[#4dbd97] text-[#004041] shadow" : "text-[#EEEFD3]/70 hover:bg-white/10 hover:text-white"}`}>
+                className={`w-full px-3 py-2.5 text-left text-sm rounded-xl font-semibold flex items-center gap-3 transition ${activeTab === key ? "bg-emerald text-dark-teal shadow" : "text-pistachio/70 hover:bg-white/10 hover:text-white"}`}>
                 {icon}
                 <span className="flex-1">{label}</span>
                 {count !== undefined && count > 0 && (
-                  <span className="bg-[#0c2f30] text-[#4dbd97] text-[10px] px-2 py-0.5 rounded-full font-bold">{count}</span>
+                  <span className="bg-[#0c2f30] text-emerald text-[10px] px-2 py-0.5 rounded-full font-bold">{count}</span>
                 )}
               </button>
             ))}
           </nav>
         </div>
-        <div className="border-t border-[#0c2f30] pt-5 px-5 space-y-4">
+        <div className="border-t border-midnight-green/30 pt-5 px-5 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-[#4dbd97]">
+            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-emerald">
               {userEmail.charAt(0).toUpperCase()}
             </div>
             <div className="overflow-hidden">
               <p className="text-white text-xs font-bold truncate">{userEmail}</p>
-              <p className="text-[10px] text-[#EEEFD3]/50 font-mono">NMLS {brokerConfig.nmls}</p>
+              <p className="text-[10px] text-pistachio/50 font-mono">NMLS {brokerConfig.nmls}</p>
             </div>
           </div>
           <div className="flex gap-2">
             <button onClick={onBackToMarketing} className="flex-1 py-2 border border-[#EEEFD3]/15 hover:border-[#EEEFD3] text-white font-semibold text-[11px] rounded-lg transition">
               ← Site
             </button>
-            <button onClick={logoutUser} className="p-2 bg-[#0c2f30] hover:bg-red-900 text-[#EEEFD3] rounded-lg transition" title="Sign Out">
+            <button onClick={logoutUser} className="p-2 bg-[#0c2f30] hover:bg-red-900 text-pistachio rounded-lg transition" title="Sign Out">
               <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -343,7 +343,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4 mb-7 gap-3">
             <div>
               <p className="text-[10px] font-bold text-slate-400 font-mono tracking-widest uppercase mb-0.5">DSCR Non-QM Wholesale · Sovereign OS</p>
-              <h1 className="font-bold text-2xl text-[#004041] tracking-tight">
+              <h1 className="font-bold text-2xl text-dark-teal tracking-tight">
                 {activeTab === "dashboard" && "Workspace Hub"}
                 {activeTab === "analyze" && "DSCR Deal Analyzer"}
                 {activeTab === "sensitivity" && "Sensitivity & Breakeven"}
@@ -379,29 +379,29 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   ].map(({ label, value, suffix, sub }) => (
                     <div key={label} className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm">
                       <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
-                      <p className="text-3xl font-extrabold text-[#004041] font-mono">{value}{suffix}</p>
-                      <p className="text-[10px] text-[#4dbd97] font-semibold mt-1">{sub}</p>
+                      <p className="text-3xl font-extrabold text-dark-teal font-mono">{value}{suffix}</p>
+                      <p className="text-[10px] text-emerald font-semibold mt-1">{sub}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-[#004041] text-[#EEEFD3] p-7 rounded-2xl space-y-5">
+                <div className="bg-dark-teal text-pistachio p-7 rounded-2xl space-y-5">
                   <div>
                     <h3 className="text-lg font-bold text-white mb-1">How the math runs</h3>
-                    <p className="text-sm text-[#EEEFD3]/70 max-w-2xl">Every number here is computed by the Sovereign Engine: dual-track DSCR solver, 19-lender provenance database, breakeven and tornado analysis, and a loan structure optimizer. The LLM is only used to narrate results.</p>
+                    <p className="text-sm text-pistachio/70 max-w-2xl">Every number here is computed by the Sovereign Engine: dual-track DSCR solver, 19-lender provenance database, breakeven and tornado analysis, and a loan structure optimizer. The LLM is only used to narrate results.</p>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-[#EEEFD3]/10 pt-5">
                     {[
-                      { key: "analyze", icon: <Calculator className="w-4 h-4 text-[#4dbd97]" />, label: "DSCR Analyzer", desc: "Dual-track solve + PITIA" },
-                      { key: "sensitivity", icon: <BarChart2 className="w-4 h-4 text-[#4dbd97]" />, label: "Sensitivity", desc: "Breakeven + tornado" },
-                      { key: "optimize", icon: <Zap className="w-4 h-4 text-[#4dbd97]" />, label: "Optimizer", desc: "Structure comparison" },
-                      { key: "state", icon: <MapPin className="w-4 h-4 text-[#4dbd97]" />, label: "State PPP", desc: "Prepay legality by state" },
+                      { key: "analyze", icon: <Calculator className="w-4 h-4 text-emerald" />, label: "DSCR Analyzer", desc: "Dual-track solve + PITIA" },
+                      { key: "sensitivity", icon: <BarChart2 className="w-4 h-4 text-emerald" />, label: "Sensitivity", desc: "Breakeven + tornado" },
+                      { key: "optimize", icon: <Zap className="w-4 h-4 text-emerald" />, label: "Optimizer", desc: "Structure comparison" },
+                      { key: "state", icon: <MapPin className="w-4 h-4 text-emerald" />, label: "State PPP", desc: "Prepay legality by state" },
                     ].map(({ key, icon, label, desc }) => (
                       <div key={key} onClick={() => setActiveTab(key as any)}
                         className="bg-white/5 hover:bg-white/10 cursor-pointer border border-white/10 rounded-xl p-4 space-y-2 transition">
                         {icon}
                         <p className="font-bold text-white text-xs">{label}</p>
-                        <p className="text-[11px] text-[#EEEFD3]/50">{desc}</p>
+                        <p className="text-[11px] text-pistachio/50">{desc}</p>
                       </div>
                     ))}
                   </div>
@@ -409,13 +409,13 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                 {auditLogs.length > 0 && (
                   <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                    <h3 className="font-bold text-[#004041] text-sm mb-3">Recent</h3>
+                    <h3 className="font-bold text-dark-teal text-sm mb-3">Recent</h3>
                     <div className="space-y-2">
                       {auditLogs.slice(0, 5).map(log => (
                         <div key={log.id} onClick={() => { setSelectedLog(log); setActiveTab("history"); }}
-                          className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-[#4dbd97] hover:bg-slate-50 cursor-pointer transition">
+                          className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-[var(--color-emerald)] hover:bg-slate-50 cursor-pointer transition">
                           <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${log.type === "analyze" ? "bg-[#4dbd97]" : "bg-yellow-400"}`} />
+                            <div className={`w-2 h-2 rounded-full ${log.type === "analyze" ? "bg-emerald" : "bg-yellow-400"}`} />
                             <span className="text-sm font-semibold text-slate-700 truncate max-w-xs">{log.title}</span>
                           </div>
                           <span className="text-[10px] text-slate-400 shrink-0">{new Date(log.timestamp).toLocaleDateString()}</span>
@@ -434,7 +434,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                   {/* Input form */}
                   <div className="lg:col-span-2 bg-white border border-slate-100 rounded-2xl shadow-sm p-6 space-y-4">
-                    <h2 className="font-bold text-[#004041]">Deal Parameters</h2>
+                    <h2 className="font-bold text-dark-teal">Deal Parameters</h2>
 
                     <div className="grid grid-cols-2 gap-3">
                       {[
@@ -448,7 +448,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                           <label className="text-[11px] font-bold text-slate-500">{label}</label>
                           <input type={type} value={(dealForm as any)[key]}
                             onChange={e => setDealForm(p => ({ ...p, [key]: e.target.value }))}
-                            className="w-full px-3 py-2.5 bg-slate-50 focus:bg-white border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-sm transition font-mono" />
+                            className="w-full px-3 py-2.5 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono" />
                         </div>
                       ))}
 
@@ -456,7 +456,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         <label className="text-[11px] font-bold text-slate-500">State (2-letter)</label>
                         <input type="text" maxLength={2} value={dealForm.state}
                           onChange={e => setDealForm(p => ({ ...p, state: e.target.value.toUpperCase() }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 focus:bg-white border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-sm transition font-mono uppercase" />
+                          className="w-full px-3 py-2.5 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono uppercase" />
                       </div>
                     </div>
 
@@ -464,7 +464,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-500">Property Type</label>
                         <select value={dealForm.propertyType} onChange={e => setDealForm(p => ({ ...p, propertyType: e.target.value }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-xs transition">
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-xs transition">
                           <option value="SFR">SFR</option>
                           <option value="2-4_UNIT">2-4 Unit</option>
                           <option value="CONDO_WARRANTABLE">Condo</option>
@@ -475,7 +475,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-500">Purpose</label>
                         <select value={dealForm.loanPurpose} onChange={e => setDealForm(p => ({ ...p, loanPurpose: e.target.value }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-xs transition">
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-xs transition">
                           <option value="PURCHASE">Purchase</option>
                           <option value="REFI_RATE_TERM">Rate/Term Refi</option>
                           <option value="CASH_OUT_REFI">Cash-Out Refi</option>
@@ -485,7 +485,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       <div className="space-y-1">
                         <label className="text-[11px] font-bold text-slate-500">Strategy</label>
                         <select value={dealForm.strategy} onChange={e => setDealForm(p => ({ ...p, strategy: e.target.value }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-xs transition">
+                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-xs transition">
                           <option value="LTR">LTR</option>
                           <option value="STR">STR</option>
                           <option value="MTR">MTR</option>
@@ -496,7 +496,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     <div className="text-[11px] text-slate-400 font-mono">LTV: {ltv}% · Rate auto-solved by engine</div>
 
                     <button onClick={handleAnalyze} disabled={isRunning}
-                      className="w-full py-3 bg-[#004041] hover:bg-[#4dbd97] hover:text-[#004041] text-[#EEEFD3] font-bold rounded-xl transition shadow flex items-center justify-center gap-2 disabled:opacity-60">
+                      className="w-full py-3 bg-dark-teal hover:bg-emerald hover:text-dark-teal text-pistachio font-bold rounded-xl transition shadow flex items-center justify-center gap-2 disabled:opacity-60">
                       {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
                       {isRunning ? "Running engine..." : "Analyze Deal"}
                     </button>
@@ -517,8 +517,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     )}
                     {isRunning && (
                       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center">
-                        <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin text-[#004041]" />
-                        <p className="text-sm font-bold text-[#004041]">Solving deal...</p>
+                        <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin text-dark-teal" />
+                        <p className="text-sm font-bold text-dark-teal">Solving deal...</p>
                       </div>
                     )}
 
@@ -541,7 +541,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         {/* Dual-track */}
                         <div className="grid grid-cols-2 gap-3">
                           {[deal.dualTrackDSCR.track1, deal.dualTrackDSCR.track2].map(track => (
-                            <div key={track.label} className={`rounded-xl border p-4 ${track.passes ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
+                            <div key={track.label} className={`rounded-xl border p-4 ${track.passes ? "bg-emerald/10 border-emerald/20" : "bg-red-50 border-red-200"}`}>
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-slate-600">{track.label}</span>
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${track.passes ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
@@ -556,7 +556,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                         {/* PITIA breakdown */}
                         <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                          <h4 className="font-bold text-[#004041] text-sm mb-3">PITIA Breakdown</h4>
+                          <h4 className="font-bold text-dark-teal text-sm mb-3">PITIA Breakdown</h4>
                           <div className="space-y-2">
                             {[
                               { label: "Principal & Interest", value: deal.monthlyPITIA.principalAndInterest },
@@ -571,8 +571,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               </div>
                             ))}
                             <div className="flex justify-between items-center text-sm font-bold border-t border-slate-100 pt-2 mt-2">
-                              <span className="text-[#004041]">Total PITIA</span>
-                              <span className="font-mono text-[#004041] text-base">{fmt$(deal.monthlyPITIA.total)}/mo</span>
+                              <span className="text-dark-teal">Total PITIA</span>
+                              <span className="font-mono text-dark-teal text-base">{fmt$(deal.monthlyPITIA.total)}/mo</span>
                             </div>
                           </div>
                         </div>
@@ -589,7 +589,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                           ].map(({ label, value, sub }) => (
                             <div key={label} className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
                               <p className="text-[11px] text-slate-400 font-semibold mb-1">{label}</p>
-                              <p className="font-bold text-[#004041] font-mono text-base">{value}</p>
+                              <p className="font-bold text-dark-teal font-mono text-base">{value}</p>
                               <p className="text-[10px] text-slate-400 mt-0.5">{sub}</p>
                             </div>
                           ))}
@@ -598,11 +598,11 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         {/* Top lenders — minimal */}
                         {solveResult.topLenders.length > 0 && (
                           <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                            <h4 className="font-bold text-[#004041] text-sm mb-3">Top Matching Lenders</h4>
+                            <h4 className="font-bold text-dark-teal text-sm mb-3">Top Matching Lenders</h4>
                             <div className="flex flex-wrap gap-2">
                               {solveResult.topLenders.map((l, i) => (
                                 <div key={i} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                                  <span className="font-bold text-[#004041]">{l.name}</span>
+                                  <span className="font-bold text-dark-teal">{l.name}</span>
                                   <span className="text-slate-400 ml-2">{l.score}/100</span>
                                 </div>
                               ))}
@@ -614,12 +614,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         {(sensResult || optResult) && (
                           <div className="flex gap-3">
                             {sensResult && (
-                              <button onClick={() => setActiveTab("sensitivity")} className="flex-1 py-2.5 bg-slate-100 hover:bg-[#004041] hover:text-white text-[#004041] text-xs font-bold rounded-xl transition border border-slate-200 hover:border-[#004041]">
+                              <button onClick={() => setActiveTab("sensitivity")} className="flex-1 py-2.5 bg-slate-100 hover:bg-dark-teal hover:text-white text-dark-teal text-xs font-bold rounded-xl transition border border-slate-200 hover:border-dark-teal">
                                 View Sensitivity →
                               </button>
                             )}
                             {optResult && (
-                              <button onClick={() => setActiveTab("optimize")} className="flex-1 py-2.5 bg-slate-100 hover:bg-[#004041] hover:text-white text-[#004041] text-xs font-bold rounded-xl transition border border-slate-200 hover:border-[#004041]">
+                              <button onClick={() => setActiveTab("optimize")} className="flex-1 py-2.5 bg-slate-100 hover:bg-dark-teal hover:text-white text-dark-teal text-xs font-bold rounded-xl transition border border-slate-200 hover:border-dark-teal">
                                 View Optimizer →
                               </button>
                             )}
@@ -639,7 +639,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400">
                     <BarChart2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
                     <p className="text-sm font-semibold">Run DSCR Analyzer first to populate sensitivity data.</p>
-                    <button onClick={() => setActiveTab("analyze")} className="mt-4 px-5 py-2 bg-[#004041] text-white text-xs font-bold rounded-xl transition">
+                    <button onClick={() => setActiveTab("analyze")} className="mt-4 px-5 py-2 bg-dark-teal text-white text-xs font-bold rounded-xl transition">
                       Go to Analyzer →
                     </button>
                   </div>
@@ -648,12 +648,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                       {/* Rent breakeven */}
                       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-[#004041] text-sm mb-4">Rent Breakeven</h4>
+                        <h4 className="font-bold text-dark-teal text-sm mb-4">Rent Breakeven</h4>
                         <div className="space-y-3">
                           {[
-                            { label: "1.0x DSCR (floor)", value: sensResult.sensitivity.rentBreakeven.for1_0, color: "text-yellow-600" },
-                            { label: "1.10x DSCR", value: sensResult.sensitivity.rentBreakeven.for1_10, color: "text-green-600" },
-                            { label: "1.25x DSCR (strong)", value: sensResult.sensitivity.rentBreakeven.for1_25, color: "text-emerald-600" },
+                            { label: "1.0x DSCR (floor)", value: sensResult.sensitivity.rentBreakeven.for1_0, color: "text-lemon-lime" },
+                            { label: "1.10x DSCR", value: sensResult.sensitivity.rentBreakeven.for1_10, color: "text-rain-forest" },
+                            { label: "1.25x DSCR (strong)", value: sensResult.sensitivity.rentBreakeven.for1_25, color: "text-emerald" },
                           ].map(({ label, value, color }) => (
                             <div key={label} className="flex justify-between items-center">
                               <span className="text-xs text-slate-500">{label}</span>
@@ -665,12 +665,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                       {/* Rate breakeven */}
                       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-[#004041] text-sm mb-4">Max Rate</h4>
+                        <h4 className="font-bold text-dark-teal text-sm mb-4">Max Rate</h4>
                         <div className="space-y-3">
                           {[
-                            { label: "Still qualifies (1.0x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_0, color: "text-yellow-600" },
-                            { label: "Comfortable (1.10x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_10, color: "text-green-600" },
-                            { label: "Strong (1.25x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_25, color: "text-emerald-600" },
+                            { label: "Still qualifies (1.0x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_0, color: "text-lemon-lime" },
+                            { label: "Comfortable (1.10x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_10, color: "text-rain-forest" },
+                            { label: "Strong (1.25x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_25, color: "text-emerald" },
                           ].map(({ label, value, color }) => (
                             <div key={label} className="flex justify-between items-center">
                               <span className="text-xs text-slate-500">{label}</span>
@@ -682,12 +682,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                       {/* Price breakeven */}
                       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-[#004041] text-sm mb-4">Max Purchase Price</h4>
+                        <h4 className="font-bold text-dark-teal text-sm mb-4">Max Purchase Price</h4>
                         <div className="space-y-3">
                           {[
-                            { label: "1.0x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_0, color: "text-yellow-600" },
-                            { label: "1.10x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_10, color: "text-green-600" },
-                            { label: "1.25x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_25, color: "text-emerald-600" },
+                            { label: "1.0x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_0, color: "text-lemon-lime" },
+                            { label: "1.10x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_10, color: "text-rain-forest" },
+                            { label: "1.25x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_25, color: "text-emerald" },
                           ].map(({ label, value, color }) => (
                             <div key={label} className="flex justify-between items-center">
                               <span className="text-xs text-slate-500">{label}</span>
@@ -700,7 +700,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                     {/* IO / 40yr structure impact */}
                     <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                      <h4 className="font-bold text-[#004041] text-sm mb-4">Structure Alternatives</h4>
+                      <h4 className="font-bold text-dark-teal text-sm mb-4">Structure Alternatives</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {deal && [
                           { label: "Current (30yr P&I)", dscr: deal.dscr, active: true },
@@ -708,14 +708,14 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                           { label: "40yr Amortization", dscr: sensResult.sensitivity.structureBreakeven.dscrWith40yr, active: false },
                           { label: "IO savings/mo", dscr: null, value: fmt$(sensResult.sensitivity.structureBreakeven.monthlySavingsIO), active: false },
                         ].map(({ label, dscr, value, active }) => (
-                          <div key={label} className={`rounded-xl p-4 border ${active ? "bg-[#004041] border-[#004041]" : "bg-slate-50 border-slate-200"}`}>
-                            <p className={`text-[11px] font-bold mb-1 ${active ? "text-[#EEEFD3]/70" : "text-slate-500"}`}>{label}</p>
+                          <div key={label} className={`rounded-xl p-4 border ${active ? "bg-dark-teal border-dark-teal" : "bg-slate-50 border-slate-200"}`}>
+                            <p className={`text-[11px] font-bold mb-1 ${active ? "text-pistachio/70" : "text-slate-500"}`}>{label}</p>
                             {dscr !== null ? (
-                              <p className={`text-xl font-extrabold font-mono ${active ? "text-[#4dbd97]" : dscrColor(dscr!)}`}>
+                              <p className={`text-xl font-extrabold font-mono ${active ? "text-emerald" : dscrColor(dscr!)}`}>
                                 {dscr!.toFixed(2)}x
                               </p>
                             ) : (
-                              <p className="text-xl font-extrabold font-mono text-emerald-600">{value}</p>
+                              <p className="text-xl font-extrabold font-mono text-emerald">{value}</p>
                             )}
                           </div>
                         ))}
@@ -725,7 +725,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     {/* Tornado chart */}
                     {sensResult.sensitivity.tornadoData.length > 0 && (
                       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-[#004041] text-sm mb-1">DSCR Sensitivity — Tornado</h4>
+                        <h4 className="font-bold text-dark-teal text-sm mb-1">DSCR Sensitivity — Tornado</h4>
                         <p className="text-[11px] text-slate-400 mb-4">Which inputs move DSCR the most (ranked by impact)</p>
                         <div className="space-y-2">
                           {sensResult.sensitivity.tornadoData.slice(0, 8).map((item) => {
@@ -736,7 +736,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 <span className="text-[11px] text-slate-600 w-36 shrink-0 font-medium">{item.lever}</span>
                                 <div className="flex-1 flex items-center gap-1">
                                   <div className="flex-1 bg-slate-100 rounded-full h-4 overflow-hidden">
-                                    <div className="h-full bg-[#004041] rounded-full transition-all" style={{ width: `${barWidth}%` }} />
+                                    <div className="h-full bg-dark-teal rounded-full transition-all" style={{ width: `${barWidth}%` }} />
                                   </div>
                                   <span className="text-[10px] font-mono text-slate-500 w-14 text-right shrink-0">
                                     {item.dscrAtLow.toFixed(2)}–{item.dscrAtHigh.toFixed(2)}x
@@ -752,12 +752,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     {/* Joint appraisal risk */}
                     {sensResult.sensitivity.jointAppraisalRisk && (
                       <div className={`rounded-2xl border p-5 ${
-                        sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "LOW" ? "bg-emerald-50 border-emerald-200" :
-                        sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "MODERATE" ? "bg-yellow-50 border-yellow-200" :
+                        sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "LOW" ? "bg-emerald/10 border-emerald/20" :
+                        sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "MODERATE" ? "bg-lemon-lime/10 border-lemon-lime/20" :
                         "bg-red-50 border-red-200"
                       }`}>
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-bold text-sm text-[#004041]">Joint Appraisal Risk</h4>
+                          <h4 className="font-bold text-sm text-dark-teal">Joint Appraisal Risk</h4>
                           <span className={`text-xs font-bold px-2 py-1 rounded-full ${
                             sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "LOW" ? "bg-emerald-100 text-emerald-700" :
                             sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "MODERATE" ? "bg-yellow-100 text-yellow-700" :
@@ -785,7 +785,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400">
                     <Zap className="w-10 h-10 mx-auto mb-3 opacity-30" />
                     <p className="text-sm font-semibold">Run DSCR Analyzer first to generate structure options.</p>
-                    <button onClick={() => setActiveTab("analyze")} className="mt-4 px-5 py-2 bg-[#004041] text-white text-xs font-bold rounded-xl transition">
+                    <button onClick={() => setActiveTab("analyze")} className="mt-4 px-5 py-2 bg-dark-teal text-white text-xs font-bold rounded-xl transition">
                       Go to Analyzer →
                     </button>
                   </div>
@@ -796,13 +796,13 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       {[...optResult.options].sort((a, b) => b.track1DSCR - a.track1DSCR).map((opt, i) => {
                         const isBest = i === 0;
                         return (
-                          <div key={opt.name} className={`rounded-2xl border p-5 space-y-3 ${isBest ? "bg-[#004041] border-[#004041] shadow-lg" : "bg-white border-slate-100 shadow-sm"}`}>
+                          <div key={opt.name} className={`rounded-2xl border p-5 space-y-3 ${isBest ? "bg-dark-teal border-dark-teal shadow-lg" : "bg-white border-slate-100 shadow-sm"}`}>
                             <div className="flex items-start justify-between">
                               <div>
-                                <p className={`font-bold text-sm ${isBest ? "text-white" : "text-[#004041]"}`}>{opt.name}</p>
-                                {isBest && <span className="text-[10px] bg-[#4dbd97] text-[#004041] font-bold px-2 py-0.5 rounded mt-1 inline-block">BEST DSCR</span>}
+                                <p className={`font-bold text-sm ${isBest ? "text-white" : "text-dark-teal"}`}>{opt.name}</p>
+                                {isBest && <span className="text-[10px] bg-emerald text-dark-teal font-bold px-2 py-0.5 rounded mt-1 inline-block">BEST DSCR</span>}
                               </div>
-                              <div className={`text-2xl font-extrabold font-mono ${isBest ? "text-[#4dbd97]" : dscrColor(opt.track1DSCR)}`}>
+                              <div className={`text-2xl font-extrabold font-mono ${isBest ? "text-emerald" : dscrColor(opt.track1DSCR)}`}>
                                 {opt.track1DSCR.toFixed(2)}x
                               </div>
                             </div>
@@ -814,15 +814,15 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 { label: "Track 2 DSCR", value: `${opt.track2DSCR.toFixed(2)}x` },
                               ].map(({ label, value }) => (
                                 <div key={label} className="flex justify-between text-xs">
-                                  <span className={isBest ? "text-[#EEEFD3]/60" : "text-slate-500"}>{label}</span>
-                                  <span className={`font-mono font-semibold ${isBest ? "text-[#EEEFD3]" : "text-slate-700"}`}>{value}</span>
+                                  <span className={isBest ? "text-pistachio/60" : "text-slate-500"}>{label}</span>
+                                  <span className={`font-mono font-semibold ${isBest ? "text-pistachio" : "text-slate-700"}`}>{value}</span>
                                 </div>
                               ))}
                             </div>
                             {opt.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 pt-1 border-t border-current/10">
                                 {opt.tags.slice(0, 3).map(tag => (
-                                  <span key={tag} className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${isBest ? "bg-white/10 text-[#EEEFD3]" : "bg-slate-100 text-slate-600"}`}>{tag}</span>
+                                  <span key={tag} className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${isBest ? "bg-white/10 text-pistachio" : "bg-slate-100 text-slate-600"}`}>{tag}</span>
                                 ))}
                               </div>
                             )}
@@ -840,16 +840,16 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               <motion.div key="state" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
                 <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 space-y-4">
                   <div>
-                    <h2 className="font-bold text-[#004041] mb-1">Prepayment Penalty Legality</h2>
+                    <h2 className="font-bold text-dark-teal mb-1">Prepayment Penalty Legality</h2>
                     <p className="text-xs text-slate-500">Engine checks statute database for PPP restrictions, entity rules, and ARM restrictions by state.</p>
                   </div>
                   <div className="flex gap-3">
                     <input type="text" maxLength={2} value={stateInput}
                       onChange={e => setStateInput(e.target.value.toUpperCase())}
                       placeholder="FL"
-                      className="w-24 px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-sm transition font-mono uppercase font-bold" />
+                      className="w-24 px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono uppercase font-bold" />
                     <button onClick={handleStateRules} disabled={isLoadingState}
-                      className="px-6 py-3 bg-[#004041] hover:bg-[#4dbd97] hover:text-[#004041] text-[#EEEFD3] font-bold rounded-xl transition flex items-center gap-2 disabled:opacity-60">
+                      className="px-6 py-3 bg-dark-teal hover:bg-emerald hover:text-dark-teal text-pistachio font-bold rounded-xl transition flex items-center gap-2 disabled:opacity-60">
                       {isLoadingState ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
                       Look Up
                     </button>
@@ -857,7 +857,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   <div className="flex flex-wrap gap-2">
                     {["FL", "CA", "TX", "NY", "GA", "IL", "PA", "MN", "KS", "NM"].map(s => (
                       <button key={s} onClick={() => setStateInput(s)}
-                        className="text-[11px] px-3 py-1.5 bg-slate-100 hover:bg-[#004041] hover:text-white rounded-lg font-bold transition font-mono">
+                        className="text-[11px] px-3 py-1.5 bg-slate-100 hover:bg-dark-teal hover:text-white rounded-lg font-bold transition font-mono">
                         {s}
                       </button>
                     ))}
@@ -883,7 +883,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Available prepay options */}
                       <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                        <h4 className="font-bold text-[#004041] text-sm mb-3">Allowed Prepay Options</h4>
+                        <h4 className="font-bold text-dark-teal text-sm mb-3">Allowed Prepay Options</h4>
                         <div className="flex flex-wrap gap-2">
                           {stateResult.ppp.adjustedOptions.map(opt => (
                             <span key={opt} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">{opt}</span>
@@ -944,10 +944,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     <div className="space-y-2">
                       {auditLogs.map(log => (
                         <div key={log.id} onClick={() => setSelectedLog(log)}
-                          className={`bg-white border rounded-2xl p-4 cursor-pointer transition shadow-sm ${selectedLog?.id === log.id ? "border-[#4dbd97] shadow-md" : "border-slate-100 hover:border-slate-200"}`}>
+                          className={`bg-white border rounded-2xl p-4 cursor-pointer transition shadow-sm ${selectedLog?.id === log.id ? "border-[var(--color-emerald)] shadow-md" : "border-slate-100 hover:border-slate-200"}`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <div className={`w-2 h-2 rounded-full shrink-0 ${log.type === "analyze" ? "bg-[#4dbd97]" : "bg-yellow-400"}`} />
+                              <div className={`w-2 h-2 rounded-full shrink-0 ${log.type === "analyze" ? "bg-emerald" : "bg-yellow-400"}`} />
                               <p className="text-sm font-semibold text-slate-700 truncate">{log.title}</p>
                             </div>
                             <button onClick={e => deleteLog(log.id!, e)} className="p-1 hover:text-red-500 text-slate-300 transition shrink-0">
@@ -955,7 +955,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             </button>
                           </div>
                           <div className="flex items-center gap-3 mt-2">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${log.type === "analyze" ? "bg-[#4dbd97]/15 text-[#004041]" : "bg-yellow-50 text-yellow-600"}`}>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${log.type === "analyze" ? "bg-emerald/15 text-dark-teal" : "bg-yellow-50 text-lemon-lime"}`}>
                               {log.type === "analyze" ? "DSCR Deal" : "State PPP"}
                             </span>
                             <span className="text-[10px] text-slate-400">{new Date(log.timestamp).toLocaleString()}</span>
@@ -965,7 +965,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     </div>
                     {selectedLog && (
                       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 overflow-auto max-h-[600px]">
-                        <h3 className="font-bold text-[#004041] text-sm mb-1">{selectedLog.title}</h3>
+                        <h3 className="font-bold text-dark-teal text-sm mb-1">{selectedLog.title}</h3>
                         <p className="text-[10px] text-slate-400 mb-3">{new Date(selectedLog.timestamp).toLocaleString()}</p>
                         <pre className="text-xs bg-slate-50 rounded-xl p-4 overflow-auto text-slate-600 whitespace-pre-wrap">
                           {JSON.stringify(selectedLog.output, null, 2)}
@@ -1044,7 +1044,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             {activeTab === "settings" && (
               <motion.div key="settings" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-8 max-w-xl">
-                  <h2 className="font-bold text-[#004041] text-lg mb-6">Broker Profile</h2>
+                  <h2 className="font-bold text-dark-teal text-lg mb-6">Broker Profile</h2>
                   <form onSubmit={saveBrokerConfig} className="space-y-4">
                     {[
                       { key: "brokerName", label: "Broker / Company Name" },
@@ -1056,16 +1056,16 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         <label className="text-xs font-bold text-slate-500">{label}</label>
                         <input type="text" value={(brokerConfig as any)[key]}
                           onChange={e => setBrokerConfig(p => ({ ...p, [key]: e.target.value }))}
-                          className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-sm transition" />
+                          className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition" />
                       </div>
                     ))}
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-slate-500">Default Disclaimer</label>
                       <textarea rows={3} value={brokerConfig.autoDisclaimer}
                         onChange={e => setBrokerConfig(p => ({ ...p, autoDisclaimer: e.target.value }))}
-                        className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[#4dbd97] rounded-xl outline-none text-sm transition resize-none" />
+                        className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition resize-none" />
                     </div>
-                    <button type="submit" className="w-full py-3.5 bg-[#004041] hover:bg-[#4dbd97] hover:text-[#004041] text-[#EEEFD3] font-bold rounded-xl transition shadow">
+                    <button type="submit" className="w-full py-3.5 bg-dark-teal hover:bg-emerald hover:text-dark-teal text-pistachio font-bold rounded-xl transition shadow">
                       {brokerSaved ? "✓ Saved" : "Save Profile"}
                     </button>
                   </form>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Greenstreet themed logo — replacement for "rising-sun + lowercase wordmark" archetype.
+  Layout category: geometric sans-serif lowercase + simple circular/sun mark.
+  Theme palette: MIDNIGHT, PISTACHIO, MINT, LEMON, RAINFOREST, EMERALD.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" role="img" aria-label="Themed institutional logo 01">
+  <title>Themed logo — rising sun archetype</title>
+  <!-- rising-sun mark: lemon disc with mint rays on midnight tile -->
+  <g transform="translate(4,8)">
+    <rect x="0" y="0" width="48" height="48" rx="10" fill="#003738"/>
+    <circle cx="24" cy="30" r="11" fill="#d8d958"/>
+    <line x1="24" y1="6" x2="24" y2="14" stroke="#eeefd3" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="8" y1="30" x2="14" y2="30" stroke="#eeefd3" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="40" y1="30" x2="34" y2="30" stroke="#eeefd3" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="13" y1="18" x2="17" y2="22" stroke="#eeefd3" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="35" y1="18" x2="31" y2="22" stroke="#eeefd3" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(64,0)" font-family='"Outfit Variable", Outfit, Arial, sans-serif'>
+    <text x="0" y="44" font-size="32" font-weight="700" letter-spacing="-0.02em" fill="#003738">betterment</text>
+  </g>
+</svg>

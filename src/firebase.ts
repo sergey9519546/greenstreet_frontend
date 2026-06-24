@@ -2,14 +2,16 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously } from "firebase/auth";
 import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, where, DocumentData, getDocs } from "firebase/firestore";
 
-// Config matches the generated firebase-applet-config.json file
+// Firebase config — values are read from environment variables.
+// In development, set these in your .env file (see .env.example).
+// NEVER commit real API keys to source control.
 const firebaseConfig = {
-  projectId: "project-34827ae3-34d1-4d2c-a7d",
-  appId: "1:979007666870:web:5355368ed0e6da29020417",
-  apiKey: "AIzaSyDbhJW82HLr2xxCsaMcWT7NicKW3RkXpYo",
-  authDomain: "project-34827ae3-34d1-4d2c-a7d.firebaseapp.com",
-  storageBucket: "project-34827ae3-34d1-4d2c-a7d.firebasestorage.app",
-  messagingSenderId: "979007666870"
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
 };
 
 // Initialize Firebase

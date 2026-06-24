@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Greenstreet themed logo — replacement for "monogram + sans tagline" archetype.
+  Layout: heavy serif monogram + sans-serif uppercase tagline in brand accent.
+  Theme palette: MIDNIGHT, PISTACHIO, MINT, LEMON, RAINFOREST, EMERALD.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" role="img" aria-label="Themed institutional logo 03">
+  <title>Themed logo — monogram + sans tagline</title>
+  <g transform="translate(8,8)" font-family='Georgia, "Times New Roman", serif'>
+    <text x="0" y="56" font-size="64" font-weight="700" fill="#003738">JMG</text>
+  </g>
+  <g transform="translate(160,0)">
+    <text x="0" y="40" font-family='"Outfit Variable", Outfit, Arial, sans-serif' font-size="18" font-weight="600" letter-spacing="0.08em" fill="#4dbd97">FINANCIAL GROUP</text>
+    <text x="0" y="62" font-family='"Outfit Variable", Outfit, Arial, sans-serif' font-size="11" font-weight="500" letter-spacing="0.18em" fill="#006565">TODAY. TOMORROW. TOGETHER.</text>
+  </g>
+</svg>

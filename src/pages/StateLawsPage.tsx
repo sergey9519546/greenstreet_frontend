@@ -1,10 +1,18 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedButton,
+  AnimatedNumber,
+  PremiumInput,
+} from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 type Status = "ALLOWED" | "PROHIBITED" | "RESTRICTED" | "DE FACTO PROHIBITED";
 
@@ -68,6 +76,10 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
     return true;
   });
 
+  const countAllowed = results.filter(s => s.ppp === "ALLOWED").length;
+  const countRestricted = results.filter(s => s.ppp === "RESTRICTED").length;
+  const countProhibited = results.filter(s => s.ppp === "DE FACTO PROHIBITED" || s.ppp === "PROHIBITED").length;
+
   return (
     <PageShell
       title="State Prepay and Usury Rules"
@@ -77,59 +89,67 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       {/* Summary badges */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "16px", marginBottom: "36px" }}>
         {[
-          { label: "States with no restrictions", count: ALL_STATES.filter(s => s.ppp === "ALLOWED").length, color: MINT },
-          { label: "States with restrictions", count: ALL_STATES.filter(s => s.ppp === "RESTRICTED").length, color: YELLOW },
-          { label: "De facto prohibited", count: ALL_STATES.filter(s => s.ppp === "DE FACTO PROHIBITED" || s.ppp === "PROHIBITED").length, color: "#ff6b6b" },
+          { label: "States with no restrictions", count: countAllowed, color: MINT },
+          { label: "States with restrictions", count: countRestricted, color: YELLOW },
+          { label: "De facto prohibited", count: countProhibited, color: "#ff6b6b" },
         ].map(b => (
-          <div key={b.label} style={{ ...card, textAlign: "center" }}>
-            <div style={{ color: b.color, fontWeight: 800, fontSize: "36px" }}>{b.count}</div>
-            <div style={{ color: "#5a6b6b", fontSize: "13px" }}>{b.label}</div>
-          </div>
+          <AnimatedCard key={b.label} style={{ textAlign: "center" }} hoverScale={true}>
+            <div style={{ color: b.color, fontWeight: 800, fontSize: "36px" }}>
+              <AnimatedNumber value={b.count} format={Math.round} />
+            </div>
+            <div style={{ color: "rgba(0,55,56,0.6)", fontSize: "13px" }}>{b.label}</div>
+          </AnimatedCard>
         ))}
       </div>
 
       {/* Filters */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "24px", alignItems: "center" }}>
-        <input
-          placeholder="Search state..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ background: "#ffffff", border: "1px solid rgba(0,55,56,0.22)", color: "#003738", borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none", width: "200px" }}
-        />
-        {(["all","restricted","prohibited"] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{
-            padding: "8px 16px", borderRadius: "8px", border: "1px solid",
-            borderColor: filter === f ? MINT : "rgba(0,55,56,0.22)",
-            background: filter === f ? "rgba(0,101,101,0.12)" : "transparent",
-            color: filter === f ? MINT : "#5a6b6b", cursor: "pointer", fontSize: "13px", fontFamily: "Outfit, sans-serif",
-          }}>
-            {f === "all" ? "All States" : f === "restricted" ? "Restricted" : "Prohibited"}
-          </button>
-        ))}
+      <div style={{ display: "flex", gap: "16px", marginBottom: "24px", alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ width: "240px" }}>
+          <PremiumInput
+            label="Search state..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ marginBottom: 0 }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: "8px" }}>
+          {(["all","restricted","prohibited"] as const).map(f => (
+            <AnimatedButton
+              key={f}
+              onClick={() => setFilter(f)}
+              variant={filter === f ? "primary" : "secondary"}
+              showArrow={false}
+              style={{ height: "46px" }}
+            >
+              {f === "all" ? "All States" : f === "restricted" ? "Restricted" : "Prohibited"}
+            </AnimatedButton>
+          ))}
+        </div>
       </div>
 
       {/* State rows */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {results.map(s => (
-          <div key={s.state} style={{ ...card, display: "grid", gridTemplateColumns: "140px 120px 1fr auto", gap: "20px", alignItems: "start", padding: "18px 24px" }}>
-            <div style={{ color: CREAM, fontWeight: 700 }}>{s.state}</div>
+          <AnimatedCard key={s.state} style={{ display: "grid", gridTemplateColumns: "140px 140px 1fr auto", gap: "20px", alignItems: "center", padding: "18px 24px" }} hoverScale={true}>
+            <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px" }}>{s.state}</div>
             <div>
               <span style={{
-                display: "inline-block", padding: "3px 10px", borderRadius: "20px",
-                background: statusColor(s.ppp) + "22", color: statusColor(s.ppp),
+                display: "inline-block", padding: "4px 12px", borderRadius: "20px",
+                background: statusColor(s.ppp) + "18", color: statusColor(s.ppp),
                 fontSize: "11px", fontWeight: 700, letterSpacing: "0.06em",
               }}>
                 {s.ppp}
               </span>
             </div>
-            <div style={{ color: "#4a5d5d", fontSize: "13px", lineHeight: 1.5 }}>{s.note}</div>
-            {s.threshold && <div style={{ color: YELLOW, fontSize: "12px", whiteSpace: "nowrap" }}>{s.threshold}</div>}
-          </div>
+            <div style={{ color: "rgba(0,55,56,0.8)", fontSize: "14px", lineHeight: 1.5 }}>{s.note}</div>
+            {s.threshold && <div style={{ color: YELLOW, fontSize: "13px", fontWeight: 600, whiteSpace: "nowrap" }}>{s.threshold}</div>}
+          </AnimatedCard>
         ))}
       </div>
-      <p style={{ color: "#8a9a9a", fontSize: "12px", marginTop: "20px" }}>
+      <p style={{ color: "rgba(0,55,56,0.5)", fontSize: "12px", marginTop: "24px", fontFamily: "Outfit, sans-serif" }}>
         Source: Greenstreet Finance state matrix · June 2026 · OH/PA thresholds re-index January 1 annually · MN HF 3437 effective 8/1/2026. Not legal advice.
       </p>
     </PageShell>
   );
 }
+

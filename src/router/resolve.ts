@@ -30,23 +30,28 @@ export type PageView =
   | "solutions";
 
 const ROUTE_MAP: Record<string, PageView> = {
+  // Root
   "/": "marketing",
+
+  // Portal
   "/dscrgo": "portal",
-  "/products/platform": "portal",
-  "/products/communications-archiving-supervision": "dscr-calculator",
-  "/products/employee-compliance": "lender-intel",
-  "/products/marketing-compliance": "state-laws",
-  "/products/firm-compliance": "deal-analyzer",
-  "/products/third-party-compliance": "borrower-profiles",
-  "/solutions/financial-advisors": "brokers",
-  "/solutions/private-funds": "investors",
-  "/solutions/hedge-funds": "investors",
-  "/solutions/broker-dealers": "brokers",
-  "/solutions/ria-registration": "brokers",
-  "/solutions/service-provider-platform": "borrower-profiles",
-  "/solutions": "solutions",
-  "/products": "products",
+
+  // Audience pages
+  "/brokers": "brokers",
+  "/investors": "investors",
+  "/borrower-profiles": "borrower-profiles",
+  "/partners": "brokers-partner",
+
+  // Core tools (canonical paths)
+  "/dscr-calculator": "dscr-calculator",
+  "/lender-intel": "lender-intel",
+  "/state-laws": "state-laws",
+  "/deal-analyzer": "deal-analyzer",
+  "/decision-support": "decision-support",
+
+  // Content pages
   "/faq": "faq",
+  "/support": "faq",
   "/blog": "blog",
   "/case-studies": "case-studies",
   "/about": "about",
@@ -54,19 +59,11 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/legal": "legal",
   "/privacy-policy": "legal",
   "/terms-of-service": "legal",
-  "/support": "faq",
   "/rate-quiz": "rate-quiz",
-  "/partners": "brokers-partner",
-  // Clean semantic paths (DSCR-native URLs)
-  "/brokers": "brokers",
-  "/investors": "investors",
-  "/borrower-profiles": "borrower-profiles",
-  "/dscr-calculator": "dscr-calculator",
-  "/lender-intel": "lender-intel",
-  "/deal-analyzer": "deal-analyzer",
-  "/state-laws": "state-laws",
-  "/decision-support": "decision-support",
-  // New feature routes
+  "/products": "products",
+  "/solutions": "solutions",
+
+  // Tools routes (canonical /tools/* paths)
   "/tools/refi-tracker": "refi-tracker",
   "/tools/arm-reset": "arm-reset",
   "/tools/monte-carlo": "monte-carlo",
@@ -85,10 +82,8 @@ export function resolveRoute(href: string): PageView {
     if (ROUTE_MAP[path]) return ROUTE_MAP[path];
     if (path.startsWith("/blog/")) return "blog";
     if (path.startsWith("/case-studies/")) return "case-studies";
-    if (path.startsWith("/solutions/")) return "investors";
-    if (path.startsWith("/products/")) return "dscr-calculator";
     if (path.startsWith("/tools/")) {
-      const slug = path.replace("/tools/", "");
+      const slug = path.replace("/tools/", "").replace(/\/$/, "");
       if (slug === "refi-tracker") return "refi-tracker";
       if (slug === "arm-reset" || slug === "arm") return "arm-reset";
       if (slug === "monte-carlo") return "monte-carlo";
@@ -129,9 +124,6 @@ export function isKnownRoute(href: string): boolean {
   if (ROUTE_MAP[path]) return true;
   if (path.startsWith("/blog")) return true;
   if (path.startsWith("/case-studies")) return true;
-  if (path.startsWith("/solutions")) return true;
-  if (path.startsWith("/products")) return true;
-  if (["/brokers", "/investors", "/borrower-profiles", "/dscr-calculator", "/lender-intel", "/deal-analyzer", "/state-laws", "/decision-support"].includes(path)) return true;
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "").replace(/\/$/, "");
     return [

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, Component } from "react";
+import React, { useState, useEffect, Component, lazy, Suspense } from "react";
 
+// ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
   state = { error: null };
   static getDerivedStateFromError(error: Error) { return { error }; }
@@ -22,34 +23,49 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
     return this.props.children;
   }
 }
-import MarketingSite from "./components/MarketingSite";
-import ComplianceDashboard from "./components/ComplianceDashboard";
-import DSCRCalculatorPage from "./pages/DSCRCalculatorPage";
-import LenderIntelPage from "./pages/LenderIntelPage";
-import StateLawsPage from "./pages/StateLawsPage";
-import FAQPage from "./pages/FAQPage";
-import BlogPage from "./pages/BlogPage";
-import RateQuizPage from "./pages/RateQuizPage";
-import RefiTrackerPage from "./pages/RefiTrackerPage";
-import ARMPage from "./pages/ARMPage";
-import MonteCarloPage from "./pages/MonteCarloPage";
-import ReturnsPage from "./pages/ReturnsPage";
-import TaxEnginePage from "./pages/TaxEnginePage";
-import StressMatrixPage from "./pages/StressMatrixPage";
-import DecisionSupportPage from "./pages/DecisionSupportPage";
-import STRUnderwritingPage from "./pages/STRUnderwritingPage";
-import PortfolioPage from "./pages/PortfolioPage";
-import DealAnalyzerPage from "./pages/DealAnalyzerPage";
-import BorrowerProfilesPage from "./pages/BorrowerProfilesPage";
-import BrokersPortalPage from "./pages/BrokersPortalPage";
-import InvestorsPage from "./pages/InvestorsPage";
-import AboutPage from "./pages/AboutPage";
-import CareersPage from "./pages/CareersPage";
-import CaseStudiesPage from "./pages/CaseStudiesPage";
-import LegalPage from "./pages/LegalPage";
-import ProductsPage from "./pages/ProductsPage";
-import SolutionsPage from "./pages/SolutionsPage";
-import BrokersPage from "./pages/BrokersPage";
+
+// ─── Page loading fallback ─────────────────────────────────────────────────────
+function PageLoader() {
+  return (
+    <div style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
+      <div style={{ textAlign: "center", color: "#006565" }}>
+        <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏳</div>
+        <p style={{ fontSize: "16px", fontWeight: 500 }}>Loading…</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Lazy page imports (code-split — each page loads on demand) ───────────────
+// MarketingSite is unified directly in index.html
+const ComplianceDashboard = lazy(() => import("./components/ComplianceDashboard"));
+const DSCRCalculatorPage  = lazy(() => import("./pages/DSCRCalculatorPage"));
+const LenderIntelPage     = lazy(() => import("./pages/LenderIntelPage"));
+const StateLawsPage       = lazy(() => import("./pages/StateLawsPage"));
+const FAQPage             = lazy(() => import("./pages/FAQPage"));
+const BlogPage            = lazy(() => import("./pages/BlogPage"));
+const RateQuizPage        = lazy(() => import("./pages/RateQuizPage"));
+const RefiTrackerPage     = lazy(() => import("./pages/RefiTrackerPage"));
+const ARMPage             = lazy(() => import("./pages/ARMPage"));
+const MonteCarloPage      = lazy(() => import("./pages/MonteCarloPage"));
+const ReturnsPage         = lazy(() => import("./pages/ReturnsPage"));
+const TaxEnginePage       = lazy(() => import("./pages/TaxEnginePage"));
+const StressMatrixPage    = lazy(() => import("./pages/StressMatrixPage"));
+const DecisionSupportPage = lazy(() => import("./pages/DecisionSupportPage"));
+const STRUnderwritingPage = lazy(() => import("./pages/STRUnderwritingPage"));
+const PortfolioPage       = lazy(() => import("./pages/PortfolioPage"));
+const DealAnalyzerPage    = lazy(() => import("./pages/DealAnalyzerPage"));
+const BorrowerProfilesPage = lazy(() => import("./pages/BorrowerProfilesPage"));
+const BrokersPortalPage   = lazy(() => import("./pages/BrokersPortalPage"));
+const InvestorsPage       = lazy(() => import("./pages/InvestorsPage"));
+const AboutPage           = lazy(() => import("./pages/AboutPage"));
+const CareersPage         = lazy(() => import("./pages/CareersPage"));
+const CaseStudiesPage     = lazy(() => import("./pages/CaseStudiesPage"));
+const LegalPage           = lazy(() => import("./pages/LegalPage"));
+const ProductsPage        = lazy(() => import("./pages/ProductsPage"));
+const SolutionsPage       = lazy(() => import("./pages/SolutionsPage"));
+const BrokersPage         = lazy(() => import("./pages/BrokersPage"));
+
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
 
 function navigateTo(view: PageView) {
@@ -62,35 +78,35 @@ function navigateTo(view: PageView) {
 
 function viewToPath(view: PageView): string {
   switch (view) {
-    case "marketing": return "/";
-    case "portal": return "/dscrgo";
-    case "dscr-calculator": return "/dscr-calculator";
-    case "lender-intel": return "/lender-intel";
-    case "state-laws": return "/state-laws";
-    case "deal-analyzer": return "/deal-analyzer";
+    case "marketing":         return "/";
+    case "portal":            return "/dscrgo";
+    case "dscr-calculator":   return "/dscr-calculator";
+    case "lender-intel":      return "/lender-intel";
+    case "state-laws":        return "/state-laws";
+    case "deal-analyzer":     return "/deal-analyzer";
     case "borrower-profiles": return "/borrower-profiles";
-    case "brokers": return "/brokers";
-    case "brokers-partner": return "/partners";
-    case "investors": return "/investors";
-    case "faq": return "/faq";
-    case "blog": return "/blog";
-    case "case-studies": return "/case-studies";
-    case "rate-quiz": return "/rate-quiz";
-    case "refi-tracker": return "/tools/refi-tracker";
-    case "arm-reset": return "/tools/arm-reset";
-    case "monte-carlo": return "/tools/monte-carlo";
-    case "returns": return "/tools/returns";
-    case "tax-engine": return "/tools/tax-engine";
-    case "stress-matrix": return "/tools/stress-matrix";
-    case "decision-support": return "/decision-support";
-    case "str-underwriting": return "/tools/str-underwriting";
-    case "portfolio": return "/tools/portfolio";
-    case "about": return "/about";
-    case "careers": return "/careers";
-    case "legal": return "/legal";
-    case "products": return "/products";
-    case "solutions": return "/solutions";
-    case "external": return "/external";
+    case "brokers":           return "/brokers";
+    case "brokers-partner":   return "/partners";
+    case "investors":         return "/investors";
+    case "faq":               return "/faq";
+    case "blog":              return "/blog";
+    case "case-studies":      return "/case-studies";
+    case "rate-quiz":         return "/rate-quiz";
+    case "refi-tracker":      return "/tools/refi-tracker";
+    case "arm-reset":         return "/tools/arm-reset";
+    case "monte-carlo":       return "/tools/monte-carlo";
+    case "returns":           return "/tools/returns";
+    case "tax-engine":        return "/tools/tax-engine";
+    case "stress-matrix":     return "/tools/stress-matrix";
+    case "decision-support":  return "/tools/decision-support";
+    case "str-underwriting":  return "/tools/str-underwriting";
+    case "portfolio":         return "/tools/portfolio";
+    case "about":             return "/about";
+    case "careers":           return "/careers";
+    case "legal":             return "/legal";
+    case "products":          return "/products";
+    case "solutions":         return "/solutions";
+    case "external":          return "/external";
   }
 }
 
@@ -169,6 +185,22 @@ export default function App() {
     } else {
       document.body.style.color = "#003738";
     }
+
+    const isMarketing = view === "marketing";
+    const wfRoot = document.getElementById("webflow-root");
+    const reactRoot = document.getElementById("root");
+    if (wfRoot) wfRoot.style.display = isMarketing ? "block" : "none";
+    if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
+
+    if (isMarketing && typeof (window as any).initAnimations === "function") {
+      setTimeout(() => {
+        try {
+          (window as any).initAnimations();
+        } catch (e) {
+          console.error("Failed to re-initialize marketing animations:", e);
+        }
+      }, 50);
+    }
   }, [view]);
 
   const handleLoginClick = () => goTo("portal");
@@ -180,12 +212,7 @@ export default function App() {
   const renderPage = () => {
     switch (view) {
       case "marketing":
-        return (
-          <MarketingSite
-            onLoginClick={handleLoginClick}
-            onGetStartedClick={handleGetStarted}
-          />
-        );
+        return null;
       case "portal":
         return (
           <ComplianceDashboard
@@ -247,7 +274,7 @@ export default function App() {
         return <PortfolioPage onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
-          window.location.href = "https://trust.greenboard.com";
+          window.location.href = "https://www.greenstreet.com";
         }
         return null;
     }
@@ -255,9 +282,11 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="font-sans antialiased text-slate-800">
-        {renderPage()}
-      </div>
+      <Suspense fallback={<PageLoader />}>
+        <div className="font-sans antialiased text-slate-800">
+          {renderPage()}
+        </div>
+      </Suspense>
     </ErrorBoundary>
   );
 }

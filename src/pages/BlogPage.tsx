@@ -1,10 +1,12 @@
 // @ts-nocheck
 import React, { useState } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+import { PageShell, AnimatedCard, AnimatedButton, PremiumInput, sectionTitle } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 const POSTS = [
   {
@@ -143,20 +145,22 @@ export default function BlogPage({ onBack, onNavigate, path }: { onBack: () => v
       <PageShell title={post.title} subtitle={`${post.tag} · ${post.date}`} onBack={onBack} onNavigate={onNavigate}>
         <article style={{ maxWidth: "720px" }}>
           <ArticleBody blocks={post.body} />
-          <div style={{ ...card, marginTop: "44px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
+          <AnimatedCard hoverScale={false} style={{ marginTop: "44px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
             <div style={sectionTitle}>Run the numbers</div>
             <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6 }}>Model a live deal — DSCR, break-even rate, and lender matches in minutes.</p>
-            <a href="/deal-analyzer" style={{ display: "inline-block", padding: "13px 26px", background: MINT, color: "#002D2E", borderRadius: "10px", fontWeight: 700, fontSize: "15px", textDecoration: "none" }}>Open the Deal Analyzer →</a>
-          </div>
+            <AnimatedButton onClick={() => onNavigate("deal-analyzer")} showArrow={true}>
+              Open the Deal Analyzer
+            </AnimatedButton>
+          </AnimatedCard>
           <div style={{ marginTop: "52px" }}>
             <div style={sectionTitle}>Keep reading</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               {POSTS.filter((p) => p.slug !== post.slug).slice(0, 2).map((p) => (
-                <a key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none" }}>
-                  <div style={{ ...card, cursor: "pointer" }}>
+                <a key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none" }} onClick={(e) => { e.preventDefault(); onNavigate(`blog/${p.slug}`); }}>
+                  <AnimatedCard hoverScale={true} style={{ height: "100%" }}>
                     <div style={{ color: "#647474", fontSize: "12px", marginBottom: "6px" }}>{p.date}</div>
                     <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", lineHeight: 1.3 }}>{p.title}</div>
-                  </div>
+                  </AnimatedCard>
                 </a>
               ))}
             </div>
@@ -172,6 +176,7 @@ export default function BlogPage({ onBack, onNavigate, path }: { onBack: () => v
 
 function BlogIndex({ onBack, onNavigate }) {
   const [tag, setTag] = useState("All");
+  const [email, setEmail] = useState("");
   const tags = ["All", "Lending", "Rates", "Underwriting", "Process", "Compliance", "STR"];
   const filtered = tag === "All" ? POSTS : POSTS.filter((p) => p.tag === tag);
 
@@ -194,10 +199,8 @@ function BlogIndex({ onBack, onNavigate }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
         {filtered.map((p) => (
-          <a key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none" }}>
-            <div style={{ ...card, height: "100%", cursor: "pointer", transition: "border-color 0.15s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = MINT)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(0,55,56,0.15)")}>
+          <a key={p.slug} href={`/blog/${p.slug}`} style={{ textDecoration: "none" }} onClick={(e) => { e.preventDefault(); onNavigate(`blog/${p.slug}`); }}>
+            <AnimatedCard hoverScale={true} style={{ height: "100%" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                 <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: "rgba(0,101,101,0.12)", color: MINT, border: `1px solid ${MINT}` }}>{p.tag}</span>
                 <span style={{ fontSize: "11px", color: "#5a6b6b" }}>{p.date}</span>
@@ -205,17 +208,27 @@ function BlogIndex({ onBack, onNavigate }) {
               <h3 style={{ fontSize: "20px", fontWeight: 700, color: CREAM, marginBottom: "8px", lineHeight: 1.3 }}>{p.title}</h3>
               <p style={{ fontSize: "14px", color: "#4a5d5d", lineHeight: 1.6 }}>{p.summary}</p>
               <p style={{ fontSize: "12px", color: MINT, marginTop: "12px", fontWeight: 600 }}>Read more →</p>
-            </div>
+            </AnimatedCard>
           </a>
         ))}
       </div>
 
-      <div style={{ marginTop: "40px", padding: "24px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
+      <div style={{ marginTop: "40px", padding: "32px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
         <p style={{ fontSize: "15px", color: CREAM, marginBottom: "12px" }}>Want these in your inbox?</p>
         <p style={{ fontSize: "13px", color: "#4a5d5d", marginBottom: "20px" }}>One short note a month. State rule changes, lender behavior shifts, and one rate sheet pull. No drip campaigns, no upsells.</p>
-        <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", gap: "8px", maxWidth: "500px", margin: "0 auto" }}>
-          <input type="email" placeholder="broker@yourfirm.com" required style={{ flex: 1, background: "#ffffff", border: "1px solid rgba(0,55,56,0.22)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-          <button type="submit" style={{ background: MINT, color: "#002D2E", border: "none", borderRadius: "8px", padding: "10px 20px", fontSize: "14px", fontWeight: 700, cursor: "pointer" }}>Subscribe</button>
+        <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", gap: "12px", maxWidth: "500px", margin: "0 auto", alignItems: "flex-end" }}>
+          <PremiumInput
+            type="email"
+            label="Email Address"
+            placeholder="broker@yourfirm.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ flex: 1, marginBottom: 0 }}
+          />
+          <AnimatedButton type="submit" showArrow={false} style={{ height: "46px", padding: "0 24px" }}>
+            Subscribe
+          </AnimatedButton>
         </form>
       </div>
     </PageShell>

@@ -1,10 +1,12 @@
 // @ts-nocheck
 import React from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+import { PageShell, AnimatedCard, AnimatedButton, AnimatedNumber, sectionTitle } from "./PageShell";
+
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 interface NavCard { tag: string; title: string; body: string; href: string; }
 
@@ -27,13 +29,23 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
       <div style={{ marginBottom: "40px", padding: "32px", background: "rgba(0,101,101,0.08)", borderRadius: "14px", border: "1px solid rgba(0,101,101,0.22)" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
           {[
-            { stat: "620", label: "lowest FICO we'll quote" },
-            { stat: "75%", label: "LTV most lenders cap at" },
-            { stat: "0.75x", label: "DSCR floor (sub-1.0 lenders)" },
-            { stat: "21-30d", label: "typical close time" },
+            { value: 620, format: (v: number) => Math.round(v).toString(), label: "lowest FICO we'll quote" },
+            { value: 75, format: (v: number) => Math.round(v) + "%", label: "LTV most lenders cap at" },
+            { value: 0.75, format: (v: number) => v.toFixed(2) + "x", label: "DSCR floor (sub-1.0 lenders)" },
+            { value: 21, format: (v: number) => Math.round(v) + "-30d", label: "typical close time", isRange: true, value2: 30 },
           ].map((s) => (
             <div key={s.label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "40px", fontWeight: 800, color: MINT, lineHeight: 1 }}>{s.stat}</div>
+              <div style={{ fontSize: "40px", fontWeight: 800, color: MINT, lineHeight: 1 }}>
+                {s.isRange ? (
+                  <span>
+                    <AnimatedNumber value={s.value} format={(v) => Math.round(v).toString()} />
+                    -
+                    <AnimatedNumber value={s.value2} format={(v) => Math.round(v).toString()} />d
+                  </span>
+                ) : (
+                  <AnimatedNumber value={s.value} format={s.format} />
+                )}
+              </div>
               <div style={{ fontSize: "12px", color: "#5a6b6b", marginTop: "6px" }}>{s.label}</div>
             </div>
           ))}
@@ -43,16 +55,16 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
       <div style={sectionTitle}>Choose Your Profile</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
         {CARDS.map((c) => (
-          <div key={c.title} style={{ ...card, display: "flex", flexDirection: "column", gap: "12px" }}>
+          <AnimatedCard key={c.title} hoverScale={true} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <div style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "20px", background: "rgba(0,101,101,0.12)", color: MINT, border: `1px solid ${MINT}`, alignSelf: "flex-start", textTransform: "uppercase", letterSpacing: "0.06em" }}>{c.tag}</div>
             <h3 style={{ fontSize: "20px", fontWeight: 700, color: CREAM, lineHeight: 1.2 }}>{c.title}</h3>
             <p style={{ fontSize: "14px", color: "#4a5d5d", lineHeight: 1.6, flex: 1 }}>{c.body}</p>
             <div style={{ fontSize: "13px", fontWeight: 600, color: MINT, textDecoration: "underline", textUnderlineOffset: "3px" }}>See lenders →</div>
-          </div>
+          </AnimatedCard>
         ))}
       </div>
 
-      <div style={{ ...card, marginBottom: "32px" }}>
+      <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
         <div style={sectionTitle}>Documents Most DSCR Lenders Ask For</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
           {[
@@ -69,9 +81,9 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
             </div>
           ))}
         </div>
-      </div>
+      </AnimatedCard>
 
-      <div style={{ ...card, marginBottom: "32px" }}>
+      <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
         <div style={sectionTitle}>Common Borrower Mistakes</div>
         {[
           { mistake: "Not vesting in an LLC", fix: "Most lenders require entity vesting. Going individual adds 25-50bps and may disqualify you from business-purpose loans." },
@@ -87,12 +99,14 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
             <p style={{ color: "#4a5d5d", fontSize: "12px", marginTop: "6px", lineHeight: 1.5 }}><strong style={{ color: MINT }}>Fix:</strong> {m.fix}</p>
           </div>
         ))}
-      </div>
+      </AnimatedCard>
 
       <div style={{ marginTop: "32px", padding: "32px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
         <h3 style={{ fontSize: "22px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Not sure which profile you fit?</h3>
         <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Answer 4 questions, get a lender shortlist. No signup, no email required.</p>
-        <a href="/rate-quiz" style={{ display: "inline-block", padding: "12px 28px", background: MINT, color: "#002D2E", borderRadius: "8px", fontWeight: 700, fontSize: "14px", textDecoration: "none" }}>Take the Rate Quiz →</a>
+        <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>
+          Take the Rate Quiz
+        </AnimatedButton>
       </div>
     </PageShell>
   );

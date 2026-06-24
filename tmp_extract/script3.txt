@@ -1,0 +1,749 @@
+`(function(){\n
+  
+  \\\$('.announcement-close').on('click', function () {
+  \\\$('.announcement').hide();
+});
+
+// console.log('allo')
+gsap.registerPlugin(ScrollTrigger);
+let lenis;
+let showAnim;
+let mm = gsap.matchMedia();
+function isSafari() {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
+//Desktop Only
+mm.add("(min-width: 992px)", () => {
+  //NAVBAR BUTTON REVEAL ON SCROLL
+  gsap.set(".nav-btn", { minWidth: "0rem" });
+
+  let tlNavbar = gsap.timeline({
+    paused: true,
+    defaults: { ease: "power3.out" },
+  });
+  tlNavbar.to(".nav-btn", { minWidth: "14rem", duration: 0.55 });
+
+  ScrollTrigger.create({
+    trigger: "body",
+    start: "top+=75 top",
+    onEnter: () => tlNavbar.play(),
+    onLeaveBack: () => {
+      gsap.to(".nav-btn .btn_main_wrap", {
+        opacity: 0,
+        duration: 0.15,
+      });
+      gsap.to(".nav-btn", {
+        minWidth: "0rem",
+        duration: 0.55,
+        ease: 'power3.out',
+        onComplete: () => {
+          gsap.set(".nav-btn .btn_main_wrap", {
+            opacity: 1,
+          });
+          tlNavbar.pause(0);
+        },
+      });
+    },
+  });
+});
+//Tablet Only
+mm.add("(max-width: 991px)", () => {});
+
+// var lenisActive = false;
+// \\\$(document).ready(function() {
+//         if (Webflow.env('editor') != undefined) {
+//           console.log('Editor is loaded: do not load custom js');
+//         } else
+//         if (!isSafari())
+//         {
+//         lenisActive = true;
+//         // Initialize Lenis
+//         const lenis = new Lenis({
+//         autoRaf: true,
+//         });
+
+// // Synchronize Lenis scrolling with GSAP's ScrollTrigger plugin
+// lenis.on('scroll', ScrollTrigger.update);
+
+// // Add Lenis's requestAnimationFrame (raf) method to GSAP's ticker
+// // This ensures Lenis's smooth scroll animation updates on each GSAP tick
+// gsap.ticker.add((time) => {
+//   lenis.raf(time * 1000); // Convert time from seconds to milliseconds
+// });
+
+// // Disable lag smoothing in GSAP to prevent any delay in scroll animations
+// gsap.ticker.lagSmoothing(0);
+
+//         }
+
+// });
+
+// function resetWebflow(data) {
+//   let dom = \\\$(new DOMParser().parseFromString(data.next.html, "text/html")).find("html");
+//   // reset webflow interactions
+//   \\\$("html").attr("data-wf-page", dom.attr("data-wf-page"));
+//   window.Webflow && window.Webflow.destroy();
+//   window.Webflow && window.Webflow.ready();
+//   window.Webflow && window.Webflow.require("ix2").init();
+//   // reset w--current class
+//   \\\$(".w--current").removeClass("w--current");
+//   \\\$("a").each(function () {
+//     if (\\\$(this).attr("href") === window.location.pathname) {
+//       \\\$(this).addClass("w--current");
+//     }
+//   });
+
+// }
+// barba.hooks.before((data) => {
+//   window.fsAttributes.destroy();
+// });
+// // Global hook running before any transition
+// barba.hooks.leave((data) => {
+
+// });
+// barba.hooks.enter((data) => {
+//   // gsap.set(data.next.container, { position: "fixed", top: 0, left: 0, width: "100%" });
+// });
+// barba.hooks.after((data) => {
+
+//   // gsap.set(data.next.container, { position: "relative" });
+//   let triggers = gsap.utils.toArray(ScrollTrigger.getAll());
+//   triggers.forEach(trigger => {
+//   trigger.kill();
+//   });
+//   allpages();
+//   window.fsAttributes.cmsfilter.init();
+//   window.fsAttributes.cmsload.init();
+//   \\\$(window).scrollTop(0);
+//   \\\$('video[[autoPlay="true"]="true"]').each(function() {
+//     this.play();
+//   });
+//   resetWebflow(data);
+//   if (lenisActive) {
+//     lenis.scrollTo(0, {offset: 0, immediate: true, duration: 0})
+//     } else {
+//     window.scrollTo(0, 0);
+//     }
+
+// });
+
+// barba.init({
+//   preventRunning: true,
+//   timeout: 5000,
+//   transitions: [{
+//     name: 'transition',
+//     before(){
+//     },
+//     leave(data) {
+//       return gsap.to(data.current.container, {
+//         // opacity: 0,
+//         duration: 0.3,
+//         ease: Expo.easeIn,
+//       });
+// },
+// enter(data) {
+//   gsap.from(\\\$(data.next.container).find('.u-container'), {
+//     // opacity: 0,
+//     duration: 3,
+//     ease: Expo.easeOut,
+//   });
+// },
+
+//       after(){
+//     }
+//   }
+// ],
+//   views: [
+//     {
+//       namespace: "home",
+//       afterEnter(data) {
+//       },
+//     },
+//     {
+//       namespace: "about",
+//       afterEnter(data) {
+//       },
+//     },
+//   ]
+// });
+
+// Dont refresh page on current link
+let pagetitle;
+function allpages() {
+  //ANIMATION OF THE HAMB MENU
+  let menuClick = true;
+  let menuMobiletl = gsap.timeline({
+    paused: true,
+    defaults: {
+      duration: 0.4,
+      ease: "power4.inOut",
+    },
+  });
+  menuMobiletl
+    .to(".burger-line.middle", {
+      marginTop: "calc(0rem - 1px)",
+      marginBottom: "calc(0rem - 1px)",
+    })
+    .set(".burger-line.middle", { opacity: 0, duration: 0.2 }, "<0.2")
+    .to(".burger-line.top", { rotate: "45deg" }, "<")
+    .to(".burger-line.bottom", { rotate: "-45deg" }, "<")
+    .set(".menu-mobile-wrap", { display: "flex" }, "<")
+    .from(".menu-mobile-wrap", { opacity: 0, duration: 0.2 }, "<0.1");
+  \\\$(".burger-wrap").on("click", function () {
+    if (menuClick) {
+      menuMobiletl.play();
+      menuClick = false;
+    } else {
+      menuMobiletl.reverse();
+      menuClick = true;
+    }
+  });
+
+  // \\\$("a").on("click", function (e) {
+  //   pagetitle = \\\$(this).find(".page-title").text();
+  //   let url = \\\$(this).attr("href");
+  //   let windowurl = window.location.pathname;
+  //   console.log(pagetitle);
+  //   if (url === windowurl) {
+  //     e.stopPropagation();
+  //     e.preventDefault();
+  //   }
+  // });
+
+  
+
+
+
+  \\\$('[class*="drawer-top"], [drawer-top]').on("click", function () {
+    console.log('drawer')
+    var \\\$element = \\\$(this).closest(".drawer-item, [drawer-parent]");
+    var clickCount = \\\$element.data("clickCount") || 0; // Get the current click count or set it to 0
+
+    if (clickCount === 1) {
+      \\\$element.removeClass("open");
+      setTimeout(function () {
+        ScrollTrigger.refresh();
+      }, 600);
+    } else {
+      \\\$element.siblings().removeClass("open").data("clickCount", 0);
+      \\\$element.addClass("open");
+      setTimeout(function () {
+        ScrollTrigger.refresh();
+      }, 600);
+    }
+
+    clickCount++;
+    if (clickCount > 1) clickCount = 0; // Reset the click count after the second click
+
+    \\\$element.data("clickCount", clickCount); // Store the updated click count
+  });
+
+  \\\$(".swiper").each(function () {
+  let \\\$swiper = \\\$(this);
+
+  // 1) Try inside the swiper first
+  let prev = \\\$swiper.find(".is-prev")[0];
+  let next = \\\$swiper.find(".is-next")[0];
+  let nav  = \\\$swiper.find(".swiper-pagination")[0];
+
+  // 2) Fallback: look inside parent .home-swiper-wrap
+  if (!prev || !next || !nav) {
+    let \\\$wrap = \\\$swiper.closest(".home-swiper-wrap");
+    if (\\\$wrap.length) {
+      prev = prev || \\\$wrap.find(".is-prev")[0];
+      next = next || \\\$wrap.find(".is-next")[0];
+      nav  = nav  || \\\$wrap.find(".swiper-pagination")[0];
+    }
+  }
+
+  // bail if empty collection
+  if (\\\$swiper.find("div.w-dyn-empty").length) return;
+
+  let loop = \\\$swiper.data("loop");
+  let centered = \\\$swiper.data("centered");
+  let axis = \\\$swiper.data("axis");
+  let autoPlay = \\\$swiper.data("autoPlay");
+  let speed = \\\$swiper.data("speed") || 600;
+  let delay = \\\$swiper.data("delay") || 5000;
+  let reverseDirection = \\\$swiper.data("reverse");
+
+  new Swiper(\\\$swiper.find(".swiper-container")[0], {
+    grabCursor: true,
+    speed: speed,
+    loop: loop,
+    autoPlay: autoPlay
+      ? {
+          delay: delay,
+          reverseDirection: reverseDirection === true ? true : undefined,
+        }
+      : false,
+    centeredSlides: centered,
+    slidesPerView: "auto",
+    slidesPerGroup: 1,
+    navigation: {
+      nextEl: next,
+      prevEl: prev,
+    },
+    mousewheel: {
+      forceToAxis: axis === false ? false : true,
+      invert: false,
+      sensitivity: 1.5,
+    },
+    pagination: {
+      el: nav,
+      clickable: true,
+    },
+  });
+});
+
+  //TESTIMONIAL HOVER
+  \\\$(".testimonial_logo_card_link").hover(
+    function () {
+      // On hover in
+      var index = \\\$(this).parent().index();
+      \\\$(".testimonial_card_client").css("opacity", "0"); // Reset all
+      \\\$(".testimonial_card_client").eq(index).css("opacity", "1");
+    },
+    function () {
+      // On hover out
+      \\\$(".testimonial_card_client").css("opacity", "0");
+    }
+  );
+
+  //SOLUTION LIST HOVER
+  \\\$(".solution_list .list-item").hover(
+    function () {
+      // On hover in
+      var index = \\\$(this).index();
+      \\\$(".solution_visual_wrap .g_visual_wrap").css("opacity", "0"); // Reset all
+      \\\$(".solution_visual_wrap .g_visual_wrap")
+        .eq(index + 1)
+        .css("opacity", "1");
+    },
+    function () {
+      // On hover out
+      \\\$(".solution_visual_wrap .g_visual_wrap").css("opacity", "0"); // Reset all
+      \\\$(".solution_visual_wrap .g_visual_wrap").first().css("opacity", "1");
+    }
+  );
+
+  //HOW IT WORKS - STEPS SCROLL
+  \\\$(".step_height").each(function (index) {
+    let wrap = \\\$(this);
+    let cardList = wrap.find(".step-cards-list");
+
+    let tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: wrap,
+        start: "top -10%",
+        end: "bottom 110%",
+        scrub: 0.1,
+        invalidateOnRefresh: true, // ðŸ’¡ ensures values are recalculated on resize/refresh
+      },
+      defaults: { ease: "none" },
+    });
+
+    tl.to(cardList, {
+      xPercent: -100,
+      x: () => {
+        let tabWidth =
+          wrap.find(".step_tab_content_list_wrap").outerWidth() || 0;
+        return tabWidth;
+      },
+    });
+  });
+  \\\$(".scroll-horizontal-trigger").each(function (index) {
+    const \\\$trigger = \\\$(this);
+
+    // Get the corresponding .step_tab_link
+    const \\\$stepTabLink = \\\$(".step_tab_link").eq(index);
+    const \\\$highlight = \\\$stepTabLink.find(".step_tab_line_highlighted");
+    const \\\$content = \\\$stepTabLink.find(".step_tab_link_content");
+    const \\\$icon = \\\$stepTabLink.find(".step_tab_link_icon");
+
+    // Highlight line animation (width)
+    gsap.fromTo(
+      \\\$highlight[0],
+      { width: "0%" },
+      {
+        width: "100%",
+        scrollTrigger: {
+          trigger: \\\$trigger[0],
+          start: "top center",
+          end: "bottom center",
+          scrub: true,
+        },
+      }
+    );
+
+    // Timeline for content slide + icon fade
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: \\\$trigger[0],
+        start: "top center",
+        end: "top top",
+        scrub: true,
+      },
+    });
+
+    tl.fromTo(
+      \\\$content[0],
+      { x: "-1.85rem" },
+      { x: "0rem", ease: "power2.out" },
+      0
+    )
+      .fromTo(\\\$icon[0], { opacity: 0 }, { opacity: 1, ease: "power2.out" }, 0)
+      .fromTo(
+        \\\$stepTabLink[0],
+        { opacity: 0.5 },
+        { opacity: 1, ease: "power2.out" },
+        0
+      );
+
+    // NEW: Animate visual image
+    const \\\$contentWrap = \\\$(".step_tab_content_list_wrap").eq(index);
+    const \\\$image = \\\$contentWrap.find(".step_tab_content_visual_image");
+
+    let fromX = 25;
+    let toX = -25;
+    let start = "top bottom";
+    let end = "bottom top";
+
+    // First item special case
+    if (index === 0) {
+      fromX = 0;
+      toX = -25;
+      start = "top top";
+      end = "bottom top";
+    }
+
+    // Last item special case
+    const isLast = index === \\\$(".scroll-horizontal-trigger").length - 1;
+    if (isLast) {
+      fromX = 25;
+      toX = 0;
+      start = "top bottom";
+      end = "top top";
+    }
+
+    gsap.fromTo(
+      \\\$image[0],
+      { xPercent: fromX },
+      {
+        xPercent: toX,
+        ease: "none",
+        scrollTrigger: {
+          trigger: \\\$trigger[0],
+          start: start,
+          end: end,
+          scrub: true,
+        },
+      }
+    );
+  });
+
+
+  \\\$(".scroll-horizontal-trigger").each(function (index) {
+    const \\\$trigger = \\\$(this);
+    const \\\$layout = \\\$(".step_layout");
+    const \\\$wrap = \\\$(".step_tab_content_list_wrap").eq(index);
+  
+    ScrollTrigger.create({
+      trigger: \\\$trigger[0],
+      start: "top center",
+      end: "bottom center",
+      onEnter: () => applyColors(index),
+      onEnterBack: () => applyColors(index)
+    });
+  
+    function applyColors(idx) {
+      const \\\$targetWrap = \\\$(".step_tab_content_list_wrap").eq(idx);
+      const textColor = \\\$targetWrap.data("color");
+      const bgColor = \\\$targetWrap.data("background");
+  
+      if (textColor && bgColor) {
+        gsap.to(\\\$layout, {
+          backgroundColor: "#" + bgColor,
+          color: "#" + textColor,
+          duration: 0.5,
+          overwrite: "auto",
+          ease: "power2.out"
+        });
+      }
+    }
+  });
+
+// --- OLD CALENDLY LOGIC ---
+  
+// helper: one timeline per popup (scoped)
+//function createCalendlyTL(\\\$wrap) {
+//  const \\\$bk    = \\\$wrap.find('.calendly-popup-bk');
+//  const \\\$popup = \\\$wrap.find('.calendly-popup');
+
+//  const tl = gsap.timeline({ paused: true });
+//  tl.set(\\\$wrap, { display: 'flex' })
+//    .fromTo(\\\$bk,    { opacity: 0 }, { opacity: 0.4, duration: 0.3 }, 0)
+//    .fromTo(\\\$popup, { yPercent: 20, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }, 0);
+
+//  \\\$bk.on('click', () => tl.reverse());
+//  tl.eventCallback('onReverseComplete', () => \\\$wrap.css('display', 'none'));
+
+//  return tl;
+//}
+ 
+
+// timelines
+//const calendlyDemoTL    = createCalendlyTL(\\\$('.calendly-popup-wrap.is-bookdemo'));
+//const calendlyPartnerTL = createCalendlyTL(\\\$('.calendly-popup-wrap.is-partner'));
+
+// triggers
+//\\\$('a[href*="book-a-demo"]').on('click', function (e) {
+//  e.preventDefault();
+//  calendlyDemoTL.play(0);
+//});
+//
+//\\\$('a[href="/become-a-partner"]').on('click', function (e) {
+//  e.preventDefault();
+//  calendlyPartnerTL.play(0);
+//});
+  
+// --- OLD CALENDLY LOGIC ---
+
+
+// --- HUBSPOT MEETINGS REDIRECT ---
+  \\\$('a[href*="book-a-demo"], a[href*="book-demo"]').on('click', function(e) {
+    if (\\\$(this).attr('href').includes('partner')) return;
+
+    e.preventDefault();
+
+    var email = \\\$(".hero_form_field_input").val() || "";
+    var url = new URL(this.href, window.location.origin);
+
+    if (email) {
+      url.searchParams.set('email', email);
+    }
+
+    var currentParams = new URLSearchParams(window.location.search);
+    currentParams.forEach(function(value, key) {
+      if (!url.searchParams.has(key)) {
+        url.searchParams.set(key, value);
+      }
+    });
+
+    window.location.href = url.toString();
+  });
+  // --- END HUBSPOT MEETINGS REDIRECT ---
+
+  
+
+  //TEXT ROTATE WORDS
+  \\\$("[text-rotate]").each(function () {
+    const words = [
+      "informed",
+      "consistent",
+      "efficient",
+      "diligent",
+    ];
+    const \\\$wordSpan = \\\$(this);
+    let index = 0;
+
+    function changeWord() {
+      // Animate out current word
+      gsap.to(\\\$wordSpan, {
+        duration: 0.4,
+        opacity: 0,
+        y: -10,
+        onComplete: function () {
+          // Update word
+          index = (index + 1) % words.length;
+          \\\$wordSpan.text(words[index]);
+
+          // Animate in new word
+          gsap.to(\\\$wordSpan, {
+            duration: 0.4,
+            opacity: 1,
+            y: 0,
+          });
+        },
+      });
+    }
+
+    // Loop every 2.5 seconds
+    setInterval(changeWord, 2500);
+  });
+
+  //USE CASE LIST
+  \\\$(".usecase_sticky_wrap").each(function () {
+    const toY = \\\$(this).find(".usecase_card_wrap").length - 1;
+    const line = \\\$(this).find(".usecase_card_line");
+
+    gsap.set(line, { height: "0%" });
+    gsap
+      .timeline({
+        scrollTrigger: {
+          trigger: \\\$(this),
+          start: "top top",
+          end: "bottom bottom",
+          scrub: true,
+        },
+      })
+      .to(".usecase_card_wrap", {
+        yPercent: -toY * 100,
+        ease: "none",
+      })
+      .to(line, { height: "100%", ease: "none" }, "<");
+  });
+
+  //TEAM IMAGES LIST
+  \\\$(".team_wrap").each(function () {
+    const \\\$root = \\\$(this);
+    const \\\$pinHeight = \\\$root.find(".team_sticky_wrap");
+    const \\\$container = \\\$root.find(".team_sticky");
+
+    ScrollTrigger.create({
+      trigger: \\\$pinHeight[0],
+      start: "top top",
+      end: "bottom bottom",
+      pin: \\\$container[0],
+    });
+
+    let gap = 30;
+    const \\\$images = \\\$root.find(".team_image");
+    const distPerImage =
+      (\\\$pinHeight.outerHeight() - window.innerHeight) / \\\$images.length;
+
+    gsap.set(\\\$images, {
+      y: -gap * (\\\$images.length - 1),
+      z: -gap * (\\\$images.length - 1),
+    });
+
+    \\\$images.each(function (index) {
+      const image = this;
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: \\\$pinHeight[0],
+          start: "top top+=" + distPerImage * index,
+          end: "bottom bottom+=" + distPerImage * index,
+          scrub: 0.5,
+        },
+      });
+
+      for (let i = 0; i < \\\$images.length - 1; i++) {
+        tl.to(image, {
+          y: "+=" + gap,
+          z: "+=" + gap,
+          ease: "back.inOut(3)",
+        });
+      }
+
+      tl.to(image, {
+        yPercent: 80,
+        y: "50vh",
+        scale: 1.2,
+        rotation: (Math.random() - 0.5) * 50,
+        ease: "power4.in",
+      });
+    });
+  });
+}
+allpages();
+
+// // Animation Scroll
+// \\\$(".section").each(function() {
+//   // Create a GSAP timeline for the section
+//   let tl = gsap.timeline({
+//     scrollTrigger: {
+//       trigger: \\\$(this),
+//       start: "top bottom",
+//       end: "bottom top",
+//       scrub: true,
+//       // toggleActions: "play none reverse none",
+//     }
+//   });
+//   tl
+//   .from(\\\$(this).find(".line"), {
+//     opacity: 0,
+//     y: '1rem',
+//     duration: 0.25,
+//     stagger: 0.05,
+//     ease: Expo.easeOut,
+//   })
+// });
+
+function socialShare() {
+  var postUrl = window.location.href;
+  var postTitle = document.title;
+
+  // Set social share links
+  \\\$(".social-share .facebook").attr(
+    "href",
+    "https://www.facebook.com/sharer/sharer.php?u=" +
+      encodeURIComponent(postUrl)
+  );
+
+  \\\$(".social-share .twitter").attr(
+    "href",
+    "https://twitter.com/intent/tweet?url=" +
+      encodeURIComponent(postUrl) +
+      "&text=" +
+      encodeURIComponent(postTitle)
+  );
+
+  \\\$(".social-share .linkedin").attr(
+    "href",
+    "https://www.linkedin.com/sharing/share-offsite/?url=" +
+      encodeURIComponent(postUrl)
+  );
+
+  // Copy link to clipboard
+  \\\$(".social-share .copy-link").on("click", function (e) {
+    e.preventDefault(); // Prevent default link behavior
+
+    navigator.clipboard
+      .writeText(postUrl)
+      .then(function () {
+        alert("Link copied to clipboard!");
+      })
+      .catch(function (err) {
+        console.error("Failed to copy: ", err);
+      });
+  });
+}
+socialShare();
+
+// When .feature_layout reaches 6.5rem from top, scrub opacity and scale of previous .feature_layout
+\\\$(".feature_layout").each(function (i, el) {
+  gsap
+    .timeline({
+      scrollTrigger: {
+        trigger: el,
+        start: "top center",
+        end: "top 20%",
+        // markers: true,
+        scrub: 1,
+      },
+    })
+    .to(\\\$(el).prev(".feature_layout"), {
+      // opacity: 0.4,
+      scale: 0.9,
+      ease: "none",
+    })
+    .to(\\\$(el).prev(".feature_layout").find('.feature_content, .feature_visual_wrap'), {
+      // opacity: 0.4,
+      scale: 0.97,
+      ease: "none",
+    },'<')
+    .to(
+      \\\$(el).prev(".feature_layout").find(".op-abs"),
+      {
+        opacity: 0.8,
+        // scale: 0.9,
+        ease: "none",
+      },
+      "<"
+    );
+});
+
+\n})();`

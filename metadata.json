@@ -1,6 +1,4 @@
 {
-  "name": "Greenboard SEC FINRA Compliance Platform",
-  "description": "An AI-native system of action for SEC and FINRA compliance featuring automated marketing reviews, SEC/FINRA regulatory search grounding, and jurisdictional analysis.",
-  "requestFramePermissions": ["geolocation"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "Greenstreet Finance DSCR Engine",
+  "description": "The next-generation AI-native system of action for DSCR and non-QM wholesale lending. Powered by Sovereign OS, Greenstreet returns Dual-Track DSCR pre-screens, ranked lender matches across 30+ non-QM programs, and stress-tested underwriting in under 90 seconds."
 }

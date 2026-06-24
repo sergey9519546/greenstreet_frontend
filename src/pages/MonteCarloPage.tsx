@@ -1,12 +1,20 @@
 // @ts-nocheck
 import React, { useState, useMemo } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
+
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedNumber,
+  PremiumInput
+} from "./PageShell";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 function fmt$(n: number) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
@@ -51,7 +59,7 @@ export default function MonteCarloPage({ onBack, onNavigate }: { onBack: () => v
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
-        <div style={{ ...card }}>
+        <AnimatedCard hoverScale={false}>
           <div style={sectionTitle}>Inputs</div>
           {[
             { label: "Loan Amount", value: loanAmount, set: setLoanAmount, step: 5000, prefix: "$" },
@@ -64,69 +72,91 @@ export default function MonteCarloPage({ onBack, onNavigate }: { onBack: () => v
             { label: "Horizon (years)", value: horizonYears, set: setHorizonYears, step: 1 },
             { label: "Random Seed", value: seed, set: setSeed, step: 1 },
           ].map((f) => (
-            <div key={f.label} style={{ marginBottom: "10px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
-              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "#ffffff", border: "1px solid rgba(0,55,56,0.22)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-            </div>
+            <PremiumInput
+              key={f.label}
+              type="number"
+              label={f.label}
+              value={f.value}
+              step={f.step}
+              prefixSymbol={f.prefix}
+              suffixSymbol={f.suffix}
+              onChange={(e) => f.set(+e.target.value)}
+            />
           ))}
-        </div>
+        </AnimatedCard>
 
         <div>
           {!result ? (
-            <div style={{ ...card, textAlign: "center", padding: "40px" }}>
+            <AnimatedCard hoverScale={false} style={{ textAlign: "center", padding: "40px" }}>
               <p style={{ color: "#ff6b6b" }}>Engine returned no result.</p>
-            </div>
+            </AnimatedCard>
           ) : (
             <>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-                <div style={{ ...card, textAlign: "center", borderColor: result.probabilityDSCRBelow1_0 > 25 ? "#ff6b6b" : result.probabilityDSCRBelow1_0 > 10 ? YELLOW : MINT }}>
+                <AnimatedCard hoverScale={true} style={{ textAlign: "center", borderColor: result.probabilityDSCRBelow1_0 > 25 ? "#ff6b6b" : result.probabilityDSCRBelow1_0 > 10 ? YELLOW : MINT }}>
                   <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "8px" }}>P(DSCR &lt; 1.0)</div>
-                  <div style={{ fontSize: "44px", fontWeight: 800, color: result.probabilityDSCRBelow1_0 > 25 ? "#ff6b6b" : result.probabilityDSCRBelow1_0 > 10 ? YELLOW : MINT, lineHeight: 1 }}>{result.probabilityDSCRBelow1_0.toFixed(1)}%</div>
+                  <div style={{ fontSize: "44px", fontWeight: 800, color: result.probabilityDSCRBelow1_0 > 25 ? "#ff6b6b" : result.probabilityDSCRBelow1_0 > 10 ? YELLOW : MINT, lineHeight: 1 }}>
+                    <AnimatedNumber value={result.probabilityDSCRBelow1_0} format={(v) => `${v.toFixed(1)}%`} />
+                  </div>
                   <div style={{ fontSize: "11px", color: "#4a5d5d", marginTop: "6px" }}>Deal-break probability</div>
-                </div>
-                <div style={{ ...card, textAlign: "center", borderColor: result.probabilityDSCRBelow1_25 > 60 ? "#ff6b6b" : result.probabilityDSCRBelow1_25 > 30 ? YELLOW : MINT }}>
+                </AnimatedCard>
+                <AnimatedCard hoverScale={true} style={{ textAlign: "center", borderColor: result.probabilityDSCRBelow1_25 > 60 ? "#ff6b6b" : result.probabilityDSCRBelow1_25 > 30 ? YELLOW : MINT }}>
                   <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "8px" }}>P(DSCR &lt; 1.25)</div>
-                  <div style={{ fontSize: "44px", fontWeight: 800, color: result.probabilityDSCRBelow1_25 > 60 ? "#ff6b6b" : result.probabilityDSCRBelow1_25 > 30 ? YELLOW : MINT, lineHeight: 1 }}>{result.probabilityDSCRBelow1_25.toFixed(1)}%</div>
+                  <div style={{ fontSize: "44px", fontWeight: 800, color: result.probabilityDSCRBelow1_25 > 60 ? "#ff6b6b" : result.probabilityDSCRBelow1_25 > 30 ? YELLOW : MINT, lineHeight: 1 }}>
+                    <AnimatedNumber value={result.probabilityDSCRBelow1_25} format={(v) => `${v.toFixed(1)}%`} />
+                  </div>
                   <div style={{ fontSize: "11px", color: "#4a5d5d", marginTop: "6px" }}>Comfortable zone miss</div>
-                </div>
+                </AnimatedCard>
               </div>
 
-              <div style={{ ...card }}>
+              <AnimatedCard hoverScale={true}>
                 <div style={sectionTitle}>Final Stabilized Rate Distribution</div>
-                <Row label="10th percentile (low)" value={`${result.finalRateStats.p10.toFixed(2)}%`} highlight={MINT} />
-                <Row label="Median (50th)" value={`${result.finalRateStats.median.toFixed(2)}%`} />
-                <Row label="90th percentile (high)" value={`${result.finalRateStats.p90.toFixed(2)}%`} highlight="#ff6b6b" />
-                <Row label="Std deviation" value={`${result.finalRateStats.stddev.toFixed(2)}%`} />
-              </div>
+                <Row label="10th percentile (low)" value={<AnimatedNumber value={result.finalRateStats.p10} format={(v) => `${v.toFixed(2)}%`} />} highlight={MINT} />
+                <Row label="Median (50th)" value={<AnimatedNumber value={result.finalRateStats.median} format={(v) => `${v.toFixed(2)}%`} />} />
+                <Row label="90th percentile (high)" value={<AnimatedNumber value={result.finalRateStats.p90} format={(v) => `${v.toFixed(2)}%`} />} highlight="#ff6b6b" />
+                <Row label="Std deviation" value={<AnimatedNumber value={result.finalRateStats.stddev} format={(v) => `${v.toFixed(2)}%`} />} />
+              </AnimatedCard>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>Final DSCR Distribution</div>
-                <Row label="Worst 10% (P10)" value={`${result.dscrStats.p10.toFixed(2)}x`} highlight={result.dscrStats.p10 < 1.0 ? "#ff6b6b" : YELLOW} />
-                <Row label="Median" value={`${result.dscrStats.median.toFixed(2)}x`} />
-                <Row label="Best 10% (P90)" value={`${result.dscrStats.p90.toFixed(2)}x`} highlight={MINT} />
-                <Row label="Probability rate hits lifetime cap" value={`${result.probabilityRateAboveLifetimeCap.toFixed(1)}%`} />
-              </div>
+                <Row label="Worst 10% (P10)" value={<AnimatedNumber value={result.dscrStats.p10} format={(v) => `${v.toFixed(2)}x`} />} highlight={result.dscrStats.p10 < 1.0 ? "#ff6b6b" : YELLOW} />
+                <Row label="Median" value={<AnimatedNumber value={result.dscrStats.median} format={(v) => `${v.toFixed(2)}x`} />} />
+                <Row label="Best 10% (P90)" value={<AnimatedNumber value={result.dscrStats.p90} format={(v) => `${v.toFixed(2)}x`} />} highlight={MINT} />
+                <Row label="Probability rate hits lifetime cap" value={<AnimatedNumber value={result.probabilityRateAboveLifetimeCap} format={(v) => `${v.toFixed(1)}%`} />} />
+              </AnimatedCard>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>SOFR Path at Horizon ({horizonYears}yr)</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "8px" }}>
                   <div>
                     <div style={{ fontSize: "10px", color: "#5a6b6b", textTransform: "uppercase" }}>Year 1 mean</div>
-                    <div style={{ fontSize: "18px", color: CREAM, fontWeight: 700, fontFamily: "monospace" }}>{result.sofrAtHorizon.year1.mean.toFixed(2)}%</div>
-                    <div style={{ fontSize: "10px", color: "#5a6b6b" }}>P10-P90: {result.sofrAtHorizon.year1.p10.toFixed(2)}% – {result.sofrAtHorizon.year1.p90.toFixed(2)}%</div>
+                    <div style={{ fontSize: "18px", color: CREAM, fontWeight: 700, fontFamily: "monospace" }}>
+                      <AnimatedNumber value={result.sofrAtHorizon.year1.mean} format={(v) => `${v.toFixed(2)}%`} />
+                    </div>
+                    <div style={{ fontSize: "10px", color: "#5a6b6b" }}>
+                      P10-P90: <AnimatedNumber value={result.sofrAtHorizon.year1.p10} format={(v) => `${v.toFixed(2)}%`} /> – <AnimatedNumber value={result.sofrAtHorizon.year1.p90} format={(v) => `${v.toFixed(2)}%`} />
+                    </div>
                   </div>
                   <div>
                     <div style={{ fontSize: "10px", color: "#5a6b6b", textTransform: "uppercase" }}>Year 5 mean</div>
-                    <div style={{ fontSize: "18px", color: CREAM, fontWeight: 700, fontFamily: "monospace" }}>{result.sofrAtHorizon.year5.mean.toFixed(2)}%</div>
-                    <div style={{ fontSize: "10px", color: "#5a6b6b" }}>P10-P90: {result.sofrAtHorizon.year5.p10.toFixed(2)}% – {result.sofrAtHorizon.year5.p90.toFixed(2)}%</div>
+                    <div style={{ fontSize: "18px", color: CREAM, fontWeight: 700, fontFamily: "monospace" }}>
+                      <AnimatedNumber value={result.sofrAtHorizon.year5.mean} format={(v) => `${v.toFixed(2)}%`} />
+                    </div>
+                    <div style={{ fontSize: "10px", color: "#5a6b6b" }}>
+                      P10-P90: <AnimatedNumber value={result.sofrAtHorizon.year5.p10} format={(v) => `${v.toFixed(2)}%`} /> – <AnimatedNumber value={result.sofrAtHorizon.year5.p90} format={(v) => `${v.toFixed(2)}%`} />
+                    </div>
                   </div>
                   <div>
                     <div style={{ fontSize: "10px", color: "#5a6b6b", textTransform: "uppercase" }}>Year 10 mean</div>
-                    <div style={{ fontSize: "18px", color: CREAM, fontWeight: 700, fontFamily: "monospace" }}>{result.sofrAtHorizon.year10.mean.toFixed(2)}%</div>
-                    <div style={{ fontSize: "10px", color: "#5a6b6b" }}>P10-P90: {result.sofrAtHorizon.year10.p10.toFixed(2)}% – {result.sofrAtHorizon.year10.p90.toFixed(2)}%</div>
+                    <div style={{ fontSize: "18px", color: CREAM, fontWeight: 700, fontFamily: "monospace" }}>
+                      <AnimatedNumber value={result.sofrAtHorizon.year10.mean} format={(v) => `${v.toFixed(2)}%`} />
+                    </div>
+                    <div style={{ fontSize: "10px", color: "#5a6b6b" }}>
+                      P10-P90: <AnimatedNumber value={result.sofrAtHorizon.year10.p10} format={(v) => `${v.toFixed(2)}%`} /> – <AnimatedNumber value={result.sofrAtHorizon.year10.p90} format={(v) => `${v.toFixed(2)}%`} />
+                    </div>
                   </div>
                 </div>
-              </div>
+              </AnimatedCard>
 
               <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(0,101,101,0.08)", borderRadius: "10px", border: "1px solid rgba(0,101,101,0.22)", fontSize: "12px", color: "#4a5d5d", lineHeight: 1.6 }}>
                 <strong style={{ color: MINT }}>Engine:</strong> Vasicek mean-reverting process. {simulations} paths × {horizonYears * 12} months. Process parameters: θ={result.modelParameters.longRunMeanSOFR}%, κ={result.modelParameters.meanReversionSpeed}, σ={result.modelParameters.volatility}%, r₀={result.modelParameters.initialSOFR}%.
@@ -139,7 +169,7 @@ export default function MonteCarloPage({ onBack, onNavigate }: { onBack: () => v
   );
 }
 
-function Row({ label, value, highlight }: { label: string; value: string; highlight?: string }) {
+function Row({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(0,55,56,0.1)", fontSize: "14px" }}>
       <span style={{ color: "#5a6b6b" }}>{label}</span>

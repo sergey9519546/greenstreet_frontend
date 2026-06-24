@@ -1,13 +1,21 @@
 // @ts-nocheck
 import React, { useState, useMemo } from "react";
-import { PageShell, card, sectionTitle } from "./PageShell";
+import { swatch } from "../theme";
+
+import {
+  PageShell,
+  sectionTitle,
+  AnimatedCard,
+  AnimatedNumber,
+  PremiumInput
+} from "./PageShell";
 import { buildEngineInputs, DealRequest } from "../engine/inputs";
 import { analyzeRefi } from "../engine/refiTracker";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 
-const MINT = "#006565";
-const CREAM = "#003738";
-const YELLOW = "#8a6d00";
+const MINT = swatch.rainforest;
+const CREAM = swatch.midnight;
+const YELLOW = swatch.lemon;
 
 function fmt$(n: number) { return "$" + Math.round(n).toLocaleString("en-US"); }
 
@@ -102,7 +110,7 @@ export default function RefiTrackerPage({ onBack, onNavigate }: { onBack: () => 
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
-        <div style={{ ...card }}>
+        <AnimatedCard hoverScale={false}>
           <div style={sectionTitle}>Current Loan</div>
           {[
             { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
@@ -111,10 +119,16 @@ export default function RefiTrackerPage({ onBack, onNavigate }: { onBack: () => 
             { label: "Current Monthly P&I", value: currentPayment, set: setCurrentPayment, step: 25, prefix: "$" },
             { label: "Months Owned", value: monthsOwned, set: setMonthsOwned, step: 1 },
           ].map((f) => (
-            <div key={f.label} style={{ marginBottom: "14px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
-              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "#ffffff", border: "1px solid rgba(0,55,56,0.22)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-            </div>
+            <PremiumInput
+              key={f.label}
+              type="number"
+              label={f.label}
+              value={f.value}
+              step={f.step}
+              prefixSymbol={f.prefix}
+              suffixSymbol={f.suffix}
+              onChange={(e) => f.set(+e.target.value)}
+            />
           ))}
           <div style={{ ...sectionTitle, marginTop: "20px" }}>Property and Refi Assumptions</div>
           {[
@@ -125,42 +139,50 @@ export default function RefiTrackerPage({ onBack, onNavigate }: { onBack: () => 
             { label: "Projected Rate at Refi", value: projectedRate, set: setProjectedRate, step: 0.125, suffix: "%" },
             { label: "Projected Appreciation", value: projectedAppreciation, set: setProjectedAppreciation, step: 0.5, suffix: "%" },
           ].map((f) => (
-            <div key={f.label} style={{ marginBottom: "14px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>{f.label}</label>
-              <input type="number" value={f.value} step={f.step} onChange={(e) => f.set(+e.target.value)} style={{ width: "100%", background: "#ffffff", border: "1px solid rgba(0,55,56,0.22)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }} />
-            </div>
+            <PremiumInput
+              key={f.label}
+              type="number"
+              label={f.label}
+              value={f.value}
+              step={f.step}
+              prefixSymbol={f.prefix}
+              suffixSymbol={f.suffix}
+              onChange={(e) => f.set(+e.target.value)}
+            />
           ))}
-        </div>
+        </AnimatedCard>
 
         <div>
           {!result ? (
-            <div style={{ ...card, textAlign: "center", padding: "40px" }}>
+            <AnimatedCard hoverScale={false} style={{ textAlign: "center", padding: "40px" }}>
               <p style={{ color: "#ff6b6b", fontSize: "14px" }}>Engine returned no result for these inputs. Adjust loan amount or rent and try again.</p>
-            </div>
+            </AnimatedCard>
           ) : (
             <>
-              <div style={{ ...card, textAlign: "center", borderColor: verdictColor }}>
+              <AnimatedCard hoverScale={true} style={{ textAlign: "center", borderColor: verdictColor }}>
                 <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "12px" }}>Refi Readiness Score</div>
-                <div style={{ fontSize: "72px", fontWeight: 800, color: verdictColor, lineHeight: 1 }}>{result.totalScore}</div>
+                <div style={{ fontSize: "72px", fontWeight: 800, color: verdictColor, lineHeight: 1 }}>
+                  <AnimatedNumber value={result.totalScore} format={(v) => String(Math.round(v))} />
+                </div>
                 <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: verdictColor, margin: "8px 0 16px" }}>{verdictLabel}</div>
                 <div style={{ fontSize: "14px", color: "#4a5d5d" }}>
                   {result.refiType === "RATE_TERM" && "Rate-and-term refi. Loan balance roughly flat."}
                   {result.refiType === "CASH_OUT" && `Cash-out capacity: ${fmt$(result.cashOutMaxAmount)} at 70% LTV.`}
                   {result.refiType === "NO_REFI" && "No savings, no equity. Wait for better conditions."}
                 </div>
-              </div>
+              </AnimatedCard>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>Refi Math (engine.analyzeRefi)</div>
-                <Row label="Current DSCR" value={`${result.currentDSCR.toFixed(2)}x`} />
-                <Row label="Projected DSCR after refi" value={`${result.refiDSCR.toFixed(2)}x`} highlight={result.refiDSCR >= 1.0 ? MINT : "#ff6b6b"} />
-                <Row label="Monthly savings" value={`${result.monthlySavings >= 0 ? "+" : ""}${fmt$(result.monthlySavings)}`} highlight={result.monthlySavings >= 0 ? MINT : "#ff6b6b"} />
-                <Row label="Break-even (months)" value={result.breakEvenMonths > 120 ? "100+ (don't refi)" : `${result.breakEvenMonths}`} highlight={result.breakEvenMonths < 36 ? MINT : YELLOW} />
-                <Row label="Cash-out capacity (70% LTV)" value={fmt$(result.cashOutMaxAmount)} />
+                <Row label="Current DSCR" value={<AnimatedNumber value={result.currentDSCR} format={(v) => `${v.toFixed(2)}x`} />} />
+                <Row label="Projected DSCR after refi" value={<AnimatedNumber value={result.refiDSCR} format={(v) => `${v.toFixed(2)}x`} />} highlight={result.refiDSCR >= 1.0 ? MINT : "#ff6b6b"} />
+                <Row label="Monthly savings" value={<AnimatedNumber value={result.monthlySavings} format={(v) => `${v >= 0 ? "+" : ""}${fmt$(v)}`} />} highlight={result.monthlySavings >= 0 ? MINT : "#ff6b6b"} />
+                <Row label="Break-even (months)" value={result.breakEvenMonths > 120 ? "100+ (don't refi)" : <AnimatedNumber value={result.breakEvenMonths} format={(v) => String(Math.round(v))} />} highlight={result.breakEvenMonths < 36 ? MINT : YELLOW} />
+                <Row label="Cash-out capacity (70% LTV)" value={<AnimatedNumber value={result.cashOutMaxAmount} format={(v) => fmt$(v)} />} />
                 <Row label="Seasoning met (6 mo required)" value={result.seasoningMet ? "Yes" : `No — ${monthsOwned}/6 months`} highlight={result.seasoningMet ? MINT : "#ff6b6b"} />
-              </div>
+              </AnimatedCard>
 
-              <div style={{ ...card, marginTop: "20px" }}>
+              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
                 <div style={sectionTitle}>Score Breakdown (engine output)</div>
                 {result.factors.map((f) => {
                   const color = f.status === "PASS" ? MINT : f.status === "WARN" ? YELLOW : "#ff6b6b";
@@ -168,13 +190,15 @@ export default function RefiTrackerPage({ onBack, onNavigate }: { onBack: () => 
                     <div key={f.factor} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ color: CREAM, fontSize: "14px", fontWeight: 600 }}>{f.factor}</span>
-                        <span style={{ color, fontWeight: 700, fontSize: "14px" }}>{f.score} / {f.maxScore}</span>
+                        <span style={{ color, fontWeight: 700, fontSize: "14px" }}>
+                          <AnimatedNumber value={f.score} format={(v) => String(Math.round(v))} /> / {f.maxScore}
+                        </span>
                       </div>
                       <p style={{ color: "#5a6b6b", fontSize: "12px", marginTop: "4px", lineHeight: 1.5 }}>{f.detail}</p>
                     </div>
                   );
                 })}
-              </div>
+              </AnimatedCard>
 
               <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(0,101,101,0.08)", borderRadius: "10px", border: "1px solid rgba(0,101,101,0.22)", fontSize: "12px", color: "#4a5d5d", lineHeight: 1.6 }}>
                 <strong style={{ color: MINT }}>Engine source:</strong> src/engine/refiTracker.ts → analyzeRefi (v11.7). 4-factor composite: seasoning (25), equity (25), DSCR headroom (25), monthly savings (25). Cash-out cap is 70% LTV; rate-term cap is 75%.
@@ -187,7 +211,7 @@ export default function RefiTrackerPage({ onBack, onNavigate }: { onBack: () => 
   );
 }
 
-function Row({ label, value, highlight }: { label: string; value: string; highlight?: string }) {
+function Row({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(0,55,56,0.1)", fontSize: "14px" }}>
       <span style={{ color: "#5a6b6b" }}>{label}</span>
