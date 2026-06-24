@@ -147,13 +147,13 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
           </AnimatedCard>
 
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
-            <div style={sectionTitle}>Top Lender Shortlist</div>
+            <div style={sectionTitle}>Your Greenstreet Program Options</div>
             {[
-              { name: "Griffin Funding", rate: rate + result.sa.rateAdj - 0.875, note: "Best rate tier. 50+DC, 620 FICO, jumbo to $4M." },
-              { name: "Kiavi", rate: rate + result.sa.rateAdj - 0.50, note: "Tech-forward, fast close. 1.10+ DSCR required." },
-              { name: "Visio Lending", rate: rate + result.sa.rateAdj - 0.10, note: "Sub-1.0 DSCR accepted. STR specialist." },
-              { name: "New Silver", rate: rate + result.sa.rateAdj, note: "$150K-$3M, instant approval, 14-21 day close." },
-              { name: "Rocket Pro TPO", rate: rate + result.sa.rateAdj + 0.10, note: "All 50 states, max $3.5M, 21-30 day close." },
+              { name: "Greenstreet Premier", rate: rate + result.sa.rateAdj - 0.875, note: "Best rate tier. 740+ FICO, 1.25x+ DSCR, ≤75% LTV, three months reserves." },
+              { name: "Greenstreet Core", rate: rate + result.sa.rateAdj - 0.50, note: "The everyday DSCR loan. 660 FICO, 1.00x DSCR, up to 80% LTV, loans to $4M." },
+              { name: "Greenstreet Flex", rate: rate + result.sa.rateAdj - 0.10, note: "Sub-1.0 DSCR accepted down to 0.75x with compensating factors." },
+              { name: "Greenstreet STR", rate: rate + result.sa.rateAdj, note: "Airbnb / VRBO. AirDNA or 12-month history. STR legality pre-checked." },
+              { name: "Greenstreet Global", rate: rate + result.sa.rateAdj + 0.10, note: "Foreign national / ITIN. Passport plus alternative credit, 30% down." },
             ].map((l) => (
               <div key={l.name} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

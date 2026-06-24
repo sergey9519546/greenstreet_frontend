@@ -205,13 +205,13 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
           </AnimatedCard>
 
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
-            <div style={sectionTitle}>Where to Shop This Quote</div>
+            <div style={sectionTitle}>Your Greenstreet Program Match</div>
             {[
-              { name: "Griffin Funding", note: "Best rate tier, $65K-$4M, all 50+DC, 620 FICO" },
-              { name: "Kiavi", note: "Tech-forward, fast close, but 1.10+ DSCR required" },
-              { name: "Visio Lending", note: "Sub-1.0 DSCR accepted, STR specialist" },
-              { name: "New Silver", note: "$150K-$3M range, instant approval, 14-21 day close" },
-              { name: "Rocket Pro TPO", note: "All 50 states, max $3.5M, 21-30 day close" },
+              { name: "Greenstreet Premier", note: "Best rate tier — 740+ FICO, 1.25x+ DSCR, ≤75% LTV" },
+              { name: "Greenstreet Core", note: "The everyday DSCR loan — 660 FICO, 1.00x DSCR, up to 80% LTV, to $4M" },
+              { name: "Greenstreet Flex", note: "Sub-1.0 DSCR accepted down to 0.75x with compensating factors" },
+              { name: "Greenstreet STR", note: "Airbnb / VRBO — AirDNA or 12-month history, STR legality checked" },
+              { name: "Greenstreet Global", note: "Foreign national / ITIN — passport plus alternative credit, 30% down" },
             ].map((l) => (
               <div key={l.name} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
                 <div style={{ color: MINT, fontWeight: 700, fontSize: "14px" }}>{l.name}</div>

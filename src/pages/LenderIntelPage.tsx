@@ -6,7 +6,6 @@ import {
   sectionTitle,
   AnimatedCard,
   AnimatedButton,
-  AnimatedNumber,
   PremiumSlider,
 } from "./PageShell";
 
@@ -14,23 +13,32 @@ const MINT = swatch.rainforest;
 const CREAM = swatch.midnight;
 const YELLOW = swatch.lemon;
 const FADED = swatch.midnightFaded;
+const EMERALD = swatch.emerald;
+const DARK = swatch.darkTeal;
 const AS_OF = "Jun 22, 2026";
 
-// Per-lender "lastVerified" — added 2026-06-22 refresh.
-// 11 lenders with rate-sheet verification. The marketing site references
-// "30+ programs"; this is the verified subset of those programs.
-const LENDERS = [
-  { name: "Griffin Funding", minFICO: 620, minDSCR: 0.75, maxLTV: 80, states: "50+DC", special: "No-ratio option · jumbo to $4M · all 50+DC · IO · ARM from 5.125%", confidence: 85, lastVerified: "Jun 18, 2026" },
-  { name: "Defy Mortgage", minFICO: 640, minDSCR: 0.75, maxLTV: 85, states: "Most states", special: "High-leverage 85% LTV · 640–679 FICO · STR via AirDNA · closes 14–21d", confidence: 80, lastVerified: "Jun 18, 2026" },
-  { name: "Easy Street Capital", minFICO: null, minDSCR: 0, maxLTV: 80, states: "Most states", special: "STR specialist · no DSCR minimum · AirDNA 100% pro · waives 12-mo seasoning", confidence: 82, lastVerified: "Jun 18, 2026" },
-  { name: "Visio Lending", minFICO: 680, minDSCR: 0.75, maxLTV: 80, states: "48 (no AK/HI)", special: "Flex 0.75–0.99 · lower-of rent logic · broadest STR · no PPP option +0.625%", confidence: 78, lastVerified: "Jun 18, 2026" },
-  { name: "Kiavi", minFICO: 660, minDSCR: 1.10, maxLTV: 90, states: "49+DC", special: "Tech-forward · AVM-heavy · 6–9 mo reserves · SSN required (no ITIN)", confidence: 70, lastVerified: "Jun 18, 2026" },
-  { name: "New Silver", minFICO: 660, minDSCR: 0.75, maxLTV: 80, states: "Most states", special: "$150K–$3M loans · instant approval · closes 14–21d · rate 50–100bps above established", confidence: 72, lastVerified: "Jun 11, 2026" },
-  { name: "Rocket Pro TPO", minFICO: 660, minDSCR: 1.00, maxLTV: 80, states: "All 50", special: "Speed-focused · non-QM expansion 2026 · closes 21–30d · max $3.5M", confidence: 75, lastVerified: "Jun 18, 2026" },
-  { name: "Angel Oak", minFICO: 700, minDSCR: 1.00, maxLTV: 85, states: "Most states", special: "Largest non-QM securitizer · second liens $100K–$350K · Clear Capital AVM locked at prequal", confidence: 78, lastVerified: "Jun 18, 2026" },
-  { name: "Lima One Capital", minFICO: null, minDSCR: null, maxLTV: 80, states: "~41 states", special: "STR via AirDNA · bridge-to-rental · blanket/portfolio · max $2M", confidence: 76, lastVerified: "Jun 18, 2026" },
-  { name: "Deephaven", minFICO: 640, minDSCR: 0.75, maxLTV: 80, states: "Most states", special: "First-timer max 75% LTV · DSCR 2nd up to $500K · HELOC to $1M", confidence: 65, lastVerified: "Apr 22, 2026" },
-  { name: "American Heritage", minFICO: 660, minDSCR: 0.75, maxLTV: 85, states: "Most states", special: "Sub-1.0 with compensating factors · STR: 75% proj or 100% with 12mo history", confidence: 65, lastVerified: "May 30, 2026" },
+// Greenstreet's own DSCR program lineup. One application, six programs —
+// the deal parameters below route to the right one. Greenstreet underwrites
+// and funds these directly; this is not a referral to outside lenders.
+type Program = {
+  name: string;
+  tier: string;
+  tierColor: string;
+  minFICO: number | null;
+  minDSCR: number | null;
+  maxLTV: number;
+  states: string;
+  isSTR?: boolean;
+  special: string;
+};
+
+const PROGRAMS: Program[] = [
+  { name: "Greenstreet Premier", tier: "Best rate", tierColor: MINT, minFICO: 740, minDSCR: 1.25, maxLTV: 75, states: "All 50 + DC", special: "Our lowest rate tier for strong files. 740+ FICO, 1.25x+ DSCR, ≤75% LTV, three months reserves. 30-yr fixed or interest-only." },
+  { name: "Greenstreet Core", tier: "Standard", tierColor: DARK, minFICO: 660, minDSCR: 1.00, maxLTV: 80, states: "All 50 + DC", special: "The everyday DSCR loan for buy-and-hold SFR and 2–4 units. 30-yr fixed, 40-yr interest-only, and ARM options. Loans to $4M." },
+  { name: "Greenstreet Flex", tier: "Sub-1.0", tierColor: YELLOW, minFICO: 640, minDSCR: 0.75, maxLTV: 75, states: "All 50 + DC", special: "For tighter cash flow. Qualifies down to 0.75x DSCR with compensating factors — FICO, reserves, or a larger down payment." },
+  { name: "Greenstreet STR", tier: "Short-term rental", tierColor: EMERALD, minFICO: 660, minDSCR: 0.90, maxLTV: 75, states: "All 50 + DC", isSTR: true, special: "Airbnb & VRBO. AirDNA projections or a 12-month operating history accepted. STR legality pre-checked in all 50 states." },
+  { name: "Greenstreet Portfolio", tier: "5+ doors", tierColor: MINT, minFICO: 680, minDSCR: 1.10, maxLTV: 75, states: "All 50 + DC", special: "Blanket and cross-collateralized loans for portfolios. Five to ten-plus financed properties under one loan. Interest-only available." },
+  { name: "Greenstreet Global", tier: "Foreign national / ITIN", tierColor: DARK, minFICO: null, minDSCR: 1.00, maxLTV: 70, states: "All 50 + DC", special: "No SSN required. Passport plus alternative credit, 30% down. Built for international and ITIN investors." },
 ];
 
 export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
@@ -39,34 +47,23 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
   const [maxLTV, setMaxLTV] = useState(75);
   const [needsSTR, setNeedsSTR] = useState(false);
 
-  const filtered = LENDERS.filter(l => {
-    if (l.minFICO && l.minFICO > minFICO) return false;
-    if (l.minDSCR !== null && l.minDSCR > minDSCR) return false;
-    if (l.maxLTV < maxLTV) return false;
-    if (needsSTR && !l.special.toLowerCase().includes("str")) return false;
+  const filtered = PROGRAMS.filter(p => {
+    if (p.minFICO && p.minFICO > minFICO) return false;
+    if (p.minDSCR !== null && p.minDSCR > minDSCR) return false;
+    if (p.maxLTV < maxLTV) return false;
+    if (needsSTR && !p.isSTR) return false;
     return true;
-  }).sort((a, b) => b.confidence - a.confidence);
-
-  const EMERALD = swatch.emerald;
-  const confColor = (c: number) => c >= 80 ? MINT : c >= 70 ? YELLOW : "#5a6b6b";
-  const verifiedColor = (v: string) => {
-    const verifiedDate = new Date(v);
-    const today = new Date(AS_OF);
-    const daysAgo = Math.floor((today.getTime() - verifiedDate.getTime()) / (1000 * 60 * 60 * 24));
-    if (daysAgo <= 30) return EMERALD;
-    if (daysAgo <= 60) return YELLOW;
-    return "#b1432e";
-  };
+  });
 
   return (
     <PageShell
-      title="Lender Intelligence"
-      subtitle={`DSCR lender matrix, verified monthly against wholesale rate sheets. ${LENDERS.length} lenders shown — verified subset of 30+ programs in the engine. Filter by FICO, DSCR, LTV, and STR.`}
+      title="Greenstreet DSCR Programs"
+      subtitle={`Six DSCR programs, one application. Set your deal parameters and see exactly which Greenstreet program fits — Premier, Core, Flex, STR, Portfolio, or Global. Underwritten and funded in-house.`}
       onBack={onBack} onNavigate={onNavigate}
     >
       {/* Filters */}
       <AnimatedCard hoverScale={false} style={{ marginBottom: "40px" }}>
-        <div style={sectionTitle}>Filter by Deal Parameters</div>
+        <div style={sectionTitle}>Match Your Deal to a Program</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "32px", alignItems: "end" }}>
           <PremiumSlider
             label="Borrower FICO"
@@ -118,77 +115,75 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
 
       {/* Results */}
       <div style={{ marginBottom: "12px", color: "#5a6b6b", fontSize: "13px" }}>
-        {filtered.length} lender{filtered.length !== 1 ? "s" : ""} match your parameters
+        {filtered.length} Greenstreet program{filtered.length !== 1 ? "s" : ""} fit your deal
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {filtered.map(l => (
-          <AnimatedCard key={l.name} hoverScale={true} style={{ display: "grid", gridTemplateColumns: "200px 1fr auto", gap: "24px", alignItems: "center" }}>
+        {filtered.map(p => (
+          <AnimatedCard key={p.name} hoverScale={true} style={{ display: "grid", gridTemplateColumns: "210px 1fr auto", gap: "24px", alignItems: "center" }}>
             <div>
-              <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>{l.name}</div>
-              <div style={{ color: "#5a6b6b", fontSize: "12px" }}>{l.states}</div>
-              {/* Last-verified freshness tag — added 2026-06-22 refresh */}
+              <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>{p.name}</div>
+              <div style={{ color: "#5a6b6b", fontSize: "12px" }}>{p.states}</div>
               <div style={{
                 marginTop: "6px", fontSize: "10px", fontFamily: "JetBrains Mono, monospace",
-                color: verifiedColor(l.lastVerified), fontWeight: 700,
+                color: EMERALD, fontWeight: 700,
                 paddingTop: "6px", borderTop: `1px dashed ${FADED}`,
               }}>
-                ✓ verified {l.lastVerified}
+                ✓ underwritten + funded by Greenstreet
               </div>
             </div>
             <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
               <div>
                 <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Min FICO</div>
-                <div style={{ color: CREAM, fontWeight: 600 }}>{l.minFICO ?? "—"}</div>
+                <div style={{ color: CREAM, fontWeight: 600 }}>{p.minFICO ?? "—"}</div>
               </div>
               <div>
                 <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Min DSCR</div>
-                <div style={{ color: CREAM, fontWeight: 600 }}>{l.minDSCR !== null ? l.minDSCR.toFixed(2) + "x" : "None"}</div>
+                <div style={{ color: CREAM, fontWeight: 600 }}>{p.minDSCR !== null ? p.minDSCR.toFixed(2) + "x" : "None"}</div>
               </div>
               <div>
                 <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Max LTV</div>
-                <div style={{ color: CREAM, fontWeight: 600 }}>{l.maxLTV}%</div>
+                <div style={{ color: CREAM, fontWeight: 600 }}>{p.maxLTV}%</div>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>Notes</div>
-                <div style={{ color: "#4a5d5d", fontSize: "13px" }}>{l.special}</div>
+                <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>What it's for</div>
+                <div style={{ color: "#4a5d5d", fontSize: "13px" }}>{p.special}</div>
               </div>
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ color: confColor(l.confidence), fontWeight: 800, fontSize: "22px" }}>
-                <AnimatedNumber value={l.confidence} format={(v) => Math.round(v).toString()} />
-              </div>
-              <div style={{ color: "#6a7a7a", fontSize: "11px" }}>confidence</div>
+            <div style={{ textAlign: "center", minWidth: "110px" }}>
+              <span style={{
+                display: "inline-block", fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
+                padding: "5px 12px", borderRadius: "999px", background: p.tierColor, color: p.tierColor === YELLOW ? CREAM : swatch.pistachio,
+              }}>
+                {p.tier}
+              </span>
             </div>
           </AnimatedCard>
         ))}
         {filtered.length === 0 && (
           <AnimatedCard hoverScale={false} style={{ textAlign: "center", color: "#5a6b6b", padding: "40px" }}>
-            No lenders match these parameters. Try adjusting DSCR or LTV.
+            No standard program fits these exact parameters — but we write exceptions. Adjust DSCR or LTV, or talk to a Greenstreet specialist.
           </AnimatedCard>
         )}
       </div>
 
-      {/* Freshness + cadence — added 2026-06-22 */}
-      <div style={{
-        marginTop: "24px", display: "flex", alignItems: "center", gap: "12px",
-        padding: "14px 18px", background: "rgba(77,189,151,0.08)",
-        border: `1px solid rgba(77,189,151,0.25)`, borderRadius: "10px",
-        flexWrap: "wrap",
-      }}>
-        <span style={{
-          fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-          padding: "4px 10px", borderRadius: "999px",
-          background: EMERALD, color: CREAM,
-        }}>
-          Data freshness
-        </span>
-        <span style={{ fontSize: "13px", color: CREAM, fontWeight: 600 }}>
-          Last sweep {AS_OF} · cadence: monthly against wholesale rate sheets · 11 of 30+ programs shown (verified subset)
-        </span>
-      </div>
+      {/* Apply CTA — the funnel out of this page is always Greenstreet */}
+      <AnimatedCard hoverScale={false} style={{ marginTop: "32px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
+        <div style={sectionTitle}>Found your program?</div>
+        <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6, maxWidth: "640px" }}>
+          One application covers all six programs — we place your file in the best-fitting one and fund it. No portal-hopping, no re-keying the same deal five times.
+        </p>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>
+            Get my rate
+          </AnimatedButton>
+          <AnimatedButton variant="secondary" onClick={() => onNavigate("deal-analyzer")} showArrow={true}>
+            Model the deal first
+          </AnimatedButton>
+        </div>
+      </AnimatedCard>
 
       <p style={{ color: "#8a9a9a", fontSize: "12px", marginTop: "16px" }}>
-        Confidence scores decay over time. Per-lender last-verified dates are shown inline. Not a rate lock or credit approval.
+        Program parameters effective {AS_OF} and subject to full underwriting. Not a rate lock or credit approval.
       </p>
     </PageShell>
   );
