@@ -12,6 +12,7 @@ import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeR
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
 import type { PropertyInputs, BorrowerProfile, LoanStructure } from "../engine/types";
+import { DSCR_PROGRAMS, lookupMaxLTV } from "../data/dscrPrograms";
 
 const MINT = swatch.emerald;
 const CREAM = swatch.midnight;
@@ -49,10 +50,25 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       const year1CoC = deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12 > 0 ? ((deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12) / cashInvested) * 100 : 0;
       const afterTaxIRR = Math.max(0, (year1CoC / 100) * 5);
       const track2DSCR = deal.dualTrackDSCR.track2.dscr;
+
+      const ltvNeeded = 100 - downPct;
+      const matched = DSCR_PROGRAMS
+        .map((p) => {
+          const offerLTV = lookupMaxLTV(p, fico, deal.loanAmount, deal.dscr >= 0.01 ? deal.dscr : null, "purchase");
+          return offerLTV !== null && offerLTV >= ltvNeeded ? { program: p, offerLTV } : null;
+        })
+        .filter((x): x is { program: typeof DSCR_PROGRAMS[0]; offerLTV: number } => x !== null);
+
+      const bestMatch = matched[0]?.program;
+      const lenderMinDSCR = bestMatch ? bestMatch.dscrFloor : 1.0;
+      const lenderMinLoan = 75000;
+      const ltvCap = bestMatch ? bestMatch.maxLTV : 80;
+      const lenderRanking = matched.map((m) => m.program.name);
+
       const verdict = computeVerdict({
         track1DSCR: deal.dscr,
         track2DSCR,
-        lenderMinDSCR: 1.0,
+        lenderMinDSCR,
         afterTaxIRR,
         preTaxIRR: afterTaxIRR,
         year1CoC,
@@ -67,11 +83,11 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         pppAllowed: true,
         ficoScore: fico,
         ltv: 100 - downPct,
-        ltvCap: 80,
+        ltvCap,
         loanAmount: deal.loanAmount,
-        lenderMinLoan: 75000,
-        bestLenderConfidence: 75,
-        lenderRanking: [],
+        lenderMinLoan,
+        bestLenderConfidence: matched.length > 0 ? 85 : 0,
+        lenderRanking,
         isDecliningMarket: false,
       });
       const kill = computeDealKillCheck(deal, inputs.borrower, inputs.loan, inputs.property, inputs.strategy, null, null, null);

@@ -17,28 +17,28 @@ const LEMON = swatch.lemon;         // brand CTA pop (lemon)
 const STEPS = [
   {
     icon: "📊",
-    title: "Run the numbers",
-    body: "Enter price, rent, FICO, and LTV once. The engine computes DSCR (Track 1 and Track 2), PITIA, break-even rate, and cash-on-cash in half a second.",
+    title: "Run the numbers in half a second",
+    body: "Price, rent, FICO, LTV — enter once. The engine returns Track 1 DSCR (what qualifies), Track 2 DSCR (what survives), PITIA, break-even rate, and cash-on-cash before you finish your coffee.",
   },
   {
     icon: "🏦",
-    title: "Match the program",
-    body: "See which Greenstreet program fits — DSCR for 1–4 units, multi-family, or foreign national. Ranked by how well your FICO, LTV, and DSCR qualify.",
+    title: "Let the program find you",
+    body: "Seven Greenstreet programs — from high-leverage DSCR to no-ratio, multi-family, and foreign national — are ranked by fit the moment the file lands. No portal-hopping. No re-keying.",
   },
   {
     icon: "🗺️",
-    title: "Check state rules",
-    body: "50-state prepay and usury matrix flags the traps before they cost you — OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437.",
+    title: "Catch the compliance traps early",
+    body: "50-state prepay and usury matrix is built in, not bolted on. OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437 — flagged before they cost you $.",
   },
   {
     icon: "🧩",
-    title: "Structure the deal",
-    body: "Pick the borrower lane — first-timer, STR operator, portfolio, ITIN, cash-out — and the Greenstreet structure and rate tier that actually funds it.",
+    title: "Structure for the actual borrower",
+    body: "First-timer, STR operator, portfolio builder, ITIN, BRRRR cash-out — each profile has a different lane and a different rate tier. The engine reads your file and routes you to the right one.",
   },
   {
     icon: "🔒",
-    title: "Lock the rate",
-    body: "Take the program match and the numbers to your broker. No surprises at underwriting — every figure is the one Greenstreet will see.",
+    title: "Lock with confidence",
+    body: "Every number you bring to the rate-lock conversation is the number Greenstreet will see at underwriting. No surprises. No last-minute conditions you didn't model.",
   },
 ];
 
@@ -130,10 +130,10 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
           How it works
         </div>
         <h2 className="hiw-head" style={{ animationDelay: "0.08s", fontSize: "clamp(30px, 4vw, 52px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.08, marginBottom: "14px", maxWidth: "760px" }}>
-          From a rental property to a fundable DSCR loan — in five steps.
+          Five steps. One application. Your deal — funded.
         </h2>
         <p className="hiw-head" style={{ animationDelay: "0.16s", fontSize: "18px", color: ICE, opacity: 0.85, maxWidth: "640px", lineHeight: 1.6, marginBottom: "clamp(40px, 5vw, 64px)" }}>
-          Scroll the flow — the line fills as you go. Same engine behind every tool on this page.
+          The line fills as you scroll. Every step runs on the same engine — the one that underwrites and funds your file.
         </p>
 
         {/* Steps — each row owns its dot + connector so heights resolve naturally */}
@@ -213,9 +213,9 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
             themeName="dark"
             onClick={onCTA}
           >
-            Get my rate in 4 questions
+            See my rate in 5 questions
           </AnimatedButton>
-          <span style={{ fontSize: "14px", color: ICE, opacity: 0.7 }}>No email. No signup. No credit pull.</span>
+          <span style={{ fontSize: "14px", color: ICE, opacity: 0.7 }}>No email. No signup. No credit check. Just the number.</span>
         </div>
       </div>
     </section>

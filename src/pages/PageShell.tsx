@@ -179,8 +179,8 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
               </div>
             </a>
             
-            <div className="nav-links-contain" style={{ display: "flex", alignItems: "center" }}>
-              <div className="nav-links-wrap" style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+            <div className="nav-links-contain">
+              <div className="nav-links-wrap">
                 <a className="nav-link w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>DSCRGo</div>
                 </a>
@@ -218,7 +218,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
             </div>
             
             {/* Burger toggle for mobile */}
-            <div className="burger-wrap" style={{ display: "none", cursor: "pointer" }} onClick={() => setMenuOpen(!menuOpen)}>
+            <div className="burger-wrap" style={{ cursor: "pointer" }} onClick={() => setMenuOpen(!menuOpen)}>
               <div className="burger-line top"></div>
               <div className="burger-line middle"></div>
               <div className="burger-line bottom"></div>

@@ -10,7 +10,7 @@ const ROLES = [
   { title: "Account Executive", team: "Sales", location: "Remote (US)", type: "Full-time",
     body: "Own the broker relationship from first demo to first funded deal. You know non-QM, you've sold to mortgage professionals, and you can explain a DSCR rate sheet in your sleep." },
   { title: "Senior Full-Stack Engineer", team: "Engineering", location: "Remote (US)", type: "Full-time",
-    body: "Build the Deal Engine: the rules engine that prices one deal against eleven lenders in half a second. React, TypeScript, and a server-side math core. You care about correctness and speed equally." },
+    body: "Build the Deal Engine: the rules engine that prices one deal against 7 custom loan programs in half a second. React, TypeScript, and a server-side math core. You care about correctness and speed equally." },
   { title: "DSCR Underwriting Lead", team: "Lending", location: "Remote (US)", type: "Full-time",
     body: "Translate lender rate sheets and overlays into the rule sets that power the engine. You've underwritten non-QM, you read prepay statutes for fun, and you spot a bad deal structure instantly." },
   { title: "Broker Success Manager", team: "Customer", location: "Remote (US)", type: "Full-time",

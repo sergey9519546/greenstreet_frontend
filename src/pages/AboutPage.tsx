@@ -4,10 +4,10 @@ import { Eyebrow, Body, Grid } from "../components/wf";
 import { swatch } from "../theme";
 
 const VALUES = [
-  { icon: "⚡", title: "Speed is the product", body: "In non-QM, the broker who quotes in minutes wins the deal. Everything we build optimizes time-to-quote first." },
-  { icon: "🔍", title: "Show the math", body: "Every rate and DSCR we display can be traced to its inputs. No black boxes, no mystery overlays." },
-  { icon: "🤝", title: "Brokers stay in control", body: "We're a wholesale partner, not a competitor. Your borrower is always yours. We process behind the scenes." },
-  { icon: "🗺️", title: "Compliance built in", body: "50-state prepay and usury rules live inside every quote, so a legal structure in Texas never becomes a trap in New Jersey." },
+  { icon: "⚡", title: "Speed is the product", body: "The broker who quotes in 90 seconds beats the one who quotes in 90 minutes — every single time. We build for that reality." },
+  { icon: "🔍", title: "No black boxes", body: "Every rate, every DSCR, every approval flag traces back to a specific input you can see and change. Math you can argue with is math you can trust." },
+  { icon: "🤝", title: "Your borrower stays yours", body: "We are a wholesale partner. We underwrite, fund, and disappear. Your relationship, your yield spread, your repeat business." },
+  { icon: "🗺️", title: "Compliance is a feature, not a footnote", body: "50-state prepay and usury rules are baked into every quote. A deal structured legally in Texas won't blow up in New Jersey." },
 ];
 
 const STATS = [
@@ -21,16 +21,16 @@ export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; 
   return (
     <PageShell
       title="About Greenstreet"
-      subtitle="Building the fastest path from a rental property to a fundable DSCR loan."
+      subtitle="We got tired of watching good deals die in spreadsheets. So we built the engine that kills that problem."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ maxWidth: "760px", marginBottom: "clamp(40px,5vw,64px)" }}>
-        <Eyebrow>Our mission</Eyebrow>
+        <Eyebrow>Why we exist</Eyebrow>
         <Body size="large" muted style={{ marginBottom: "20px" }}>
-          DSCR is the fastest-growing corner of the mortgage market, and it's still run on spreadsheets and PDF rate sheets. We founded Greenstreet Finance after watching brokers re-key the same deal into four lender portals before lunch — losing borrowers to whoever quoted first.
+          DSCR is the fastest-growing corner of non-QM lending — and it was still being run on email chains, PDF rate sheets, and the same four lender portals re-keyed before lunch. We watched brokers lose deals to whoever quoted first. We watched investors overpay for properties that looked clean on Track 1 and quietly bled out on Track 2. Something was broken.
         </Body>
         <Body size="large" muted>
-          So we built Greenstreet to run every deal on two tracks at once. Track 1 — Lender Qualification — answers "will a lender say yes?" on PITIA and market rent. Track 2 — Investor Survival — answers "will the property actually cash flow?" after vacancy, management, and CapEx. We never blend them, because a deal can qualify and still be fragile. One application in, the right Greenstreet program out, with the 50-state rules already checked — and we fund it.
+          Greenstreet runs every deal on two tracks simultaneously. Track 1 answers the lender's question: will this PITIA qualify? Track 2 answers the investor's question: will this property actually cash flow after vacancy, management, and CapEx? We never blend them — a deal can qualify and still be a bad investment. One application in, the right Greenstreet program out, with 50-state compliance already checked. Then we fund it, in-house, in 14–21 days.
         </Body>
       </div>
 
@@ -45,7 +45,7 @@ export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; 
         ))}
       </Grid>
 
-      <Eyebrow>What we believe</Eyebrow>
+      <Eyebrow>What we stand for</Eyebrow>
       <Grid min="280px" gap="20px" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
         {VALUES.map((v) => (
           <AnimatedCard key={v.title} hoverScale={true}>
@@ -56,13 +56,12 @@ export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; 
         ))}
       </Grid>
 
-      {/* Dark CTA band — replaces the old invisible rainforest-on-tint card */}
       <AnimatedCard themeName="dark" hoverScale={false} style={{ maxWidth: "640px" }}>
-        <Eyebrow style={{ color: swatch.lemon }}>Work with us</Eyebrow>
-        <div style={{ color: swatch.pistachio, fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>We're hiring across engineering, lending, and broker success.</div>
-        <Body muted style={{ marginBottom: "20px", color: "#9fb0a8" }}>See the open roles and how we work.</Body>
+        <Eyebrow style={{ color: swatch.lemon }}>Join us</Eyebrow>
+        <div style={{ color: swatch.pistachio, fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>We're hiring people who care when the math is wrong.</div>
+        <Body muted style={{ marginBottom: "20px", color: "#9fb0a8" }}>Engineering, lending, compliance, and broker success — see the open roles.</Body>
         <AnimatedButton themeName="dark" variant="primary" onClick={() => onNavigate("careers")}>
-          View careers
+          View open roles
         </AnimatedButton>
       </AnimatedCard>
     </PageShell>

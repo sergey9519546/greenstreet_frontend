@@ -9,7 +9,7 @@ const CREAM = swatch.midnight;
 const TOOLS = [
   { href: "/deal-analyzer", icon: "📊", title: "Deal Analyzer", desc: "Full DSCR analysis — Track 1 and Track 2, break-even rate, cash-on-cash. The core engine.", tag: "Most used" },
   { href: "/dscr-calculator", icon: "🧮", title: "DSCR Calculator", desc: "Quick DSCR and max-purchase-price calc with payment factor, PITIA breakdown, and rate tiers." },
-  { href: "/lender-intel", icon: "🏦", title: "Lender Intelligence", desc: "Filter 11 verified DSCR lenders by FICO, DSCR, LTV, and property type. June 2026 data." },
+  { href: "/lender-intel", icon: "🏦", title: "Lender Intelligence", desc: "Filter 7 custom Greenstreet DSCR programs by FICO, DSCR, LTV, and property type. Current Q2 2026 rates." },
   { href: "/state-laws", icon: "🗺️", title: "State Prepay & Usury Rules", desc: "50-state PPP matrix. OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437." },
   { href: "/borrower-profiles", icon: "👤", title: "Borrower Profiles", desc: "Find your borrower type and see the lenders, structures, and rates that fit them." },
   { href: "/rate-quiz", icon: "⚡", title: "Rate Quiz", desc: "Four questions to a realistic rate tier and the lender names behind it. No signup." },

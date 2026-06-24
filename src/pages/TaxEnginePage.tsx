@@ -33,6 +33,7 @@ export default function TaxEnginePage({ onBack, onNavigate }: { onBack: () => vo
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("MFJ");
   const [isRep, setIsRep] = useState(false);
   const [stateRate, setStateRate] = useState(5);
+  const [exitPppPct, setExitPppPct] = useState(1.0);
 
   const result = useMemo(() => {
     try {
@@ -66,7 +67,7 @@ export default function TaxEnginePage({ onBack, onNavigate }: { onBack: () => vo
         ads,
         pitiaMonthly,
         taxProfile,
-        (1 / 100) * loanAmount,
+        (exitPppPct / 100) * loanAmount,
         rate,
         360,
       );
@@ -74,7 +75,7 @@ export default function TaxEnginePage({ onBack, onNavigate }: { onBack: () => vo
     } catch (e) {
       return null;
     }
-  }, [purchasePrice, landPct, monthlyRent, annualTaxes, annualInsurance, hoa, rate, ltv, holdYears, rentGrowth, magi, filingStatus, isRep, stateRate]);
+  }, [purchasePrice, landPct, monthlyRent, annualTaxes, annualInsurance, hoa, rate, ltv, holdYears, rentGrowth, magi, filingStatus, isRep, stateRate, exitPppPct]);
 
   return (
     <PageShell
@@ -96,6 +97,7 @@ export default function TaxEnginePage({ onBack, onNavigate }: { onBack: () => vo
             { label: "LTV", value: ltv, set: setLtv, step: 1, suffix: "%" },
             { label: "Hold Years", value: holdYears, set: setHoldYears, step: 1 },
             { label: "Rent Growth", value: rentGrowth, set: setRentGrowth, step: 0.5, suffix: "%" },
+            { label: "Exit Prepay Penalty", value: exitPppPct, set: setExitPppPct, step: 0.5, suffix: "%" },
           ].map((f) => (
             <PremiumInput
               key={f.label}

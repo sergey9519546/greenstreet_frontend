@@ -1,6 +1,6 @@
-av1|Professional headshot of a Black woman in her 40s, navy blazer, warm genuine smile, soft neutral cream background, natural light, corporate portrait, photorealistic
-av2|Professional headshot of a white man in his 50s, glasses, light blue shirt, friendly confident expression, soft neutral background, natural light, corporate portrait, photorealistic
-av3|Professional headshot of a Latina woman in her 30s, blazer, warm smile, soft sage-green background, natural light, corporate portrait, photorealistic
-av4|Professional headshot of a South Asian man in his 40s, smart casual, approachable smile, soft neutral background, natural light, corporate portrait, photorealistic
-av5|Professional headshot of an East Asian woman in her late 30s, professional attire, confident warm expression, soft cream background, natural light, corporate portrait, photorealistic
-av6|Professional headshot of a white woman in her 50s, blazer, warm trustworthy smile, soft neutral background, natural light, corporate portrait, photorealistic
+av1|Young Black woman late 20s, short natural afro, gold hoop earrings, forest-green blazer over cream blouse, warm confident smile, soft terracotta background, natural light, corporate portrait, photorealistic
+av2|East Asian man early 40s, neatly trimmed beard, rectangular glasses, charcoal turtleneck, calm thoughtful expression, soft slate-blue background, natural light, corporate portrait, photorealistic
+av3|Middle Eastern woman late 20s, long straight dark brown hair pulled to one side, rust-colored blazer, bright friendly smile, soft warm peach background, natural light, corporate portrait, photorealistic
+av4|Older Latino man 60s, silver hair, trimmed mustache, denim button-down shirt, slight knowing smile, soft clay-brown background, natural light, corporate portrait, photorealistic
+av5|Young white woman mid-20s, wavy red hair, freckles, soft lavender sweater, bright genuine smile, soft dusty pink background, natural light, corporate portrait, photorealistic
+av6|Black man late 50s, shaved head, full silver beard, navy suit with open collar, warm dignified smile, soft warm beige background, natural light, corporate portrait, photorealistic

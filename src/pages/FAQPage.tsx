@@ -24,7 +24,7 @@ const FAQS = [
   {
     q: "What credit score do I need?",
     a: "Greenstreet wants 660+ for the Core program; Flex goes to 640 with compensating factors. Higher FICO = lower rate — going from 660 to 740+ can save 0.75–1.50% and move you toward our Premier tier. ITIN borrowers and foreign nationals (no SSN) qualify on the Global program.",
-    src: "Greenstreet lender matrix · Apr 2026 sweep · 11 lenders verified",
+    src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
   },
   {
     q: "Do I need a signed lease to qualify?",
