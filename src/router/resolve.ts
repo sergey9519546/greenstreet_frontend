@@ -27,7 +27,8 @@ export type PageView =
   | "careers"
   | "legal"
   | "products"
-  | "solutions";
+  | "solutions"
+  | "book-demo";
 
 const ROUTE_MAP: Record<string, PageView> = {
   // Root

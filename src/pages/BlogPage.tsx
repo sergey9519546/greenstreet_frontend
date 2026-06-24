@@ -62,7 +62,7 @@ const POSTS = [
     ],
   },
   {
-    slug: "brrrr-seasoning-easy-street",
+    slug: "brrrr-seasoning-6-months",
     date: "June 9, 2026", tag: "Process",
     title: "BRRRR seasoning: how to cash out at 6 months",
     summary: "Greenstreet's STR program seasons cash-out at six months. Here's what it takes instead of the usual year-long wait.",

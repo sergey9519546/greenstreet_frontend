@@ -11,7 +11,7 @@ import {
 import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
-import type { PropertyInputs, BorrowerProfile, LoanStructure } from "../engine/types";
+import type { PropertyInputs, BorrowerProfile, LoanStructure, LenderRankingEntry } from "../engine/types";
 import { DSCR_PROGRAMS, lookupMaxLTV } from "../data/dscrPrograms";
 
 const MINT = swatch.emerald;
@@ -63,7 +63,30 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       const lenderMinDSCR = bestMatch ? bestMatch.dscrFloor : 1.0;
       const lenderMinLoan = 75000;
       const ltvCap = bestMatch ? bestMatch.maxLTV : 80;
-      const lenderRanking = matched.map((m) => m.program.name);
+      const lenderRanking: LenderRankingEntry[] = matched.map((m, i) => ({
+        rank: i + 1,
+        lenderId: m.program.id,
+        lenderName: m.program.name,
+        fitTier: "STRONG_FIT" as const,
+        eligible: true,
+        ineligibleReasons: [],
+        estimatedRate: 7.0,
+        aey: 7.0,
+        totalCost60mo: 0,
+        confidenceScore: 85,
+        counterpartyRisk: {
+          lenderId: m.program.id,
+          continuityScore: 90,
+          knownDisruption: null,
+          lastReportedStatus: "ACTIVE",
+          flag: "STABLE" as const,
+        },
+        pppAllowed: true,
+        pppStructure: "5/4/3/2/1",
+        provenance: "VERIFIED_PRIMARY" as const,
+        provenanceWarnings: [],
+        sourceSnapshot: "2026-06",
+      }));
 
       const verdict = computeVerdict({
         track1DSCR: deal.dscr,

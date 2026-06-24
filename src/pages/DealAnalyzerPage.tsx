@@ -70,7 +70,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
   return (
     <PageShell
       title="DSCR Deal Analyzer"
-      subtitle="The most important tool on the site. Plug in 7 numbers, get the verdict and the lender shortlist. No signup."
+      subtitle="The most important tool on the site. Plug in 7 numbers, get the verdict and your Greenstreet program match. No signup."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
