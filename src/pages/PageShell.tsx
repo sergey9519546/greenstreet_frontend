@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "../components/Logo";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Design tokens — single source of truth in src/theme.ts (Webflow-faithful)
 import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED } from "../theme";
@@ -84,44 +87,32 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
     window.scrollTo(0, 0);
   }, [title, subtitle]);
 
-  useEffect(() => {
-    const g = (window as any).gsap;
-    const ST = (window as any).ScrollTrigger;
-    if (!g || !ST) return;
-
-    const kills: any[] = [];
-
+  useGSAP(() => {
     // Header: stagger-in on mount (label → h1 → subtitle)
     if (headerRef.current) {
       const headerEls = headerRef.current.children;
-      kills.push(
-        g.from(headerEls, {
-          y: 52, opacity: 0, duration: 0.85,
-          stagger: 0.13, ease: "power3.out", clearProps: "all",
-        })
-      );
+      gsap.from(headerEls, {
+        y: 52, opacity: 0, duration: 0.85,
+        stagger: 0.13, ease: "power3.out", clearProps: "all",
+      });
     }
 
     // Main content: batch-reveal children as they scroll in
     if (mainRef.current) {
       const targets = mainRef.current.querySelectorAll(":scope > *");
       targets.forEach((el, i) => {
-        kills.push(
-          g.from(el, {
-            y: 40, opacity: 0, duration: 0.7,
-            ease: "power3.out", clearProps: "all",
-            delay: i < 3 ? i * 0.07 : 0,
-            scrollTrigger: {
-              trigger: el,
-              start: "top 88%",
-              once: true,
-            },
-          })
-        );
+        gsap.from(el, {
+          y: 40, opacity: 0, duration: 0.7,
+          ease: "power3.out", clearProps: "all",
+          delay: i < 3 ? i * 0.07 : 0,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            once: true,
+          },
+        });
       });
     }
-
-    return () => { kills.forEach((t) => { try { t?.scrollTrigger?.kill(); t?.kill?.(); } catch (_) {} }); };
   }, [title]);  // re-run when page changes
 
   return (

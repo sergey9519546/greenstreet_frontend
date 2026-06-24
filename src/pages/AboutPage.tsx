@@ -1,69 +1,769 @@
-import React from "react";
-import { PageShell, AnimatedCard, AnimatedButton, AnimatedNumber } from "./PageShell";
-import { Eyebrow, Body, Grid } from "../components/wf";
-import { swatch } from "../theme";
+import React, { useEffect } from "react";
+import { DcShell, dc } from "../design/dc";
+
+// ── Static data ───────────────────────────────────────────────────────────────
+
+const TEAM = [
+  { id: "team-dave",   name: "Dave Feldman",  role: "Cofounder & CEO" },
+  { id: "team-priya",  name: "Priya Rao",     role: "Cofounder & Head of Quant" },
+  { id: "team-alex",   name: "Alex Chen",     role: "VP Engineering" },
+  { id: "team-sarah",  name: "Sarah Jenkins", role: "Head of Capital Markets" },
+  { id: "team-marcus", name: "Marcus Webb",   role: "Principal Engineer" },
+  { id: "team-elena",  name: "Elena Rodriguez", role: "Director of Compliance" },
+  { id: "team-james",  name: "James Wilson",  role: "Product Manager" },
+  { id: "team-nina",   name: "Nina Patel",    role: "Lead Designer" },
+];
+
+const JOBS = [
+  { title: "Senior Quant Engineer" },
+  { title: "Full-Stack Engineer, Tools" },
+  { title: "Compliance Counsel — State Rules" },
+  { title: "Account Executive, Brokers" },
+];
 
 const VALUES = [
-  { icon: "⚡", title: "Speed is the product", body: "The broker who quotes in 90 seconds beats the one who quotes in 90 minutes — every single time. We build for that reality." },
-  { icon: "🔍", title: "No black boxes", body: "Every rate, every DSCR, every approval flag traces back to a specific input you can see and change. Math you can argue with is math you can trust." },
-  { icon: "🤝", title: "Your borrower stays yours", body: "We are a wholesale partner. We underwrite, fund, and disappear. Your relationship, your yield spread, your repeat business." },
-  { icon: "🗺️", title: "Compliance is a feature, not a footnote", body: "50-state prepay and usury rules are baked into every quote. A deal structured legally in Texas won't blow up in New Jersey." },
+  { heading: "Speed is the product",         body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds, not a spreadsheet round-trip." },
+  { heading: "No black boxes",               body: "Every figure Greenstreet produces is computed by versioned code with a citation behind every rule. When a regulator asks where a number came from, we hand them the source." },
+  { heading: "Your borrower stays yours",    body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship. Your pipeline is yours." },
+  { heading: "Compliance is a feature, not a footnote", body: "State PPP rules, DSCR floors, seasoning requirements — baked into every output, not an afterthought appended to the printout." },
 ];
 
-const STATS = [
-  { val: 4, format: (v: number) => `$${Math.round(v)}M`, label: "Max loan amount" },
-  { val: 50, format: (v: number) => Math.round(v).toString(), label: "States with prepay + usury rules mapped" },
-  { val: 2, format: (v: number) => Math.round(v).toString(), label: "DSCR tracks on every deal" },
-  { val: 2026, format: (v: number) => Math.round(v).toString(), label: "Founded" },
-];
+// Scoped CSS — job-row hover only. No backdrop-filter, no glow, no animation.
+const ABOUT_CSS = `
+.ab-job { transition: transform .14s, background .15s; }
+.ab-job:hover { transform: translateX(6px); background: #003738 !important; }
+.ab-job:hover .ab-jt { color: #eeefd3 !important; }
+.ab-job:hover .ab-ja { color: #d8d958 !important; }
+.cta-card { transition: transform .15s; }
+.cta-card:hover { transform: translateY(-4px); }
+`;
 
-export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default function AboutPage({
+  onBack,
+  onNavigate,
+}: {
+  onBack?: () => void;
+  onNavigate: (v: any) => void;
+}) {
+  useEffect(() => {
+    document.title = "About | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <PageShell
-      title="About Greenstreet"
-      subtitle="We got tired of watching good deals die in spreadsheets. So we built the engine that kills that problem."
-      onBack={onBack} onNavigate={onNavigate}
+    <DcShell
+      onNavigate={onNavigate}
+      navLinks={[
+        { label: "Product",  view: "products" },
+        { label: "Careers",  view: "careers" },
+      ]}
+      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
     >
-      <div style={{ maxWidth: "760px", marginBottom: "clamp(40px,5vw,64px)" }}>
-        <Eyebrow>Why we exist</Eyebrow>
-        <Body size="large" muted style={{ marginBottom: "20px" }}>
-          DSCR is the fastest-growing corner of non-QM lending — and it was still being run on email chains, PDF rate sheets, and the same four lender portals re-keyed before lunch. We watched brokers lose deals to whoever quoted first. We watched investors overpay for properties that looked clean on Track 1 and quietly bled out on Track 2. Something was broken.
-        </Body>
-        <Body size="large" muted>
-          Greenstreet runs every deal on two tracks simultaneously. Track 1 answers the lender's question: will this PITIA qualify? Track 2 answers the investor's question: will this property actually cash flow after vacancy, management, and CapEx? We never blend them — a deal can qualify and still be a bad investment. One application in, the right Greenstreet program out, with 50-state compliance already checked. Then we fund it, in-house, in 14–21 days.
-        </Body>
-      </div>
+      <style>{ABOUT_CSS}</style>
 
-      <Grid min="200px" gap="16px" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
-        {STATS.map((s) => (
-          <AnimatedCard key={s.label} hoverScale={true} style={{ textAlign: "center" }}>
-            <div style={{ color: swatch.rainforest, fontWeight: 800, fontSize: "clamp(30px,3.4vw,40px)", letterSpacing: "-0.02em" }}>
-              <AnimatedNumber value={s.val} format={s.format} />
+      {/* ── HERO ── solid lemon, no glass/blur/glow ─────────────────────────── */}
+      <section
+        style={{
+          background: dc.lemon,
+          color: dc.dark,
+          padding: `clamp(64px,9vh,128px) ${dc.pad}`,
+          overflow: "hidden",
+        }}
+      >
+        <div id="gs-hero-content" style={{ maxWidth: 1080, margin: "0 auto" }}>
+          {/* Eyebrow */}
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase" as const,
+              color: "rgba(0,55,56,0.55)",
+              marginBottom: 24,
+            }}
+          >
+            About Greenstreet
+          </div>
+
+          {/* H1 — house standard clamp */}
+          <h1
+            style={{
+              fontSize: "clamp(48px,7.5vw,116px)",
+              fontWeight: 600,
+              lineHeight: 0.93,
+              letterSpacing: "-0.04em",
+              margin: "0 0 28px",
+              maxWidth: "18ch",
+            }}
+          >
+            We got tired of watching good deals die in spreadsheets.
+          </h1>
+
+          {/* Subtitle */}
+          <p
+            style={{
+              fontSize: "clamp(18px,1.6vw,24px)",
+              fontWeight: 500,
+              lineHeight: 1.45,
+              letterSpacing: "-0.02em",
+              color: "rgba(0,55,56,0.72)",
+              maxWidth: "54ch",
+              margin: "0 0 36px",
+            }}
+          >
+            So we built the engine that kills that problem.
+          </p>
+
+          {/* Two-track differentiator — most important claim */}
+          <div
+            style={{
+              display: "inline-block",
+              background: dc.dark,
+              color: dc.lemon,
+              borderRadius: 8,
+              padding: "14px 24px",
+              fontSize: "clamp(15px,1.4vw,19px)",
+              fontWeight: 600,
+              letterSpacing: "-0.02em",
+              marginBottom: 40,
+            }}
+          >
+            2 DSCR tracks on every deal — standard and sub-1.0 — so no quote dies on a ratio floor.
+          </div>
+
+          {/* Hero meta */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 40 }}>
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase" as const,
+                  color: "rgba(0,55,56,0.5)",
+                  marginBottom: 4,
+                }}
+              >
+                Founded by
+              </div>
+              <div
+                style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}
+              >
+                Dave Feldman and Priya Rao
+              </div>
             </div>
-            <div style={{ color: swatch.rainforest, fontSize: "13px", marginTop: "4px" }}>{s.label}</div>
-          </AnimatedCard>
-        ))}
-      </Grid>
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase" as const,
+                  color: "rgba(0,55,56,0.5)",
+                  marginBottom: 4,
+                }}
+              >
+                Headquartered in
+              </div>
+              <div
+                style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}
+              >
+                Austin, Texas
+              </div>
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase" as const,
+                  color: "rgba(0,55,56,0.5)",
+                  marginBottom: 4,
+                }}
+              >
+                Founded
+              </div>
+              <div
+                style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}
+              >
+                2026
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <Eyebrow>What we stand for</Eyebrow>
-      <Grid min="280px" gap="20px" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
-        {VALUES.map((v) => (
-          <AnimatedCard key={v.title} hoverScale={true}>
-            <div style={{ fontSize: "28px", marginBottom: "12px" }}>{v.icon}</div>
-            <div style={{ color: swatch.midnight, fontWeight: 700, fontSize: "18px", marginBottom: "8px" }}>{v.title}</div>
-            <Body size="small" muted>{v.body}</Body>
-          </AnimatedCard>
-        ))}
-      </Grid>
+      {/* ── VISION — two stacked dc-band-2 rows ─────────────────────────────── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(64px,8vw,112px) ${dc.pad}`,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "clamp(48px,6vw,80px)",
+          }}
+        >
+          {/* Row 1: Our Vision */}
+          <div
+            className="gs-reveal dc-band-2"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "0.8fr 1.2fr",
+              gap: "clamp(28px,4vw,72px)",
+              alignItems: "start",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase" as const,
+                  color: dc.rain,
+                  marginBottom: 14,
+                }}
+              >
+                Our Vision
+              </div>
+              <h2
+                style={{
+                  fontSize: "clamp(28px,3.4vw,46px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1.04,
+                  margin: 0,
+                }}
+              >
+                Materially better real-estate lending.
+              </h2>
+            </div>
+            <p
+              style={{
+                fontSize: "clamp(17px,1.4vw,21px)",
+                fontWeight: 500,
+                lineHeight: 1.6,
+                color: "rgba(0,55,56,0.72)",
+                margin: 0,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              In 2026 we founded Greenstreet after watching, first-hand, how hard
+              it had become for brokers to price DSCR deals that actually held at
+              the lender. We went back to the drawing board on rental-loan software
+              — and built the engine we wished existed: deterministic,
+              provenance-tracked, defensible.
+            </p>
+          </div>
 
-      <AnimatedCard themeName="dark" hoverScale={false} style={{ maxWidth: "640px" }}>
-        <Eyebrow style={{ color: swatch.lemon }}>Join us</Eyebrow>
-        <div style={{ color: swatch.pistachio, fontSize: "20px", fontWeight: 700, marginBottom: "10px" }}>We're hiring people who care when the math is wrong.</div>
-        <Body muted style={{ marginBottom: "20px", color: "#9fb0a8" }}>Engineering, lending, compliance, and broker success — see the open roles.</Body>
-        <AnimatedButton themeName="dark" variant="primary" onClick={() => onNavigate("careers")}>
-          View open roles
-        </AnimatedButton>
-      </AnimatedCard>
-    </PageShell>
+          {/* Row 2: Our Commitment */}
+          <div
+            className="gs-reveal dc-band-2"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "0.8fr 1.2fr",
+              gap: "clamp(28px,4vw,72px)",
+              alignItems: "start",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase" as const,
+                  color: dc.rain,
+                  marginBottom: 14,
+                }}
+              >
+                Our Commitment
+              </div>
+              <h2
+                style={{
+                  fontSize: "clamp(28px,3.4vw,46px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.03em",
+                  lineHeight: 1.04,
+                  margin: 0,
+                }}
+              >
+                To the{" "}
+                <span style={{ color: dc.rain }}>people</span>{" "}
+                who close the deal.
+              </h2>
+            </div>
+            <p
+              style={{
+                fontSize: "clamp(17px,1.4vw,21px)",
+                fontWeight: 500,
+                lineHeight: 1.6,
+                color: "rgba(0,55,56,0.72)",
+                margin: 0,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Brokers, investors and the borrowers they serve deserve the same math
+              an institution runs. Every figure Greenstreet produces is computed by
+              versioned code with a citation behind every rule — never an LLM
+              guess. When a regulator asks where a number came from, we hand them
+              the source. Programs go up to $4M per deal on most structures; higher
+              on portfolio blanket lines.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── VALUES — 4-item dc-band-2 grid ──────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.mintBg,
+          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="gs-reveal" style={{ marginBottom: "clamp(36px,5vw,56px)" }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.rain,
+                marginBottom: 12,
+              }}
+            >
+              What we believe
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.5vw,48px)",
+                fontWeight: 600,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.0,
+                margin: 0,
+                maxWidth: "22ch",
+              }}
+            >
+              Four principles that drive every product decision.
+            </h2>
+          </div>
+
+          <div
+            className="gs-reveal dc-band-2"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 20,
+            }}
+          >
+            {VALUES.map((v, i) => (
+              <div
+                key={i}
+                style={{
+                  background: dc.cream,
+                  borderRadius: 9,
+                  border: "1px solid rgba(0,55,56,0.10)",
+                  padding: "clamp(24px,3vw,36px)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "clamp(17px,1.6vw,21px)",
+                    fontWeight: 600,
+                    letterSpacing: "-0.025em",
+                    color: dc.dark,
+                    marginBottom: 10,
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {v.heading}
+                </div>
+                <p
+                  style={{
+                    fontSize: "clamp(14px,1.1vw,16px)",
+                    fontWeight: 500,
+                    lineHeight: 1.6,
+                    color: "rgba(0,55,56,0.65)",
+                    margin: 0,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {v.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TEAM — dc-band-3 card grid ───────────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.dark,
+          color: dc.cream,
+          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="gs-reveal"
+            style={{
+              textAlign: "center",
+              marginBottom: "clamp(40px,5vw,64px)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                marginBottom: 16,
+              }}
+            >
+              Our team
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(34px,5vw,76px)",
+                fontWeight: 600,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.0,
+                margin: "0 auto",
+                maxWidth: "18ch",
+              }}
+            >
+              World-class people. An even better team.
+            </h2>
+          </div>
+
+          <div
+            className="gs-reveal dc-band-3"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 22,
+            }}
+          >
+            {TEAM.map((m) => (
+              <div key={m.id}>
+                {/* Photo placeholder — solid fill, no blur/glow */}
+                <div
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    aspectRatio: "1",
+                    marginBottom: 14,
+                    borderRadius: 9,
+                    background: dc.rain,
+                    border: "1px solid rgba(238,239,211,0.10)",
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 600,
+                    letterSpacing: "-0.02em",
+                    color: dc.cream,
+                  }}
+                >
+                  {m.name}
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: "rgba(238,239,211,0.55)",
+                    marginTop: 2,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {m.role}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── JOBS — dc-band-2 (list + blurb) ─────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(64px,8vw,112px) ${dc.pad}`,
+        }}
+      >
+        <div
+          className="gs-reveal dc-band-2"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "start",
+          }}
+        >
+          {/* Left: job list */}
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.rain,
+                marginBottom: 14,
+              }}
+            >
+              Job opportunities
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(32px,4vw,56px)",
+                fontWeight: 600,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.0,
+                margin: "0 0 28px",
+              }}
+            >
+              We're hiring!
+            </h2>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                marginBottom: 28,
+              }}
+            >
+              {JOBS.map((j, i) => (
+                <button
+                  key={i}
+                  onClick={() => onNavigate("careers")}
+                  className="ab-job"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: 16,
+                    alignItems: "center",
+                    background: dc.mintBg,
+                    borderRadius: 9,
+                    padding: "18px 22px",
+                    border: "none",
+                    cursor: "pointer",
+                    textAlign: "left" as const,
+                    fontFamily: dc.sans,
+                    width: "100%",
+                  }}
+                >
+                  <span
+                    className="ab-jt"
+                    style={{
+                      fontSize: "clamp(16px,1.7vw,19px)",
+                      fontWeight: 600,
+                      letterSpacing: "-0.02em",
+                      color: dc.dark,
+                    }}
+                  >
+                    {j.title}
+                  </span>
+                  <span
+                    className="ab-ja"
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: dc.rain,
+                      letterSpacing: "-0.01em",
+                      whiteSpace: "nowrap" as const,
+                    }}
+                  >
+                    Apply →
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => onNavigate("careers")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.dark,
+                color: dc.mintBg,
+                fontWeight: 600,
+                fontSize: 15,
+                border: "none",
+                cursor: "pointer",
+                padding: "13px 26px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              All jobs →
+            </button>
+          </div>
+
+          {/* Right: copy */}
+          <div>
+            <p
+              style={{
+                fontSize: "clamp(19px,1.7vw,26px)",
+                fontWeight: 600,
+                lineHeight: 1.25,
+                letterSpacing: "-0.03em",
+                color: dc.dark,
+                margin: "0 0 24px",
+              }}
+            >
+              We're building a generational company in DSCR lending — and always
+              looking for talent to propel the mission.
+            </p>
+            {/* Visual placeholder — solid fill, flat border */}
+            <div
+              style={{
+                display: "block",
+                width: "100%",
+                aspectRatio: "1.67",
+                borderRadius: 12,
+                background: dc.lemon,
+                border: "1px solid rgba(0,55,56,0.10)",
+              }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA — two cards ──────────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(48px,6vw,80px) ${dc.pad} clamp(64px,8vw,104px)`,
+        }}
+      >
+        <div
+          className="gs-reveal dc-band-2"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 20,
+          }}
+        >
+          {/* Card 1: Calculator */}
+          <button
+            onClick={() => onNavigate("dscr-calculator")}
+            className="cta-card"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              gap: 40,
+              background: dc.dark,
+              color: dc.cream,
+              borderRadius: 12,
+              padding: "clamp(32px,4vw,52px)",
+              border: "none",
+              cursor: "pointer",
+              textAlign: "left" as const,
+              minHeight: 240,
+              fontFamily: dc.sans,
+            }}
+          >
+            <div
+              style={{
+                fontSize: "clamp(24px,2.6vw,34px)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.08,
+                color: dc.cream,
+              }}
+            >
+              Price any DSCR deal — standard track or sub-1.0 — in under two
+              minutes.
+            </div>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 600,
+                fontSize: 15,
+                padding: "13px 24px",
+                borderRadius: 6,
+                alignSelf: "flex-start",
+              }}
+            >
+              Open the calculator →
+            </span>
+          </button>
+
+          {/* Card 2: Rate quiz */}
+          <button
+            onClick={() => onNavigate("rate-quiz")}
+            className="cta-card"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              gap: 40,
+              background: dc.rain,
+              color: dc.cream,
+              borderRadius: 12,
+              padding: "clamp(32px,4vw,52px)",
+              border: "none",
+              cursor: "pointer",
+              textAlign: "left" as const,
+              minHeight: 240,
+              fontFamily: dc.sans,
+            }}
+          >
+            <div
+              style={{
+                fontSize: "clamp(24px,2.6vw,34px)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.08,
+                color: dc.cream,
+              }}
+            >
+              Answer 5 questions. Get your matched rate band and program.
+            </div>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                color: dc.lemon,
+                fontWeight: 600,
+                fontSize: 16,
+                fontFamily: dc.mono,
+                letterSpacing: "-0.02em",
+                alignSelf: "flex-start",
+              }}
+            >
+              Take the rate quiz →
+            </span>
+          </button>
+        </div>
+      </section>
+    </DcShell>
   );
 }

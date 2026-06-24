@@ -100,7 +100,7 @@ export function computeStressMatrix(
     property.floodInsurance / 12;
 
   // Track 2 haircut assumptions (per strategy)
-  const vacancyPct = strategy === 'STR' ? 25 : strategy === 'MTR' ? 12 : 8;
+  const vacancyPct = 8;
   const managementPct = 8;
   const maintenancePct = 5;
 

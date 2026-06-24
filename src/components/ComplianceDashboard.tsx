@@ -84,7 +84,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "dashboard");
 
-  const [brokerConfig, setBrokerConfig] = useState({ brokerName: "Capital Mortgage Group", nmls: "123456", licenseType: "Mortgage Broker", primaryMarket: "Florida, California, Texas", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend. NMLS#123456." });
+  const [brokerConfig, setBrokerConfig] = useState({ brokerName: "", nmls: "", licenseType: "Mortgage Broker", primaryMarket: "", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend." });
   const [brokerSaved, setBrokerSaved] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);

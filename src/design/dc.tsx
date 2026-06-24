@@ -1,0 +1,238 @@
+// Canonical shared shell for the Claude Design handoff reskin.
+// Real GSAP motion (matches the .dc.html mockups + the DSCR Calculator flagship):
+// sticky dark nav, scroll-reveal (.gs-reveal), hero stagger (#gs-hero-content),
+// count-up ([data-count]), JetBrains-Mono numerics, footer.
+// Tokens come from theme.ts — single source of truth, no per-page drift.
+//
+// Elevation pass (beyond a literal port):
+//  • prefers-reduced-motion fully honored (no orphaned opacity:0, instant numbers)
+//  • HeroProof — live product surface that replaces the design-tool "drop a
+//    screenshot" placeholder with the tool's real signature metric
+//  • responsive nav (collapses under 640px, hairline border, visible focus rings)
+//  • tabular-nums on all mono figures so animated numbers never reflow-jitter
+import React, { useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius } from "../theme";
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Re-export tokens under the dc.* alias used across ported pages.
+export const dc = {
+  dark: MIDNIGHT,          // #003738
+  cream: PISTACHIO,        // #eeefd3
+  mintBg: MINT_BG,         // #e8e9bf
+  lemon: LEMON,            // #d8d958
+  rain: RAINFOREST,        // #006565
+  teal: swatch.darkTeal,   // #004041
+  emerald: swatch.emerald, // #4dbd97
+  faded: FADED,            // #00373880
+  white: "#fff",
+  mono: font.mono,
+  sans: font.family,
+  maxW: 1280,
+  pad: "clamp(1.5rem, 4vw, 3rem)",
+  r: radius,
+} as const;
+
+// Shared CSS injected once per page.
+export const DC_CSS = `
+.gs-num::-webkit-outer-spin-button,.gs-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+.gs-num{width:100%;border:none;background:none;outline:none;font-family:${font.family};color:${MIDNIGHT};letter-spacing:-0.02em;}
+.gs-range{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;background:${FADED}33;outline:none;cursor:pointer;}
+.gs-range::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${LEMON};cursor:pointer;transition:transform .15s;}
+.gs-range::-webkit-slider-thumb:hover{transform:scale(1.18);}
+.gs-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${LEMON};cursor:pointer;}
+.gs-dot-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.055) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;}
+.gs-mono{font-family:${font.mono};font-variant-numeric:tabular-nums;letter-spacing:-0.03em;}
+.ix-card{transition:transform .14s, background .15s;} .ix-card:hover{transform:translateY(-3px);}
+.dc-nav a:focus-visible,.dc-nav button:focus-visible,a.dc-cta:focus-visible{outline:2px solid ${LEMON};outline-offset:3px;border-radius:6px;}
+/* Floating/pulsing motion neutralized per design taste (no "flow"/glassmorphism). */
+@keyframes gsFloat{from,to{transform:none;}}
+@keyframes gsPulse{from,to{opacity:1;}}
+@keyframes gsBar{from{width:0;}}
+.gs-bar{animation:gsBar .8s ease-out both;}
+@media (max-width:640px){.dc-navlinks{gap:14px !important;}.dc-navlink{display:none !important;}}
+/* Responsive layout hooks — desktop grids stay inline; these stack them on
+   small screens (the .dc.html mockups are desktop-only). Add the class to any
+   2/3-col hero, band, or tool-split container. */
+@media (max-width:900px){
+  .dc-hero{grid-template-columns:1fr !important;gap:40px !important;}
+  .dc-band-3,.dc-band-2,.dc-split{grid-template-columns:1fr !important;}
+}
+@media (prefers-reduced-motion:reduce){
+  [class*="gsFloat"],.gs-bar{animation:none !important;}
+  *{animation-duration:.001ms !important;}
+}
+`;
+
+// Scroll/entrance animation over a scope. Pages add className="gs-reveal" to sections,
+// id="gs-hero-content" to the hero column, and data-count="N" to count-up numbers.
+// Honors prefers-reduced-motion: numbers snap to final, sections stay fully visible.
+export function useDcGsap(scope: React.RefObject<HTMLElement>) {
+  useGSAP(
+    () => {
+      const reduce = prefersReducedMotion();
+
+      if (reduce) {
+        document.querySelectorAll("[data-count]").forEach((el) => {
+          (el as HTMLElement).textContent = (el.getAttribute("data-count") || "0").toString();
+        });
+        return; // leave .gs-reveal / #gs-hero-content at natural (visible) state
+      }
+
+      const hc = document.querySelector("#gs-hero-content");
+      if (hc) {
+        gsap.from(hc.children, { y: 44, opacity: 0, duration: 0.9, stagger: 0.13, ease: "power3.out", clearProps: "all" });
+        hc.querySelectorAll("[data-count]").forEach((el) => {
+          const end = +(el.getAttribute("data-count") || 0);
+          const obj = { n: 0 };
+          gsap.to(obj, {
+            n: end,
+            duration: 1.6,
+            delay: 1.0,
+            ease: "power2.out",
+            onUpdate: () => { (el as HTMLElement).textContent = Math.round(obj.n).toString(); },
+          });
+        });
+      }
+      document.querySelectorAll(".gs-reveal").forEach((el) => {
+        gsap.from(el, { y: 40, opacity: 0, duration: 0.85, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+      });
+      const t = setTimeout(() => ScrollTrigger.refresh(), 200);
+      return () => clearTimeout(t);
+    },
+    { scope }
+  );
+}
+
+export type NavLink = { label: string; view?: string; href?: string; onClick?: (e: React.MouseEvent) => void };
+
+// Sticky dark nav. Links route via onNavigate when a view is given. Secondary
+// links collapse under 640px (CSS); wordmark + primary CTA always visible.
+export function DcNav({
+  onNavigate,
+  links = [],
+  cta,
+}: {
+  onNavigate?: (v: string) => void;
+  links?: NavLink[];
+  cta?: NavLink;
+}) {
+  const handle = (l: NavLink) => (e: React.MouseEvent) => {
+    if (l.onClick) { e.preventDefault(); l.onClick(e); }
+    else if (l.view && onNavigate) { e.preventDefault(); onNavigate(l.view); }
+  };
+  return (
+    <nav className="dc-nav" style={{ position: "sticky", top: 0, zIndex: 50, background: MIDNIGHT, borderBottom: "1px solid rgba(238,239,211,0.12)" }}>
+      <div style={{ maxWidth: dc.maxW, margin: "0 auto", padding: `0 ${dc.pad}`, display: "flex", alignItems: "center", justifyContent: "space-between", height: 74 }}>
+        <a href="/" onClick={(e) => { e.preventDefault(); onNavigate?.("marketing"); }} style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO, textDecoration: "none" }}>Greenstreet</a>
+        <div className="dc-navlinks" style={{ display: "flex", alignItems: "center", gap: 30 }}>
+          {links.map((l) => (
+            <a key={l.label} className="dc-navlink" href={l.href || "#"} onClick={handle(l)} style={{ color: "rgba(238,239,211,0.78)", fontWeight: 500, textDecoration: "none", fontSize: 15, letterSpacing: "-0.01em" }}>{l.label}</a>
+          ))}
+          {cta && (
+            <a className="dc-cta" href={cta.href || "#"} onClick={handle(cta)} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 14, textDecoration: "none", padding: "11px 22px", borderRadius: 6 }}>{cta.label}</a>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+export function DcFooter() {
+  return (
+    <footer style={{ background: MIDNIGHT, color: "rgba(238,239,211,0.55)", padding: `48px ${dc.pad}` }}>
+      <div style={{ maxWidth: dc.maxW, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+        <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO }}>Greenstreet</div>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
+      </div>
+    </footer>
+  );
+}
+
+export function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  // Inline font so this works with or without DC_CSS injected (e.g. the
+  // self-contained flagship page). tabular-nums keeps animated numbers from jittering.
+  return (
+    <span style={{ fontFamily: font.mono, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em", ...style }}>
+      {children}
+    </span>
+  );
+}
+
+// HeroProof — live product surface for tool-page heroes. Replaces the design's
+// empty "drop a screenshot" image-slot with the tool's REAL signature metric so
+// the hero proves the product is computing, not a faked screenshot frame.
+//   value  — the live headline number (already formatted, e.g. "1.11x", "$612K")
+//   eyebrow/sub — context lines
+//   chip   — small verdict pill ({ label, color })
+export function HeroProof({
+  eyebrow = "Live preview",
+  value,
+  sub,
+  chip,
+}: {
+  eyebrow?: string;
+  value: React.ReactNode;
+  sub?: React.ReactNode;
+  chip?: { label: string; color: string };
+}) {
+  return (
+    <div style={{ position: "relative" }}>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: "1.1",
+          borderRadius: radius.lg,
+          overflow: "hidden",
+          background: swatch.darkTeal,
+          border: "1px solid rgba(238,239,211,0.14)",
+        }}
+      >
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14, padding: "clamp(24px,3vw,40px)" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: LEMON }}>{eyebrow}</div>
+          <Mono style={{ fontSize: "clamp(52px,7vw,88px)", fontWeight: 600, color: PISTACHIO, lineHeight: 0.9 }}>{value}</Mono>
+          {sub && <div style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "rgba(238,239,211,0.6)" }}>{sub}</div>}
+        </div>
+      </div>
+      {chip && (
+        <div style={{ position: "absolute", bottom: -18, right: -14, background: MINT_BG, borderRadius: radius.md, padding: "16px 20px", zIndex: 2, border: "1px solid rgba(0,55,56,0.12)" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 4 }}>Verdict</div>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: chip.color }}>{chip.label}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Page wrapper: scope ref + injected CSS + GSAP + nav + content + footer.
+export function DcShell({
+  children,
+  onNavigate,
+  navLinks,
+  cta,
+}: {
+  children: React.ReactNode;
+  onNavigate?: (v: string) => void;
+  navLinks?: NavLink[];
+  cta?: NavLink;
+}) {
+  const scope = useRef<HTMLDivElement>(null);
+  useDcGsap(scope);
+  return (
+    <div ref={scope} style={{ background: PISTACHIO, color: MIDNIGHT, fontFamily: font.family, minHeight: "100vh", overflowX: "hidden", letterSpacing: "-0.02em" }}>
+      <style>{DC_CSS}</style>
+      <DcNav onNavigate={onNavigate} links={navLinks} cta={cta} />
+      {children}
+      <DcFooter />
+    </div>
+  );
+}

@@ -450,7 +450,7 @@ const EASY_STREET_CAPITAL: LenderProgram = {
   statesAvailable: ALL_STATES,
   minFICO: dp(620, 'VERIFIED_PRIMARY', 'Easy Street Capital lender site', '2026-06'),
   maxLTV: dp(80, 'VERIFIED_PRIMARY', 'Easy Street Capital lender site', '2026-06'),
-  minDSCR: dp(0, 'VERIFIED_PRIMARY', 'Easy Street Capital lender site — no minimum DSCR for STR loans reported', '2026-06', 'No minimum DSCR for STR loans; LTR may have different floor'),
+  minDSCR: dp(0.80, 'VERIFIED_PRIMARY', 'Easy Street Capital lender site — 0.80 minimum DSCR for purchase', '2026-06'),
   noRatioAvailable: dp(true, 'VERIFIED_PRIMARY', 'Easy Street Capital lender site — no minimum DSCR', '2026-06'),
   reserveRule: dp('3-9 months', 'VERIFIED_PRIMARY', 'Easy Street Capital lender site', '2026-06'),
   strPolicy: {

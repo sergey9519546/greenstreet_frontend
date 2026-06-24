@@ -1,11 +1,6 @@
-import React, { useState } from "react";
-import { swatch } from "../theme";
+import React, { useState, useEffect } from "react";
+import { DcShell, dc, Mono } from "../design/dc";
 
-import { PageShell, AnimatedCard, AnimatedButton, sectionTitle } from "./PageShell";
-
-const MINT = swatch.rainforest;
-const CREAM = swatch.midnight;
-const FADED = swatch.midnightFaded;
 const AS_OF = "Jun 22, 2026";
 
 // Source attribution per answer — added 2026-06-22 refresh.
@@ -97,80 +92,297 @@ const FAQS = [
 export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   const [open, setOpen] = useState<number | null>(0);
 
+  useEffect(() => {
+    document.title = "DSCR Loan FAQ | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <PageShell
-      title="DSCR Loan FAQ"
-      subtitle={`Every question that matters about qualifying, structuring, and closing a DSCR investment property loan — answered precisely, with sources. Last reviewed ${AS_OF}.`}
-      onBack={onBack} onNavigate={onNavigate}
+    <DcShell
+      onNavigate={onNavigate}
+      navLinks={[
+        { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Lender Intel", view: "lender-intel" },
+        { label: "State Rules", view: "state-laws" },
+      ]}
+      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
     >
-      <div style={{ maxWidth: "800px" }}>
-        {FAQS.map((faq, i) => (
-          <AnimatedCard key={i} hoverScale={true} style={{ padding: 0, marginBottom: "8px", overflow: "hidden" }}>
-            <button
-              onClick={() => setOpen(open === i ? null : i)}
+      {/* Accordion transition CSS only — no glassmorphism, no blur, no float */}
+      <style>{`
+        .faq-answer{overflow:hidden;transition:max-height .28s ease,opacity .22s ease;}
+        .faq-answer-open{max-height:600px;opacity:1;}
+        .faq-answer-closed{max-height:0;opacity:0;}
+        .faq-btn:hover{background:${dc.mintBg} !important;}
+      `}</style>
+
+      {/* ── HERO ── */}
+      <section
+        style={{
+          background: dc.dark,
+          color: dc.cream,
+          padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(48px,6vh,72px)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          id="gs-hero-content"
+          style={{ maxWidth: 1080, margin: "0 auto" }}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "rgba(238,239,211,0.5)",
+              marginBottom: 20,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Frequently asked
+          </div>
+          <h1
+            style={{
+              fontSize: "clamp(48px,7.5vw,116px)",
+              fontWeight: 600,
+              lineHeight: 0.93,
+              letterSpacing: "-0.04em",
+              margin: "0 0 24px",
+              maxWidth: "16ch",
+            }}
+          >
+            Questions, answered straight.
+          </h1>
+          <p
+            style={{
+              fontSize: "clamp(17px,1.5vw,22px)",
+              fontWeight: 500,
+              lineHeight: 1.5,
+              letterSpacing: "-0.02em",
+              color: "rgba(238,239,211,0.7)",
+              maxWidth: "50ch",
+              margin: 0,
+            }}
+          >
+            Every question that matters about qualifying, structuring, and closing a DSCR investment property loan — answered precisely, with sources. Last reviewed {AS_OF}.
+          </p>
+        </div>
+      </section>
+
+      {/* ── FAQ ACCORDION ── */}
+      <section
+        className="gs-reveal"
+        style={{
+          background: dc.cream,
+          padding: "clamp(48px,6vw,80px) clamp(1.5rem,4vw,3rem) clamp(56px,8vw,96px)",
+        }}
+      >
+        <div style={{ maxWidth: 880, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
+          {FAQS.map((faq, i) => (
+            <div
+              key={i}
               style={{
-                width: "100%", textAlign: "left", background: "#e8e9bf",
-                border: "none",
-                color: open === i ? MINT : CREAM,
-                padding: "18px 24px", cursor: "pointer", fontSize: "16px", fontWeight: 600,
-                fontFamily: "Outfit, sans-serif", display: "flex", justifyContent: "space-between", alignItems: "center",
-                transition: "all 0.15s",
+                background: dc.white,
+                borderRadius: 9,
+                overflow: "hidden",
+                border: `1px solid ${open === i ? dc.rain : "rgba(0,55,56,0.10)"}`,
+                transition: "border-color .15s",
               }}
             >
-              <span>{faq.q}</span>
-              <span style={{ fontSize: "20px", color: MINT, flexShrink: 0, marginLeft: "16px" }}>{open === i ? "−" : "+"}</span>
-            </button>
-            {open === i && (
-              <div style={{
-                background: "rgba(0,101,101,0.07)", borderTop: `1px solid ${MINT}`,
-                padding: "20px 24px",
-                color: "#3f5252", fontSize: "15px", lineHeight: 1.7,
-              }}>
-                {faq.a}
-                {/* Source attribution — added in 2026-06-22 refresh for GEO + E-E-A-T */}
-                <div style={{
-                  marginTop: "16px", paddingTop: "12px",
-                  borderTop: `1px dashed ${FADED}`,
-                  fontSize: "11px", color: MINT, fontFamily: "JetBrains Mono, monospace",
-                }}>
-                  src · {faq.src}
+              {/* Question row */}
+              <button
+                className="faq-btn"
+                onClick={() => setOpen(open === i ? null : i)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  background: open === i ? dc.mintBg : dc.white,
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 20,
+                  padding: "26px 30px",
+                  cursor: "pointer",
+                  transition: "background .15s",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "clamp(16px,1.6vw,19px)",
+                    fontWeight: 600,
+                    letterSpacing: "-0.02em",
+                    color: dc.dark,
+                    fontFamily: dc.sans,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {faq.q}
+                </span>
+                <span
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 400,
+                    color: dc.rain,
+                    flexShrink: 0,
+                    lineHeight: 1,
+                    transition: "transform .25s",
+                    transform: open === i ? "rotate(45deg)" : "rotate(0deg)",
+                    display: "inline-block",
+                    fontFamily: dc.mono,
+                  }}
+                >
+                  +
+                </span>
+              </button>
+
+              {/* Answer panel */}
+              <div
+                className={open === i ? "faq-answer faq-answer-open" : "faq-answer faq-answer-closed"}
+              >
+                <div
+                  style={{
+                    padding: "0 30px 28px",
+                    borderTop: `1px solid rgba(0,55,56,0.08)`,
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 500,
+                      lineHeight: 1.65,
+                      color: "rgba(0,55,56,0.7)",
+                      margin: "20px 0 0",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {faq.a}
+                  </p>
+                  {/* Source attribution — added in 2026-06-22 refresh for GEO + E-E-A-T */}
+                  <div
+                    style={{
+                      marginTop: 16,
+                      paddingTop: 12,
+                      borderTop: "1px dashed rgba(0,55,56,0.15)",
+                    }}
+                  >
+                    <Mono
+                      style={{
+                        fontSize: 11,
+                        color: dc.rain,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      src · {faq.src}
+                    </Mono>
+                  </div>
                 </div>
               </div>
-            )}
-          </AnimatedCard>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
 
-      {/* Freshness signal — added 2026-06-22 */}
-      <div style={{
-        marginTop: "32px", padding: "16px 20px",
-        background: "rgba(216,217,88,0.12)", borderRadius: "10px",
-        border: `1px solid rgba(216,217,88,0.3)`,
-        display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap",
-        maxWidth: "800px",
-      }}>
-        <span style={{
-          fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-          padding: "4px 10px", borderRadius: "999px",
-          background: "#d8d958", color: "#003738",
-        }}>
-          Reviewed
-        </span>
-        <span style={{ fontSize: "13px", color: CREAM, fontWeight: 600 }}>
-          All answers reviewed {AS_OF} · sources inline · next review Jul 22, 2026
-        </span>
-      </div>
+        {/* Freshness signal — added 2026-06-22 */}
+        <div
+          style={{
+            maxWidth: 880,
+            margin: "32px auto 0",
+            padding: "16px 20px",
+            background: "rgba(216,217,88,0.12)",
+            borderRadius: 10,
+            border: "1px solid rgba(216,217,88,0.3)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              padding: "4px 10px",
+              borderRadius: 999,
+              background: dc.lemon,
+              color: dc.dark,
+            }}
+          >
+            Reviewed
+          </span>
+          <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
+            All answers reviewed {AS_OF} · sources inline · next review Jul 22, 2026
+          </span>
+        </div>
+      </section>
 
-      <AnimatedCard hoverScale={false} style={{ marginTop: "32px", maxWidth: "600px" }}>
-        <div style={sectionTitle}>Still have a question we didn't answer?</div>
-        <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
-          Talk to a DSCR specialist directly. Most questions get answered the same business day — no pitch, no runaround.
-        </p>
-        {/* TODO: replace placeholder with Greenstreet's real line before launch */}
-        <AnimatedButton onClick={() => window.location.href = "tel:+15550100000"} showArrow={true}>
-          Call +1 (555) 010-0000
-        </AnimatedButton>
-      </AnimatedCard>
-    </PageShell>
+      {/* ── CTA BAND ── */}
+      <section
+        className="gs-reveal"
+        style={{
+          background: dc.dark,
+          padding: "clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem)",
+        }}
+      >
+        <div style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: dc.lemon,
+              marginBottom: 16,
+            }}
+          >
+            Still have a question?
+          </div>
+          <h2
+            style={{
+              fontSize: "clamp(28px,3.5vw,48px)",
+              fontWeight: 600,
+              lineHeight: 1.05,
+              letterSpacing: "-0.035em",
+              color: dc.cream,
+              margin: "0 0 18px",
+            }}
+          >
+            We didn't answer everything.
+          </h2>
+          <p
+            style={{
+              fontSize: "clamp(15px,1.3vw,18px)",
+              fontWeight: 500,
+              lineHeight: 1.6,
+              color: "rgba(238,239,211,0.65)",
+              margin: "0 0 32px",
+              maxWidth: "44ch",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            Talk to a DSCR specialist directly. Most questions get answered the same business day — no pitch, no runaround.
+          </p>
+          <a
+            href="tel:+15550100000"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              background: dc.lemon,
+              color: dc.dark,
+              fontWeight: 600,
+              fontSize: 16,
+              textDecoration: "none",
+              padding: "15px 32px",
+              borderRadius: 6,
+              fontFamily: dc.sans,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Call +1 (555) 010-0000
+          </a>
+        </div>
+      </section>
+    </DcShell>
   );
 }

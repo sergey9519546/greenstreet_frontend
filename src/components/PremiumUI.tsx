@@ -1,13 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { swatch, themes, ThemeName } from "../theme";
 
-// Helper to access GSAP globally
-const getGSAP = () => {
-  if (typeof window !== "undefined") {
-    return (window as any).gsap;
-  }
-  return null;
-};
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 
 interface AnimatedCardProps extends React.HTMLAttributes<HTMLDivElement> {
   themeName?: ThemeName;
@@ -24,46 +19,37 @@ export function AnimatedCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const theme = themes[themeName];
 
-  useEffect(() => {
-    const gsap = getGSAP();
-    if (!gsap || !cardRef.current || !hoverScale) return;
+  const { contextSafe } = useGSAP({ scope: cardRef });
 
-    const el = cardRef.current;
-    
-    // Quick micro-animation hover scales
-    const onEnter = () => {
-      gsap.to(el, {
-        y: -4,
-        scale: 1.01,
-        boxShadow: "0 12px 24px rgba(0, 55, 56, 0.08)",
-        borderColor: swatch.lemon,
-        duration: 0.3,
-        ease: "power2.out",
-      });
-    };
+  const onEnter = contextSafe(() => {
+    if (!hoverScale || !cardRef.current) return;
+    gsap.to(cardRef.current, {
+      y: -4,
+      scale: 1.01,
+      boxShadow: "0 12px 24px rgba(0, 55, 56, 0.08)",
+      borderColor: swatch.lemon,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+  });
 
-    const onLeave = () => {
-      gsap.to(el, {
-        y: 0,
-        scale: 1,
-        boxShadow: "0 4px 12px rgba(0, 55, 56, 0.03)",
-        borderColor: theme.border,
-        duration: 0.3,
-        ease: "power2.out",
-      });
-    };
-
-    el.addEventListener("mouseenter", onEnter);
-    el.addEventListener("mouseleave", onLeave);
-    return () => {
-      el.removeEventListener("mouseenter", onEnter);
-      el.removeEventListener("mouseleave", onLeave);
-    };
-  }, [themeName, hoverScale]);
+  const onLeave = contextSafe(() => {
+    if (!hoverScale || !cardRef.current) return;
+    gsap.to(cardRef.current, {
+      y: 0,
+      scale: 1,
+      boxShadow: "0 4px 12px rgba(0, 55, 56, 0.03)",
+      borderColor: theme.border,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+  });
 
   return (
     <div
       ref={cardRef}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
       style={{
         background: theme.card,
         color: theme.cardText,
@@ -109,60 +95,57 @@ export function AnimatedButton({
   const hoverText = isPrimary ? theme.btnHoverText : theme.bg;
   const hoverBorder = isPrimary ? theme.btnHoverBg : theme.text;
 
-  useEffect(() => {
-    const gsap = getGSAP();
-    if (!gsap || !btnRef.current) return;
+  const { contextSafe } = useGSAP({ scope: btnRef });
 
+  const onEnter = contextSafe(() => {
     const btn = btnRef.current;
     const arrow = arrowRef.current;
-
-    const onEnter = () => {
-      gsap.to(btn, {
-        backgroundColor: hoverBg,
-        color: hoverText,
-        borderColor: hoverBorder,
-        scale: 1.02,
+    if (!btn) return;
+    
+    gsap.to(btn, {
+      backgroundColor: hoverBg,
+      color: hoverText,
+      borderColor: hoverBorder,
+      scale: 1.02,
+      duration: 0.25,
+      ease: "power2.out",
+    });
+    if (arrow) {
+      gsap.to(arrow, {
+        x: 4,
         duration: 0.25,
         ease: "power2.out",
       });
-      if (arrow) {
-        gsap.to(arrow, {
-          x: 4,
-          duration: 0.25,
-          ease: "power2.out",
-        });
-      }
-    };
+    }
+  });
 
-    const onLeave = () => {
-      gsap.to(btn, {
-        backgroundColor: defaultBg,
-        color: defaultText,
-        borderColor: defaultBorder,
-        scale: 1,
+  const onLeave = contextSafe(() => {
+    const btn = btnRef.current;
+    const arrow = arrowRef.current;
+    if (!btn) return;
+
+    gsap.to(btn, {
+      backgroundColor: defaultBg,
+      color: defaultText,
+      borderColor: defaultBorder,
+      scale: 1,
+      duration: 0.25,
+      ease: "power2.out",
+    });
+    if (arrow) {
+      gsap.to(arrow, {
+        x: 0,
         duration: 0.25,
         ease: "power2.out",
       });
-      if (arrow) {
-        gsap.to(arrow, {
-          x: 0,
-          duration: 0.25,
-          ease: "power2.out",
-        });
-      }
-    };
-
-    btn.addEventListener("mouseenter", onEnter);
-    btn.addEventListener("mouseleave", onLeave);
-    return () => {
-      btn.removeEventListener("mouseenter", onEnter);
-      btn.removeEventListener("mouseleave", onLeave);
-    };
-  }, [themeName, variant]);
+    }
+  });
 
   return (
     <button
       ref={btnRef}
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -222,13 +205,7 @@ export function AnimatedNumber({
   const [displayValue, setDisplayValue] = useState(value);
   const valueRef = useRef({ val: value });
 
-  useEffect(() => {
-    const gsap = getGSAP();
-    if (!gsap) {
-      setDisplayValue(value);
-      return;
-    }
-
+  useGSAP(() => {
     gsap.to(valueRef.current, {
       val: value,
       duration: duration,

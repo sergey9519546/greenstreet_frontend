@@ -55,7 +55,7 @@ export function runMonteCarlo(
   const rentVolatilityStd = isSTR ? 0.15 : isMTR ? 0.08 : 0.04;
 
   // Vacancy parameters (Track 2 reality, not Track 1 qualification)
-  const vacancyPctMonthly = isSTR ? 0.25 : isMTR ? 0.12 : 0.08;
+  const vacancyPctMonthly = 0.08;
   const managementPct = 0.08;
   const maintenancePct = 0.05;
 

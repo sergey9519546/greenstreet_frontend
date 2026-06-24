@@ -1,377 +1,484 @@
-import React, { useState, useMemo } from "react";
-import { swatch } from "../theme";
-
-import {
-  PageShell,
-  sectionTitle,
-  AnimatedCard,
-  AnimatedButton,
-  AnimatedNumber,
-  PremiumInput,
-  PremiumSlider,
-} from "./PageShell";
+import React, { useState, useMemo, useEffect } from "react";
+import { DcShell, dc, Mono, HeroProof } from "../design/dc";
 import { analyzePortfolio } from "../engine/portfolio";
-import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
-import type { PropertyInputs, PortfolioProperty } from "../engine/types";
 
-const MINT = swatch.emerald;
-const CREAM = swatch.midnight;
-const YELLOW = swatch.lemon;
-const STATES = ["AL","AK","AZ","AR","CA","CO","CT","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-// Raw seed shape the page edits in the UI. Enriched into PortfolioProperty
-// (adds name/address/monthlyPITIA/dscr/track2DSCR/isBlanket) in processedProperties.
+// Each row the user edits inline.  monthlyPITIA/dscr etc. are computed from
+// these values in processedProperties.
 type RawProperty = {
-  id: string; purchasePrice: number; monthlyRent: number; state: string;
-  loanBalance: number; rate: number; lender: string; propertyType: string; yearAcquired: number;
+  id: string;
+  name: string;
+  propertyType: string;
+  state: string;
+  value: number;
+  balance: number;
+  rate: number;
+  rent: number;
+  /** Additional monthly obligations (taxes + insurance) */
+  pitiaExtra: number;
+  lender: string;
+  yearAcquired: number;
 };
 
-const SAMPLE_PROPERTIES: RawProperty[] = [
-  { id: "P1", purchasePrice: 425000, monthlyRent: 3000, state: "TX", loanBalance: 318750, rate: 7.0, lender: "Prior loan", propertyType: "SFR" as const, yearAcquired: 2023 },
-  { id: "P2", purchasePrice: 380000, monthlyRent: 2900, state: "GA", loanBalance: 304000, rate: 7.25, lender: "Prior loan", propertyType: "SFR" as const, yearAcquired: 2022 },
-  { id: "P3", purchasePrice: 525000, monthlyRent: 4100, state: "FL", loanBalance: 393750, rate: 6.875, lender: "Prior loan", propertyType: "SFR" as const, yearAcquired: 2024 },
+// ─── Seed data ────────────────────────────────────────────────────────────────
+
+const SEED: RawProperty[] = [
+  { id: "P1", name: "Austin TX",   propertyType: "SFR",    state: "TX", value: 425000, balance: 306000, rate: 7.0,   rent: 3000, pitiaExtra: 850,  lender: "Prior loan", yearAcquired: 2023 },
+  { id: "P2", name: "Tampa FL",    propertyType: "Duplex", state: "FL", value: 520000, balance: 364000, rate: 6.875, rent: 4200, pitiaExtra: 1100, lender: "Prior loan", yearAcquired: 2022 },
+  { id: "P3", name: "Phoenix AZ",  propertyType: "SFR",    state: "AZ", value: 390000, balance: 304000, rate: 7.25,  rent: 2400, pitiaExtra: 780,  lender: "Prior loan", yearAcquired: 2022 },
+  { id: "P4", name: "Memphis TN",  propertyType: "4-plex", state: "TN", value: 640000, balance: 435000, rate: 6.99,  rent: 5800, pitiaExtra: 1400, lender: "Prior loan", yearAcquired: 2021 },
 ];
 
-export default function PortfolioPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
-  const [properties, setProperties] = useState<RawProperty[]>(SAMPLE_PROPERTIES);
-  const [newPurchasePrice, setNewPurchasePrice] = useState(450000);
-  const [newMonthlyRent, setNewMonthlyRent] = useState(3200);
-  const [newState, setNewState] = useState("TX");
-  const [newLtv, setNewLtv] = useState(75);
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-  const processedProperties = useMemo(() => {
-    return properties.map(p => {
-      const r = (p.rate || 7.0) / 100 / 12;
-      const monthlyPI = r > 0 ? (p.loanBalance * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1) : 0;
-      const monthlyTI = (p.purchasePrice * 0.015) / 12;
-      const monthlyPITIA = monthlyPI + monthlyTI;
-      const dscr = monthlyPITIA > 0 ? p.monthlyRent / monthlyPITIA : 1.20;
-      const track2NOI = p.monthlyRent * 0.79; // 1 - 0.08 - 0.08 - 0.05
-      const track2DSCR = monthlyPITIA > 0 ? track2NOI / monthlyPITIA : 1.0;
-      return {
-        ...p,
-        name: p.id,
-        address: "",
-        monthlyPITIA,
-        dscr,
-        track2DSCR,
-        isBlanket: false,
-      };
-    });
-  }, [properties]);
+const fmt = (n: number) =>
+  (n < 0 ? "-$" : "$") + Math.round(Math.abs(n)).toLocaleString("en-US");
 
-  const result = useMemo(() => {
+/** Monthly P&I for a 30-yr amortising loan */
+function pi(balance: number, annualRate: number): number {
+  const r = annualRate / 100 / 12;
+  if (r === 0) return balance / 360;
+  return (balance * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function PortfolioPage({
+  onBack,
+  onNavigate,
+}: {
+  onBack: () => void;
+  onNavigate: (v: any) => void;
+}) {
+  useEffect(() => {
+    document.title = "Portfolio Builder | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
+  const [rows, setRows] = useState<RawProperty[]>(SEED);
+
+  // ── Inline-edit helper ────────────────────────────────────────────────────
+  function edit(id: string, key: keyof RawProperty, raw: string) {
+    const num = parseFloat(raw);
+    setRows((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, [key]: isNaN(num) ? raw : num } : p))
+    );
+  }
+
+  function addRow() {
+    const id = `P${rows.length + 1}`;
+    setRows((prev) => [
+      ...prev,
+      { id, name: "New property", propertyType: "SFR", state: "TX", value: 400000, balance: 300000, rate: 7.0, rent: 2800, pitiaExtra: 800, lender: "Prior loan", yearAcquired: 2024 },
+    ]);
+  }
+
+  function removeRow(id: string) {
+    setRows((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  // ── Per-row computed ──────────────────────────────────────────────────────
+  const computed = useMemo(() =>
+    rows.map((p) => {
+      const piMo  = pi(p.balance, p.rate);
+      const pitia = piMo + p.pitiaExtra;
+      const dscr  = pitia > 0 ? p.rent / pitia : 0;
+      const cf    = p.rent - pitia;
+      const ltv   = p.value > 0 ? (p.balance / p.value) * 100 : 0;
+      return { ...p, piMo, pitia, dscr, cf, ltv };
+    }),
+    [rows]
+  );
+
+  // ── Portfolio aggregates (blended) ────────────────────────────────────────
+  const agg = useMemo(() => {
+    let totRent = 0, totDebt = 0, totValue = 0, totBal = 0, totCash = 0, wRateNum = 0;
+    for (const c of computed) {
+      totRent   += c.rent;
+      totDebt   += c.pitia;
+      totValue  += c.value;
+      totBal    += c.balance;
+      totCash   += c.cf;
+      wRateNum  += c.rate * c.balance;
+    }
+    const blend  = totDebt > 0 ? totRent / totDebt : 0;
+    const equity = totValue - totBal;
+    const wRate  = totBal  > 0 ? wRateNum / totBal : 0;
+    return { blend, equity, totCash, wRate, totBal };
+  }, [computed]);
+
+  // ── analyzePortfolio for rich signals (concentration, refi, buckets) ──────
+  const portfolioResult = useMemo(() => {
     try {
-      const newDealLtv = newLtv;
-      const newDealBalance = newPurchasePrice * (1 - newDealLtv / 100);
-      const r = 7.0 / 100 / 12;
-      const newPI = (newDealBalance * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
-      const newTI = (newPurchasePrice * 0.015) / 12;
-      const newPITIA = newPI + newTI;
-      const newDscr = newPITIA > 0 ? newMonthlyRent / newPITIA : 1.20;
-      const newTrack2NOI = newMonthlyRent * 0.79;
-      const newTrack2Dscr = newPITIA > 0 ? newTrack2NOI / newPITIA : 1.0;
-
-      const newDealProp = {
-        id: "NEW",
-        name: "Subject Property",
+      const enriched = computed.map((c) => ({
+        ...c,
         address: "",
-        purchasePrice: newPurchasePrice,
-        monthlyRent: newMonthlyRent,
-        state: newState,
-        loanBalance: newDealBalance,
-        rate: 7.0,
-        lender: "PROSPECTIVE",
-        propertyType: "SFR",
-        yearAcquired: 2026,
-        monthlyPITIA: newPITIA,
-        dscr: newDscr,
-        track2DSCR: newTrack2Dscr,
+        monthlyPITIA: c.pitia,
+        track2DSCR: c.dscr * 0.9,
         isBlanket: false,
-      };
-      
-      const borrower = buildEngineInputs({ purchasePrice: newPurchasePrice, monthlyRent: newMonthlyRent, state: newState, ficoScore: 720 }).borrower;
-      return analyzePortfolio([...processedProperties, newDealProp], null, borrower, 50000);
-    } catch (e) {
-      console.error(e);
+        purchasePrice: c.value,
+        monthlyRent: c.rent,
+      }));
+      const borrower = buildEngineInputs({ purchasePrice: 400000, monthlyRent: 2800, state: "TX", ficoScore: 720 }).borrower;
+      return analyzePortfolio(enriched as any, null, borrower, 50000);
+    } catch {
       return null;
     }
-  }, [processedProperties, newPurchasePrice, newMonthlyRent, newState, newLtv]);
+  }, [computed]);
 
-  const lenderConcentrationList = useMemo(() => {
-    if (!result) return [];
-    const counts = new Map<string, number>();
-    for (const p of result.properties) {
-      counts.set(p.lender, (counts.get(p.lender) ?? 0) + 1);
-    }
-    return Array.from(counts.entries()).map(([lender, count]) => ({
-      lender,
-      count,
-      percentage: (count / result.properties.length) * 100,
-    })).sort((a, b) => b.percentage - a.percentage);
-  }, [result]);
+  // ── Concentration lists ───────────────────────────────────────────────────
+  const lenderConc = useMemo(() => {
+    if (!portfolioResult) return [];
+    const m = new Map<string, number>();
+    for (const p of portfolioResult.properties) m.set(p.lender, (m.get(p.lender) ?? 0) + 1);
+    return Array.from(m.entries()).map(([lender, count]) => ({ lender, count, pct: (count / portfolioResult.properties.length) * 100 })).sort((a, b) => b.pct - a.pct);
+  }, [portfolioResult]);
 
-  const geographicConcentrationList = useMemo(() => {
-    if (!result) return [];
-    const counts = new Map<string, number>();
-    let totalWithState = 0;
-    for (const p of result.properties) {
-      if (p.state) {
-        counts.set(p.state, (counts.get(p.state) ?? 0) + 1);
-        totalWithState++;
-      }
-    }
-    return Array.from(counts.entries()).map(([state, count]) => ({
-      state,
-      count,
-      percentage: totalWithState > 0 ? (count / totalWithState) * 100 : 0,
-    })).sort((a, b) => b.percentage - a.percentage);
-  }, [result]);
+  const geoConc = useMemo(() => {
+    if (!portfolioResult) return [];
+    const m = new Map<string, number>();
+    let tot = 0;
+    for (const p of portfolioResult.properties) { if (p.state) { m.set(p.state, (m.get(p.state) ?? 0) + 1); tot++; } }
+    return Array.from(m.entries()).map(([state, count]) => ({ state, count, pct: tot > 0 ? (count / tot) * 100 : 0 })).sort((a, b) => b.pct - a.pct);
+  }, [portfolioResult]);
 
-  const dscrBuckets = useMemo(() => {
-    if (!result) return { dealBreak: 0, fragile: 0, marginal: 0, comfortable: 0, safe: 0 };
-    let dealBreak = 0;
-    let fragile = 0;
-    let marginal = 0;
-    let comfortable = 0;
-    let safe = 0;
-    for (const p of result.properties) {
-      const d = p.dscr;
-      if (d < 0.85) dealBreak++;
-      else if (d < 1.00) fragile++;
-      else if (d < 1.25) marginal++;
-      else if (d < 1.50) comfortable++;
-      else safe++;
+  // ── DSCR buckets ──────────────────────────────────────────────────────────
+  const buckets = useMemo(() => {
+    let dealBreak = 0, fragile = 0, marginal = 0, comfortable = 0, safe = 0;
+    for (const c of computed) {
+      if      (c.dscr < 0.85) dealBreak++;
+      else if (c.dscr < 1.00) fragile++;
+      else if (c.dscr < 1.25) marginal++;
+      else if (c.dscr < 1.50) comfortable++;
+      else                     safe++;
     }
     return { dealBreak, fragile, marginal, comfortable, safe };
-  }, [result]);
+  }, [computed]);
 
-  const handleAddProperty = () => {
-    const id = `P${properties.length + 1}`;
-    setProperties([...properties, { id, purchasePrice: 450000, monthlyRent: 3200, state: "TX", loanBalance: 337500, rate: 7.0, lender: "Prior loan", propertyType: "SFR", yearAcquired: 2024 }]);
+  // ── Derived display values ────────────────────────────────────────────────
+  const MINT   = dc.emerald;  // #4dbd97
+  const YELLOW = dc.lemon;    // #d8d958
+  const RED    = "#ff6b6b";
+
+  const blendColor = agg.blend >= 1.25 ? MINT : agg.blend >= 1.0 ? YELLOW : RED;
+  const cashColor  = agg.totCash >= 0  ? MINT : RED;
+
+  const blendStr  = agg.blend.toFixed(2) + "x";
+  const equityStr = fmt(agg.equity);
+  const cashStr   = (agg.totCash >= 0 ? "+" : "") + fmt(agg.totCash);
+  const wRateStr  = agg.wRate.toFixed(2) + "%";
+
+  const scrollToTool = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.querySelector("#pf-tool");
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
   };
 
-  const handleRemoveProperty = (id: string) => {
-    setProperties(properties.filter((p) => p.id !== id));
-  };
+  // ── HeroProof chip based on blended DSCR ─────────────────────────────────
+  const chipLabel = agg.blend >= 1.25 ? "STRONG BOOK" : agg.blend >= 1.0 ? "QUALIFIES" : "NEEDS WORK";
+  const chipColor = blendColor;
 
   return (
-    <PageShell
-      title="Portfolio Analysis"
-      subtitle="Calls engine.analyzePortfolio. Aggregates global DSCR across all properties, lender concentration, geographic concentration, and refi opportunities."
-      onBack={onBack} onNavigate={onNavigate}
+    <DcShell
+      onNavigate={onNavigate}
+      navLinks={[
+        { label: "DSCR Calc",  view: "dscr-calculator" },
+        { label: "Deal Analyzer", view: "deal-analyzer" },
+      ]}
+      cta={{ label: "Build portfolio →", onClick: scrollToTool }}
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "40px", alignItems: "start" }}>
-        <div>
-          <AnimatedCard hoverScale={false}>
-            <div style={sectionTitle}>Existing Properties ({properties.length})</div>
-            {properties.map((p, i) => (
-              <div key={p.id} style={{ padding: "12px 0", borderBottom: "1px solid rgba(0,55,56,0.1)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ color: CREAM, fontSize: "14px", fontWeight: 700 }}>{p.id} • {p.state}</div>
-                  <div style={{ color: "rgba(0, 55, 56, 0.6)", fontSize: "11px" }}>${(p.purchasePrice / 1000).toFixed(0)}k • ${p.monthlyRent}/mo • {p.rate.toFixed(2)}%</div>
-                  <div style={{ color: MINT, fontSize: "11px", marginTop: "2px" }}>{p.lender}</div>
-                </div>
-                <AnimatedButton
-                  onClick={() => handleRemoveProperty(p.id)}
-                  variant="secondary"
-                  showArrow={false}
-                  style={{ padding: "4px 12px", fontSize: "11px", borderColor: "rgba(255,107,107,0.3)", color: "#ff6b6b" }}
-                >
-                  Remove
-                </AnimatedButton>
+      {/* Suppress number spinners on inline inputs */}
+      <style>{`
+        .pf-in::-webkit-outer-spin-button,.pf-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+        .pf-in{width:68px;border:none;background:${dc.cream};outline:none;font-family:${dc.mono};color:${dc.dark};text-align:right;border-radius:5px;padding:6px 8px;font-size:13px;font-weight:600;}
+        .pf-row:hover{background:rgba(0,55,56,0.03);}
+      `}</style>
+
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      <section
+        style={{
+          position: "relative",
+          background: dc.dark,
+          color: dc.cream,
+          overflow: "hidden",
+          minHeight: "clamp(480px,60vh,760px)",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <div className="gs-dot-grid" />
+        <div
+          className="dc-hero"
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            padding: `clamp(48px,7vh,88px) ${dc.pad}`,
+            display: "grid",
+            gridTemplateColumns: "1.1fr 0.9fr",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "center",
+          }}
+        >
+          {/* Left */}
+          <div id="gs-hero-content">
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 22 }}>
+              Portfolio &middot; Blanket &middot; Multi-property
+            </div>
+            <h1 style={{ fontSize: "clamp(48px,7.5vw,116px)", fontWeight: 600, lineHeight: 0.93, letterSpacing: "-0.04em", margin: "0 0 28px" }}>
+              Underwrite the whole portfolio at once.
+            </h1>
+            <p style={{ fontSize: "clamp(17px,1.5vw,22px)", fontWeight: 500, lineHeight: 1.5, letterSpacing: "-0.02em", color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
+              Blended DSCR, aggregate equity, weighted rate and total monthly cash flow across every door.
+            </p>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <a
+                href="#pf-tool"
+                onClick={scrollToTool}
+                style={{ display: "inline-flex", alignItems: "center", gap: 9, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 16, textDecoration: "none", padding: "15px 30px", borderRadius: 6 }}
+              >
+                Open the portfolio builder ↓
+              </a>
+              <a
+                href="#"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 9, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 16, textDecoration: "none", padding: "15px 26px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.3)" }}
+              >
+                DSCR calculator
+              </a>
+            </div>
+          </div>
+
+          {/* Right — live blended DSCR wired to real engine */}
+          <HeroProof
+            eyebrow="Blended portfolio DSCR"
+            value={blendStr}
+            sub={`${rows.length} properties · ${equityStr} equity`}
+            chip={{ label: chipLabel, color: chipColor }}
+          />
+        </div>
+      </section>
+
+      {/* ── 3-STEP BAND ──────────────────────────────────────────────────── */}
+      <section style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="gs-reveal dc-band-3"
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}
+          >
+            {/* 01 */}
+            <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
+              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.lemon, marginBottom: 14, lineHeight: 1 }}>01</Mono>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Add doors</h3>
+              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.6)", margin: 0, letterSpacing: "-0.01em" }}>
+                Enter each property's value, balance, rate and rent. Edit every field inline.
+              </p>
+            </div>
+            {/* 02 */}
+            <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
+              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.emerald, marginBottom: 14, lineHeight: 1 }}>02</Mono>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Blend</h3>
+              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
+                Blended DSCR, aggregate equity, weighted rate and total cash flow recompute live.
+              </p>
+            </div>
+            {/* 03 */}
+            <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
+              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Submit</h3>
+              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
+                Hand the lender this blended view — it is exactly how a blanket underwriter sees your book.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TOOL ─────────────────────────────────────────────────────────── */}
+      <section
+        id="pf-tool"
+        style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+
+          {/* Section header */}
+          <div className="gs-reveal" style={{ marginBottom: 48 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
+              Live portfolio aggregator
+            </div>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
+              Blended DSCR{" "}
+              <Mono style={{ color: blendColor }}>{blendStr}</Mono>
+              {" "}across {rows.length} door{rows.length !== 1 ? "s" : ""}
+            </h2>
+          </div>
+
+          {/* 4-stat strip */}
+          <div
+            className="gs-reveal dc-band-2"
+            style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "rgba(238,239,211,0.12)", borderRadius: 9, overflow: "hidden", marginBottom: 28 }}
+          >
+            {[
+              { label: "Blended DSCR",      val: blendStr,  color: blendColor },
+              { label: "Total Equity",       val: equityStr, color: dc.cream },
+              { label: "Monthly Cash Flow",  val: cashStr,   color: cashColor },
+              { label: "Weighted Rate",      val: wRateStr,  color: dc.cream },
+            ].map(({ label, val, color }) => (
+              <div key={label} style={{ background: dc.teal, padding: 26 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{label}</div>
+                <Mono style={{ display: "block", fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color, lineHeight: 1 }}>{val}</Mono>
               </div>
             ))}
-            <AnimatedButton
-              onClick={handleAddProperty}
-              variant="primary"
-              style={{ marginTop: "16px", width: "100%" }}
-            >
-              Add Sample Property
-            </AnimatedButton>
-          </AnimatedCard>
+          </div>
 
-          <AnimatedCard hoverScale={false} style={{ marginTop: "20px" }}>
-            <div style={sectionTitle}>New Deal to Underwrite</div>
-            <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>State</label>
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                background: "#ffffff",
-                border: "1px solid rgba(0, 55, 56, 0.18)",
-                borderRadius: "8px",
-                height: "46px",
-                padding: "0 12px",
-              }}>
-                <select
-                  value={newState}
-                  onChange={(e) => setNewState(e.target.value)}
-                  style={{
-                    width: "100%",
-                    border: "none",
-                    background: "transparent",
-                    color: CREAM,
-                    fontSize: "15px",
-                    outline: "none",
-                    fontFamily: "Outfit, sans-serif",
-                    cursor: "pointer",
-                  }}
-                >
-                  {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
+          {/* Inline-editable property table */}
+          <div className="gs-reveal" style={{ background: dc.cream, borderRadius: 9, overflow: "hidden", marginBottom: 16 }}>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.dark }}>
+                <thead>
+                  <tr>
+                    {["Property", "Type", "Value", "Balance", "Rate %", "Rent/mo", "LTV", "DSCR", "Cash/mo", ""].map((h, i) => (
+                      <th
+                        key={i}
+                        style={{ padding: "12px 14px", fontSize: 11, color: "rgba(0,55,56,0.45)", textAlign: i >= 2 && i < 9 ? "right" : "left", fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", borderBottom: "1px solid rgba(0,55,56,0.12)" }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {computed.map((c) => {
+                    const dc2 = c.dscr >= 1.25 ? "#006565" : c.dscr >= 1.0 ? "#9a7b00" : RED;
+                    const cc  = c.cf >= 0 ? "#006565" : RED;
+                    return (
+                      <tr key={c.id} className="pf-row" style={{ background: "transparent", transition: "background .12s" }}>
+                        <td style={{ padding: "11px 14px", fontSize: 14, fontWeight: 600, color: dc.dark, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>{c.name}</td>
+                        <td style={{ padding: "11px 14px", fontSize: 13, color: "rgba(0,55,56,0.5)", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>{c.propertyType}</td>
+                        {/* Editable: value */}
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          <input className="pf-in" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
+                        </td>
+                        {/* Editable: balance */}
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          <input className="pf-in" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
+                        </td>
+                        {/* Editable: rate */}
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          <input className="pf-in" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
+                        </td>
+                        {/* Editable: rent */}
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          <input className="pf-in" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
+                        </td>
+                        {/* Computed read-only */}
+                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(0,55,56,0.5)", fontFamily: dc.mono, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          {c.ltv.toFixed(0)}%
+                        </td>
+                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 14, fontWeight: 700, color: dc2, fontFamily: dc.mono, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          {c.dscr.toFixed(2)}x
+                        </td>
+                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cc, fontFamily: dc.mono, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          {(c.cf >= 0 ? "+" : "") + fmt(c.cf)}
+                        </td>
+                        {/* Remove */}
+                        <td style={{ padding: "11px 14px", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                          <button
+                            onClick={() => removeRow(c.id)}
+                            style={{ background: "none", border: "1px solid rgba(211,47,47,0.35)", color: "#d32f2f", borderRadius: 5, padding: "3px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: dc.sans }}
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-            
-            <PremiumInput
-              label="Purchase Price"
-              type="number"
-              value={newPurchasePrice}
-              onChange={(e) => setNewPurchasePrice(+e.target.value)}
-              prefixSymbol="$"
-            />
-            
-            <PremiumInput
-              label="Monthly Rent"
-              type="number"
-              value={newMonthlyRent}
-              onChange={(e) => setNewMonthlyRent(+e.target.value)}
-              prefixSymbol="$"
-            />
+          </div>
 
-            <PremiumSlider
-              label="LTV"
-              min={50}
-              max={90}
-              step={1}
-              value={newLtv}
-              onChange={setNewLtv}
-              formatValue={(val) => val + "%"}
-            />
-          </AnimatedCard>
-        </div>
+          {/* Add property */}
+          <button
+            onClick={addRow}
+            style={{ background: dc.lemon, color: dc.dark, border: "none", fontFamily: dc.sans, fontWeight: 600, fontSize: 14, letterSpacing: "-0.01em", padding: "12px 22px", borderRadius: 6, cursor: "pointer" }}
+          >
+            + Add property
+          </button>
 
-        <div>
-          {!result ? (
-            <AnimatedCard hoverScale={false} style={{ textAlign: "center", padding: "40px" }}>
-              <p style={{ color: "#ff6b6b" }}>Engine returned no result.</p>
-            </AnimatedCard>
-          ) : (
-            <>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px" }}>
+          {/* ── Secondary signals ────────────────────────────────────────── */}
+          <div
+            className="gs-reveal dc-band-2"
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 36 }}
+          >
+            {/* DSCR buckets */}
+            <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>DSCR distribution</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8 }}>
                 {[
-                  { label: "Total Properties", value: result.properties.length, color: CREAM },
-                  { label: "Global DSCR", value: result.globalDSCR, format: (v) => v.toFixed(2) + "x", color: result.globalDSCR >= 1.25 ? MINT : result.globalDSCR >= 1.0 ? YELLOW : "#ff6b6b" },
-                  { label: "Total Loan Balance", value: result.properties.reduce((sum, p) => sum + p.loanBalance, 0), format: (v) => `$${(v / 1000).toFixed(0)}k`, color: CREAM },
-                  { label: "Monthly NOI", value: result.totalNOI / 12, format: (v) => `$${(v / 1000).toFixed(1)}k`, color: CREAM },
-                ].map((m) => (
-                  <div key={m.label} style={{ background: "rgba(0,55,56,0.04)", borderRadius: "10px", padding: "14px", textAlign: "center" }}>
-                    <div style={{ fontSize: "10px", color: "rgba(0, 55, 56, 0.5)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{m.label}</div>
-                    <div style={{ fontSize: "20px", fontWeight: 800, color: m.color, marginTop: "6px" }}>
-                      <AnimatedNumber value={m.value} format={m.format ?? ((v) => Math.round(v).toString())} />
-                    </div>
+                  { label: "DEAL BREAK", range: "< 0.85", count: buckets.dealBreak, color: RED },
+                  { label: "FRAGILE",    range: "0.85–1.0", count: buckets.fragile,   color: RED },
+                  { label: "MARGINAL",   range: "1.0–1.25", count: buckets.marginal,  color: dc.lemon },
+                  { label: "SOLID",      range: "1.25–1.5", count: buckets.comfortable, color: dc.emerald },
+                  { label: "SAFE",       range: "≥ 1.5",   count: buckets.safe,       color: dc.emerald },
+                ].map((b) => (
+                  <div key={b.label} style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 4 }}>{b.label}</div>
+                    <Mono style={{ display: "block", fontSize: 28, fontWeight: 600, color: b.color, lineHeight: 1 }}>{b.count}</Mono>
+                    <div style={{ fontSize: 9, color: "rgba(238,239,211,0.4)", marginTop: 2 }}>{b.range}</div>
                   </div>
                 ))}
               </div>
+            </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "20px" }}>
-                <AnimatedCard hoverScale={true}>
-                  <div style={sectionTitle}>Lender Concentration</div>
-                  {lenderConcentrationList.slice(0, 6).map((lc) => {
-                    const color = lc.percentage > 40 ? "#ff6b6b" : lc.percentage > 25 ? YELLOW : MINT;
-                    return (
-                      <div key={lc.lender} style={{ marginBottom: "12px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
-                          <span style={{ color: CREAM, fontWeight: 600 }}>{lc.lender}</span>
-                          <span style={{ color, fontWeight: 700 }}>
-                            <AnimatedNumber value={lc.percentage} format={(v) => v.toFixed(1) + "%"} />
-                          </span>
-                        </div>
-                        <div style={{ height: "8px", background: "rgba(0,55,56,0.1)", borderRadius: "4px", overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${Math.min(100, lc.percentage)}%`, background: color, transition: "width 0.3s" }} />
-                        </div>
-                        <div style={{ fontSize: "10px", color: "rgba(0, 55, 56, 0.5)", marginTop: "2px" }}>{lc.count} properties</div>
-                      </div>
-                    );
-                  })}
-                  {lenderConcentrationList.length === 0 && <p style={{ color: "rgba(0, 55, 56, 0.5)", fontSize: "13px" }}>No concentration data.</p>}
-                </AnimatedCard>
-
-                <AnimatedCard hoverScale={true}>
-                  <div style={sectionTitle}>Geographic Concentration</div>
-                  {geographicConcentrationList.slice(0, 6).map((gc) => {
-                    const color = gc.percentage > 50 ? "#ff6b6b" : gc.percentage > 30 ? YELLOW : MINT;
-                    return (
-                      <div key={gc.state} style={{ marginBottom: "12px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
-                          <span style={{ color: CREAM, fontWeight: 600 }}>{gc.state}</span>
-                          <span style={{ color, fontWeight: 700 }}>
-                            <AnimatedNumber value={gc.percentage} format={(v) => v.toFixed(1) + "%"} />
-                          </span>
-                        </div>
-                        <div style={{ height: "8px", background: "rgba(0,55,56,0.1)", borderRadius: "4px", overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${Math.min(100, gc.percentage)}%`, background: color, transition: "width 0.3s" }} />
-                        </div>
-                        <div style={{ fontSize: "10px", color: "rgba(0, 55, 56, 0.5)", marginTop: "2px" }}>{gc.count} properties</div>
-                      </div>
-                    );
-                  })}
-                  {geographicConcentrationList.length === 0 && <p style={{ color: "rgba(0, 55, 56, 0.5)", fontSize: "13px" }}>No geographic data.</p>}
-                </AnimatedCard>
-              </div>
-
-              <AnimatedCard hoverScale={false} style={{ marginTop: "20px" }}>
-                <div style={sectionTitle}>DSCR Distribution</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px" }}>
-                  {[
-                    { label: "DEAL_BREAK", range: "< 0.85", count: dscrBuckets.dealBreak, color: "#ff6b6b" },
-                    { label: "FRAGILE", range: "0.85–1.00", count: dscrBuckets.fragile, color: "#ff6b6b" },
-                    { label: "MARGINAL", range: "1.00–1.25", count: dscrBuckets.marginal, color: YELLOW },
-                    { label: "COMFORTABLE", range: "1.25–1.50", count: dscrBuckets.comfortable, color: MINT },
-                    { label: "SAFE", range: "≥ 1.50", count: dscrBuckets.safe, color: MINT },
-                  ].map((b) => (
-                    <div key={b.label} style={{ background: `${b.color}11`, borderRadius: "8px", padding: "12px", textAlign: "center", border: `1px solid ${b.color}44` }}>
-                      <div style={{ fontSize: "10px", color: "rgba(0, 55, 56, 0.5)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>{b.label}</div>
-                      <div style={{ fontSize: "24px", fontWeight: 800, color: b.color, marginTop: "4px" }}>
-                        <AnimatedNumber value={b.count} format={(v) => Math.round(v).toString()} />
-                      </div>
-                      <div style={{ fontSize: "10px", color: "rgba(0, 55, 56, 0.5)", marginTop: "2px" }}>{b.range}</div>
+            {/* Concentration */}
+            <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Geographic spread</div>
+              {geoConc.slice(0, 5).map((g) => {
+                const barColor = g.pct > 50 ? RED : g.pct > 30 ? dc.lemon : dc.emerald;
+                return (
+                  <div key={g.state} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                      <span style={{ color: dc.cream, fontWeight: 600 }}>{g.state}</span>
+                      <Mono style={{ fontSize: 13, fontWeight: 700, color: barColor }}>{g.pct.toFixed(0)}%</Mono>
                     </div>
-                  ))}
-                </div>
-              </AnimatedCard>
+                    <div style={{ height: 5, background: "rgba(238,239,211,0.12)", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.min(100, g.pct)}%`, background: barColor, transition: "width 0.3s" }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {geoConc.length === 0 && <p style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>No data.</p>}
+            </div>
+          </div>
 
-              <AnimatedCard hoverScale={false} style={{ marginTop: "20px" }}>
-                <div style={sectionTitle}>Refi Opportunities</div>
-                {result.refiOpportunities.length === 0 ? (
-                  <p style={{ color: "rgba(0, 55, 56, 0.5)", fontSize: "13px", padding: "8px 0" }}>No refinance opportunities identified (no properties meet seasoning + LTV criteria).</p>
-                ) : (
-                  result.refiOpportunities.map((r) => {
-                    const prop = properties.find(p => p.id === r.propertyId);
-                    const propState = prop?.state ?? "";
-                    const action = r.seasoningMonthsRemaining <= 0 ? "REFINANCE_NOW" : "MONITOR";
-                    const detail = `Save $${r.monthlySavings.toFixed(0)}/mo refinancing from ${r.currentRate.toFixed(2)}% to projected ${r.projectedRate.toFixed(2)}%${r.seasoningMonthsRemaining > 0 ? ` — ${r.seasoningMonthsRemaining} mo seasoning left` : ""}`;
-                    return (
-                      <div key={r.propertyId} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ color: CREAM, fontWeight: 700 }}>{r.propertyId} • {propState}</span>
-                          <span style={{ color: action === "REFINANCE_NOW" ? MINT : action === "MONITOR" ? YELLOW : MINT, fontWeight: 700, fontSize: "12px" }}>{action}</span>
-                        </div>
-                        <div style={{ fontSize: "11px", color: "rgba(0, 55, 56, 0.5)", marginTop: "4px" }}>{detail}</div>
+          {/* Refi opportunities */}
+          {portfolioResult && portfolioResult.refiOpportunities.length > 0 && (
+            <div className="gs-reveal" style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)", marginTop: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 14 }}>Refi opportunities</div>
+              {portfolioResult.refiOpportunities.map((r) => {
+                const action = r.seasoningMonthsRemaining <= 0 ? "REFINANCE NOW" : "MONITOR";
+                const actionColor = r.seasoningMonthsRemaining <= 0 ? dc.emerald : dc.lemon;
+                return (
+                  <div key={r.propertyId} style={{ padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div>
+                      <div style={{ color: dc.cream, fontWeight: 700, fontSize: 14 }}>{r.propertyId}</div>
+                      <div style={{ color: "rgba(238,239,211,0.5)", fontSize: 11, marginTop: 3 }}>
+                        Save ${r.monthlySavings.toFixed(0)}/mo · {r.currentRate.toFixed(2)}% → {r.projectedRate.toFixed(2)}%
+                        {r.seasoningMonthsRemaining > 0 ? ` · ${r.seasoningMonthsRemaining} mo seasoning left` : ""}
                       </div>
-                    );
-                  })
-                )}
-              </AnimatedCard>
-
-              <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(77,189,151,0.08)", borderRadius: "10px", border: "1px solid rgba(77,189,151,0.2)", fontSize: "12px", color: "rgba(0, 55, 56, 0.6)", lineHeight: 1.6 }}>
-                <strong style={{ color: MINT }}>Engine:</strong> src/engine/portfolio.ts → analyzePortfolio. Total portfolio DSCR is weighted by loan balance. Lender concentration &gt;40% = concentration risk (red). Geographic concentration &gt;50% = regional risk (red). Refi opportunities require 6+ months seasoning and current LTV &lt;75%.
-              </div>
-            </>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: actionColor }}>{action}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
-      </div>
-    </PageShell>
+      </section>
+    </DcShell>
   );
 }

@@ -11,6 +11,7 @@ export type PageView =
   | "investors"
   | "faq"
   | "blog"
+  | "blog-post"
   | "case-studies"
   | "rate-quiz"
   | "external"
@@ -81,9 +82,16 @@ const ROUTE_MAP: Record<string, PageView> = {
 export function resolveRoute(href: string): PageView {
   try {
     const url = new URL(href, "http://localhost");
-    const path = url.pathname;
+    let path = url.pathname;
+    if (path.length > 1 && path.endsWith("/")) {
+      path = path.slice(0, -1);
+    }
     if (ROUTE_MAP[path]) return ROUTE_MAP[path];
-    if (path.startsWith("/blog/")) return "blog";
+    if (path.startsWith("/blog/")) {
+      const slug = path.replace("/blog/", "").replace(/\/$/, "");
+      if (slug.length > 0) return "blog-post";
+      return "blog";
+    }
     if (path.startsWith("/case-studies/")) return "case-studies";
     if (path.startsWith("/book-demo")) return "book-demo";
     if (path.startsWith("/tools/")) {
@@ -116,7 +124,7 @@ export function resolveRoute(href: string): PageView {
  * external subdomains, asset files) fall through to normal browser navigation.
  */
 export function isKnownRoute(href: string): boolean {
-  const path = (() => {
+  let path = (() => {
     try {
       return new URL(href, "http://localhost").pathname;
     } catch {
@@ -124,6 +132,9 @@ export function isKnownRoute(href: string): boolean {
     }
   })();
   if (!path || !path.startsWith("/")) return false;
+  if (path.length > 1 && path.endsWith("/")) {
+    path = path.slice(0, -1);
+  }
   if (path === "/") return true;
   if (ROUTE_MAP[path]) return true;
   if (path.startsWith("/book-demo")) return true;

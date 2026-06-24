@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Component, lazy, Suspense } from "react";
+import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -44,6 +44,7 @@ const LenderIntelPage     = lazy(() => import("./pages/LenderIntelPage"));
 const StateLawsPage       = lazy(() => import("./pages/StateLawsPage"));
 const FAQPage             = lazy(() => import("./pages/FAQPage"));
 const BlogPage            = lazy(() => import("./pages/BlogPage"));
+const BlogPostPage        = lazy(() => import("./pages/BlogPostPage"));
 const RateQuizPage        = lazy(() => import("./pages/RateQuizPage"));
 const RefiTrackerPage     = lazy(() => import("./pages/RefiTrackerPage"));
 const ARMPage             = lazy(() => import("./pages/ARMPage"));
@@ -106,6 +107,7 @@ function viewToPath(view: PageView): string {
     case "legal":             return "/legal";
     case "products":          return "/products";
     case "solutions":         return "/solutions";
+    case "book-demo":         return "/book-demo";
     case "external":          return "/external";
   }
 }
@@ -145,6 +147,14 @@ export default function App() {
     }
   };
 
+  // Hold the latest goTo + view in refs so the global click listener can be
+  // registered exactly once (below) instead of being torn down and re-added on
+  // every render. Listener churn is a subtle source of double-handling.
+  const goToRef = useRef(goTo);
+  goToRef.current = goTo;
+  const viewRef = useRef(view);
+  viewRef.current = view;
+
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented) return;
@@ -155,6 +165,12 @@ export default function App() {
       if (!target) return;
       const anchor = target.closest("a") as HTMLAnchorElement | null;
       if (!anchor) return;
+      // On React (non-marketing) routes, ignore any anchor that lives inside the
+      // hidden Webflow marketing root. Those nav/footer links must never drive
+      // SPA navigation — they can't be user-clicked while hidden, and blocking
+      // them here stops the embedded marketing markup/scripts from hijacking
+      // routing on React pages (the V8 route-drift bug).
+      if (viewRef.current !== "marketing" && anchor.closest("#webflow-root")) return;
       if (anchor.target === "_blank") return;
       if (anchor.hasAttribute("data-external")) return;
       if (anchor.hasAttribute("download")) return;
@@ -170,11 +186,11 @@ export default function App() {
       if (!isKnownRoute(href)) return;
 
       e.preventDefault();
-      goTo(resolveRoute(href));
+      goToRef.current(resolveRoute(href));
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
-  }, [goTo]);
+  }, []);
 
   useEffect(() => {
     document.body.style.backgroundColor = "#EEEFD3";
@@ -189,17 +205,35 @@ export default function App() {
     const isMarketing = view === "marketing";
     const wfRoot = document.getElementById("webflow-root");
     const reactRoot = document.getElementById("root");
-    if (wfRoot) wfRoot.style.display = isMarketing ? "block" : "none";
+    if (wfRoot) {
+      wfRoot.style.display = isMarketing ? "block" : "none";
+      // Belt-and-suspenders: the hidden marketing root must not intercept
+      // pointer events or be reachable on React routes.
+      wfRoot.style.pointerEvents = isMarketing ? "" : "none";
+      wfRoot.setAttribute("aria-hidden", isMarketing ? "false" : "true");
+    }
     if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
 
-    if (isMarketing && typeof (window as any).initAnimations === "function") {
+    const w = window as any;
+    if (isMarketing) {
+      // Marketing DOM is now visible — (re)initialize its GSAP/Swiper layer.
       setTimeout(() => {
         try {
-          (window as any).initAnimations();
+          if (typeof w.initAnimations === "function") w.initAnimations();
+          if (typeof w.__gsStartMarketing === "function") w.__gsStartMarketing();
         } catch (e) {
           console.error("Failed to re-initialize marketing animations:", e);
         }
       }, 50);
+    } else {
+      // Leaving (or never entering) marketing: tear down ScrollTrigger /
+      // Swiper / intervals / handlers so the embedded Webflow scripts can't
+      // hijack scroll or history on React pages.
+      try {
+        if (typeof w.__gsStopMarketing === "function") w.__gsStopMarketing();
+      } catch (e) {
+        console.error("Failed to tear down marketing animations:", e);
+      }
     }
   }, [view]);
 
@@ -221,57 +255,61 @@ export default function App() {
           />
         );
       case "dscr-calculator":
-        return <DSCRCalculatorPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <DSCRCalculatorPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "lender-intel":
-        return <LenderIntelPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <LenderIntelPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
-        return <StateLawsPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <StateLawsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "faq":
-        return <FAQPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <FAQPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "blog":
         return <BlogPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "blog-post":
+        return <BlogPostPage key={pathname} path={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "case-studies":
         return <CaseStudiesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "rate-quiz":
-        return <RateQuizPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "deal-analyzer":
-        return <DealAnalyzerPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <DealAnalyzerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "borrower-profiles":
-        return <BorrowerProfilesPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers":
-        return <BrokersPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <BrokersPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers-partner":
-        return <BrokersPortalPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <BrokersPortalPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "investors":
-        return <InvestorsPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <InvestorsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "about":
-        return <AboutPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <AboutPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "careers":
-        return <CareersPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <CareersPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "legal":
         return <LegalPage key={pathname} path={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "products":
-        return <ProductsPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ProductsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "solutions":
-        return <SolutionsPage onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <SolutionsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "book-demo":
+        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "refi-tracker":
-        return <RefiTrackerPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <RefiTrackerPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "arm-reset":
-        return <ARMPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ARMPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "monte-carlo":
-        return <MonteCarloPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <MonteCarloPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "returns":
-        return <ReturnsPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ReturnsPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "tax-engine":
-        return <TaxEnginePage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <TaxEnginePage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "stress-matrix":
-        return <StressMatrixPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <StressMatrixPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "decision-support":
-        return <DecisionSupportPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <DecisionSupportPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "str-underwriting":
-        return <STRUnderwritingPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <STRUnderwritingPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "portfolio":
-        return <PortfolioPage onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <PortfolioPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
           window.location.href = "https://www.greenstreet.com";
@@ -280,11 +318,15 @@ export default function App() {
     }
   };
 
+  function PageRenderer() {
+    return <>{renderPage()}</>;
+  }
+
   return (
     <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <div className="font-sans antialiased text-slate-800">
-          {renderPage()}
+          <PageRenderer />
         </div>
       </Suspense>
     </ErrorBoundary>

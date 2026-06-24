@@ -224,7 +224,7 @@ export function getDSCRGradient(dscr: number): DSCRGradient {
 //
 // Track 2 (Investor Survival):
 //   (Gross × (1-Vacancy) - Management - Maintenance) / PITIA
-//   - LTR vacancy: 8%, STR vacancy: 25%, MTR: 12%
+//   - LTR vacancy: 8%, STR vacancy: 8%, MTR: 8% (standardized to 8%)
 //   - Management: 8% of gross
 //   - Maintenance: 5% of gross
 //
@@ -233,8 +233,8 @@ export function getDSCRGradient(dscr: number): DSCRGradient {
 
 // Track 2 default expense rates
 const TRACK2_LT_VACANCY_PCT = 8;
-const TRACK2_STR_VACANCY_PCT = 25;
-const TRACK2_MTR_VACANCY_PCT = 12;
+const TRACK2_STR_VACANCY_PCT = 8;
+const TRACK2_MTR_VACANCY_PCT = 8;
 const TRACK2_MANAGEMENT_PCT = 8;
 const TRACK2_MAINTENANCE_PCT = 5;
 
