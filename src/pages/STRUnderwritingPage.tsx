@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
 
@@ -9,7 +8,7 @@ import {
   AnimatedNumber,
   PremiumInput
 } from "./PageShell";
-import { evaluateSTRUnderwriting, checkSTRLegality, computeSTRMonthlySeasonality, US_NATIONAL_STR_SEASONALITY } from "../engine/strUnderwriting";
+import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
 import type { PropertyInputs } from "../engine/types";
@@ -57,9 +56,14 @@ export default function STRUnderwritingPage({ onBack, onNavigate }: { onBack: ()
         hoaSTRPolicy: "UNKNOWN",
       };
       const loanAmount = purchasePrice * (1 - ltv / 100);
-      const underwriting = evaluateSTRUnderwriting(property, loanAmount, rate, 30, 0, annualTaxes, annualInsurance, hoa, 0);
-      const legality = checkSTRLegality(state, "SFR", false, "UNKNOWN");
-      const seasonality = computeSTRMonthlySeasonality(US_NATIONAL_STR_SEASONALITY, strRent);
+      const underwriting = evaluateSTRUnderwriting(property, loanAmount, rate, 30, "0", annualTaxes, annualInsurance, hoa, 0);
+      // checkSTRLegality needs the full 9-arg jurisdiction signature. The page
+      // exposes only state, so the rest default to a conservative
+      // UNKNOWN-HOA / no-permit / moderate-enforcement profile.
+      const legality = checkSTRLegality(state, "", "UNKNOWN", false, true, 0, false, "MODERATE", false);
+      // Monthly seasonality is already computed inside evaluateSTRUnderwriting;
+      // reuse it instead of recomputing (engine owns the haircut + PITIA math).
+      const seasonality = underwriting.monthlySeasonality;
       return { underwriting, legality, seasonality, loanAmount };
     } catch (e) {
       return null;
@@ -122,7 +126,7 @@ export default function STRUnderwritingPage({ onBack, onNavigate }: { onBack: ()
                     {result.legality.incomeEnabled ? "STR INCOME USED" : "LTR ONLY"}
                   </div>
                 </div>
-                <p style={{ color: "#aaa", fontSize: "13px", marginTop: "12px", lineHeight: 1.6 }}>{result.legality.detail}</p>
+                <p style={{ color: "#aaa", fontSize: "13px", marginTop: "12px", lineHeight: 1.6 }}>{result.legality.summary}</p>
               </AnimatedCard>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "20px" }}>
@@ -158,15 +162,15 @@ export default function STRUnderwritingPage({ onBack, onNavigate }: { onBack: ()
                 <div style={sectionTitle}>Monthly Seasonality (engine.computeSTRMonthlySeasonality)</div>
                 <div style={{ fontSize: "11px", color: "#888", marginBottom: "12px" }}>National average STR monthly index (100 = annual mean). Multiply projected annual rent by these to get month-by-month revenue.</div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "6px" }}>
-                  {result.seasonality.map((m, i) => {
-                    const height = Math.max(20, (m.factor / 130) * 100);
-                    const color = m.factor >= 110 ? MINT : m.factor >= 95 ? YELLOW : "#ff6b6b";
+                  {(result.seasonality?.months ?? []).map((m, i) => {
+                    const height = Math.max(20, (m.seasonalityIndex / 130) * 100);
+                    const color = m.seasonalityIndex >= 110 ? MINT : m.seasonalityIndex >= 95 ? YELLOW : "#ff6b6b";
                     return (
                       <div key={i} style={{ background: "rgba(0,55,56,0.04)", borderRadius: "6px", padding: "8px 4px", textAlign: "center" }}>
                         <div style={{ fontSize: "10px", color: "#888", marginBottom: "4px" }}>{MONTHS[i]}</div>
-                        <div style={{ height: `${height}px`, background: `${color}44`, borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", color, fontWeight: 700, fontSize: "11px", marginBottom: "4px" }}>{m.factor}</div>
+                        <div style={{ height: `${height}px`, background: `${color}44`, borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", color, fontWeight: 700, fontSize: "11px", marginBottom: "4px" }}>{m.seasonalityIndex}</div>
                         <div style={{ fontSize: "11px", color: CREAM, fontWeight: 700 }}>
-                          <AnimatedNumber value={m.monthlyRent} format={(v) => `$${Math.round(v).toLocaleString()}`} />
+                          <AnimatedNumber value={m.projectedRevenue} format={(v) => `$${Math.round(v).toLocaleString()}`} />
                         </div>
                       </div>
                     );
