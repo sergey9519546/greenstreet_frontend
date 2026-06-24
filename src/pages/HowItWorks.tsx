@@ -22,8 +22,8 @@ const STEPS = [
   },
   {
     icon: "🏦",
-    title: "Match the lenders",
-    body: "Your deal is priced against 11 verified DSCR lenders at once. See who fits on FICO, DSCR floor, LTV, and property type — ranked best to weak.",
+    title: "Match the program",
+    body: "See which Greenstreet program fits — DSCR for 1–4 units, multi-family, or foreign national. Ranked by how well your FICO, LTV, and DSCR qualify.",
   },
   {
     icon: "🗺️",
@@ -33,12 +33,12 @@ const STEPS = [
   {
     icon: "🧩",
     title: "Structure the deal",
-    body: "Pick the borrower lane — first-timer, STR operator, portfolio, ITIN, cash-out — and the structure and rate tier that actually fund it.",
+    body: "Pick the borrower lane — first-timer, STR operator, portfolio, ITIN, cash-out — and the Greenstreet structure and rate tier that actually funds it.",
   },
   {
     icon: "🔒",
     title: "Lock the rate",
-    body: "Take the shortlist and the numbers to the broker. No surprises at underwriting — every figure is the one the lender will see.",
+    body: "Take the program match and the numbers to your broker. No surprises at underwriting — every figure is the one Greenstreet will see.",
   },
 ];
 

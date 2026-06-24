@@ -22,7 +22,7 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
   return (
     <PageShell
       title="Borrower Profiles"
-      subtitle="Which DSCR lane fits your situation? Six borrower archetypes and the lenders that price each one cleanly."
+      subtitle="Which DSCR lane fits your situation? Six borrower archetypes and the Greenstreet programs built for each one."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ marginBottom: "40px", padding: "32px", background: "rgba(0,101,101,0.08)", borderRadius: "14px", border: "1px solid rgba(0,101,101,0.22)" }}>
@@ -58,7 +58,7 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
             <div style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "20px", background: "rgba(0,101,101,0.12)", color: MINT, border: `1px solid ${MINT}`, alignSelf: "flex-start", textTransform: "uppercase", letterSpacing: "0.06em" }}>{c.tag}</div>
             <h3 style={{ fontSize: "20px", fontWeight: 700, color: CREAM, lineHeight: 1.2 }}>{c.title}</h3>
             <p style={{ fontSize: "14px", color: "#4a5d5d", lineHeight: 1.6, flex: 1 }}>{c.body}</p>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: MINT, textDecoration: "underline", textUnderlineOffset: "3px" }}>See lenders →</div>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: MINT, textDecoration: "underline", textUnderlineOffset: "3px" }}>Get started →</div>
           </AnimatedCard>
         ))}
       </div>
@@ -102,7 +102,7 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
 
       <div style={{ marginTop: "32px", padding: "32px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
         <h3 style={{ fontSize: "22px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Not sure which profile you fit?</h3>
-        <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Answer 4 questions, get a lender shortlist. No signup, no email required.</p>
+        <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Answer 5 questions, get your Greenstreet program match. No signup, no email required.</p>
         <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>
           Take the Rate Quiz
         </AnimatedButton>

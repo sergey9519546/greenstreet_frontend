@@ -7,10 +7,10 @@ const MINT = swatch.rainforest;
 const CREAM = swatch.midnight;
 
 const AUDIENCES = [
-  { href: "/brokers", icon: "🤝", title: "Mortgage Brokers", desc: "Submit a deal once, get the best structure across 11 lenders. Keep your borrower, earn the spread.", cta: "For Brokers" },
-  { href: "/investors", icon: "📈", title: "Real Estate Investors", desc: "Six investment strategies, the DSCR each requires, and the lenders that fund them — buy-and-hold to BRRRR.", cta: "For Investors" },
-  { href: "/borrower-profiles", icon: "👤", title: "By Borrower Profile", desc: "First-timer, STR operator, portfolio builder, ITIN, cash-out — find the lane that fits and the lenders behind it.", cta: "Borrower Profiles" },
-  { href: "/rate-quiz", icon: "⚡", title: "Just Want a Rate?", desc: "Four questions to a realistic rate tier and the lender names behind it. No email, no signup.", cta: "Rate Quiz" },
+  { href: "/brokers", icon: "🤝", title: "Mortgage Brokers", desc: "Submit a deal once, get the best Greenstreet program match and structure. Keep your borrower, earn the spread.", cta: "For Brokers" },
+  { href: "/investors", icon: "📈", title: "Real Estate Investors", desc: "Six investment strategies, the DSCR each requires, and the Greenstreet programs that fund them — buy-and-hold to BRRRR.", cta: "For Investors" },
+  { href: "/borrower-profiles", icon: "👤", title: "By Borrower Profile", desc: "First-timer, STR operator, portfolio builder, ITIN, cash-out — find the lane that fits and the Greenstreet program behind it.", cta: "Borrower Profiles" },
+  { href: "/rate-quiz", icon: "⚡", title: "Just Want a Rate?", desc: "Five questions to a realistic rate tier and your Greenstreet program match. No email, no signup.", cta: "Rate Quiz" },
 ];
 
 export default function SolutionsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
