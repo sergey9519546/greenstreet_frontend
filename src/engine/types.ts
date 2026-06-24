@@ -1494,3 +1494,15 @@ export interface IRRWaterfallResult {
   // Summary text
   summary: string;
 }
+
+// ─── Audit log (ComplianceDashboard history) ──────────────────────────────────
+export interface AuditLog {
+  id?: string;
+  userId: string;
+  userEmail: string;
+  type: "analyze" | "lender-search" | "state-rules";
+  title: string;
+  timestamp: string;
+  input: string;
+  output: any;
+}

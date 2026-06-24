@@ -1,14 +1,28 @@
-// @ts-nocheck
 // Greenstreet design kit — Webflow-faithful primitives (clean React, no Webflow JS).
 // Mirrors u-theme-brand/-dark/-light, the type scale, themed buttons/cards.
 import React from "react";
 import { themes, type, font, radius, space, swatch } from "../theme";
+import type { CSSProperties, ReactNode, MouseEventHandler } from "react";
 
-const ThemeCtx = React.createContext(themes.light);
+// ThemeCtx holds the active theme palette. We type it as the union of all
+// theme literal shapes so providers can swap palettes (light/brand/dark) at
+// runtime without TS narrowing complaints. Each variant still carries `as
+// const` swatches so style values stay precise downstream.
+type AnyTheme = (typeof themes)[keyof typeof themes];
+const ThemeCtx = React.createContext<AnyTheme>(themes.light);
 export const useTheme = () => React.useContext(ThemeCtx);
 
+interface SectionProps {
+  theme?: "light" | "dark" | "brand";
+  space?: "none" | "tight" | "section";
+  first?: boolean;
+  children?: ReactNode;
+  style?: CSSProperties;
+  id?: string;
+}
+
 // Themed full-bleed band with centered container + section spacing.
-export function Section({ theme = "light", space: pad = "section", first = false, children, style, id }) {
+export function Section({ theme = "light", space: pad = "section", first = false, children, style, id }: SectionProps) {
   const t = themes[theme] || themes.light;
   const py = pad === "none" ? 0 : pad === "tight" ? "clamp(40px,5vw,72px)" : space.section;
   return (
@@ -21,7 +35,15 @@ export function Section({ theme = "light", space: pad = "section", first = false
 }
 
 const sizeMap = { display: type.display, h1: type.h1, h2: type.h2, h3: type.h3, h4: type.h4, h5: type.h5 };
-export function Heading({ as = "h2", size = "h2", children, style }) {
+
+interface HeadingProps {
+  as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  size?: keyof typeof sizeMap;
+  children?: ReactNode;
+  style?: CSSProperties;
+}
+
+export function Heading({ as = "h2", size = "h2", children, style }: HeadingProps) {
   const t = useTheme();
   const Tag = as;
   return (
@@ -31,18 +53,38 @@ export function Heading({ as = "h2", size = "h2", children, style }) {
   );
 }
 
-export function Eyebrow({ children, style }) {
+interface EyebrowProps {
+  children?: ReactNode;
+  style?: CSSProperties;
+}
+
+export function Eyebrow({ children, style }: EyebrowProps) {
   const t = useTheme();
   return <div style={{ fontFamily: font.family, fontSize: "12px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: t.muted, marginBottom: "14px", ...style }}>{children}</div>;
 }
 
-export function Body({ children, size = "main", muted = false, style }) {
+interface BodyProps {
+  children?: ReactNode;
+  size?: "main" | "large" | "small";
+  muted?: boolean;
+  style?: CSSProperties;
+}
+
+export function Body({ children, size = "main", muted = false, style }: BodyProps) {
   const t = useTheme();
   const fs = size === "large" ? type.large : size === "small" ? type.small : type.main;
   return <p style={{ fontFamily: font.family, fontSize: fs, lineHeight: 1.65, color: muted ? t.muted : t.text, margin: 0, ...style }}>{children}</p>;
 }
 
-export function Card({ theme, hover = false, children, style, onClick }) {
+interface CardProps {
+  theme?: "light" | "dark" | "brand";
+  hover?: boolean;
+  children?: ReactNode;
+  style?: CSSProperties;
+  onClick?: MouseEventHandler<HTMLDivElement>;
+}
+
+export function Card({ theme, hover = false, children, style, onClick }: CardProps) {
   const parent = useTheme();
   const t = theme ? themes[theme] : parent;
   const [h, setH] = React.useState(false);
@@ -64,8 +106,16 @@ export function Card({ theme, hover = false, children, style, onClick }) {
   );
 }
 
+interface ButtonProps {
+  href?: string;
+  onClick?: MouseEventHandler<HTMLAnchorElement>;
+  variant?: "primary" | "secondary";
+  children?: ReactNode;
+  style?: CSSProperties;
+}
+
 // Primary button with Webflow hover-inversion.
-export function Button({ href, onClick, variant = "primary", children, style }) {
+export function Button({ href, onClick, variant = "primary", children, style }: ButtonProps) {
   const t = useTheme();
   const [h, setH] = React.useState(false);
   const isPrimary = variant === "primary";
@@ -90,7 +140,13 @@ export function Button({ href, onClick, variant = "primary", children, style }) 
   );
 }
 
-export function Pill({ children, tone = "muted", style }) {
+interface PillProps {
+  children?: ReactNode;
+  tone?: "muted" | "lemon" | "dark";
+  style?: CSSProperties;
+}
+
+export function Pill({ children, tone = "muted", style }: PillProps) {
   const t = useTheme();
   const map = {
     muted: { bg: swatch.mint, fg: swatch.midnight },
@@ -101,6 +157,13 @@ export function Pill({ children, tone = "muted", style }) {
   return <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: radius.pill, background: c.bg, color: c.fg, fontSize: "12px", fontWeight: 700, letterSpacing: "0.02em", ...style }}>{children}</span>;
 }
 
-export function Grid({ min = "320px", gap = "20px", children, style }) {
+interface GridProps {
+  min?: string;
+  gap?: string;
+  children?: ReactNode;
+  style?: CSSProperties;
+}
+
+export function Grid({ min = "320px", gap = "20px", children, style }: GridProps) {
   return <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${min}, 1fr))`, gap, ...style }}>{children}</div>;
 }

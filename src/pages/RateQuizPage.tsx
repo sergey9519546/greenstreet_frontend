@@ -208,7 +208,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
             <div style={sectionTitle}>Where to Shop This Quote</div>
             {[
-              { name: "Griffin Funding", note: "Best rate tier, $150K-$20M, all 50+DC, 620 FICO" },
+              { name: "Griffin Funding", note: "Best rate tier, $65K-$4M, all 50+DC, 620 FICO" },
               { name: "Kiavi", note: "Tech-forward, fast close, but 1.10+ DSCR required" },
               { name: "Visio Lending", note: "Sub-1.0 DSCR accepted, STR specialist" },
               { name: "New Silver", note: "$150K-$3M range, instant approval, 14-21 day close" },

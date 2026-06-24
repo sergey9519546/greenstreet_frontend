@@ -21,7 +21,7 @@ const AS_OF = "Jun 22, 2026";
 // 11 lenders with rate-sheet verification. The marketing site references
 // "30+ programs"; this is the verified subset of those programs.
 const LENDERS = [
-  { name: "Griffin Funding", minFICO: 620, minDSCR: 0.75, maxLTV: 80, states: "50+DC", special: "No-ratio option · jumbo to $20M · all 50+DC · IO · ARM from 5.125%", confidence: 85, lastVerified: "Jun 18, 2026" },
+  { name: "Griffin Funding", minFICO: 620, minDSCR: 0.75, maxLTV: 80, states: "50+DC", special: "No-ratio option · jumbo to $4M · all 50+DC · IO · ARM from 5.125%", confidence: 85, lastVerified: "Jun 18, 2026" },
   { name: "Defy Mortgage", minFICO: 640, minDSCR: 0.75, maxLTV: 85, states: "Most states", special: "High-leverage 85% LTV · 640–679 FICO · STR via AirDNA · closes 14–21d", confidence: 80, lastVerified: "Jun 18, 2026" },
   { name: "Easy Street Capital", minFICO: null, minDSCR: 0, maxLTV: 80, states: "Most states", special: "STR specialist · no DSCR minimum · AirDNA 100% pro · waives 12-mo seasoning", confidence: 82, lastVerified: "Jun 18, 2026" },
   { name: "Visio Lending", minFICO: 680, minDSCR: 0.75, maxLTV: 80, states: "48 (no AK/HI)", special: "Flex 0.75–0.99 · lower-of rent logic · broadest STR · no PPP option +0.625%", confidence: 78, lastVerified: "Jun 18, 2026" },

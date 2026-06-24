@@ -150,7 +150,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
             <div style={sectionTitle}>Top Lender Shortlist</div>
             {[
-              { name: "Griffin Funding", rate: rate + result.sa.rateAdj - 0.875, note: "Best rate tier. 50+DC, 620 FICO, jumbo to $20M." },
+              { name: "Griffin Funding", rate: rate + result.sa.rateAdj - 0.875, note: "Best rate tier. 50+DC, 620 FICO, jumbo to $4M." },
               { name: "Kiavi", rate: rate + result.sa.rateAdj - 0.50, note: "Tech-forward, fast close. 1.10+ DSCR required." },
               { name: "Visio Lending", rate: rate + result.sa.rateAdj - 0.10, note: "Sub-1.0 DSCR accepted. STR specialist." },
               { name: "New Silver", rate: rate + result.sa.rateAdj, note: "$150K-$3M, instant approval, 14-21 day close." },

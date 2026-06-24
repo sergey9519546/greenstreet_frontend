@@ -92,14 +92,14 @@ const STATE_REGEX = /^[A-Z]{2}$/;
 
 const DealRequestSchema = z.object({
   // Core — always required
-  purchasePrice: z.number({ error: "purchasePrice must be a number" })
+  purchasePrice: z.number({ message: "purchasePrice must be a number" })
     .positive("purchasePrice must be positive")
     .min(50_000, "purchasePrice must be at least $50,000")
     .max(50_000_000, "purchasePrice must not exceed $50,000,000"),
-  monthlyRent: z.number({ error: "monthlyRent must be a number" })
+  monthlyRent: z.number({ message: "monthlyRent must be a number" })
     .min(0, "monthlyRent cannot be negative")
     .max(1_000_000, "monthlyRent seems unreasonably high"),
-  state: z.string({ error: "state must be a string" })
+  state: z.string({ message: "state must be a string" })
     .transform((s) => s.trim().toUpperCase().slice(0, 2))
     .refine((s) => STATE_REGEX.test(s), "state must be a 2-letter US abbreviation"),
 

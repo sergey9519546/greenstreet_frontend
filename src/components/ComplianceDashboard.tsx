@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { DSCRResult, BreakevenResult, StructureOption, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
-import type { AuditLog } from "../types";
+import type { AuditLog } from "../engine/types";
 import RefiTrackerPage from "../pages/RefiTrackerPage";
 import ARMPage from "../pages/ARMPage";
 import MonteCarloPage from "../pages/MonteCarloPage";

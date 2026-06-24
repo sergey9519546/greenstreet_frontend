@@ -22,7 +22,7 @@ const STEPS = [
 ];
 
 const WHY = [
-  { icon: "🏆", title: "30+ Lender Programs", body: "11 rate-sheet-verified partners (Griffin, Defy, Visio, Kiavi, Angel Oak, Rocket Pro TPO, Easy Street, New Silver, Lima One, Deephaven, American Heritage + new 2026 entrants Insula Capital and UWM Non-QM). Submit once, get the best deal across the verified matrix." },
+  { icon: "🏆", title: "30+ Lender Programs", body: "11 rate-sheet-verified partners (Griffin, Defy, Visio, Kiavi, Angel Oak, Rocket Pro TPO, Easy Street, New Silver, Lima One, Deephaven, American Heritage). Submit once, get the best deal across the verified matrix." },
   { icon: "📊", title: "Live DSCR Modeling", body: "Use our Deal Analyzer before you submit. Know DSCR, break-even rate, and lender eligibility before the conversation starts." },
   { icon: "⚡", title: "No Competing for Your Borrower", body: "We are a wholesale partner. Your borrower stays yours. We process behind the scenes. Always." },
   { icon: "📍", title: "50-State PPP Compliance", body: "We track prepay laws across all 50 states, refreshed Q2 2026. You get flagged before you structure a deal in OH, PA, NJ, or MN with compliance traps." },
