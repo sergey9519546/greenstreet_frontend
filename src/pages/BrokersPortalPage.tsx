@@ -78,7 +78,7 @@ export default function BrokersPortalPage({ onBack, onNavigate }: { onBack: () =
       <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
         <div style={sectionTitle}>What Brokers Tell Us</div>
         {[
-          { quote: "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it - lower down payment, IO for year one. We closed in 19 days.", name: "Alex Stickelman", role: "CCO & COO, Root Financial" },
+          { quote: "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it - lower down payment, IO for year one. We closed in 19 days.", name: "Alex Stickelman", role: "CCO & COO, Vela Capital" },
           { quote: "The program match and state-rule checks mean I stopped second-guessing my quotes. I price the deal and move on.", name: "Sandra Rivera", role: "Mortgage Broker, Miami FL" },
           { quote: "I run eight loans through Greenstreet a week. The CCO actually likes the audit logs - that's new for us.", name: "Robert Hayes", role: "Buy-and-Hold Investor, Austin TX" },
         ].map((t, i) => (
