@@ -166,8 +166,9 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
           Call a DSCR specialist. Most questions get answered the same business day.
         </p>
-        <AnimatedButton onClick={() => window.location.href = "tel:+13324551462"} showArrow={true}>
-          Call +1 (332) 455-1462
+        {/* TODO: replace placeholder with Greenstreet's real line before launch */}
+        <AnimatedButton onClick={() => window.location.href = "tel:+15550100000"} showArrow={true}>
+          Call +1 (555) 010-0000
         </AnimatedButton>
       </AnimatedCard>
     </PageShell>

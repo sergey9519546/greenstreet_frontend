@@ -96,7 +96,8 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
           <AnimatedButton onClick={() => window.location.href = "mailto:deals@greenstreetfinance.com"}>
             Submit a Deal
           </AnimatedButton>
-          <AnimatedButton variant="secondary" onClick={() => window.location.href = "tel:+13324551462"}>
+          {/* TODO: replace placeholder with Greenstreet's real line before launch */}
+          <AnimatedButton variant="secondary" onClick={() => window.location.href = "tel:+15550100000"}>
             Call Us
           </AnimatedButton>
         </div>
