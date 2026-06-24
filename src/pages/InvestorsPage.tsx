@@ -9,7 +9,7 @@ const YELLOW = swatch.lemon;
 
 const TOOLS = [
   { title: "DSCR Calculator", desc: "Dual-track analysis: what gets you qualified and what keeps you solvent.", tag: "free", path: "/dscr-calculator", view: "dscr-calculator" },
-  { title: "Program Match", desc: "See which Greenstreet program fits — Core, Flex, STR, Portfolio, Premier, or Global. One application.", tag: "free", path: "/lender-intel", view: "lender-intel" },
+  { title: "Program Match", desc: "See which Greenstreet program fits — DSCR for 1–4 units, multi-family, or foreign national, plus full-doc and bank-statement options. One application.", tag: "free", path: "/lender-intel", view: "lender-intel" },
   { title: "State Laws", desc: "50-state PPP and usury matrix. Statutory references included.", tag: "free", path: "/state-laws", view: "state-laws" },
   { title: "Sensitivity", desc: "Rent drop, value drop, rate jump. See which one breaks the deal first.", tag: "free", path: "/deal-analyzer", view: "deal-analyzer" },
   { title: "Returns / IRR", desc: "Pre-tax levered IRR with exit math and a 4×4 hold × cap sensitivity grid.", tag: "free", path: "/tools/returns", view: "returns" },
@@ -66,7 +66,7 @@ export default function InvestorsPage({ onBack, onNavigate }: { onBack: () => vo
         {[
           { myth: "DSCR is just rent ÷ payment.", truth: <span>That's Track 1, the lender-qualifying view. Track 2 strips out vacancy, management, and maintenance to show what you'll actually cash-flow. Most brokers only quote Track 1 because it makes the deal look better than it is.</span> },
           { myth: "A 0.1 DSCR improvement is meaningless.", truth: <span>On a $<AnimatedNumber value={400} format={(v) => Math.round(v).toString()} />K deal, <AnimatedNumber value={0.1} format={(v) => v.toFixed(1)} />x DSCR moves the rate by <AnimatedNumber value={25} format={(v) => Math.round(v).toString()} />-<AnimatedNumber value={50} format={(v) => Math.round(v).toString()} />bps. That's $<AnimatedNumber value={80} format={(v) => Math.round(v).toString()} />-<AnimatedNumber value={150} format={(v) => Math.round(v).toString()} />/month. Over a <AnimatedNumber value={30} format={(v) => Math.round(v).toString()} />-year hold, $<AnimatedNumber value={30} format={(v) => Math.round(v).toString()} />K-$<AnimatedNumber value={50} format={(v) => Math.round(v).toString()} />K in interest savings.</span> },
-          { myth: "All DSCR loans price the same.", truth: "Greenstreet writes six programs — Premier, Core, Flex, STR, Portfolio, and Global — and the right one can move your rate 100-150bps. The Program Match tool reads your file and routes you to the best fit." },
+          { myth: "All DSCR loans price the same.", truth: "Greenstreet writes a full menu — DSCR for 1–4 units, multi-family, and foreign nationals, plus full-doc, bank-statement, 1099, and asset-based — and the right program can move your rate 100-150bps. The Program Match tool reads your file and routes you to the best fit." },
           { myth: "A 5/6 ARM is 'free money' for the first 5 years.", truth: "You're betting SOFR stays low for 5 years and that you'll sell or refi before the first reset. The ARM page models 5 scenarios from bullish to crisis - in the bear case, the reset rate exceeds 8%." },
           { myth: "Cash-out always means waiting a year to season.", truth: "Many lenders make you wait 6-12 months. Greenstreet seasons cash-out at six months on qualifying files — and the STR program is built to recycle BRRRR capital faster." },
         ].map((m, i) => (
@@ -84,7 +84,7 @@ export default function InvestorsPage({ onBack, onNavigate }: { onBack: () => vo
             { title: "LTR / Buy-and-Hold", desc: "Single-family or small multifamily, 1-4 doors, long-term tenant. Most common DSCR use case." },
             { title: "STR / Airbnb", desc: "Short-term rental with AirDNA or 12-month history. Higher qualifying rent, more lender-specific rules." },
             { title: "BRRRR", desc: "Buy, rehab, rent, refi, repeat. 6-month seasoning matters — Greenstreet's STR program is built to recycle capital fast." },
-            { title: "Portfolio / 10+ doors", desc: "Multiple properties, blanket loans, cross-collateralization. The Greenstreet Portfolio program is built for this." },
+            { title: "Portfolio / 10+ doors", desc: "Multiple properties, blanket loans, cross-collateralization. The Greenstreet DSCR Multi-Family program is built for this." },
             { title: "Syndication / LP", desc: "Capital stack with multiple investors. The Tax Engine and IRR Waterfall pages are the workhorse here." },
             { title: "Foreign National / ITIN", desc: "No SSN. Hard money or select non-QM. 25-35% down, 100-200bps premium, but doable." },
           ].map((p) => (

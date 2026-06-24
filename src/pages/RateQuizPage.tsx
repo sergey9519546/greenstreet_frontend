@@ -57,9 +57,9 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
 
     const tierInfo = {
       BEST: "Top-tier pricing. You're at the 740+ FICO / ≤75% LTV sweet spot — this is Greenstreet's Premier program, our lowest rate tier.",
-      GOOD: "Solid pricing. Most files here land on Greenstreet Core; a little more FICO or a lower LTV moves you to Premier.",
-      TYPICAL: "Workable. The Greenstreet Flex program and a smaller prepay penalty can sharpen the rate from here.",
-      WEAK: "Tighter file. Greenstreet Flex goes sub-1.0 DSCR to 640 FICO with compensating factors — otherwise, build credit and re-quote.",
+      GOOD: "Solid pricing. Most files land on Greenstreet's standard DSCR 1-4 tier; a little more FICO or a lower LTV moves you into best pricing.",
+      TYPICAL: "Workable. The Greenstreet DSCR 1-4 program (sub-1.0 accepted) and a smaller prepay penalty can sharpen the rate from here.",
+      WEAK: "Tighter file. Greenstreet DSCR 1-4 goes sub-1.0 to 620 FICO with compensating factors — otherwise, build credit and re-quote.",
     }[tier];
 
     return { baseRate, tier, tierColor, eligible, tierInfo };
@@ -207,11 +207,11 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
             <div style={sectionTitle}>Your Greenstreet Program Match</div>
             {[
-              { name: "Greenstreet Premier", note: "Best rate tier — 740+ FICO, 1.25x+ DSCR, ≤75% LTV" },
-              { name: "Greenstreet Core", note: "The everyday DSCR loan — 660 FICO, 1.00x DSCR, up to 80% LTV, to $4M" },
-              { name: "Greenstreet Flex", note: "Sub-1.0 DSCR accepted down to 0.75x with compensating factors" },
-              { name: "Greenstreet STR", note: "Airbnb / VRBO — AirDNA or 12-month history, STR legality checked" },
-              { name: "Greenstreet Global", note: "Foreign national / ITIN — passport plus alternative credit, 30% down" },
+              { name: "Greenstreet DSCR 1-4 — Best tier", note: "Lowest rate — 740+ FICO, ≤75% LTV" },
+              { name: "Greenstreet DSCR 1-4 — Standard", note: "The everyday DSCR loan — 620+ FICO, up to 80% LTV, to $4M" },
+              { name: "Greenstreet DSCR 1-4 — Sub-1.0", note: "Down to 0.75x DSCR with compensating factors" },
+              { name: "Greenstreet DSCR 1-4 — STR", note: "Airbnb / VRBO — AirDNA or 12-month history, STR legality checked" },
+              { name: "Greenstreet DSCR Global", note: "Foreign national / ITIN — passport plus alternative credit, 30% down" },
             ].map((l) => (
               <div key={l.name} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
                 <div style={{ color: MINT, fontWeight: 700, fontSize: "14px" }}>{l.name}</div>

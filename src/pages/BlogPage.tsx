@@ -32,7 +32,7 @@ const POSTS = [
     title: "June 2026 DSCR rate sheet: where the 6.125% specials actually are",
     summary: "The '740 FICO, ≤75% LTV' tier is real on Greenstreet's Premier program — our lowest rate sheet. Here's exactly what it takes to hit it.",
     body: [
-      { p: "Everyone advertises a teaser rate. We broke down Greenstreet's June 2026 program tiers — Premier, Core, and Flex — to show who actually hits the headline number, and under what conditions." },
+      { p: "Everyone advertises a teaser rate. We broke down Greenstreet's June 2026 DSCR 1-4 rate tiers — from the 740-FICO best pricing down to sub-1.0 DSCR — to show who actually hits the headline number, and under what conditions." },
       { h: "The best-tier reality" },
       { list: [
         "The sub-6.5% tier is real, but only at 740+ FICO, ≤75% LTV, DSCR ≥ 1.0, SFR, with a full prepay penalty.",
@@ -104,7 +104,7 @@ const POSTS = [
       { h: "The two haircuts" },
       { list: [
         "80% (most lenders): AirDNA projected annual revenue × 0.80 ÷ 12 becomes qualifying monthly income.",
-        "100% (Greenstreet STR, stabilized): full AirDNA projection, but only with a documented 12-month operating history.",
+        "100% (Greenstreet DSCR 1-4 with STR income, stabilized): full AirDNA projection, but only with a documented 12-month operating history.",
       ]},
       { h: "When to push" },
       { p: "If the property has a real trailing 12-month STR record, push for the 100% lender — the extra 20% of income can lift DSCR over the qualifying line. For a brand-new STR with no history, the 80% haircut is what you'll get, so structure the deal around it." },

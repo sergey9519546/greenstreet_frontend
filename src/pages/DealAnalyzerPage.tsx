@@ -149,11 +149,11 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
             <div style={sectionTitle}>Your Greenstreet Program Options</div>
             {[
-              { name: "Greenstreet Premier", rate: rate + result.sa.rateAdj - 0.875, note: "Best rate tier. 740+ FICO, 1.25x+ DSCR, ≤75% LTV, three months reserves." },
-              { name: "Greenstreet Core", rate: rate + result.sa.rateAdj - 0.50, note: "The everyday DSCR loan. 660 FICO, 1.00x DSCR, up to 80% LTV, loans to $4M." },
-              { name: "Greenstreet Flex", rate: rate + result.sa.rateAdj - 0.10, note: "Sub-1.0 DSCR accepted down to 0.75x with compensating factors." },
-              { name: "Greenstreet STR", rate: rate + result.sa.rateAdj, note: "Airbnb / VRBO. AirDNA or 12-month history. STR legality pre-checked." },
-              { name: "Greenstreet Global", rate: rate + result.sa.rateAdj + 0.10, note: "Foreign national / ITIN. Passport plus alternative credit, 30% down." },
+              { name: "Greenstreet DSCR 1-4 — Best tier", rate: rate + result.sa.rateAdj - 0.875, note: "Lowest rate. 740+ FICO, ≤75% LTV, three months reserves." },
+              { name: "Greenstreet DSCR 1-4 — Standard", rate: rate + result.sa.rateAdj - 0.50, note: "The everyday DSCR loan. 620+ FICO, up to 80% LTV, loans to $4M." },
+              { name: "Greenstreet DSCR 1-4 — Sub-1.0", rate: rate + result.sa.rateAdj - 0.10, note: "Down to 0.75x DSCR with compensating factors." },
+              { name: "Greenstreet DSCR Multi-Family", rate: rate + result.sa.rateAdj, note: "5+ unit and mixed-use. Blanket and portfolio structures." },
+              { name: "Greenstreet DSCR Global", rate: rate + result.sa.rateAdj + 0.10, note: "Foreign national / ITIN. Passport plus alternative credit, 30% down." },
             ].map((l) => (
               <div key={l.name} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

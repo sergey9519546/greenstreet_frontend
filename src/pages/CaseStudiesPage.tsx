@@ -37,7 +37,7 @@ const STUDIES = [
       { val: "12%", label: "Vacancy caught by Track 2" },
     ],
     challenge: "Northshore's brokers were chasing two outside quotes per loan, because checking more meant logging into more portals and re-keying the same file. Pipeline lived in scattered spreadsheets, and the Track 2 question — what the property actually earns after vacancy — rarely made it into the quote.",
-    solution: "Now one file runs through Greenstreet and routes to the right program — Core, Flex, STR, or Premier — in a single screen. Dual-Track DSCR rides along on every quote, so a vacancy gap that would sink a deal surfaces before the number ever reaches the borrower. Pipeline consolidated into one ledger.",
+    solution: "Now one file runs through Greenstreet and routes to the right program — DSCR 1-4, multi-family, or foreign national — in a single screen. Dual-Track DSCR rides along on every quote, so a vacancy gap that would sink a deal surfaces before the number ever reaches the borrower. Pipeline consolidated into one ledger.",
     result: "Brokers stopped chasing outside quotes and started locking same-day with Greenstreet. On one file that sailed through Track 1, Track 2 caught a 12% vacancy gap and flagged it before the borrower saw a number — a decline that protected both sides.",
     quote: "Dual-Track saved a deal our own policy would have waved through. Track 2 caught a 12% vacancy gap before it ever reached the borrower.",
     person: "Priya Ramachandran, Director of Underwriting",

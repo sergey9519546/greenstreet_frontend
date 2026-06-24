@@ -11,7 +11,7 @@ const VALUES = [
 ];
 
 const STATS = [
-  { val: 6, format: (v: number) => Math.round(v).toString(), label: "DSCR programs, one application" },
+  { val: 4, format: (v: number) => `$${Math.round(v)}M`, label: "Max loan amount" },
   { val: 50, format: (v: number) => Math.round(v).toString(), label: "States with prepay + usury rules mapped" },
   { val: 2, format: (v: number) => Math.round(v).toString(), label: "DSCR tracks on every deal" },
   { val: 2026, format: (v: number) => Math.round(v).toString(), label: "Founded" },

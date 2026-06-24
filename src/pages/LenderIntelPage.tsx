@@ -17,9 +17,9 @@ const EMERALD = swatch.emerald;
 const DARK = swatch.darkTeal;
 const AS_OF = "Jun 22, 2026";
 
-// Greenstreet's own DSCR program lineup. One application, six programs —
-// the deal parameters below route to the right one. Greenstreet underwrites
-// and funds these directly; this is not a referral to outside lenders.
+// Greenstreet's program menu — pick your income type, match your deal.
+// Greenstreet underwrites and funds these directly; this is not a referral
+// to outside lenders.
 type Program = {
   name: string;
   tier: string;
@@ -33,12 +33,14 @@ type Program = {
 };
 
 const PROGRAMS: Program[] = [
-  { name: "Greenstreet Premier", tier: "Best rate", tierColor: MINT, minFICO: 740, minDSCR: 1.25, maxLTV: 75, states: "All 50 + DC", special: "Our lowest rate tier for strong files. 740+ FICO, 1.25x+ DSCR, ≤75% LTV, three months reserves. 30-yr fixed or interest-only." },
-  { name: "Greenstreet Core", tier: "Standard", tierColor: DARK, minFICO: 660, minDSCR: 1.00, maxLTV: 80, states: "All 50 + DC", special: "The everyday DSCR loan for buy-and-hold SFR and 2–4 units. 30-yr fixed, 40-yr interest-only, and ARM options. Loans to $4M." },
-  { name: "Greenstreet Flex", tier: "Sub-1.0", tierColor: YELLOW, minFICO: 640, minDSCR: 0.75, maxLTV: 75, states: "All 50 + DC", special: "For tighter cash flow. Qualifies down to 0.75x DSCR with compensating factors — FICO, reserves, or a larger down payment." },
-  { name: "Greenstreet STR", tier: "Short-term rental", tierColor: EMERALD, minFICO: 660, minDSCR: 0.90, maxLTV: 75, states: "All 50 + DC", isSTR: true, special: "Airbnb & VRBO. AirDNA projections or a 12-month operating history accepted. STR legality pre-checked in all 50 states." },
-  { name: "Greenstreet Portfolio", tier: "5+ doors", tierColor: MINT, minFICO: 680, minDSCR: 1.10, maxLTV: 75, states: "All 50 + DC", special: "Blanket and cross-collateralized loans for portfolios. Five to ten-plus financed properties under one loan. Interest-only available." },
-  { name: "Greenstreet Global", tier: "Foreign national / ITIN", tierColor: DARK, minFICO: null, minDSCR: 1.00, maxLTV: 70, states: "All 50 + DC", special: "No SSN required. Passport plus alternative credit, 30% down. Built for international and ITIN investors." },
+  { name: "Greenstreet DSCR 1-4", tier: "DSCR", tierColor: MINT, minFICO: 620, minDSCR: 0.75, maxLTV: 80, states: "All 50 + DC", isSTR: true, special: "DSCR loan for 1–4 unit rentals — qualifies on rent vs PITIA, no tax returns. Long-term or short-term (AirDNA / 12-mo history). Down to 0.75x DSCR with compensating factors. Interest-only available, loans to $4M." },
+  { name: "Greenstreet DSCR Multi-Family", tier: "DSCR", tierColor: MINT, minFICO: 660, minDSCR: 1.00, maxLTV: 75, states: "All 50 + DC", special: "DSCR for 5+ unit and mixed-use property. Blanket and cross-collateralized structures for scaling investors. Loans to $4M." },
+  { name: "Greenstreet DSCR Global", tier: "Foreign national", tierColor: DARK, minFICO: null, minDSCR: 1.00, maxLTV: 70, states: "All 50 + DC", special: "DSCR for foreign nationals & ITIN borrowers. No SSN — passport plus alternative credit, 30% down." },
+  { name: "Greenstreet Full Doc", tier: "Full doc", tierColor: DARK, minFICO: 620, minDSCR: null, maxLTV: 80, states: "All 50 + DC", special: "For investors who document income with tax returns. Up to 80% LTV on investment property, loans to $4M." },
+  { name: "Greenstreet Bank Statement", tier: "Alt doc", tierColor: YELLOW, minFICO: 660, minDSCR: null, maxLTV: 85, states: "All 50 + DC", special: "12–24 months of bank statements for self-employed borrowers. No tax returns, up to 85% LTV." },
+  { name: "Greenstreet 1099", tier: "Alt doc", tierColor: YELLOW, minFICO: 660, minDSCR: null, maxLTV: 85, states: "All 50 + DC", special: "Qualify on 1099 income — one or two years. Built for independent contractors and gig income." },
+  { name: "Greenstreet Asset Utilization", tier: "Alt doc", tierColor: EMERALD, minFICO: 680, minDSCR: null, maxLTV: 80, states: "All 50 + DC", special: "Qualify on liquid assets instead of monthly income. For strong-reserve and retired borrowers." },
+  { name: "Greenstreet Second", tier: "Second lien", tierColor: EMERALD, minFICO: 680, minDSCR: null, maxLTV: 85, states: "All 50 + DC", special: "Closed-end second mortgage to tap equity without disturbing a low-rate first lien. Combined LTV to 85%." },
 ];
 
 export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
@@ -58,7 +60,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
   return (
     <PageShell
       title="Greenstreet DSCR Programs"
-      subtitle={`Six DSCR programs, one application. Set your deal parameters and see exactly which Greenstreet program fits — Premier, Core, Flex, STR, Portfolio, or Global. Underwritten and funded in-house.`}
+      subtitle={`Greenstreet's program menu — pick your income type, match your deal. DSCR for rentals (1–4 unit, multi-family, foreign national), plus full-doc, bank statement, 1099, and asset-based options. Underwritten and funded in-house, loans to $4M.`}
       onBack={onBack} onNavigate={onNavigate}
     >
       {/* Filters */}
@@ -170,7 +172,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
       <AnimatedCard hoverScale={false} style={{ marginTop: "32px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
         <div style={sectionTitle}>Found your program?</div>
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6, maxWidth: "640px" }}>
-          One application covers all six programs — we place your file in the best-fitting one and fund it. No portal-hopping, no re-keying the same deal five times.
+          One application covers the whole menu — we place your file in the best-fitting program and fund it. No portal-hopping, no re-keying the same deal five times.
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
           <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>
