@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from "react";
 
 // Greenstreet Finance logo — text only, in the site's title font (Outfit, weight 600,
