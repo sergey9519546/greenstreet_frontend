@@ -22,23 +22,23 @@ export default function InvestorsPage({ onBack, onNavigate }: { onBack: () => vo
   return (
     <PageShell
       title="For Real Estate Investors"
-      subtitle="The DSCR tool you actually want. Stress tests, after-tax IRR, program match, and exit modeling - all in plain English."
+      subtitle="The DSCR engine you actually want. Know if the deal works before you spend a dollar on appraisal."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "40px" }}>
         <AnimatedCard hoverScale={true} style={{ padding: "32px", background: "rgba(0,101,101,0.08)", borderRadius: "14px", border: "1px solid rgba(0,101,101,0.22)" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, color: MINT, marginBottom: "12px", lineHeight: 1.2 }}>The deal-breaker math, before you wire earnest money.</h2>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, color: MINT, marginBottom: "12px", lineHeight: 1.2 }}>Know if the deal survives before the appraisal is ordered.</h2>
           <p style={{ fontSize: "15px", color: "#4a5d5d", lineHeight: 1.6, marginBottom: "20px" }}>
-            Plug in the numbers. See the Track 1 DSCR, the Track 2 cash flow, the rate headroom, and your Greenstreet program match. Most investors find the binding constraint in the first <AnimatedNumber value={90} format={(v) => Math.round(v).toString()} /> seconds.
+            Plug in the numbers. Track 1 shows what the lender sees. Track 2 shows what you'll actually earn after vacancy, management, and CapEx. Most investors only ever see Track 1 — that's the problem. Find the binding constraint in the first <AnimatedNumber value={90} format={(v) => Math.round(v).toString()} /> seconds.
           </p>
           <AnimatedButton onClick={() => onNavigate("dscr-calculator")} showArrow={true}>
             Open the DSCR Calculator
           </AnimatedButton>
         </AnimatedCard>
         <AnimatedCard hoverScale={true} style={{ padding: "32px", background: "rgba(216,217,88,0.08)", borderRadius: "14px", border: "1px solid rgba(216,217,88,0.2)" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 800, color: YELLOW, marginBottom: "12px", lineHeight: 1.2 }}>After-tax IRR with real depreciation.</h2>
+          <h2 style={{ fontSize: "32px", fontWeight: 800, color: YELLOW, marginBottom: "12px", lineHeight: 1.2 }}>After-tax IRR. With real depreciation, not estimated depreciation.</h2>
           <p style={{ fontSize: "15px", color: "#4a5d5d", lineHeight: 1.6, marginBottom: "20px" }}>
-            Year 1 typically shelters $<AnimatedNumber value={12} format={(v) => Math.round(v).toString()} />K-$<AnimatedNumber value={20} format={(v) => Math.round(v).toString()} />K of taxable income on a $<AnimatedNumber value={400} format={(v) => Math.round(v).toString()} />K deal. Most investors ignore the depreciation shield. Don't be most investors.
+            Year 1 typically shelters $<AnimatedNumber value={12} format={(v) => Math.round(v).toString()} />K–$<AnimatedNumber value={20} format={(v) => Math.round(v).toString()} />K of taxable income on a $<AnimatedNumber value={400} format={(v) => Math.round(v).toString()} />K deal. IRC §168(k) bonus depreciation is permanent under OBBBA. Don't be the investor who ignores the shield.
           </p>
           <AnimatedButton onClick={() => onNavigate("tax-engine")} showArrow={true} style={{ background: YELLOW, borderColor: YELLOW }}>
             Run the Tax Engine
@@ -46,7 +46,7 @@ export default function InvestorsPage({ onBack, onNavigate }: { onBack: () => vo
         </AnimatedCard>
       </div>
 
-      <div style={sectionTitle}>Tools Investors Use Most</div>
+      <div style={sectionTitle}>The full toolkit — all free</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "40px" }}>
         {TOOLS.map((f) => (
           <a key={f.title} href={f.path} style={{ textDecoration: "none" }} onClick={(e) => { e.preventDefault(); onNavigate(f.view); }}>
@@ -62,13 +62,13 @@ export default function InvestorsPage({ onBack, onNavigate }: { onBack: () => vo
       </div>
 
       <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
-        <div style={sectionTitle}>What Investors Get Wrong About DSCR</div>
+        <div style={sectionTitle}>Five myths DSCR investors believe until they lose money</div>
         {[
-          { myth: "DSCR is just rent ÷ payment.", truth: <span>That's Track 1, the lender-qualifying view. Track 2 strips out vacancy, management, and maintenance to show what you'll actually cash-flow. Most brokers only quote Track 1 because it makes the deal look better than it is.</span> },
-          { myth: "A 0.1 DSCR improvement is meaningless.", truth: <span>On a $<AnimatedNumber value={400} format={(v) => Math.round(v).toString()} />K deal, <AnimatedNumber value={0.1} format={(v) => v.toFixed(1)} />x DSCR moves the rate by <AnimatedNumber value={25} format={(v) => Math.round(v).toString()} />-<AnimatedNumber value={50} format={(v) => Math.round(v).toString()} />bps. That's $<AnimatedNumber value={80} format={(v) => Math.round(v).toString()} />-<AnimatedNumber value={150} format={(v) => Math.round(v).toString()} />/month. Over a <AnimatedNumber value={30} format={(v) => Math.round(v).toString()} />-year hold, $<AnimatedNumber value={30} format={(v) => Math.round(v).toString()} />K-$<AnimatedNumber value={50} format={(v) => Math.round(v).toString()} />K in interest savings.</span> },
-          { myth: "All DSCR loans price the same.", truth: "Greenstreet writes a full menu — DSCR for 1–4 units, multi-family, and foreign nationals, plus full-doc, bank-statement, 1099, and asset-based — and the right program can move your rate 100-150bps. The Program Match tool reads your file and routes you to the best fit." },
-          { myth: "A 5/6 ARM is 'free money' for the first 5 years.", truth: "You're betting SOFR stays low for 5 years and that you'll sell or refi before the first reset. The ARM page models 5 scenarios from bullish to crisis - in the bear case, the reset rate exceeds 8%." },
-          { myth: "Cash-out always means waiting a year to season.", truth: "Many lenders make you wait 6-12 months. Greenstreet seasons cash-out at six months on qualifying files — and the STR program is built to recycle BRRRR capital faster." },
+          { myth: "DSCR is just rent ÷ payment.", truth: <span>That's Track 1 — the lender's qualifying view. Track 2 strips out vacancy, management fees, and CapEx reserves to show what you'll actually cash-flow. Most brokers only quote Track 1 because it makes the deal look better than it is. You need both numbers before you sign.</span> },
+          { myth: "A 0.1x DSCR improvement doesn't matter.", truth: <span>On a $<AnimatedNumber value={400} format={(v) => Math.round(v).toString()} />K deal, <AnimatedNumber value={0.1} format={(v) => v.toFixed(1)} />x DSCR moves the rate by <AnimatedNumber value={25} format={(v) => Math.round(v).toString()} />–<AnimatedNumber value={50} format={(v) => Math.round(v).toString()} />bps. That's $<AnimatedNumber value={80} format={(v) => Math.round(v).toString()} />–$<AnimatedNumber value={150} format={(v) => Math.round(v).toString()} />/month. Over a <AnimatedNumber value={30} format={(v) => Math.round(v).toString()} />-year hold, that's $<AnimatedNumber value={30} format={(v) => Math.round(v).toString()} />K–$<AnimatedNumber value={50} format={(v) => Math.round(v).toString()} />K in interest you didn't have to pay.</span> },
+          { myth: "All DSCR loans price the same.", truth: "Greenstreet has seven programs — from high-leverage DSCR to no-ratio, multi-family, and foreign national — and the right program can move your rate 100–150bps. The Program Match tool reads your file and finds the best fit in seconds." },
+          { myth: "A 5/6 ARM is free money for the first 5 years.", truth: "You're betting SOFR stays low for 5 years and that you'll sell or refi before the first reset. The ARM page models 5 SOFR paths from bullish to crisis. In the bear case, the reset rate exceeds 8%. Know the scenario before you sign the note." },
+          { myth: "Cash-out always means waiting 12 months to season.", truth: "Many lenders make you wait. Greenstreet seasons cash-out at six months on qualifying files — and the STR program is designed to recycle BRRRR capital faster than a conventional refi timeline." },
         ].map((m, i) => (
           <div key={i} style={{ padding: "16px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
             <p style={{ fontSize: "14px", color: "#ff6b6b", fontWeight: 600, marginBottom: "6px" }}>✗ Myth: {m.myth}</p>
@@ -78,7 +78,7 @@ export default function InvestorsPage({ onBack, onNavigate }: { onBack: () => vo
       </AnimatedCard>
 
       <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
-        <div style={sectionTitle}>Investor Profiles We Built This For</div>
+        <div style={sectionTitle}>Which investor profile are you?</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
           {[
             { title: "LTR / Buy-and-Hold", desc: "Single-family or small multifamily, 1-4 doors, long-term tenant. Most common DSCR use case." },
@@ -97,8 +97,8 @@ export default function InvestorsPage({ onBack, onNavigate }: { onBack: () => vo
       </AnimatedCard>
 
       <div style={{ marginTop: "32px", padding: "32px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
-        <h3 style={{ fontSize: "24px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Stop reading spreadsheets. Start seeing the deal.</h3>
-        <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Every tool above is free. No email required for the public ones.</p>
+        <h3 style={{ fontSize: "24px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Stop hoping the deal works. Know before you close.</h3>
+        <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Every tool is free. No email required. Open a deal and see what the math says.</p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
           <AnimatedButton onClick={() => onNavigate("dscr-calculator")} showArrow={true}>
             DSCR Calculator

@@ -10,19 +10,19 @@ const YELLOW = swatch.lemon;
 interface NavCard { tag: string; title: string; body: string; href: string; }
 
 const CARDS: NavCard[] = [
-  { tag: "First-time investor", title: "1-2 property borrowers", body: "DSCR loans want 6-12 months PITIA in reserves and a clean credit report. Greenstreet's Core program starts at 660 FICO and Flex reaches 640 — and we walk you through reserves and entity setup.", href: "/solutions/financial-advisors" },
-  { tag: "Portfolio operator", title: "3-10 properties", body: "The Greenstreet DSCR Multi-Family program unlocks here — blanket and cross-collateralized loans that underwrite around your existing book, not each property in isolation.", href: "/solutions/private-funds" },
-  { tag: "Institutional / LP", title: "10+ properties, LLCs, syndications", body: "Cap-stack underwriting, true-cost AEY, and tax-engine modeling. Most portfolio LPs use the engine for IC memos and quarterly LP reporting.", href: "/solutions/hedge-funds" },
-  { tag: "Foreign national", title: "No SSN, foreign citizen", body: "Greenstreet's Global program takes ITIN and foreign-national borrowers — passport plus alternative credit, no SSN required. Expect 25-35% down and a 100-200bps rate premium.", href: "/solutions/ria-registration" },
-  { tag: "STR operator", title: "Airbnb / VRBO host", body: "Greenstreet's STR program accepts AirDNA at 80-100% by file, or a documented 12-month history, with legality pre-checked in all 50 states. NYC Local Law 18 changed the math in September 2023.", href: "/solutions/broker-dealers" },
-  { tag: "Credit-challenged", title: "Sub-660 FICO", body: "Greenstreet's Flex program goes sub-1.0 DSCR to 640 FICO with compensating factors. Below that, you're in hard-money territory at 10%+ rates.", href: "/solutions/service-provider-platform" },
+  { tag: "First-time investor", title: "1–2 properties", body: "DSCR loans care about the property's income, not yours. Greenstreet's Core program starts at 660 FICO; Flex reaches 640. We'll walk you through reserves, entity setup, and what the lender actually needs to see.", href: "/solutions/financial-advisors" },
+  { tag: "Portfolio operator", title: "3–10 properties", body: "This is where blanket loans and cross-collateralization start making sense. Greenstreet's Multi-Family program underwrites around your existing book — not each property in isolation.", href: "/solutions/private-funds" },
+  { tag: "Institutional / LP", title: "10+ properties, LLCs, syndications", body: "Cap-stack underwriting, true-cost AEY, and after-tax IRR modeling. Most portfolio LPs use the Tax Engine for IC memos and quarterly LP reporting before they even pick up the phone.", href: "/solutions/hedge-funds" },
+  { tag: "Foreign national", title: "No SSN, foreign citizen", body: "Greenstreet's Global program takes ITIN and foreign-national borrowers — passport plus alternative credit, no Social Security number required. Expect 25–35% down and a 100–200bps rate premium.", href: "/solutions/ria-registration" },
+  { tag: "STR operator", title: "Airbnb / VRBO host", body: "Greenstreet's STR program accepts AirDNA projections at 80–100% by file, or a documented 12-month history, with STR legality pre-checked in all 50 states. NYC Local Law 18 changed the rules in September 2023 — check before you list.", href: "/solutions/broker-dealers" },
+  { tag: "Credit-challenged", title: "Sub-660 FICO", body: "Greenstreet's Flex program goes to 640 FICO with compensating factors and can handle sub-1.0 DSCR files. Below 640, you're looking at hard-money territory at 10%+ rates.", href: "/solutions/service-provider-platform" },
 ];
 
 export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
   return (
     <PageShell
       title="Borrower Profiles"
-      subtitle="Which DSCR lane fits your situation? Six borrower archetypes and the Greenstreet programs built for each one."
+      subtitle="Six borrower types. Six different DSCR playbooks. Find your lane — and the Greenstreet program that actually funds it."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ marginBottom: "40px", padding: "32px", background: "rgba(0,101,101,0.08)", borderRadius: "14px", border: "1px solid rgba(0,101,101,0.22)" }}>
@@ -51,7 +51,7 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
         </div>
       </div>
 
-      <div style={sectionTitle}>Choose Your Profile</div>
+      <div style={sectionTitle}>Find your profile</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
         {CARDS.map((c) => (
           <AnimatedCard key={c.title} hoverScale={true} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -64,7 +64,7 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
       </div>
 
       <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
-        <div style={sectionTitle}>Documents Most DSCR Lenders Ask For</div>
+        <div style={sectionTitle}>What your lender actually needs from you</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
           {[
             { doc: "Purchase contract (or refinance authorization)", note: "Fully executed. Wholesaler assignments need the assignment addendum too." },
@@ -83,7 +83,7 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
       </AnimatedCard>
 
       <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
-        <div style={sectionTitle}>Common Borrower Mistakes</div>
+        <div style={sectionTitle}>Mistakes borrowers make (and how to avoid them)</div>
         {[
           { mistake: "Not vesting in an LLC", fix: "Most lenders require entity vesting. Going individual adds 25-50bps and may disqualify you from business-purpose loans." },
           { mistake: "Pulling credit too early", fix: "Credit inquiries stay on the report for 12 months for mortgage scoring. Run rate-shopping within a 14-day window to count as one inquiry." },
@@ -101,8 +101,8 @@ export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: (
       </AnimatedCard>
 
       <div style={{ marginTop: "32px", padding: "32px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
-        <h3 style={{ fontSize: "22px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Not sure which profile you fit?</h3>
-        <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Answer 5 questions, get your Greenstreet program match. No signup, no email required.</p>
+        <h3 style={{ fontSize: "22px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Not sure where you fit?</h3>
+        <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Answer 5 questions and get your Greenstreet program match and indicative rate. No signup, no email, no pitch.</p>
         <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>
           Take the Rate Quiz
         </AnimatedButton>

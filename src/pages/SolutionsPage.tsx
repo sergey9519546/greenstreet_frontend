@@ -7,17 +7,17 @@ const MINT = swatch.rainforest;
 const CREAM = swatch.midnight;
 
 const AUDIENCES = [
-  { href: "/brokers", icon: "🤝", title: "Mortgage Brokers", desc: "Submit a deal once, get the best Greenstreet program match and structure. Keep your borrower, earn the spread.", cta: "For Brokers" },
-  { href: "/investors", icon: "📈", title: "Real Estate Investors", desc: "Six investment strategies, the DSCR each requires, and the Greenstreet programs that fund them — buy-and-hold to BRRRR.", cta: "For Investors" },
-  { href: "/borrower-profiles", icon: "👤", title: "By Borrower Profile", desc: "First-timer, STR operator, portfolio builder, ITIN, cash-out — find the lane that fits and the Greenstreet program behind it.", cta: "Borrower Profiles" },
-  { href: "/rate-quiz", icon: "⚡", title: "Just Want a Rate?", desc: "Five questions to a realistic rate tier and your Greenstreet program match. No email, no signup.", cta: "Rate Quiz" },
+  { href: "/brokers", icon: "🤝", title: "Mortgage Brokers", desc: "One application. Seven programs. You keep the borrower relationship and the yield spread — we underwrite and fund in the background.", cta: "For Brokers" },
+  { href: "/investors", icon: "📈", title: "Real Estate Investors", desc: "Stress tests, after-tax IRR, ARM reset modeling, and Greenstreet program match — every tool you need to know if a deal works before you commit to it.", cta: "For Investors" },
+  { href: "/borrower-profiles", icon: "👤", title: "By Borrower Profile", desc: "First-timer, STR operator, BRRRR recycler, ITIN borrower, cash-out refi — find your lane and the Greenstreet program that actually funds it.", cta: "Borrower Profiles" },
+  { href: "/rate-quiz", icon: "⚡", title: "Just want a rate?", desc: "Five questions. A real rate tier and your matched Greenstreet program. No email, no credit pull, no pitch.", cta: "Rate Quiz" },
 ];
 
 export default function SolutionsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
   return (
     <PageShell
-      title="Who We Serve"
-      subtitle="DSCR done right for everyone on the deal — brokers, investors, and every borrower profile in between."
+      title="Who We Work With"
+      subtitle="DSCR is a different kind of lending. Here's the right starting point depending on whether you're a broker, an investor, or a borrower figuring out where you fit."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px,1fr))", gap: "20px" }}>

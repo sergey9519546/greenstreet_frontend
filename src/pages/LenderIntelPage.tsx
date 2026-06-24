@@ -35,12 +35,12 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
   return (
     <PageShell
       title="Greenstreet DSCR Programs"
-      subtitle={`Seven DSCR programs, one application. Set your deal parameters and see exactly which Greenstreet program fits — from maximum-leverage and no-ratio to multi-family and $3.5M jumbo. Underwritten and funded in-house.`}
+      subtitle={`Seven programs. One application. Dial in your deal parameters and see which Greenstreet program fits — from 80% LTV standard to no-ratio, multi-family, and $3.5M jumbo. Every program underwritten and funded in-house.`}
       onBack={onBack} onNavigate={onNavigate}
     >
       {/* Filters */}
       <AnimatedCard hoverScale={false} style={{ marginBottom: "40px" }}>
-        <div style={sectionTitle}>Match Your Deal to a Program</div>
+        <div style={sectionTitle}>Match your deal to a program</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "32px", alignItems: "end" }}>
           <PremiumSlider
             label="Borrower FICO"
@@ -92,7 +92,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
 
       {/* Results */}
       <div style={{ marginBottom: "12px", color: "#5a6b6b", fontSize: "13px" }}>
-        {filtered.length} Greenstreet program{filtered.length !== 1 ? "s" : ""} fit your deal
+        {filtered.length} Greenstreet program{filtered.length !== 1 ? "s" : ""} match your parameters
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {filtered.map(p => (
@@ -143,16 +143,16 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
         ))}
         {filtered.length === 0 && (
           <AnimatedCard hoverScale={false} style={{ textAlign: "center", color: "#5a6b6b", padding: "40px" }}>
-            No standard program fits these exact parameters — but we write exceptions. Adjust DSCR or LTV, or talk to a Greenstreet specialist.
+            No standard program fits these exact parameters. But we write exceptions — talk to a Greenstreet specialist, or try adjusting DSCR or LTV by a click.
           </AnimatedCard>
         )}
       </div>
 
       {/* Apply CTA — the funnel out of this page is always Greenstreet */}
       <AnimatedCard hoverScale={false} style={{ marginTop: "32px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
-        <div style={sectionTitle}>Found your program?</div>
+        <div style={sectionTitle}>Ready to move forward?</div>
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6, maxWidth: "640px" }}>
-          One application covers all seven programs — we place your file in the best-fitting one and fund it. No portal-hopping, no re-keying the same deal five times.
+          One application covers all seven programs — we place your file in the best fit and fund it ourselves. No portal-hopping. No re-keying the same numbers five times. Submit once and close.
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
           <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>

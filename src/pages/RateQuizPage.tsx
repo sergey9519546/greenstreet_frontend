@@ -82,7 +82,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
   const questions = [
     {
       q: "What is the borrower's FICO?",
-      sub: "Pull the middle of three scores. ITIN borrowers use the same range.",
+      sub: "Use the middle score of the three bureaus. ITIN borrowers use alternative credit in the same range.",
       control: (
         <div>
           <PremiumSlider
@@ -102,7 +102,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     },
     {
       q: "What type of property?",
-      sub: "Condos and non-warrantable condos price +0.125%. STR adds another 0.20%.",
+      sub: "Condos add 0.125% to the rate. STR properties add another 0.20% — and narrow the program menu.",
       control: (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
           {(["SFR", "2-4 Unit", "Condo", "STR"] as const).map((t) => (
@@ -125,7 +125,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     },
     {
       q: "What's the LTV?",
-      sub: "Greenstreet prices best at 75% LTV or below. Above 80% needs a strong file (740+ FICO, DSCR ≥ 1.0).",
+      sub: "Greenstreet prices best at ≤75% LTV. Files above 80% need strong compensating factors (740+ FICO, DSCR ≥1.0) to qualify.",
       control: (
         <PremiumSlider
           label="LTV"
@@ -141,7 +141,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     },
     {
       q: "What's the deal DSCR?",
-      sub: "Gross rent ÷ PITIA. Sub-1.0 deals are eligible — they price higher. Use 1.00 if you don't know yet.",
+      sub: "Gross rent ÷ PITIA. Sub-1.0 deals are eligible on select programs — they price higher. Use 1.00 if you don't know yet.",
       control: (
         <PremiumSlider
           label="Deal DSCR"
@@ -157,7 +157,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     },
     {
       q: "Which state is the property in?",
-      sub: "NJ, NY, MD, KS add 0.25% for entity-only or restricted PPP workarounds.",
+      sub: "NJ, NY, MD, and KS add 0.25% for PPP workarounds or entity-only restrictions. MN just got better (HF 3437 effective Aug 2026).",
       control: (
         <PremiumInput
           type="text"
@@ -175,7 +175,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
   return (
     <PageShell
       title="Rate Quiz"
-      subtitle="Five quick questions. Get a realistic rate tier and the Greenstreet programs your deal qualifies for. No email, no signup."
+      subtitle="Five questions. One real rate tier. The Greenstreet programs your deal qualifies for — right now. No email, no signup, no credit pull."
       onBack={onBack} onNavigate={onNavigate}
     >
       {step < questions.length && (
@@ -220,7 +220,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
       {step >= questions.length && (
         <div style={{ maxWidth: "640px", margin: "0 auto" }}>
           <AnimatedCard hoverScale={true} style={{ borderColor: result.tierColor, textAlign: "center" }}>
-            <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT }}>Your Indicative Rate</div>
+            <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT }}>Your Indicative Rate Tier</div>
             <div style={{ fontSize: "72px", fontWeight: 800, color: result.tierColor, lineHeight: 1, marginTop: "8px" }}>
               <AnimatedNumber value={result.baseRate} format={(v) => `${v.toFixed(3)}%`} />
             </div>
@@ -228,14 +228,14 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
             <p style={{ fontSize: "14px", color: "#4a5d5d", lineHeight: 1.6, marginBottom: "20px" }}>{result.tierInfo}</p>
             {!result.eligible && (
               <div style={{ background: "rgba(255,107,107,0.15)", border: "1px solid #ff6b6b", borderRadius: "8px", padding: "12px", marginBottom: "20px" }}>
-                <p style={{ fontSize: "13px", color: "#ff6b6b", fontWeight: 700 }}>Eligibility warning</p>
-                <p style={{ fontSize: "12px", color: "#4a5d5d", marginTop: "4px" }}>This state/FICO/LTV combo won't qualify at most lenders. Talk to a specialist before locking a rate.</p>
+                <p style={{ fontSize: "13px", color: "#ff6b6b", fontWeight: 700 }}>Eligibility flag</p>
+                <p style={{ fontSize: "12px", color: "#4a5d5d", marginTop: "4px" }}>This state/FICO/LTV combination won't clear most underwriting desks. Talk to a Greenstreet specialist before quoting a rate.</p>
               </div>
             )}
           </AnimatedCard>
 
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
-            <div style={sectionTitle}>Your Greenstreet Program Match</div>
+            <div style={sectionTitle}>Matched Greenstreet programs</div>
             {result.matchedPrograms.length === 0 ? (
               <p style={{ color: "#5a6b6b", fontSize: "13px", lineHeight: 1.6 }}>
                 No standard program fits {fico} FICO / {ltv}% LTV / {dscr.toFixed(2)}x DSCR.
@@ -268,7 +268,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
           </div>
 
           <p style={{ fontSize: "11px", color: "#647474", textAlign: "center", marginTop: "20px", lineHeight: 1.5 }}>
-            Indicative only. Actual rates depend on DSCR, property condition, reserves, and lender overlays. This is not a rate lock or credit approval. June 2026 data.
+            Indicative pricing only — not a rate lock or credit approval. Actual rates depend on full DSCR, property condition, verified reserves, and lender overlays. Q2 2026 program data.
           </p>
         </div>
       )}

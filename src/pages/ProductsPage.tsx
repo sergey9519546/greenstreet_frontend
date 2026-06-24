@@ -7,24 +7,24 @@ const MINT = swatch.rainforest;
 const CREAM = swatch.midnight;
 
 const TOOLS = [
-  { href: "/deal-analyzer", icon: "📊", title: "Deal Analyzer", desc: "Full DSCR analysis — Track 1 and Track 2, break-even rate, cash-on-cash. The core engine.", tag: "Most used" },
-  { href: "/dscr-calculator", icon: "🧮", title: "DSCR Calculator", desc: "Quick DSCR and max-purchase-price calc with payment factor, PITIA breakdown, and rate tiers." },
-  { href: "/lender-intel", icon: "🏦", title: "Lender Intelligence", desc: "Filter 7 custom Greenstreet DSCR programs by FICO, DSCR, LTV, and property type. Current Q2 2026 rates." },
-  { href: "/state-laws", icon: "🗺️", title: "State Prepay & Usury Rules", desc: "50-state PPP matrix. OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437." },
-  { href: "/borrower-profiles", icon: "👤", title: "Borrower Profiles", desc: "Find your borrower type and see the lenders, structures, and rates that fit them." },
-  { href: "/rate-quiz", icon: "⚡", title: "Rate Quiz", desc: "Four questions to a realistic rate tier and the lender names behind it. No signup." },
+  { href: "/deal-analyzer", icon: "📊", title: "Deal Analyzer", desc: "The full picture, in one pass. Track 1 (lender qualification), Track 2 (investor survival), break-even rate, and cash-on-cash — before you wire earnest money.", tag: "Most used" },
+  { href: "/dscr-calculator", icon: "🧮", title: "DSCR Calculator", desc: "Quick DSCR and max-purchase-price. Payment factor, PITIA breakdown, and rate tier guidance — when you need an answer in 60 seconds, not 60 minutes." },
+  { href: "/lender-intel", icon: "🏦", title: "Program Intelligence", desc: "Filter 7 custom Greenstreet DSCR programs by FICO, DSCR, LTV, and property type. See exactly which program funds your file — not just which ones advertise." },
+  { href: "/state-laws", icon: "🗺️", title: "State Prepay & Usury Rules", desc: "50-state matrix with statutory citations. OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437 — the compliance traps that kill deals after you think you're done." },
+  { href: "/borrower-profiles", icon: "👤", title: "Borrower Profiles", desc: "Six borrower archetypes — first-timer to foreign national — with the DSCR requirements, down payment, and Greenstreet program each one actually qualifies for." },
+  { href: "/rate-quiz", icon: "⚡", title: "Rate Quiz", desc: "Five questions. A real rate tier. The Greenstreet programs behind it. No email, no signup, no credit pull — just the number." },
 ];
 
 export default function ProductsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
   return (
     <PageShell
-      title="Products"
-      subtitle="One platform. Every step of a DSCR deal — from first quote to rate lock."
+      title="Products & Tools"
+      subtitle="Every step of a DSCR deal — from first quote to rate lock — in one place. Enter a deal once; every tool works from the same numbers."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ maxWidth: "760px", marginBottom: "48px" }}>
         <p style={{ color: "#3f5252", fontSize: "18px", lineHeight: 1.7 }}>
-          Greenstreet connects pricing, program match, compliance, and borrower fit in one place. Enter a deal once and every tool works from the same numbers.
+          Most DSCR tools are calculators duct-taped to a PDF. Greenstreet connects pricing, program match, compliance, and borrower fit in a single engine. The Deal Analyzer and the Rate Quiz read from the same math. What you see is what underwrites.
         </p>
       </div>
 

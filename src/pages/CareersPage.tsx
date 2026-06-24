@@ -8,17 +8,17 @@ const CREAM = swatch.midnight;
 
 const ROLES = [
   { title: "Account Executive", team: "Sales", location: "Remote (US)", type: "Full-time",
-    body: "Own the broker relationship from first demo to first funded deal. You know non-QM, you've sold to mortgage professionals, and you can explain a DSCR rate sheet in your sleep." },
+    body: "You've sold non-QM to mortgage brokers before. You can read a rate sheet without squinting and explain DSCR to a skeptical borrower in 60 seconds flat. You own the broker relationship from first demo to first funded deal — and you're allergic to commission cliffs." },
   { title: "Senior Full-Stack Engineer", team: "Engineering", location: "Remote (US)", type: "Full-time",
-    body: "Build the Deal Engine: the rules engine that prices one deal against 7 custom loan programs in half a second. React, TypeScript, and a server-side math core. You care about correctness and speed equally." },
+    body: "The Deal Engine prices one file against 7 custom programs in half a second. You'll build the rules engine, harden the math core, and ship the UI that brokers reach for every morning. React, TypeScript, server-side arithmetic. You lose sleep when a rounding error slips through." },
   { title: "DSCR Underwriting Lead", team: "Lending", location: "Remote (US)", type: "Full-time",
-    body: "Translate lender rate sheets and overlays into the rule sets that power the engine. You've underwritten non-QM, you read prepay statutes for fun, and you spot a bad deal structure instantly." },
+    body: "You've underwritten non-QM files. You read prepay statutes for fun. You can translate a lender rate sheet into a rule set that a machine can execute — and you spot a bad deal structure before anyone else in the room does." },
   { title: "Broker Success Manager", team: "Customer", location: "Remote (US)", type: "Full-time",
-    body: "Make brokers wildly effective on the platform. Onboard new partners, run deal clinics, and turn the first funded deal into the first fifty." },
+    body: "You turn new partners into power users. Onboard, train, run deal clinics, answer the 10pm question from a broker in the middle of a close. The metric that matters: how fast does their first deal become their fiftieth?" },
   { title: "Product Designer", team: "Design", location: "Remote (US)", type: "Full-time",
-    body: "Design tools brokers reach for every day. Calculators, lender matrices, deal flows — clear, fast, and trustworthy with money on the line." },
+    body: "You're designing tools that brokers use when there's real money on the line — DSCR calculators, lender matrices, deal flow screens. Every decision you make should make the numbers clearer, faster, and harder to misread." },
   { title: "Compliance Counsel", team: "Legal", location: "Remote (US)", type: "Contract",
-    body: "Keep the 50-state prepay and usury matrix correct as laws change. You track state lending statutes and can turn a new bill into a product rule." },
+    body: "The 50-state prepay and usury matrix is only as good as the person updating it. You track state lending statutes as they move and translate new legislation into product rules before anyone gets hurt by the old version." },
 ];
 
 export default function CareersPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
@@ -26,13 +26,13 @@ export default function CareersPage({ onBack, onNavigate }: { onBack: () => void
 
   return (
     <PageShell
-      title="Careers"
-      subtitle="World-class people, an even better team. Help us build the rails for DSCR lending."
+      title="Careers at Greenstreet"
+      subtitle="Small team. Hard problems. Real math. We ship tools that professionals use when money is on the line — come build with us."
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ maxWidth: "760px", marginBottom: "48px" }}>
         <p style={{ color: "#3f5252", fontSize: "18px", lineHeight: 1.7 }}>
-          We're a small, remote-first team building software for real estate investors and the brokers who serve them. We move fast, ship real tools, and care about getting the math right when there's money on the line. If that sounds like you, we want to talk.
+          We're a remote-first team building software that mortgage brokers and real estate investors use when they have a real deal on the line. We move fast, we sweat the math, and we ship tools that are actually useful — not demos that look good in Figma and break in production. If that sounds like your kind of work, we'd like to meet you.
         </p>
       </div>
 
@@ -71,9 +71,9 @@ export default function CareersPage({ onBack, onNavigate }: { onBack: () => void
       </div>
 
       <AnimatedCard hoverScale={false} style={{ marginTop: "48px", maxWidth: "600px", padding: "28px" }}>
-        <div style={sectionTitle}>Don't see your role?</div>
+        <div style={sectionTitle}>Don't see the right role?</div>
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
-          We're always glad to meet sharp people in lending, engineering, and design. Send us a note.
+          We're always glad to meet sharp people in lending, engineering, design, and compliance. Send a note — tell us what you'd build.
         </p>
         <AnimatedButton
           variant="secondary"

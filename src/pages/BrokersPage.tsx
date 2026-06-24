@@ -14,17 +14,17 @@ const FADED = swatch.midnightFaded;
 const AS_OF = "Jun 22, 2026";
 
 const STEPS = [
-  { n: "01", title: "Submit the Deal", body: "Send us the property address, purchase price, rent, and borrower FICO. We'll pre-screen your file against every Greenstreet program in 24 hours." },
-  { n: "02", title: "We Match & Structure", body: "We place your deal in the Greenstreet program with the best rate and highest probability of approval. You get a complete structure: rate, LTV, reserves, PPP options." },
-  { n: "03", title: "You Stay in Control", body: "You own the borrower relationship. We process in the background. You get the yield-spread on origination. No borrower poaching, ever." },
-  { n: "04", title: "Close in 21–30 Days", body: `DSCR closes faster than conventional. No income docs, no employment calls, no bank statement underwriting. Appraisal + title + credit = done. Greenstreet closes clean files in 14–21 days; complex ones 21–30.` },
+  { n: "01", title: "Send us the file", body: "Property address, purchase price, rent, borrower FICO. That's it. We pre-screen against every Greenstreet program and come back with a full structure — rate, LTV, reserves, PPP options — within 24 hours." },
+  { n: "02", title: "We place it, you review it", body: "We match your deal to the Greenstreet program with the highest approval probability and best rate. You get one clean structure with real numbers — not a menu of maybes." },
+  { n: "03", title: "You own the relationship", body: "We process in the background. You stay in front of the borrower. Your yield spread, your repeat client, your referral pipeline. We don't touch your relationship — ever." },
+  { n: "04", title: "Close in 14–30 days", body: `DSCR moves faster than conventional because there are no income docs, no employment calls, no bank statement underwriting. Appraisal + title + credit. Greenstreet closes clean files in 14–21 days; complex ones in 21–30.` },
 ];
 
 const WHY = [
-  { icon: "🏆", title: "A Full Program Menu, One Application", body: "DSCR for 1–4 units, multi-family, and foreign nationals, plus full-doc, bank-statement, 1099, and asset-based — Greenstreet underwrites and funds them all in-house. Submit once; we place your file in the best-fitting program." },
-  { icon: "📊", title: "Live DSCR Modeling", body: "Use our Deal Analyzer before you submit. Know DSCR, break-even rate, and lender eligibility before the conversation starts." },
-  { icon: "⚡", title: "No Competing for Your Borrower", body: "We are a wholesale partner. Your borrower stays yours. We process behind the scenes. Always." },
-  { icon: "📍", title: "50-State PPP Compliance", body: "We track prepay laws across all 50 states, refreshed Q2 2026. You get flagged before you structure a deal in OH, PA, NJ, or MN with compliance traps." },
+  { icon: "🏆", title: "One application. Every program.", body: "DSCR for 1–4 units, multi-family, and foreign nationals — plus full-doc, bank-statement, 1099, and asset-based. Submit once and Greenstreet places your file in the best-fitting program. No hunting across portals." },
+  { icon: "📊", title: "Model the deal before you pitch it", body: "Run your file through the Deal Analyzer before you pick up the phone. Know the DSCR, break-even rate, and program eligibility before the conversation starts — so you never quote what you can't deliver." },
+  { icon: "⚡", title: "We are not your competition", body: "Wholesale means wholesale. Your borrower is yours — before, during, and after close. We underwrite, fund, and step back. Your relationship survives the transaction." },
+  { icon: "📍", title: "50-state compliance, already done", body: "We track prepay and usury law across all 50 states, refreshed Q2 2026. Before you structure a deal in Ohio, Pennsylvania, New Jersey, or Minnesota, the engine has already flagged what you need to know." },
 ];
 
 const ECONOMICS = [
@@ -36,12 +36,11 @@ const ECONOMICS = [
 export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   return (
     <PageShell
-      title="Partner With Us"
-      subtitle={`For mortgage brokers and real estate professionals who want to offer DSCR investment property loans. Last refreshed ${AS_OF}.`}
+      title="Partner With Greenstreet"
+      subtitle={`Non-QM wholesale for mortgage professionals who are tired of chasing lender portals. One relationship. Seven programs. In-house underwriting and funding. Last refreshed ${AS_OF}.`}
       onBack={onBack} onNavigate={onNavigate}
     >
-      {/* Why partner */}
-      <div style={sectionTitle}>Why Greenstreet Finance</div>
+      <div style={sectionTitle}>Why brokers choose Greenstreet</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px", marginBottom: "60px" }}>
         {WHY.map(w => (
           <AnimatedCard key={w.title} themeName="light" hoverScale={true}>
@@ -52,8 +51,7 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
         ))}
       </div>
 
-      {/* How it works */}
-      <div style={sectionTitle}>How It Works</div>
+      <div style={sectionTitle}>How a deal moves through Greenstreet</div>
       <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "60px", maxWidth: "720px" }}>
         {STEPS.map(s => (
           <AnimatedCard key={s.n} style={{ display: "grid", gridTemplateColumns: "60px 1fr", gap: "20px", alignItems: "center" }} hoverScale={true}>
@@ -66,9 +64,8 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
         ))}
       </div>
 
-      {/* Fee structure */}
       <AnimatedCard style={{ maxWidth: "640px", marginBottom: "40px" }} hoverScale={false}>
-        <div style={sectionTitle}>Partner Economics</div>
+        <div style={sectionTitle}>What you earn on a funded deal</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
           {ECONOMICS.map(e => (
             <div key={e.label} style={{ textAlign: "center" }}>
@@ -86,11 +83,10 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
         </div>
       </AnimatedCard>
 
-      {/* CTA */}
       <AnimatedCard style={{ maxWidth: "600px", borderColor: MINT, background: "rgba(0,101,101,0.06)" }} hoverScale={false}>
-        <div style={sectionTitle}>Ready to Submit a Deal?</div>
+        <div style={sectionTitle}>Have a deal ready to go?</div>
         <p style={{ color: "rgba(0,55,56,0.8)", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
-          We pre-screen same day. Submit the property address, rent, and FICO and we'll come back with a full structure.
+          Send us the address, rent, and FICO. We pre-screen same day and come back with a complete structure — rate, LTV, reserves, prepay options.
         </p>
         <div style={{ display: "flex", gap: "12px" }}>
           <AnimatedButton onClick={() => window.location.href = "mailto:deals@greenstreetfinance.com"}>
