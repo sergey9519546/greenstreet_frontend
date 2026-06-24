@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "../components/Logo";
@@ -19,7 +18,7 @@ const NAV: { label: string; view: View }[] = [
   { label: "About", view: "about" },
 ];
 
-const FOOTER: { h: string; links: { label: string; view: View }[] }[] = [
+const FOOTER: { h: string; links: { label: string; view: View; href?: string }[] }[] = [
   {
     h: "Product",
     links: [
