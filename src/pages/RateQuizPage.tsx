@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
+import { DSCR_PROGRAMS } from "../data/dscrPrograms";
 
 import {
   PageShell,
@@ -20,6 +21,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
   const [fico, setFico] = useState(740);
   const [propertyType, setPropertyType] = useState<"SFR" | "2-4 Unit" | "Condo" | "STR">("SFR");
   const [ltv, setLtv] = useState(75);
+  const [dscr, setDscr] = useState(1.20);
   const [state, setState] = useState("TX");
   const [isSTR, setIsSTR] = useState(false);
 
@@ -42,6 +44,8 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     if (propertyType === "Condo") baseRate += 0.125;
     if (propertyType === "2-4 Unit") baseRate += 0.05;
     if (isSTR) baseRate += 0.20;
+    if (dscr < 1.00) baseRate += 0.375;
+    else if (dscr < 1.10) baseRate += 0.125;
 
     if (state === "NJ" || state === "NY" || state === "MD" || state === "KS") baseRate += 0.25;
     if (state === "MN" || state === "PA" || state === "OH") baseRate += 0.10;
@@ -50,20 +54,30 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     const tierColor = tier === "BEST" ? MINT : tier === "GOOD" ? YELLOW : tier === "TYPICAL" ? "#018582" : "#ff6b6b";
 
     const eligible = [
-      fico >= 620 && ltv <= 80,
+      fico >= 620 && ltv <= 85,
       state !== "MD" && state !== "KS",
       isSTR ? (state !== "NJ" || fico >= 700) : true,
     ].every(Boolean);
 
     const tierInfo = {
-      BEST: "Top-tier pricing. You're at the 740+ FICO / ≤75% LTV sweet spot — this is Greenstreet's Premier program, our lowest rate tier.",
-      GOOD: "Solid pricing. Most files land on Greenstreet's standard DSCR 1-4 tier; a little more FICO or a lower LTV moves you into best pricing.",
-      TYPICAL: "Workable. The Greenstreet DSCR 1-4 program (sub-1.0 accepted) and a smaller prepay penalty can sharpen the rate from here.",
-      WEAK: "Tighter file. Greenstreet DSCR 1-4 goes sub-1.0 to 620 FICO with compensating factors — otherwise, build credit and re-quote.",
+      BEST: "Top-tier pricing. 740+ FICO / ≤75% LTV sweet spot — Greenstreet's lowest rate tier.",
+      GOOD: "Solid pricing. Most files land here; a little more FICO or a lower LTV moves you into best pricing.",
+      TYPICAL: "Workable. Strong reserves or a shorter prepay penalty can sharpen the rate from here.",
+      WEAK: "Tighter file. Greenstreet goes sub-1.0 to 620 FICO with compensating factors — otherwise, build credit and re-quote.",
     }[tier];
 
-    return { baseRate, tier, tierColor, eligible, tierInfo };
-  }, [fico, propertyType, ltv, state, isSTR]);
+    // Filter real programs by FICO eligibility + LTV capacity + DSCR tier availability
+    const matchedPrograms = DSCR_PROGRAMS.filter((p) => {
+      if (fico < p.minFICO) return false;
+      if (p.maxLTV < ltv) return false;
+      if (isSTR && !p.isSTR) return false;
+      // check a DSCR tier exists for this DSCR
+      if (dscr < 1.0 && p.dscrFloor > dscr && !p.noRatio) return false;
+      return true;
+    });
+
+    return { baseRate, tier, tierColor, eligible, tierInfo, matchedPrograms };
+  }, [fico, propertyType, ltv, dscr, state, isSTR]);
 
   const questions = [
     {
@@ -126,6 +140,22 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
       ),
     },
     {
+      q: "What's the deal DSCR?",
+      sub: "Gross rent ÷ PITIA. Sub-1.0 deals are eligible — they price higher. Use 1.00 if you don't know yet.",
+      control: (
+        <PremiumSlider
+          label="Deal DSCR"
+          min={0.50}
+          max={1.50}
+          step={0.05}
+          value={dscr}
+          onChange={setDscr}
+          formatValue={(val) => val.toFixed(2) + "x"}
+          ticks={[0.75, 1.00, 1.10, 1.25, 1.50]}
+        />
+      ),
+    },
+    {
       q: "Which state is the property in?",
       sub: "NJ, NY, MD, KS add 0.25% for entity-only or restricted PPP workarounds.",
       control: (
@@ -145,7 +175,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
   return (
     <PageShell
       title="Rate Quiz"
-      subtitle="Four quick questions. We give you a realistic rate tier and the lender names behind it. No email, no signup."
+      subtitle="Five quick questions. Get a realistic rate tier and the Greenstreet programs your deal qualifies for. No email, no signup."
       onBack={onBack} onNavigate={onNavigate}
     >
       {step < questions.length && (
@@ -206,18 +236,22 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
 
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
             <div style={sectionTitle}>Your Greenstreet Program Match</div>
-            {[
-              { name: "Greenstreet DSCR 1-4 — Best tier", note: "Lowest rate — 740+ FICO, ≤75% LTV" },
-              { name: "Greenstreet DSCR 1-4 — Standard", note: "The everyday DSCR loan — 620+ FICO, up to 80% LTV, to $4M" },
-              { name: "Greenstreet DSCR 1-4 — Sub-1.0", note: "Down to 0.75x DSCR with compensating factors" },
-              { name: "Greenstreet DSCR 1-4 — STR", note: "Airbnb / VRBO — AirDNA or 12-month history, STR legality checked" },
-              { name: "Greenstreet DSCR Global", note: "Foreign national / ITIN — passport plus alternative credit, 30% down" },
-            ].map((l) => (
-              <div key={l.name} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
-                <div style={{ color: MINT, fontWeight: 700, fontSize: "14px" }}>{l.name}</div>
-                <div style={{ color: "#4a5d5d", fontSize: "12px", marginTop: "2px" }}>{l.note}</div>
-              </div>
-            ))}
+            {result.matchedPrograms.length === 0 ? (
+              <p style={{ color: "#5a6b6b", fontSize: "13px", lineHeight: 1.6 }}>
+                No standard program fits {fico} FICO / {ltv}% LTV / {dscr.toFixed(2)}x DSCR.
+                Adjust parameters or speak with a specialist — exceptions exist.
+              </p>
+            ) : (
+              result.matchedPrograms.map((p) => (
+                <div key={p.id} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
+                  <div style={{ color: MINT, fontWeight: 700, fontSize: "14px" }}>{p.name}</div>
+                  <div style={{ color: "#4a5d5d", fontSize: "12px", marginTop: "2px" }}>{p.tagline}</div>
+                  <div style={{ color: "#647474", fontSize: "11px", marginTop: "2px" }}>
+                    {p.features.slice(0, 2).join(" · ")}
+                  </div>
+                </div>
+              ))
+            )}
           </AnimatedCard>
 
           <div style={{ textAlign: "center", marginTop: "24px" }}>

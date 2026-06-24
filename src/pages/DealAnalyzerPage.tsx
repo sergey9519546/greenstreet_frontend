@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
+import { DSCR_PROGRAMS, lookupMaxLTV } from "../data/dscrPrograms";
 
 import {
   PageShell,
@@ -20,6 +21,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
   const [downPct, setDownPct] = useState(25);
   const [monthlyRent, setMonthlyRent] = useState(3000);
   const [rate, setRate] = useState(7.0);
+  const [fico, setFico] = useState(720);
   const [state, setState] = useState("TX");
   const [annualTaxes, setAnnualTaxes] = useState(5000);
   const [annualInsurance, setAnnualInsurance] = useState(2000);
@@ -54,8 +56,16 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
     };
     const sa = stateAdjustments[state] || { rateAdj: 0, pppNote: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." };
 
-    return { loanAmount, cashInvested, piMonthly, pitia, dscr, cashFlow, noi, capRate, debtYield, ltv, verdictColor, sa };
-  }, [purchasePrice, downPct, monthlyRent, rate, state, annualTaxes, annualInsurance, hoa]);
+    const ltvNeeded = 100 - downPct;
+    const matchedPrograms = DSCR_PROGRAMS
+      .map((p) => {
+        const offerLTV = lookupMaxLTV(p, fico, loanAmount, dscr >= 0.01 ? dscr : null, "purchase");
+        return offerLTV !== null && offerLTV >= ltvNeeded ? { program: p, offerLTV } : null;
+      })
+      .filter((x): x is { program: typeof DSCR_PROGRAMS[0]; offerLTV: number } => x !== null);
+
+    return { loanAmount, cashInvested, piMonthly, pitia, dscr, cashFlow, noi, capRate, debtYield, ltv, verdictColor, sa, matchedPrograms };
+  }, [purchasePrice, downPct, monthlyRent, rate, fico, state, annualTaxes, annualInsurance, hoa]);
 
   return (
     <PageShell
@@ -71,6 +81,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
             { label: "Down Payment", value: downPct, set: setDownPct, step: 1, suffix: "%" },
             { label: "Monthly Rent (qualifying)", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
             { label: "Note Rate", value: rate, set: setRate, step: 0.125, suffix: "%" },
+            { label: "Borrower FICO", value: fico, set: setFico, step: 20 },
           ].map((f) => (
             <PremiumInput
               key={f.label}
@@ -148,23 +159,27 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
 
           <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
             <div style={sectionTitle}>Your Greenstreet Program Options</div>
-            {[
-              { name: "Greenstreet DSCR 1-4 — Best tier", rate: rate + result.sa.rateAdj - 0.875, note: "Lowest rate. 740+ FICO, ≤75% LTV, three months reserves." },
-              { name: "Greenstreet DSCR 1-4 — Standard", rate: rate + result.sa.rateAdj - 0.50, note: "The everyday DSCR loan. 620+ FICO, up to 80% LTV, loans to $4M." },
-              { name: "Greenstreet DSCR 1-4 — Sub-1.0", rate: rate + result.sa.rateAdj - 0.10, note: "Down to 0.75x DSCR with compensating factors." },
-              { name: "Greenstreet DSCR Multi-Family", rate: rate + result.sa.rateAdj, note: "5+ unit and mixed-use. Blanket and portfolio structures." },
-              { name: "Greenstreet DSCR Global", rate: rate + result.sa.rateAdj + 0.10, note: "Foreign national / ITIN. Passport plus alternative credit, 30% down." },
-            ].map((l) => (
-              <div key={l.name} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ color: CREAM, fontWeight: 700, fontSize: "14px" }}>{l.name}</span>
-                  <span style={{ color: MINT, fontFamily: "monospace", fontWeight: 700, fontSize: "14px" }}>
-                    <AnimatedNumber value={l.rate} format={(v) => `${v.toFixed(3)}%`} />
-                  </span>
+            {result.matchedPrograms.length === 0 ? (
+              <p style={{ color: "#5a6b6b", fontSize: "13px", lineHeight: 1.6 }}>
+                No standard program matches at {fico} FICO / {100 - downPct}% LTV / {result.dscr.toFixed(2)}x DSCR.
+                Adjust FICO, down payment, or talk to a Greenstreet specialist — exceptions exist.
+              </p>
+            ) : (
+              result.matchedPrograms.map(({ program: p, offerLTV }) => (
+                <div key={p.id} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: CREAM, fontWeight: 700, fontSize: "14px" }}>{p.name}</span>
+                    <span style={{ color: MINT, fontFamily: "monospace", fontWeight: 700, fontSize: "13px" }}>
+                      up to {offerLTV}% LTV
+                    </span>
+                  </div>
+                  <p style={{ color: MINT, fontSize: "11px", marginTop: "2px" }}>{p.tagline}</p>
+                  <p style={{ color: "#5a6b6b", fontSize: "11px", marginTop: "2px", lineHeight: 1.4 }}>
+                    {p.features.slice(0, 2).join(" · ")}
+                  </p>
                 </div>
-                <p style={{ color: "#5a6b6b", fontSize: "12px", marginTop: "4px", lineHeight: 1.4 }}>{l.note}</p>
-              </div>
-            ))}
+              ))
+            )}
           </AnimatedCard>
 
           <div style={{ marginTop: "20px", padding: "14px 18px", background: "rgba(0,101,101,0.08)", borderRadius: "10px", border: "1px solid rgba(0,101,101,0.22)", fontSize: "12px", color: "#4a5d5d", lineHeight: 1.6 }}>
