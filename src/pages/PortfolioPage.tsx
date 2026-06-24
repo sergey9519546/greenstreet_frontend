@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
 
@@ -21,14 +20,21 @@ const CREAM = swatch.midnight;
 const YELLOW = swatch.lemon;
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
 
-const SAMPLE_PROPERTIES = [
+// Raw seed shape the page edits in the UI. Enriched into PortfolioProperty
+// (adds name/address/monthlyPITIA/dscr/track2DSCR/isBlanket) in processedProperties.
+type RawProperty = {
+  id: string; purchasePrice: number; monthlyRent: number; state: string;
+  loanBalance: number; rate: number; lender: string; propertyType: string; yearAcquired: number;
+};
+
+const SAMPLE_PROPERTIES: RawProperty[] = [
   { id: "P1", purchasePrice: 425000, monthlyRent: 3000, state: "TX", loanBalance: 318750, rate: 7.0, lender: "Kiavi", propertyType: "SFR" as const, yearAcquired: 2023 },
   { id: "P2", purchasePrice: 380000, monthlyRent: 2900, state: "GA", loanBalance: 304000, rate: 7.25, lender: "Lima One", propertyType: "SFR" as const, yearAcquired: 2022 },
   { id: "P3", purchasePrice: 525000, monthlyRent: 4100, state: "FL", loanBalance: 393750, rate: 6.875, lender: "NewRez", propertyType: "SFR" as const, yearAcquired: 2024 },
 ];
 
 export default function PortfolioPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
-  const [properties, setProperties] = useState<PortfolioProperty[]>(SAMPLE_PROPERTIES);
+  const [properties, setProperties] = useState<RawProperty[]>(SAMPLE_PROPERTIES);
   const [newPurchasePrice, setNewPurchasePrice] = useState(450000);
   const [newMonthlyRent, setNewMonthlyRent] = useState(3200);
   const [newState, setNewState] = useState("TX");
@@ -67,7 +73,7 @@ export default function PortfolioPage({ onBack, onNavigate }: { onBack: () => vo
       const newTrack2NOI = newMonthlyRent * 0.79;
       const newTrack2Dscr = newPITIA > 0 ? newTrack2NOI / newPITIA : 1.0;
 
-      const newDealProp: PortfolioProperty = {
+      const newDealProp = {
         id: "NEW",
         name: "Subject Property",
         address: "",
@@ -85,7 +91,8 @@ export default function PortfolioPage({ onBack, onNavigate }: { onBack: () => vo
         isBlanket: false,
       };
       
-      return analyzePortfolio([...processedProperties, newDealProp], null, { ficoScore: 720 }, 50000);
+      const borrower = buildEngineInputs({ purchasePrice: newPurchasePrice, monthlyRent: newMonthlyRent, state: newState, ficoScore: 720 }).borrower;
+      return analyzePortfolio([...processedProperties, newDealProp], null, borrower, 50000);
     } catch (e) {
       console.error(e);
       return null;
@@ -343,8 +350,8 @@ export default function PortfolioPage({ onBack, onNavigate }: { onBack: () => vo
                   result.refiOpportunities.map((r) => {
                     const prop = properties.find(p => p.id === r.propertyId);
                     const propState = prop?.state ?? "";
-                    const action = r.recommendedAction ?? "REFINANCE";
-                    const detail = r.detail ?? `Save $${r.monthlySavings.toFixed(0)}/mo by refinancing from ${prop?.rate?.toFixed(2)}% to projected ${(r.projectedRate ?? 6.75).toFixed(2)}%`;
+                    const action = r.seasoningMonthsRemaining <= 0 ? "REFINANCE_NOW" : "MONITOR";
+                    const detail = `Save $${r.monthlySavings.toFixed(0)}/mo refinancing from ${r.currentRate.toFixed(2)}% to projected ${r.projectedRate.toFixed(2)}%${r.seasoningMonthsRemaining > 0 ? ` — ${r.seasoningMonthsRemaining} mo seasoning left` : ""}`;
                     return (
                       <div key={r.propertyId} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
