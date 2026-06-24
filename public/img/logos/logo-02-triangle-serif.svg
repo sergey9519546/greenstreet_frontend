@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Greenstreet themed logo — replacement for "split triangle + uppercase serif wordmark" archetype.
-  Layout: geometric triangle mark + serif uppercase wordmark with wide-tracked subline.
-  Theme palette: MIDNIGHT, PISTACHIO, MINT, LEMON, RAINFOREST, EMERALD.
--->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" role="img" aria-label="Themed institutional logo 02">
-  <title>Themed logo — split triangle serif</title>
-  <!-- split triangle: emerald half + lemon half -->
-  <g transform="translate(8,12)">
-    <path d="M28 0 L56 56 L0 56 Z" fill="#4dbd97"/>
-    <path d="M28 0 L56 56 L28 56 Z" fill="#d8d958"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" role="img" aria-label="Ironclad Mortgage">
+  <title>Ironclad Mortgage</title>
+  <!-- Shield mark: strong rectangular shield in midnight with emerald chevron -->
+  <g transform="translate(6,6)">
+    <path d="M30 0 L56 10 L56 40 C56 52 30 60 30 60 C30 60 4 52 4 40 L4 10 Z" fill="#003738"/>
+    <path d="M16 32 L30 20 L44 32 L44 45 L16 45 Z" fill="#4dbd97"/>
+    <path d="M22 45 L22 36 L30 30 L38 36 L38 45 Z" fill="#d8d958"/>
   </g>
-  <g transform="translate(80,0)" font-family='Georgia, "Times New Roman", serif'>
-    <text x="0" y="38" font-size="22" font-weight="600" letter-spacing="0" fill="#003738">CHICAGO PARTNERS</text>
-    <text x="0" y="62" font-size="12" font-weight="400" letter-spacing="0.36em" fill="#006565">WEALTH ADVISORS</text>
+  <g transform="translate(78,8)" font-family='Georgia,"Times New Roman",serif'>
+    <text x="0" y="30" font-size="24" font-weight="700" letter-spacing="0.01em" fill="#003738">IRONCLAD</text>
+    <text x="0" y="52" font-size="13" font-weight="400" letter-spacing="0.22em" fill="#006565">MORTGAGE</text>
   </g>
 </svg>

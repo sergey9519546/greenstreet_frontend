@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Greenstreet themed logo — replacement for "overlapping arcs + bold uppercase" archetype.
-  Layout: dynamic arc motif + heavy sans-serif uppercase wordmark.
-  Theme palette: MIDNIGHT, PISTACHIO, MINT, LEMON, RAINFOREST, EMERALD.
--->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" role="img" aria-label="Themed institutional logo 06">
-  <title>Themed logo — overlapping arcs</title>
-  <!-- overlapping arcs: rainforest + emerald + lemon -->
-  <g transform="translate(12,4)">
-    <path d="M0 36 A36 36 0 0 1 72 36" stroke="#003738" stroke-width="6" fill="none" stroke-linecap="round"/>
-    <path d="M8 36 A28 28 0 0 1 64 36" stroke="#006565" stroke-width="6" fill="none" stroke-linecap="round"/>
-    <path d="M16 36 A20 20 0 0 1 56 36" stroke="#4dbd97" stroke-width="6" fill="none" stroke-linecap="round"/>
-    <circle cx="36" cy="36" r="4" fill="#d8d958"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 72" role="img" aria-label="Harbor Bridge Capital">
+  <title>Harbor Bridge Capital</title>
+  <!-- Bridge cable arc motif -->
+  <g transform="translate(10,10)">
+    <path d="M0 40 Q30 4 60 40" stroke="#003738" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M8 40 Q30 12 52 40" stroke="#006565" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M16 40 Q30 20 44 40" stroke="#4dbd97" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <line x1="0" y1="40" x2="60" y2="40" stroke="#d8d958" stroke-width="2" stroke-linecap="round"/>
+    <line x1="30" y1="4" x2="30" y2="40" stroke="#003738" stroke-width="1.5" stroke-dasharray="3,3"/>
   </g>
-  <g transform="translate(96,0)">
-    <text x="0" y="36" font-family='"Outfit Variable", Outfit, Arial, sans-serif' font-size="26" font-weight="800" letter-spacing="0.02em" fill="#003738">ONYX BRIDGE</text>
-    <text x="0" y="58" font-family='"Outfit Variable", Outfit, Arial, sans-serif' font-size="11" font-weight="500" letter-spacing="0.36em" fill="#808285">WEALTH GROUP</text>
+  <g transform="translate(88,8)" font-family='"Outfit Variable",Outfit,Arial,sans-serif'>
+    <text x="0" y="30" font-size="22" font-weight="700" letter-spacing="0.02em" fill="#003738">HARBOR BRIDGE</text>
+    <text x="0" y="52" font-size="11" font-weight="500" letter-spacing="0.32em" fill="#808285">CAPITAL</text>
   </g>
 </svg>

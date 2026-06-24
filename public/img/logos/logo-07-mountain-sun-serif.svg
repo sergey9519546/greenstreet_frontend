@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Greenstreet themed logo — replacement for "mountains + sun + serif + tagline" archetype.
-  Layout: stacked icon-on-top, multi-tier serif text with tagline.
-  Theme palette: MIDNIGHT, PISTACHIO, MINT, LEMON, RAINFOREST, EMERALD.
--->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 110" role="img" aria-label="Themed institutional logo 07">
-  <title>Themed logo — mountain + sun serif</title>
-  <!-- sun behind mountains -->
-  <circle cx="180" cy="22" r="14" fill="#d8d958"/>
-  <!-- two overlapping mountain silhouettes -->
-  <path d="M120 56 L160 16 L200 56 Z" fill="#003738"/>
-  <path d="M180 56 L210 22 L240 56 Z" fill="#004041"/>
-  <text x="180" y="76" text-anchor="middle" font-family='Georgia, "Times New Roman", serif' font-size="18" font-weight="700" letter-spacing="0.02em" fill="#003738">FINANCIAL STRATEGIES</text>
-  <rect x="100" y="82" width="160" height="14" fill="#003738"/>
-  <text x="180" y="93" text-anchor="middle" font-family='Georgia, "Times New Roman", serif' font-size="10" font-weight="600" letter-spacing="0.18em" fill="#eeefd3">GROUP, INC.</text>
-  <text x="180" y="106" text-anchor="middle" font-family='Georgia, "Times New Roman", serif' font-style="italic" font-size="9" fill="#006565">Your Trusted Advisors</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 72" role="img" aria-label="Clearwater Investment Lending">
+  <title>Clearwater Investment Lending</title>
+  <!-- Wave/water mark: flowing curves -->
+  <g transform="translate(8,8)">
+    <rect width="56" height="56" rx="28" fill="#003738"/>
+    <path d="M10 28 Q20 18 28 28 Q36 38 46 28" stroke="#4dbd97" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M10 36 Q20 26 28 36 Q36 46 46 36" stroke="#d8d958" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="28" cy="20" r="6" fill="#eeefd3" opacity="0.9"/>
+  </g>
+  <g transform="translate(76,8)" font-family='Georgia,"Times New Roman",serif'>
+    <text x="0" y="28" font-size="18" font-weight="700" letter-spacing="0.01em" fill="#003738">CLEARWATER</text>
+    <text x="0" y="50" font-size="12" font-weight="400" letter-spacing="0.2em" fill="#006565">INVESTMENT LENDING</text>
+  </g>
 </svg>
