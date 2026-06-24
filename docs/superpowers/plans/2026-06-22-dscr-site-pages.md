@@ -63,6 +63,7 @@ Informational hrefs → `ContentPage` key:
 ## Task 1: Route resolver (pure function, TDD)
 
 **Files:**
+
 - Create: `src/router/resolve.ts`
 - Test: `src/router/resolve.test.ts`
 - Modify: `package.json`
@@ -70,10 +71,13 @@ Informational hrefs → `ContentPage` key:
 - [ ] **Step 1: Add vitest dev dependency and test script**
 
 Run:
+
 ```bash
 cd greenstreet_frontend && npm install -D vitest@^2.1.0
 ```
+
 Then in `package.json`, inside `"scripts"`, add:
+
 ```json
 "test": "vitest run"
 ```
@@ -81,6 +85,7 @@ Then in `package.json`, inside `"scripts"`, add:
 - [ ] **Step 2: Write the failing test**
 
 Create `src/router/resolve.test.ts`:
+
 ```ts
 import { describe, it, expect } from "vitest";
 import { resolveRoute } from "./resolve";
@@ -126,6 +131,7 @@ Expected: FAIL — `Cannot find module './resolve'`.
 - [ ] **Step 4: Write the resolver implementation**
 
 Create `src/router/resolve.ts`:
+
 ```ts
 export type DashboardTab =
   | "dashboard" | "analyze" | "sensitivity" | "optimize" | "state" | "history" | "settings";
@@ -203,6 +209,7 @@ cd greenstreet_frontend && git add src/router/resolve.ts src/router/resolve.test
 ## Task 2: Page content data
 
 **Files:**
+
 - Create: `src/content/pages.ts`
 
 > **⭐ CANONICAL SOURCE: `UNIFIED_HUB.md`** (project root) is the single source of truth for ALL website copy, naming, numbers, and personas. It is purpose-built, cited to file:line, and split into PART II (Frontend), PART III (Backend/engine), PART IV (Marketing), PART V (Compliance). Prefer its verbatim copy over paraphrase. The richer page content in the **Content Addendum** at the end of this plan is lifted from it — merge those into the `PAGES` map below.
@@ -210,6 +217,7 @@ cd greenstreet_frontend && git add src/router/resolve.ts src/router/resolve.test
 **Naming rule (UNIFIED_HUB §1.1):** customer-facing copy uses only **"Greenstreet Finance"** (brand) + **"Sovereign OS"** (engine). No internal codenames. Already corrected in the live hero + dashboard.
 
 Pinned facts used across pages (UNIFIED_HUB Part I/III + `ANALYSIS/`):
+
 - Non-QM 2025 origination: **$239B / 697,605 loans** (Polygon Research, §1.5); DSCR = **28–30% of non-QM** (HousingWire/Optimal Blue)
 - DSCR origination 2024: **$38B (100K+ properties)**; 2025 thru Oct: **$32.8B (89K)** (SFR Analytics, §1.5)
 - Securitized-pool WA DSCR range **1.10–1.41**, WA FICO **722–758**, WA LTV **68–72%** (§3.8)
@@ -225,6 +233,7 @@ Pinned facts used across pages (UNIFIED_HUB Part I/III + `ANALYSIS/`):
 - [ ] **Step 1: Create the content map with types and all page copy**
 
 Create `src/content/pages.ts`:
+
 ```ts
 export interface PageSection {
   heading: string;
@@ -588,11 +597,13 @@ cd greenstreet_frontend && git add src/content/pages.ts && git commit -m "feat: 
 ## Task 3: ContentPage component
 
 **Files:**
+
 - Create: `src/components/ContentPage.tsx`
 
 - [ ] **Step 1: Create the component**
 
 Create `src/components/ContentPage.tsx`:
+
 ```tsx
 import React from "react";
 import { PAGES, SitePage } from "../content/pages";
@@ -690,11 +701,13 @@ cd greenstreet_frontend && git add src/components/ContentPage.tsx && git commit 
 ## Task 4: Wire the router into App.tsx
 
 **Files:**
+
 - Modify: `src/App.tsx`
 
 - [ ] **Step 1: Replace App.tsx with the routed version**
 
 Replace the entire contents of `src/App.tsx` with:
+
 ```tsx
 import React, { useState, useEffect, useCallback } from "react";
 import MarketingSite from "./components/MarketingSite";
@@ -775,6 +788,7 @@ Expected: 0 errors.
 - [ ] **Step 3: Verify in the preview**
 
 Start/refresh the preview (server name `greenstreet-portal`, port 3000). Then:
+
 - Reload the page.
 - Click nav **Product → DSCR Calculator**. Expected: portal opens on the Analyzer (login/demo screen, then Analyzer tab).
 - From home, click **Who We Serve → Mortgage Brokers**. Expected: ContentPage with title "Price and place every DSCR deal in seconds".
@@ -792,6 +806,7 @@ cd greenstreet_frontend && git add src/App.tsx && git commit -m "feat: route nav
 ## Task 5: Verify portal tab deep-links
 
 **Files:**
+
 - Verify only: `src/components/ComplianceDashboard.tsx` (the `initialTab` prop was added in a prior session)
 
 - [ ] **Step 1: Confirm the prop exists**
@@ -802,15 +817,20 @@ Expected: shows the `initialTab` in the props interface, the destructure, and `u
 - [ ] **Step 2: If any line is missing, add it**
 
 The props interface must read:
+
 ```tsx
 type DashboardTab = "dashboard" | "analyze" | "sensitivity" | "optimize" | "state" | "history" | "settings";
 interface ComplianceDashboardProps { onBackToMarketing: () => void; initialEmail?: string; initialTab?: DashboardTab }
 ```
+
 The signature must read:
+
 ```tsx
 export default function ComplianceDashboard({ onBackToMarketing, initialEmail, initialTab }: ComplianceDashboardProps) {
 ```
+
 The tab state must read:
+
 ```tsx
 const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "dashboard");
 ```
@@ -830,6 +850,7 @@ cd greenstreet_frontend && git add src/components/ComplianceDashboard.tsx && git
 ## Task 6: Full-width layout fix
 
 **Files:**
+
 - Modify: `src/components/ComplianceDashboard.tsx`
 
 The complaint: portal content renders as a narrow column with large empty space. The content wrapper is over-constrained. Fix: widen the main content container and ensure it stretches.
@@ -842,9 +863,11 @@ Expected: a `max-w-*` (e.g. `max-w-3xl`/`max-w-4xl`) with `mx-auto` on the main 
 - [ ] **Step 2: Widen the main content wrapper**
 
 For the wrapper that holds the tab panels (the `<main>` inner container), change the constraint to fill the available space. Replace the narrow class (e.g. `max-w-3xl mx-auto` or `max-w-4xl mx-auto`) with:
+
 ```
 max-w-[1400px] mx-auto w-full
 ```
+
 Apply the same change to the analyzer two-column wrapper if it carries its own narrow `max-w-*`. Do **not** change the sidebar width, colors, spacing scale, or card styles.
 
 - [ ] **Step 3: Verify width in preview**
@@ -864,6 +887,7 @@ cd greenstreet_frontend && git add src/components/ComplianceDashboard.tsx && git
 ## Task 7: Final marketing copy sweep (footer + leftovers)
 
 **Files:**
+
 - Modify: `src/components/MarketingSite.tsx`
 
 Hero, stat cards, the "how it works" headings, testimonial, and section labels were already DSCR-ified in a prior session. This task catches any remaining generic strings (footer links, whitepaper banner, alt text) — **text only, no structural edits**.
@@ -871,14 +895,17 @@ Hero, stat cards, the "how it works" headings, testimonial, and section labels w
 - [ ] **Step 1: List remaining generic strings**
 
 Run:
+
 ```bash
 cd greenstreet_frontend && grep -oE '>[A-Z][^<>]{12,90}<' src/components/MarketingSite.tsx | sed 's/^>//;s/<$//' | grep -iE 'complian|greenboard|champion|advisor|FINRA|surveillance|archiv|WORM|17a-4|eComm' | sort -u
 ```
+
 Expected: a short list of leftover strings (footer/legal/alt text).
 
 - [ ] **Step 2: Replace each leftover with a DSCR equivalent**
 
 For each string the grep returns, apply a `perl -i -pe 's/\QOLD\E/NEW/g'` replacement using these mappings (only apply the ones that appear):
+
 ```
 "Communications Archiving & Supervision" -> "DSCR Calculator"
 "Employee Compliance"                    -> "Lender Intelligence"
@@ -892,7 +919,9 @@ For each string the grep returns, apply a `perl -i -pe 's/\QOLD\E/NEW/g'` replac
 "RIA Registration"                       -> "State Rules"
 "Service Provider Platform"              -> "Capital Markets"
 ```
+
 Example command for one:
+
 ```bash
 cd greenstreet_frontend && perl -i -pe 's/\QFinancial Advisors\E/Mortgage Brokers/g' src/components/MarketingSite.tsx
 ```
@@ -900,9 +929,11 @@ cd greenstreet_frontend && perl -i -pe 's/\QFinancial Advisors\E/Mortgage Broker
 - [ ] **Step 3: Confirm no generic terms remain in visible copy**
 
 Run:
+
 ```bash
 cd greenstreet_frontend && grep -oE '>[A-Z][^<>]{12,90}<' src/components/MarketingSite.tsx | sed 's/^>//;s/<$//' | grep -iE 'FINRA|eComm|WORM|17a-4|compliance champion' | sort -u
 ```
+
 Expected: no output (empty).
 
 - [ ] **Step 4: Type-check and commit**
@@ -916,6 +947,7 @@ cd greenstreet_frontend && npx tsc --noEmit && git add src/components/MarketingS
 ## Task 8: End-to-end verification & graph rebuild
 
 **Files:**
+
 - None (verification only)
 
 - [ ] **Step 1: Run the unit tests**
@@ -931,6 +963,7 @@ Expected: 0 errors.
 - [ ] **Step 3: Click-through every nav destination in the preview**
 
 With the preview running, verify each resolves (no blank screen, no console error):
+
 - Product → Platform / DSCR Calculator / Lender Intelligence / State Regulations / Deal Analyzer / Borrower Profiles → portal opens on the mapped tab.
 - Who We Serve → Mortgage Brokers / Real Estate Investors / DSCR Investors / Wholesale Lenders → correct ContentPage.
 - Book a demo, About, Support, Careers, Blog, Case studies, Terms, Privacy → correct ContentPage.
@@ -942,9 +975,11 @@ Run `preview_console_logs --level error` and confirm no errors.
 - [ ] **Step 4: Rebuild the graphify graph (project rule)**
 
 Run:
+
 ```bash
 cd "C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE" && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"
 ```
+
 Expected: graph rebuild completes without error.
 
 - [ ] **Step 5: Final commit**
@@ -976,6 +1011,7 @@ cd greenstreet_frontend && git add -A && git commit -m "test: verify site routin
 ### B. `products` page — 6 value features (§2.5, verbatim)
 
 Add each as a `PageSection` (heading = feature, body = text):
+
 1. **Dual-Track DSCR, computed correctly** — "Track 1 (Lender Qualification, PITIA, market rent, no vacancy) and Track 2 (Investor Survival, vacancy + mgmt fee + CapEx) — both shown, never blended."
 2. **60+ non-QM programs, one matrix** — "Lender matrices update nightly. DSCR floor, FICO floor, LTV cap, reserve rule, entity policy — matched against your file in seconds."
 3. **STR legality gate & AirDNA** — "STR income is gated by legality. AirDNA Rentalizer with a 20% occupancy haircut, 12-month coverage, market score ≥60, 2-per-bedroom occupancy."
@@ -997,6 +1033,7 @@ Add each as a `PageSection` (heading = feature, body = text):
 ### D. `faq` page — NEW page key `faq` (§2.7, 8 Q&A verbatim)
 
 Add `"/faq" -> "faq"` to `CONTENT_ROUTES` in `resolve.ts` (Task 1), and add a `faq` entry to `PAGES` with these 8 sections (heading = Q, body = A):
+
 1. **What DSCR ratio do I need to qualify?** — "Most non-QM DSCR lenders require a minimum DSCR of 1.20 on Track 1, though programs exist from 1.00 up. Premium pricing starts at 1.25 with FICO ≥680. Greenstreet shows your Track 1 DSCR against every active lender's floor and flags where Track 2 diverges."
 2. **What counts as qualifying rent?** — "For long-term rentals, the higher of FNMA Form 1007/1025 market rent or current lease — provided the difference is ≤20%. Vacant units may use a new lease up to 120% of Form 1007. STR uses the lowest of Form 1007, a 12-month rental history, or AirDNA Rentalizer (20% haircut, market score ≥60)."
 3. **Is interest-only allowed, and does it help my DSCR?** — "Yes — most lenders offer 5/1, 7/1 ARM, and 30-year fixed IO. IO delivers 15–22% denominator relief versus amortizing PITIA, since you qualify on ITIA."
