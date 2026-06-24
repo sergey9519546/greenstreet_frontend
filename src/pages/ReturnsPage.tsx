@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
 
@@ -9,7 +8,7 @@ import {
   AnimatedNumber,
   PremiumInput
 } from "./PageShell";
-import { computeReturns, computeHoldMatrix } from "../engine/returnsEngine";
+import { computeReturns } from "../engine/returnsEngine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
 
 const MINT = swatch.emerald;
@@ -69,8 +68,12 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
         rateLockCost: 0,
       };
       const ret = computeReturns(property, loan, monthlyRent, "LTR", rate, (prepayAtExit / 100) * (purchasePrice * (1 - ltv / 100)));
-      const matrix = computeHoldMatrix(property, loan, monthlyRent, "LTR", rate, holdYears, exitCapRate, rentGrowth);
-      return { ret, matrix };
+      // computeReturns already returns the full hold × rent-growth × exit-cap
+      // sensitivity grid; reuse it instead of recomputing (the prior
+      // computeHoldMatrix call passed objects where numbers were expected).
+      const matrix = ret.holdMatrix;
+      const cashInvested = purchasePrice * (1 - ltv / 100);
+      return { ret, matrix, cashInvested };
     } catch (e) {
       return null;
     }
@@ -103,7 +106,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               label={f.label}
               value={f.value}
               step={f.step}
-              prefixSymbol={f.prefix}
+              prefixSymbol={(f as { prefix?: string }).prefix}
               suffixSymbol={f.suffix}
               onChange={(e) => f.set(+e.target.value)}
             />
@@ -121,7 +124,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               label={f.label}
               value={f.value}
               step={f.step}
-              prefixSymbol={f.prefix}
+              prefixSymbol={(f as { prefix?: string }).prefix}
               suffixSymbol={f.suffix}
               onChange={(e) => f.set(+e.target.value)}
             />
@@ -142,7 +145,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 </div>
                 <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: verdictColor, margin: "8px 0 16px" }}>{verdictLabel}</div>
                 <div style={{ fontSize: "14px", color: "#aaa" }}>
-                  Equity multiple: <strong style={{ color: CREAM }}><AnimatedNumber value={result.ret.equityMultiple} format={(v) => `${v.toFixed(2)}x`} /></strong> · Cash invested: <AnimatedNumber value={result.ret.cashInvested} format={fmt$} />
+                  Equity multiple: <strong style={{ color: CREAM }}><AnimatedNumber value={result.ret.equityMultiple} format={(v) => `${v.toFixed(2)}x`} /></strong> · Cash invested: <AnimatedNumber value={result.cashInvested} format={fmt$} />
                 </div>
               </AnimatedCard>
 
@@ -171,16 +174,16 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                     <thead>
                       <tr>
                         <th style={{ padding: "6px 4px", color: "#888", textAlign: "left", fontWeight: 600 }}>Hold × Rent</th>
-                        {result.matrix.length > 0 && result.matrix[0].cells.map((c: any) => (
+                        {result.matrix.length > 0 && result.matrix[0].map((c) => (
                           <th key={c.rentGrowthPct} style={{ padding: "6px 4px", color: "#888", textAlign: "right", fontWeight: 600 }}>+{c.rentGrowthPct}%</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {result.matrix.map((row: any) => (
-                        <tr key={row.holdYears}>
-                          <td style={{ padding: "6px 4px", color: CREAM, fontWeight: 600 }}>{row.holdYears} yr</td>
-                          {row.cells.map((c: any) => {
+                      {result.matrix.map((row) => (
+                        <tr key={row[0].holdYears}>
+                          <td style={{ padding: "6px 4px", color: CREAM, fontWeight: 600 }}>{row[0].holdYears} yr</td>
+                          {row.map((c) => {
                             const color = c.verdict === "ROBUST" ? MINT : c.verdict === "STABLE" ? YELLOW : c.verdict === "CONDITIONAL" ? "#018582" : c.verdict === "FRAGILE" ? "#ff6b6b" : "#888";
                             return (
                               <td key={c.rentGrowthPct} style={{ padding: "6px 4px", textAlign: "right", color, fontWeight: 700, background: c.verdict === "ROBUST" ? "rgba(77,189,151,0.08)" : "transparent" }}>
@@ -196,7 +199,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               </AnimatedCard>
 
               <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(77,189,151,0.08)", borderRadius: "10px", border: "1px solid rgba(77,189,151,0.2)", fontSize: "12px", color: "#aaa", lineHeight: 1.6 }}>
-                <strong style={{ color: MINT }}>Engine:</strong> src/engine/returnsEngine.ts → computeReturns + computeHoldMatrix. {result.ret.holdMatrix.length * result.ret.holdMatrix[0]?.cells?.length || 16} cells in the sensitivity matrix. Each cell uses proper amortization for remaining balance.
+                <strong style={{ color: MINT }}>Engine:</strong> src/engine/returnsEngine.ts → computeReturns + computeHoldMatrix. {result.ret.holdMatrix.length * (result.ret.holdMatrix[0]?.length ?? 0) || 16} cells in the sensitivity matrix. Each cell uses proper amortization for remaining balance.
               </div>
             </>
           )}
