@@ -8,40 +8,15 @@ import {
   AnimatedButton,
   PremiumSlider,
 } from "./PageShell";
+import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF } from "../data/dscrPrograms";
 
 const MINT = swatch.rainforest;
 const CREAM = swatch.midnight;
 const YELLOW = swatch.lemon;
 const FADED = swatch.midnightFaded;
 const EMERALD = swatch.emerald;
-const DARK = swatch.darkTeal;
-const AS_OF = "Jun 22, 2026";
 
-// Greenstreet's program menu — pick your income type, match your deal.
-// Greenstreet underwrites and funds these directly; this is not a referral
-// to outside lenders.
-type Program = {
-  name: string;
-  tier: string;
-  tierColor: string;
-  minFICO: number | null;
-  minDSCR: number | null;
-  maxLTV: number;
-  states: string;
-  isSTR?: boolean;
-  special: string;
-};
-
-const PROGRAMS: Program[] = [
-  { name: "Greenstreet DSCR 1-4", tier: "DSCR", tierColor: MINT, minFICO: 620, minDSCR: 0.75, maxLTV: 80, states: "All 50 + DC", isSTR: true, special: "DSCR loan for 1–4 unit rentals — qualifies on rent vs PITIA, no tax returns. Long-term or short-term (AirDNA / 12-mo history). Down to 0.75x DSCR with compensating factors. Interest-only available, loans to $4M." },
-  { name: "Greenstreet DSCR Multi-Family", tier: "DSCR", tierColor: MINT, minFICO: 660, minDSCR: 1.00, maxLTV: 75, states: "All 50 + DC", special: "DSCR for 5+ unit and mixed-use property. Blanket and cross-collateralized structures for scaling investors. Loans to $4M." },
-  { name: "Greenstreet DSCR Global", tier: "Foreign national", tierColor: DARK, minFICO: null, minDSCR: 1.00, maxLTV: 70, states: "All 50 + DC", special: "DSCR for foreign nationals & ITIN borrowers. No SSN — passport plus alternative credit, 30% down." },
-  { name: "Greenstreet Full Doc", tier: "Full doc", tierColor: DARK, minFICO: 620, minDSCR: null, maxLTV: 80, states: "All 50 + DC", special: "For investors who document income with tax returns. Up to 80% LTV on investment property, loans to $4M." },
-  { name: "Greenstreet Bank Statement", tier: "Alt doc", tierColor: YELLOW, minFICO: 660, minDSCR: null, maxLTV: 85, states: "All 50 + DC", special: "12–24 months of bank statements for self-employed borrowers. No tax returns, up to 85% LTV." },
-  { name: "Greenstreet 1099", tier: "Alt doc", tierColor: YELLOW, minFICO: 660, minDSCR: null, maxLTV: 85, states: "All 50 + DC", special: "Qualify on 1099 income — one or two years. Built for independent contractors and gig income." },
-  { name: "Greenstreet Asset Utilization", tier: "Alt doc", tierColor: EMERALD, minFICO: 680, minDSCR: null, maxLTV: 80, states: "All 50 + DC", special: "Qualify on liquid assets instead of monthly income. For strong-reserve and retired borrowers." },
-  { name: "Greenstreet Second", tier: "Second lien", tierColor: EMERALD, minFICO: 680, minDSCR: null, maxLTV: 85, states: "All 50 + DC", special: "Closed-end second mortgage to tap equity without disturbing a low-rate first lien. Combined LTV to 85%." },
-];
+const fmtLoan = (n: number) => "$" + (n % 1_000_000 === 0 ? n / 1_000_000 + "M" : (n / 1_000_000).toFixed(1) + "M");
 
 export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   const [minFICO, setMinFICO] = useState(680);
@@ -49,9 +24,9 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
   const [maxLTV, setMaxLTV] = useState(75);
   const [needsSTR, setNeedsSTR] = useState(false);
 
-  const filtered = PROGRAMS.filter(p => {
-    if (p.minFICO && p.minFICO > minFICO) return false;
-    if (p.minDSCR !== null && p.minDSCR > minDSCR) return false;
+  const filtered = DSCR_PROGRAMS.filter(p => {
+    if (p.minFICO > minFICO) return false;
+    if (!p.noRatio && p.dscrFloor > minDSCR) return false;
     if (p.maxLTV < maxLTV) return false;
     if (needsSTR && !p.isSTR) return false;
     return true;
@@ -60,7 +35,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
   return (
     <PageShell
       title="Greenstreet DSCR Programs"
-      subtitle={`Greenstreet's program menu — pick your income type, match your deal. DSCR for rentals (1–4 unit, multi-family, foreign national), plus full-doc, bank statement, 1099, and asset-based options. Underwritten and funded in-house, loans to $4M.`}
+      subtitle={`Seven DSCR programs, one application. Set your deal parameters and see exactly which Greenstreet program fits — from maximum-leverage and no-ratio to multi-family and $3.5M jumbo. Underwritten and funded in-house.`}
       onBack={onBack} onNavigate={onNavigate}
     >
       {/* Filters */}
@@ -69,7 +44,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "32px", alignItems: "end" }}>
           <PremiumSlider
             label="Borrower FICO"
-            min={620}
+            min={600}
             max={800}
             step={20}
             value={minFICO}
@@ -79,7 +54,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
           />
           <PremiumSlider
             label="Deal DSCR"
-            min={0.75}
+            min={0.50}
             max={1.50}
             step={0.05}
             value={minDSCR}
@@ -121,43 +96,48 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {filtered.map(p => (
-          <AnimatedCard key={p.name} hoverScale={true} style={{ display: "grid", gridTemplateColumns: "210px 1fr auto", gap: "24px", alignItems: "center" }}>
+          <AnimatedCard key={p.id} hoverScale={true} style={{ display: "grid", gridTemplateColumns: "230px 1fr auto", gap: "24px", alignItems: "center" }}>
             <div>
-              <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "4px" }}>{p.name}</div>
-              <div style={{ color: "#5a6b6b", fontSize: "12px" }}>{p.states}</div>
+              <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "2px" }}>{p.name}</div>
+              <div style={{ color: MINT, fontSize: "12px", fontWeight: 600 }}>{p.tagline}</div>
               <div style={{
-                marginTop: "6px", fontSize: "10px", fontFamily: "JetBrains Mono, monospace",
+                marginTop: "8px", fontSize: "10px", fontFamily: "JetBrains Mono, monospace",
                 color: EMERALD, fontWeight: 700,
                 paddingTop: "6px", borderTop: `1px dashed ${FADED}`,
               }}>
                 ✓ underwritten + funded by Greenstreet
               </div>
             </div>
-            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
-              <div>
-                <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Min FICO</div>
-                <div style={{ color: CREAM, fontWeight: 600 }}>{p.minFICO ?? "—"}</div>
+            <div>
+              <div style={{ display: "flex", gap: "24px", flexWrap: "wrap", marginBottom: "10px" }}>
+                <div>
+                  <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Min FICO</div>
+                  <div style={{ color: CREAM, fontWeight: 600 }}>{p.minFICO}</div>
+                </div>
+                <div>
+                  <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>DSCR Floor</div>
+                  <div style={{ color: CREAM, fontWeight: 600 }}>{p.noRatio ? "No ratio" : p.dscrFloor.toFixed(2) + "x"}</div>
+                </div>
+                <div>
+                  <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Max LTV</div>
+                  <div style={{ color: CREAM, fontWeight: 600 }}>{p.maxLTV}%</div>
+                </div>
+                <div>
+                  <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Max Loan</div>
+                  <div style={{ color: CREAM, fontWeight: 600 }}>{fmtLoan(p.maxLoan)}</div>
+                </div>
               </div>
-              <div>
-                <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Min DSCR</div>
-                <div style={{ color: CREAM, fontWeight: 600 }}>{p.minDSCR !== null ? p.minDSCR.toFixed(2) + "x" : "None"}</div>
-              </div>
-              <div>
-                <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Max LTV</div>
-                <div style={{ color: CREAM, fontWeight: 600 }}>{p.maxLTV}%</div>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: "#6a7a7a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "2px" }}>What it's for</div>
-                <div style={{ color: "#4a5d5d", fontSize: "13px" }}>{p.special}</div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {p.features.map(f => (
+                  <span key={f} style={{ fontSize: "11px", color: "#4a5d5d", background: "rgba(0,55,56,0.05)", border: `1px solid ${FADED}`, borderRadius: "6px", padding: "3px 8px" }}>{f}</span>
+                ))}
               </div>
             </div>
-            <div style={{ textAlign: "center", minWidth: "110px" }}>
-              <span style={{
-                display: "inline-block", fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
-                padding: "5px 12px", borderRadius: "999px", background: p.tierColor, color: p.tierColor === YELLOW ? CREAM : swatch.pistachio,
-              }}>
-                {p.tier}
-              </span>
+            <div style={{ textAlign: "center", minWidth: "96px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              {p.noRatio && <span style={pill(YELLOW, CREAM)}>No-ratio</span>}
+              {p.multiFamily && <span style={pill(MINT, swatch.pistachio)}>Multi-family</span>}
+              {p.foreignNational && <span style={pill(swatch.darkTeal, swatch.pistachio)}>Foreign nat'l</span>}
+              {p.isSTR && <span style={pill(EMERALD, CREAM)}>STR</span>}
             </div>
           </AnimatedCard>
         ))}
@@ -172,7 +152,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
       <AnimatedCard hoverScale={false} style={{ marginTop: "32px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
         <div style={sectionTitle}>Found your program?</div>
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6, maxWidth: "640px" }}>
-          One application covers the whole menu — we place your file in the best-fitting program and fund it. No portal-hopping, no re-keying the same deal five times.
+          One application covers all seven programs — we place your file in the best-fitting one and fund it. No portal-hopping, no re-keying the same deal five times.
         </p>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
           <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>
@@ -185,8 +165,13 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
       </AnimatedCard>
 
       <p style={{ color: "#8a9a9a", fontSize: "12px", marginTop: "16px" }}>
-        Program parameters effective {AS_OF} and subject to full underwriting. Not a rate lock or credit approval.
+        Program parameters effective {DSCR_PROGRAMS_AS_OF} and subject to full underwriting. Headline terms shown; full FICO × LTV pricing grids apply. Not a rate lock or credit approval.
       </p>
     </PageShell>
   );
 }
+
+const pill = (bg: string, fg: string): React.CSSProperties => ({
+  fontSize: "9px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
+  padding: "4px 8px", borderRadius: "999px", background: bg, color: fg,
+});

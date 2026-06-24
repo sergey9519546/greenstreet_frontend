@@ -51,3 +51,4 @@ __pycache__/
 
 # Build artifacts
 .deployed-index.html
+.cake_matrices/
