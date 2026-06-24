@@ -20,10 +20,10 @@ const TERMS = {
   subtitle: "The terms governing your use of Greenstreet Finance tools and website.",
   updated: "Last updated June 22, 2026",
   sections: [
-    { h: "Not financial or legal advice", p: "Greenstreet Finance provides educational tools and rate estimates for informational purposes only. Calculator outputs, DSCR figures, rate ranges, and lender information are estimates, not commitments, rate locks, or credit approvals. Nothing on this site is legal, tax, or financial advice." },
+    { h: "Not financial or legal advice", p: "Greenstreet Finance provides educational tools and rate estimates for informational purposes only. Calculator outputs, DSCR figures, rate ranges, and program information are estimates, not commitments, rate locks, or credit approvals. Nothing on this site is legal, tax, or financial advice." },
     { h: "Estimates and accuracy", p: "Rate ranges, lender criteria, and state prepay rules reflect our best information as of the date shown and change frequently. Verify all figures with the lender and qualified counsel before acting. We are not liable for decisions made based on estimates." },
-    { h: "Lender matching", p: "When we match a deal to a lender, we make no guarantee of approval, rate, or terms. Final terms are set by the lender after full underwriting. Greenstreet Finance is a technology and matching platform, not the lender of record unless explicitly stated." },
-    { h: "Acceptable use", p: "You agree not to misuse the tools, scrape data, or attempt to reverse-engineer the engine. The lender matrix, state rules, and content are provided for your business use, not redistribution." },
+    { h: "Lending and program estimates", p: "A pre-screen, quote, or program match is not a commitment to lend, a rate lock, or a credit approval. Final terms are set by Greenstreet Finance after full underwriting. Program parameters and rate ranges change frequently — verify before acting." },
+    { h: "Acceptable use", p: "You agree not to misuse the tools, scrape data, or attempt to reverse-engineer the engine. The program details, state rules, and content are provided for your business use, not redistribution." },
     { h: "Limitation of liability", p: "To the maximum extent permitted by law, Greenstreet Finance is not liable for any indirect, incidental, or consequential damages arising from use of the site or reliance on its estimates." },
     { h: "Contact", p: "Questions about these terms? Email legal@greenstreetfinance.com." },
   ],

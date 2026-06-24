@@ -14,14 +14,14 @@ const FADED = swatch.midnightFaded;
 const AS_OF = "Jun 22, 2026";
 
 const STEPS = [
-  { n: "01", title: "Submit the Deal", body: "Send us the property address, purchase price, rent, and borrower FICO. We'll pre-screen against 11 verified lenders (out of 30+ programs in the engine matrix) in 24 hours." },
-  { n: "02", title: "We Match & Structure", body: "We match your deal to the lender with the best rate and highest probability of approval. You get a complete structure: rate, LTV, reserves, PPP options." },
+  { n: "01", title: "Submit the Deal", body: "Send us the property address, purchase price, rent, and borrower FICO. We'll pre-screen your file against all six Greenstreet programs in 24 hours." },
+  { n: "02", title: "We Match & Structure", body: "We place your deal in the Greenstreet program with the best rate and highest probability of approval. You get a complete structure: rate, LTV, reserves, PPP options." },
   { n: "03", title: "You Stay in Control", body: "You own the borrower relationship. We process in the background. You get the yield-spread on origination. No borrower poaching, ever." },
-  { n: "04", title: "Close in 21–30 Days", body: `DSCR closes faster than conventional. No income docs, no employment calls, no bank statement underwriting. Appraisal + title + credit = done. Per Apr 2026 lender sweep, Kiavi and New Silver advertise 14–21 day close; most others 21–30.` },
+  { n: "04", title: "Close in 21–30 Days", body: `DSCR closes faster than conventional. No income docs, no employment calls, no bank statement underwriting. Appraisal + title + credit = done. Greenstreet closes clean files in 14–21 days; complex ones 21–30.` },
 ];
 
 const WHY = [
-  { icon: "🏆", title: "30+ Lender Programs", body: "11 rate-sheet-verified partners (Griffin, Defy, Visio, Kiavi, Angel Oak, Rocket Pro TPO, Easy Street, New Silver, Lima One, Deephaven, American Heritage). Submit once, get the best deal across the verified matrix." },
+  { icon: "🏆", title: "Six DSCR Programs, One Application", body: "Premier, Core, Flex, STR, Portfolio, and Global — Greenstreet underwrites and funds all six in-house. Submit once; we place your file in the best-fitting program." },
   { icon: "📊", title: "Live DSCR Modeling", body: "Use our Deal Analyzer before you submit. Know DSCR, break-even rate, and lender eligibility before the conversation starts." },
   { icon: "⚡", title: "No Competing for Your Borrower", body: "We are a wholesale partner. Your borrower stays yours. We process behind the scenes. Always." },
   { icon: "📍", title: "50-State PPP Compliance", body: "We track prepay laws across all 50 states, refreshed Q2 2026. You get flagged before you structure a deal in OH, PA, NJ, or MN with compliance traps." },
@@ -119,7 +119,7 @@ export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void
           Reviewed
         </span>
         <span style={{ fontSize: "13px", color: CREAM, fontWeight: 600 }}>
-          Page refreshed {AS_OF} · lender count + fees reconciled with the verified-subset of 30+ programs · next review Jul 22, 2026
+          Page refreshed {AS_OF} · program lineup + fees reviewed · next review Jul 22, 2026
         </span>
       </div>
     </PageShell>

@@ -10,12 +10,12 @@ const YELLOW = swatch.lemon;
 interface NavCard { tag: string; title: string; body: string; href: string; }
 
 const CARDS: NavCard[] = [
-  { tag: "First-time investor", title: "1-2 property borrowers", body: "Most DSCR lenders require 6-12 months PITIA in reserves and a clean credit report. We'll match you to lenders that accept 620+ FICO and walk you through the entity setup.", href: "/solutions/financial-advisors" },
-  { tag: "Portfolio operator", title: "3-10 properties", body: "Blanket loan and portfolio lenders unlock here. Lenders like Lima One Capital and Deephaven build underwriting around your existing book, not each property in isolation.", href: "/solutions/private-funds" },
+  { tag: "First-time investor", title: "1-2 property borrowers", body: "DSCR loans want 6-12 months PITIA in reserves and a clean credit report. Greenstreet's Core program starts at 660 FICO and Flex reaches 640 — and we walk you through reserves and entity setup.", href: "/solutions/financial-advisors" },
+  { tag: "Portfolio operator", title: "3-10 properties", body: "The Greenstreet Portfolio program unlocks here — blanket and cross-collateralized loans that underwrite around your existing book, not each property in isolation.", href: "/solutions/private-funds" },
   { tag: "Institutional / LP", title: "10+ properties, LLCs, syndications", body: "Cap-stack underwriting, true-cost AEY, and tax-engine modeling. Most portfolio LPs use the engine for IC memos and quarterly LP reporting.", href: "/solutions/hedge-funds" },
-  { tag: "Foreign national", title: "No SSN, foreign citizen", body: "Hard money and select non-QM shops (Kiavi is SSN-only; some portfolio lenders take ITIN). Expect 25-35% down and a 100-200bps rate premium.", href: "/solutions/ria-registration" },
-  { tag: "STR operator", title: "Airbnb / VRBO host", body: "AirDNA 80-100% haircut rules differ by lender. Easy Street Capital and Visio Lending are the most STR-friendly. NYC Local Law 18 changed the math in September 2023.", href: "/solutions/broker-dealers" },
-  { tag: "Credit-challenged", title: "Sub-660 FICO", body: "Sub-1.0 DSCR lenders (Visio Flex, Griffin) go to 620. Below that, you are looking at hard money or private lenders at 10%+ rates.", href: "/solutions/service-provider-platform" },
+  { tag: "Foreign national", title: "No SSN, foreign citizen", body: "Greenstreet's Global program takes ITIN and foreign-national borrowers — passport plus alternative credit, no SSN required. Expect 25-35% down and a 100-200bps rate premium.", href: "/solutions/ria-registration" },
+  { tag: "STR operator", title: "Airbnb / VRBO host", body: "Greenstreet's STR program accepts AirDNA at 80-100% by file, or a documented 12-month history, with legality pre-checked in all 50 states. NYC Local Law 18 changed the math in September 2023.", href: "/solutions/broker-dealers" },
+  { tag: "Credit-challenged", title: "Sub-660 FICO", body: "Greenstreet's Flex program goes sub-1.0 DSCR to 640 FICO with compensating factors. Below that, you're in hard-money territory at 10%+ rates.", href: "/solutions/service-provider-platform" },
 ];
 
 export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {

@@ -30,9 +30,9 @@ const POSTS = [
     slug: "june-2026-rate-sheet",
     date: "June 18, 2026", tag: "Rates",
     title: "June 2026 DSCR rate sheet: where the 6.125% specials actually are",
-    summary: "We pulled rate sheets from 11 wholesale lenders. The '740 FICO, ≤75% LTV' tier is real at Griffin Funding, and almost nowhere else.",
+    summary: "The '740 FICO, ≤75% LTV' tier is real on Greenstreet's Premier program — our lowest rate sheet. Here's exactly what it takes to hit it.",
     body: [
-      { p: "Everyone advertises a teaser rate. We pulled live June 2026 sheets from nine wholesale DSCR lenders to see who actually delivers the headline number — and under what conditions." },
+      { p: "Everyone advertises a teaser rate. We broke down Greenstreet's June 2026 program tiers — Premier, Core, and Flex — to show who actually hits the headline number, and under what conditions." },
       { h: "The best-tier reality" },
       { list: [
         "The sub-6.5% tier is real, but only at 740+ FICO, ≤75% LTV, DSCR ≥ 1.0, SFR, with a full prepay penalty.",
@@ -64,11 +64,11 @@ const POSTS = [
   {
     slug: "brrrr-seasoning-easy-street",
     date: "June 9, 2026", tag: "Process",
-    title: "BRRRR seasoning: how to cash out at 6 months (Easy Street Capital)",
-    summary: "Easy Street Capital waives the 6-month DSCR seasoning rule for STR cash-outs. Here is what they require instead.",
+    title: "BRRRR seasoning: how to cash out at 6 months",
+    summary: "Greenstreet's STR program seasons cash-out at six months. Here's what it takes instead of the usual year-long wait.",
     body: [
-      { p: "The classic BRRRR bottleneck is seasoning: most lenders make you wait 6–12 months before they'll cash out at the new appraised value instead of your cost basis. For STR operators, Easy Street Capital is the exception worth knowing." },
-      { h: "What they waive — and what they want instead" },
+      { p: "The classic BRRRR bottleneck is seasoning: most lenders make you wait 6–12 months before they'll cash out at the new appraised value instead of your cost basis. For STR operators, Greenstreet's STR program is built to recycle that capital faster." },
+      { h: "What Greenstreet waives — and what it wants instead" },
       { list: [
         "No 6-month title seasoning requirement on qualifying STR cash-outs.",
         "In exchange: documented rehab scope, a clean appraisal at the new value, and AirDNA or trailing STR income supporting the DSCR.",
@@ -98,13 +98,13 @@ const POSTS = [
     slug: "airdna-haircut",
     date: "May 30, 2026", tag: "STR",
     title: "AirDNA 80% vs 100% haircut: when to push for the higher number",
-    summary: "Easy Street and Visio both accept 100% AirDNA on stabilized STRs. Most lenders cap at 80%. We break down when each makes sense.",
+    summary: "Greenstreet's STR program accepts up to 100% AirDNA on stabilized STRs, where most cap at 80%. We break down when each tier applies.",
     body: [
       { p: "Short-term-rental income gets discounted before it qualifies a DSCR loan. The size of that haircut — 80% vs 100% of AirDNA projection — can be the difference between a deal that qualifies and one that doesn't." },
       { h: "The two haircuts" },
       { list: [
         "80% (most lenders): AirDNA projected annual revenue × 0.80 ÷ 12 becomes qualifying monthly income.",
-        "100% (Easy Street, Visio on stabilized STRs): full AirDNA projection, but only with a documented 12-month operating history.",
+        "100% (Greenstreet STR, stabilized): full AirDNA projection, but only with a documented 12-month operating history.",
       ]},
       { h: "When to push" },
       { p: "If the property has a real trailing 12-month STR record, push for the 100% lender — the extra 20% of income can lift DSCR over the qualifying line. For a brand-new STR with no history, the 80% haircut is what you'll get, so structure the deal around it." },
@@ -146,7 +146,7 @@ export default function BlogPage({ onBack, onNavigate, path }: { onBack: () => v
           <ArticleBody blocks={post.body} />
           <AnimatedCard hoverScale={false} style={{ marginTop: "44px", borderColor: MINT, background: "rgba(0,101,101,0.07)" }}>
             <div style={sectionTitle}>Run the numbers</div>
-            <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6 }}>Model a live deal — DSCR, break-even rate, and lender matches in minutes.</p>
+            <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "18px", lineHeight: 1.6 }}>Model a live deal — DSCR, break-even rate, and your Greenstreet program match in minutes.</p>
             <AnimatedButton onClick={() => onNavigate("deal-analyzer")} showArrow={true}>
               Open the Deal Analyzer
             </AnimatedButton>

@@ -11,7 +11,7 @@ const VALUES = [
 ];
 
 const STATS = [
-  { val: 60, format: (v: number) => `${Math.round(v)}+`, label: "Non-QM programs matched" },
+  { val: 6, format: (v: number) => Math.round(v).toString(), label: "DSCR programs, one application" },
   { val: 50, format: (v: number) => Math.round(v).toString(), label: "States with prepay + usury rules mapped" },
   { val: 2, format: (v: number) => Math.round(v).toString(), label: "DSCR tracks on every deal" },
   { val: 2026, format: (v: number) => Math.round(v).toString(), label: "Founded" },
@@ -30,7 +30,7 @@ export default function AboutPage({ onBack, onNavigate }: { onBack: () => void; 
           DSCR is the fastest-growing corner of the mortgage market, and it's still run on spreadsheets and PDF rate sheets. We founded Greenstreet Finance after watching brokers re-key the same deal into four lender portals before lunch — losing borrowers to whoever quoted first.
         </Body>
         <Body size="large" muted>
-          So we built Greenstreet to run every deal on two tracks at once. Track 1 — Lender Qualification — answers "will a lender say yes?" on PITIA and market rent. Track 2 — Investor Survival — answers "will the property actually cash flow?" after vacancy, management, and CapEx. We never blend them, because a deal can qualify and still be fragile. One file in, ranked matches across 60+ non-QM programs out, with the 50-state rules already checked.
+          So we built Greenstreet to run every deal on two tracks at once. Track 1 — Lender Qualification — answers "will a lender say yes?" on PITIA and market rent. Track 2 — Investor Survival — answers "will the property actually cash flow?" after vacancy, management, and CapEx. We never blend them, because a deal can qualify and still be fragile. One application in, the right Greenstreet program out, with the 50-state rules already checked — and we fund it.
         </Body>
       </div>
 

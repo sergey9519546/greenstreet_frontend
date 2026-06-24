@@ -460,7 +460,7 @@ export default function DSCRCalculatorPage({
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "12px" }}>
           {[
             { range: "< 0.75x", label: "No-Go", color: "#ff6b6b", desc: "Below all lender floors" },
-            { range: "0.75–0.99x", label: "Sub-1.0", color: "#018582", desc: "Visio Flex, Griffin, Defy" },
+            { range: "0.75–0.99x", label: "Sub-1.0", color: "#018582", desc: "Greenstreet Flex program" },
             { range: "1.00–1.09x", label: "Minimum", color: YELLOW, desc: "Qualifies at 1.00 floor" },
             { range: "1.10–1.24x", label: "Standard", color: CREAM, desc: "Typical qualifying range" },
             { range: "1.25x+", label: "Strong", color: MINT, desc: "Best rates, 3 mo reserves" },

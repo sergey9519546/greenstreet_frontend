@@ -24,7 +24,7 @@ export default function ProductsPage({ onBack, onNavigate }: { onBack: () => voi
     >
       <div style={{ maxWidth: "760px", marginBottom: "48px" }}>
         <p style={{ color: "#3f5252", fontSize: "18px", lineHeight: 1.7 }}>
-          Greenstreet connects pricing, lender matching, compliance, and borrower fit in one place. Enter a deal once and every tool works from the same numbers.
+          Greenstreet connects pricing, program match, compliance, and borrower fit in one place. Enter a deal once and every tool works from the same numbers.
         </p>
       </div>
 

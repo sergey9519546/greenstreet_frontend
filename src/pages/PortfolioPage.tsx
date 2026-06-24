@@ -28,9 +28,9 @@ type RawProperty = {
 };
 
 const SAMPLE_PROPERTIES: RawProperty[] = [
-  { id: "P1", purchasePrice: 425000, monthlyRent: 3000, state: "TX", loanBalance: 318750, rate: 7.0, lender: "Kiavi", propertyType: "SFR" as const, yearAcquired: 2023 },
-  { id: "P2", purchasePrice: 380000, monthlyRent: 2900, state: "GA", loanBalance: 304000, rate: 7.25, lender: "Lima One", propertyType: "SFR" as const, yearAcquired: 2022 },
-  { id: "P3", purchasePrice: 525000, monthlyRent: 4100, state: "FL", loanBalance: 393750, rate: 6.875, lender: "NewRez", propertyType: "SFR" as const, yearAcquired: 2024 },
+  { id: "P1", purchasePrice: 425000, monthlyRent: 3000, state: "TX", loanBalance: 318750, rate: 7.0, lender: "Prior loan", propertyType: "SFR" as const, yearAcquired: 2023 },
+  { id: "P2", purchasePrice: 380000, monthlyRent: 2900, state: "GA", loanBalance: 304000, rate: 7.25, lender: "Prior loan", propertyType: "SFR" as const, yearAcquired: 2022 },
+  { id: "P3", purchasePrice: 525000, monthlyRent: 4100, state: "FL", loanBalance: 393750, rate: 6.875, lender: "Prior loan", propertyType: "SFR" as const, yearAcquired: 2024 },
 ];
 
 export default function PortfolioPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
@@ -149,7 +149,7 @@ export default function PortfolioPage({ onBack, onNavigate }: { onBack: () => vo
 
   const handleAddProperty = () => {
     const id = `P${properties.length + 1}`;
-    setProperties([...properties, { id, purchasePrice: 450000, monthlyRent: 3200, state: "TX", loanBalance: 337500, rate: 7.0, lender: "NewRez", propertyType: "SFR", yearAcquired: 2024 }]);
+    setProperties([...properties, { id, purchasePrice: 450000, monthlyRent: 3200, state: "TX", loanBalance: 337500, rate: 7.0, lender: "Prior loan", propertyType: "SFR", yearAcquired: 2024 }]);
   };
 
   const handleRemoveProperty = (id: string) => {

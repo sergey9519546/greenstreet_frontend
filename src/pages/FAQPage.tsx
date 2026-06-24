@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: "What credit score do I need?",
-    a: "Most DSCR lenders want 660+. A few (Griffin Funding, Defy) go to 640 or even 620. Higher FICO = lower rate: going from 660 to 740+ can save 0.75–1.50% on your rate. ITIN borrowers are accepted by most lenders; foreign nationals (no SSN) face more restrictions.",
+    a: "Greenstreet wants 660+ for the Core program; Flex goes to 640 with compensating factors. Higher FICO = lower rate — going from 660 to 740+ can save 0.75–1.50% and move you toward our Premier tier. ITIN borrowers and foreign nationals (no SSN) qualify on the Global program.",
     src: "Greenstreet lender matrix · Apr 2026 sweep · 11 lenders verified",
   },
   {
@@ -33,12 +33,12 @@ const FAQS = [
   },
   {
     q: "How much down payment do I need?",
-    a: "The standard minimum is 20% down (80% LTV). Most lenders price their best rates at 75% LTV (25% down). Some lenders (Defy) go to 85% LTV for strong files (740+ FICO, DSCR ≥ 1.0, SFR purchase only). Lower down payment = higher rate via LTV pricing adjustments.",
+    a: "The standard minimum is 20% down (80% LTV). Greenstreet prices its best rates at 75% LTV (25% down). Strong files (740+ FICO, DSCR ≥ 1.0, SFR purchase) can push higher LTV. Lower down payment = higher rate via LTV pricing adjustments.",
     src: "Greenstreet lender matrix · Apr 2026",
   },
   {
     q: "Can I use a DSCR loan for a short-term rental (Airbnb)?",
-    a: "Yes, but it's more complex. Lenders use the lower of: (1) 1007 long-term rental appraisal, (2) AirDNA projected income × 70–80%, or (3) documented 12-month STR history. Easy Street Capital and Visio Lending are the most STR-friendly. NYC's Local Law 18 (September 2023) bans most STR use in primary residences — check local regulations first.",
+    a: "Yes, but it's more complex. Lenders use the lower of: (1) 1007 long-term rental appraisal, (2) AirDNA projected income × 70–80%, or (3) documented 12-month STR history. Greenstreet's STR program accepts AirDNA projections or a documented 12-month history, with legality pre-checked in all 50 states. NYC's Local Law 18 (September 2023) bans most STR use in primary residences — check local regulations first.",
     src: "50-state STR matrix · Q2 2026 · Minut 2026 + state statutes",
   },
   {
@@ -53,7 +53,7 @@ const FAQS = [
   },
   {
     q: "How fast can I close a DSCR loan?",
-    a: "Faster than conventional. Most lenders target 21–30 days. Kiavi and New Silver advertise 14–21 days. Rocket Pro TPO typically takes 21–30 days. The process is streamlined because there's no income verification — just the appraisal (1007 rent schedule), property docs, and credit.",
+    a: "Faster than conventional. Greenstreet targets 14–21 days on clean files and 21–30 on complex ones. The process is streamlined because there's no income verification — just the appraisal (1007 rent schedule), property docs, and credit.",
     src: "Lender-published turn times · Apr 2026 sweep",
   },
   {

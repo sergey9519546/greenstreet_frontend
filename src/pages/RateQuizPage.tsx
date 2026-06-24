@@ -56,10 +56,10 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     ].every(Boolean);
 
     const tierInfo = {
-      BEST: "Top-tier pricing. You're at the 740+ FICO / ≤75% LTV sweet spot most lenders reserve their best rate sheet for.",
-      GOOD: "Solid pricing. You'll see competitive quotes from Griffin, Visio, New Silver, and Rocket Pro TPO.",
-      TYPICAL: "Workable, but not aggressive. You'll want to shop 3-4 lenders and possibly accept a smaller PPP for the rate.",
-      WEAK: "Hard to qualify at most lenders. Consider Visio Flex (sub-1.0 DSCR), Griffin (640+ FICO), or wait for credit to improve.",
+      BEST: "Top-tier pricing. You're at the 740+ FICO / ≤75% LTV sweet spot — this is Greenstreet's Premier program, our lowest rate tier.",
+      GOOD: "Solid pricing. Most files here land on Greenstreet Core; a little more FICO or a lower LTV moves you to Premier.",
+      TYPICAL: "Workable. The Greenstreet Flex program and a smaller prepay penalty can sharpen the rate from here.",
+      WEAK: "Tighter file. Greenstreet Flex goes sub-1.0 DSCR to 640 FICO with compensating factors — otherwise, build credit and re-quote.",
     }[tier];
 
     return { baseRate, tier, tierColor, eligible, tierInfo };
@@ -111,7 +111,7 @@ export default function RateQuizPage({ onBack, onNavigate }: { onBack: () => voi
     },
     {
       q: "What's the LTV?",
-      sub: "Standard pricing is best at 75% or below. Above 80% only Defy and a few others will quote.",
+      sub: "Greenstreet prices best at 75% LTV or below. Above 80% needs a strong file (740+ FICO, DSCR ≥ 1.0).",
       control: (
         <PremiumSlider
           label="LTV"
