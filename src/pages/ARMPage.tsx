@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
 
@@ -117,7 +116,7 @@ export default function ARMPage({ onBack, onNavigate }: { onBack: () => void; on
               value={f.value}
               step={f.step}
               prefixSymbol={f.prefix}
-              suffixSymbol={f.suffix}
+              suffixSymbol={(f as { suffix?: string }).suffix}
               onChange={(e) => f.set(+e.target.value)}
             />
           ))}
@@ -149,7 +148,7 @@ export default function ARMPage({ onBack, onNavigate }: { onBack: () => void; on
                   const breaks = s.dscrAtLifetime < 1.0;
                   return (
                     <div key={s.name} style={{ padding: "12px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", className: "items-center" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ color: CREAM, fontWeight: 700, fontSize: "14px" }}>{s.name}</span>
                         <span style={{ color, fontSize: "12px", fontWeight: 700 }}>SOFR {s.index.toFixed(2)}%</span>
                       </div>

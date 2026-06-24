@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
 
@@ -80,7 +79,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
               value={f.value}
               step={f.step}
               prefixSymbol={f.prefix}
-              suffixSymbol={f.suffix}
+              suffixSymbol={(f as { suffix?: string }).suffix}
               onChange={(e) => f.set(+e.target.value)}
             />
           ))}
@@ -97,7 +96,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () =>
               value={f.value}
               step={f.step}
               prefixSymbol={f.prefix}
-              suffixSymbol={f.suffix}
+              suffixSymbol={(f as { suffix?: string }).suffix}
               onChange={(e) => f.set(+e.target.value)}
             />
           ))}

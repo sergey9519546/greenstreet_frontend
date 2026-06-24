@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from "react";
 import {
   PageShell,
@@ -224,14 +223,14 @@ function DSCRCalc() {
 
         <AnimatedCard themeName="light" hoverScale={false}>
           <div style={sectionTitle}>PITIA Breakdown</div>
-          {[
+          {([
             ["Loan Amount", loan],
             [loanType === "30yr" ? "P&I (30yr)" : "Interest Only", pAndI],
             ["Property Tax /mo", tax / 12],
             ["Insurance /mo", ins / 12],
             ["HOA /mo", hoa],
             ["━━ Total PITIA", pitia],
-          ].map(([k, v]) => (
+          ] as [string, number][]).map(([k, v]) => (
             <div
               key={k}
               style={{
@@ -250,7 +249,7 @@ function DSCRCalc() {
               </span>
             </div>
           ))}
-          <div style={{ display: "flex", justifycontent: "space-between", padding: "12px 0 0", fontSize: "15px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 0 0", fontSize: "15px" }}>
             <span style={{ color: "rgba(0,55,56,0.7)" }}>Monthly cash flow (T2 est.)</span>
             <span style={{ color: cashFlow >= 0 ? MINT : "#ff6b6b", fontWeight: 700 }}>
               <AnimatedNumber value={cashFlow} format={(v) => (v >= 0 ? "+" : "") + fmt(v)} />
@@ -370,13 +369,13 @@ function MaxPurchaseCalc() {
         </AnimatedCard>
 
         <AnimatedCard themeName="light" hoverScale={false}>
-          {[
+          {([
             ["Max Loan Amount", maxLoan],
             ["Down Payment", maxPrice - maxLoan],
             ["Max P&I /mo", maxPI],
             ["Max PITIA /mo", maxPITIA],
             ["Qualifying rent", rent],
-          ].map(([k, v]) => (
+          ] as [string, number][]).map(([k, v]) => (
             <div
               key={k}
               style={{

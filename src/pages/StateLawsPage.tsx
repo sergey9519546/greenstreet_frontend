@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from "react";
 import {
   PageShell,
@@ -95,7 +94,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
         ].map(b => (
           <AnimatedCard key={b.label} style={{ textAlign: "center" }} hoverScale={true}>
             <div style={{ color: b.color, fontWeight: 800, fontSize: "36px" }}>
-              <AnimatedNumber value={b.count} format={Math.round} />
+              <AnimatedNumber value={b.count} format={(v) => String(Math.round(v))} />
             </div>
             <div style={{ color: "rgba(0,55,56,0.6)", fontSize: "13px" }}>{b.label}</div>
           </AnimatedCard>

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from "react";
 import { swatch } from "../theme";
 
@@ -53,7 +52,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack: () => 
   const verifiedColor = (v: string) => {
     const verifiedDate = new Date(v);
     const today = new Date(AS_OF);
-    const daysAgo = Math.floor((today - verifiedDate) / (1000 * 60 * 60 * 24));
+    const daysAgo = Math.floor((today.getTime() - verifiedDate.getTime()) / (1000 * 60 * 60 * 24));
     if (daysAgo <= 30) return EMERALD;
     if (daysAgo <= 60) return YELLOW;
     return "#b1432e";
