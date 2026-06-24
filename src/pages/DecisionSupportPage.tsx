@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useMemo } from "react";
 import { swatch } from "../theme";
 
@@ -54,27 +53,29 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         track1DSCR: deal.dscr,
         track2DSCR,
         lenderMinDSCR: 1.0,
-        lenderMinLoan: 75000,
-        ltvCap: 80,
-        currentRate: rate,
+        afterTaxIRR,
+        preTaxIRR: afterTaxIRR,
+        year1CoC,
         dealBreakRate: deal.dealBreakRate,
-        cushionBps: deal.rateHeadroomBps,
-        afterTaxIRR: Math.max(0, (year1CoC / 100) * 5),
-        track2Acknowledgment: track2DSCR >= 1.0,
-        acqScore: 75,
-        executionRiskScore: 75,
-        pDSCRLessThan1: 5,
-        fifthPctDSCR: 1.0,
-        armResetStress: null,
-        insuranceStatus: "CLEAR",
+        solvedRate: deal.solvedRate,
+        rateHeadroomBps: deal.rateHeadroomBps,
+        appraisalBreakpointPercent: 0,
+        insuranceGate: null,
+        brrrrGate: null,
+        armReset: null,
         strLegalityStatus: "CLEAR",
-        brrrrStatus: "PROCEED",
-        lenderRankingTop: null,
-        killSwitchConditions: [],
-        twoQuoteSatisfied: true,
+        pppAllowed: true,
+        ficoScore: fico,
+        ltv: 100 - downPct,
+        ltvCap: 80,
+        loanAmount: deal.loanAmount,
+        lenderMinLoan: 75000,
+        bestLenderConfidence: 75,
+        lenderRanking: [],
+        isDecliningMarket: false,
       });
-      const kill = computeDealKillCheck(deal.dscr, deal.dealBreakRate, rate, fico, false, false, track2DSCR, "LTR", 75, 425000, deal.loanAmount, 0.0483, deal.rateHeadroomBps);
-      const acq = computeAcquisitionScore(deal, null, null, inputs.property, inputs.borrower, inputs.loan, "LTR", null, null);
+      const kill = computeDealKillCheck(deal, inputs.borrower, inputs.loan, inputs.property, inputs.strategy, null, null, null);
+      const acq = computeAcquisitionScore(deal, null, inputs.property, inputs.borrower, inputs.loan, inputs.strategy, null, null);
       const grade = computeReturnGrade((year1CoC / 100) * 5, track2DSCR);
       return { deal, verdict, kill, acq, grade, year1CoC, track2DSCR, afterTaxIRR };
     } catch (e) {
