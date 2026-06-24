@@ -100,7 +100,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
   return (
     <PageShell
       title="DSCR Loan FAQ"
-      subtitle={`The most important questions about qualifying, structuring, and closing DSCR investment property loans. Last reviewed ${AS_OF}.`}
+      subtitle={`Every question that matters about qualifying, structuring, and closing a DSCR investment property loan — answered precisely, with sources. Last reviewed ${AS_OF}.`}
       onBack={onBack} onNavigate={onNavigate}
     >
       <div style={{ maxWidth: "800px" }}>
@@ -162,9 +162,9 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       </div>
 
       <AnimatedCard hoverScale={false} style={{ marginTop: "32px", maxWidth: "600px" }}>
-        <div style={sectionTitle}>Still have questions?</div>
+        <div style={sectionTitle}>Still have a question we didn't answer?</div>
         <p style={{ color: "#4a5d5d", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
-          Call a DSCR specialist. Most questions get answered the same business day.
+          Talk to a DSCR specialist directly. Most questions get answered the same business day — no pitch, no runaround.
         </p>
         {/* TODO: replace placeholder with Greenstreet's real line before launch */}
         <AnimatedButton onClick={() => window.location.href = "tel:+15550100000"} showArrow={true}>
