@@ -168,7 +168,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
               <div className="nav-logo w-embed">
                 <span style={{
                   fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
-                  fontSize: "24px",
+                  fontSize: "28px",
                   fontWeight: 600,
                   letterSpacing: "-0.04em",
                   color: "currentColor",
@@ -182,7 +182,9 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
             <div className="nav-links-contain">
               <div className="nav-links-wrap">
                 <a className="nav-link w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
-                  <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>DSCRGo</div>
+                  <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>
+                    DSCR<span style={{ color: MIDNIGHT, fontWeight: 500 }}>Go</span>
+                  </div>
                 </a>
                 <a className="nav-link w-inline-block" href="/products" onClick={(e) => { e.preventDefault(); onNavigate("products"); }}>
                   <div className="nav_links_text">Product</div>
@@ -229,7 +231,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
         {/* Mobile dropdown menu rendering */}
         {menuOpen && (
           <div className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>DSCRGo</a>
+            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>DSCR</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>Go</span></a>
             <a href="/products" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("products"); setMenuOpen(false); }}>Product</a>
             <a href="/solutions" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("solutions"); setMenuOpen(false); }}>Who We Serve</a>
             <a href="/blog" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("blog"); setMenuOpen(false); }}>Resources</a>

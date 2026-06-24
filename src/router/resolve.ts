@@ -62,6 +62,8 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/rate-quiz": "rate-quiz",
   "/products": "products",
   "/solutions": "solutions",
+  "/book-demo": "book-demo",
+  "/partnerships": "brokers-partner",
 
   // Tools routes (canonical /tools/* paths)
   "/tools/refi-tracker": "refi-tracker",
@@ -82,6 +84,7 @@ export function resolveRoute(href: string): PageView {
     if (ROUTE_MAP[path]) return ROUTE_MAP[path];
     if (path.startsWith("/blog/")) return "blog";
     if (path.startsWith("/case-studies/")) return "case-studies";
+    if (path.startsWith("/book-demo")) return "book-demo";
     if (path.startsWith("/tools/")) {
       const slug = path.replace("/tools/", "").replace(/\/$/, "");
       if (slug === "refi-tracker") return "refi-tracker";
@@ -122,6 +125,7 @@ export function isKnownRoute(href: string): boolean {
   if (!path || !path.startsWith("/")) return false;
   if (path === "/") return true;
   if (ROUTE_MAP[path]) return true;
+  if (path.startsWith("/book-demo")) return true;
   if (path.startsWith("/blog")) return true;
   if (path.startsWith("/case-studies")) return true;
   if (path.startsWith("/tools/")) {
