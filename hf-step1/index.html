@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #003738; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #eeefd3; }
+
+      #stage { position: absolute; inset: 0; }
+      .dotgrid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 2px, transparent 2px); background-size: 46px 46px; }
+
+      /* Wordmark */
+      #wordmark { position: absolute; left: 160px; top: 90px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #eeefd3; opacity: 0; }
+
+      /* Step label */
+      #stepLabel { position: absolute; right: 160px; top: 90px; font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(238,239,211,0.45); opacity: 0; }
+
+      /* ── Phase 1: Input chips row ── */
+      #chipsRow {
+        position: absolute;
+        top: 220px;
+        left: 0; right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+      }
+      .chip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        background: rgba(238,239,211,0.06);
+        border: 1px solid rgba(238,239,211,0.12);
+        border-radius: 20px;
+        padding: 36px 72px;
+        opacity: 0;
+      }
+      .chip-label {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(238,239,211,0.5);
+      }
+      .chip-val {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 58px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: #eeefd3;
+        font-variant-numeric: tabular-nums;
+      }
+      .arrow-sep {
+        font-size: 40px;
+        font-weight: 700;
+        color: #d8d958;
+        opacity: 0;
+        flex-shrink: 0;
+        line-height: 1;
+      }
+
+      /* ── Phase 2: DSCR hero ── */
+      #dscrBlock {
+        position: absolute;
+        top: 520px;
+        left: 0; right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      #dscrLabel {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(238,239,211,0.5);
+        opacity: 0;
+      }
+      #dscrBig {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 240px;
+        font-weight: 700;
+        letter-spacing: -0.05em;
+        color: #eeefd3;
+        line-height: 0.85;
+        opacity: 0;
+      }
+      #dscrChip {
+        display: inline-block;
+        background: #d8d958;
+        color: #003738;
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 14px 44px;
+        border-radius: 40px;
+        opacity: 0;
+      }
+
+      /* ── Phase 3: PITIA bar (bottom strip) ── */
+      #pitiaStrip {
+        position: absolute;
+        bottom: 108px;
+        left: 0; right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        opacity: 0;
+      }
+      #pitiaHeader {
+        display: flex;
+        align-items: baseline;
+        gap: 28px;
+      }
+      #pitiaTitle {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(238,239,211,0.5);
+      }
+      #pitiaTotal {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        color: #eeefd3;
+        font-variant-numeric: tabular-nums;
+      }
+      #barWrap {
+        width: 780px;
+        height: 12px;
+        border-radius: 6px;
+        background: rgba(238,239,211,0.1);
+        overflow: hidden;
+        display: flex;
+      }
+      .bar-seg { height: 100%; display: block; }
+      #barPI  { background: #d8d958; width: 0%; }
+      #barTax { background: rgba(238,239,211,0.45); width: 0%; }
+      #barIns { background: rgba(238,239,211,0.22); width: 0%; }
+      #barLegend { display: flex; gap: 36px; }
+      .bl { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 500; color: rgba(238,239,211,0.8); opacity: 0; }
+      .bl-sw { display: inline-block; width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0; }
+
+      /* Caption */
+      #caption {
+        position: absolute;
+        bottom: 52px;
+        left: 0; right: 0;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 500;
+        color: rgba(238,239,211,0.45);
+        letter-spacing: -0.01em;
+        opacity: 0;
+      }
+
+      /* Seamless-loop fade overlay — same color as bg, fades to 1 at end */
+      #loopOverlay {
+        position: absolute;
+        inset: 0;
+        background: #003738;
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+         style="position: relative; width: 1920px; height: 1080px; overflow: hidden;">
+
+      <div id="stage" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div class="dotgrid"></div>
+        <div id="wordmark">Greenstreet</div>
+        <div id="stepLabel">Run the numbers</div>
+
+        <!-- Input chips: Price · Rent · Rate -->
+        <div id="chipsRow">
+          <div class="chip" id="chipPrice">
+            <div class="chip-label">Price</div>
+            <div class="chip-val">$425,000</div>
+          </div>
+          <div class="arrow-sep" id="arr1">&#x2192;</div>
+          <div class="chip" id="chipRent">
+            <div class="chip-label">Rent / mo</div>
+            <div class="chip-val">$3,000</div>
+          </div>
+          <div class="arrow-sep" id="arr2">&#x2192;</div>
+          <div class="chip" id="chipRate">
+            <div class="chip-label">Rate</div>
+            <div class="chip-val">7.0%</div>
+          </div>
+        </div>
+
+        <!-- DSCR hero -->
+        <div id="dscrBlock">
+          <div id="dscrLabel">Debt-Service Coverage Ratio</div>
+          <div id="dscrBig">1.11x</div>
+          <div id="dscrChip">Qualifies</div>
+        </div>
+
+        <!-- PITIA bar strip -->
+        <div id="pitiaStrip">
+          <div id="pitiaHeader">
+            <div id="pitiaTitle">PITIA Breakdown</div>
+            <div id="pitiaTotal">$2,704 / mo</div>
+          </div>
+          <div id="barWrap">
+            <div class="bar-seg" id="barPI"></div>
+            <div class="bar-seg" id="barTax"></div>
+            <div class="bar-seg" id="barIns"></div>
+          </div>
+          <div id="barLegend">
+            <div class="bl" id="bl1"><span class="bl-sw" style="background:#d8d958"></span>P&amp;I $2,288</div>
+            <div class="bl" id="bl2"><span class="bl-sw" style="background:rgba(238,239,211,0.45)"></span>Taxes $417</div>
+            <div class="bl" id="bl3"><span class="bl-sw" style="background:rgba(238,239,211,0.22)"></span>Ins. $167</div>
+          </div>
+        </div>
+
+        <!-- Bottom caption -->
+        <div id="caption">Price, rent, rate &#x2192; DSCR in half a second.</div>
+
+        <!-- Loop overlay: bg color, fades to opaque at t=5.6, scene is invisible at t=0 and t=6 -->
+        <div id="loopOverlay"></div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ── initial states (all invisible at t=0, matching the overlaid end state) ── */
+      gsap.set("#wordmark",    { opacity: 0 });
+      gsap.set("#stepLabel",   { opacity: 0 });
+      gsap.set("#chipPrice",   { opacity: 0, y: 28 });
+      gsap.set("#chipRent",    { opacity: 0, y: 28 });
+      gsap.set("#chipRate",    { opacity: 0, y: 28 });
+      gsap.set("#arr1",        { opacity: 0 });
+      gsap.set("#arr2",        { opacity: 0 });
+      gsap.set("#dscrLabel",   { opacity: 0 });
+      gsap.set("#dscrBig",     { opacity: 0, scale: 0.5 });
+      gsap.set("#dscrChip",    { opacity: 0, scale: 0.7 });
+      gsap.set("#pitiaStrip",  { opacity: 0 });
+      gsap.set(".bl",          { opacity: 0 });
+      gsap.set("#caption",     { opacity: 0 });
+      gsap.set("#loopOverlay", { opacity: 0 });
+
+      /* ══ Phase 1 (0.15 – 1.55s): Wordmark + step label + chips ══ */
+      tl.to("#wordmark",  { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.15);
+      tl.to("#stepLabel", { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.2);
+
+      tl.to("#chipPrice", { opacity: 1, y: 0, duration: 0.55, ease: "power3.out", overwrite: "auto" }, 0.3);
+      tl.to("#arr1",      { opacity: 1, duration: 0.3,  ease: "power2.out" }, 0.65);
+      tl.to("#chipRent",  { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", overwrite: "auto" }, 0.7);
+      tl.to("#arr2",      { opacity: 1, duration: 0.3,  ease: "power2.out" }, 1.05);
+      tl.to("#chipRate",  { opacity: 1, y: 0, duration: 0.55, ease: "back.out(1.4)", overwrite: "auto" }, 1.1);
+
+      /* ══ Phase 2 (1.7 – 3.4s): DSCR number scales up + QUALIFIES pill ══ */
+      tl.to("#dscrLabel", { opacity: 1, duration: 0.45, ease: "power2.out", overwrite: "auto" }, 1.7);
+      tl.to("#dscrBig",   { opacity: 1, scale: 1, duration: 0.95, ease: "back.out(1.6)", overwrite: "auto" }, 1.8);
+      tl.to("#dscrChip",  { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)", overwrite: "auto" }, 2.85);
+
+      /* ══ Phase 3 (3.5 – 5.15s): PITIA bar draws in + legend + caption ══ */
+      tl.to("#pitiaStrip", { opacity: 1, duration: 0.4, ease: "power2.out" }, 3.5);
+      /* P&I = 84.6% of PITIA, Tax = 15.4%, Ins = 6.2% (bar sums to ~106% — clipped by overflow:hidden; visually correct) */
+      tl.to("#barPI",  { width: "84.6%", duration: 0.65, ease: "power2.out", overwrite: "auto" }, 3.65);
+      tl.to("#barTax", { width: "15.4%", duration: 0.55, ease: "power2.out", overwrite: "auto" }, 3.95);
+      tl.to("#bl1",    { opacity: 1, duration: 0.35, ease: "power2.out", overwrite: "auto" }, 3.8);
+      tl.to("#bl2",    { opacity: 1, duration: 0.35, ease: "power2.out", overwrite: "auto" }, 4.0);
+      tl.to("#bl3",    { opacity: 1, duration: 0.35, ease: "power2.out", overwrite: "auto" }, 4.2);
+      tl.to("#caption",{ opacity: 1, duration: 0.5,  ease: "power3.out" }, 4.45);
+
+      /* ══ Phase 4 (5.55 – 6.0s): Fade to background color for seamless loop ══
+         The overlay goes from 0 → 1 over 0.45s. At t=6 the entire frame is #003738,
+         which matches t=0 (all elements invisible, same bg). Zero visible jump on loop. */
+      tl.to("#loopOverlay", { opacity: 1, duration: 0.45, ease: "power2.inOut" }, 5.55);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

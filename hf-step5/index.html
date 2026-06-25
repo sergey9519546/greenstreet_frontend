@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #003738; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #eeefd3; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      #stage { position: absolute; inset: 0; }
+      .dotgrid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 2px, transparent 2px); background-size: 46px 46px; }
+
+      /* Wordmark */
+      #wordmark { position: absolute; left: 160px; top: 90px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #eeefd3; }
+
+      /* Step label */
+      #stepLabel { position: absolute; left: 160px; top: 152px; font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(238,239,211,0.45); }
+
+      /* Scene A: Rate number settles in (hero: t~1.1s) */
+      #sceneA {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 20px;
+      }
+      #rateLabel {
+        font-size: 28px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+        color: rgba(238,239,211,0.5);
+      }
+      #rateNum {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 260px; font-weight: 700; letter-spacing: -0.06em; line-height: 0.85;
+        color: #eeefd3;
+        font-variant-numeric: tabular-nums;
+      }
+      #rateSub {
+        font-size: 32px; font-weight: 500;
+        color: rgba(238,239,211,0.55);
+        letter-spacing: -0.01em;
+      }
+
+      /* Scene B: Padlock closes (hero: t~3.3s) */
+      #sceneB {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 44px;
+      }
+      #lockWrap {
+        position: relative; width: 220px; height: 260px;
+      }
+      #lockSvg {
+        position: absolute; inset: 0;
+        width: 220px; height: 260px;
+      }
+      #lockLabel {
+        font-size: 34px; font-weight: 500; letter-spacing: -0.01em;
+        color: rgba(238,239,211,0.7);
+      }
+
+      /* Scene C: RATE LOCKED stamp (hero: t~4.6s) */
+      #sceneC {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 40px;
+      }
+      #stampRate {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 180px; font-weight: 700; letter-spacing: -0.05em; line-height: 0.85;
+        color: #eeefd3;
+        font-variant-numeric: tabular-nums;
+      }
+      #lockStamp {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 96px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+        color: #d8d958;
+        border: 6px solid #d8d958;
+        padding: 18px 60px;
+        border-radius: 12px;
+        transform-origin: center center;
+      }
+
+      /* Scene D: Three checks (hero: t~5.3s) */
+      #sceneD {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 48px;
+      }
+      #checksHeadline {
+        font-size: 44px; font-weight: 600; letter-spacing: -0.02em;
+        color: rgba(238,239,211,0.85);
+        text-align: center;
+        max-width: 1100px;
+      }
+      #checksRow {
+        display: flex; gap: 80px; align-items: center;
+      }
+      .check-item {
+        display: flex; align-items: center; gap: 18px;
+        font-size: 34px; font-weight: 500;
+        color: #eeefd3;
+      }
+      .check-mark {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        background: #4dbd97;
+        font-size: 26px; font-weight: 700;
+        color: #003738;
+        flex-shrink: 0;
+      }
+      #caption {
+        font-size: 28px; font-weight: 500;
+        color: rgba(238,239,211,0.45);
+        font-style: italic;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+         style="position: relative; width: 1920px; height: 1080px; overflow: hidden;">
+
+      <div id="stage" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div class="dotgrid"></div>
+        <div id="wordmark">Greenstreet</div>
+        <div id="stepLabel">How it works — Lock the rate</div>
+
+        <!-- A: Rate number -->
+        <div id="sceneA">
+          <div id="rateLabel">Your modeled rate</div>
+          <div id="rateNum" class="mono">6.125%</div>
+          <div id="rateSub">30-yr fixed &middot; DSCR 1.25x</div>
+        </div>
+
+        <!-- B: Padlock closes -->
+        <div id="sceneB">
+          <div id="lockWrap">
+            <svg id="lockSvg" viewBox="0 0 220 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Lock body -->
+              <rect id="lockBody" x="14" y="120" width="192" height="126" rx="22"
+                    fill="#003738" stroke="#eeefd3" stroke-width="10"/>
+              <!-- Keyhole circle -->
+              <circle cx="110" cy="172" r="18" fill="#eeefd3"/>
+              <!-- Keyhole slot -->
+              <rect x="103" y="172" width="14" height="26" rx="7" fill="#eeefd3"/>
+              <!-- Shackle U-arc: fully drawn shape; stroke-dashoffset controls the "open gap" -->
+              <path id="shackle"
+                d="M 42 122 L 42 74 Q 42 22 110 22 Q 178 22 178 74 L 178 122"
+                stroke="#eeefd3" stroke-width="14" stroke-linecap="round"
+                fill="none"/>
+            </svg>
+          </div>
+          <div id="lockLabel">Locking rate at underwriting&#8230;</div>
+        </div>
+
+        <!-- C: RATE LOCKED stamp -->
+        <div id="sceneC">
+          <div id="stampRate" class="mono">6.125%</div>
+          <div id="lockStamp">RATE LOCKED</div>
+        </div>
+
+        <!-- D: Checks row -->
+        <div id="sceneD">
+          <div id="checksHeadline">The number you modeled is the number we underwrite.</div>
+          <div id="checksRow">
+            <div class="check-item" id="chk1">
+              <span class="check-mark">&#10003;</span>No surprises
+            </div>
+            <div class="check-item" id="chk2">
+              <span class="check-mark">&#10003;</span>No re-pricing
+            </div>
+            <div class="check-item" id="chk3">
+              <span class="check-mark">&#10003;</span>Underwriter-ready
+            </div>
+          </div>
+          <div id="caption">&#8212; Greenstreet</div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* Measure shackle path for stroke-dash animation */
+      var shackleEl = document.getElementById("shackle");
+      var shackleLen = shackleEl.getTotalLength ? shackleEl.getTotalLength() : 320;
+
+      /* ── Initial states (all opacity 0 / start positions) ── */
+      gsap.set("#wordmark",      { opacity: 0 });
+      gsap.set("#stepLabel",     { opacity: 0 });
+      gsap.set("#sceneA",        { opacity: 0 });
+      gsap.set("#rateNum",       { scale: 0.55, opacity: 0 });
+      gsap.set("#rateLabel",     { opacity: 0, y: 20 });
+      gsap.set("#rateSub",       { opacity: 0, y: 16 });
+      gsap.set("#sceneB",        { opacity: 0 });
+      gsap.set("#lockWrap",      { scale: 0.7, opacity: 0 });
+      gsap.set("#lockLabel",     { opacity: 0, y: 20 });
+      /* Open shackle: draw path fully but push it 35% up so gap shows at bottom */
+      gsap.set("#shackle",       { strokeDasharray: shackleLen, strokeDashoffset: shackleLen * 0.35 });
+      gsap.set("#sceneC",        { opacity: 0 });
+      gsap.set("#lockStamp",     { scale: 0.4, opacity: 0, rotation: -8 });
+      gsap.set("#stampRate",     { opacity: 0, y: 30 });
+      gsap.set("#sceneD",        { opacity: 0 });
+      gsap.set("#checksHeadline",{ opacity: 0, y: 24 });
+      gsap.set(["#chk1","#chk2","#chk3"], { x: -40, opacity: 0 });
+      gsap.set("#caption",       { opacity: 0 });
+
+      /* ── Scene A: Rate number (0 → 1.9s) ── */
+      tl.to("#wordmark",  { opacity: 1, duration: 0.45, ease: "power2.out" }, 0.15);
+      tl.to("#stepLabel", { opacity: 1, duration: 0.4,  ease: "power2.out" }, 0.2);
+      tl.to("#sceneA",    { opacity: 1, duration: 0.35, ease: "power2.out" }, 0.25);
+      tl.to("#rateLabel", { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.35);
+      tl.to("#rateNum",   { scale: 1, opacity: 1, duration: 0.85, ease: "back.out(1.7)" }, 0.45);
+      tl.to("#rateSub",   { opacity: 1, y: 0, duration: 0.5,  ease: "power3.out" }, 0.95);
+
+      /* Fade A out into B */
+      tl.to("#sceneA", { opacity: 0, duration: 0.38, ease: "power2.in" }, 1.78);
+
+      /* ── Scene B: Padlock (2.0 → 3.85s) ── */
+      tl.to("#sceneB",   { opacity: 1, duration: 0.35, ease: "power2.out" }, 2.0);
+      tl.to("#lockWrap", { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.5)" }, 2.1);
+      tl.to("#lockLabel",{ opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 2.5);
+
+      /* Shackle closes: strokeDashoffset → 0 (fully drawn = closed) */
+      tl.to("#shackle",  { strokeDashoffset: 0, duration: 0.65, ease: "power2.inOut" }, 2.75);
+
+      /* Emerald flash on lock body at moment of close, then back to ink */
+      tl.to("#lockBody", { stroke: "#4dbd97", duration: 0.18, ease: "power1.out", overwrite: "auto" }, 3.35);
+      tl.to("#lockBody", { stroke: "#eeefd3", duration: 0.3,  ease: "power2.out", overwrite: "auto" }, 3.53);
+
+      /* Fade B out into C */
+      tl.to("#sceneB", { opacity: 0, duration: 0.38, ease: "power2.in" }, 3.72);
+
+      /* ── Scene C: RATE LOCKED stamp (3.9 → 4.85s) ── */
+      tl.to("#sceneC",   { opacity: 1, duration: 0.3, ease: "power2.out" }, 3.9);
+      tl.to("#stampRate",{ opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.95);
+      /* Stamp snaps in with scale overshoot */
+      tl.to("#lockStamp",{ scale: 1, opacity: 1, rotation: 0, duration: 0.5, ease: "back.out(2.4)" }, 4.28);
+
+      /* Fade C out into D */
+      tl.to("#sceneC", { opacity: 0, duration: 0.35, ease: "power2.in" }, 4.72);
+
+      /* ── Scene D: Checks (4.9 → 5.7s) ── */
+      tl.to("#sceneD",          { opacity: 1, duration: 0.3, ease: "power2.out" }, 4.9);
+      tl.to("#checksHeadline",  { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 4.95);
+      tl.to("#chk1", { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 5.1);
+      tl.to("#chk2", { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 5.22);
+      tl.to("#chk3", { x: 0, opacity: 1, duration: 0.4, ease: "expo.out" }, 5.34);
+      tl.to("#caption", { opacity: 1, duration: 0.35, ease: "power2.out" }, 5.46);
+
+      /* ── Loop ease-out: fade everything back to opacity 0 (5.65 → 6.0s) ──
+         Matches the initial gsap.set states exactly, so timeline restart
+         at t=0 is visually seamless — no flash, no jump. */
+      tl.to(["#sceneD", "#wordmark", "#stepLabel"],
+            { opacity: 0, duration: 0.35, ease: "power2.in" }, 5.65);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #006565; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #eeefd3; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+
+      /* Stage */
+      #stage { position: absolute; inset: 0; }
+
+      /* Dot-grid background texture */
+      .dotgrid {
+        position: absolute; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.05) 2px, transparent 2px);
+        background-size: 46px 46px;
+      }
+
+      /* Wordmark */
+      #wordmark {
+        position: absolute; left: 160px; top: 90px;
+        font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #eeefd3;
+      }
+
+      /* Mini title block */
+      #miniTitle {
+        position: absolute; left: 160px; top: 168px;
+      }
+      #miniTitle .k {
+        font-size: 22px; font-weight: 600; letter-spacing: 0.06em;
+        text-transform: uppercase; color: #d8d958;
+      }
+      #miniTitle .h {
+        font-size: 58px; font-weight: 600; margin-top: 6px;
+      }
+
+      /* State grid: 10x5, compact cells */
+      #grid {
+        position: absolute; left: 160px; top: 310px;
+        display: grid;
+        grid-template-columns: repeat(10, 100px);
+        grid-auto-rows: 100px;
+        gap: 10px;
+      }
+      .cell {
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 28px; font-weight: 700;
+      }
+
+      /* Legend */
+      #legend {
+        position: absolute; left: 160px; bottom: 100px;
+        display: flex; gap: 40px;
+      }
+      .lg {
+        display: flex; align-items: center; gap: 14px;
+        font-size: 28px; font-weight: 500;
+        color: rgba(238,239,211,0.85);
+      }
+      .sw { width: 28px; height: 28px; border-radius: 8px; }
+
+      /* Caption bar */
+      #caption {
+        position: absolute; left: 160px; bottom: 44px;
+        font-size: 22px; font-weight: 500;
+        color: rgba(238,239,211,0.55);
+        letter-spacing: 0.01em;
+      }
+
+      /* Callout chips — right panel */
+      .callout {
+        position: absolute;
+        background: #003738;
+        border-radius: 16px;
+        padding: 22px 28px;
+        width: 460px;
+      }
+      .callout .code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 26px; font-weight: 700;
+      }
+      .callout .txt {
+        font-size: 26px; font-weight: 500;
+        color: rgba(238,239,211,0.85);
+        margin-top: 8px; line-height: 1.35;
+      }
+
+      #cNJ { left: 1250px; top: 290px; }
+      #cMN { left: 1250px; top: 460px; }
+      #cOH { left: 1250px; top: 630px; }
+      #cTX { left: 1250px; top: 800px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+      <div id="stage" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div class="dotgrid"></div>
+
+        <div id="wordmark">Greenstreet</div>
+
+        <div id="miniTitle">
+          <div class="k">50-State Rule Engine</div>
+          <div class="h">Prepayment penalty, mapped.</div>
+        </div>
+
+        <div id="grid"></div>
+
+        <div id="legend">
+          <div class="lg"><span class="sw" style="background:#4dbd97"></span>Allowed</div>
+          <div class="lg"><span class="sw" style="background:#d8d958"></span>Threshold</div>
+          <div class="lg"><span class="sw" style="background:#f97316"></span>High-risk</div>
+          <div class="lg"><span class="sw" style="background:#ff6b6b"></span>Banned</div>
+        </div>
+
+        <div id="caption">50-state prepay &amp; usury — flagged before they cost you.</div>
+
+        <div class="callout" id="cNJ">
+          <div class="code" style="color:#f97316">NJ &middot; New Jersey</div>
+          <div class="txt">PPP high-risk for LLCs &mdash; C/S-Corp only. Flag every NJ deal.</div>
+        </div>
+        <div class="callout" id="cMN">
+          <div class="code" style="color:#d8d958">MN &middot; Minnesota</div>
+          <div class="txt">Business-purpose allowed &mdash; HF 3437, eff. 8/1/2026.</div>
+        </div>
+        <div class="callout" id="cOH">
+          <div class="code" style="color:#d8d958">OH &middot; Ohio</div>
+          <div class="txt">Threshold $116,356 &mdash; above it, max 1% / 5yr.</div>
+        </div>
+        <div class="callout" id="cTX">
+          <div class="code" style="color:#4dbd97">TX &middot; Texas</div>
+          <div class="txt">Business-purpose PPP allowed. Clear to quote.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ── State data: tier 0=green, 1=lemon, 2=orange, 3=red ── */
+      var TIER = { 0: "#4dbd97", 1: "#d8d958", 2: "#f97316", 3: "#ff6b6b" };
+      var INK  = { 0: "#003738", 1: "#003738", 2: "#003738", 3: "#ffffff" };
+      var STATES = [
+        ["AL",0],["AK",2],["AZ",0],["AR",1],["CA",1],["CO",0],["CT",0],["DE",0],["FL",0],["GA",0],
+        ["HI",0],["ID",0],["IL",1],["IN",0],["IA",0],["KS",3],["KY",0],["LA",0],["ME",1],["MD",3],
+        ["MA",0],["MI",0],["MN",1],["MS",1],["MO",0],["MT",0],["NE",0],["NV",0],["NH",0],["NJ",2],
+        ["NM",1],["NY",1],["NC",0],["ND",3],["OH",1],["OK",1],["OR",0],["PA",1],["RI",1],["SC",1],
+        ["SD",0],["TN",0],["TX",0],["UT",0],["VT",0],["VA",0],["WA",1],["WV",1],["WI",1],["WY",0]
+      ];
+
+      /* Build grid cells */
+      var grid = document.getElementById("grid");
+      STATES.forEach(function(s) {
+        var d = document.createElement("div");
+        d.className = "cell";
+        d.id = "st-" + s[0];
+        d.textContent = s[0];
+        d.style.background = TIER[s[1]];
+        d.style.color = INK[s[1]];
+        grid.appendChild(d);
+      });
+
+      /* ── Initial state: everything invisible (= loop frame 0) ── */
+      gsap.set("#wordmark",  { opacity: 0 });
+      gsap.set("#miniTitle", { opacity: 0, y: 24 });
+      gsap.set("#grid .cell", { scale: 0, opacity: 0 });
+      gsap.set("#legend",    { opacity: 0, y: 20 });
+      gsap.set("#caption",   { opacity: 0 });
+      gsap.set(["#cNJ","#cMN","#cOH","#cTX"], { opacity: 0, x: 36 });
+
+      /* ── Paused GSAP timeline — 6 s, loops seamlessly ──
+         The final eased-out phase returns every element to its gsap.set() initial
+         state so that the loop restart (frame 0) is indistinguishable.
+      ── */
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* Phase 1 (0.1–0.75s): wordmark + miniTitle slide in */
+      tl.to("#wordmark",  { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.1);
+      tl.to("#miniTitle", { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.15);
+
+      /* Phase 2 (0.6–2.3s): grid cells stagger in from scale 0 */
+      tl.to("#grid .cell", {
+        scale: 1, opacity: 1,
+        duration: 0.45, ease: "back.out(1.6)",
+        stagger: { each: 0.028, from: "start" }
+      }, 0.6);
+
+      /* Phase 3 (1.8–2.45s): legend + caption fade in */
+      tl.to("#legend",  { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 1.8);
+      tl.to("#caption", { opacity: 1, duration: 0.5, ease: "power2.out" }, 1.95);
+
+      /* Phase 4 (2.4–4.8s): state highlights + callout chips one by one */
+      /* NJ */
+      tl.to("#st-NJ", {
+        boxShadow: "0 0 0 5px #eeefd3", scale: 1.12,
+        duration: 0.28, yoyo: true, repeat: 1, ease: "power2.inOut", overwrite: "auto"
+      }, 2.4);
+      tl.to("#cNJ", { opacity: 1, x: 0, duration: 0.45, ease: "expo.out" }, 2.5);
+
+      /* MN */
+      tl.to("#st-MN", {
+        boxShadow: "0 0 0 5px #eeefd3", scale: 1.12,
+        duration: 0.28, yoyo: true, repeat: 1, ease: "power2.inOut", overwrite: "auto"
+      }, 2.9);
+      tl.to("#cMN", { opacity: 1, x: 0, duration: 0.45, ease: "expo.out" }, 3.0);
+
+      /* OH */
+      tl.to("#st-OH", {
+        boxShadow: "0 0 0 5px #eeefd3", scale: 1.12,
+        duration: 0.28, yoyo: true, repeat: 1, ease: "power2.inOut", overwrite: "auto"
+      }, 3.4);
+      tl.to("#cOH", { opacity: 1, x: 0, duration: 0.45, ease: "expo.out" }, 3.5);
+
+      /* TX */
+      tl.to("#st-TX", {
+        boxShadow: "0 0 0 5px #eeefd3", scale: 1.12,
+        duration: 0.28, yoyo: true, repeat: 1, ease: "power2.inOut", overwrite: "auto"
+      }, 3.9);
+      tl.to("#cTX", { opacity: 1, x: 0, duration: 0.45, ease: "expo.out" }, 4.0);
+
+      /* Phase 5 (4.55–5.75s): ease everything back to initial — seamless loop exit */
+      /* Callout chips slide back out */
+      tl.to(["#cNJ","#cMN","#cOH","#cTX"], {
+        opacity: 0, x: 36, duration: 0.38, ease: "power2.in", stagger: 0.05
+      }, 4.55);
+
+      /* Legend + caption fade out */
+      tl.to("#legend",  { opacity: 0, y: 20, duration: 0.38, ease: "power2.in" }, 4.72);
+      tl.to("#caption", { opacity: 0, duration: 0.35, ease: "power2.in" }, 4.72);
+
+      /* Grid cells scale back to 0 — fastest first (reverse stagger) */
+      tl.to("#grid .cell", {
+        scale: 0, opacity: 0,
+        duration: 0.36, ease: "back.in(1.4)",
+        stagger: { each: 0.018, from: "end" }
+      }, 4.82);
+
+      /* miniTitle + wordmark fade out */
+      tl.to("#miniTitle", { opacity: 0, y: 24, duration: 0.38, ease: "power2.in" }, 5.28);
+      tl.to("#wordmark",  { opacity: 0, duration: 0.32, ease: "power2.in" }, 5.38);
+      /* By 5.75 s: all elements are opacity:0 scale:0 — identical to gsap.set() initial. */
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
