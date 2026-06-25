@@ -29,8 +29,8 @@ export function analyzeRefi(
   const qualifyingRent = Math.min(property.leaseRent, property.marketRent);
   const currentDSCR = currentPITIA > 0 ? qualifyingRent / currentPITIA : 0;
 
-  // Projected refi
-  const appreciatedValue = property.purchasePrice * (1 + projectedAppreciation);
+  // Projected refi (projectedAppreciation is a percent, e.g. 5 → +5%)
+  const appreciatedValue = property.purchasePrice * (1 + projectedAppreciation / 100);
   const refiLTV = 75;
   const refiLoanAmount = appreciatedValue * (refiLTV / 100);
 
