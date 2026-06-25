@@ -22,10 +22,10 @@ const JOBS = [
 ];
 
 const VALUES = [
-  { heading: "Speed is the product",                    body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds, not a spreadsheet round-trip." },
-  { heading: "No black boxes",                          body: "Every figure Greenstreet produces is computed by versioned code with a citation behind every rule. When a regulator asks where a number came from, we hand them the source." },
-  { heading: "Your borrower stays yours",               body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship. Your pipeline is yours." },
-  { heading: "Compliance is a feature, not a footnote", body: "State PPP rules, DSCR floors, seasoning requirements — baked into every output, not an afterthought appended to the printout." },
+  { heading: "Speed is the product",                    body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds — not a spreadsheet round-trip or a call to the lender." },
+  { heading: "No black boxes",                          body: "Every figure Greenstreet produces is computed by versioned code with a statutory citation behind every rule — never an AI-generated estimate. When a regulator asks where a number came from, we hand them the source." },
+  { heading: "Your borrower stays yours",               body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship, share your pipeline data, or take a cut of your deal. Your business is yours." },
+  { heading: "Compliance is a feature, not a footnote", body: "State prepayment-penalty rules, DSCR floors, seasoning requirements — baked into every output from the start, not an afterthought appended to a printout after the fact." },
 ];
 
 // ── Scoped styles ─────────────────────────────────────────────────────────────
@@ -128,9 +128,12 @@ export default function AboutPage({
               margin: "0 0 36px",
             }}
           >
-            Founded by a broker and a quant who watched good deals die at the
-            lender. We built the underwriting engine we wished existed:
-            deterministic, provenance-tracked, defensible on every line.
+            DSCR loans let rental-property owners qualify on the property's rent —
+            not their personal income. Greenstreet is the software platform that
+            makes that process fast, accurate, and defensible. Founded by a broker
+            and a quant who watched good deals die at the lender because the math
+            was wrong. We built the engine we wished existed: deterministic,
+            provenance-tracked, every line citable.
           </Lead>
 
           {/* Hero meta */}
@@ -191,7 +194,7 @@ export default function AboutPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Try the DSCR Calculator →
+              Check my deal's DSCR →
             </button>
             <button
               onClick={() => onNavigate("book-demo")}
@@ -211,7 +214,7 @@ export default function AboutPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Book a demo
+              Book a 15-min demo
             </button>
           </div>
         </div>
@@ -280,9 +283,11 @@ export default function AboutPage({
             >
               In 2026 we founded Greenstreet after watching, first-hand, how hard
               it had become for brokers to price DSCR deals that actually held at
-              the lender. We went back to the drawing board on rental-loan software
-              — and built the engine we wished existed: deterministic,
-              provenance-tracked, defensible.
+              the lender — and how often investors signed on deals where the
+              numbers hadn't been run correctly. We went back to the drawing board
+              on rental-loan software and built the engine we wished existed:
+              deterministic, provenance-tracked, defensible to a regulator on every
+              line.
             </p>
           </div>
 
@@ -335,9 +340,9 @@ export default function AboutPage({
             >
               Brokers, investors and the borrowers they serve deserve the same math
               an institution runs. Every figure Greenstreet produces is computed by
-              versioned code with a citation behind every rule — never an LLM
-              guess. When a regulator asks where a number came from, we hand them
-              the source.
+              versioned code with a statutory citation behind every rule — never an
+              AI-generated estimate. When a regulator, a lender, or a borrower asks
+              where a number came from, we hand them the source.
             </p>
           </div>
         </div>
@@ -555,7 +560,7 @@ export default function AboutPage({
                 marginBottom: 14,
               }}
             >
-              Job opportunities
+              Open roles
             </div>
             <h2
               style={{
@@ -566,7 +571,7 @@ export default function AboutPage({
                 margin: "0 0 28px",
               }}
             >
-              We're hiring!
+              Come build the engine with us.
             </h2>
 
             <div
@@ -723,7 +728,7 @@ export default function AboutPage({
               marginBottom: 14,
             }}
           >
-            Our Investors
+            Our backers
           </div>
           <h2
             style={{
@@ -733,7 +738,7 @@ export default function AboutPage({
               margin: "0 0 40px",
             }}
           >
-            Backed by the right investors.
+            Backed by investors who build fintech for the long run.
           </h2>
           <div className="ab-inv-grid">
             {[
@@ -815,7 +820,7 @@ export default function AboutPage({
                 color: dc.cream,
               }}
             >
-              Learn the how and why of Greenstreet in 15 minutes.
+              See Greenstreet run a real deal — live, 15 minutes.
             </div>
             <span
               style={{
@@ -831,7 +836,7 @@ export default function AboutPage({
                 alignSelf: "flex-start",
               }}
             >
-              Book a live demo →
+              Book a walkthrough →
             </span>
           </button>
 
@@ -862,7 +867,7 @@ export default function AboutPage({
                 color: dc.cream,
               }}
             >
-              Get your questions answered by a member of the team.
+              Talk to a specialist — not a form.
             </div>
             <span
               style={{

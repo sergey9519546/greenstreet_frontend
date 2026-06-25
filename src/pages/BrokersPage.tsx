@@ -16,26 +16,26 @@ const USECASES: UseCase[] = [
   {
     num: "01",
     title: "Price the deal in under a minute",
-    desc: "Enter the property address, rent, rate and costs. Get DSCR, Track 1 and Track 2 analysis, cash-on-cash return and break-even — no login, no guesswork.",
-    cta: "Open the calculator",
+    desc: "Enter the property address, rent, rate and costs. Get DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) on both tracks: Track 1 is what the lender uses to qualify you; Track 2 adds vacancy, management fees and CapEx to show what you'll actually pocket. No login, no guesswork.",
+    cta: "See if my deal qualifies",
     view: "dscr-calculator",
     numBg: dc.lemon,
     numInk: dc.dark,
   },
   {
     num: "02",
-    title: "Match the best-fit Greenstreet program for every file",
-    desc: "Your deal is scored against Greenstreet DSCR program boxes — FICO floors, LTV caps, DSCR minimums, state coverage and entity rules — ranked by fit before you make a single call.",
-    cta: "Open Lender Intel",
+    title: "Match the right Greenstreet program before your first call",
+    desc: "Your file is scored against every Greenstreet DSCR program: FICO floors, LTV caps (how the loan amount compares to the property value — lower = more equity = better terms), DSCR minimums, state coverage and entity rules — ranked by fit score. Know which program funds your deal before you pick up the phone.",
+    cta: "Find the best program for my file",
     view: "lender-intel",
     numBg: dc.dark,
     numInk: dc.lemon,
   },
   {
     num: "03",
-    title: "Know the state rule before it bites",
-    desc: "Prepayment-penalty, usury and STR rules for all 50 states, each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you quote.",
-    cta: "Open State Rules",
+    title: "Check the state rule before it kills the deal",
+    desc: "Prepayment-penalty fees (a fee some loans charge if you pay the loan off or refinance early), usury caps and short-term-rental rules for all 50 states — each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you quote the borrower.",
+    cta: "Look up state rules for my deal",
     view: "state-laws",
     numBg: dc.lemon,
     numInk: dc.dark,
@@ -43,17 +43,17 @@ const USECASES: UseCase[] = [
   {
     num: "04",
     title: "Stress-test the rate and the rent",
-    desc: "A 120-cell rate × rent shock matrix across five risk zones — run it in seconds to show the borrower how far the deal bends before it breaks.",
-    cta: "Open Stress Matrix",
+    desc: "A 120-cell rate × rent shock grid shows your borrower exactly how far the deal can bend before DSCR breaks below 1.00. Run it in seconds — then share it as a defensible page in the loan package.",
+    cta: "Run the stress matrix",
     view: "stress-matrix",
     numBg: dc.dark,
     numInk: dc.lemon,
   },
   {
     num: "05",
-    title: "Submit clean. Close fast.",
-    desc: "The IC memo, the state rule and the stress matrix — all defensible, all citable. Hand the lender the package they need to say yes the first time.",
-    cta: "Open Deal Analyzer",
+    title: "Hand the lender everything they need to say yes",
+    desc: "The investment-committee memo, the state compliance check, and the stress matrix — all generated in one pass, all citable. Submit a clean package and close faster, because the lender isn't waiting on missing documents.",
+    cta: "Build the deal package",
     view: "deal-analyzer",
     numBg: dc.lemon,
     numInk: dc.dark,
@@ -142,13 +142,14 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Price every DSCR file in under 60 seconds, match the right
-              Greenstreet program, and hand the lender a defensible package —
-              all before your first call.
+              Greenstreet gives brokers five tools to price, qualify, and package
+              every DSCR rental-loan file — no income docs, no login, no lender
+              phone tag. Price a deal in under 60 seconds and submit a package
+              that sticks the first time.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Btn
-                label="Price a deal"
+                label="Price my first deal →"
                 onClick={() => onNavigate("dscr-calculator")}
               />
               <button
@@ -170,7 +171,7 @@ export default function BrokersPage({
                   minHeight: 44,
                 }}
               >
-                Book a walkthrough →
+                See a 15-min walkthrough →
               </button>
             </div>
           </div>
@@ -304,13 +305,26 @@ export default function BrokersPage({
                 fontSize: "clamp(28px,3.4vw,46px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
-                margin: 0,
+                margin: "0 0 14px",
                 maxWidth: "18ch",
                 color: dc.dark,
               }}
             >
-              Everything a producing broker needs.
+              Five steps from first look to funded file.
             </h2>
+            <p
+              style={{
+                fontSize: "clamp(16px,1.25vw,19px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(0,55,56,0.62)",
+                margin: 0,
+                maxWidth: "54ch",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              DSCR loans qualify on rental income, not the borrower's pay stubs (business-purpose / non-owner-occupied — a rental you invest in, not a home you live in). These tools handle every step of that process.
+            </p>
           </div>
 
           {/* Numbered list with continuous left-rail */}
@@ -470,8 +484,9 @@ export default function BrokersPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Book a 15-minute walkthrough — we'll show you exactly how to run a file through the
-              Greenstreet engine from pricing to submission.
+              Book a 15-minute walkthrough — we'll run a real file through the
+              Greenstreet engine together, from pricing to submission, so you see
+              exactly what your borrower will see before you commit.
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
@@ -493,7 +508,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              Book a demo →
+              Book a walkthrough →
             </button>
             {/* Secondary: transparent + FADED border, per contract */}
             <button
@@ -513,7 +528,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              Quick rate quiz →
+              Get a rate in 5 questions →
             </button>
           </div>
         </div>

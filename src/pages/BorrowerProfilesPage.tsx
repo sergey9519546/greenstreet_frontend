@@ -221,7 +221,7 @@ function ProfileCard({
               letterSpacing: "-0.01em",
             }}
           >
-            Hover to see the fit →
+            Hover or tap to see the matched program →
           </div>
         </div>
 
@@ -443,22 +443,23 @@ export default function BorrowerProfilesPage({
               letterSpacing: "-0.01em",
             }}
           >
-            Who we serve / Borrower archetypes
+            Who we serve
           </div>
-          <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
-            Six borrowers. One engine that fits them all.
+          <H1 style={{ margin: "0 0 20px", maxWidth: "20ch" }}>
+            Find yourself in one of these six borrower types.
           </H1>
           <Lead
             style={{
               color: "rgba(0,55,56,0.65)",
               maxWidth: "54ch",
-              margin: 0,
+              margin: "0 0 16px",
             }}
           >
-            From the first-timer to the foreign national to the 40-door
-            portfolio operator — hover any card to see the program and terms
-            that match.
+            DSCR loans (where the property's rent, not your income, determines whether you qualify) fit a wide range of investors. Pick the profile that sounds most like you to see the matching program, rate range, and requirements.
           </Lead>
+          <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(0,55,56,0.45)", margin: 0, letterSpacing: "-0.01em" }}>
+            Hover or tap any card to see the program details.
+          </p>
         </div>
       </section>
 
@@ -512,11 +513,14 @@ export default function BorrowerProfilesPage({
                 fontWeight: 600,
                 letterSpacing: "-0.035em",
                 lineHeight: 1.05,
-                margin: 0,
+                margin: "0 0 14px",
               }}
             >
-              What your lender actually needs from you.
+              What your lender needs from you.
             </h2>
+            <p style={{ fontSize: "clamp(15px,1.25vw,17px)", fontWeight: 500, color: "rgba(0,55,56,0.62)", margin: 0, lineHeight: 1.6, maxWidth: "56ch" }}>
+              No W-2s or tax returns — but DSCR loans do have a document list. Have these ready before you submit to avoid delays at closing.
+            </p>
           </div>
 
           <div
@@ -602,11 +606,14 @@ export default function BorrowerProfilesPage({
                 fontWeight: 600,
                 letterSpacing: "-0.035em",
                 lineHeight: 1.05,
-                margin: 0,
+                margin: "0 0 14px",
               }}
             >
-              Mistakes borrowers make — and how to avoid them.
+              Five mistakes that slow or kill a DSCR closing.
             </h2>
+            <p style={{ fontSize: "clamp(15px,1.25vw,17px)", fontWeight: 500, color: "rgba(0,55,56,0.62)", margin: 0, lineHeight: 1.6, maxWidth: "56ch" }}>
+              These come up on almost every submission desk. Check your file against each one before you submit.
+            </p>
           </div>
 
           <div
@@ -687,7 +694,7 @@ export default function BorrowerProfilesPage({
               marginBottom: 16,
             }}
           >
-            Not sure where you fit?
+            Ready to check your deal?
           </div>
           <h2
             style={{
@@ -699,9 +706,7 @@ export default function BorrowerProfilesPage({
               margin: "0 0 16px",
             }}
           >
-            Answer 5 questions.
-            <br />
-            Get your matched program.
+            See if your deal qualifies.
           </h2>
           <p
             style={{
@@ -714,8 +719,7 @@ export default function BorrowerProfilesPage({
               letterSpacing: "-0.01em",
             }}
           >
-            Preliminary estimate — not a commitment to lend. No W-2s or tax
-            returns needed. Result in under two minutes.
+            Enter your property details and get a preliminary DSCR estimate, rate range, and program match — no income docs, no commitment, result in under two minutes.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             <button

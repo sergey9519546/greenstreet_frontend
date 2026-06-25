@@ -5,31 +5,31 @@
 // loaded greenboard CSS, so they match the home pixel-for-pixel for free.
 // Extracted from PageShell so DcShell (every tool/content page) can reuse them.
 import React, { useState } from "react";
-import { PISTACHIO, MIDNIGHT, RAINFOREST, LEMON, FADED } from "../theme";
+import { PISTACHIO, MIDNIGHT, LEMON, FADED } from "../theme";
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); setMenuOpen(false); };
   return (
-    <nav className="nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
+    <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
             <div className="nav-logo w-embed">
-              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: "22px", fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.04em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
+              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.01em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
             </div>
           </a>
-          <div className="nav-links-contain">
+          <div className="nav-links-contain" hide-t="">
             <div className="nav-links-wrap">
               <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")}>
-                <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>
-                  Invest<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
+                <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>
+                  INVEST<span style={{ opacity: 0.5 }}>GO</span>
                 </div>
               </a>
               <a className="nav-link w-inline-block" href="/products" onClick={go("products")}><div className="nav_links_text">Product</div></a>
               <a className="nav-link w-inline-block" href="/solutions" onClick={go("solutions")}><div className="nav_links_text">Who We Serve</div></a>
+              <a className="nav-link w-inline-block" href="/partnerships" onClick={go("brokers-partner")}><div>Partnerships</div></a>
               <a className="nav-link w-inline-block" href="/blog" onClick={go("blog")}><div className="nav_links_text">Resources</div></a>
-              <a className="nav-link w-inline-block" href="/about" onClick={go("about")}><div className="nav_links_text">About</div></a>
               <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div>Login</div></a>
               {/* Solid, always-visible CTA (the Webflow .btn_main collapses to 0
                   width outside the home's scroll-reveal context). Dark fill +
@@ -52,11 +52,11 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
       </div>
       {menuOpen && (
         <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-          <a href="/investgo" className="nav-link" onClick={go("portal")}><span>Invest</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
+          <a href="/investgo" className="nav-link" onClick={go("portal")}>INVEST<span style={{ opacity: 0.5 }}>GO</span></a>
           <a href="/products" className="nav-link" onClick={go("products")}>Product</a>
           <a href="/solutions" className="nav-link" onClick={go("solutions")}>Who We Serve</a>
+          <a href="/partnerships" className="nav-link" onClick={go("brokers-partner")}>Partnerships</a>
           <a href="/blog" className="nav-link" onClick={go("blog")}>Resources</a>
-          <a href="/about" className="nav-link" onClick={go("about")}>About</a>
           <a href="/investgo" className="nav-link" onClick={go("portal")}>Login</a>
           <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={go("rate-quiz")}>Book a demo</a>
         </div>
@@ -111,6 +111,16 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
                 <a className="footer_link_wrap w-inline-block" href="/blog" onClick={go("blog")}><div className="footer_link_text u-weight-bold">Greenstreet Guidance</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/case-studies" onClick={go("case-studies")}><div className="footer_link_text u-weight-bold">Customer Stories</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/faq" onClick={go("faq")}><div className="footer_link_text u-weight-bold">FAQ</div></a>
+              </div>
+            </section>
+            <section className="footer_group_wrap u-column-2">
+              <h3 className="footer_group_title u-text-style-h4 u-mb-2">Special Tools</h3>
+              <div className="footer_group_list u-grid-column-2">
+                <a className="footer_link_wrap w-inline-block" href="/tools/deal-workspace" onClick={goPath("/tools/deal-workspace")}><div className="footer_link_text u-weight-bold">Deal Workspace</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/sensitivity" onClick={goPath("/tools/sensitivity")}><div className="footer_link_text u-weight-bold">Sensitivity Lab</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/structure-optimizer" onClick={goPath("/tools/structure-optimizer")}><div className="footer_link_text u-weight-bold">Structure Optimizer</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/scenario-history" onClick={goPath("/tools/scenario-history")}><div className="footer_link_text u-weight-bold">Scenario History</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/portfolio" onClick={go("portfolio")}><div className="footer_link_text u-weight-bold">Portfolio Analyzer</div></a>
               </div>
             </section>
           </nav>

@@ -46,26 +46,26 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   let verdictColor = "#ff6b6b";
   let verdictBg = "rgba(74,21,21,0.07)";
   let verdictNote =
-    "Below 0.75x DSCR. Most lenders decline without strong compensating factors.";
+    "DSCR below 0.75x — the rent doesn't come close to covering the payment. Most lenders decline at this level. Consider a higher-rent property, more down, or a lower rate.";
 
   if (dscr >= 1.25) {
     vLabel = "STRONG";
     verdictColor = dc.rain;
     verdictBg = "rgba(0,101,101,0.06)";
     verdictNote =
-      "Strong coverage. Qualifies at best pricing tiers with most programs.";
+      "Strong coverage — rent comfortably covers the full payment. Qualifies at best-tier pricing with most DSCR programs.";
   } else if (dscr >= 1.0) {
     vLabel = "QUALIFIES";
     verdictColor = dc.lemon;
     verdictBg = "rgba(216,217,88,0.10)";
     verdictNote =
-      "Meets the 1.0 minimum. Check lender-specific floors and reserves.";
+      "Meets the 1.0x floor — rent equals or exceeds the full payment. Check lender-specific minimums, reserve requirements, and compensating factors.";
   } else if (dscr >= 0.75) {
     vLabel = "SUB-1.0";
     verdictColor = "#018582";
     verdictBg = "rgba(1,133,130,0.08)";
     verdictNote =
-      "Some lenders accept 0.75+ with strong FICO, low LTV, or reserves.";
+      "Rent falls short of the full payment but stays above 0.75x. Some lenders accept this range with strong credit (680+), lower LTV, or extra reserves. Not a dead end.";
   }
 
   // --- State PPP rule ---
@@ -223,11 +223,10 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             <H1 style={{ margin: "0 0 28px" }}>
               Plug in 7 numbers.
               <br />
-              Get the verdict.
+              Get the full verdict.
             </H1>
             <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              DSCR, cash flow, cap rate, debt yield, state PPP rule and your
-              live Greenstreet program shortlist &mdash; from one screen.
+              DSCR (whether the property's rent can cover the loan payment), PITIA (the full monthly payment — principal, interest, taxes, insurance, and HOA), cash flow, cap rate, debt yield, state prepayment penalty rule, and your live Greenstreet program shortlist — from one screen.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <Btn label="Run the analyzer" href="#da-tool" onClick={scrollToTool} />
@@ -541,11 +540,14 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 fontWeight: 600,
                 letterSpacing: "-0.035em",
                 lineHeight: 1.0,
-                margin: 0,
+                margin: "0 0 14px",
               }}
             >
               Seven fields in. Full underwrite out.
             </h2>
+            <p style={{ fontSize: 15, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.6, maxWidth: "60ch" }}>
+              Adjust any number and the DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger), cash flow, and matched programs update instantly. Estimates are fine.
+            </p>
           </div>
 
           {/* Grid: inputs + results */}
@@ -574,20 +576,23 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   color: dc.rain,
-                  marginBottom: 20,
+                  marginBottom: 6,
                 }}
               >
-                Property
+                Property inputs
               </div>
+              <p style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", marginBottom: 18, lineHeight: 1.5 }}>
+                Estimates are fine — results update as you type. Annual taxes and insurance are split into monthly amounts and added to your PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues).
+              </p>
 
               {/* Reusable label style */}
               {([
-                { label: "Purchase Price", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16 },
-                { label: "Down Payment",   value: down,  set: setDown,  step: 1,    prefix: "",  suffix: "%", mb: 16 },
-                { label: "Monthly Rent",   value: rent,  set: setRent,  step: 100,  prefix: "$", suffix: "", mb: 16 },
-                { label: "Note Rate",      value: rate,  set: setRate,  step: 0.125,prefix: "",  suffix: "%", mb: 16 },
-                { label: "Annual Taxes",   value: tax,   set: setTax,   step: 250,  prefix: "$", suffix: "", mb: 16 },
-                { label: "Annual Insurance", value: ins, set: setIns,   step: 100,  prefix: "$", suffix: "", mb: 16 },
+                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16 },
+                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16 },
+                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16 },
+                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16 },
+                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16 },
+                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16 },
                 { label: "HOA / mo",       value: hoa,   set: setHoa,   step: 50,   prefix: "$", suffix: "", mb: 16 },
               ] as const).map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
@@ -644,6 +649,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 }}
               >
                 <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>
+                    DSCR — rent ÷ payment
+                  </div>
                   <Mono
                     style={{
                       display: "block",
@@ -740,11 +748,14 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
                     color: dc.lemon,
-                    marginBottom: 10,
+                    marginBottom: 4,
                   }}
                 >
-                  State rule ({stateCode || "—"})
+                  State prepayment penalty rule — {stateCode || "—"}
                 </div>
+                <p style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", margin: "0 0 10px", lineHeight: 1.4 }}>
+                  A prepayment penalty is a fee some loans charge if you pay off or refinance early. Some states restrict or ban them, which affects lender participation.
+                </p>
                 <p
                   style={{
                     fontSize: 14,
@@ -849,10 +860,10 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 Next step
               </div>
               <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
-                Deal looks viable? Get your rate.
+                Numbers look good? Get your rate.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
-                One application. We place your file in the best-fit Greenstreet program and fund it — no portal-hopping.
+                One application. We match your file to the best-fit Greenstreet program and take it to funding — no portal-hopping, no repeated paperwork.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>

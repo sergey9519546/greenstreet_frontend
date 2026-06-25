@@ -242,12 +242,26 @@ export default function CareersPage({
             >
               Careers
             </div>
-            <H1 style={{ margin: "0 0 26px", maxWidth: "17ch" }}>
+            <H1 style={{ margin: "0 0 20px", maxWidth: "17ch" }}>
               Build the math layer of real-estate lending.
             </H1>
-            <Lead style={{ color: "rgba(0,55,56,0.68)", maxWidth: "48ch", margin: 0 }}>
-              We're a small team shipping a generational tool for DSCR brokers and investors. Remote-first, deeply technical, allergic to hand-waving.
+            <Lead style={{ color: "rgba(0,55,56,0.68)", maxWidth: "48ch", margin: "0 0 20px" }}>
+              We're a small team shipping tools that help DSCR brokers and investors price deals, model risk, and close faster. Remote-first, deeply technical, no hand-waving.
             </Lead>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button
+                onClick={scrollToJobs}
+                style={{ background: dc.dark, color: dc.mintBg, border: "none", borderRadius: 8, padding: "12px 24px", fontSize: 15, fontWeight: 600, fontFamily: dc.sans, cursor: "pointer", letterSpacing: "-0.01em" }}
+              >
+                See open roles below
+              </button>
+              <a
+                href="mailto:careers@greenstreetfinance.com"
+                style={{ display: "inline-flex", alignItems: "center", background: "transparent", color: "rgba(0,55,56,0.7)", border: "1.5px solid rgba(0,55,56,0.3)", borderRadius: 8, padding: "12px 24px", fontSize: 15, fontWeight: 500, textDecoration: "none", fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+              >
+                careers@greenstreetfinance.com
+              </a>
+            </div>
           </div>
         </div>
       </section>

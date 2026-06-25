@@ -233,12 +233,12 @@ export default function ReturnsPage({
   const coc = engineResult !== null ? engineResult.year1CashOnCash : 0;
 
   const stack = [
-    { label: "Entry Cap Rate", val: entryCapRate.toFixed(2) + "%", color: dc.cream },
-    { label: "Yield on Cost", val: yoc.toFixed(2) + "%", color: dc.cream },
-    { label: "Debt Yield", val: debtYield.toFixed(2) + "%", color: dc.cream },
-    { label: "CoC Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon },
-    { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream },
-    { label: "Equity Multiple", val: emStr, color: dc.emerald },
+    { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", color: dc.cream, hint: "Yearly net income ÷ purchase price" },
+    { label: "Yield on Cost", val: yoc.toFixed(2) + "%", color: dc.cream, hint: "Net income ÷ total cost basis" },
+    { label: "Debt Yield", val: debtYield.toFixed(2) + "%", color: dc.cream, hint: "Net income ÷ loan amount" },
+    { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Year 1 cash flow ÷ cash invested (yearly cash flow as a percent of the cash you put in)" },
+    { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream, hint: "IRR if you paid all cash — no loan" },
+    { label: "Equity Multiple", val: emStr, color: dc.emerald, hint: "Total cash returned ÷ cash invested" },
   ];
 
   // Sensitivity matrix — 5 hold × 4 rent-growth cells, inline bisection for grid
@@ -319,13 +319,14 @@ export default function ReturnsPage({
               Returns &amp; IRR &middot; levered + unlevered
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
-              The full return, not just the cash flow.
+              What will this investment actually earn?
             </H1>
-            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              Equity out, annual cash flows, and the exit — the whole J-curve,
-              with levered and unlevered IRR, equity multiple and a full
-              sensitivity grid.
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 20px" }}>
+              Cash-on-cash return (yearly cash flow as a percent of the cash you put in), levered IRR, unlevered IRR, and equity multiple — from day one through the exit. Plus a sensitivity table that shows how those numbers change under different hold periods and rent-growth assumptions.
             </Lead>
+            <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+              How to use: fill in deal inputs on the left. The big IRR number updates live. Check the sensitivity table to see if the deal still works if rent growth is slower or you sell earlier than planned.
+            </p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <Btn label="Run the returns engine ↓" href="#rt-tool" onClick={scrollToTool} />
             </div>
@@ -391,8 +392,8 @@ export default function ReturnsPage({
               num="01"
               numColor={dc.lemon}
               bg={dc.cream}
-              heading="Deal inputs"
-              body="Price, LTV, rate, rent, hold years, exit cap rate, rent growth and vacancy."
+              heading="Enter your deal"
+              body="Purchase price, down payment (LTV), rate, rent, hold years, exit cap rate (yearly net income as a percent of the property value at sale), rent growth, and vacancy."
               bodyColor="rgba(0,55,56,0.6)"
             />
             <StepCard
@@ -400,16 +401,16 @@ export default function ReturnsPage({
               numColor={dc.emerald}
               bg={dc.dark}
               headingColor={dc.cream}
-              heading="IRR engine"
-              body="Cash-flow bisection for levered and unlevered IRR. Proper amortization every step."
+              heading="IRR computed"
+              body="The engine builds a year-by-year cash-flow model — rents in, mortgage out, equity at exit — and solves for the annualized return (IRR) on your invested cash and on the total property."
               bodyColor="rgba(238,239,211,0.65)"
             />
             <StepCard
               num="03"
               numColor="rgba(0,55,56,0.5)"
               bg={dc.lemon}
-              heading="Sensitivity"
-              body="5×4 hold × rent-growth matrix. Every cell uses exact amortization for the exit balance."
+              heading="Test your assumptions"
+              body="The 5×4 sensitivity table shows your levered IRR across five hold periods and four rent-growth rates. Green cells (≥14%) are strong; red cells need attention."
               bodyColor="rgba(0,55,56,0.65)"
             />
           </div>
@@ -445,13 +446,22 @@ export default function ReturnsPage({
                 fontWeight: 600,
                 letterSpacing: "-0.035em",
                 lineHeight: 1.0,
-                margin: 0,
+                margin: "0 0 10px",
               }}
             >
               Levered IRR{" "}
               <span style={{ color: irrColor }}>{irrStr}</span>{" "}
               &middot; {emStr} equity multiple
             </h2>
+            <p style={{ fontSize: 15, color: "rgba(0,55,56,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+              {levIRR >= 12
+                ? "Strong deal — IRR above 12% means your cash is working hard relative to the risk."
+                : levIRR >= 8
+                ? "Workable deal — IRR between 8% and 12% is acceptable; look for ways to improve rent, reduce vacancy, or negotiate the price."
+                : Number.isFinite(levIRR)
+                ? "Weak deal — IRR below 8% means this deal may not reward the risk. Try raising rent assumptions, reducing the purchase price, or increasing hold years."
+                : "Adjust inputs to see your IRR."}
+            </p>
           </div>
 
           {/* Grid: inputs | results */}
@@ -480,11 +490,14 @@ export default function ReturnsPage({
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   color: dc.rain,
-                  marginBottom: 20,
+                  marginBottom: 6,
                 }}
               >
                 Deal inputs
               </div>
+              <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 16px", lineHeight: 1.5 }}>
+                Estimates are fine — all fields update the IRR live.
+              </p>
               {fields.map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
                   <span
@@ -599,12 +612,22 @@ export default function ReturnsPage({
                         style={{
                           fontSize: 11,
                           fontWeight: 500,
-                          color: "rgba(238,239,211,0.45)",
+                          color: "rgba(238,239,211,0.55)",
                           marginTop: 4,
                           letterSpacing: "-0.01em",
                         }}
                       >
                         {r.label}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "rgba(238,239,211,0.3)",
+                          marginTop: 3,
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {r.hint}
                       </div>
                     </div>
                   ))}
@@ -630,19 +653,20 @@ export default function ReturnsPage({
                     marginBottom: 6,
                   }}
                 >
-                  Hold &times; Rent Growth sensitivity (Levered IRR)
+                  Sensitivity table — Levered IRR under different scenarios
                 </div>
-                <Mono
+                <p
                   style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: 500,
-                    color: "rgba(0,55,56,0.45)",
+                    color: "rgba(0,55,56,0.55)",
                     marginBottom: 14,
-                    display: "block",
+                    margin: "0 0 14px",
+                    lineHeight: 1.5,
                   }}
                 >
-                  rows = hold years &middot; cols = annual rent growth
-                </Mono>
+                  Each cell shows your levered IRR if you hold for that many years (rows) with that annual rent-growth rate (columns). Teal = strong (&ge;14%); amber = acceptable; red = underperforming. Your current inputs are your base case — the table stress-tests them.
+                </p>
                 <div style={{ overflowX: "auto" }}>
                   <table
                     style={{

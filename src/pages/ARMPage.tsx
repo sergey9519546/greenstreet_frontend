@@ -204,11 +204,16 @@ export default function ARMPage({
           </div>
 
           {/* Headline */}
-          <H1 style={{ margin: "0 0 26px" }}>
+          <H1 style={{ margin: "0 0 20px" }}>
             What happens when
             <br />
             the fixed period ends?
           </H1>
+
+          {/* Tool intro */}
+          <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "56ch", margin: "0 auto 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+            An ARM (a loan whose rate is fixed for a few years, then can adjust) looks cheap at first — but your payment jumps when the fixed period ends. This tool shows exactly how big that jump is, and whether your DSCR (whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it; higher is stronger) still holds up.
+          </div>
 
           {/* Sub */}
           <Lead
@@ -218,9 +223,7 @@ export default function ARMPage({
               margin: "0 auto 44px",
             }}
           >
-            Model the payment shock at first reset, every subsequent adjustment,
-            and the lifetime cap — initial and periodic caps applied exactly as
-            written in the note.
+            Enter your loan and pick a program. See the payment at first reset, every subsequent adjustment, and the worst-case lifetime cap — caps applied exactly as written in the note.
           </Lead>
 
           {/* ── PAYMENT-SHOCK TIMELINE — the hero's signature ── */}
@@ -426,7 +429,7 @@ export default function ARMPage({
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
-                margin: 0,
+                margin: "0 0 12px",
                 color: dc.cream,
               }}
             >
@@ -435,6 +438,9 @@ export default function ARMPage({
                 {result ? `+${result.paymentShockPct.toFixed(1)}%` : "—"}
               </span>
             </h2>
+            <p style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", margin: 0, maxWidth: "62ch", lineHeight: 1.6, fontWeight: 500 }}>
+              Below 8% shock = manageable. 8–20% = watch carefully. Above 20% = red. If DSCR drops below 1.0 at reset, the property can no longer cover its own costs — a deal-breaker for most lenders. A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) may also apply if you try to exit before the fixed period ends.
+            </p>
           </div>
 
           {/* Tool grid */}
@@ -475,13 +481,16 @@ export default function ARMPage({
                   style={{
                     fontSize: 11,
                     color: "rgba(238,239,211,0.55)",
-                    marginBottom: 8,
+                    marginBottom: 4,
                     fontWeight: 600,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
                   }}
                 >
                   ARM Type
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 8, lineHeight: 1.4 }}>
+                  5/6 = fixed 5 yrs, adjusts every 6 months after. 7/6 = fixed 7 yrs. 10/6 = fixed 10 yrs.
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   {(["5_6_ARM", "7_6_ARM", "10_6_ARM"] as ArmType[]).map((t) => (
@@ -558,9 +567,9 @@ export default function ARMPage({
               </div>
 
               {[
-                { label: "Loan Amount", value: loanAmount, set: setLoanAmount, step: 5000, prefix: "$", suffix: "" },
-                { label: "Monthly Rent", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
-                { label: "Taxes + Ins + HOA /mo", value: pitiaNonDebt, set: setPitiaNonDebt, step: 25, prefix: "$", suffix: "" },
+                { label: "Loan Amount", hint: "The total amount borrowed — not the purchase price.", value: loanAmount, set: setLoanAmount, step: 5000, prefix: "$", suffix: "" },
+                { label: "Monthly Rent", hint: "Gross rent the property generates each month. Used to compute DSCR at each reset.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
+                { label: "Taxes + Insurance + HOA /mo", hint: "Monthly taxes, insurance, and HOA combined. Together with P&I this is your PITIA — the full monthly payment.", value: pitiaNonDebt, set: setPitiaNonDebt, step: 25, prefix: "$", suffix: "" },
               ].map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
                   <span
@@ -600,6 +609,11 @@ export default function ARMPage({
                       <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.suffix}</span>
                     )}
                   </div>
+                  {"hint" in f && f.hint && (
+                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 4, lineHeight: 1.4, letterSpacing: 0 }}>
+                      {f.hint}
+                    </span>
+                  )}
                 </label>
               ))}
             </div>
@@ -637,7 +651,7 @@ export default function ARMPage({
                       {fmt$(result.piInitial)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>
-                      at {result.cfg.initialRate.toFixed(3)}%
+                      at {result.cfg.initialRate.toFixed(3)}% — locked for {result.fixedYears} yrs
                     </div>
                   </div>
                   <div style={{ background: "#002a29", padding: 24 }}>
@@ -651,13 +665,13 @@ export default function ARMPage({
                         marginBottom: 10,
                       }}
                     >
-                      First reset
+                      First reset (worst case)
                     </div>
                     <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 600, color: dc.lemon, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtWorstFirstReset)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>
-                      at {result.worstFirstResetRate.toFixed(3)}%
+                      at {result.worstFirstResetRate.toFixed(3)}% — initial cap applied
                     </div>
                   </div>
                   <div style={{ background: "#002a29", padding: 24 }}>
@@ -671,13 +685,13 @@ export default function ARMPage({
                         marginBottom: 10,
                       }}
                     >
-                      Lifetime cap
+                      Lifetime cap (absolute max)
                     </div>
                     <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 600, color: "#e88a8a", letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtLifetimeCap)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>
-                      at {result.lifetimeCapRate.toFixed(3)}%
+                      at {result.lifetimeCapRate.toFixed(3)}% — rate can never go higher
                     </div>
                   </div>
                 </div>
@@ -701,7 +715,7 @@ export default function ARMPage({
                       marginBottom: 6,
                     }}
                   >
-                    5 SOFR scenarios
+                    5 rate scenarios — does the deal survive?
                   </div>
                   <div
                     style={{
@@ -712,7 +726,7 @@ export default function ARMPage({
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    Each scenario walks the full reset ladder from origination — per-period caps enforced.
+                    SOFR is the index your rate floats with. Each row shows a different SOFR future — from falling rates (Bullish) to a spike (Crisis). "Deal breaks" means DSCR (rent ÷ full payment) drops below 1.0 — the property can no longer cover its costs. Caps are enforced exactly as in your loan note.
                   </div>
                   {result.scenarios.map((s) => {
                     const breaks = s.dscrAtFirst < 1.0 || s.dscrAtLast < 1.0;
@@ -822,7 +836,7 @@ export default function ARMPage({
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    Each adjustment applies the periodic cap against the prior rate; the fully-indexed rate is SOFR + margin.
+                    Shows the Bearish scenario (SOFR +4.59%). Each reset year the rate moves by at most the periodic cap — it can't jump all at once. The "Cap binding" column tells you which cap is holding the rate back from going higher.
                   </div>
                   <div style={{ overflowX: "auto" }}>
                     <table

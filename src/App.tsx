@@ -1,6 +1,38 @@
 import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 import QualifyWidget from "./components/QualifyWidget";
 
+// Lazy-loaded routes — each page is its own chunk, so the initial bundle stays
+// small (only the marketing shell + the always-on QualifyWidget load up front).
+// Restores the code-splitting that keeps first paint fast.
+const ComplianceDashboard = lazy(() => import("./components/ComplianceDashboard"));
+const DSCRCalculatorPage = lazy(() => import("./pages/DSCRCalculatorPage"));
+const LenderIntelPage = lazy(() => import("./pages/LenderIntelPage"));
+const StateLawsPage = lazy(() => import("./pages/StateLawsPage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
+const RateQuizPage = lazy(() => import("./pages/RateQuizPage"));
+const RefiTrackerPage = lazy(() => import("./pages/RefiTrackerPage"));
+const ARMPage = lazy(() => import("./pages/ARMPage"));
+const MonteCarloPage = lazy(() => import("./pages/MonteCarloPage"));
+const ReturnsPage = lazy(() => import("./pages/ReturnsPage"));
+const TaxEnginePage = lazy(() => import("./pages/TaxEnginePage"));
+const StressMatrixPage = lazy(() => import("./pages/StressMatrixPage"));
+const DecisionSupportPage = lazy(() => import("./pages/DecisionSupportPage"));
+const STRUnderwritingPage = lazy(() => import("./pages/STRUnderwritingPage"));
+const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
+const DealAnalyzerPage = lazy(() => import("./pages/DealAnalyzerPage"));
+const BorrowerProfilesPage = lazy(() => import("./pages/BorrowerProfilesPage"));
+const BrokersPortalPage = lazy(() => import("./pages/BrokersPortalPage"));
+const InvestorsPage = lazy(() => import("./pages/InvestorsPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const CareersPage = lazy(() => import("./pages/CareersPage"));
+const CaseStudiesPage = lazy(() => import("./pages/CaseStudiesPage"));
+const LegalPage = lazy(() => import("./pages/LegalPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const SolutionsPage = lazy(() => import("./pages/SolutionsPage"));
+const BrokersPage = lazy(() => import("./pages/BrokersPage"));
+
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
   state = { error: null };
@@ -25,50 +57,18 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
   }
 }
 
-// ─── Page loading fallback ─────────────────────────────────────────────────────
-function PageLoader() {
-  return (
-    <div style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
-      <div style={{ textAlign: "center", color: "#006565" }}>
-        <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏳</div>
-        <p style={{ fontSize: "16px", fontWeight: 500 }}>Loading…</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Lazy page imports (code-split — each page loads on demand) ───────────────
-// MarketingSite is unified directly in index.html
-const ComplianceDashboard = lazy(() => import("./components/ComplianceDashboard"));
-const DSCRCalculatorPage  = lazy(() => import("./pages/DSCRCalculatorPage"));
-const LenderIntelPage     = lazy(() => import("./pages/LenderIntelPage"));
-const StateLawsPage       = lazy(() => import("./pages/StateLawsPage"));
-const FAQPage             = lazy(() => import("./pages/FAQPage"));
-const BlogPage            = lazy(() => import("./pages/BlogPage"));
-const BlogPostPage        = lazy(() => import("./pages/BlogPostPage"));
-const RateQuizPage        = lazy(() => import("./pages/RateQuizPage"));
-const RefiTrackerPage     = lazy(() => import("./pages/RefiTrackerPage"));
-const ARMPage             = lazy(() => import("./pages/ARMPage"));
-const MonteCarloPage      = lazy(() => import("./pages/MonteCarloPage"));
-const ReturnsPage         = lazy(() => import("./pages/ReturnsPage"));
-const TaxEnginePage       = lazy(() => import("./pages/TaxEnginePage"));
-const StressMatrixPage    = lazy(() => import("./pages/StressMatrixPage"));
-const DecisionSupportPage = lazy(() => import("./pages/DecisionSupportPage"));
-const STRUnderwritingPage = lazy(() => import("./pages/STRUnderwritingPage"));
-const PortfolioPage       = lazy(() => import("./pages/PortfolioPage"));
-const DealAnalyzerPage    = lazy(() => import("./pages/DealAnalyzerPage"));
-const BorrowerProfilesPage = lazy(() => import("./pages/BorrowerProfilesPage"));
-const BrokersPortalPage   = lazy(() => import("./pages/BrokersPortalPage"));
-const InvestorsPage       = lazy(() => import("./pages/InvestorsPage"));
-const AboutPage           = lazy(() => import("./pages/AboutPage"));
-const CareersPage         = lazy(() => import("./pages/CareersPage"));
-const CaseStudiesPage     = lazy(() => import("./pages/CaseStudiesPage"));
-const LegalPage           = lazy(() => import("./pages/LegalPage"));
-const ProductsPage        = lazy(() => import("./pages/ProductsPage"));
-const SolutionsPage       = lazy(() => import("./pages/SolutionsPage"));
-const BrokersPage         = lazy(() => import("./pages/BrokersPage"));
-
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+
+function portalTabFromPath(pathname: string): string | undefined {
+  const clean = pathname.replace(/\/$/, "");
+  if (clean === "/investgo/analyze" || clean === "/tools/deal-workspace" || clean === "/tools/workspace") return "analyze";
+  if (clean === "/investgo/sensitivity" || clean === "/tools/sensitivity") return "sensitivity";
+  if (clean === "/investgo/optimize" || clean === "/tools/structure-optimizer") return "optimize";
+  if (clean === "/investgo/state") return "state";
+  if (clean === "/investgo/history" || clean === "/tools/scenario-history") return "history";
+  if (clean === "/investgo/settings") return "settings";
+  return undefined;
+}
 
 function navigateTo(view: PageView) {
   const path = viewToPath(view);
@@ -112,6 +112,12 @@ function viewToPath(view: PageView): string {
     case "book-demo":         return "/book-demo";
     case "external":          return "/external";
   }
+}
+
+// Lazy-chunk fallback — a calm pistachio panel (no spinner flash) while a route
+// chunk loads. Chunks are small, so this is rarely visible for more than a frame.
+function PageLoader() {
+  return <div style={{ minHeight: "60vh", background: "#eeefd3" }} aria-hidden="true" />;
 }
 
 export default function App() {
@@ -257,8 +263,10 @@ export default function App() {
       case "portal":
         return (
           <ComplianceDashboard
+            key={pathname}
             onBackToMarketing={() => goTo("marketing")}
             initialEmail={passedEmail}
+            initialTab={portalTabFromPath(pathname) as any}
           />
         );
       case "dscr-calculator":
@@ -331,13 +339,13 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
-        <div className="font-sans antialiased text-slate-800">
+      <div className="font-sans antialiased text-slate-800">
+        <Suspense fallback={<PageLoader />}>
           <PageRenderer />
-          {/* QualifyWidget overlays every view — modal + sticky pill */}
-          <QualifyWidget />
-        </div>
-      </Suspense>
+        </Suspense>
+        {/* QualifyWidget overlays every view — modal + sticky pill */}
+        <QualifyWidget />
+      </div>
     </ErrorBoundary>
   );
 }

@@ -1,11 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tier = 0 | 1 | 2 | 3; // 0 allowed, 1 threshold, 2 high-risk, 3 banned
@@ -83,14 +78,8 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
   const mapRef = useRef<HTMLDivElement>(null);
   const sel = resolve(selected);
 
-  // Region-by-region scan-in of the map (honors reduced-motion).
-  useGSAP(
-    () => {
-      if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-      gsap.from(".us-state", { opacity: 0, duration: 0.5, ease: "power2.out", stagger: { each: 0.008, from: "edges" }, scrollTrigger: { trigger: mapRef.current, start: "top 82%", once: true } });
-    },
-    { scope: mapRef }
-  );
+  // Keep map regions visible from first paint. Route-level reveal effects were
+  // responsible for the post-load visual drop on routed pages.
 
   const counts = ALL_CODES.map(resolve).reduce((a, r) => { a[r.tier]++; return a; }, [0, 0, 0, 0] as number[]);
 
@@ -131,11 +120,14 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       <section style={{ background: RAIN, color: dc.cream, padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`, overflow: "hidden" }}>
         <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product / 50-State Rule Engine</div>
-          <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
+          <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>
             Prepayment penalty rules, all fifty states.
           </H1>
+          <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "54ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+            A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) is allowed in most states for business-purpose loans — but not all. This map shows where it's clear, where thresholds apply, and where lenders decline entirely. Click any state for full details.
+          </div>
           <Lead style={{ color: "rgba(238,239,211,0.78)", maxWidth: "54ch", margin: "0 0 28px" }}>
-            Where a prepay penalty holds, where it's banned, where a threshold applies, and the usury cap that bounds your rate. Click any state.
+            Also shows the usury cap — the maximum interest rate a lender can legally charge. In most states, business-purpose loans are exempt, but a few have binding caps that can affect your rate.
           </Lead>
           <div style={{ display: "flex", gap: "clamp(20px,4vw,44px)", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
@@ -155,12 +147,17 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       {/* MAP GRID — the signature: animated 10-col state grid + sticky detail */}
       <section id="sl-tool" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ display: "flex", gap: 18, flexWrap: "wrap", marginBottom: 28 }}>
-            {([0, 1, 2, 3] as Tier[]).map((t) => (
-              <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.7)" }}>
-                <span style={{ width: 14, height: 14, borderRadius: 4, background: TIER_COLORS[t] }} />{TIER_LABELS[t]}
-              </div>
-            ))}
+          <div className="gs-reveal" style={{ marginBottom: 28 }}>
+            <p style={{ fontSize: 13, color: "rgba(0,55,56,0.6)", margin: "0 0 12px", lineHeight: 1.5 }}>
+              Click any state to see full prepayment penalty rules, usury cap, and pricing impact. Hover to preview.
+            </p>
+            <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+              {([0, 1, 2, 3] as Tier[]).map((t) => (
+                <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.7)" }}>
+                  <span style={{ width: 14, height: 14, borderRadius: 4, background: TIER_COLORS[t] }} />{TIER_LABELS[t]}
+                </div>
+              ))}
+            </div>
           </div>
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 36, alignItems: "start" }}>
             {/* interactive US map — hover to peek, click to lock the detail panel */}
@@ -213,10 +210,10 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
               <div style={{ fontSize: "clamp(28px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.03em", color: TIER_COLORS[sel.tier], lineHeight: 1.05, marginBottom: 20 }}>{TIER_LABELS[sel.tier]}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {[
-                  { k: "Prepay penalty", v: sel.ppp, color: "#eeefd3", weight: 500 as const },
-                  { k: "Usury / rate cap", v: sel.usury, color: "#eeefd3", weight: 500 as const },
-                  { k: "Rate impact", v: sel.impact, color: TIER_COLORS[sel.tier], weight: 600 as const },
-                  ...(sel.threshold ? [{ k: "Threshold", v: sel.threshold, color: "#eeefd3", weight: 600 as const }] : []),
+                  { k: "Prepayment penalty rules", v: sel.ppp, color: "#eeefd3", weight: 500 as const },
+                  { k: "Usury / max rate cap", v: sel.usury, color: "#eeefd3", weight: 500 as const },
+                  { k: "Pricing impact for your deal", v: sel.impact, color: TIER_COLORS[sel.tier], weight: 600 as const },
+                  ...(sel.threshold ? [{ k: "Key threshold to know", v: sel.threshold, color: "#eeefd3", weight: 600 as const }] : []),
                 ].map((row) => (
                   <div key={row.k}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 4 }}>{row.k}</div>

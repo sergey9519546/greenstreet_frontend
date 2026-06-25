@@ -20,6 +20,7 @@ import StressMatrixPage from "../pages/StressMatrixPage";
 import DecisionSupportPage from "../pages/DecisionSupportPage";
 import STRUnderwritingPage from "../pages/STRUnderwritingPage";
 import PortfolioPage from "../pages/PortfolioPage";
+import { SiteNav } from "../design/SiteShell";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -70,6 +71,25 @@ type DashboardTab = "dashboard" | "analyze" | "sensitivity" | "optimize" | "stat
   | "refi" | "arm" | "montecarlo" | "returns" | "tax" | "stress" | "decision" | "str" | "portfolio";
 interface ComplianceDashboardProps { onBackToMarketing: () => void; initialEmail?: string; initialTab?: DashboardTab }
 
+const PORTAL_PATHS: Record<string, string> = {
+  marketing: "/",
+  portal: "/investgo",
+  products: "/products",
+  solutions: "/solutions",
+  "brokers-partner": "/partnerships",
+  blog: "/blog",
+  "rate-quiz": "/rate-quiz",
+};
+
+const TAB_LABELS: Partial<Record<DashboardTab, string>> = {
+  analyze: "Deal Workspace",
+  sensitivity: "Sensitivity Lab",
+  optimize: "Structure Optimizer",
+  state: "State Rules",
+  history: "Scenario History",
+  settings: "Workspace Settings",
+};
+
 // ─── component ──────────────────────────────────────────────────────────────
 
 export default function ComplianceDashboard({ onBackToMarketing, initialEmail, initialTab }: ComplianceDashboardProps) {
@@ -103,6 +123,17 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [stateInput, setStateInput] = useState("FL");
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [stateResult, setStateResult] = useState<StateResult | null>(null);
+  const requestedTool = initialTab ? TAB_LABELS[initialTab] : undefined;
+
+  const handleSiteNavigate = (view: string) => {
+    if (view === "marketing") {
+      onBackToMarketing();
+      return;
+    }
+    const path = PORTAL_PATHS[view] || "/";
+    window.history.pushState({}, "", path);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  };
 
   useEffect(() => { document.title = "InvestGO | Greenstreet Finance"; }, []);
 
@@ -211,26 +242,38 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   // ── Auth loading ───────────────────────────────────────────────────────────
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#003738] flex flex-col items-center justify-center text-pistachio p-4">
-        <RefreshCw className="w-10 h-10 animate-spin text-emerald mb-4" />
-        <p className="text-sm font-semibold tracking-wider font-mono">LOADING DSCR ENGINE...</p>
-      </div>
+      <>
+        <SiteNav onNavigate={handleSiteNavigate} />
+        <div className="min-h-screen bg-[#003738] flex flex-col items-center justify-center text-pistachio p-4">
+          <RefreshCw className="w-10 h-10 animate-spin text-emerald mb-4" />
+          <p className="text-sm font-semibold tracking-wider font-mono">LOADING DSCR ENGINE...</p>
+          {requestedTool && (
+            <p className="text-xs font-semibold text-pistachio/55 mt-3">Preparing {requestedTool}</p>
+          )}
+        </div>
+      </>
     );
   }
 
   // ── Auth screen ────────────────────────────────────────────────────────────
   if (!currentUser && !demoMode) {
     return (
-      <div className="min-h-screen bg-pistachio flex items-center justify-center p-4 relative font-sans">
-        <div className="absolute inset-0 bg-dark-teal/10 bg-[radial-gradient(var(--color-emerald)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
-        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-100 shadow-2xl p-8 relative z-10 text-dark-teal">
+      <>
+        <SiteNav onNavigate={handleSiteNavigate} />
+        <div className="min-h-screen bg-pistachio flex items-center justify-center p-4 relative font-sans">
+          <div className="absolute inset-0 bg-dark-teal/10 bg-[radial-gradient(var(--color-emerald)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+          <div className="max-w-md w-full bg-white rounded-2xl border border-slate-100 shadow-2xl p-8 relative z-10 text-dark-teal">
           <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-emerald mb-6 transition">
             <ArrowLeft className="w-3.5 h-3.5" /><span>Back</span>
           </button>
           <div className="text-center mb-8">
             <div className="w-12 h-12 rounded-xl bg-dark-teal text-emerald font-extrabold text-2xl flex items-center justify-center mx-auto mb-3 shadow">G</div>
-            <h3 className="font-display text-2xl font-bold tracking-tight">InvestGO</h3>
-            <p className="text-slate-500 text-xs mt-1">Every engine and calculation in one place. Sign in to start pricing deals.</p>
+            <h3 className="font-display text-2xl font-bold tracking-tight">INVEST<span style={{ opacity: 0.5 }}>GO</span></h3>
+            <p className="text-slate-500 text-xs mt-1">
+              {requestedTool
+                ? `${requestedTool} is part of the InvestGO special tools workspace. Sign in or use demo mode to open it.`
+                : "Every engine and calculation in one place. Sign in to start pricing deals."}
+            </p>
           </div>
           {authError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
@@ -267,8 +310,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               {isSignUpMode ? "Already registered? Sign in" : "New broker? Create account"}
             </button>
           </div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -334,7 +378,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const brokerMarket = brokerConfig.primaryMarket || "Your Market";
 
   return (
-    <div className="min-h-screen bg-pistachio text-dark-teal flex flex-col md:flex-row antialiased font-sans">
+    <>
+      <SiteNav onNavigate={handleSiteNavigate} />
+      <div className="min-h-screen bg-pistachio text-dark-teal flex flex-col md:flex-row antialiased font-sans">
 
       {/* ── Sidebar ── */}
       <aside className="w-full md:w-[248px] bg-midnight-green text-pistachio shrink-0 flex flex-col" style={{ padding: "24px 16px" }}>
@@ -1227,6 +1273,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

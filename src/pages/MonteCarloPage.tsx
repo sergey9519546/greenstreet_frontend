@@ -153,13 +153,14 @@ export default function MonteCarloPage({
             }}>
               Monte Carlo &middot; Vasicek SOFR &middot; {simulations} paths
             </div>
-            <H1 style={{ margin: "0 0 28px" }}>
+            <H1 style={{ margin: "0 0 20px" }}>
               Stress-test the deal over {simulations} futures.
             </H1>
+            <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+              A Monte Carlo simulation (runs thousands of what-if scenarios to show the range of likely outcomes) models your DSCR (whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it; higher is stronger) across hundreds of possible interest-rate futures. Enter your loan details to see the probability your deal survives.
+            </div>
             <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              Stochastic SOFR paths from a calibrated Vasicek process &mdash; every
-              green line is a future where the DSCR survives above 1.0, every
-              red one where it breaks.
+              Every green line is a future where DSCR stays above 1.0 and the property covers its costs. Every red line is where it breaks. The badge shows the probability of a deal-break.
             </Lead>
             <Btn label="Run the simulation" href="#mc-tool" onClick={scrollToTool} />
           </div>
@@ -230,25 +231,25 @@ export default function MonteCarloPage({
             {/* 01 Seed */}
             <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.lemon, marginBottom: 14, lineHeight: 1, display: "block" }}>01</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Seed</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Set your deal</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: dc.faded, margin: 0, letterSpacing: "-0.01em" }}>
-                Set loan amount, rent, SOFR start and long-run mean. Pick a simulation seed.
+                Enter loan amount, monthly rent, and where you think interest rates start and settle long-term. Estimates are fine.
               </p>
             </div>
             {/* 02 Simulate */}
             <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.emerald, marginBottom: 14, lineHeight: 1, display: "block" }}>02</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Simulate</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Run {simulations} rate paths</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                Vasicek OU process: dr = k(theta-r)dt + sigma·dW. {simulations} seeded paths, ARM margin applied.
+                The engine generates {simulations} possible interest-rate futures using a mean-reverting model (rates tend to drift back toward a long-run average). Your ARM resets at each future rate.
               </p>
             </div>
             {/* 03 Analyze */}
             <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1, display: "block" }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Analyze</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Read the risk</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                P(DSCR&lt;1.0), P(DSCR&lt;1.25), percentile distribution, SOFR path stats at Y1/Y5/Y10.
+                See the % of futures where your DSCR breaks (below 1.0 = property can't cover costs) or falls short of the comfortable 1.25 threshold. Also shows the spread of DSCR outcomes and where rates land at year 1, 5, and 10.
               </p>
             </div>
           </div>
@@ -298,21 +299,21 @@ export default function MonteCarloPage({
 
               {(
                 [
-                  { label: "Loan Amount",        value: loanAmount,    set: setLoanAmount,    step: 5000,  prefix: "$", suffix: ""  },
-                  { label: "Monthly Rent",        value: monthlyRent,   set: setMonthlyRent,   step: 100,   prefix: "$", suffix: ""  },
-                  { label: "Taxes+Ins+HOA / mo",  value: pitiaNonDebt,  set: setPitiaNonDebt,  step: 50,    prefix: "$", suffix: ""  },
-                  { label: "Initial SOFR %",      value: initialSofr,   set: setInitialSofr,   step: 0.05,  prefix: "",  suffix: ""  },
-                  { label: "Long-run theta %",    value: longRunSofr,   set: setLongRunSofr,   step: 0.05,  prefix: "",  suffix: ""  },
-                  { label: "Simulations",         value: simulations,   set: setSimulations,   step: 100,   prefix: "",  suffix: ""  },
-                  { label: "Horizon years",       value: horizonYears,  set: setHorizonYears,  step: 1,     prefix: "",  suffix: ""  },
-                  { label: "Seed",                value: seed,          set: setSeed,          step: 1,     prefix: "",  suffix: ""  },
-                ] as const
+                  { label: "Loan Amount",               hint: "Total borrowed — not the purchase price.",                                                               value: loanAmount,   set: setLoanAmount,   step: 5000,  prefix: "$", suffix: ""   },
+                  { label: "Monthly Rent",               hint: "Gross rent the property generates. Used to compute DSCR at each simulated reset.",                       value: monthlyRent,  set: setMonthlyRent,  step: 100,   prefix: "$", suffix: ""   },
+                  { label: "Taxes + Insurance + HOA /mo", hint: "These costs plus P&I make up PITIA — the full monthly payment. Estimate is fine.",                     value: pitiaNonDebt, set: setPitiaNonDebt, step: 50,    prefix: "$", suffix: ""   },
+                  { label: "Initial SOFR %",             hint: "Today's short-term rate index. Your ARM rate floats with this after the fixed period ends.",             value: initialSofr,  set: setInitialSofr,  step: 0.05,  prefix: "",  suffix: "%"  },
+                  { label: "Long-run SOFR (theta) %",    hint: "Where you think rates settle over time. All simulated paths drift back toward this level.",              value: longRunSofr,  set: setLongRunSofr,  step: 0.05,  prefix: "",  suffix: "%"  },
+                  { label: "Number of simulations",      hint: "More paths = more precise probability. 500 is a solid default; max 2,000.",                             value: simulations,  set: setSimulations,  step: 100,   prefix: "",  suffix: ""   },
+                  { label: "Horizon (years)",            hint: "How far out to model — match your planned hold period.",                                                 value: horizonYears, set: setHorizonYears, step: 1,     prefix: "",  suffix: ""   },
+                  { label: "Random seed",                hint: "Controls which specific paths are drawn. Change to see a different sample; results should be similar.",  value: seed,         set: setSeed,         step: 1,     prefix: "",  suffix: ""   },
+                ] as Array<{ label: string; hint: string; value: number; set: (v: number) => void; step: number; prefix: string; suffix: string }>
               ).map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: 16 }}>
                   <span style={{
                     display: "block", fontSize: 11, fontWeight: 600,
                     letterSpacing: "0.04em", textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)", marginBottom: 7,
+                    color: "rgba(0,55,56,0.5)", marginBottom: 4,
                   }}>
                     {f.label}
                   </span>
@@ -326,10 +327,16 @@ export default function MonteCarloPage({
                       type="number"
                       step={f.step}
                       value={f.value}
-                      onChange={(e) => (f.set as (v: number) => void)(+e.target.value)}
+                      onChange={(e) => f.set(+e.target.value)}
                       style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600, color: dc.dark }}
                     />
+                    {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", fontSize: 14, paddingLeft: 2 }}>{f.suffix}</span>}
                   </div>
+                  {f.hint && (
+                    <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.45)", marginTop: 4, lineHeight: 1.4, letterSpacing: 0 }}>
+                      {f.hint}
+                    </span>
+                  )}
                 </label>
               ))}
             </div>
@@ -357,7 +364,7 @@ export default function MonteCarloPage({
                     {pD1Str}
                   </Mono>
                   <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 10 }}>
-                    deal-break probability
+                    chance the property can't cover its own costs — below 5% is acceptable, above 20% is high-risk
                   </div>
                 </div>
 
@@ -379,7 +386,7 @@ export default function MonteCarloPage({
                     {pD125Str}
                   </Mono>
                   <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginTop: 10 }}>
-                    comfort-zone miss
+                    chance of falling below the 1.25 comfort threshold most lenders prefer — below 30% is good
                   </div>
                 </div>
               </div>
@@ -391,9 +398,12 @@ export default function MonteCarloPage({
               }}>
                 <div style={{
                   fontSize: 12, fontWeight: 600, letterSpacing: "0.04em",
-                  textTransform: "uppercase", color: dc.rain, marginBottom: 14,
+                  textTransform: "uppercase", color: dc.rain, marginBottom: 4,
                 }}>
-                  Final DSCR distribution
+                  DSCR distribution at end of horizon
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1.5 }}>
+                  P10 = worst 10% of outcomes. Median = the middle outcome. P90 = best 10%. A healthy deal has a median above 1.25 and a P10 above 1.0.
                 </div>
                 {result ? (
                   [
@@ -420,12 +430,15 @@ export default function MonteCarloPage({
               {/* SOFR at horizons */}
               <div style={{
                 background: dc.dark, borderRadius: 9, padding: 22,
-                display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16,
               }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 12 }}>
+                  Average simulated SOFR — where rates land across all paths
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                 {[
-                  { label: "SOFR yr 1",  val: sofrY1  },
-                  { label: "SOFR yr 5",  val: sofrY5  },
-                  { label: "SOFR yr 10", val: sofrY10 },
+                  { label: "Year 1 avg",  val: sofrY1  },
+                  { label: "Year 5 avg",  val: sofrY5  },
+                  { label: "Year 10 avg", val: sofrY10 },
                 ].map((col) => (
                   <div key={col.label} style={{ textAlign: "center" }}>
                     <div style={{
@@ -442,6 +455,7 @@ export default function MonteCarloPage({
                     </Mono>
                   </div>
                 ))}
+                </div>
               </div>
 
               {/* engine parameters footnote */}
@@ -453,12 +467,12 @@ export default function MonteCarloPage({
                   border: "1px solid rgba(0,101,101,0.22)",
                   fontSize: 12, color: "rgba(0,55,56,0.6)", lineHeight: 1.6,
                 }}>
-                  <strong style={{ color: dc.rain }}>Engine:</strong>{" "}
-                  Vasicek mean-reverting process. {result.simulations} paths × {result.horizonMonths} months.
-                  θ={result.modelParameters.longRunMeanSOFR}%,
-                  κ={result.modelParameters.meanReversionSpeed},
-                  σ={result.modelParameters.volatility}%,
-                  r₀={result.modelParameters.initialSOFR}%.
+                  <strong style={{ color: dc.rain }}>How this works:</strong>{" "}
+                  Vasicek mean-reverting model — rates wander but drift back toward the long-run mean (theta). {result.simulations} paths × {result.horizonMonths} months.
+                  Long-run mean θ={result.modelParameters.longRunMeanSOFR}%,
+                  reversion speed κ={result.modelParameters.meanReversionSpeed},
+                  volatility σ={result.modelParameters.volatility}%,
+                  starting rate r₀={result.modelParameters.initialSOFR}%.
                 </div>
               )}
             </div>

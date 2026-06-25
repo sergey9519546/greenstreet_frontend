@@ -22,7 +22,7 @@ const SEGMENTS: Segment[] = [
   {
     tag: "Brokers",
     title: "Quote with confidence, close faster",
-    desc: "Run a deal in seconds, hand the borrower a defensible rate band, and match to the right program before you ever call a lender.",
+    desc: "Price a DSCR deal in under 60 seconds, hand the borrower a defensible rate band, and match to the right Greenstreet program — all before your first call to a lender. No income docs needed: DSCR loans (business-purpose / non-owner-occupied rentals) qualify on the property's rent, not the borrower's pay stubs.",
     cta: "See the broker workflow",
     view: "brokers",
     panelBg: dc.mintBg,
@@ -39,8 +39,8 @@ const SEGMENTS: Segment[] = [
   },
   {
     tag: "Investors",
-    title: "Underwrite like an institution",
-    desc: "After-tax IRR, Monte Carlo rate paths and a 120-cell stress matrix — the analysis a fund runs, on your own deals.",
+    title: "Underwrite your rental like an institution",
+    desc: "After-tax IRR, 500-path Monte Carlo rate simulations, and a 120-cell stress matrix — the analysis a private-fund desk runs, on every deal you own. DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) is the entry check. These tools tell you whether the deal survives the next five years.",
     cta: "Explore investor tools",
     view: "investors",
     panelBg: dc.dark,
@@ -58,8 +58,8 @@ const SEGMENTS: Segment[] = [
   {
     tag: "Funds & Portfolios",
     title: "One book, one underwriting view",
-    desc: "Blended DSCR, aggregate equity and weighted rate across every door — the way a blanket lender actually sees your portfolio.",
-    cta: "Open the portfolio builder",
+    desc: "When you own 10+ doors, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket lender actually underwrites your book. Blanket lines to $25M.",
+    cta: "Build my portfolio view",
     view: "portfolio",
     panelBg: dc.rain,
     panelAccent: dc.lemon,
@@ -76,9 +76,9 @@ const SEGMENTS: Segment[] = [
   },
   {
     tag: "Lenders & Partners",
-    title: "Program logic partners can defend",
-    desc: "Every rule traces to a cited source. Share the program fit, state rule, and investment memo logic without asking partners to reverse-engineer the file.",
-    cta: "See the lender dashboard",
+    title: "Every rule cited. Every output defensible.",
+    desc: "Every program rule and state compliance check traces to a statutory citation. Share the program fit, state rule, and investment-committee memo with partners or regulators without asking them to reverse-engineer the file. No LLM-generated numbers — deterministic math only.",
+    cta: "See program intelligence",
     view: "lender-intel",
     panelBg: dc.lemon,
     panelAccent: dc.rain,
@@ -334,7 +334,7 @@ export default function SolutionsPage({
               Who we serve
             </div>
             <H1 style={{ margin: 0, maxWidth: "15ch" }}>
-              Pick your seat at the table
+              Find your workflow
             </H1>
           </div>
           <Lead
@@ -344,9 +344,11 @@ export default function SolutionsPage({
               margin: 0,
             }}
           >
-            Broker placing a file. Investor underwriting a portfolio. Fund
-            managing a blanket line. Each audience gets its own workflow —
-            all running off the same provenance-tracked math.
+            DSCR loans let rental-property owners qualify on the property's rent —
+            not their personal income. Whether you're a broker placing a file,
+            an investor underwriting your first rental, or a fund managing a
+            blanket line, Greenstreet has a purpose-built workflow. All tools run
+            off the same deterministic math.
           </Lead>
         </div>
       </section>
@@ -419,7 +421,7 @@ export default function SolutionsPage({
                 color: dc.cream,
               }}
             >
-              Just want a rate?
+              Just want a rate estimate?
             </h2>
             <p
               style={{
@@ -432,8 +434,9 @@ export default function SolutionsPage({
                 maxWidth: "42ch",
               }}
             >
-              Five questions. A real rate tier and your matched Greenstreet program.
-              No email, no credit pull, no pitch.
+              Five questions — property type, LTV (how the loan compares to the
+              property value), DSCR, FICO, and state. Get a real rate tier and
+              your matched Greenstreet program. No email, no credit pull, no pitch.
             </p>
             {/* ONE dominant lemon primary per contract */}
             <button
@@ -455,7 +458,7 @@ export default function SolutionsPage({
                 minHeight: 44,
               }}
             >
-              Take the rate quiz →
+              Get my rate in 5 questions →
             </button>
           </div>
 

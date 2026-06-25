@@ -8,41 +8,41 @@ const MYTHS = [
     num: "01",
     myth: "DSCR is just rent ÷ payment.",
     truth:
-      "That's Track 1 — the lender's qualifying view. Track 2 strips out vacancy, management fees, and CapEx reserves to show what you'll actually cash-flow. Most brokers only quote Track 1 because it makes the deal look better than it is. You need both numbers before you sign.",
+      "That's Track 1 — the lender's qualifying view (DSCR: whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it). Track 2 strips out vacancy, management fees, and CapEx reserves to show what you'll actually cash-flow after real expenses. Most brokers only quote Track 1 because it makes the deal look better than it is. You need both numbers before you sign.",
     view: "dscr-calculator",
-    cta: "Open DSCR Calculator",
+    cta: "See both tracks on my deal",
   },
   {
     num: "02",
     myth: "A 0.1x DSCR improvement doesn't matter.",
     truth:
-      "On a $400K deal, 0.1x DSCR moves the rate by 25–50 bps. That's $80–$150/month. Over a 30-year hold, that's $30K–$50K in interest you didn't have to pay. The calculator shows the binding constraint in the first 90 seconds.",
+      "On a $400K deal, 0.1x DSCR moves your rate by 25–50 basis points (bps). That's $80–$150/month. Over a 30-year hold, that's $30K–$50K in interest you didn't have to pay. The calculator surfaces the binding constraint — the one number dragging your DSCR down — in the first 90 seconds.",
     view: "dscr-calculator",
-    cta: "Find the constraint",
+    cta: "Find my binding constraint",
   },
   {
     num: "03",
     myth: "All DSCR loans price the same.",
     truth:
-      "Greenstreet programs span high-leverage DSCR, no-ratio, multi-family, short-term rental, and foreign national. The right program moves your rate 100–150 bps. Program Match reads your file parameters and ranks which Greenstreet program fits — without a phone call.",
+      "Greenstreet programs span high-leverage DSCR, no-ratio DSCR (a program that skips the rent-to-payment test; usually needs more down or reserves), multi-family, short-term rental, and foreign national. Picking the right program moves your rate 100–150 bps. Program Match reads your file parameters and ranks which program fits — without a phone call.",
     view: "lender-intel",
-    cta: "Run Program Match",
+    cta: "Match my deal to a program",
   },
   {
     num: "04",
     myth: "A 5/6 ARM is free money for the first 5 years.",
     truth:
-      "You're betting SOFR stays low for 5 years and that you'll sell or refi before the first reset. The ARM Reset page models 5 SOFR paths from bullish to crisis. In the bear case, the reset rate exceeds 8%. Know the scenario before you sign the note.",
+      "You're betting SOFR (the benchmark rate ARM payments follow) stays low for 5 years and that you'll sell or refinance before the first reset. The ARM Reset page models 5 SOFR paths from bullish to crisis. In the bear case, the reset rate exceeds 8%. Know your worst-case payment before you sign the note.",
     view: "arm-reset",
-    cta: "Model the reset",
+    cta: "Model the reset scenarios",
   },
   {
     num: "05",
-    myth: "Cash-out always means waiting 12 months to season.",
+    myth: "Cash-out refinance always means waiting 12 months to season.",
     truth:
-      "Many lenders make you wait. Greenstreet seasons cash-out at six months on qualifying files — and the STR program is designed to recycle BRRRR capital faster than a conventional refi timeline.",
+      "A cash-out refinance (replace your loan with a larger one and take the difference in cash) typically requires seasoning — many lenders make you wait a full year. Greenstreet seasons cash-out at six months on qualifying files. The STR program is also designed to recycle BRRRR capital faster than a conventional refi timeline.",
     view: "lender-intel",
-    cta: "See STR program",
+    cta: "See cash-out programs",
   },
 ];
 
@@ -54,8 +54,8 @@ const VALUE_CARDS = [
     body: "rgba(0,55,56,0.62)",
     accent: dc.rain,
     headline: "Know if the deal works before you spend a dollar on appraisal.",
-    desc: "Plug in the numbers. Track 1 shows what the lender sees. Track 2 shows what you'll actually earn after vacancy, management, and CapEx. Most investors only ever see Track 1 — that's the problem. Find the binding constraint in the first 90 seconds.",
-    ctaLabel: "Open DSCR Calculator →",
+    desc: "Plug in the numbers. Track 1 shows what the lender sees (DSCR: does rent cover the full PITIA payment — principal, interest, taxes, insurance, and any HOA dues). Track 2 shows what you'll actually earn after vacancy, management, and CapEx. Most investors only ever see Track 1 — that's the problem. Find the binding constraint in the first 90 seconds.",
+    ctaLabel: "Check my deal's DSCR →",
     view: "dscr-calculator",
   },
   {
@@ -63,8 +63,8 @@ const VALUE_CARDS = [
     ink: dc.cream,
     body: "rgba(238,239,211,0.65)",
     accent: dc.lemon,
-    headline: "After-tax IRR. With real depreciation, not estimated depreciation.",
-    desc: "Year 1 typically shelters $12K–$20K of taxable income on a $400K deal. IRC §168(k) bonus depreciation is permanent under OBBBA. Don't be the investor who ignores the shield.",
+    headline: "After-tax IRR. With real depreciation, not a rough estimate.",
+    desc: "Year 1 typically shelters $12K–$20K of taxable income on a $400K deal. IRC §168(k) bonus depreciation is permanent under OBBBA. Rental property depreciation is one of the most valuable tax advantages individual investors have — and most never run the numbers. Don't leave the shield unused.",
     ctaLabel: "Run the Tax Engine →",
     view: "tax-engine",
   },
@@ -74,8 +74,8 @@ const VALUE_CARDS = [
     body: "rgba(0,55,56,0.62)",
     accent: dc.rain,
     headline: "Stress-test before you sign. Not after you close.",
-    desc: "A 2D rate × rent shock grid shows your deal's actual margin before you commit. Know the break-even DSCR at 1.11x and see which scenario breaks the deal first — rate jump, vacancy spike, or exit-cap expansion.",
-    ctaLabel: "Open Stress Matrix →",
+    desc: "A 2D rate × rent shock grid shows every scenario — rate jumps up, rent drops, or both. Know the break-even DSCR and see which scenario breaks your deal first before you commit capital. If the deal can't survive a 10% rent haircut, you need to know now.",
+    ctaLabel: "Run the stress matrix →",
     view: "stress-matrix",
   },
 ];
@@ -210,17 +210,14 @@ export default function InvestorsPage({
                 margin: "0 0 36px",
               }}
             >
-              For individual investors and private funds: after-tax IRR, Monte
-              Carlo rate paths, and a 120-cell stress matrix — the analysis a
-              fund desk runs, on every one of your deals. No signup, no
-              spreadsheet round-trip.
+              DSCR loans (where qualifying is based on the property's rent, not your tax returns) let individual investors grow a rental portfolio without income docs. These tools give you the same analysis a private-fund desk runs — after-tax IRR, 500-path rate simulations, and a 120-cell stress matrix. No signup, no spreadsheet.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <PrimaryBtn onClick={() => onNavigate("returns")}>
-                Open Returns &amp; IRR →
+                See my deal's returns →
               </PrimaryBtn>
               <GhostBtn onClick={() => onNavigate("dscr-calculator")}>
-                Run a deal
+                Check DSCR first
               </GhostBtn>
             </div>
           </div>
@@ -269,7 +266,7 @@ export default function InvestorsPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                DSCR · $3,330 rent ÷ $2,999 PITIA
+                DSCR — $3,330 rent ÷ $2,999 PITIA (full monthly payment)
               </div>
             </div>
             <div
@@ -348,13 +345,27 @@ export default function InvestorsPage({
                 fontSize: "clamp(28px,3.4vw,46px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
-                margin: 0,
+                margin: "0 0 14px",
                 maxWidth: "18ch",
                 color: dc.dark,
               }}
             >
               Institutional analysis, no fund required.
             </h2>
+            <p
+              style={{
+                fontSize: "clamp(16px,1.25vw,19px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(0,55,56,0.62)",
+                margin: 0,
+                maxWidth: "56ch",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Five tools below, in the order you'd actually use them — from qualifying
+              a deal to modeling the exit.
+            </p>
           </div>
 
           <div style={{ position: "relative" }}>
@@ -371,9 +382,9 @@ export default function InvestorsPage({
             {[
               {
                 num: "01",
-                title: "Levered and unlevered IRR",
-                desc: "Pre-tax levered IRR, equity multiple, yield-on-cost and a hold × rent-growth × exit-cap sensitivity matrix — all using proper amortization on every cell.",
-                cta: "Open Returns & IRR",
+                title: "Levered returns and equity multiple",
+                desc: "Pre-tax levered IRR (return on your cash invested, after debt), equity multiple (total dollars returned ÷ dollars put in), yield-on-cost, and a hold × rent-growth × exit-cap sensitivity matrix — all with proper amortization on every cell. Start here if you want to know whether the deal is worth your capital.",
+                cta: "Run my returns",
                 view: "returns",
                 numBg: dc.lemon,
                 numInk: dc.dark,
@@ -381,17 +392,17 @@ export default function InvestorsPage({
               {
                 num: "02",
                 title: "Monte Carlo rate-path simulation",
-                desc: "500 Vasicek SOFR paths using a calibrated OU process. Know the probability your DSCR breaks below 1.0 before the ARM resets, with P10/P50/P90 distributions.",
-                cta: "Open Monte Carlo",
+                desc: "500 simulated rate paths show the probability your DSCR (rent-to-payment ratio) breaks below 1.0 before the ARM resets. The model uses a calibrated Vasicek process — the same stochastic framework bank stress teams use — with P10/P50/P90 distributions so you can see best, median and worst case side by side.",
+                cta: "Run the rate simulation",
                 view: "monte-carlo",
                 numBg: dc.dark,
                 numInk: dc.lemon,
               },
               {
                 num: "03",
-                title: "After-tax IRR with full depreciation stack",
-                desc: "IRC §167 SL depreciation, §469 passive-activity-loss rules with the REP exception, §1250 recapture at 25%, §1(h) LTCG rates and §1411 NIIT — the real net.",
-                cta: "Open Tax Engine",
+                title: "After-tax IRR with the full depreciation stack",
+                desc: "Rental property's biggest tax advantage is depreciation — the IRS lets you deduct a portion of the building's value each year even while it appreciates. The Tax Engine runs the full stack: §167 straight-line depreciation, §469 passive-activity-loss (PAL) rules with the real-estate-professional exception, §1250 recapture at 25% when you sell, and §1411 net investment income tax. The result is your real after-tax IRR, every line traceable to a code section.",
+                cta: "Calculate my tax shield",
                 view: "tax-engine",
                 numBg: dc.lemon,
                 numInk: dc.dark,
@@ -399,8 +410,8 @@ export default function InvestorsPage({
               {
                 num: "04",
                 title: "Portfolio and blanket view",
-                desc: "Blended DSCR, aggregate equity and weighted rate across every door — the way a blanket lender actually sees your book. Add and edit properties inline.",
-                cta: "Open Portfolio",
+                desc: "When you own multiple rentals, lenders look at blended DSCR — the combined rent-to-payment ratio across all properties. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR across every door, so you can see your book the way a blanket lender actually underwrites it.",
+                cta: "Build my portfolio view",
                 view: "portfolio",
                 numBg: dc.dark,
                 numInk: dc.lemon,
@@ -408,8 +419,8 @@ export default function InvestorsPage({
               {
                 num: "05",
                 title: "Refi timing and break-even",
-                desc: "4-factor refi readiness score, monthly savings, break-even month and cash-out capacity at 70% LTV — so you know exactly when the refinance pencils.",
-                cta: "Open Refi Tracker",
+                desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) makes sense only if the monthly savings pay back the closing costs before you sell or refinance again. The Refi Tracker calculates the break-even month, NPV of savings, and cash-out capacity at 70% LTV (how the loan amount compares to property value) — so you refi when the math says go, not when rates feel low.",
+                cta: "Find my refi break-even",
                 view: "refi-tracker",
                 numBg: dc.lemon,
                 numInk: dc.dark,
@@ -520,12 +531,25 @@ export default function InvestorsPage({
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
                 lineHeight: 1.0,
-                margin: 0,
+                margin: "0 0 14px",
                 maxWidth: "22ch",
               }}
             >
-              Three tools every serious DSCR investor runs before they sign.
+              Three checks every DSCR investor should run before signing.
             </h2>
+            <p
+              style={{
+                fontSize: "clamp(16px,1.25vw,19px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(0,55,56,0.62)",
+                margin: 0,
+                maxWidth: "56ch",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Free. No signup. Open a deal and see what the math says.
+            </p>
           </div>
 
           <div
@@ -637,7 +661,7 @@ export default function InvestorsPage({
                 maxWidth: "22ch",
               }}
             >
-              Five myths DSCR investors believe until they lose money.
+              Five things DSCR investors believe until they lose money.
             </h2>
             <p
               style={{
@@ -650,8 +674,7 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Every one of these costs money in real deals. The rebuttals are
-              bps-specific — not marketing copy.
+              Each one shows up in real deals with real dollar consequences. The rebuttals are basis-point-specific — not marketing copy. Every number is reproducible in the calculator.
             </p>
           </div>
 
@@ -952,8 +975,9 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Run the DSCR Calculator, Tax Engine, and Returns model on your next deal — all free,
-              no credit pull, no email required.
+              Run the DSCR Calculator, Tax Engine, and Returns model on your next deal —
+              all free, no credit pull, no email required. Start with the DSCR check,
+              then layer in the tax shield and returns.
             </p>
           </div>
           <div
@@ -982,7 +1006,7 @@ export default function InvestorsPage({
                 minHeight: 44,
               }}
             >
-              DSCR Calculator →
+              Check my DSCR →
             </button>
             {/* Secondary CTAs: transparent + FADED border per contract */}
             <button

@@ -168,7 +168,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
           {/* H1 */}
           <H1 style={{ margin: "0 0 24px", maxWidth: "15ch" }}>
-            {total} lenders, ranked for your exact deal.
+            Which programs fit your deal?
           </H1>
 
           {/* Sub */}
@@ -176,13 +176,14 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             style={{
               color: "rgba(238,239,211,0.7)",
               maxWidth: "52ch",
-              margin: "0 0 40px",
+              margin: "0 0 16px",
             }}
           >
-            A provenance-tracked database of real DSCR program boxes — FICO floors,
-            LTV caps, DSCR minimums, state coverage and entity rules. Score your deal
-            against every one.
+            Enter your FICO score, LTV (how the loan amount compares to the property value — lower means more equity and better terms), DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger), and loan amount. Every Greenstreet program is scored against your numbers instantly — green cards fit, red cards don't and show you why.
           </Lead>
+          <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 36px", lineHeight: 1.5 }}>
+            How to use: adjust the deal box on the left. Cards re-rank live. Match count updates at the top. Aim for at least one FITS card before submitting.
+          </p>
 
           {/* Program name chips — the hero's live "19 chips" identity */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, maxWidth: 920 }}>
@@ -227,8 +228,15 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", lineHeight: 1.05 }}>
               <Mono style={{ fontWeight: 600 }}>{matchCount}</Mono> of {total} programs fit this deal
             </h2>
-            <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(0,55,56,0.6)", margin: 0, letterSpacing: "-0.02em" }}>
-              Adjust the deal box — programs re-rank instantly by fit score.
+            <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(0,55,56,0.6)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
+              {matchCount === 0
+                ? "No programs match your current deal box. Try raising FICO, lowering LTV, or increasing DSCR to open more options."
+                : matchCount === 1
+                ? "One program fits. Check its check chips below — green chips are gates you clear; red chips show what's holding you back."
+                : `${matchCount} programs fit. They're sorted best-fit first. The fit score shows how much room you have above each program's minimums.`}
+            </p>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(0,55,56,0.45)", margin: 0 }}>
+              Adjust the deal box on the left — programs re-rank instantly.
             </p>
           </div>
 
@@ -247,15 +255,19 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 border: "1px solid rgba(238,239,211,0.1)",
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                 Your Deal Box
               </div>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 16px", lineHeight: 1.5 }}>
+                Enter your deal details. Programs re-rank as you type — no submit needed.
+              </p>
 
               {/* FICO */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   FICO Score
                 </span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Your credit score. 620 minimum; 740+ unlocks best pricing.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -270,9 +282,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
               {/* LTV */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   LTV Needed
                 </span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Loan-to-value — loan ÷ property value. E.g. 25% down = 75% LTV. Lower is better.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -290,9 +303,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
               {/* DSCR */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   Deal DSCR
                 </span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Rent ÷ monthly payment. 1.25x is the typical strong-approval threshold. Don't know it? Use the DSCR Calculator first.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -310,9 +324,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
               {/* Loan Amount */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   Loan Amount
                 </span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Purchase price minus your down payment. Minimum $75,000 for DSCR programs.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 14 }}>$</span>
                   <input
@@ -329,9 +344,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
               {/* State — proper label field, consistent with other inputs */}
               <label style={{ display: "block", marginBottom: 16 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   State (2-letter)
                 </span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Where the property is located. Affects prepayment penalty (a fee some loans charge if you pay off or refinance early) risk and state-specific program availability.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -399,7 +415,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                     lineHeight: 1.5,
                   }}
                 >
-                  <strong>PPP-risk state.</strong> {stateCode} imposes prepayment restrictions that reprice some programs. Scores adjusted.
+                  <strong>Prepayment-penalty risk state.</strong> {stateCode} has laws that make prepayment penalties (a fee some loans charge if you pay the loan off or refinance early) more restrictive, which reprices some programs. Fit scores adjusted accordingly. Ask your Greenstreet contact for details before locking a rate.
                 </div>
               )}
             </div>
@@ -540,7 +556,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                         {Math.max(0, Math.round(p.score))}
                       </Mono>
                       <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.4)", marginTop: 4 }}>
-                        fit score
+                        fit score (higher = more room above minimums)
                       </div>
                     </div>
                   </div>

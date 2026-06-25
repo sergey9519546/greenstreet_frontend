@@ -705,31 +705,41 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
       {/* Article body */}
       <section className="gs-reveal" style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          {/* TL;DR summary — progressive disclosure: quick answer first */}
+          <div style={{ background: dc.mintBg, borderRadius: 10, border: `1px solid ${dc.faded}`, padding: "clamp(18px,2vw,26px) clamp(18px,2vw,28px)", marginBottom: 36 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 8 }}>
+              TL;DR — 30-second version
+            </div>
+            <p style={{ color: dc.dark, fontSize: "clamp(15px,1.3vw,17px)", fontWeight: 600, margin: 0, lineHeight: 1.5, letterSpacing: "-0.01em" }}>
+              {post.summary}
+            </p>
+          </div>
+
           <ArticleBody blocks={post.body} />
 
-          {/* CTA card — qualifier + deal analyzer */}
+          {/* End CTA — concrete next step */}
           <div
             className="gs-reveal"
             style={{ marginTop: 48, borderRadius: 12, border: `1px solid rgba(0,55,56,0.12)`, background: dc.mintBg, padding: "clamp(24px,3vw,36px) clamp(24px,3vw,40px)" }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 12 }}>
-              Ready to run a real deal?
+              See if your deal qualifies
             </div>
             <p style={{ color: "rgba(0,55,56,0.72)", fontSize: 15, marginBottom: 22, lineHeight: 1.6, fontWeight: 500 }}>
-              Model DSCR, break-even rate, and your program match — or check whether your deal qualifies right now.
+              Enter your property's rent and loan details — get a DSCR estimate, a rate range, and a program match in under a minute. No commitment, no account required.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
+              <button
+                onClick={() => (window as any).openQualify?.()}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
+              >
+                See if your deal qualifies →
+              </button>
               <button
                 onClick={() => onNavigate("dscr-calculator")}
                 style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
               >
                 Open the Deal Analyzer →
-              </button>
-              <button
-                onClick={() => (window as any).openQualify?.()}
-                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
-              >
-                See if your deal qualifies →
               </button>
             </div>
           </div>
@@ -789,9 +799,12 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginBottom: 18, letterSpacing: "-0.01em" }}>
               Greenstreet Guidance
             </div>
-            <H1 style={{ margin: 0, maxWidth: "16ch" }}>
-              Notes from the DSCR desk.
+            <H1 style={{ margin: "0 0 16px", maxWidth: "20ch" }}>
+              Practical guides for DSCR investors.
             </H1>
+            <Lead style={{ color: "rgba(0,55,56,0.6)", maxWidth: "52ch", margin: 0, fontSize: "clamp(16px,1.3vw,19px)" }}>
+              Plain-language articles on qualifying, structuring, and closing investment property loans — with the math and sources included.
+            </Lead>
           </div>
         </div>
       </section>

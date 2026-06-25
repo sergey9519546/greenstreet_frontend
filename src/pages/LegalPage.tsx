@@ -22,7 +22,7 @@ interface LegalDoc {
 const DISCLOSURES: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Terms, privacy, and the fine print.",
-  sub: "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not financial, legal, or tax advice.",
+  sub: "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not financial, legal, or tax advice. Use the navigation on the left to jump to any section.",
   updated: "June 24, 2026",
   sections: [
     {
@@ -75,7 +75,7 @@ const DISCLOSURES: LegalDoc = {
 const PRIVACY_DOC: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Privacy Policy.",
-  sub: "How Greenstreet Finance collects, uses, and protects your information.",
+  sub: "How Greenstreet Finance collects, uses, and protects your information. Jump to any section using the navigation on the left.",
   updated: "June 22, 2026",
   sections: [
     {
@@ -125,7 +125,7 @@ const PRIVACY_DOC: LegalDoc = {
 const TERMS_DOC: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Terms of Service.",
-  sub: "The terms governing your use of Greenstreet Finance tools and website.",
+  sub: "The terms governing your use of Greenstreet Finance tools and website. Jump to any section using the navigation on the left.",
   updated: "June 22, 2026",
   sections: [
     {
@@ -388,6 +388,15 @@ export default function LegalPage({
               padding: "clamp(32px,4vw,56px)",
             }}
           >
+            <div style={{ padding: "14px 18px", background: "rgba(0,55,56,0.04)", borderRadius: 8, border: "1px solid rgba(0,55,56,0.1)", marginBottom: 36, fontSize: 14, color: "rgba(0,55,56,0.65)", lineHeight: 1.6 }}>
+              <strong style={{ color: MIDNIGHT }}>Plain summary:</strong>{" "}
+              {doc.heading.includes("Terms, privacy") &&
+                "This page explains that Greenstreet's tools produce estimates, not advice. Numbers are computed by code, not AI. State rules may lag recent changes. The tools don't need an account and don't sell your data."}
+              {doc.heading.includes("Privacy Policy") &&
+                "We collect the deal parameters you enter and your contact info if you request a quote. We don't sell your information. You can request deletion at any time."}
+              {doc.heading.includes("Terms of Service") &&
+                "Tool outputs are estimates, not rate locks or credit approvals. Verify everything with your lender before acting. Don't scrape the site or redistribute our data."}
+            </div>
             {doc.sections.map((s) => (
               <div
                 key={s.id}

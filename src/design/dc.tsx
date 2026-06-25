@@ -134,7 +134,6 @@ export function useDcGsap(scope: React.RefObject<HTMLElement>) {
 
       const hc = document.querySelector("#gs-hero-content");
       if (hc) {
-        gsap.from(hc.children, { y: 44, opacity: 0, duration: 0.9, stagger: 0.13, ease: "power3.out", clearProps: "all" });
         hc.querySelectorAll("[data-count]").forEach((el) => {
           const end = +(el.getAttribute("data-count") || 0);
           const obj = { n: 0 };
@@ -147,14 +146,11 @@ export function useDcGsap(scope: React.RefObject<HTMLElement>) {
           });
         });
       }
-      document.querySelectorAll(".gs-reveal").forEach((el) => {
-        gsap.from(el, { y: 40, opacity: 0, duration: 0.85, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
-      });
-      // Pop-in stagger for signature grids/tiles (e.g. the State Laws map cells).
-      const pop = document.querySelectorAll(".dc-pop");
-      if (pop.length) {
-        gsap.from(pop, { scale: 0, opacity: 0, duration: 0.4, stagger: { each: 0.012, from: "start" }, delay: 0.25, ease: "back.out(1.5)", clearProps: "all", scrollTrigger: { trigger: pop[0], start: "top 90%", once: true } });
-      }
+      // Do not run page-level "from" reveals here. They execute after the first
+      // React paint, which makes the correct final layout visibly drop/fade and
+      // then recover on every route. Keep routed pages stable from first paint.
+      // Signature grids/tiles stay visible from first paint; no post-load
+      // scroll-triggered reveal that can create a visible design drop.
       const t = setTimeout(() => ScrollTrigger.refresh(), 200);
       return () => clearTimeout(t);
     },

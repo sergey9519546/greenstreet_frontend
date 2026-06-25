@@ -1,12 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // ── Mint accent — the Stress Matrix colour identity ──────────────────────────
 const MINT = dc.mintBg;  // #e8e9bf
@@ -117,30 +112,8 @@ export default function StressMatrixPage({
     }
   }, [purchasePrice, downPct, baseRate, monthlyRent, annualTaxes, annualInsurance, hoa]);
 
-  // ── GSAP build-in: cells pop/fade from top-left corner on scroll-into-view ──
-  useGSAP(
-    () => {
-      if (
-        typeof window !== "undefined" &&
-        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-      )
-        return;
-
-      gsap.from(".sm-cell", {
-        opacity: 0,
-        scale: 0.72,
-        duration: 0.38,
-        ease: "back.out(1.5)",
-        stagger: { each: 0.012, from: "start" },
-        scrollTrigger: {
-          trigger: matrixRef.current,
-          start: "top 84%",
-          once: true,
-        },
-      });
-    },
-    { scope: matrixRef, dependencies: [result] }
-  );
+  // Matrix cells stay visible from first paint. Scroll-triggered reveal effects
+  // were causing routed pages to visibly change after load.
 
   // ── Derived display values ───────────────────────────────────
   const baseDSCR = result?.baseTrack1DSCR ?? 0;
@@ -206,11 +179,11 @@ export default function StressMatrixPage({
 
   // ── Legend data ──────────────────────────────────────────────
   const legend: { zone: StressRiskZone; label: string; color: string }[] = [
-    { zone: "SAFE",        label: "SAFE ≥1.50",       color: dc.rain    },
-    { zone: "COMFORTABLE", label: "COMFORTABLE ≥1.25", color: dc.emerald },
-    { zone: "MARGINAL",    label: "MARGINAL ≥1.00",    color: "#d8d958"  },
-    { zone: "FRAGILE",     label: "FRAGILE ≥0.85",     color: "#f97316"  },
-    { zone: "DEAL_BREAK",  label: "DEAL_BREAK <0.85",  color: "#ff6b6b"  },
+    { zone: "SAFE",        label: "SAFE — DSCR ≥1.50 (strong cushion)",           color: dc.rain    },
+    { zone: "COMFORTABLE", label: "COMFORTABLE — DSCR ≥1.25 (lender-preferred)",  color: dc.emerald },
+    { zone: "MARGINAL",    label: "MARGINAL — DSCR ≥1.00 (barely covers costs)",  color: "#d8d958"  },
+    { zone: "FRAGILE",     label: "FRAGILE — DSCR ≥0.85 (cash-flow shortfall)",   color: "#f97316"  },
+    { zone: "DEAL_BREAK",  label: "DEAL BREAK — DSCR <0.85 (can't service debt)", color: "#ff6b6b"  },
   ];
 
   // ── Zone label readable string ───────────────────────────────
@@ -290,13 +263,14 @@ export default function StressMatrixPage({
             >
               Stress Matrix &middot; 12&times;10 grid &middot; 5 zones
             </div>
-            <H1 style={{ margin: "0 0 28px" }}>
+            <H1 style={{ margin: "0 0 20px" }}>
               See every stress scenario in one view.
             </H1>
+            <div style={{ fontSize: 15, fontWeight: 500, color: dc.dark, background: dc.lemon, borderRadius: 8, padding: "10px 14px", maxWidth: "48ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em", display: "inline-block" }}>
+              A stress test (checks whether the deal still works if rates rise or rent falls) across 120 combinations at once. Set your base deal on the left and read the color-coded DSCR (whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it; higher is stronger) grid on the right.
+            </div>
             <Lead style={{ color: "rgba(0,55,56,0.65)", maxWidth: "48ch", margin: "0 0 36px" }}>
-              120 cells. Rate shocks from &minus;150 to +200 bps, rent shocks
-              from &minus;25% to +20%. Every cell recolors live as you change
-              the base deal.
+              Each cell shows a different rate + rent scenario. Green = safe. Red = deal breaks. Hover any cell to see the exact DSCR. Click to pin it.
             </Lead>
             <Btn label="Open the matrix" href="#sm-tool" onClick={scrollToTool} />
           </div>
@@ -347,23 +321,23 @@ export default function StressMatrixPage({
           >
             <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.lemon, marginBottom: 14, lineHeight: 1 }}>01</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Base deal</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Set your base deal</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.6)", margin: 0 }}>
-                Set price, rate, rent, taxes, insurance. The base scenario anchors the matrix center.
+                Enter the purchase price, your rate, monthly rent, taxes, and insurance. This is the center of the matrix — your actual deal today.
               </p>
             </div>
             <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.emerald, marginBottom: 14, lineHeight: 1 }}>02</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>120 cells</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>120 what-if scenarios</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0 }}>
-                12 rate offsets &times; 10 rent offsets. Every cell recomputes live DSCR as you type.
+                12 rate shocks (from &minus;150 to +200 bps) &times; 10 rent shocks (&minus;25% to +20%). Every cell recomputes DSCR live as you type — no submit button.
               </p>
             </div>
             <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>5 zones</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Read the color zones</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0 }}>
-                SAFE to DEAL_BREAK color-coded instantly. Hover any cell for the exact DSCR.
+                Dark teal = SAFE (DSCR &ge;1.50). Green = COMFORTABLE. Yellow = MARGINAL. Orange = FRAGILE. Red = DEAL BREAK (&lt;0.85). Hover any cell for the exact number.
               </p>
             </div>
           </div>
@@ -390,8 +364,11 @@ export default function StressMatrixPage({
               <Mono style={{ color: dc.cream }}>{baseDSCR.toFixed(2)}x</Mono>
               {" · "}
               <span style={{ color: dc.emerald }}>{passRate}</span>
-              {" of scenarios hold ≥ 1.0x"}
+              {" of scenarios still cover costs"}
             </h2>
+            <p style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", margin: "12px 0 0", maxWidth: "60ch", lineHeight: 1.6, fontWeight: 500 }}>
+              The yellow-outlined cell is your base deal today. Rows = rate shocks (bps = hundredths of a percent; +100 bps means your rate goes up 1%). Columns = rent changes. Any cell below 1.0 means the property can no longer cover its full payment in that scenario.
+            </p>
           </div>
 
           <div
@@ -408,11 +385,14 @@ export default function StressMatrixPage({
                 top: 96,
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 20 }}>
-                Base deal
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
+                Your base deal
               </div>
+              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", margin: "0 0 16px", lineHeight: 1.5 }}>
+                These numbers anchor the center of the grid. Change any value and all 120 cells update instantly.
+              </p>
 
-              <InputField label="Purchase Price" prefix="$">
+              <InputField label="Purchase Price ($)" prefix="$">
                 <input
                   className="sm-num"
                   type="number"
@@ -423,7 +403,7 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              <InputField label="Down %" suffix="%">
+              <InputField label="Down payment %" suffix="%">
                 <input
                   className="sm-num"
                   type="number"
@@ -436,7 +416,7 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              <InputField label="Base Rate" suffix="%">
+              <InputField label="Base interest rate %" suffix="%">
                 <input
                   className="sm-num"
                   type="number"
@@ -522,7 +502,7 @@ export default function StressMatrixPage({
                       letterSpacing: "0.03em",
                     }}
                   >
-                    DOWN = rate offset bps &middot; ACROSS = rent offset %
+                    Rows (down) = rate shock in bps (100 bps = 1% rate change) &middot; Columns (across) = rent change %
                   </div>
 
                   {/* ── Heatmap table — wrapped in a position:relative container for the tooltip ── */}

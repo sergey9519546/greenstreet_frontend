@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { swatch, radius } from "../theme";
 
@@ -16,50 +15,54 @@ const RQ_ACCENT = dc.cream; // #eeefd3
 // ── Quiz data — five questions, preserved verbatim ──────────────────────────
 const qs = [
   {
-    q: "What are you financing?",
+    q: "What type of property are you financing?",
+    education: "DSCR loans work for most rental property types. Short-term rentals (Airbnb-style) and larger multifamily buildings have specialty programs with slightly different requirements.",
     opts: [
-      { label: "Single-family rental", hint: "SFR", v: "sfr" },
-      { label: "2–4 unit", hint: "small multi", v: "small" },
+      { label: "Single-family rental (1 unit)", hint: "most common", v: "sfr" },
+      { label: "2–4 unit rental", hint: "small multi", v: "small" },
       { label: "5+ unit / mixed-use", hint: "multifamily", v: "multi" },
-      { label: "Short-term rental", hint: "STR", v: "str" },
+      { label: "Short-term rental (STR)", hint: "Airbnb / VRBO", v: "str" },
     ],
   },
   {
-    q: "Where does your credit land?",
+    q: "What's your approximate credit score?",
+    education: "We don't pull your credit here — a range is enough. Your score affects your rate tier and the minimum down payment required. Higher score = lower rate.",
     opts: [
-      { label: "740+", hint: "best tier", v: "a" },
-      { label: "700–739", hint: "strong", v: "b" },
-      { label: "660–699", hint: "standard", v: "c" },
-      { label: "620–659", hint: "flexible", v: "d" },
+      { label: "740 or above", hint: "best rate tier", v: "a" },
+      { label: "700–739", hint: "strong — near-best pricing", v: "b" },
+      { label: "660–699", hint: "standard programs available", v: "c" },
+      { label: "620–659", hint: "flexible — more down needed", v: "d" },
     ],
   },
   {
     q: "How much are you putting down?",
     education:
-      "LTV = loan ÷ value. A 25% down payment = 75% LTV. Most DSCR programs cap at 80% LTV (20% down). Better LTV tiers unlock lower rates.",
+      "LTV (how the loan amount compares to the property value — lower = more equity = better terms) = 100% minus your down payment. A 25% down payment means 75% LTV. Most DSCR programs cap at 80% LTV (20% down minimum). Putting more down lowers your rate and opens more programs.",
     opts: [
-      { label: "35%+", hint: "≤65% LTV", v: "a" },
-      { label: "25–34%", hint: "66–75% LTV", v: "b" },
-      { label: "20–24%", hint: "76–80% LTV", v: "c" },
-      { label: "Under 20%", hint: ">80% LTV", v: "d" },
+      { label: "35% or more", hint: "≤65% LTV — best rate tier", v: "a" },
+      { label: "25–34%", hint: "66–75% LTV — strong", v: "b" },
+      { label: "20–24%", hint: "76–80% LTV — standard floor", v: "c" },
+      { label: "Less than 20%", hint: ">80% LTV — limited programs", v: "d" },
     ],
   },
   {
-    q: "How does the rent cover the payment?",
+    q: "How does the monthly rent compare to the full payment?",
+    education: "DSCR = monthly rent ÷ PITIA (the full monthly payment — principal, interest, taxes, insurance, and HOA). 1.00x means rent exactly covers the payment. Most programs require at least 1.00x; some accept below 1.0x with compensating factors.",
     opts: [
-      { label: "Comfortably — 1.25x+", hint: "strong DSCR", v: "a" },
-      { label: "It qualifies — ~1.0–1.25x", hint: "standard", v: "b" },
-      { label: "It's tight — below 1.0x", hint: "sub-1.0", v: "c" },
-      { label: "Not sure yet", hint: "estimate", v: "b" },
+      { label: "Comfortably — 1.25x or higher", hint: "strong DSCR — best programs", v: "a" },
+      { label: "It qualifies — roughly 1.0–1.25x", hint: "standard DSCR", v: "b" },
+      { label: "It's tight — below 1.0x", hint: "sub-1.0 programs available", v: "c" },
+      { label: "Not sure yet", hint: "use the DSCR calculator", v: "b" },
     ],
   },
   {
     q: "Who is the borrower?",
+    education: "This affects which program tiers and structures are available. First-time investors qualify — DSCR loans don't require prior rental experience.",
     opts: [
-      { label: "US citizen / PR via LLC", hint: "standard", v: "a" },
-      { label: "Experienced investor (5+)", hint: "portfolio", v: "b" },
-      { label: "Foreign national / ITIN", hint: "global", v: "g" },
-      { label: "First DSCR loan", hint: "new", v: "c" },
+      { label: "US citizen or permanent resident (LLC or personal)", hint: "standard", v: "a" },
+      { label: "Experienced investor — 5+ rentals owned", hint: "portfolio programs", v: "b" },
+      { label: "Foreign national or ITIN borrower", hint: "global program", v: "g" },
+      { label: "First DSCR loan — new to rentals", hint: "new investor", v: "c" },
     ],
   },
 ];
@@ -150,21 +153,6 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
     document.title = "Rate Quiz | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
-
-  // Hero entrance — targets #rq-hero-content children
-  useGSAP(() => {
-    const hc = document.querySelector("#rq-hero-content");
-    if (hc) {
-      gsap.from(hc.children, {
-        y: 42,
-        opacity: 0,
-        duration: 0.9,
-        stagger: 0.13,
-        ease: "power3.out",
-        clearProps: "all",
-      });
-    }
-  });
 
   // Card transition — animate in after each answer or step change
   const flash = () => {
@@ -279,13 +267,12 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
 
           {/* H1 — matches mockup sizing exactly */}
           <H1 style={{ margin: "0 0 22px" }}>
-            Which DSCR loan fits you?
+            Find the right DSCR program for your deal.
           </H1>
 
           {/* Sub — five questions, compliance-safe, no email/credit pull */}
           <Lead style={{ color: "rgba(0,55,56,0.62)", maxWidth: "50ch", margin: "0 auto" }}>
-            Five quick questions. No credit pull, no email. We map your answers
-            to a Greenstreet program and an indicative rate band.
+            Five quick questions about your property, credit, and down payment. No credit pull, no email required. We map your answers to a Greenstreet program and an indicative rate range — takes about 60 seconds.
           </Lead>
         </div>
       </section>
@@ -367,18 +354,18 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   {qs[step].q}
                 </h2>
 
-                {/* Q3 LTV education copy */}
-                {step === 2 && (
+                {/* Education copy — shown for every question that has it */}
+                {(qs[step] as any).education && (
                   <div
                     style={{
                       background: dc.cream,
                       borderRadius: 6,
-                      padding: "14px 18px",
+                      padding: "12px 16px",
                       marginBottom: 24,
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: 500,
-                      lineHeight: 1.55,
-                      color: "rgba(0,55,56,0.65)",
+                      lineHeight: 1.6,
+                      color: "rgba(0,55,56,0.62)",
                       letterSpacing: "-0.01em",
                       border: "1px solid rgba(0,55,56,0.1)",
                     }}
@@ -470,7 +457,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   border: "1px solid rgba(238,239,211,0.1)",
                 }}
               >
-                {/* "Your match" label */}
+                {/* (a) Plain verdict — label + program name */}
                 <div
                   style={{
                     fontSize: 13,
@@ -478,49 +465,71 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                     letterSpacing: "0.04em",
                     textTransform: "uppercase" as const,
                     color: dc.lemon,
-                    marginBottom: 14,
+                    marginBottom: 10,
                   }}
                 >
-                  Your match
+                  Your best-match program
                 </div>
 
-                {/* Program name */}
                 <h2
                   style={{
-                    fontSize: "clamp(30px,3.8vw,48px)",
+                    fontSize: "clamp(26px,3.2vw,40px)",
                     fontWeight: 600,
                     letterSpacing: "-0.03em",
-                    lineHeight: 1.02,
-                    margin: "0 0 10px",
+                    lineHeight: 1.05,
+                    margin: "0 0 6px",
                     color: dc.cream,
                   }}
                 >
                   {result.program}
                 </h2>
 
-                {/* Rate band — mono, lemon */}
-                <Mono
+                {/* Plain verdict sentence */}
+                <p
                   style={{
-                    display: "block",
-                    fontSize: "clamp(36px,5vw,60px)",
-                    fontWeight: 600,
-                    letterSpacing: "-0.03em",
-                    color: dc.lemon,
-                    marginBottom: 18,
-                    lineHeight: 1,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    lineHeight: 1.55,
+                    color: "rgba(238,239,211,0.65)",
+                    margin: "0 0 18px",
+                    letterSpacing: "-0.01em",
+                    maxWidth: "52ch",
                   }}
                 >
-                  {result.rate}
-                </Mono>
+                  {result.tier === "BEST"
+                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest lender selection."
+                    : result.tier === "GOOD"
+                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match and lock your terms."
+                    : "This program has tighter requirements, but it's designed for your situation. Reserves, lower LTV, or stronger credit can help you qualify. A specialist can structure the deal."}
+                </p>
+
+                {/* Rate band — mono, lemon */}
+                <div style={{ marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>
+                    Indicative rate range
+                  </div>
+                  <Mono
+                    style={{
+                      display: "block",
+                      fontSize: "clamp(32px,4.5vw,56px)",
+                      fontWeight: 600,
+                      letterSpacing: "-0.03em",
+                      color: dc.lemon,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {result.rate}
+                  </Mono>
+                </div>
 
                 {/* Program description */}
                 <p
                   style={{
-                    fontSize: 17,
+                    fontSize: 14,
                     fontWeight: 500,
                     lineHeight: 1.55,
-                    color: "rgba(238,239,211,0.72)",
-                    margin: "0 0 28px",
+                    color: "rgba(238,239,211,0.6)",
+                    margin: "0 0 24px",
                     letterSpacing: "-0.01em",
                     maxWidth: "52ch",
                   }}
@@ -528,7 +537,10 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   {result.note}
                 </p>
 
-                {/* Stats grid — 2×2, solid fills */}
+                {/* (b) Which numbers mattered — stats grid */}
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" as const, color: "rgba(238,239,211,0.4)", marginBottom: 10 }}>
+                  Program requirements at a glance
+                </div>
                 <div
                   style={{
                     display: "grid",
@@ -537,13 +549,13 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                     background: "rgba(238,239,211,0.12)",
                     borderRadius: 8,
                     overflow: "hidden",
-                    marginBottom: 28,
+                    marginBottom: 24,
                   }}
                 >
                   {result.resultStats.map((r, i) => (
                     <div
                       key={i}
-                      style={{ background: dc.teal, padding: "20px 22px" }}
+                      style={{ background: dc.teal, padding: "18px 20px" }}
                     >
                       <div
                         style={{
@@ -551,7 +563,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                           fontWeight: 600,
                           letterSpacing: "0.04em",
                           textTransform: "uppercase" as const,
-                          color: "rgba(238,239,211,0.5)",
+                          color: "rgba(238,239,211,0.45)",
                           marginBottom: 6,
                         }}
                       >
@@ -572,45 +584,49 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   ))}
                 </div>
 
-                {/* What this means — plain-language explanation */}
-                <p
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    lineHeight: 1.55,
-                    color: "rgba(238,239,211,0.6)",
-                    margin: "0 0 10px",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {result.tier === "BEST"
-                    ? "Your profile is well-positioned. This program tier carries the lowest rate bands and widest lender selection."
-                    : result.tier === "GOOD"
-                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match for your deal."
-                    : "This program has tighter requirements — reserves, lower LTV, or stronger credit can help qualify. A specialist can structure the deal."}
-                </p>
+                {/* (c) How to improve — only shown for WEAK tier */}
+                {result.tier === "WEAK" && (
+                  <div
+                    style={{
+                      background: "rgba(249,115,22,0.08)",
+                      border: "1px solid rgba(249,115,22,0.3)",
+                      borderRadius: 8,
+                      padding: "14px 18px",
+                      marginBottom: 18,
+                    }}
+                  >
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "#f97316", marginBottom: 6 }}>
+                      How to strengthen this deal
+                    </div>
+                    <p style={{ fontSize: 13, color: "rgba(238,239,211,0.65)", margin: 0, lineHeight: 1.55 }}>
+                      This program tier requires compensating factors. Increasing your down payment (lower LTV), building 6+ months of reserves (mortgage payments kept in the bank after closing), or raising your credit score each improve your position. A specialist can structure the deal to qualify.
+                    </p>
+                  </div>
+                )}
 
-                {/* Single clear next step */}
+                {/* (d) What happens next */}
                 <div
                   style={{
                     background: "rgba(238,239,211,0.07)",
                     border: "1px solid rgba(238,239,211,0.15)",
                     borderRadius: 8,
                     padding: "16px 20px",
-                    marginBottom: 24,
+                    marginBottom: 10,
                     fontSize: 13,
                     color: "rgba(238,239,211,0.65)",
                     lineHeight: 1.55,
                   }}
                 >
                   <strong style={{ color: dc.lemon, display: "block", marginBottom: 4 }}>
-                    Your next step
+                    What happens next
                   </strong>
-                  Run your exact numbers in the DSCR Calculator, then speak with a Greenstreet specialist to confirm your program and get a full scenario review.
-                  <span style={{ display: "block", marginTop: 8, opacity: 0.65, fontSize: 12 }}>
-                    Indicative rate bands only — not a commitment to lend. Final terms subject to full underwriting review.
-                  </span>
+                  Run your exact numbers in the DSCR Calculator to confirm the ratio, then speak with a Greenstreet specialist for a full scenario review and program lock.
                 </div>
+
+                {/* (e) Preliminary disclaimer */}
+                <p style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", margin: "0 0 24px", lineHeight: 1.4 }}>
+                  Indicative rate range only — not a commitment to lend. Final terms subject to full underwriting, appraisal and credit review.
+                </p>
 
                 {/* CTAs */}
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>

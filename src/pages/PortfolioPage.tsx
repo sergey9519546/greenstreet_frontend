@@ -241,11 +241,14 @@ export default function PortfolioPage({
               Portfolio · Blanket · Multi-property
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
-              Underwrite the whole portfolio at once.
+              How does your whole portfolio look to a lender?
             </H1>
-            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              Blended DSCR, aggregate equity, weighted rate and total monthly cash flow across every door — the way a blanket underwriter sees your book.
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 20px" }}>
+              Add your properties. The tool calculates a blended DSCR (whether the combined rent across all properties can cover the combined loan payments — 1.00 = break-even; higher is stronger), total equity, weighted average rate, and total monthly cash flow — exactly the view a blanket underwriter will build when evaluating your portfolio.
             </Lead>
+            <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+              How to use: add or edit properties in the table below. All numbers compute live. A blended DSCR above 1.25x and green cash flow means you're in strong shape for a blanket or multi-property loan.
+            </p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <Btn label="Open the portfolio builder ↓" href="#pf-tool" onClick={scrollToTool} />
               <Btn
@@ -293,25 +296,25 @@ export default function PortfolioPage({
             {/* 01 */}
             <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.lemon, marginBottom: 14, lineHeight: 1 }}>01</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Add doors</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Add properties</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.6)", margin: 0, letterSpacing: "-0.01em" }}>
-                Enter each property's value, balance, rate and rent. Edit every field inline.
+                Enter each property's value, loan balance, interest rate, and monthly rent. Edit every field inline — click any number to change it.
               </p>
             </div>
             {/* 02 */}
             <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.emerald, marginBottom: 14, lineHeight: 1 }}>02</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Blend</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>See the blended picture</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                Blended DSCR, aggregate equity, weighted rate and total cash flow recompute live.
+                Blended DSCR (combined rent ÷ combined payments), total equity, weighted rate, and monthly cash flow recompute live as you edit.
               </p>
             </div>
             {/* 03 */}
             <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Submit</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Submit with confidence</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                Hand the lender this blended view — it is exactly how a blanket underwriter sees your book.
+                This blended view is exactly what a blanket underwriter will build. Present it with your application — no guesswork, no surprises.
               </p>
             </div>
           </div>
@@ -330,13 +333,22 @@ export default function PortfolioPage({
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live portfolio aggregator
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 10px", color: dc.cream }}>
               Blended DSCR{" "}
               <Mono style={{ color: rows.length === 0 ? "rgba(238,239,211,0.3)" : blendColor }}>
                 {rows.length === 0 ? "—" : blendStr}
               </Mono>
               {rows.length > 0 && <>{" "}across {rows.length} door{rows.length !== 1 ? "s" : ""}</>}
             </h2>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+              {rows.length === 0
+                ? "Add your first property to see the blended DSCR."
+                : agg.blend >= 1.25
+                ? `Blended DSCR of ${blendStr} is strong — the portfolio's combined rent comfortably covers all loan payments. This is a favorable position for blanket or multi-property financing.`
+                : agg.blend >= 1.0
+                ? `Blended DSCR of ${blendStr} qualifies but is close to the minimum. Consider improving cash-flow on weaker properties or paying down balances before applying.`
+                : `Blended DSCR of ${blendStr} is below 1.0 — the combined rent does not fully cover loan payments. Address the red-DSCR properties in the table below before submitting to a lender.`}
+            </p>
           </div>
 
           {/* 4-stat strip */}
@@ -345,13 +357,14 @@ export default function PortfolioPage({
             style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "rgba(238,239,211,0.12)", borderRadius: 9, overflow: "hidden", marginBottom: 28 }}
           >
             {[
-              { label: "Blended DSCR",      val: rows.length === 0 ? "—" : blendStr,  color: rows.length === 0 ? "rgba(238,239,211,0.3)" : blendColor },
-              { label: "Total Equity",       val: equityStr, color: dc.cream },
-              { label: "Monthly Cash Flow",  val: cashStr,   color: cashColor },
-              { label: "Weighted Rate",      val: wRateStr,  color: dc.cream },
-            ].map(({ label, val, color }) => (
+              { label: "Blended DSCR",      hint: "Combined rent ÷ combined payments. 1.25+ = strong; 1.0–1.24 = qualifies; below 1.0 = fix needed.", val: rows.length === 0 ? "—" : blendStr,  color: rows.length === 0 ? "rgba(238,239,211,0.3)" : blendColor },
+              { label: "Total Equity",       hint: "Sum of (property value minus loan balance) across all properties.", val: equityStr, color: dc.cream },
+              { label: "Monthly Cash Flow",  hint: "Total rent minus total PITIA (full monthly payments) across all properties. Green = positive; red = negative.", val: cashStr,   color: cashColor },
+              { label: "Weighted Rate",      hint: "Average interest rate weighted by loan balance — the blended cost of your debt.", val: wRateStr,  color: dc.cream },
+            ].map(({ label, hint, val, color }) => (
               <div key={label} style={{ background: dc.dark, padding: 26 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{label}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 8, lineHeight: 1.3 }}>{hint}</div>
                 <Mono style={{ display: "block", fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color, lineHeight: 1 }}>{val}</Mono>
               </div>
             ))}
@@ -447,7 +460,8 @@ export default function PortfolioPage({
           >
             {/* DSCR buckets */}
             <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>DSCR distribution</div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>DSCR distribution</div>
+              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", margin: "0 0 12px", lineHeight: 1.4 }}>How your properties are spread across DSCR buckets. Taller bars = more properties. Red = lenders may decline; green = comfortable approval zone.</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, alignItems: "end" }}>
                 {[
                   { label: "DEAL BREAK", range: "< 0.85", count: buckets.dealBreak, color: RED },
@@ -482,7 +496,8 @@ export default function PortfolioPage({
 
             {/* Concentration */}
             <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Geographic spread</div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Geographic spread</div>
+              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", margin: "0 0 12px", lineHeight: 1.4 }}>Concentration by state. Over 50% in one state (red bar) can limit blanket-loan options — lenders prefer diversified portfolios.</p>
               {geoConc.slice(0, 5).map((g, i) => {
                 const barColor = g.pct > 50 ? RED : g.pct > 30 ? dc.lemon : dc.emerald;
                 return (
@@ -507,7 +522,8 @@ export default function PortfolioPage({
           {/* Refi opportunities */}
           {portfolioResult && portfolioResult.refiOpportunities.length > 0 && (
             <div className="gs-reveal" style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)", marginTop: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 14 }}>Refi opportunities</div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Refinance opportunities</div>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 12px", lineHeight: 1.5 }}>These properties may benefit from a rate-and-term refinance based on estimated current rates. "REFINANCE NOW" means seasoning (the minimum time a loan must be held before refinancing) is complete. "MONITOR" means the seasoning period is still running.</p>
               {portfolioResult.refiOpportunities.map((r) => {
                 const action = r.seasoningMonthsRemaining <= 0 ? "REFINANCE NOW" : "MONITOR";
                 const actionColor = r.seasoningMonthsRemaining <= 0 ? dc.emerald : dc.lemon;

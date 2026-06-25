@@ -23,6 +23,7 @@ function dscrLabel(d: number): string {
 // ── input field row ────────────────────────────────────────────────────────
 function Field({
   label,
+  hint,
   value,
   step,
   prefix,
@@ -30,6 +31,7 @@ function Field({
   onChange,
 }: {
   label: string;
+  hint?: string;
   value: number;
   step: number;
   prefix?: string;
@@ -37,7 +39,7 @@ function Field({
   onChange: (v: number) => void;
 }) {
   return (
-    <label style={{ display: "block", marginBottom: 12 }}>
+    <label style={{ display: "block", marginBottom: 14 }}>
       <span
         style={{
           display: "block",
@@ -46,11 +48,24 @@ function Field({
           letterSpacing: "0.04em",
           textTransform: "uppercase",
           color: "rgba(238,239,211,0.5)",
-          marginBottom: 5,
+          marginBottom: 3,
         }}
       >
         {label}
       </span>
+      {hint && (
+        <span
+          style={{
+            display: "block",
+            fontSize: 11,
+            color: "rgba(238,239,211,0.35)",
+            marginBottom: 5,
+            lineHeight: 1.4,
+          }}
+        >
+          {hint}
+        </span>
+      )}
       <div
         style={{
           display: "flex",
@@ -443,17 +458,20 @@ export default function STRUnderwritingPage({
               STR · ADR × occupancy × seasonality
             </div>
             <H1 style={{ margin: "0 0 26px", color: dc.cream }}>
-              Will the STR cash flow in the off-season?
+              Can this short-term rental qualify for a DSCR loan?
             </H1>
             <Lead
               style={{
                 color: "rgba(238,239,211,0.68)",
                 maxWidth: "46ch",
-                margin: "0 0 36px",
+                margin: "0 0 20px",
               }}
             >
-              Month-by-month revenue from ADR, occupancy and a seasonality curve — then the DSCR a lender will actually underwrite, off-season included.
+              Short-term rental (STR) income is treated differently from a traditional lease. This tool runs three qualifying scenarios — using long-term rent, projected STR revenue, and documented STR revenue — then shows which DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) a lender will actually use, including the slow months.
             </Lead>
+            <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+              How to use: enter your property details and STR revenue estimates on the left. The tool picks the best qualifying scenario for you and shows month-by-month coverage so you can see whether off-season months create a cash-flow gap.
+            </p>
             <Btn label="Open the STR engine ↓" href="#str-tool" onClick={scrollToTool} />
           </div>
 
@@ -520,13 +538,22 @@ export default function STRUnderwritingPage({
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
-                margin: 0,
+                margin: "0 0 10px",
                 color: dc.cream,
               }}
             >
               Underwritten DSCR{" "}
               <Mono style={{ color: vColor }}>{dscrStr}</Mono>
             </h2>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+              {bestDSCR === null
+                ? "Enter your deal details to see the underwritten DSCR."
+                : bestDSCR >= 1.25
+                ? `DSCR of ${dscrStr} is strong — the selected qualifying rent comfortably covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). Most DSCR programs approve at this level.`
+                : bestDSCR >= 1.0
+                ? `DSCR of ${dscrStr} qualifies but is close to the minimum. Check the month-by-month table below — if off-season months dip below 1.0x you'll need cash reserves (months of mortgage payments kept in the bank after closing) to cover the gap.`
+                : `DSCR of ${dscrStr} is below 1.0x — the qualifying rent does not cover the full monthly payment. Consider increasing STR revenue projections, reducing the loan amount, or checking if a no-ratio DSCR program (which skips the rent-to-payment test) applies.`}
+            </p>
           </div>
 
           {/* inputs + results split */}
@@ -555,11 +582,14 @@ export default function STRUnderwritingPage({
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   color: dc.emerald,
-                  marginBottom: 18,
+                  marginBottom: 6,
                 }}
               >
                 STR assumptions
               </div>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                Estimates are fine — numbers update live. LTR lease rent is used as a fallback if STR income does not qualify.
+              </p>
 
               {/* State field */}
               <label style={{ display: "block", marginBottom: 12 }}>
@@ -601,15 +631,15 @@ export default function STRUnderwritingPage({
                 </div>
               </label>
 
-              <Field label="Purchase Price" value={purchasePrice} step={5000} prefix="$" onChange={setPurchasePrice} />
-              <Field label="LTV" value={ltv} step={5} suffix="%" onChange={setLtv} />
-              <Field label="Note Rate" value={rate} step={0.125} suffix="%" onChange={setRate} />
-              <Field label="LTR Lease Rent /mo" value={ltvRent} step={100} prefix="$" onChange={setLtvRent} />
-              <Field label="STR Projected /mo" value={strRent} step={100} prefix="$" onChange={setStrRent} />
-              <Field label="STR Documented /mo" value={documentedRent} step={100} prefix="$" onChange={setDocumentedRent} />
-              <Field label="Annual Taxes" value={annualTaxes} step={250} prefix="$" onChange={setAnnualTaxes} />
-              <Field label="Annual Insurance" value={annualInsurance} step={100} prefix="$" onChange={setAnnualInsurance} />
-              <Field label="Monthly HOA" value={hoa} step={25} prefix="$" onChange={setHoa} />
+              <Field label="Purchase Price" hint="What you're paying for the property." value={purchasePrice} step={5000} prefix="$" onChange={setPurchasePrice} />
+              <Field label="LTV" hint="Loan ÷ value. 75% LTV = 25% down. Lower LTV = better rates and more programs." value={ltv} step={5} suffix="%" onChange={setLtv} />
+              <Field label="Note Rate" hint="Your loan interest rate. Use today's market rate as an estimate." value={rate} step={0.125} suffix="%" onChange={setRate} />
+              <Field label="LTR Lease Rent /mo" hint="What the property would rent for on a standard 12-month lease. Used as World 1 fallback if STR income doesn't qualify." value={ltvRent} step={100} prefix="$" onChange={setLtvRent} />
+              <Field label="STR Projected /mo" hint="Your estimated average monthly STR revenue over a full year (include slow months). Used for World 2 qualifying." value={strRent} step={100} prefix="$" onChange={setStrRent} />
+              <Field label="STR Documented /mo" hint="Average monthly revenue from actual booking history (tax returns, platform statements). Used for World 3 qualifying — the strongest evidence." value={documentedRent} step={100} prefix="$" onChange={setDocumentedRent} />
+              <Field label="Annual Taxes" hint="Property taxes per year. Find on county assessor site." value={annualTaxes} step={250} prefix="$" onChange={setAnnualTaxes} />
+              <Field label="Annual Insurance" hint="Homeowners/STR insurance per year. STR policies typically cost more than standard HO." value={annualInsurance} step={100} prefix="$" onChange={setAnnualInsurance} />
+              <Field label="Monthly HOA" hint="HOA dues per month. Enter 0 if none. Some HOAs restrict STR — check your HOA docs." value={hoa} step={25} prefix="$" onChange={setHoa} />
             </div>
 
             {/* ── RESULTS ────────────────────────────────────────────── */}
@@ -691,6 +721,11 @@ export default function STRUnderwritingPage({
                   </div>
 
                   {/* ── THREE WORLDS ───────────────────────────────────── */}
+                  <div style={{ marginBottom: 2 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                      Lenders evaluate STRs using three qualifying scenarios. The tool picks the best one that applies (marked "Selected"). World 1 uses the long-term lease rate. World 2 uses your projected STR average. World 3 uses documented historical income.
+                    </p>
+                  </div>
                   <div
                     className="dc-band-3"
                     style={{
@@ -705,17 +740,17 @@ export default function STRUnderwritingPage({
                   >
                     {[
                       {
-                        label: "World 1 — LTR",
+                        label: "World 1 — Long-term lease",
                         world: result.underwriting.world1_LTR,
                         bg: "#002a29",
                       },
                       {
-                        label: "World 2 — Projected",
+                        label: "World 2 — Projected STR",
                         world: result.underwriting.world2_Projected,
                         bg: "#002a29",
                       },
                       {
-                        label: "World 3 — Documented",
+                        label: "World 3 — Documented STR",
                         world: result.underwriting.world3_Documented,
                         bg: "#002a29",
                       },
@@ -806,7 +841,7 @@ export default function STRUnderwritingPage({
                           marginBottom: 4,
                         }}
                       >
-                        Month-by-month
+                        Month-by-month — does it cash flow all year?
                       </div>
                       <p
                         style={{
@@ -816,7 +851,7 @@ export default function STRUnderwritingPage({
                           lineHeight: 1.5,
                         }}
                       >
-                        US national AirDNA seasonality index · off-season months in red
+                        Each bar shows the occupancy index for that month (based on US national AirDNA seasonality data) and the resulting monthly DSCR. Green = covers the payment; yellow = just covers; red = cash shortfall that month. Check the off-season warning below if any months fall short.
                       </p>
 
                       {/* Signature seasonality bar chart */}
@@ -862,7 +897,7 @@ export default function STRUnderwritingPage({
                             {result.seasonality.offSeasonMonths.length > 1 ? "s" : ""}:
                           </strong>{" "}
                           {result.seasonality.offSeasonMonths.join(", ")} — DSCR below 1.0.
-                          Reserve cash to cover PITIA gaps.
+                          Keep cash reserves (months of mortgage payments in the bank after closing) to cover PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues) gaps in slow months.
                         </div>
                       )}
                     </div>
@@ -954,17 +989,14 @@ export default function STRUnderwritingPage({
                       lineHeight: 1.6,
                     }}
                   >
-                    <strong style={{ color: dc.emerald }}>Engine:</strong>{" "}
-                    <code>evaluateSTRUnderwriting</code> +{" "}
-                    <code>checkSTRLegality</code> +{" "}
-                    <code>computeSTRMonthlySeasonality</code>. State{" "}
-                    <strong>{state}</strong>: {result.legality.status} — STR income{" "}
+                    <strong style={{ color: dc.emerald }}>How qualifying rent is chosen:</strong>{" "}
+                    State <strong>{state}</strong> legality status: {result.legality.status} — STR income{" "}
                     {result.legality.incomeEnabled
-                      ? "available for qualifying"
-                      : "blocked, falls back to World 1 LTR"}
-                    . Best world: <strong>{result.underwriting.bestWorld}</strong>,
-                    qualifying rent{" "}
-                    <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.
+                      ? "is permitted for qualifying in this state"
+                      : "is not permitted for qualifying in this state; the engine falls back to World 1 long-term-lease rent"}
+                    . Selected scenario: <strong>{result.underwriting.bestWorld}</strong>,
+                    qualifying rent used: <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.{" "}
+                    Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
                   </div>
                 </>
               )}

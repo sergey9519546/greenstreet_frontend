@@ -658,7 +658,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        Check your deal in 60 seconds
+        See if your rental deal qualifies — in 60 seconds
       </h2>
       <p
         style={{
@@ -668,13 +668,19 @@ function Step1({
           marginTop: 0,
         }}
       >
-        No credit pull &middot; no obligation &middot; instant estimate
+        No credit pull &middot; no obligation &middot; instant DSCR estimate
       </p>
 
       {/* Loan purpose — first question, sets context for all results */}
       <FieldGroup
-        label="Loan purpose"
-        helper="Pricing and program availability differ by transaction type. Pick the one that fits."
+        label="What do you want to do with this property?"
+        helper={
+          step2.purpose === "cash-out"
+            ? "Cash-out refinance — replace your loan with a larger one and take the difference in cash. Pricing is slightly higher than a purchase."
+            : step2.purpose === "rate-term"
+            ? "Rate & term refinance — replace your current loan to change the rate or term, without taking cash out."
+            : "Are you buying it, refinancing for a better rate, or pulling cash out? Each has different pricing and programs."
+        }
         error={attempted && !step2.purpose ? "Please select a loan purpose to continue." : undefined}
       >
         <div
@@ -696,7 +702,7 @@ function Step1({
 
       <FieldGroup
         label="Property type"
-        helper="DSCR programs cover 1–4 unit rentals, condos, and townhouses. Larger or short-term properties get a specialist review."
+        helper="DSCR loans (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) are available for most rental property types. Short-term rentals and 5–8 unit buildings have specialty programs with higher down-payment requirements."
         error={attempted && !data.propertyType ? "Please select a property type." : undefined}
       >
         <div role="group" aria-label="Property type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -725,8 +731,8 @@ function Step1({
         />
         <p style={helperStyle}>
           {step2.purpose === "purchase"
-            ? "The expected purchase price of the property."
-            : "The current appraised or market value of the property."}
+            ? "The agreed-upon or expected purchase price. An estimate is fine if you haven't made an offer yet."
+            : "Your best estimate of what the property is worth today — use a recent appraisal or a site like Zillow if you're unsure."}
         </p>
       </div>
 
@@ -752,11 +758,13 @@ function Step1({
           <p style={errorMsgStyle}>Loan amount can't equal or exceed the property value.</p>
         ) : (
           <p style={helperStyle}>
-            Loan-to-value (LTV):{" "}
+            LTV (how the loan amount compares to the property value — lower = more equity = better terms):{" "}
             <strong style={{ color: ltv > 0.8 ? "#c25b4e" : swatch.midnight, fontFamily: font.mono }}>
               {data.propertyValue > 0 ? `${(ltv * 100).toFixed(0)}%` : "—"}
             </strong>
-            . Most DSCR programs cap around 75–80%.
+            {ltv > 0.8 && data.propertyValue > 0
+              ? " — above 80%, which may limit programs. Try reducing the loan amount."
+              : ". Most DSCR programs cap around 75–80% LTV."}
           </p>
         )}
       </div>
@@ -775,7 +783,9 @@ function Step1({
           className="qm-input"
           style={inputStyle}
         />
-        <p style={helperStyle}>Gross rent you expect the property to generate each month. An estimate is fine — lenders use this to compute your DSCR.</p>
+        <p style={helperStyle}>
+          The gross rent you expect the property to bring in each month (before expenses). This is the numerator in your DSCR — whether the property's rent can cover the loan payment (1.00 = rent exactly covers it; higher is stronger). An estimate is fine.
+        </p>
       </div>
 
       <div style={{ marginBottom: 16 }}>
@@ -793,7 +803,9 @@ function Step1({
           className="qm-input"
           style={inputStyle}
         />
-        <p style={helperStyle}>Your best guess at the note rate. We use this to compute the payment — you can refine it with a specialist later.</p>
+        <p style={helperStyle}>
+          Your best guess at the note rate — used to estimate your monthly payment (PITIA). An estimate is fine; a specialist will confirm the real rate for your deal. Current DSCR rates typically run 6.5%–8.5% depending on credit and LTV.
+        </p>
       </div>
 
       {/* Occupancy gate — DSCR is business-purpose, non-owner-occupied only */}
@@ -816,9 +828,9 @@ function Step1({
           style={{ marginTop: 2, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
         />
         <span>
-          This is an investment (non-owner-occupied) property.
+          This is a rental I invest in, not a home I live in (business-purpose / non-owner-occupied).
           <span style={{ display: "block", fontSize: 12, color: swatch.rainforest, opacity: 0.85 }}>
-            DSCR loans are business-purpose only. Uncheck if you'll live there and we'll point you elsewhere.
+            DSCR loans are business-purpose only — for rentals, not primary residences. Uncheck if you plan to live there and we'll point you to the right program.
           </span>
         </span>
       </label>
@@ -838,29 +850,34 @@ function Step1({
         }}
       >
         <div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: font.semibold,
-              color: swatch.rainforest,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              marginBottom: 2,
-            }}
-          >
-            Your DSCR
-          </div>
-          <div
-            style={{
-              fontSize: 36,
-              fontFamily: font.mono,
-              fontWeight: 700,
-              color: col,
-              lineHeight: 1,
-              transition: "color 0.2s ease",
-            }}
-          >
-            {dscr.toFixed(2)}
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: font.semibold,
+                color: swatch.rainforest,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                marginBottom: 2,
+              }}
+            >
+              Live DSCR
+            </div>
+            <div
+              style={{
+                fontSize: 36,
+                fontFamily: font.mono,
+                fontWeight: 700,
+                color: col,
+                lineHeight: 1,
+                transition: "color 0.2s ease",
+              }}
+            >
+              {dscr.toFixed(2)}
+            </div>
+            <div style={{ fontSize: 11, color: swatch.rainforest, marginTop: 3, opacity: 0.75 }}>
+              rent ÷ full payment
+            </div>
           </div>
         </div>
         <div
@@ -874,6 +891,17 @@ function Step1({
           }}
         >
           {estimate.label}
+          {dscr > 0 && (
+            <div style={{ fontSize: 11, color: swatch.rainforest, fontWeight: 400, marginTop: 4, opacity: 0.75 }}>
+              {dscr >= 1.25
+                ? "Strong cushion — good position"
+                : dscr >= 1.0
+                ? "Meets the floor — workable"
+                : dscr >= 0.85
+                ? "Below 1.0 — programs exist"
+                : "Below floor — needs restructuring"}
+            </div>
+          )}
         </div>
       </div>
 
@@ -884,7 +912,7 @@ function Step1({
         onClick={handleNext}
         onAnimationEnd={() => setShaking(false)}
       >
-        Continue →
+        See my preliminary result →
       </button>
     </div>
   );
@@ -964,12 +992,12 @@ function Step2({
           marginTop: 0,
         }}
       >
-        Two more details
+        A few more details — then your result
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
         {data.purpose
-          ? `Your ${purposeLabel[data.purpose]} — these two fields let us tailor your rate estimate.`
-          : "These details let us tailor your rate estimate to your specific scenario."}
+          ? `Your ${purposeLabel[data.purpose]} — these fields let us tailor your rate estimate and flag any state-level rules.`
+          : "These details let us tailor your rate estimate and flag any state-level rules that affect your deal."}
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -997,13 +1025,13 @@ function Step2({
         {attempted && !data.state ? (
           <p style={errorMsgStyle}>Please select the property state.</p>
         ) : (
-          <p style={helperStyle}>Some states have lender-specific overlays that affect available programs.</p>
+          <p style={helperStyle}>Where the property is located — not where you live. Some states have rules (like prepayment penalty restrictions) that limit which lenders participate.</p>
         )}
       </div>
 
       <FieldGroup
-        label="Borrower credit score range"
-        helper="An estimate is fine — we don't pull your credit here. This affects your rate tier."
+        label="Your credit score range (estimate)"
+        helper="We don't pull your credit here — a rough range is all we need. Your score affects your rate tier and minimum down payment. Higher score = lower rate."
         error={attempted && !data.ficoBand ? "Please select a credit score range." : undefined}
       >
         <div
@@ -1024,8 +1052,8 @@ function Step2({
       </FieldGroup>
 
       <FieldGroup
-        label="How will you hold title?"
-        helper="Many DSCR loans close in an LLC. Either works — some states require an entity."
+        label="Who will be on the loan?"
+        helper="Many DSCR loans close in the name of an LLC or entity rather than a person — both are fine. Some states require an entity. This affects title and liability, not your rate."
         error={attempted && !data.borrowerType ? "Please choose how you'll borrow." : undefined}
       >
         <div role="group" aria-label="Borrower type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1038,8 +1066,8 @@ function Step2({
       </FieldGroup>
 
       <FieldGroup
-        label="How many rental units do you own now?"
-        helper="Experience can open better programs — there's no wrong answer."
+        label="How many rental properties do you currently own?"
+        helper="Experience can unlock better programs and lower reserve requirements — but first-time investors qualify too. There's no wrong answer."
         error={attempted && !data.experience ? "Please pick a range." : undefined}
       >
         <div role="group" aria-label="Investor experience" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1164,7 +1192,7 @@ function Step3({
         {verdict.headline}
       </h2>
 
-      {/* DSCR + verdict — reveals with scale-in */}
+      {/* (a) Plain verdict first — DSCR + verdict tile */}
       <div
         className="qm-result-reveal"
         style={{
@@ -1186,7 +1214,7 @@ function Step3({
                 marginBottom: 4,
               }}
             >
-              Your DSCR
+              Your DSCR — whether the property's rent can cover the loan payment
             </div>
             <div
               style={{
@@ -1200,13 +1228,16 @@ function Step3({
             >
               {displayDscr.toFixed(2)}x
             </div>
+            <div style={{ fontSize: 12, color: swatch.rainforest, marginTop: 4, opacity: 0.75 }}>
+              1.00 = rent exactly covers it · higher is stronger
+            </div>
           </div>
           <div
             style={{
               fontSize: 13,
               fontWeight: font.bold,
               color: verdict.color,
-              paddingBottom: 6,
+              paddingBottom: 28,
               textTransform: "uppercase",
               letterSpacing: "0.04em",
             }}
@@ -1215,19 +1246,20 @@ function Step3({
           </div>
         </div>
 
-        {/* What DSCR means for this investor */}
+        {/* Plain-language verdict */}
         <p
           style={{
-            fontSize: 13,
+            fontSize: 14,
             color: swatch.midnight,
             margin: "0 0 8px",
             lineHeight: 1.5,
+            fontWeight: font.semibold,
           }}
         >
           {verdict.detail}
         </p>
 
-        {/* Purpose-tailored sentence */}
+        {/* Purpose-tailored context */}
         {verdict.purposeNote && (
           <p
             style={{
@@ -1235,12 +1267,65 @@ function Step3({
               color: swatch.rainforest,
               margin: 0,
               lineHeight: 1.5,
-              fontStyle: "italic",
             }}
           >
             {verdict.purposeNote}
           </p>
         )}
+      </div>
+
+      {/* (b) Which numbers mattered most — key deal metrics */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: radius.sm,
+          border: `1.5px solid ${swatch.mint}`,
+          padding: "14px 18px",
+          marginBottom: 8,
+        }}
+      >
+        <div style={{ fontSize: 11, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>
+          The numbers that drove this result
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {[
+            {
+              k: "LTV",
+              v: `${(q.ltv * 100).toFixed(0)}%`,
+              sub: "loan ÷ value",
+            },
+            {
+              k: "PITIA / mo",
+              v: fmtUsd(q.pitia),
+              sub: "full payment",
+            },
+            {
+              k: "P&I / mo",
+              v: fmtUsd(q.piMonthly),
+              sub: "principal + interest",
+            },
+          ].map((m) => (
+            <div
+              key={m.k}
+              style={{
+                flex: 1,
+                background: swatch.mint,
+                borderRadius: radius.sm,
+                padding: "10px 10px",
+                textAlign: "center",
+              }}
+            >
+              <div style={{ fontSize: 10, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 2 }}>
+                {m.k}
+              </div>
+              <div style={{ fontSize: 15, fontFamily: font.mono, fontWeight: 700, color: swatch.midnight }}>{m.v}</div>
+              <div style={{ fontSize: 10, color: swatch.rainforest, marginTop: 2, opacity: 0.7 }}>{m.sub}</div>
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: 12, color: swatch.rainforest, margin: "10px 0 0", lineHeight: 1.5 }}>
+          PITIA is the full monthly payment — principal, interest, taxes, insurance, and any HOA dues. Your DSCR = ${fmtUsd(step1.rent)} rent ÷ {fmtUsd(q.pitia)} PITIA = {(step1.rent / q.pitia).toFixed(2)}x.
+        </p>
       </div>
 
       {/* Rate estimate */}
@@ -1249,7 +1334,7 @@ function Step3({
           background: "#fff",
           borderRadius: radius.sm,
           border: `1.5px solid ${swatch.mint}`,
-          padding: "16px 20px",
+          padding: "14px 18px",
           marginBottom: 12,
         }}
       >
@@ -1267,7 +1352,7 @@ function Step3({
         </div>
         <div
           style={{
-            fontSize: 28,
+            fontSize: 26,
             fontFamily: font.mono,
             fontWeight: 700,
             color: swatch.midnight,
@@ -1278,39 +1363,13 @@ function Step3({
           {rate}
         </div>
         <p style={{ fontSize: 12, color: swatch.rainforest, margin: 0 }}>
-          Based on {step2.ficoBand ? `credit score ${step2.ficoBand}` : "your credit range"},{" "}
+          Based on credit {step2.ficoBand ?? "range"},{" "}
           {step2.purpose ? purposeLabel[step2.purpose].toLowerCase() : "your loan type"},{" "}
-          {step2.state || "your state"}.
+          {step2.state || "your state"}. A specialist will confirm the exact rate for your deal.
         </p>
       </div>
 
-      {/* Deal metrics — LTV / PITIA / P&I, from the qualify() engine */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        {[
-          { k: "LTV", v: `${(q.ltv * 100).toFixed(0)}%` },
-          { k: "Est. PITIA", v: fmtUsd(q.pitia) + "/mo" },
-          { k: "Est. P&I", v: fmtUsd(q.piMonthly) + "/mo" },
-        ].map((m) => (
-          <div
-            key={m.k}
-            style={{
-              flex: 1,
-              background: "#fff",
-              border: `1.5px solid ${swatch.mint}`,
-              borderRadius: radius.sm,
-              padding: "10px 12px",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: 10, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 3 }}>
-              {m.k}
-            </div>
-            <div style={{ fontSize: 16, fontFamily: font.mono, fontWeight: 700, color: swatch.midnight }}>{m.v}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Top improvement lever — only when there's a concrete one */}
+      {/* (c) How to improve it — top lever */}
       {topLever && (
         <div
           style={{
@@ -1322,19 +1381,19 @@ function Step3({
           }}
         >
           <div style={{ fontSize: 11, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>
-            Biggest lever — {topLever.label}
+            Biggest lever to improve this deal — {topLever.label}
           </div>
           <p style={{ fontSize: 13, color: swatch.midnight, margin: 0, lineHeight: 1.5 }}>{topLever.detail}</p>
         </div>
       )}
 
-      {/* What happens next — the single clear next step */}
+      {/* (d) What happens next */}
       <div
         style={{
-          fontSize: 12,
+          fontSize: 13,
           color: swatch.rainforest,
-          marginBottom: 24,
-          padding: "12px 16px",
+          marginBottom: 20,
+          padding: "14px 16px",
           background: isBorderlineOrLow
             ? "rgba(184,168,32,0.08)"
             : swatch.mint,
@@ -1345,21 +1404,23 @@ function Step3({
             : `3px solid ${swatch.emerald}`,
         }}
       >
-        <strong style={{ display: "block", marginBottom: 4, color: swatch.midnight }}>
-          {isBorderlineOrLow ? "Your next step" : "What happens next"}
+        <strong style={{ display: "block", marginBottom: 6, color: swatch.midnight, fontSize: 13 }}>
+          What happens next
         </strong>
         {verdict.nextStep}
-        <span style={{ opacity: 0.7, marginTop: 8, display: "block", fontSize: 11 }}>
-          Preliminary estimate — not a commitment to lend or a credit decision. Subject to full underwriting review.
-        </span>
       </div>
+
+      {/* (e) Preliminary disclaimer */}
+      <p style={{ fontSize: 11, color: swatch.rainforest, opacity: 0.65, marginBottom: 20, lineHeight: 1.5 }}>
+        Preliminary estimate — not a commitment to lend or a credit decision. Subject to full underwriting review.
+      </p>
 
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>
           ← Back
         </button>
         <button className="qm-btn-primary" style={btnPrimary} onClick={onNext}>
-          Talk to a specialist →
+          Get my full scenario review →
         </button>
       </div>
     </div>
@@ -1432,11 +1493,11 @@ function Step4({
           marginTop: 0,
         }}
       >
-        Where should we send your quote?
+        Where should we send your scenario review?
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        A Greenstreet specialist will review your scenario and follow up within
-        one business day. Your information is only used to prepare your quote.
+        A Greenstreet specialist will review your exact numbers and follow up
+        within one business day. Your information is used only to prepare your quote — no spam, no credit pull.
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1494,7 +1555,8 @@ function Step4({
       </div>
 
       <FieldGroup
-        label="When are you looking to close?"
+        label="When do you need to close?"
+        helper="Helps us prioritize your file correctly. Exploring is fine — there's no pressure."
         error={touched.submit && !data.timeline ? "Please pick a timeline." : undefined}
       >
         <div role="group" aria-label="Timeline" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1575,7 +1637,7 @@ function Step4({
           onAnimationEnd={() => setShaking(false)}
         >
           {submitting && <span className="qm-spinner" aria-hidden="true" />}
-          {submitting ? "Sending…" : "Send my quote request →"}
+          {submitting ? "Sending…" : "Send my scenario — get a specialist review →"}
         </button>
       </div>
     </div>
@@ -1631,8 +1693,7 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.55,
         }}
       >
-        A Greenstreet specialist will review your scenario and be in touch
-        within one business day.
+        A Greenstreet specialist will review your numbers, check program fit, and send you a full scenario write-up — typically within one business day. No obligation.
       </p>
       <p
         style={{

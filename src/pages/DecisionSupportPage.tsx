@@ -312,21 +312,20 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
               Decision engine · IC memo
             </div>
             <H1 style={{ margin: "0 0 24px" }}>
-              One verdict.
-              <br />
-              Every signal weighed.
+              Should you buy this deal?
             </H1>
             <Lead
               style={{
                 color: "rgba(238,239,211,0.7)",
                 maxWidth: "50ch",
-                margin: "0 0 36px",
+                margin: "0 0 20px",
               }}
             >
-              DSCR, leverage, returns, liquidity and state risk roll into a single
-              composite — GO, CONDITIONAL, or NO-GO — with the reasons spelled out
-              like an investment-committee memo.
+              Enter your deal numbers. This tool checks DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger), leverage, returns, and liquidity all at once, then delivers a single plain-English verdict: GO, CONDITIONAL, or NO-GO — with the reasons spelled out so you know exactly what to fix.
             </Lead>
+            <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+              How to use: fill in your deal on the left. The gauge and verdict update live. Aim for GO before you submit.
+            </p>
             <Btn label="Run the decision engine ↓" href="#ds-tool" onClick={scrollToTool} />
           </div>
 
@@ -346,13 +345,16 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live decision-support engine
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.0, margin: "0 0 10px", color: dc.cream }}>
               Verdict:{" "}
               <span style={{ color: result ? verdictColor(heroVerdict) : dc.lemon }}>
                 {result?.verdict.verdict ?? "—"}
               </span>{" "}
               · composite {heroComposite}/100
             </h2>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+              The composite score (0–100) weights DSCR coverage, leverage, estimated return, credit, and liquidity. A score above 66 typically clears underwriting.
+            </p>
           </div>
 
           {/* Tool grid: inputs + results */}
@@ -362,23 +364,29 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
           >
             {/* ── INPUTS ── */}
             <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 30, border: "1px solid rgba(238,239,211,0.1)" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 22 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
                 Deal &amp; borrower
               </div>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 18px", lineHeight: 1.5 }}>
+                Estimates are fine — the engine re-runs live as you type.
+              </p>
 
               {([
-                { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000,  prefix: "$", suffix: "" },
-                { label: "Down Payment",   value: downPct,        set: setDownPct,        step: 1,     prefix: "",  suffix: "%" },
-                { label: "Note Rate",      value: rate,           set: setRate,           step: 0.125, prefix: "",  suffix: "%" },
-                { label: "Monthly Rent",   value: monthlyRent,    set: setMonthlyRent,    step: 100,   prefix: "$", suffix: "" },
-                { label: "FICO",           value: fico,           set: setFico,           step: 5,     prefix: "",  suffix: "" },
-                { label: "Annual Taxes",   value: annualTaxes,    set: setAnnualTaxes,    step: 250,   prefix: "$", suffix: "" },
-                { label: "Annual Ins.",    value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$", suffix: "" },
-                { label: "Monthly HOA",    value: hoa,            set: setHoa,            step: 25,    prefix: "$", suffix: "" },
+                { label: "Purchase Price", hint: "What you're paying for the property.", value: purchasePrice, set: setPurchasePrice, step: 5000,  prefix: "$", suffix: "" },
+                { label: "Down Payment",   hint: "Your cash in — higher down = lower LTV (how the loan amount compares to the property value; lower = more equity = better terms) = stronger approval odds.", value: downPct, set: setDownPct, step: 1, prefix: "", suffix: "%" },
+                { label: "Note Rate",      hint: "The interest rate on the loan. Estimate is fine — use today's market rate.", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%" },
+                { label: "Monthly Rent",   hint: "Expected gross rent. For vacant properties, use market-comparable rent — an estimate is fine.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
+                { label: "FICO Score",     hint: "Your credit score. Affects which programs you qualify for. 620 minimum for most DSCR programs; 740+ unlocks best pricing.", value: fico, set: setFico, step: 5, prefix: "", suffix: "" },
+                { label: "Annual Taxes",   hint: "Property taxes per year. Find on the county assessor site — estimate is fine.", value: annualTaxes, set: setAnnualTaxes, step: 250, prefix: "$", suffix: "" },
+                { label: "Annual Ins.",    hint: "Homeowners insurance per year. Budget $1,500–$3,000 if unknown.", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$", suffix: "" },
+                { label: "Monthly HOA",    hint: "HOA dues per month. Enter 0 if none.", value: hoa, set: setHoa, step: 25, prefix: "$", suffix: "" },
               ] as const).map((f) => (
-                <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
-                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <label key={f.label} style={{ display: "block", marginBottom: 16 }}>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                     {f.label}
+                  </span>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>
+                    {f.hint}
                   </span>
                   <div className="ds-field" style={{ display: "flex", alignItems: "center" }}>
                     {f.prefix && <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.prefix}</span>}
@@ -441,10 +449,10 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     </Mono>
                     <p style={{ fontSize: "clamp(15px,1.3vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.72)", margin: 0 }}>
                       {result.verdict.verdict === "PROCEED"
-                        ? "Clears underwriting on all primary signals. Proceed to term sheet."
+                        ? "This deal clears all primary underwriting signals. The rent covers the payment, leverage is within program limits, and at least one Greenstreet program fits. You can move to term sheet."
                         : result.verdict.verdict === "RESTRUCTURE"
-                        ? "Workable with compensating factors. Tighten the weak signals before IC."
-                        : "Fails one or more hard gates. Restructure the deal or pass."}
+                        ? "This deal is workable but has at least one weak signal — usually DSCR too close to the floor, LTV too high, or rate headroom too thin. See the IC memo below for what to fix before submitting."
+                        : "This deal fails one or more hard gates. Most lenders will decline as structured. The IC memo and kill-criterion checklist below tell you specifically what needs to change."}
                     </p>
                   </div>
                 </div>
@@ -453,9 +461,12 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
                   {/* Composite factors */}
                   <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.1)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 18 }}>
-                      Composite breakdown (weighted)
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
+                      Score breakdown — what moved the needle
                     </div>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 14px", lineHeight: 1.4 }}>
+                      Each factor is scored 0–100. Green = strong; yellow = marginal; red = needs attention. The percentage in each label is how much weight it carries in the composite.
+                    </p>
                     {result.factors.map((f) => (
                       <div key={f.label} style={{ marginBottom: 16 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
@@ -472,9 +483,12 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
                   {/* IC MEMO */}
                   <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.1)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
-                      IC memo — key reasons
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
+                      Why — the plain-language reasons
                     </div>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 14px", lineHeight: 1.4 }}>
+                      ✓ = passing · ~ = borderline · ✕ = fix required
+                    </p>
                     {result.memo.map((m, i) => (
                       <div key={i} style={{ display: "flex", gap: 12, padding: "11px 0", borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
                         <span style={{ color: m.color, fontWeight: 700, flexShrink: 0 }}>{m.mark}</span>
@@ -487,9 +501,12 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 {/* KILL CRITERIA (when flagged) */}
                 {result.kill.criteria.length > 0 && (
                   <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.lg, padding: 28, border: "1px solid rgba(238,239,211,0.1)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
-                      Kill-criterion checklist — {result.kill.criteria.length} flagged
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
+                      Deal issues — {result.kill.criteria.length} flagged
                     </div>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 14px", lineHeight: 1.4 }}>
+                      BLOCKER = must resolve before any lender will proceed. WARNING = worth addressing; may be offset by compensating factors. Each item includes a suggested action.
+                    </p>
                     {result.kill.criteria.map((k, i) => {
                       const kc = k.severity === "BLOCKER" ? "#e06363" : k.severity === "WARNING" ? "#e6b84d" : dc.emerald;
                       return (
@@ -516,13 +533,15 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.1)" }}
                 >
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 8 }}>Return grade</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Return grade</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", marginBottom: 10 }}>A = 10%+ IRR proxy · D = below 4%</div>
                     <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade), lineHeight: 1 }}>
                       {result.grade}
                     </Mono>
                   </div>
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 8 }}>Acquisition score</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Acquisition score</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", marginBottom: 10 }}>75+ = strong buy · 60–74 = conditional · below 60 = restructure</div>
                     <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? "#e6b84d" : "#e06363", lineHeight: 1 }}>
                       {Math.round(result.acq.score)}
                     </Mono>
@@ -532,9 +551,9 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
                 {/* ENGINE FOOTNOTE */}
                 <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)", fontSize: 12, color: "rgba(238,239,211,0.55)", lineHeight: 1.6 }}>
-                  <strong style={{ color: dc.emerald }}>How verdicts work: </strong>
-                  PROCEED requires Track 1 DSCR above the lender minimum plus a 5 bps cushion, Track 2 ≥ 1.0x, return grade ≥ B, ≥ 50 bps rate headroom, no blockers, and at least one eligible program.{" "}
-                  Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting.
+                  <strong style={{ color: dc.emerald }}>How PROCEED is decided: </strong>
+                  The engine checks DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) above the lender minimum with a small cushion, a second rent-coverage check at 1.0x, a return grade of B or better, at least 50 basis points of rate headroom before the deal breaks, no hard blockers, and at least one eligible Greenstreet program.{" "}
+                  Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting. Contact Greenstreet at +1 (555) 010-0000.
                 </div>
               </div>
             )}

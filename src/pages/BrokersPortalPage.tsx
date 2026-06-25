@@ -7,32 +7,32 @@ const BENEFITS = [
   {
     icon: "❏",
     title: "Saved scenarios",
-    desc: "Every priced deal stored and re-openable. Pick up where you left off.",
+    desc: "Every deal you price is stored and reopenable. No re-entering data when the borrower calls back.",
   },
   {
     icon: "⊕",
     title: "Lender submissions",
-    desc: "Submit a matched deal straight to the lender box from the workspace.",
+    desc: "Once a deal matches a program, submit it straight to the lender from the same screen. No copy-paste, no portal-hop.",
   },
   {
     icon: "◰",
     title: "Co-branded quotes",
-    desc: "Generate a borrower-ready PDF with your name and logo on it.",
+    desc: "Generate a borrower-ready PDF with your name and logo on it — looks professional, took 10 seconds.",
   },
   {
     icon: "$",
     title: "Commission ledger",
-    desc: "Track expected and paid commissions across your pipeline.",
+    desc: "Track expected and paid commissions across your pipeline so nothing slips through.",
   },
   {
     icon: "⚑",
     title: "State-rule alerts",
-    desc: "Get flagged when a deal hits a high-risk PPP or usury state.",
+    desc: "Automatically flagged when a deal hits a high-risk prepayment penalty (a fee some loans charge for early payoff or refi) or usury state — before the quote goes out.",
   },
   {
     icon: "⤓",
-    title: "Exam-ready exports",
-    desc: "Download the IC memo, stress matrix and cited rules as collateral.",
+    title: "Export-ready deal package",
+    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for lender review or borrower presentation.",
   },
 ];
 
@@ -113,7 +113,7 @@ export default function BrokersPortalPage({
                 marginBottom: 20,
               }}
             >
-              InvestGO &middot; Partner Portal
+              INVEST<span style={{ opacity: 0.5 }}>GO</span> &middot; Partner Portal
             </div>
 
             {/* H1 */}
@@ -123,7 +123,7 @@ export default function BrokersPortalPage({
                 fontWeight: 600,
                 lineHeight: 0.98,
                 letterSpacing: "-0.035em",
-                margin: "0 0 24px",
+                margin: "0 0 18px",
               }}
             >
               Your deals,
@@ -133,20 +133,24 @@ export default function BrokersPortalPage({
               one login.
             </h1>
 
+            {/* Purpose line */}
+            <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+              InvestGO is the broker workspace where priced deals live between sessions. Save a DSCR scenario, come back tomorrow, submit it to a matched lender, and send a co-branded quote to your borrower — all without re-entering data.
+            </div>
+
             {/* Sub */}
             <p
               style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
+                fontSize: "clamp(15px,1.2vw,18px)",
                 fontWeight: 500,
-                lineHeight: 1.45,
+                lineHeight: 1.55,
                 letterSpacing: "-0.02em",
                 color: "rgba(238,239,211,0.7)",
                 maxWidth: "46ch",
                 margin: "0 0 32px",
               }}
             >
-              Saved scenarios, lender submissions, co-branded quotes and your
-              commission ledger — all in the broker workspace.
+              Free for individual brokers. White-label pricing for shops with five or more users.
             </p>
 
             {/* Checklist */}
@@ -238,7 +242,7 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Sign in to InvestGO →
+                Sign in to INVEST<span style={{ opacity: 0.5 }}>GO</span> →
               </button>
 
               <div
@@ -288,12 +292,15 @@ export default function BrokersPortalPage({
               fontSize: "clamp(28px,3.4vw,46px)",
               fontWeight: 600,
               letterSpacing: "-0.03em",
-              margin: "0 0 44px",
+              margin: "0 0 12px",
               maxWidth: "18ch",
             }}
           >
             Everything a producing broker needs.
           </h2>
+          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(0,55,56,0.6)", margin: "0 0 36px", maxWidth: "52ch", lineHeight: 1.6 }}>
+            The workspace sits on top of the same DSCR engine you already use — so every saved deal includes the full analysis, not just a rate.
+          </p>
 
           <div
             className="gs-reveal"

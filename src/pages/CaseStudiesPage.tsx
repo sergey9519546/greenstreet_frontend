@@ -588,9 +588,9 @@ function StudyDetail({
           }}
         >
           {[
-            ["The Challenge", s.challenge],
-            ["The Solution", s.solution],
-            ["The Result", s.result],
+            ["The situation", s.challenge],
+            ["What we did", s.solution],
+            ["The outcome", s.result],
           ].map(([heading, body]) => (
             <div
               key={heading}
@@ -679,7 +679,7 @@ function StudyDetail({
                 marginBottom: 12,
               }}
             >
-              Run your own file
+              See if your deal qualifies
             </div>
             <p
               style={{
@@ -690,29 +690,50 @@ function StudyDetail({
                 margin: "0 0 20px",
               }}
             >
-              The same engine. Free. No account required. Open a deal and see
-              what the math says.
+              Enter your property's rent and loan details — get a DSCR estimate, lender program match, and rate range in under a minute. No W-2s or tax returns required. No commitment.
             </p>
-            <button
-              onClick={() => onNavigate("deal-analyzer")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: dc.lemon,
-                color: dc.dark,
-                fontWeight: 600,
-                fontSize: 15,
-                border: "none",
-                cursor: "pointer",
-                padding: "13px 26px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Open the Deal Analyzer →
-            </button>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
+              <button
+                onClick={() => (window as any).openQualify?.()}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 9,
+                  background: dc.lemon,
+                  color: dc.dark,
+                  fontWeight: 700,
+                  fontSize: 15,
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "13px 26px",
+                  borderRadius: 6,
+                  fontFamily: dc.sans,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                See if your deal qualifies →
+              </button>
+              <button
+                onClick={() => onNavigate("deal-analyzer")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 9,
+                  background: "transparent",
+                  color: dc.cream,
+                  fontWeight: 600,
+                  fontSize: 15,
+                  border: "1px solid rgba(238,239,211,0.3)",
+                  cursor: "pointer",
+                  padding: "13px 24px",
+                  borderRadius: 6,
+                  fontFamily: dc.sans,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Open the Deal Analyzer
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -806,15 +827,14 @@ export default function CaseStudiesPage({
                 Customer stories
               </div>
               <H1 style={{ margin: 0 }}>
-                Real results.
+                What changed when brokers and investors ran their deals through Greenstreet.
               </H1>
             </div>
             <div>
               <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "40ch", margin: "0 0 32px" }}>
-                Brokers and investors who switched to Greenstreet — and what
-                changed for them.
+                Four illustrative scenarios — faster decisions, avoided appraisal costs, and deals that were caught before they failed. Each story shows the situation, what we did, and the result.
               </Lead>
-              <Btn label="Try it yourself" onClick={() => onNavigate("dscr-calculator")} />
+              <Btn label="See if your deal qualifies →" onClick={() => onNavigate("dscr-calculator")} />
             </div>
           </div>
 
@@ -913,19 +933,22 @@ export default function CaseStudiesPage({
           }}
         >
           {/* Section eyebrow label */}
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase" as const,
-              color: dc.rain,
-              marginBottom: "clamp(32px,4vw,56px)",
-              paddingBottom: 12,
-              borderBottom: `1px solid rgba(0,55,56,0.15)`,
-            }}
-          >
-            How it works — Price · Match · Prove
+          <div style={{ marginBottom: "clamp(32px,4vw,56px)", paddingBottom: 20, borderBottom: `1px solid rgba(0,55,56,0.15)` }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase" as const,
+                color: dc.rain,
+                marginBottom: 12,
+              }}
+            >
+              How Greenstreet works
+            </div>
+            <p style={{ color: "rgba(0,55,56,0.65)", fontSize: "clamp(15px,1.3vw,17px)", fontWeight: 500, margin: 0, maxWidth: "58ch", lineHeight: 1.6 }}>
+              Three steps: price the deal in under a minute, match it to the right lender program, then prove every number with a traceable source. No phone calls required to get started.
+            </p>
           </div>
 
           <div
@@ -1031,7 +1054,7 @@ export default function CaseStudiesPage({
               margin: `0 0 clamp(48px,6vw,72px)`,
             }}
           >
-            What changed for our customers.
+            The situations, the work, the outcomes.
           </h2>
 
           {/* Illustrative disclaimer — FTC §5 / Reg Z compliance */}

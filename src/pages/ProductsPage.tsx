@@ -27,8 +27,8 @@ interface Tool {
 const TOOLS: Tool[] = [
   {
     title: "Deal Analyzer",
-    desc: "The full picture, in one pass. Track 1 (lender qualification), Track 2 (investor survival), break-even rate, and cash-on-cash — before you wire earnest money.",
-    cta: "Open Deal Analyzer",
+    desc: "The full picture in one pass. Track 1 shows what the lender uses to qualify the file (DSCR: whether rent covers the full monthly PITIA payment — principal, interest, taxes, insurance, HOA). Track 2 strips out vacancy, management fees and CapEx reserves to show what you'll actually earn. Also computes break-even rate and cash-on-cash — before you wire earnest money.",
+    cta: "Analyze my deal",
     view: "deal-analyzer",
     tag: "Most used",
     panelBg: dc.dark,
@@ -40,8 +40,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "DSCR Calculator",
-    desc: "Quick DSCR and max-purchase-price. Payment factor, PITIA breakdown, and rate tier guidance — when you need an answer in 60 seconds, not 60 minutes.",
-    cta: "Open the calculator",
+    desc: "Quick DSCR check and max-purchase-price. Enter the rent, rate and property costs; get the PITIA breakdown (full monthly payment), rate tier guidance, and which Greenstreet programs fit — when you need an answer in 60 seconds, not 60 minutes.",
+    cta: "Check my DSCR",
     view: "dscr-calculator",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
@@ -52,8 +52,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Program Intelligence",
-    desc: "Filter Greenstreet DSCR programs by FICO, DSCR, LTV, and property type. See exactly which program funds your file — not just which ones advertise.",
-    cta: "Open Lender Intel",
+    desc: "Filter all 19 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
+    cta: "Match my file to a program",
     view: "lender-intel",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
@@ -63,9 +63,9 @@ const TOOLS: Tool[] = [
     panelNote: "Programs ranked by fit score",
   },
   {
-    title: "50-state rules",
-    desc: "50-state matrix with statutory citations. OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437 — the compliance traps that kill deals after you think you're done.",
-    cta: "Open State Laws",
+    title: "50-State Compliance Rules",
+    desc: "50-state matrix with statutory citations covering prepayment penalties (a fee some loans charge if you pay off or refinance early), usury caps, and short-term-rental restrictions. Covers the traps that kill deals after you think you're done: OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437.",
+    cta: "Check my state's rules",
     view: "state-laws",
     panelBg: dc.teal,
     panelAccent: dc.lemon,
@@ -75,9 +75,9 @@ const TOOLS: Tool[] = [
     panelNote: "Cited PPP & usury rule sets",
   },
   {
-    title: "Risk & Monte Carlo",
-    desc: "500 Vasicek SOFR rate paths — know the probability DSCR breaks before the ARM resets. Stochastic simulation, not a sensitivity table.",
-    cta: "Open Monte Carlo",
+    title: "Monte Carlo Rate Simulation",
+    desc: "500 simulated rate paths show the probability your DSCR (rent-to-payment ratio) breaks below 1.0 before the ARM resets. Uses a calibrated Vasicek stochastic model — the same framework bank stress teams use — giving P10/P50/P90 distributions so you can see best, median and worst case in one view.",
+    cta: "Simulate my rate risk",
     view: "monte-carlo",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
@@ -88,8 +88,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Stress Matrix",
-    desc: "120-cell sensitivity grid — rent haircut vs. rate shock — so you can show a lender exactly where DSCR breaks before they ask.",
-    cta: "Open Stress Matrix",
+    desc: "A 120-cell grid shows every combination of rent haircut and rate shock — so you can see exactly where DSCR breaks before a lender asks. Run it in seconds; share it as a defensible page in the loan package.",
+    cta: "Run the stress matrix",
     view: "stress-matrix",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
@@ -99,9 +99,9 @@ const TOOLS: Tool[] = [
     panelNote: "Sensitivity cells: rent × rate",
   },
   {
-    title: "After-tax returns",
-    desc: "Levered IRR, equity multiple and after-tax IRR with §167 depreciation, §469 PAL, §1250 recapture and §1411 NIIT.",
-    cta: "Open Returns",
+    title: "After-Tax Returns",
+    desc: "Levered IRR (return on your cash invested after debt), equity multiple (total returned ÷ invested), and after-tax IRR accounting for the full depreciation stack: §167 straight-line depreciation, §469 passive-activity-loss, §1250 recapture at sale, and §1411 net investment income tax. The real net return, every line traceable.",
+    cta: "Run my returns",
     view: "returns",
     panelBg: dc.lemon,
     panelAccent: dc.rain,
@@ -112,8 +112,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Tax Engine",
-    desc: "Step-by-step §167 depreciation, §469 passive-activity loss, §1250 recapture, and §1411 NIIT — each line traceable to a code section.",
-    cta: "Open Tax Engine",
+    desc: "Rental property's biggest advantage is depreciation — the IRS lets you deduct a portion of the building each year. The Tax Engine runs the full stack: §167 straight-line depreciation, §469 passive-activity-loss rules with the real-estate-professional exception, §1250 recapture at 25%, and §1411 NIIT. Every line traceable to a code section.",
+    cta: "Calculate my tax shield",
     view: "tax-engine",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
@@ -123,9 +123,9 @@ const TOOLS: Tool[] = [
     panelNote: "Depreciation · PAL · recapture · NIIT",
   },
   {
-    title: "STR Underwriting",
-    desc: "Short-term rental income modeled on ADR × occupancy with seasonal haircuts — the income lenders actually accept, not Airbnb projections.",
-    cta: "Open STR Underwriting",
+    title: "Short-Term Rental (STR) Underwriting",
+    desc: "Short-term rental (Airbnb / VRBO) income is modeled on average daily rate (ADR) × occupancy with seasonal haircuts — the income methodology lenders actually accept, not the optimistic projections Airbnb shows hosts. Runs against the STR program parameters so you can see the qualifying DSCR before you list the property.",
+    cta: "Underwrite my STR",
     view: "str-underwriting",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
@@ -136,8 +136,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "ARM Reset Analyzer",
-    desc: "Index + margin + caps computed for every reset date. Know the worst-case payment before your client signs a 5/1 ARM.",
-    cta: "Open ARM Reset",
+    desc: "Adjustable-rate mortgages (ARMs) have a fixed period — e.g., 5 years on a 5/1 ARM — then reset based on an index (usually SOFR) plus a margin, subject to periodic and lifetime caps. The ARM Reset Analyzer computes the payment at every future reset date so you know the worst-case payment before your client signs.",
+    cta: "Model my ARM resets",
     view: "arm-reset",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
@@ -148,8 +148,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Refi Tracker",
-    desc: "Break-even month, NPV of savings, and the minimum rate drop that justifies closing costs — so your client refi's when the math says go, not when rates feel low.",
-    cta: "Open Refi Tracker",
+    desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) pencils only if the monthly savings pay back closing costs before you sell or refinance again. The Refi Tracker shows break-even month, NPV of savings, and the minimum rate drop that justifies closing costs — so you refinance when the math confirms it, not when rates feel low.",
+    cta: "Find my refi break-even",
     view: "refi-tracker",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
@@ -159,6 +159,37 @@ const TOOLS: Tool[] = [
     panelNote: "Break-even month · min rate delta",
   },
 ];
+
+const SPECIAL_TOOLS = [
+  {
+    title: "Deal Workspace",
+    desc: "The workspace-only version of the analyzer: inputs, lender match, sensitivity, optimization, and saved scenarios in one operating screen.",
+    href: "/tools/deal-workspace",
+    label: "Open workspace",
+    stat: "01",
+  },
+  {
+    title: "Sensitivity Lab",
+    desc: "Rent breakpoints, rate headroom, appraisal stress, and structure changes after a deal has been priced.",
+    href: "/tools/sensitivity",
+    label: "Open sensitivity lab",
+    stat: "02",
+  },
+  {
+    title: "Structure Optimizer",
+    desc: "Compare interest-only, amortization, rate, and cost structures against qualifying DSCR and investor cash flow.",
+    href: "/tools/structure-optimizer",
+    label: "Optimize structure",
+    stat: "03",
+  },
+  {
+    title: "Scenario History",
+    desc: "Saved deal runs, state checks, and output logs for repeat analysis and audit trails inside InvestGO.",
+    href: "/tools/scenario-history",
+    label: "View saved scenarios",
+    stat: "04",
+  },
+] as const;
 
 // ── Feature row ───────────────────────────────────────────────────────────────
 // Each row is a 2-col grid that alternates text/visual side.
@@ -322,6 +353,65 @@ function FeatureRow({
   );
 }
 
+function SpecialToolCard({
+  tool,
+  onOpen,
+}: {
+  tool: (typeof SPECIAL_TOOLS)[number];
+  onOpen: (href: string) => void;
+}) {
+  return (
+    <article
+      style={{
+        display: "grid",
+        gridTemplateRows: "auto 1fr auto",
+        minHeight: 280,
+        background: dc.dark,
+        color: dc.cream,
+        borderRadius: 8,
+        padding: "clamp(24px, 2.8vw, 36px)",
+        border: "1px solid rgba(238,239,211,0.12)",
+      }}
+    >
+      <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.lemon, marginBottom: 28 }}>{tool.stat}</Mono>
+      <div>
+        <h3
+          style={{
+            fontSize: "clamp(25px,2.6vw,36px)",
+            lineHeight: 1,
+            letterSpacing: "-0.04em",
+            fontWeight: 650,
+            margin: "0 0 14px",
+            color: dc.cream,
+          }}
+        >
+          {tool.title}
+        </h3>
+        <p style={{ margin: 0, color: "rgba(238,239,211,0.66)", lineHeight: 1.55, fontWeight: 500 }}>
+          {tool.desc}
+        </p>
+      </div>
+      <button
+        onClick={() => onOpen(tool.href)}
+        style={{
+          marginTop: 30,
+          justifySelf: "start",
+          background: dc.lemon,
+          color: dc.dark,
+          border: "none",
+          borderRadius: 6,
+          padding: "13px 20px",
+          fontFamily: dc.sans,
+          fontWeight: 650,
+          cursor: "pointer",
+        }}
+      >
+        {tool.label} →
+      </button>
+    </article>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function ProductsPage({
   onBack,
@@ -335,38 +425,13 @@ export default function ProductsPage({
     window.scrollTo(0, 0);
   }, []);
 
-  // Products-specific GSAP: per-row child stagger on each .pr-feat.
-  // Registered after mount so all rows exist in the DOM.
-  useEffect(() => {
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReduced) return;
-
-    const rows = document.querySelectorAll<HTMLElement>(".pr-feat");
-    rows.forEach((row) => {
-      gsap.from(Array.from(row.children), {
-        y: 50,
-        opacity: 0,
-        duration: 0.85,
-        stagger: 0.12,
-        ease: "power3.out",
-        clearProps: "all",
-        scrollTrigger: {
-          trigger: row,
-          start: "top 82%",
-          once: true,
-        },
-      });
-    });
-
-    const refresh = setTimeout(() => ScrollTrigger.refresh(), 200);
-    return () => {
-      clearTimeout(refresh);
-    };
-  }, []);
+  // Keep product rows visible from first paint. Route-level reveal animations
+  // caused the correct layout to drop/fade after React mounted.
+  const openPath = (href: string) => {
+    window.history.pushState({}, "", href);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    window.scrollTo({ top: 0 });
+  };
 
   return (
     <DcShell
@@ -430,10 +495,11 @@ export default function ProductsPage({
               margin: 0,
             }}
           >
-            Every tool Greenstreet ships runs off the same deterministic core:
-            versioned math, statutory citations, no LLM guesses in the numbers.
-            Brokers use three tools. Investors use five. Funds use all eleven.
-            Start anywhere below.
+            Eleven tools for DSCR rental-loan underwriting — from a 60-second
+            deal check to a full after-tax returns model. Every tool runs off the
+            same deterministic core: versioned math, statutory citations, no
+            AI-generated numbers. Brokers typically use three tools. Investors
+            use five. Funds use all eleven. Start anywhere.
           </Lead>
         </div>
       </section>
@@ -462,6 +528,77 @@ export default function ProductsPage({
               onNavigate={onNavigate}
             />
           ))}
+        </div>
+      </section>
+
+      <section
+        style={{
+          background: dc.mintBg,
+          color: dc.dark,
+          padding: `clamp(64px, 8vw, 112px) ${dc.pad}`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 0.8fr) minmax(0, 1.2fr)",
+              gap: "clamp(32px,5vw,80px)",
+              alignItems: "end",
+              marginBottom: "clamp(32px,5vw,56px)",
+            }}
+            className="dc-split"
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: dc.rain,
+                  marginBottom: 14,
+                }}
+              >
+                Special tools
+              </div>
+              <h2
+                style={{
+                  fontSize: "clamp(34px,4.4vw,64px)",
+                  lineHeight: 0.98,
+                  letterSpacing: "-0.045em",
+                  fontWeight: 650,
+                  margin: 0,
+                }}
+              >
+                Workspace-only tools, now directly linked.
+              </h2>
+            </div>
+            <p
+              style={{
+                margin: 0,
+                fontSize: "clamp(16px,1.4vw,19px)",
+                lineHeight: 1.55,
+                color: "rgba(0,55,56,0.66)",
+                fontWeight: 500,
+                maxWidth: "54ch",
+              }}
+            >
+              These are the deeper InvestGO workbench views that used to live only inside the platform sidebar. They now have stable public routes and sit beside the standalone engines.
+            </p>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gap: 16,
+            }}
+            className="pr-special-grid"
+          >
+            {SPECIAL_TOOLS.map((tool) => (
+              <SpecialToolCard key={tool.href} tool={tool} onOpen={openPath} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -508,8 +645,9 @@ export default function ProductsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              See which tools fit your role — broker, investor, or fund — or book
-              a 15-minute walkthrough and we'll show you the workflow live.
+              New to DSCR? Start with the Deal Analyzer — it covers everything a
+              first-time investor or broker needs in a single screen. Or see the
+              recommended workflow for your role, or book a 15-minute walkthrough.
             </p>
             <button
               onClick={() => onNavigate("solutions")}
@@ -525,7 +663,7 @@ export default function ProductsPage({
                 fontFamily: dc.sans,
               }}
             >
-              See tools by audience →
+              See tools by role →
             </button>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>

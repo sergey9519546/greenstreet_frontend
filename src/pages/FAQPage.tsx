@@ -10,72 +10,72 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   // ── GROUP: The basics ─────────────────────────────────────────────────────────
   {
     group: "The basics",
-    q: "What is a DSCR loan?",
-    a: "A DSCR (Debt Service Coverage Ratio) loan qualifies based on rental income, not your personal income or tax returns. The lender divides the property's gross monthly rent by its total monthly payment (PITIA: principal, interest, taxes, insurance, and HOA). A DSCR ≥ 1.0 means rent covers the payment. No W-2s, no pay stubs, no employment history required.",
+    q: "Do I need to show my income or tax returns to qualify?",
+    a: "No. A DSCR (Debt Service Coverage Ratio — whether the property's rent can cover the loan payment) loan qualifies on what the property earns, not what you earn. The lender divides the property's gross monthly rent by its total monthly PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues). A DSCR at or above 1.0 means rent covers the payment. No W-2s, no pay stubs, no employment history required.",
     src: "12 CFR 1026.43 · TILA / Reg Z QM rules",
     cta: { label: "Estimate your DSCR →", action: "calculator" },
   },
   {
     group: "The basics",
-    q: "How is DSCR calculated? Walk me through the formula.",
-    a: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. Worked example: rent = $2,500/month. PITIA = $1,420 P&I + $330 taxes + $110 insurance + $60 HOA = $1,920. DSCR = $2,500 ÷ $1,920 = 1.30x — the property generates 30% more income than it costs to carry. A ≥1.0x result means rent covers the full payment; <1.0x means it doesn't. Lenders use the lower of the signed lease rent or the Form 1007 appraiser market-rent estimate — not the listing description or Zillow estimate.",
+    q: "How is DSCR calculated — what's the actual formula?",
+    a: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA (1.00 = rent exactly covers the payment; higher is stronger). Worked example: rent = $2,500/month. PITIA = $1,420 P&I + $330 taxes + $110 insurance + $60 HOA = $1,920. DSCR = $2,500 ÷ $1,920 = 1.30x — the property generates 30% more income than it costs to carry. A result below 1.0 means the rent doesn't cover the payment. Lenders use the lower of the signed lease or the Form 1007 appraiser market-rent estimate — not the Zillow figure or the listing.",
     src: "Fannie Mae 1007 form · Greenstreet engine.ts DSCR calc",
     cta: { label: "Run the numbers on your deal →", action: "calculator" },
   },
   {
     group: "The basics",
-    q: "What does PITIA stand for and what goes into it?",
-    a: "P = Principal. I = Interest at the note rate. T = Property taxes (actual annual bill ÷ 12 — use the post-sale assessed value, not the seller's homestead-exempt bill). I = Insurance (hazard + flood if required — get a real quote before modeling; coastal properties can run $300–600/month). A = HOA dues (full monthly amount). Each component can move the DSCR enough to make or break qualification — taxes and insurance are the two most common surprises at underwriting.",
+    q: "What goes into the monthly payment lenders calculate (PITIA)?",
+    a: "PITIA is the full monthly payment — Principal, Interest, Taxes, Insurance, and HOA dues. P = Principal. I = Interest at the note rate. T = Property taxes (actual annual bill ÷ 12 — use the post-sale assessed value, not the seller's homestead-exempt bill). I = Insurance (hazard + flood if required — get a real quote; coastal properties can run $300–600/month). A = HOA dues (full monthly amount). Taxes and insurance are the two PITIA components that most often surprise borrowers at underwriting.",
     src: "Greenstreet engine.ts · PITIA model · FEMA RR2.0 coastal data",
   },
   {
     group: "The basics",
-    q: "Is a DSCR loan QM (Qualified Mortgage) or non-QM?",
-    a: "DSCR loans are non-QM — they fall outside the safe-harbor QM rules under 12 CFR 1026.43(e)(2). That's exactly why they can use projected rent (no signed lease required) and skip borrower income verification. The trade-off: non-QM status means the lender bears more repurchase risk, which is why rates run 50–125bps above conforming.",
+    q: "Why is a DSCR loan called non-QM — and does that matter?",
+    a: "DSCR loans are non-QM (non-Qualified Mortgage) — they fall outside the federal safe-harbor rules under 12 CFR 1026.43(e)(2). That's exactly what enables them: no income verification, no required signed lease, projected rent is allowed. The trade-off is that lenders bear more risk, which is why DSCR rates run roughly 50–125 basis points above conforming loan rates.",
     src: "12 CFR 1026.43 · TILA / Reg Z",
   },
   {
     group: "The basics",
-    q: "What rate can I expect?",
-    a: `Rates are indicative and change with market conditions. As of ${AS_OF}: DSCR best-rate tier (740+ FICO, ≤75% LTV, DSCR ≥1.0, PPP accepted) runs approximately 6.50–7.00% on 30-yr fixed, roughly 50–125bps above conforming. Typical files land 6.85–7.50%. Weaker files (sub-1.0 DSCR, STR, FICO <680) 7.50–9.50%. ARM options start lower but check reset cap structures carefully. Confirm current pricing with your Greenstreet rep.`,
+    q: "What rate should I realistically expect?",
+    a: `Rates change with market conditions — these are indicative as of ${AS_OF}. A strong file (740+ FICO, LTV (how the loan amount compares to the property value) at or below 75%, DSCR at or above 1.0, prepayment penalty accepted) runs approximately 6.50–7.00% on a 30-year fixed — roughly 50–125bps above conforming. Most files land 6.85–7.50%. Weaker files (sub-1.0 DSCR, short-term rental, FICO below 680) run 7.50–9.50%. ARM options start lower; check the reset cap structure carefully. Confirm current pricing with your Greenstreet rep before making any decisions.`,
     src: "Freddie Mac PMMS · wk of Jun 18, 2026 · Greenstreet rate-tier model",
   },
   {
     group: "The basics",
-    q: "How fast can I close a DSCR loan?",
-    a: "Faster than conventional. Greenstreet targets 14–21 days on clean files and 21–30 on complex ones. The process is streamlined because there's no income verification — just the appraisal (1007 rent schedule), property docs, and credit.",
+    q: "How quickly can I close?",
+    a: "Faster than a conventional loan. Greenstreet targets 14–21 days on clean files and 21–30 days on complex ones. The process is streamlined because there is no income verification — just the appraisal (which includes the Form 1007 rent estimate), property documents, and a credit pull.",
     src: "Lender-published turn times · Apr 2026 sweep",
   },
   // ── GROUP: Qualification ──────────────────────────────────────────────────────
   {
     group: "Qualification",
-    q: "What DSCR do I need to qualify?",
-    a: "Most lenders require DSCR ≥ 1.00. Some accept as low as 0.75 with compensating factors (strong FICO, more reserves). The sweet spot is 1.20+ where you get the best rates and only 3 months reserves. Sub-1.0 deals exist but lender options narrow significantly and reserves jump to 9–12 months.",
+    q: "My DSCR is below 1.0 — can I still get a loan?",
+    a: "Sometimes. Most lenders require a DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) at or above 1.00. Some accept as low as 0.75 with compensating factors such as a strong credit score and more cash reserves. Sub-1.0 options exist, but lender choices narrow sharply and reserves jump to 9–12 months. If the DSCR is below 0.75, most institutional programs don't apply.",
     src: "Greenstreet lender matrix · Apr 2026 sweep",
     cta: { label: "Check your deal's DSCR →", action: "calculator" },
   },
   {
     group: "Qualification",
     q: "What credit score do I need?",
-    a: "Greenstreet wants 660+ for the Core program; Flex goes to 640 with compensating factors. Higher FICO = lower rate — going from 660 to 740+ can save 0.75–1.50% and move you toward our Premier tier. ITIN borrowers and foreign nationals (no SSN) qualify on the Global program.",
+    a: "Greenstreet's Core program requires 660+. The Flex program goes to 640 with compensating factors. Going from 660 to 740+ can save 0.75–1.50% in rate and unlock the Premier tier. ITIN borrowers and foreign nationals without a U.S. Social Security Number qualify on the Global program.",
     src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
   },
   {
     group: "Qualification",
-    q: "How much down payment do I need?",
-    a: "The standard minimum is 20% down (80% LTV). Greenstreet prices its best rates at 75% LTV (25% down). Strong files (740+ FICO, DSCR ≥ 1.0, SFR purchase) can access the Premier tier at that LTV. Lower down payment = higher rate via LTV pricing adjustments. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
+    q: "How much do I need to put down?",
+    a: "The standard minimum is 20% down (80% LTV — how the loan amount compares to the property value). Greenstreet prices its best rates at 75% LTV (25% down). A strong file (740+ FICO, DSCR at or above 1.0, SFR purchase) accesses the Premier tier at that level. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
     src: "Greenstreet lender matrix · Apr 2026",
   },
   {
     group: "Qualification",
-    q: "What reserves do I need?",
-    a: "Reserves = liquid assets you must hold after closing (in months of PITIA). At DSCR ≥ 1.25: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add months for: STR (+3), condos (+3), FICO <680 (+3), first-time investor (+3), loans >$1M (+6), foreign nationals (+6). These stack. Retirement accounts count at 70% if you're 59½+. Crypto counts as zero.",
+    q: "How much cash do I need to keep in the bank after closing?",
+    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). At DSCR 1.25 or above: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add extra months for: short-term rentals (+3), condos (+3), credit score below 680 (+3), first-time investors (+3), loans above $1M (+6), foreign nationals (+6). These stack. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
     src: "Greenstreet reserveEngine.ts · 5-overlay model",
   },
   {
     group: "Qualification",
-    q: "Can I hold the property in an LLC?",
-    a: "Yes — and most lenders prefer it for business-purpose compliance. LLC vesting is the standard. You'll sign a personal guaranty (full recourse). Max 4 owners in the entity; the guarantor must own ≥51%. Layered LLCs (LLC inside LLC) max 2 layers. Exception: New Jersey LLC is HIGH-RISK — some lenders won't do NJ LLC deals due to PPP ambiguity under N.J.S.A. 46:10B-2.",
+    q: "Can I buy through an LLC?",
+    a: "Yes — and most lenders prefer it for business-purpose compliance. LLC vesting is standard. You will sign a personal guaranty (full recourse). The entity can have at most 4 owners; the guarantor must own at least 51%. Layered LLCs (an LLC inside another LLC) are capped at 2 layers. Caution: New Jersey LLC vesting is high-risk — some lenders won't take NJ LLC deals due to prepayment-penalty ambiguity under N.J.S.A. 46:10B-2.",
     src: "NJ N.J.S.A. 46:10B-2 · Greenstreet NJ LLC caveat",
   },
   {
@@ -107,64 +107,64 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   // ── GROUP: Rental income & property ──────────────────────────────────────────
   {
     group: "Rental income & property",
-    q: "Do I need a signed lease to qualify?",
-    a: "No. A significant share of DSCR loans close without a signed lease. Lenders use Form 1007 market rent from the appraisal to qualify the deal. If you have a lease, the lender uses the lower of the lease rent and the 1007 rent. Vacant properties and new acquisitions are fine — the appraiser's market rent estimate is the qualifying figure.",
+    q: "Does the property need to have a tenant already?",
+    a: "No. A significant share of DSCR loans close without a signed lease. Lenders use Form 1007 market rent from the appraisal — the appraiser's estimate of what the property would rent for — as the qualifying figure. If you do have a lease, the lender uses the lower of the lease rent and the 1007 rent. Vacant properties and new acquisitions are fine.",
     src: "Verus/S&P 2025 DSCR securitization data · Fannie Mae 1007",
   },
   {
     group: "Rental income & property",
-    q: "Can I use a DSCR loan for a short-term rental (Airbnb)?",
-    a: "Yes, but STR income is qualified differently. Lenders use the lower of: (1) Form 1007 long-term rental appraisal, (2) AirDNA projected income × 70–80%, or (3) documented 12-month STR gross revenue history. If you lack 12 months of STR history, the 1007 long-term rent usually controls — which may be meaningfully lower than your STR projections. STR also adds +3 months to reserve requirements. Greenstreet pre-checks STR legality in all 50 states before program matching.",
+    q: "Can I use a DSCR loan for an Airbnb or short-term rental?",
+    a: "Yes, but short-term rental income is qualified more conservatively. Lenders use the lowest of: (1) Form 1007 long-term rental appraisal, (2) AirDNA projected income × 70–80%, or (3) documented 12-month platform payout history × 70–80%. If you don't have 12 months of STR history, the 1007 long-term rent controls — which can be significantly lower than your Airbnb projection. Short-term rental properties also require 3 extra months of reserves (mortgage payments kept in the bank after closing). Greenstreet pre-checks STR legality in all 50 states before matching you to a program.",
     src: "50-state STR matrix · Q2 2026 · Minut 2026 + state statutes",
   },
   {
     group: "Rental income & property",
-    q: "What properties qualify for DSCR loans?",
-    a: "Eligible: SFR (attached and detached), 2–4 unit residential, warrantable and non-warrantable condos, condotels (with conditions), manufactured/modular, ADUs. Ineligible: assisted living/group homes, agricultural (>20 acres), co-ops, fractional/timeshares, mixed-use commercial, <500 sqft. Properties must be C4 condition or better.",
+    q: "What property types can I finance with a DSCR loan?",
+    a: "Eligible: single-family homes (attached and detached), 2–4 unit residential, warrantable and non-warrantable condos, condotels (with conditions), manufactured/modular homes, ADUs. Not eligible: assisted living or group homes, agricultural properties over 20 acres, co-ops, fractional ownership or timeshares, mixed-use commercial, properties under 500 sq ft. Properties must be in C4 condition or better (no significant deferred maintenance).",
     src: "Fannie Mae Property Eligibility Guide · Greenstreet underwriter notes",
   },
   {
     group: "Rental income & property",
-    q: "What documents do I need for a DSCR loan?",
-    a: "No W-2s or tax returns — but there is a document list. Property docs: executed contract or mortgage statement, Form 1007 rent schedule (from the appraisal), signed lease if occupied, HOA dues statement. Insurance: hazard binder (investment occupancy), flood binder (SFHA properties), wind/hurricane coverage where required. Entity docs: LLC Operating Agreement, Articles of Organization, Certificate of Good Standing (dated within 90 days), EIN letter, resolution to borrow. Borrower docs: photo ID, SSN/ITIN, credit authorization, 12 months bank statements for reserves. Funds to close: 60-day paper trail on down payment and closing cost funds. The three items that most commonly delay closings: insurance binder with wrong occupancy type, LLC with lapsed good standing, and reserves shortfall discovered at bank statement review.",
+    q: "What documents do I need to close a DSCR loan?",
+    a: "No W-2s or tax returns — but there is a document list. Property docs: executed purchase contract or mortgage statement, Form 1007 rent schedule (from the appraisal — not something you provide), signed lease if occupied, HOA dues statement. Insurance: hazard binder showing investment occupancy type, flood binder if the property is in a FEMA Special Flood Hazard Area, wind/hurricane coverage where required. Entity docs (if buying through an LLC): Operating Agreement, Articles of Organization, Certificate of Good Standing dated within 90 days, EIN letter, resolution to borrow. Borrower docs: photo ID, SSN or ITIN, credit authorization, 12 months bank statements for reserves. Funds to close: 60-day paper trail on down payment and closing cost funds. The three items that most commonly delay closings: insurance binder with the wrong occupancy type, LLC with lapsed good standing, and a reserves shortfall discovered late in the process.",
     src: "Greenstreet doc checklist · program underwriting guidelines Q2 2026",
   },
   {
     group: "Rental income & property",
-    q: "How is STR (Airbnb/short-term rental) income qualified for DSCR?",
-    a: "Lenders use the lowest of three figures: (1) Form 1007 long-term market rent from the appraisal — this is the floor and controls if you have no STR history. (2) AirDNA projected income × 70–80% — the market estimate, haircut for vacancy and seasonality. (3) Documented 12-month STR gross revenue × 70–80% — only available with full platform payout statements for all 12 months. If the property has never operated as an STR, you qualify on the 1007 long-term rent regardless of Airbnb projections. STR adds +3 months to reserve requirements. Greenstreet pre-verifies STR legality by municipality before program matching. See our full STR underwriting article for the deal math.",
+    q: "How do lenders calculate qualifying income on a short-term rental?",
+    a: "Lenders use the lowest of three figures: (1) Form 1007 long-term market rent — the appraiser's estimate for the property rented unfurnished on a standard lease. This is the floor and controls if you have no STR history. (2) AirDNA projected income × 70–80% — the market estimate, reduced for vacancy and seasonality. (3) Documented 12-month STR gross revenue × 70–80% — only available with full platform payout statements for all 12 months. If the property has never operated as a short-term rental, you qualify on the 1007 long-term rent regardless of what Airbnb projects. Short-term rental adds 3 extra months to the reserves requirement.",
     src: "50-state STR matrix · Q2 2026 · AirDNA methodology · Greenstreet STR program overlays",
   },
   {
     group: "Rental income & property",
-    q: "What is a prepayment penalty (PPP) and should I take one?",
-    a: "A PPP is a fee for paying off the loan early (via sale or refinance), typically a declining schedule — 5/4/3/2/1% over 5 years or 3/2/1% over 3 years. Accepting a PPP usually saves 0.50–0.80% in rate vs the no-PPP option — that monthly savings compounds over a multi-year hold. The math generally favors accepting a PPP if you plan to hold 3+ years and aren't planning to sell or refi soon. Caution: some states restrict or ban PPPs on investment-property loans. Check the State Laws page before assuming a PPP is available in your target market.",
+    q: "Should I take the prepayment penalty option to get a lower rate?",
+    a: "Usually yes, if you plan to hold the property for 3 or more years. A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early — typically a declining schedule: 3/2/1% over three years or 5/4/3/2/1% over five) saves 0.50–0.80% in rate vs the no-penalty option. That monthly savings compounds over a multi-year hold and often more than offsets the penalty itself. The math favors accepting the penalty unless you expect to sell or refinance soon. Caution: some states restrict or ban prepayment penalties on investment property loans. Check the State Laws page before assuming the penalty option is available.",
     src: "Greenstreet statePppLaws.ts · 50-state matrix",
     cta: { label: "Check PPP rules in your state →", action: "state-laws" },
   },
   // ── GROUP: Refinance ─────────────────────────────────────────────────────────
   {
     group: "Refinance",
-    q: "Can I refinance a DSCR loan?",
-    a: "Yes. Both rate-term and cash-out refinances are available on investment properties with DSCR qualification. Rate-term refis replace the loan at new terms without extracting equity; cash-out refis increase the loan balance to pull equity. Both require the property to re-qualify on DSCR at the new rate and new loan amount.",
+    q: "Can I refinance a DSCR loan after I close?",
+    a: "Yes. Both a rate & term refinance (replace your current loan to change the rate or term, without taking cash out) and a cash-out refinance (replace your loan with a larger one and take the difference in cash) are available on DSCR investment properties. Both require the property to re-qualify on DSCR at the new rate and new loan amount.",
     src: "Greenstreet refi program matrix · Q2 2026",
   },
   {
     group: "Refinance",
-    q: "What is the seasoning requirement for a DSCR refinance?",
-    a: "Rate-term refi: typically 6 months from the original closing date (some lenders allow 3 months). Cash-out refi: typically 12 months of ownership — this is the standard institutional floor for investment property cash-out. Exception: delayed financing (if you purchased all-cash) may allow cash-out within 6 months, with the cash-out capped at acquisition costs.",
+    q: "How long do I have to wait before I can refinance?",
+    a: "For a rate & term refinance: typically 6 months from your original closing date (some lenders allow 3 months). For a cash-out refinance: typically 12 months of ownership — this is the standard institutional floor for investment property cash-out. Exception: if you purchased with all cash (delayed financing), some lenders allow cash-out within 6 months, with the cash-out capped at your original acquisition costs.",
     src: "Greenstreet refi program matrix · Fannie Mae B2-1.3-04",
   },
   {
     group: "Refinance",
-    q: "What's the LTV limit on a cash-out DSCR refinance?",
-    a: "Most DSCR programs cap cash-out refis at 75% LTV. Some programs go to 70% on higher-balance loans, STR properties, or weaker FICO. Rate-term refis are generally allowed to 80% LTV. The DSCR must qualify at the new, higher loan balance — if rates have risen since your purchase, the higher payment from the new balance may compress DSCR below the qualifying floor.",
+    q: "How much equity can I pull out on a cash-out refinance?",
+    a: "Most DSCR programs cap cash-out refinances at 75% LTV (how the loan amount compares to the property value — lower means more equity). Some programs go to 70% on larger loans, short-term rental properties, or lower credit scores. Rate & term refinances are generally allowed up to 80% LTV. The DSCR must qualify at the new, higher loan balance — if rates have risen since purchase, the higher payment may push DSCR below the qualifying floor.",
     src: "Greenstreet refi program matrix · Q2 2026",
   },
   {
     group: "Refinance",
-    q: "How do I calculate break-even on a refinance?",
-    a: "Break-even months = Total closing costs ÷ Monthly payment reduction. Example: $8,000 closing costs on a $300/month payment reduction = 26.7 months. If you sell or refi again before month 27, the refi cost money net. Important: if you have a PPP on the existing loan, add the full penalty to the numerator. A 3% PPP on a $400K loan is $12,000 — that adds 40 months to break-even on the same scenario, pushing it past 5.5 years. Run this calculation before paying the appraisal deposit.",
+    q: "How do I know if refinancing actually saves money?",
+    a: "Break-even months = Total closing costs ÷ Monthly payment reduction. Example: $8,000 in closing costs on a $300/month payment reduction = 26.7 months to break even. If you sell or refinance again before month 27, the refinance cost you money. Important: if you have a prepayment penalty (a fee some loans charge if you pay off or refinance early) on the existing loan, add the full penalty amount to the closing costs. A 3% penalty on a $400K loan is $12,000 — that adds 40 months to break-even, pushing it past 5.5 years. Run this before you pay the appraisal deposit.",
     src: "Greenstreet refiTracker.ts · break-even model",
     cta: { label: "See if a refi pencils on your deal →", action: "calculator" },
   },
@@ -245,12 +245,15 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
           >
             Frequently asked
           </div>
-          <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
-            Questions, answered straight.
+          <H1 style={{ margin: "0 0 20px", maxWidth: "18ch" }}>
+            DSCR loan questions — answered in plain language.
           </H1>
-          <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "50ch", margin: 0 }}>
-            Every question that matters about qualifying, structuring, and closing a DSCR investment property loan — answered precisely, with sources. Last reviewed {AS_OF}.
+          <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "50ch", margin: "0 0 20px" }}>
+            A DSCR loan qualifies on the property's rent — not your income or tax returns. Every question below covers how that works, what you need to qualify, and what to watch out for.
           </Lead>
+          <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.45)", margin: 0, letterSpacing: "-0.01em" }}>
+            Last reviewed {AS_OF} · sources shown inline with each answer.
+          </p>
         </div>
       </section>
 

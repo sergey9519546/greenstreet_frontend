@@ -18,27 +18,27 @@ const STEPS = [
   {
     icon: "📊",
     title: "Run the numbers in half a second",
-    body: "Price, rent, FICO, LTV — enter once. The engine returns Track 1 DSCR (what qualifies), Track 2 DSCR (what survives), PITIA, break-even rate, and cash-on-cash before you finish your coffee.",
+    body: "Enter price, rent, and your loan details once. The engine instantly returns your DSCR (whether the property's rent can cover the loan payment — 1.00 means rent exactly covers it; higher is stronger), your full PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues), break-even rate, and cash-on-cash return.",
   },
   {
     icon: "🏦",
-    title: "Let the program find you",
-    body: "Seven Greenstreet programs — from high-leverage DSCR to no-ratio, multi-family, and foreign national — are ranked by fit the moment the file lands. No portal-hopping. No re-keying.",
+    title: "Let the right program find you",
+    body: "Seven Greenstreet programs — from high-LTV (how the loan compares to property value) DSCR to no-ratio, multi-family, and foreign national — are ranked by fit the moment the file lands. No portal-hopping or re-keying.",
   },
   {
     icon: "🗺️",
-    title: "Catch state-rule traps early",
-    body: "The 50-state prepay and usury matrix is built in, not bolted on. OH/PA thresholds, NJ LLC risk, TX APR triggers, and MN HF 3437 are flagged before they change the quote.",
+    title: "Catch state-rule traps before they cost you",
+    body: "The 50-state prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) and usury map is built in, not bolted on. Ohio/PA loan-amount thresholds, NJ LLC risk, TX APR triggers, and MN's 2026 law change are all flagged before they affect your quote.",
   },
   {
     icon: "🧩",
     title: "Structure for the actual borrower",
-    body: "First-timer, STR operator, portfolio builder, ITIN, BRRRR cash-out — each profile has a different lane and a different rate tier. The engine reads your file and routes you to the right one.",
+    body: "First-timer, short-term rental operator, portfolio builder, ITIN borrower, BRRRR cash-out — each profile has a different rate tier and qualifying lane. The engine reads your file and routes you to the right one, including noting when an ARM (a loan whose rate is fixed for a few years, then can adjust) or IO period improves the deal.",
   },
   {
     icon: "🔒",
     title: "Lock with confidence",
-    body: "Every number you bring to the rate-lock conversation is the number Greenstreet will see at underwriting. No surprises. No last-minute conditions you didn't model.",
+    body: "Every number you bring to the rate-lock conversation is the number Greenstreet will see at underwriting. No surprises. No last-minute conditions you didn't already model.",
   },
 ];
 
@@ -131,7 +131,7 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
           Five steps. One application. Your deal — funded.
         </h2>
         <p className="hiw-head" style={{ animationDelay: "0.16s", fontSize: "18px", color: ICE, opacity: 0.85, maxWidth: "640px", lineHeight: 1.6, marginBottom: "clamp(40px, 5vw, 64px)" }}>
-          The line fills as you scroll. Every step runs on the same engine — the one that underwrites and funds your file.
+          Scroll through to see how a DSCR deal moves from first number to funded. Every step runs on the same engine — the one that underwrites and funds your file.
         </p>
 
         {/* Steps — each row owns its dot + connector so heights resolve naturally */}

@@ -1,9 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "../components/Logo";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Design tokens — single source of truth in src/theme.ts (Webflow-faithful)
 import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED } from "../theme";
@@ -63,9 +60,6 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
-  const headerRef = useRef<HTMLElement>(null);
-  const mainRef = useRef<HTMLElement>(null);
-
   useEffect(() => {
     // Dynamic SEO
     if (title) {
@@ -81,34 +75,6 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
     // Scroll to top on mount
     window.scrollTo(0, 0);
   }, [title, subtitle]);
-
-  useGSAP(() => {
-    // Header: stagger-in on mount (label → h1 → subtitle)
-    if (headerRef.current) {
-      const headerEls = headerRef.current.children;
-      gsap.from(headerEls, {
-        y: 52, opacity: 0, duration: 0.85,
-        stagger: 0.13, ease: "power3.out", clearProps: "all",
-      });
-    }
-
-    // Main content: batch-reveal children as they scroll in
-    if (mainRef.current) {
-      const targets = mainRef.current.querySelectorAll(":scope > *");
-      targets.forEach((el, i) => {
-        gsap.from(el, {
-          y: 40, opacity: 0, duration: 0.7,
-          ease: "power3.out", clearProps: "all",
-          delay: i < 3 ? i * 0.07 : 0,
-          scrollTrigger: {
-            trigger: el,
-            start: "top 88%",
-            once: true,
-          },
-        });
-      });
-    }
-  }, [title]);  // re-run when page changes
 
   return (
     <div style={{ minHeight: "100vh", background: PISTACHIO, color: MIDNIGHT, fontFamily: "Outfit, sans-serif" }}>
@@ -230,7 +196,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
       </nav>
 
       {/* Page header — dark hero band matching Webflow marketing page treatment */}
-      <header ref={headerRef} className="gs-dark-header" style={{
+      <header className="gs-dark-header" style={{
         background: MIDNIGHT,
         padding: "clamp(48px, 7vw, 96px) clamp(1.5rem, 4vw, 4rem) clamp(40px, 5vw, 72px)",
       }}>
@@ -252,7 +218,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
       </header>
 
       {/* Content — full-width with inner padding */}
-      <main ref={mainRef} style={{ padding: "24px clamp(1.5rem, 4vw, 4rem) 40px" }}>{children}</main>
+      <main style={{ padding: "24px clamp(1.5rem, 4vw, 4rem) 40px" }}>{children}</main>
 
       {/* Blue animated "How It Works" band — on every inner page */}
       <HowItWorks onCTA={() => onNavigate("rate-quiz")} />

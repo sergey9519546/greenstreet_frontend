@@ -400,6 +400,44 @@ export default function BlogPostPage({
           />
         </div>
 
+        {/* TL;DR — 30-second plain summary; progressive disclosure */}
+        <div
+          className="gs-reveal"
+          style={{
+            maxWidth: 680,
+            margin: "0 auto 40px",
+            background: dc.mintBg,
+            borderRadius: 10,
+            border: `1px solid rgba(0,55,56,0.12)`,
+            padding: "clamp(18px,2vw,26px) clamp(18px,2vw,28px)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.07em",
+              textTransform: "uppercase" as const,
+              color: dc.rain,
+              marginBottom: 8,
+            }}
+          >
+            TL;DR — 30-second version
+          </div>
+          <p
+            style={{
+              color: dc.dark,
+              fontSize: "clamp(15px,1.3vw,17px)",
+              fontWeight: 600,
+              margin: 0,
+              lineHeight: 1.5,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {post.summary}
+          </p>
+        </div>
+
         <article className="bp-body gs-reveal" style={{ maxWidth: 680, margin: "0 auto" }}>
           {post.body.map((b: any, i: number) => {
             if (b.h)     return <h2 key={i}>{b.h}</h2>;
@@ -495,7 +533,7 @@ export default function BlogPostPage({
               color: dc.cream,
             }}
           >
-            Ready to run your deal?
+            See if your deal qualifies.
           </h2>
           <p
             style={{
@@ -506,30 +544,34 @@ export default function BlogPostPage({
               letterSpacing: "-0.02em",
             }}
           >
-            Price a DSCR deal in under a minute, or get a preliminary program
-            match — no commitment required.
+            Enter your property's rent, purchase price, and loan amount — get a DSCR
+            (whether the property's rent can cover the loan payment), a rate estimate, and a program match in under a minute.
+            No W-2s, no tax returns, no commitment.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
-            <a
-              href="/dscr-calculator"
-              onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }}
+            <button
+              onClick={() => (window as any).openQualify?.()}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
                 background: dc.lemon,
                 color: dc.dark,
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: 16,
-                textDecoration: "none",
+                border: "none",
+                cursor: "pointer",
                 padding: "15px 30px",
                 borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
               }}
             >
-              Open the calculator →
-            </a>
-            <button
-              onClick={() => (window as any).openQualify?.()}
+              See if your deal qualifies →
+            </button>
+            <a
+              href="/dscr-calculator"
+              onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -538,16 +580,14 @@ export default function BlogPostPage({
                 color: dc.cream,
                 fontWeight: 600,
                 fontSize: 16,
-                border: "1px solid rgba(238,239,211,0.3)",
-                cursor: "pointer",
+                textDecoration: "none",
                 padding: "15px 28px",
                 borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
+                border: "1px solid rgba(238,239,211,0.3)",
               }}
             >
-              See if your deal qualifies
-            </button>
+              Open the Deal Analyzer
+            </a>
           </div>
         </div>
       </section>
