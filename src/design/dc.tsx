@@ -210,6 +210,38 @@ export function DcFooter({ bg = MIDNIGHT }: { bg?: string } = {}) {
   );
 }
 
+// ── Design-system typography + button primitives ──────────────────────────
+// Emit the real Webflow classes (.u-text-style-*, .btn_main) which are styled by
+// the globally loaded greenboard CSS — so they render IDENTICALLY to the home
+// (verified: .u-text-style-h2 = 48px/600 on both). color:inherit keeps them
+// correct on dark heroes AND light sections (the class's own color is ignored).
+type TxtProps = { children: React.ReactNode; style?: React.CSSProperties; className?: string; id?: string };
+const mk = (Tag: any, cls: string) => ({ children, style, className = "", id }: TxtProps) =>
+  <Tag id={id} className={`${cls} ${className}`.trim()} style={{ color: "inherit", margin: 0, ...style }}>{children}</Tag>;
+export const H1 = mk("h1", "u-text-style-h1");
+export const H2 = mk("h2", "u-text-style-h2");
+export const H3 = mk("h3", "u-text-style-h3");
+export const H4 = mk("h4", "u-text-style-h4");
+export const Lead = mk("p", "u-text-style-large");   // section description / lead
+export const Body = mk("p", "u-text-style-h6");       // base body copy
+
+/** Webflow primary/secondary button (lemon-lime fill, arrow) — matches home. */
+export function Btn({ label, onClick, href = "#", variant = "primary", style }: { label: string; onClick?: (e: React.MouseEvent) => void; href?: string; variant?: "primary" | "secondary"; style?: React.CSSProperties }) {
+  return (
+    <div className="btn_main_wrap" data-wf--btn-main--style={variant} style={{ display: "inline-block", ...style }}>
+      <div className="g_clickable_wrap">
+        <a className="g_clickable_link w-inline-block" href={href} onClick={onClick}><span className="g_clickable_text u-sr-only">{label}</span></a>
+      </div>
+      <div className="btn_main_text" onClick={onClick}>{label}</div>
+      <div className="btn-arrow-wrap">
+        <div className="btn_main_icon w-embed">
+          <svg fill="none" height="100%" viewBox="0 0 24 25" width="100%" xmlns="http://www.w3.org/2000/svg"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path></svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   // Inline font so this works with or without DC_CSS injected (e.g. the
   // self-contained flagship page). tabular-nums keeps animated numbers from jittering.

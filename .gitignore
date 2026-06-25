@@ -60,3 +60,4 @@ hf-*/.claude/
 hf-*/renders/
 hf-*/skills-lock.json
 .tmp/
+.design-ref/

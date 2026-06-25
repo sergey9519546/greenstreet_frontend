@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeReturns } from "../engine/returnsEngine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
 
@@ -314,50 +314,15 @@ export default function ReturnsPage({
             >
               Returns &amp; IRR &middot; Levered + Unlevered &middot; 16-cell sensitivity
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(46px,7vw,108px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 28px",
-              }}
-            >
+            <H1 style={{ margin: "0 0 28px" }}>
               The full return, not just the cash flow.
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
-                color: "rgba(238,239,211,0.7)",
-                maxWidth: "46ch",
-                margin: "0 0 36px",
-              }}
-            >
+            </H1>
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
               Levered and unlevered IRR, equity multiple, yield-on-cost, break-even
               occupancy, and a hold &times; rent-growth &times; exit-cap matrix.
-            </p>
+            </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a
-                href="#rt-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                }}
-              >
-                Run returns engine ↓
-              </a>
+              <Btn label="Run returns engine" href="#rt-tool" onClick={scrollToTool} />
             </div>
           </div>
 
