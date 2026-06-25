@@ -203,6 +203,11 @@ export default function App() {
     }
 
     const isMarketing = view === "marketing";
+    if (isMarketing) {
+      document.documentElement.classList.remove("is-spa-route");
+    } else {
+      document.documentElement.classList.add("is-spa-route");
+    }
     const wfRoot = document.getElementById("webflow-root");
     const reactRoot = document.getElementById("root");
     if (wfRoot) {

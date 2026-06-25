@@ -15,7 +15,7 @@ import { buildEngineInputs } from "./engine/inputs";
 const isProd = process.env.NODE_ENV === "production";
 const workerPath = isProd 
   ? path.join(process.cwd(), "dist", "engineWorker.cjs")
-  : path.join(__dirname, "engineWorker.ts");
+  : path.resolve("src", "engineWorker.ts");
 
 const WORKER_POOL_SIZE = process.env.WORKER_POOL_SIZE ? parseInt(process.env.WORKER_POOL_SIZE) : 4;
 

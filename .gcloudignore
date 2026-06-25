@@ -1,0 +1,25 @@
+# Ignore local git history
+.git/
+.gitignore
+
+# Ignore local node modules (GCP runs npm install during build)
+node_modules/
+
+# Do NOT ignore the dist/ folder (holds compiled function.cjs and engineWorker.cjs)
+!dist/
+
+# Ignore frontend source files to optimize deployment payload size
+src/
+public/
+index.html
+vite.config.ts
+tsconfig.json
+
+# Ignore system files
+.vscode/
+.idea/
+.gemini/
+.agents/
+*.log
+pgliteData/
+dataconnect/

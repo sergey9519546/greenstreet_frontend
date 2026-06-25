@@ -11,8 +11,9 @@ import { buildEngineInputs } from "./engine/inputs";
 
 if (parentPort) {
   parentPort.on("message", (message) => {
+    const { id } = message || {};
     try {
-      const { id, type, payload } = message;
+      const { type, payload } = message;
       let result;
 
       switch (type) {
