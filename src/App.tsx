@@ -1,37 +1,78 @@
 import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 import QualifyWidget from "./components/QualifyWidget";
 
-// Lazy-loaded routes — each page is its own chunk, so the initial bundle stays
-// small (only the marketing shell + the always-on QualifyWidget load up front).
-// Restores the code-splitting that keeps first paint fast.
-const ComplianceDashboard = lazy(() => import("./components/ComplianceDashboard"));
-const DSCRCalculatorPage = lazy(() => import("./pages/DSCRCalculatorPage"));
-const LenderIntelPage = lazy(() => import("./pages/LenderIntelPage"));
-const StateLawsPage = lazy(() => import("./pages/StateLawsPage"));
-const FAQPage = lazy(() => import("./pages/FAQPage"));
-const BlogPage = lazy(() => import("./pages/BlogPage"));
-const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
-const RateQuizPage = lazy(() => import("./pages/RateQuizPage"));
-const RefiTrackerPage = lazy(() => import("./pages/RefiTrackerPage"));
-const ARMPage = lazy(() => import("./pages/ARMPage"));
-const MonteCarloPage = lazy(() => import("./pages/MonteCarloPage"));
-const ReturnsPage = lazy(() => import("./pages/ReturnsPage"));
-const TaxEnginePage = lazy(() => import("./pages/TaxEnginePage"));
-const StressMatrixPage = lazy(() => import("./pages/StressMatrixPage"));
-const DecisionSupportPage = lazy(() => import("./pages/DecisionSupportPage"));
-const STRUnderwritingPage = lazy(() => import("./pages/STRUnderwritingPage"));
-const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
-const DealAnalyzerPage = lazy(() => import("./pages/DealAnalyzerPage"));
-const BorrowerProfilesPage = lazy(() => import("./pages/BorrowerProfilesPage"));
-const BrokersPortalPage = lazy(() => import("./pages/BrokersPortalPage"));
-const InvestorsPage = lazy(() => import("./pages/InvestorsPage"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const CareersPage = lazy(() => import("./pages/CareersPage"));
-const CaseStudiesPage = lazy(() => import("./pages/CaseStudiesPage"));
-const LegalPage = lazy(() => import("./pages/LegalPage"));
-const ProductsPage = lazy(() => import("./pages/ProductsPage"));
-const SolutionsPage = lazy(() => import("./pages/SolutionsPage"));
-const BrokersPage = lazy(() => import("./pages/BrokersPage"));
+// Route module importers — the SINGLE source for both React.lazy and the idle
+// prefetch (warmAllRoutes) below. Each page is its own chunk (small initial
+// bundle), but every chunk is warmed during idle right after first paint, so
+// navigation NEVER suspends: the chunk is already cached, React.lazy resolves
+// synchronously, and the page renders its FINAL layout immediately — no
+// temporary Suspense "shell" flash and no typography/layout reset on route change.
+const routeModules = {
+  ComplianceDashboard: () => import("./components/ComplianceDashboard"),
+  DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
+  LenderIntelPage: () => import("./pages/LenderIntelPage"),
+  StateLawsPage: () => import("./pages/StateLawsPage"),
+  FAQPage: () => import("./pages/FAQPage"),
+  BlogPage: () => import("./pages/BlogPage"),
+  BlogPostPage: () => import("./pages/BlogPostPage"),
+  RateQuizPage: () => import("./pages/RateQuizPage"),
+  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
+  ARMPage: () => import("./pages/ARMPage"),
+  MonteCarloPage: () => import("./pages/MonteCarloPage"),
+  ReturnsPage: () => import("./pages/ReturnsPage"),
+  TaxEnginePage: () => import("./pages/TaxEnginePage"),
+  StressMatrixPage: () => import("./pages/StressMatrixPage"),
+  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
+  STRUnderwritingPage: () => import("./pages/STRUnderwritingPage"),
+  PortfolioPage: () => import("./pages/PortfolioPage"),
+  DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
+  BorrowerProfilesPage: () => import("./pages/BorrowerProfilesPage"),
+  BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
+  InvestorsPage: () => import("./pages/InvestorsPage"),
+  AboutPage: () => import("./pages/AboutPage"),
+  CareersPage: () => import("./pages/CareersPage"),
+  CaseStudiesPage: () => import("./pages/CaseStudiesPage"),
+  LegalPage: () => import("./pages/LegalPage"),
+  ProductsPage: () => import("./pages/ProductsPage"),
+  SolutionsPage: () => import("./pages/SolutionsPage"),
+  BrokersPage: () => import("./pages/BrokersPage"),
+} as const;
+
+let _warmed = false;
+function warmAllRoutes() {
+  if (_warmed || typeof window === "undefined") return;
+  _warmed = true;
+  Object.values(routeModules).forEach((load) => { (load() as Promise<unknown>).catch(() => {}); });
+}
+
+const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
+const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
+const LenderIntelPage = lazy(routeModules.LenderIntelPage);
+const StateLawsPage = lazy(routeModules.StateLawsPage);
+const FAQPage = lazy(routeModules.FAQPage);
+const BlogPage = lazy(routeModules.BlogPage);
+const BlogPostPage = lazy(routeModules.BlogPostPage);
+const RateQuizPage = lazy(routeModules.RateQuizPage);
+const RefiTrackerPage = lazy(routeModules.RefiTrackerPage);
+const ARMPage = lazy(routeModules.ARMPage);
+const MonteCarloPage = lazy(routeModules.MonteCarloPage);
+const ReturnsPage = lazy(routeModules.ReturnsPage);
+const TaxEnginePage = lazy(routeModules.TaxEnginePage);
+const StressMatrixPage = lazy(routeModules.StressMatrixPage);
+const DecisionSupportPage = lazy(routeModules.DecisionSupportPage);
+const STRUnderwritingPage = lazy(routeModules.STRUnderwritingPage);
+const PortfolioPage = lazy(routeModules.PortfolioPage);
+const DealAnalyzerPage = lazy(routeModules.DealAnalyzerPage);
+const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
+const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
+const InvestorsPage = lazy(routeModules.InvestorsPage);
+const AboutPage = lazy(routeModules.AboutPage);
+const CareersPage = lazy(routeModules.CareersPage);
+const CaseStudiesPage = lazy(routeModules.CaseStudiesPage);
+const LegalPage = lazy(routeModules.LegalPage);
+const ProductsPage = lazy(routeModules.ProductsPage);
+const SolutionsPage = lazy(routeModules.SolutionsPage);
+const BrokersPage = lazy(routeModules.BrokersPage);
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -114,12 +155,6 @@ function viewToPath(view: PageView): string {
   }
 }
 
-// Lazy-chunk fallback — a calm pistachio panel (no spinner flash) while a route
-// chunk loads. Chunks are small, so this is rarely visible for more than a frame.
-function PageLoader() {
-  return <div style={{ minHeight: "60vh", background: "#eeefd3" }} aria-hidden="true" />;
-}
-
 export default function App() {
   const [view, setView] = useState<PageView>(() => {
     if (typeof window !== "undefined") {
@@ -141,6 +176,18 @@ export default function App() {
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  // Warm every route chunk during idle, right after first paint. After this runs,
+  // navigation never hits a Suspense fallback — the chunk is already cached, so
+  // React.lazy resolves synchronously and the page renders its FINAL layout
+  // immediately (no temporary shell flash / typography-layout reset).
+  useEffect(() => {
+    const w = window as any;
+    const id = w.requestIdleCallback
+      ? w.requestIdleCallback(warmAllRoutes, { timeout: 2500 })
+      : window.setTimeout(warmAllRoutes, 1500);
+    return () => { if (w.cancelIdleCallback) w.cancelIdleCallback(id); else clearTimeout(id); };
   }, []);
 
   // Global link interceptor: any <a href="/internal"> click navigates via
@@ -340,7 +387,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className="font-sans antialiased text-slate-800">
-        <Suspense fallback={<PageLoader />}>
+        <Suspense fallback={null}>
           <PageRenderer />
         </Suspense>
         {/* QualifyWidget overlays every view — modal + sticky pill */}
