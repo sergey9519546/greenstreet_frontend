@@ -62,8 +62,11 @@ export const dc = {
   white: "#fff",
   mono: font.mono,
   sans: font.family,
-  maxW: 1280,
-  pad: "clamp(1.5rem, 4vw, 3rem)",
+  // Match the Webflow home container exactly (.u-container: max-width 1728px,
+  // ~20px side padding) so page bodies line up edge-to-edge with the shared
+  // nav/footer and carry the home's full-width feel.
+  maxW: 1728,
+  pad: "clamp(1.1rem, 2.4vw, 1.25rem)",
   r: radius,
 } as const;
 
