@@ -5,13 +5,84 @@
 // loaded greenboard CSS, so they match the home pixel-for-pixel for free.
 // Extracted from PageShell so DcShell (every tool/content page) can reuse them.
 import React, { useState } from "react";
-import { PISTACHIO, MIDNIGHT, LEMON, FADED } from "../theme";
+import { PISTACHIO, MIDNIGHT, LEMON, FADED, MINT_BG } from "../theme";
+
+// ── Shared nav menu model — the SAME dropdowns + pages as the marketing home ──
+// (Product / Who We Serve / Resources). Every inner page renders these, so the
+// navbar + dropdown menu are identical sitewide.
+type NavItem = { label: React.ReactNode; view?: string; path?: string };
+type NavMenu = { label: string; view: string; path: string; items: NavItem[] };
+
+const INVESTGO_LABEL = (
+  <>INVEST<span style={{ opacity: 0.5 }}>GO</span></>
+);
+
+const NAV_MENUS: NavMenu[] = [
+  {
+    label: "Product", view: "products", path: "/products",
+    items: [
+      { label: INVESTGO_LABEL, view: "portal", path: "/investgo" },
+      { label: "Platform", path: "/products/platform" },
+      { label: "DSCR Calculator", view: "dscr-calculator", path: "/dscr-calculator" },
+      { label: "Lender Intelligence", view: "lender-intel", path: "/lender-intel" },
+      { label: "State Regulations", view: "state-laws", path: "/state-laws" },
+      { label: "Deal Analyzer", view: "deal-analyzer", path: "/deal-analyzer" },
+      { label: "Borrower Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
+    ],
+  },
+  {
+    label: "Who We Serve", view: "solutions", path: "/solutions",
+    items: [
+      { label: "Mortgage Brokers", view: "brokers", path: "/brokers" },
+      { label: "Real Estate Investors", view: "investors", path: "/investors" },
+      { label: "Investor Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
+      { label: "Rate Quiz", view: "rate-quiz", path: "/rate-quiz" },
+    ],
+  },
+  {
+    label: "Resources", view: "blog", path: "/blog",
+    items: [
+      { label: "Greenstreet Guidance", view: "blog", path: "/blog" },
+      { label: "Customer Stories", view: "case-studies", path: "/case-studies" },
+      { label: "FAQ", view: "faq", path: "/faq" },
+      { label: "Customer Support", path: "/support" },
+      { label: "About", view: "about", path: "/about" },
+      { label: "Careers", view: "careers", path: "/careers" },
+      { label: "Security & Privacy", view: "legal", path: "/legal" },
+    ],
+  },
+];
+
+const NAV_DD_CSS = `
+.gs-dd-wrap{position:relative;}
+.gs-dd-panel{position:absolute;top:calc(100% + 10px);left:0;min-width:230px;background:${PISTACHIO};border:1px solid ${FADED};border-radius:10px;padding:7px;display:flex;flex-direction:column;z-index:60;box-shadow:0 10px 30px rgba(0,55,56,0.10);}
+.gs-dd-panel::before{content:"";position:absolute;top:-10px;left:0;right:0;height:10px;}
+.gs-dd-item{display:block;padding:9px 12px;border-radius:7px;color:${MIDNIGHT};font-size:14px;font-weight:500;text-decoration:none;white-space:nowrap;transition:background .12s,color .12s;}
+.gs-dd-item:hover,.gs-dd-item:focus-visible{background:${MINT_BG};outline:none;}
+.gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:none;border:none;font-family:inherit;}
+.gs-dd-caret{transition:transform .15s;}
+.gs-dd-wrap:hover .gs-dd-caret,.gs-dd-wrap:focus-within .gs-dd-caret{transform:rotate(180deg);}
+.gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
+`;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); setMenuOpen(false); };
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  const closeAll = () => { setMenuOpen(false); setOpenMenu(null); };
+  const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); closeAll(); };
+  const goPath = (p: string) => (e: React.MouseEvent) => { e.preventDefault(); window.history.pushState({}, "", p); window.dispatchEvent(new PopStateEvent("popstate")); closeAll(); };
+  const nav = (it: NavItem) => it.view ? go(it.view) : goPath(it.path || "/");
+
+  const caret = (
+    <svg className="gs-dd-caret" width="11" height="11" viewBox="0 0 12 8" fill="none" aria-hidden="true">
+      <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+
   return (
     <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
+      <style>{NAV_DD_CSS}</style>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
@@ -22,19 +93,43 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           <div className="nav-links-contain" hide-t="">
             <div className="nav-links-wrap">
               <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")}>
-                <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>
-                  INVEST<span style={{ opacity: 0.5 }}>GO</span>
-                </div>
+                <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>{INVESTGO_LABEL}</div>
               </a>
-              <a className="nav-link w-inline-block" href="/products" onClick={go("products")}><div className="nav_links_text">Product</div></a>
-              <a className="nav-link w-inline-block" href="/solutions" onClick={go("solutions")}><div className="nav_links_text">Who We Serve</div></a>
-              <a className="nav-link w-inline-block" href="/partnerships" onClick={go("brokers-partner")}><div>Partnerships</div></a>
-              <a className="nav-link w-inline-block" href="/blog" onClick={go("blog")}><div className="nav_links_text">Resources</div></a>
+
+              {NAV_MENUS.map((m) => (
+                <div
+                  key={m.label}
+                  className="gs-dd-wrap"
+                  onMouseEnter={() => setOpenMenu(m.label)}
+                  onMouseLeave={() => setOpenMenu((cur) => (cur === m.label ? null : cur))}
+                >
+                  <a
+                    className="nav-link gs-dd-toggle w-inline-block"
+                    href={m.path}
+                    aria-haspopup="true"
+                    aria-expanded={openMenu === m.label}
+                    onClick={go(m.view)}
+                    onFocus={() => setOpenMenu(m.label)}
+                  >
+                    <div className="nav_links_text">{m.label}</div>
+                    {caret}
+                  </a>
+                  {openMenu === m.label && (
+                    <div className="gs-dd-panel" role="menu" aria-label={m.label}>
+                      {m.items.map((it, i) => (
+                        <a key={i} role="menuitem" className="gs-dd-item" href={it.path} onClick={nav(it)}>
+                          {it.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <a className="nav-link w-inline-block" href="/partnerships" onClick={go("brokers-partner")}><div className="nav_links_text">Partnerships</div></a>
               <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div>Login</div></a>
-              {/* Solid, always-visible CTA (the Webflow .btn_main collapses to 0
-                  width outside the home's scroll-reveal context). Dark fill +
-                  pistachio text matches the home nav button. */}
-              <a className="nav-btn" href="/rate-quiz" onClick={go("rate-quiz")}
+              {/* Solid, always-visible CTA (matches the home nav button). */}
+              <a className="nav-btn" href="/book-demo" onClick={go("book-demo")}
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, background: MIDNIGHT, color: PISTACHIO, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "12px 22px", borderRadius: 8, whiteSpace: "nowrap" }}>
                 Book a demo
                 <svg fill="none" height="16" viewBox="0 0 24 25" width="16" xmlns="http://www.w3.org/2000/svg">
@@ -51,14 +146,19 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         </div>
       </div>
       {menuOpen && (
-        <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-          <a href="/investgo" className="nav-link" onClick={go("portal")}>INVEST<span style={{ opacity: 0.5 }}>GO</span></a>
-          <a href="/products" className="nav-link" onClick={go("products")}>Product</a>
-          <a href="/solutions" className="nav-link" onClick={go("solutions")}>Who We Serve</a>
-          <a href="/partnerships" className="nav-link" onClick={go("brokers-partner")}>Partnerships</a>
-          <a href="/blog" className="nav-link" onClick={go("blog")}>Resources</a>
+        <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "6px", zIndex: 49, maxHeight: "80vh", overflowY: "auto" }}>
+          <a href="/investgo" className="nav-link" onClick={go("portal")} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
+          {NAV_MENUS.map((m) => (
+            <React.Fragment key={m.label}>
+              <a href={m.path} className="gs-mnav-section" onClick={go(m.view)} style={{ textDecoration: "none" }}>{m.label}</a>
+              {m.items.map((it, i) => (
+                <a key={i} href={it.path} className="nav-link" onClick={nav(it)} style={{ paddingLeft: 8 }}>{it.label}</a>
+              ))}
+            </React.Fragment>
+          ))}
+          <a href="/partnerships" className="nav-link" onClick={go("brokers-partner")} style={{ marginTop: 10 }}>Partnerships</a>
           <a href="/investgo" className="nav-link" onClick={go("portal")}>Login</a>
-          <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={go("rate-quiz")}>Book a demo</a>
+          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")}>Book a demo</a>
         </div>
       )}
     </nav>
