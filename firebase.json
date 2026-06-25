@@ -3,11 +3,6 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "emulators": {
-    "dataconnect": {
-      "dataDir": "dataconnect/.dataconnect/pgliteData"
-    }
-  },
   "functions": {
     "source": ".",
     "runtime": "nodejs20",
@@ -32,8 +27,5 @@
         "destination": "/index.html"
       }
     ]
-  },
-  "dataconnect": {
-    "source": "dataconnect"
   }
 }
