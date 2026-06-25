@@ -26,7 +26,7 @@ export const FADED = swatch.midnightFaded;
 export const DARK_TEAL = swatch.darkTeal;
 
 export const font = {
-  family: '"Outfit Variable", Outfit, Arial, sans-serif',
+  family: '"Outfit Variable", Arial, sans-serif',
   mono: '"JetBrains Mono", ui-monospace, monospace',
   regular: 400,
   medium: 500,
