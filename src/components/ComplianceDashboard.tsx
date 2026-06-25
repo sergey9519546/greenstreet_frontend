@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { auth, db, loginWithGoogle, logoutUser, loginAnonymously } from "../firebase";
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import {
   Shield, CheckCircle, Search, MapPin, Sparkles, History,
   Trash2, LogOut, ArrowLeft, RefreshCw, AlertTriangle,
-  Calculator, TrendingUp, BarChart2, Settings2, Zap,
+  Calculator, TrendingUp, BarChart2, Settings2, Zap, ChevronDown, Menu, X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { DSCRResult, BreakevenResult, StructureOption, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
 import type { AuditLog } from "../engine/types";
 import { swatch, radius } from "../theme";
+import { DscrGauge, RiskFlame, riskFromDscr, dscrColor as artifactDscrColor } from "../design/artifacts";
 import RefiTrackerPage from "../pages/RefiTrackerPage";
 import ARMPage from "../pages/ARMPage";
 import MonteCarloPage from "../pages/MonteCarloPage";
@@ -22,16 +23,43 @@ import STRUnderwritingPage from "../pages/STRUnderwritingPage";
 import PortfolioPage from "../pages/PortfolioPage";
 import { SiteNav } from "../design/SiteShell";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// ─── Design tokens (inline, flat — no shadow, no blur) ──────────────────────
+const T = {
+  // Surfaces
+  pageBg: swatch.pistachio,
+  cardBg: swatch.mint,        // mint cards on pistachio page
+  cardBorder: `${swatch.midnight}20`,  // ~12% midnight — "faded" border
+  inputBg: `${swatch.midnight}08`,
+  inputBorder: `${swatch.midnight}18`,
+  inputFocusBorder: swatch.rainforest,
+  // Typography
+  ink: swatch.midnight,
+  muted: `${swatch.midnight}80`,
+  faint: `${swatch.midnight}50`,
+  // Sidebar
+  sidebarBg: swatch.midnight,
+  sidebarText: swatch.pistachio,
+  sidebarActive: `${swatch.pistachio}18`,
+  // Danger palette (flat, no soft-shadow)
+  dangerBg: "#fff0f0",
+  dangerBorder: "#ffcdd2",
+  dangerText: "#c0392b",
+  warnBg: "#fffbe6",
+  warnBorder: "#ffe58f",
+  warnText: "#7d5200",
+} as const;
 
-function dscrColor(dscr: number): string {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+// dscrColor for Tailwind class usage (local — uses class names, not hex)
+function dscrColorClass(dscr: number): string {
   if (dscr >= 1.25) return "text-emerald";
   if (dscr >= 1.10) return "text-rain-forest";
   if (dscr >= 1.00) return "text-lemon-lime";
   if (dscr >= 0.75) return "text-orange-500";
   return "text-red-600";
 }
-function dscrBg(dscr: number): string {
+function dscrBgClass(dscr: number): string {
   if (dscr >= 1.25) return "bg-emerald/10 border-emerald/20";
   if (dscr >= 1.10) return "bg-rain-forest/10 border-rain-forest/20";
   if (dscr >= 1.00) return "bg-lemon-lime/10 border-lemon-lime/20";
@@ -45,16 +73,16 @@ function dscrLabel(dscr: number): string {
   if (dscr >= 0.75) return "FRAGILE";
   return "DEAL BREAK";
 }
-function pppBadgeColor(status: string) {
-  if (status === "ALLOWED") return "bg-emerald/20 text-emerald border-emerald/30";
-  if (status === "PROHIBITED") return "bg-red-500/20 text-red-500 border-red-500/30";
-  if (status === "CONDITIONAL") return "bg-lemon-lime/20 text-lemon-lime border-lemon-lime/30";
-  return "bg-slate-100 text-slate-700 border-slate-200";
+function pppBadgeStyle(status: string): React.CSSProperties {
+  if (status === "ALLOWED") return { color: swatch.rainforest, background: `${swatch.rainforest}14`, border: `1px solid ${swatch.rainforest}30` };
+  if (status === "PROHIBITED") return { color: T.dangerText, background: T.dangerBg, border: `1px solid ${T.dangerBorder}` };
+  if (status === "CONDITIONAL") return { color: swatch.midnight, background: `${swatch.lemon}40`, border: `1px solid ${swatch.lemon}80` };
+  return { color: T.ink, background: T.cardBg, border: `1px solid ${T.cardBorder}` };
 }
 const fmt$ = (n: number) => `$${Math.round(n).toLocaleString()}`;
 const fmtPct = (n: number) => `${n.toFixed(3)}%`;
 
-// ─── types ──────────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface SolveResult { deal: DSCRResult; topLenders: { name: string; score: number; tier: string; rank: number | null; topReasons: string[] }[] }
 interface SensResult { sensitivity: BreakevenResult }
@@ -90,7 +118,144 @@ const TAB_LABELS: Partial<Record<DashboardTab, string>> = {
   settings: "Workspace Settings",
 };
 
-// ─── component ──────────────────────────────────────────────────────────────
+// ─── Reusable primitives ─────────────────────────────────────────────────────
+
+/** Flat card — mint surface, 1px faded border, no shadow */
+function Card({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  return (
+    <div className={className}
+      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+/** White surface card (for input panels that sit on mint) */
+function WhiteCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  return (
+    <div className={className}
+      style={{ background: swatch.white, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+/** Primary action button — midnight bg, pistachio text */
+function PrimaryBtn({ children, onClick, disabled, type = "button", className = "" }:
+  { children: React.ReactNode; onClick?: () => void; disabled?: boolean; type?: "button" | "submit"; className?: string }) {
+  return (
+    <button type={type} onClick={onClick} disabled={disabled}
+      className={`inline-flex items-center justify-center gap-2 font-bold text-sm transition-colors active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${className}`}
+      style={{ background: swatch.midnight, color: swatch.pistachio, padding: "12px 22px", borderRadius: radius.sm, border: "none" }}
+      onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = swatch.rainforest; }}
+      onMouseLeave={e => { e.currentTarget.style.background = swatch.midnight; }}>
+      {children}
+    </button>
+  );
+}
+
+/** Secondary / ghost button */
+function GhostBtn({ children, onClick, className = "" }:
+  { children: React.ReactNode; onClick?: () => void; className?: string }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`inline-flex items-center justify-center gap-1.5 font-semibold text-xs transition-colors ${className}`}
+      style={{ color: swatch.rainforest, background: "transparent", padding: "9px 16px", borderRadius: radius.sm, border: `1px solid ${swatch.rainforest}40` }}
+      onMouseEnter={e => { e.currentTarget.style.background = `${swatch.rainforest}10`; }}
+      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
+      {children}
+    </button>
+  );
+}
+
+/** Flat label input */
+function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; helper?: string }) {
+  return (
+    <div className="space-y-1">
+      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <input {...props}
+        className="w-full px-3 py-2.5 text-sm font-mono outline-none transition-colors"
+        style={{
+          background: T.inputBg,
+          border: `1px solid ${T.inputBorder}`,
+          borderRadius: radius.sm,
+          color: T.ink,
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
+        onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }}
+      />
+      {helper && <p className="text-[10px]" style={{ color: T.faint }}>{helper}</p>}
+    </div>
+  );
+}
+
+/** Flat label select */
+function FieldSelect({ label, helper, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; helper?: string }) {
+  return (
+    <div className="space-y-1">
+      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <select {...props}
+        className="w-full px-3 py-2.5 text-sm outline-none transition-colors appearance-none"
+        style={{
+          background: T.inputBg,
+          border: `1px solid ${T.inputBorder}`,
+          borderRadius: radius.sm,
+          color: T.ink,
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; }}
+        onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; }}>
+        {children}
+      </select>
+      {helper && <p className="text-[10px]" style={{ color: T.faint }}>{helper}</p>}
+    </div>
+  );
+}
+
+/** Loading skeleton bar */
+function Skeleton({ h = 16, w = "100%", rounded = radius.sm }: { h?: number; w?: string | number; rounded?: string }) {
+  return <div style={{ height: h, width: w, borderRadius: rounded, background: `${swatch.midnight}10` }} className="animate-pulse" />;
+}
+
+/** API error banner with retry */
+function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="flex items-start gap-3 p-4" style={{ background: T.dangerBg, border: `1px solid ${T.dangerBorder}`, borderRadius: radius.md, color: T.dangerText }}>
+      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold">Something went wrong</p>
+        <p className="text-xs mt-0.5 opacity-80">{message}</p>
+      </div>
+      {onRetry && (
+        <button onClick={onRetry} className="shrink-0 text-xs font-bold underline" style={{ color: T.dangerText }}>Retry</button>
+      )}
+    </div>
+  );
+}
+
+/** Tab-change motion wrapper — interaction only, no page-load from() */
+function TabPane({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <motion.div key={id}
+      initial={{ opacity: 0, y: 3 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+      className="space-y-5">
+      {children}
+    </motion.div>
+  );
+}
+
+// ─── Disclaimer footer (compliance) ─────────────────────────────────────────
+function Disclaimer() {
+  return (
+    <p className="text-[10px] leading-relaxed" style={{ color: T.faint, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 10 }}>
+      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Contact us at +1 (555) 010-0000.
+    </p>
+  );
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ComplianceDashboard({ onBackToMarketing, initialEmail, initialTab }: ComplianceDashboardProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -104,6 +269,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [authError, setAuthError] = useState("");
 
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [brokerConfig, setBrokerConfig] = useState({ brokerName: "", nmls: "", licenseType: "Mortgage Broker", primaryMarket: "", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend." });
   const [brokerSaved, setBrokerSaved] = useState(false);
@@ -117,19 +283,18 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   });
 
   const [isRunning, setIsRunning] = useState(false);
+  const [solveError, setSolveError] = useState<string | null>(null);
   const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
   const [sensResult, setSensResult] = useState<SensResult | null>(null);
   const [optResult, setOptResult] = useState<OptResult | null>(null);
   const [stateInput, setStateInput] = useState("FL");
   const [isLoadingState, setIsLoadingState] = useState(false);
+  const [stateError, setStateError] = useState<string | null>(null);
   const [stateResult, setStateResult] = useState<StateResult | null>(null);
   const requestedTool = initialTab ? TAB_LABELS[initialTab] : undefined;
 
   const handleSiteNavigate = (view: string) => {
-    if (view === "marketing") {
-      onBackToMarketing();
-      return;
-    }
+    if (view === "marketing") { onBackToMarketing(); return; }
     const path = PORTAL_PATHS[view] || "/";
     window.history.pushState({}, "", path);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -194,10 +359,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     hoa: parseFloat(dealForm.hoa) || 0,
   });
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = useCallback(async () => {
     const payload = buildPayload();
     setIsRunning(true);
-    setSolveResult(null); setSensResult(null); setOptResult(null);
+    setSolveResult(null); setSensResult(null); setOptResult(null); setSolveError(null);
     try {
       const [solveRes, sensRes, optRes] = await Promise.all([
         fetch("/api/dscr/solve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
@@ -213,15 +378,15 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         `DSCR ${solve.deal.dscr.toFixed(2)}x — ${dealForm.propertyType} ${dealForm.state} ${dscrLabel(solve.deal.dscr)}`,
         JSON.stringify(payload), solve);
     } catch (err: any) {
-      alert("Engine error: " + err.message);
+      setSolveError(err.message || "Engine error. Check your inputs and try again.");
     } finally {
       setIsRunning(false);
     }
-  };
+  }, [dealForm]);
 
-  const handleStateRules = async () => {
+  const handleStateRules = useCallback(async () => {
     if (!stateInput.trim()) return;
-    setIsLoadingState(true); setStateResult(null);
+    setIsLoadingState(true); setStateResult(null); setStateError(null);
     try {
       const res = await fetch("/api/dscr/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state: stateInput }) });
       const data = await res.json();
@@ -229,26 +394,28 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
       setStateResult(data);
       await saveLog("state-rules", `State PPP: ${stateInput.toUpperCase()}`, stateInput, data);
     } catch (err: any) {
-      alert("State lookup error: " + err.message);
+      setStateError(err.message || "State lookup failed. Try again.");
     } finally {
       setIsLoadingState(false);
     }
-  };
+  }, [stateInput]);
 
   const ltv = dealForm.purchasePrice && dealForm.loanAmount
     ? ((parseFloat(dealForm.loanAmount) / parseFloat(dealForm.purchasePrice)) * 100).toFixed(1)
     : "—";
+
+  const switchTab = (tab: DashboardTab) => { setActiveTab(tab); setSelectedLog(null); setSidebarOpen(false); };
 
   // ── Auth loading ───────────────────────────────────────────────────────────
   if (authLoading) {
     return (
       <>
         <SiteNav onNavigate={handleSiteNavigate} />
-        <div className="min-h-screen bg-[#003738] flex flex-col items-center justify-center text-pistachio p-4">
-          <RefreshCw className="w-10 h-10 animate-spin text-emerald mb-4" />
-          <p className="text-sm font-semibold tracking-wider font-mono">LOADING DSCR ENGINE...</p>
+        <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: swatch.midnight }}>
+          <RefreshCw className="w-8 h-8 animate-spin mb-4" style={{ color: swatch.emerald }} />
+          <p className="text-sm font-semibold tracking-wider font-mono" style={{ color: swatch.pistachio }}>LOADING ENGINE…</p>
           {requestedTool && (
-            <p className="text-xs font-semibold text-pistachio/55 mt-3">Preparing {requestedTool}</p>
+            <p className="text-xs font-medium mt-2" style={{ color: `${swatch.pistachio}70` }}>Preparing {requestedTool}</p>
           )}
         </div>
       </>
@@ -260,56 +427,79 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     return (
       <>
         <SiteNav onNavigate={handleSiteNavigate} />
-        <div className="min-h-screen bg-pistachio flex items-center justify-center p-4 relative font-sans">
-          <div className="absolute inset-0 bg-dark-teal/10 bg-[radial-gradient(var(--color-emerald)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
-          <div className="max-w-md w-full bg-white rounded-2xl border border-slate-100 shadow-2xl p-8 relative z-10 text-dark-teal">
-          <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-emerald mb-6 transition">
-            <ArrowLeft className="w-3.5 h-3.5" /><span>Back</span>
-          </button>
-          <div className="text-center mb-8">
-            <div className="w-12 h-12 rounded-xl bg-dark-teal text-emerald font-extrabold text-2xl flex items-center justify-center mx-auto mb-3 shadow">G</div>
-            <h3 className="font-display text-2xl font-bold tracking-tight">INVEST<span style={{ opacity: 0.5 }}>GO</span></h3>
-            <p className="text-slate-500 text-xs mt-1">
-              {requestedTool
-                ? `${requestedTool} is part of the InvestGO special tools workspace. Sign in or use demo mode to open it.`
-                : "Every engine and calculation in one place. Sign in to start pricing deals."}
-            </p>
-          </div>
-          {authError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /><span>{authError}</span>
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ background: T.pageBg }}>
+          <div className="max-w-md w-full p-8" style={{ background: swatch.white, border: `1px solid ${T.cardBorder}`, borderRadius: radius.lg }}>
+            <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold mb-6 transition"
+              style={{ color: T.muted }}
+              onMouseEnter={e => e.currentTarget.style.color = swatch.rainforest}
+              onMouseLeave={e => e.currentTarget.style.color = T.muted}>
+              <ArrowLeft className="w-3.5 h-3.5" /><span>Back to site</span>
+            </button>
+            <div className="text-center mb-8">
+              <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3 font-extrabold text-2xl"
+                style={{ background: swatch.midnight, color: swatch.lemon, borderRadius: radius.sm }}>G</div>
+              <h3 className="font-bold tracking-tight text-2xl" style={{ color: T.ink, letterSpacing: "-0.03em" }}>
+                INVEST<span style={{ opacity: 0.4 }}>GO</span>
+              </h3>
+              <p className="text-xs mt-1.5" style={{ color: T.muted }}>
+                {requestedTool
+                  ? `${requestedTool} is part of the InvestGO workspace. Sign in or try demo mode.`
+                  : "Every DSCR engine and calculation in one place. Sign in to start pricing deals."}
+              </p>
             </div>
-          )}
-          <button onClick={() => setDemoMode(true)}
-            className="w-full py-2.5 border border-dashed border-slate-200 hover:border-dark-teal bg-slate-50 rounded-xl text-xs font-semibold text-slate-500 hover:text-dark-teal transition mb-3">
-            Try demo (no account needed)
-          </button>
-          <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { setAuthError(e.message); } }}
-            className="w-full py-3.5 border border-slate-200 hover:border-dark-teal bg-white rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition-all active:scale-[0.98]">
-            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-            </svg>
-            Sign in with Google
-          </button>
-          <div className="relative my-6 text-center text-xs text-slate-400">
-            <div className="absolute inset-x-0 top-1/2 h-px bg-slate-100" />
-            <span className="relative z-10 bg-white px-3 font-semibold uppercase tracking-wider">or email</span>
-          </div>
-          <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }} className="space-y-3">
-            <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} placeholder="broker@yourfirm.com" className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition" />
-            <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono" />
-            <button type="submit" className="w-full py-3.5 bg-dark-teal text-pistachio hover:bg-emerald hover:text-dark-teal text-sm font-bold rounded-xl transition shadow mt-4 active:scale-[0.98]">
-              {isSignUpMode ? "Create Account" : "Access Engine"}
+            {authError && (
+              <div className="mb-4 p-3 flex items-start gap-2 text-xs" style={{ background: T.dangerBg, border: `1px solid ${T.dangerBorder}`, borderRadius: radius.sm, color: T.dangerText }}>
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /><span>{authError}</span>
+              </div>
+            )}
+            <button onClick={() => setDemoMode(true)}
+              className="w-full py-2.5 text-xs font-semibold transition mb-3"
+              style={{ border: `1px dashed ${T.cardBorder}`, borderRadius: radius.sm, background: T.inputBg, color: T.muted }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = swatch.midnight; e.currentTarget.style.color = swatch.midnight; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = T.cardBorder; e.currentTarget.style.color = T.muted; }}>
+              Try demo mode — no account needed
             </button>
-          </form>
-          <div className="mt-4 text-center">
-            <button onClick={() => setIsSignUpMode(!isSignUpMode)} className="text-xs text-slate-500 hover:text-dark-teal font-semibold transition">
-              {isSignUpMode ? "Already registered? Sign in" : "New broker? Create account"}
+            <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { setAuthError(e.message); } }}
+              className="w-full py-3 flex items-center justify-center gap-3 text-sm font-semibold transition"
+              style={{ border: `1px solid ${T.cardBorder}`, borderRadius: radius.sm, background: swatch.white, color: T.ink }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = swatch.midnight; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = T.cardBorder; }}>
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" fill="#FBBC05" />
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+              </svg>
+              Sign in with Google
             </button>
-          </div>
+            <div className="relative my-5 text-center text-xs" style={{ color: T.faint }}>
+              <div className="absolute inset-x-0 top-1/2 h-px" style={{ background: T.cardBorder }} />
+              <span className="relative px-3 font-semibold uppercase tracking-wider" style={{ background: swatch.white }}>or email</span>
+            </div>
+            <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }}
+              className="space-y-3">
+              <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                placeholder="broker@yourfirm.com"
+                className="w-full px-4 py-3 text-sm outline-none transition-colors"
+                style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
+                onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
+                onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
+              <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full px-4 py-3 text-sm outline-none transition-colors font-mono"
+                style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
+                onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
+                onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
+              <PrimaryBtn type="submit" className="w-full mt-2">{isSignUpMode ? "Create Account" : "Access Engine"}</PrimaryBtn>
+            </form>
+            <div className="mt-4 text-center">
+              <button onClick={() => setIsSignUpMode(!isSignUpMode)} className="text-xs font-semibold transition"
+                style={{ color: T.muted }}
+                onMouseEnter={e => e.currentTarget.style.color = swatch.midnight}
+                onMouseLeave={e => e.currentTarget.style.color = T.muted}>
+                {isSignUpMode ? "Already registered? Sign in" : "New broker? Create account"}
+              </button>
+            </div>
           </div>
         </div>
       </>
@@ -321,99 +511,94 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
   // ── Sidebar nav data ─────────────────────────────────────────────────────
   const navWorkspace = [
-    { key: "dashboard", icon: "≡", label: "Pipeline" },
-    { key: "analyze",   icon: "◰", label: "DSCR Analyzer" },
-    { key: "sensitivity", icon: "%", label: "Sensitivity" },
-    { key: "optimize",  icon: "⊕", label: "Optimizer" },
-    { key: "history",   icon: "⤓", label: "History", count: auditLogs.length },
+    { key: "dashboard",   icon: <BarChart2 className="w-4 h-4" />,   label: "Pipeline" },
+    { key: "analyze",     icon: <Calculator className="w-4 h-4" />,   label: "DSCR Analyzer" },
+    { key: "sensitivity", icon: <TrendingUp className="w-4 h-4" />,   label: "Sensitivity" },
+    { key: "optimize",    icon: <Zap className="w-4 h-4" />,          label: "Optimizer" },
+    { key: "history",     icon: <History className="w-4 h-4" />,      label: "History", count: auditLogs.length },
   ] as const;
 
   const navTools = [
-    { key: "state",       icon: "§", label: "State Rules" },
-    { key: "stress",      icon: "▦", label: "Stress Matrix" },
-    { key: "refi",        icon: "~", label: "Refi Tracker" },
-    { key: "returns",     icon: "$", label: "Returns / IRR" },
-    { key: "arm",         icon: "↺", label: "ARM Reset" },
-    { key: "montecarlo",  icon: "∿", label: "Monte Carlo" },
-    { key: "tax",         icon: "%", label: "Tax Engine" },
-    { key: "decision",    icon: "⊕", label: "Decision Support" },
-    { key: "str",         icon: "☼", label: "STR" },
-    { key: "portfolio",   icon: "◰", label: "Portfolio" },
+    { key: "state",      icon: <MapPin className="w-4 h-4" />,     label: "State Rules" },
+    { key: "stress",     icon: <Shield className="w-4 h-4" />,     label: "Stress Matrix" },
+    { key: "refi",       icon: <RefreshCw className="w-4 h-4" />,  label: "Refi Tracker" },
+    { key: "returns",    icon: <TrendingUp className="w-4 h-4" />, label: "Returns / IRR" },
+    { key: "arm",        icon: <Sparkles className="w-4 h-4" />,   label: "ARM Reset" },
+    { key: "montecarlo", icon: <BarChart2 className="w-4 h-4" />,  label: "Monte Carlo" },
+    { key: "tax",        icon: <CheckCircle className="w-4 h-4" />,label: "Tax Engine" },
+    { key: "decision",   icon: <Search className="w-4 h-4" />,     label: "Decision Support" },
+    { key: "str",        icon: <Settings2 className="w-4 h-4" />,  label: "STR" },
+    { key: "portfolio",  icon: <Shield className="w-4 h-4" />,     label: "Portfolio" },
+    { key: "settings",   icon: <Settings2 className="w-4 h-4" />,  label: "Workspace Settings" },
   ] as const;
 
   const viewTitle: Record<DashboardTab, string> = {
-    dashboard: "Pipeline overview",
-    analyze: "DSCR Deal Analyzer",
-    sensitivity: "Sensitivity & Breakeven",
-    optimize: "Loan Structure Optimizer",
-    state: "State PPP / Prepay Rules",
+    dashboard: "Pipeline",
+    analyze: "Deal Workspace",
+    sensitivity: "Sensitivity Lab",
+    optimize: "Structure Optimizer",
+    state: "State Rules",
     refi: "Refi Tracker",
     arm: "ARM Reset Risk",
-    montecarlo: "Monte Carlo Rate Paths",
+    montecarlo: "Monte Carlo",
     returns: "Returns & IRR",
-    tax: "After-Tax IRR",
+    tax: "Tax Engine",
     stress: "Stress Matrix",
     decision: "Decision Support",
     str: "STR Underwriting",
     portfolio: "Portfolio Analyzer",
-    history: "Deal History",
-    settings: "Broker Profile",
+    history: "Scenario History",
+    settings: "Workspace Settings",
   };
 
-  // ── Demo pipeline data for workspace landing ──────────────────────────────
+  // Pipeline demo data
   const demoPipeline = [
-    { prop: "1421 Oak St, Austin TX",    type: "SFR",    amt: 318750, dscr: 1.34, stage: "Submitted", risk: 0 },
-    { prop: "88 Bayshore, Tampa FL",     type: "Duplex", amt: 364000, dscr: 1.51, stage: "Priced",    risk: 0 },
-    { prop: "7 Desert Vw, Phoenix AZ",   type: "SFR",    amt: 304200, dscr: 0.98, stage: "Review",    risk: 1 },
-    { prop: "200 Beale, Memphis TN",     type: "4-plex", amt: 435000, dscr: 1.62, stage: "Submitted", risk: 0 },
-    { prop: "45 Harbor, Newark NJ",      type: "SFR",    amt: 280000, dscr: 1.12, stage: "Priced",    risk: 2 },
-    { prop: "19 Pine, Columbus OH",      type: "Duplex", amt: 255000, dscr: 1.28, stage: "Review",    risk: 1 },
+    { prop: "1421 Oak St, Austin TX",    type: "SFR",    amt: 318750, dscr: 1.34, stage: "Submitted" },
+    { prop: "88 Bayshore, Tampa FL",     type: "Duplex", amt: 364000, dscr: 1.51, stage: "Priced" },
+    { prop: "7 Desert Vw, Phoenix AZ",   type: "SFR",    amt: 304200, dscr: 0.98, stage: "Review" },
+    { prop: "200 Beale, Memphis TN",     type: "4-plex", amt: 435000, dscr: 1.62, stage: "Submitted" },
+    { prop: "45 Harbor, Newark NJ",      type: "SFR",    amt: 280000, dscr: 1.12, stage: "Priced" },
+    { prop: "19 Pine, Columbus OH",      type: "Duplex", amt: 255000, dscr: 1.28, stage: "Review" },
   ];
 
   const brokerInitials = brokerConfig.brokerName
     ? brokerConfig.brokerName.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase()
     : userEmail.charAt(0).toUpperCase();
-
   const brokerDisplayName = brokerConfig.brokerName || userEmail;
   const brokerMarket = brokerConfig.primaryMarket || "Your Market";
 
-  return (
-    <>
-      <SiteNav onNavigate={handleSiteNavigate} />
-      <div className="min-h-screen bg-pistachio text-dark-teal flex flex-col md:flex-row antialiased font-sans">
-
-      {/* ── Sidebar ── */}
-      <aside className="w-full md:w-[248px] bg-midnight-green text-pistachio shrink-0 flex flex-col" style={{ padding: "24px 16px" }}>
-        {/* Wordmark */}
-        <button onClick={onBackToMarketing}
-          className="text-left text-pistachio font-semibold text-xl tracking-tight mb-6 px-3 pb-6 hover:opacity-80 transition"
-          style={{ letterSpacing: "-0.04em", borderBottom: "none" }}>
+  // Sidebar shared render
+  function SidebarContent() {
+    return (
+      <>
+        <button onClick={() => { onBackToMarketing(); setSidebarOpen(false); }}
+          className="text-left font-bold mb-6 px-3 pb-5 transition block"
+          style={{ color: swatch.pistachio, fontSize: 18, letterSpacing: "-0.04em", borderBottom: `1px solid ${swatch.pistachio}18`, width: "100%" }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.7"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
           Greenstreet
         </button>
 
-        {/* Workspace section */}
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-pistachio/40 px-3 mb-2.5">Workspace</div>
-        <nav className="space-y-0.5">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] px-3 mb-2"
+          style={{ color: `${swatch.pistachio}50` }}>Workspace</div>
+        <nav className="space-y-0.5 mb-4">
           {navWorkspace.map(({ key, icon, label, count }: any) => {
             const active = activeTab === key;
             return (
-              <button key={key}
-                onClick={() => { setActiveTab(key as DashboardTab); setSelectedLog(null); }}
-                className="w-full flex items-center gap-[11px] text-left text-sm rounded-md transition"
+              <button key={key} onClick={() => switchTab(key as DashboardTab)}
+                className="w-full flex items-center gap-2.5 text-left text-sm transition"
                 style={{
-                  padding: "11px 12px",
+                  padding: "10px 12px",
+                  borderRadius: radius.sm,
                   fontWeight: active ? 600 : 500,
-                  color: active ? swatch.pistachio : `${swatch.pistachio}b8`,
-                  background: active ? `${swatch.pistachio}18` : "transparent",
+                  color: active ? swatch.pistachio : `${swatch.pistachio}b0`,
+                  background: active ? T.sidebarActive : "transparent",
                 }}>
-                <span className="font-mono w-[18px] text-center shrink-0"
-                  style={{ color: active ? swatch.lemon : swatch.emerald, fontSize: "14px" }}>
-                  {icon}
-                </span>
+                <span style={{ color: active ? swatch.lemon : swatch.emerald, display: "flex", alignItems: "center" }}>{icon}</span>
                 <span className="flex-1">{label}</span>
                 {count !== undefined && count > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                    style={{ background: `${swatch.emerald}28`, color: swatch.emerald }}>
+                  <span className="text-[10px] px-1.5 py-0.5 font-bold"
+                    style={{ background: `${swatch.emerald}28`, color: swatch.emerald, borderRadius: radius.pill }}>
                     {count}
                   </span>
                 )}
@@ -422,857 +607,1039 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           })}
         </nav>
 
-        {/* Tools section */}
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-pistachio/40 px-3 mt-5 mb-2.5">Tools</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] px-3 mb-2"
+          style={{ color: `${swatch.pistachio}50` }}>Tools</div>
         <nav className="space-y-0.5">
           {navTools.map(({ key, icon, label }) => {
             const active = activeTab === key;
             return (
-              <button key={key}
-                onClick={() => { setActiveTab(key as DashboardTab); setSelectedLog(null); }}
-                className="w-full flex items-center gap-[11px] text-left text-sm rounded-md transition"
+              <button key={key} onClick={() => switchTab(key as DashboardTab)}
+                className="w-full flex items-center gap-2.5 text-left text-sm transition"
                 style={{
-                  padding: "10px 12px",
-                  fontWeight: 500,
-                  color: active ? swatch.pistachio : `${swatch.pistachio}b8`,
-                  background: active ? `${swatch.pistachio}18` : "transparent",
+                  padding: "9px 12px",
+                  borderRadius: radius.sm,
+                  fontWeight: active ? 600 : 400,
+                  color: active ? swatch.pistachio : `${swatch.pistachio}90`,
+                  background: active ? T.sidebarActive : "transparent",
                 }}>
-                <span className="font-mono w-[18px] text-center shrink-0" style={{ color: swatch.emerald, fontSize: "14px" }}>
-                  {icon}
-                </span>
+                <span style={{ color: active ? swatch.lemon : `${swatch.emerald}b0`, display: "flex", alignItems: "center" }}>{icon}</span>
                 {label}
               </button>
             );
           })}
         </nav>
 
-        {/* User chip */}
         <div className="mt-auto flex items-center gap-2.5 px-3 pt-3"
-          style={{ borderTop: `1px solid ${swatch.pistachio}1a` }}>
-          <span className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold shrink-0"
-            style={{ background: swatch.emerald, color: swatch.midnight }}>
+          style={{ borderTop: `1px solid ${swatch.pistachio}18` }}>
+          <span className="w-8 h-8 flex items-center justify-center text-[13px] font-semibold shrink-0"
+            style={{ background: swatch.emerald, color: swatch.midnight, borderRadius: "50%" }}>
             {brokerInitials}
           </span>
           <div className="overflow-hidden">
-            <div className="text-[13px] font-semibold text-pistachio truncate">{brokerDisplayName}</div>
-            <div className="text-[11px] text-pistachio/50 truncate">{brokerMarket}</div>
+            <div className="text-[13px] font-semibold truncate" style={{ color: swatch.pistachio }}>{brokerDisplayName}</div>
+            <div className="text-[11px] truncate" style={{ color: `${swatch.pistachio}60` }}>{brokerMarket}</div>
           </div>
-          <button onClick={logoutUser} className="ml-auto p-1.5 hover:bg-pistachio/10 rounded transition text-pistachio/50 hover:text-pistachio shrink-0" title="Sign Out">
+          <button onClick={logoutUser} className="ml-auto p-1.5 transition shrink-0"
+            style={{ color: `${swatch.pistachio}60`, borderRadius: radius.sm }}
+            title="Sign Out"
+            onMouseEnter={e => { e.currentTarget.style.background = `${swatch.pistachio}10`; e.currentTarget.style.color = swatch.pistachio; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = `${swatch.pistachio}60`; }}>
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
-      </aside>
+      </>
+    );
+  }
 
-      {/* ── Main ── */}
-      <main className="flex-1 min-w-0 overflow-y-auto flex flex-col">
+  return (
+    <>
+      <SiteNav onNavigate={handleSiteNavigate} />
+      <div className="min-h-screen antialiased font-sans flex flex-col" style={{ background: T.pageBg }}>
 
-        {/* Sticky header — solid, no blur */}
-        <header className="sticky top-0 z-10 flex items-center justify-between"
-          style={{
-            background: swatch.pistachio,
-            borderBottom: `1px solid ${swatch.midnight}20`,
-            padding: "20px clamp(20px,3vw,40px)",
-          }}>
-          <div>
-            <div className="text-[12px] font-semibold uppercase tracking-[0.04em]" style={{ color: swatch.rainforest }}>
-              Workspace
-            </div>
-            <div className="font-semibold mt-0.5" style={{ fontSize: "clamp(20px,2vw,26px)", letterSpacing: "-0.03em", color: swatch.midnight }}>
-              {viewTitle[activeTab] ?? "Dashboard"}
-            </div>
-          </div>
-          <button onClick={() => setActiveTab("analyze")}
-            className="inline-flex items-center gap-1.5 font-semibold text-sm transition"
-            style={{ background: swatch.midnight, color: swatch.mint, padding: "11px 20px", borderRadius: radius.sm }}>
-            + New deal
+        {/* Mobile top-bar */}
+        <div className="flex items-center justify-between px-4 py-3 md:hidden"
+          style={{ background: swatch.midnight, borderBottom: `1px solid ${swatch.pistachio}18` }}>
+          <span className="font-bold text-base" style={{ color: swatch.pistachio, letterSpacing: "-0.04em" }}>Greenstreet</span>
+          <button onClick={() => setSidebarOpen(v => !v)} style={{ color: swatch.pistachio }}>
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-        </header>
+        </div>
 
-        <div className="flex-1 p-6 md:p-8">
-          <div className="max-w-5xl w-full mx-auto">
+        {/* Mobile sidebar drawer */}
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.div
+              key="sidebar-drawer"
+              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 flex md:hidden"
+              onClick={() => setSidebarOpen(false)}>
+              <div className="w-64 h-full flex flex-col p-5 overflow-y-auto"
+                onClick={e => e.stopPropagation()}
+                style={{ background: swatch.midnight }}>
+                <SidebarContent />
+              </div>
+              <div className="flex-1" style={{ background: `${swatch.midnight}60` }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <AnimatePresence mode="wait">
+        <div className="flex flex-1">
+          {/* Desktop sidebar */}
+          <aside className="hidden md:flex flex-col w-[248px] shrink-0 p-5 overflow-y-auto"
+            style={{ background: swatch.midnight, minHeight: "calc(100vh - 0px)" }}>
+            <SidebarContent />
+          </aside>
 
-            {/* ── DASHBOARD ── */}
-            {activeTab === "dashboard" && (
-              <motion.div key="dashboard" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5">
+          {/* Main */}
+          <main className="flex-1 min-w-0 flex flex-col overflow-y-auto">
 
-                {/* KPI row */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {([
-                    { label: "Active deals",    value: "6",    color: "#003738", delta: "+2 this week",       deltaColor: "#006565" },
-                    { label: "Avg DSCR",        value: "1.31x", color: "#006565", delta: "Healthy book",       deltaColor: "#006565" },
-                    { label: "Pipeline volume", value: "$2.0M", color: "#003738", delta: "+$0.4M MTD",          deltaColor: "#006565" },
-                    { label: "Flagged states",  value: "2",    color: "#b04545", delta: "NJ · OH need review", deltaColor: "#9a7b00" },
-                  ] as const).map(({ label, value, color, delta, deltaColor }) => (
-                    <div key={label} className="bg-white rounded-lg p-6" style={{ border: `1px solid ${swatch.midnight}15` }}>
-                      <div className="text-[12px] font-semibold uppercase tracking-[0.03em] mb-2.5" style={{ color: `${swatch.midnight}80` }}>{label}</div>
-                      <div className="font-semibold font-mono" style={{ fontSize: "clamp(26px,2.6vw,36px)", letterSpacing: "-0.03em", color }}>{value}</div>
-                      <div className="text-[13px] font-medium mt-1.5" style={{ color: deltaColor }}>{delta}</div>
-                    </div>
-                  ))}
+            {/* Sticky header */}
+            <header className="sticky top-0 z-10 flex items-center justify-between"
+              style={{
+                background: T.pageBg,
+                borderBottom: `1px solid ${T.cardBorder}`,
+                padding: "18px clamp(16px, 3vw, 36px)",
+              }}>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: swatch.rainforest }}>Workspace</div>
+                <div className="font-bold mt-0.5" style={{ fontSize: "clamp(18px, 2vw, 24px)", letterSpacing: "-0.03em", color: T.ink }}>
+                  {viewTitle[activeTab] ?? "Dashboard"}
                 </div>
+              </div>
+              <PrimaryBtn onClick={() => switchTab("analyze")}>
+                + New deal
+              </PrimaryBtn>
+            </header>
 
-                {/* Two-column layout */}
-                <div className="grid gap-5" style={{ gridTemplateColumns: "1.55fr 1fr" }}>
+            {/* Content */}
+            <div className="flex-1 p-4 md:p-7">
+              <div className="max-w-5xl w-full mx-auto">
+                <AnimatePresence mode="wait">
 
-                  {/* Pipeline table */}
-                  <div className="bg-white rounded-lg p-7" style={{ border: `1px solid ${swatch.midnight}15` }}>
-                    <div className="text-[17px] font-semibold mb-5" style={{ letterSpacing: "-0.02em" }}>Active pipeline</div>
-                    <div>
-                      {demoPipeline.map((d) => {
-                        const dscrNum = d.dscr;
-                        const dscrCol = dscrNum >= 1.25 ? "#006565" : dscrNum >= 1.0 ? "#9a7b00" : "#b04545";
-                        const stageBg = d.stage === "Submitted" ? "rgba(0,101,101,0.1)" : "rgba(0,55,56,0.05)";
-                        const stageCol = d.stage === "Submitted" ? "#006565" : d.stage === "Priced" ? "#006565" : "#9a7b00";
-                        return (
-                          <div key={d.prop}
-                            className="grid items-center gap-4 cursor-default transition"
-                            style={{
-                              gridTemplateColumns: "1fr auto auto auto",
-                              padding: "15px 12px",
-                              borderBottom: `1px solid ${swatch.midnight}15`,
-                              borderRadius: radius.sm,
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.background = `${swatch.midnight}10`)}
-                            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                            {/* Property */}
-                            <div>
-                              <div className="text-[14px] font-semibold mb-0.5" style={{ color: swatch.midnight }}>{d.prop}</div>
-                              <div className="flex gap-2 items-center">
-                                <span className="text-[12px] font-medium" style={{ color: `${swatch.midnight}80` }}>
-                                  {d.type} · ${Math.round(d.amt).toLocaleString()}
-                                </span>
-                                {d.risk === 2 && (
-                                  <span className="text-[10px] font-bold uppercase tracking-[0.04em] rounded px-1.5 py-0.5"
-                                    style={{ color: "#b04545", background: "rgba(176,69,69,0.1)" }}>
-                                    PPP risk
-                                  </span>
-                                )}
-                                {d.risk === 1 && (
-                                  <span className="text-[10px] font-bold uppercase tracking-[0.04em] rounded px-1.5 py-0.5"
-                                    style={{ color: "#9a7b00", background: "rgba(154,123,0,0.1)" }}>
-                                    threshold
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {/* DSCR */}
-                            <div className="font-mono text-[15px] font-bold" style={{ color: dscrCol }}>{d.dscr.toFixed(2)}x</div>
-                            {/* Stage pill */}
-                            <div className="text-[12px] font-semibold rounded px-[11px] py-1" style={{ color: stageCol, background: stageBg }}>
-                              {d.stage}
-                            </div>
-                            {/* Open */}
-                            <button
-                              onClick={() => setActiveTab("analyze")}
-                              className="text-[13px] font-semibold transition"
-                              style={{ color: "#006565" }}
-                              onMouseEnter={e => (e.currentTarget.style.color = "#003738")}
-                              onMouseLeave={e => (e.currentTarget.style.color = "#006565")}>
-                              Open →
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Right column */}
-                  <div className="flex flex-col gap-5">
-                    {/* Compliance status */}
-                    <div className="rounded-lg p-6" style={{ background: swatch.midnight, color: swatch.pistachio, border: `1px solid ${swatch.midnight}30` }}>
-                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: swatch.lemon }}>
-                        Compliance status
-                      </div>
-                      {([
-                        { label: "17a-4 WORM archive", status: "Active",  statusColor: "#003738", statusBg: "#d8d958" },
-                        { label: "IC memos generated", status: "6 / 6",   statusColor: "#003738", statusBg: "#4dbd97" },
-                        { label: "State rules current", status: "Synced",  statusColor: "#003738", statusBg: "#4dbd97" },
-                        { label: "Exam export",         status: "Ready",   statusColor: "#003738", statusBg: "#4dbd97" },
-                      ] as const).map(({ label, status, statusColor, statusBg }) => (
-                        <div key={label} className="flex items-center justify-between py-2.5"
-                          style={{ borderBottom: `1px solid ${swatch.pistachio}1a` }}>
-                          <span className="text-[14px] font-medium" style={{ color: `${swatch.pistachio}cc` }}>{label}</span>
-                          <span className="text-[12px] font-semibold tracking-[0.02em] rounded px-2.5 py-1"
-                            style={{ color: statusColor, background: statusBg }}>
-                            {status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* State-rule alerts */}
-                    <div className="rounded-lg p-6" style={{ background: swatch.mint, border: `1px solid ${swatch.midnight}15` }}>
-                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: swatch.rainforest }}>
-                        State-rule alerts
-                      </div>
-                      {([
-                        { mark: "✕", markColor: "#b04545", text: "45 Harbor (NJ): prepay penalty high-risk for LLC — restructure or expect +0.25% rate." },
-                        { mark: "~", markColor: "#9a7b00", text: "19 Pine (OH): threshold-based PPP — confirm loan clears the $116,356 exemption." },
-                        { mark: "~", markColor: "#9a7b00", text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
-                      ] as const).map(({ mark, markColor, text }) => (
-                        <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: `1px solid ${swatch.midnight}15` }}>
-                          <span className="font-bold shrink-0" style={{ color: markColor }}>{mark}</span>
-                          <span className="text-[13px] font-medium leading-relaxed" style={{ color: `${swatch.midnight}b8` }}>{text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ── ANALYZE ── */}
-            {activeTab === "analyze" && (
-              <motion.div key="analyze" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-
-                  {/* Input form */}
-                  <div className="lg:col-span-2 bg-white border border-slate-100 rounded-2xl shadow-sm p-6 space-y-4">
-                    <h2 className="font-bold text-dark-teal">Deal Parameters</h2>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: "Purchase Price", key: "purchasePrice", type: "number" },
-                        { label: "Loan Amount", key: "loanAmount", type: "number" },
-                        { label: "Monthly Gross Rent", key: "monthlyRent", type: "number" },
-                        { label: "FICO Score", key: "ficoScore", type: "number" },
-                        { label: "HOA (monthly)", key: "hoa", type: "number" },
-                      ].map(({ label, key, type }) => (
-                        <div key={key} className="space-y-1">
-                          <label className="text-[11px] font-bold text-slate-500">{label}</label>
-                          <input type={type} value={(dealForm as any)[key]}
-                            onChange={e => setDealForm(p => ({ ...p, [key]: e.target.value }))}
-                            className="w-full px-3 py-2.5 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono" />
-                        </div>
-                      ))}
-
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-500">State (2-letter)</label>
-                        <input type="text" maxLength={2} value={dealForm.state}
-                          onChange={e => setDealForm(p => ({ ...p, state: e.target.value.toUpperCase() }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono uppercase" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-500">Property Type</label>
-                        <select value={dealForm.propertyType} onChange={e => setDealForm(p => ({ ...p, propertyType: e.target.value }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-xs transition">
-                          <option value="SFR">SFR</option>
-                          <option value="2-4_UNIT">2-4 Unit</option>
-                          <option value="CONDO_WARRANTABLE">Condo</option>
-                          <option value="CONDO_NON_WARRANTABLE">Non-Warrantable</option>
-                          <option value="5+_UNIT">5+ Unit</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-500">Purpose</label>
-                        <select value={dealForm.loanPurpose} onChange={e => setDealForm(p => ({ ...p, loanPurpose: e.target.value }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-xs transition">
-                          <option value="PURCHASE">Purchase</option>
-                          <option value="REFI_RATE_TERM">Rate/Term Refi</option>
-                          <option value="CASH_OUT_REFI">Cash-Out Refi</option>
-                          <option value="DELAYED_FINANCING">Delayed Financing</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-bold text-slate-500">Strategy</label>
-                        <select value={dealForm.strategy} onChange={e => setDealForm(p => ({ ...p, strategy: e.target.value }))}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-xs transition">
-                          <option value="LTR">LTR</option>
-                          <option value="STR">STR</option>
-                          <option value="MTR">MTR</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="text-[11px] text-slate-400 font-mono">LTV: {ltv}% · Rate auto-solved by engine</div>
-
-                    <button onClick={handleAnalyze} disabled={isRunning}
-                      className="w-full py-3 bg-dark-teal hover:bg-emerald hover:text-dark-teal text-pistachio font-bold rounded-xl transition shadow flex items-center justify-center gap-2 disabled:opacity-60">
-                      {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
-                      {isRunning ? "Running engine..." : "Analyze Deal"}
-                    </button>
-
-                    {!solveResult && !isRunning && (
-                      <p className="text-[11px] text-slate-400 text-center">Engine runs solve + sensitivity + optimizer in parallel</p>
-                    )}
-                  </div>
-
-                  {/* Results */}
-                  <div className="lg:col-span-3 space-y-4">
-                    {!solveResult && !isRunning && (
-                      <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-10 text-center text-slate-400">
-                        <Calculator className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                        <p className="text-sm font-semibold">Enter deal parameters and run analysis.</p>
-                        <p className="text-xs mt-1">Dual-track DSCR, PITIA breakdown, rate headroom.</p>
-                      </div>
-                    )}
-                    {isRunning && (
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center">
-                        <RefreshCw className="w-8 h-8 mx-auto mb-3 animate-spin text-dark-teal" />
-                        <p className="text-sm font-bold text-dark-teal">Solving deal...</p>
-                      </div>
-                    )}
-
-                    {deal && (
-                      <>
-                        {/* DSCR verdict card */}
-                        <div className={`p-6 rounded-2xl border ${dscrBg(deal.dscr)}`}>
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <div className={`text-5xl font-extrabold font-mono ${dscrColor(deal.dscr)}`}>{deal.dscr.toFixed(2)}x</div>
-                              <div className="text-xs font-bold uppercase tracking-widest mt-1 opacity-60">DSCR — Track 1</div>
-                            </div>
-                            <div className={`px-3 py-1.5 rounded-xl font-bold text-sm border ${dscrBg(deal.dscr)} ${dscrColor(deal.dscr)}`}>
-                              {dscrLabel(deal.dscr)}
-                            </div>
-                          </div>
-                          <p className="text-sm opacity-80">{deal.dualTrackDSCR.verdict.summary}</p>
-                        </div>
-
-                        {/* Dual-track */}
-                        <div className="grid grid-cols-2 gap-3">
-                          {[deal.dualTrackDSCR.track1, deal.dualTrackDSCR.track2].map(track => (
-                            <div key={track.label} className={`rounded-xl border p-4 ${track.passes ? "bg-emerald/10 border-emerald/20" : "bg-red-50 border-red-200"}`}>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-bold text-slate-600">{track.label}</span>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${track.passes ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>
-                                  {track.passes ? "PASS" : "FAIL"}
-                                </span>
-                              </div>
-                              <div className={`text-2xl font-extrabold font-mono ${track.passes ? "text-emerald-700" : "text-red-700"}`}>{track.dscr.toFixed(2)}x</div>
-                              <div className="text-[11px] text-slate-500 mt-1">Qualifying rent: {fmt$(track.qualifyingRent)}/mo</div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* PITIA breakdown */}
-                        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                          <h4 className="font-bold text-dark-teal text-sm mb-3">PITIA Breakdown</h4>
-                          <div className="space-y-2">
-                            {[
-                              { label: "Principal & Interest", value: deal.monthlyPITIA.principalAndInterest },
-                              { label: "Annual Taxes (monthly)", value: deal.monthlyPITIA.taxes },
-                              { label: "Insurance (monthly)", value: deal.monthlyPITIA.insurance },
-                              ...(deal.monthlyPITIA.hoa > 0 ? [{ label: "HOA", value: deal.monthlyPITIA.hoa }] : []),
-                              ...(deal.monthlyPITIA.floodInsurance > 0 ? [{ label: "Flood Insurance", value: deal.monthlyPITIA.floodInsurance }] : []),
-                            ].map(({ label, value }) => (
-                              <div key={label} className="flex justify-between items-center text-sm">
-                                <span className="text-slate-500">{label}</span>
-                                <span className="font-mono font-semibold text-slate-700">{fmt$(value)}/mo</span>
-                              </div>
-                            ))}
-                            <div className="flex justify-between items-center text-sm font-bold border-t border-slate-100 pt-2 mt-2">
-                              <span className="text-dark-teal">Total PITIA</span>
-                              <span className="font-mono text-dark-teal text-base">{fmt$(deal.monthlyPITIA.total)}/mo</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Key metrics grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          {[
-                            { label: "Solved Rate", value: fmtPct(deal.solvedRate), sub: deal.tripleRate.dateStamp },
-                            { label: "Deal-Break Rate", value: fmtPct(deal.dealBreakRate), sub: "rate where DSCR = 1.0" },
-                            { label: "Rate Headroom", value: `${deal.rateHeadroomBps} bps`, sub: deal.rateHeadroomBps > 0 ? "buffer before failure" : "rate too high" },
-                            { label: "Loan Amount", value: fmt$(deal.loanAmount), sub: `${ltv}% LTV` },
-                            { label: "Debt Yield", value: `${deal.debtYield.toFixed(2)}%`, sub: "NOI / loan amount" },
-                            { label: "Cash to Close", value: fmt$(deal.cashToClose.total), sub: "base estimate" },
-                          ].map(({ label, value, sub }) => (
-                            <div key={label} className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
-                              <p className="text-[11px] text-slate-400 font-semibold mb-1">{label}</p>
-                              <p className="font-bold text-dark-teal font-mono text-base">{value}</p>
-                              <p className="text-[10px] text-slate-400 mt-0.5">{sub}</p>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Top lenders — minimal */}
-                        {solveResult.topLenders.length > 0 && (
-                          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                            <h4 className="font-bold text-dark-teal text-sm mb-3">Top Matching Lenders</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {solveResult.topLenders.map((l, i) => (
-                                <div key={i} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                                  <span className="font-bold text-dark-teal">{l.name}</span>
-                                  <span className="text-slate-400 ml-2">{l.score}/100</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Quick-nav hints */}
-                        {(sensResult || optResult) && (
-                          <div className="flex gap-3">
-                            {sensResult && (
-                              <button onClick={() => setActiveTab("sensitivity")} className="flex-1 py-2.5 bg-slate-100 hover:bg-dark-teal hover:text-white text-dark-teal text-xs font-bold rounded-xl transition border border-slate-200 hover:border-dark-teal">
-                                View Sensitivity →
-                              </button>
-                            )}
-                            {optResult && (
-                              <button onClick={() => setActiveTab("optimize")} className="flex-1 py-2.5 bg-slate-100 hover:bg-dark-teal hover:text-white text-dark-teal text-xs font-bold rounded-xl transition border border-slate-200 hover:border-dark-teal">
-                                View Optimizer →
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ── SENSITIVITY ── */}
-            {activeTab === "sensitivity" && (
-              <motion.div key="sensitivity" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
-                {!sensResult ? (
-                  <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400">
-                    <BarChart2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm font-semibold">Run DSCR Analyzer first to populate sensitivity data.</p>
-                    <button onClick={() => setActiveTab("analyze")} className="mt-4 px-5 py-2 bg-dark-teal text-white text-xs font-bold rounded-xl transition">
-                      Go to Analyzer →
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                      {/* Rent breakeven */}
-                      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-dark-teal text-sm mb-4">Rent Breakeven</h4>
-                        <div className="space-y-3">
-                          {[
-                            { label: "1.0x DSCR (floor)", value: sensResult.sensitivity.rentBreakeven.for1_0, color: "text-lemon-lime" },
-                            { label: "1.10x DSCR", value: sensResult.sensitivity.rentBreakeven.for1_10, color: "text-rain-forest" },
-                            { label: "1.25x DSCR (strong)", value: sensResult.sensitivity.rentBreakeven.for1_25, color: "text-emerald" },
-                          ].map(({ label, value, color }) => (
-                            <div key={label} className="flex justify-between items-center">
-                              <span className="text-xs text-slate-500">{label}</span>
-                              <span className={`font-mono font-bold text-sm ${color}`}>{fmt$(value)}/mo</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Rate breakeven */}
-                      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-dark-teal text-sm mb-4">Max Rate</h4>
-                        <div className="space-y-3">
-                          {[
-                            { label: "Still qualifies (1.0x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_0, color: "text-lemon-lime" },
-                            { label: "Comfortable (1.10x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_10, color: "text-rain-forest" },
-                            { label: "Strong (1.25x)", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_25, color: "text-emerald" },
-                          ].map(({ label, value, color }) => (
-                            <div key={label} className="flex justify-between items-center">
-                              <span className="text-xs text-slate-500">{label}</span>
-                              <span className={`font-mono font-bold text-sm ${color}`}>{fmtPct(value)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Price breakeven */}
-                      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-dark-teal text-sm mb-4">Max Purchase Price</h4>
-                        <div className="space-y-3">
-                          {[
-                            { label: "1.0x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_0, color: "text-lemon-lime" },
-                            { label: "1.10x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_10, color: "text-rain-forest" },
-                            { label: "1.25x DSCR", value: sensResult.sensitivity.priceBreakeven.for1_25, color: "text-emerald" },
-                          ].map(({ label, value, color }) => (
-                            <div key={label} className="flex justify-between items-center">
-                              <span className="text-xs text-slate-500">{label}</span>
-                              <span className={`font-mono font-bold text-sm ${color}`}>{fmt$(value)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* IO / 40yr structure impact */}
-                    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                      <h4 className="font-bold text-dark-teal text-sm mb-4">Structure Alternatives</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {deal && [
-                          { label: "Current (30yr P&I)", dscr: deal.dscr, active: true },
-                          { label: "Interest-Only", dscr: sensResult.sensitivity.structureBreakeven.dscrWithIO, active: false },
-                          { label: "40yr Amortization", dscr: sensResult.sensitivity.structureBreakeven.dscrWith40yr, active: false },
-                          { label: "IO savings/mo", dscr: null, value: fmt$(sensResult.sensitivity.structureBreakeven.monthlySavingsIO), active: false },
-                        ].map(({ label, dscr, value, active }) => (
-                          <div key={label} className={`rounded-xl p-4 border ${active ? "bg-dark-teal border-dark-teal" : "bg-slate-50 border-slate-200"}`}>
-                            <p className={`text-[11px] font-bold mb-1 ${active ? "text-pistachio/70" : "text-slate-500"}`}>{label}</p>
-                            {dscr !== null ? (
-                              <p className={`text-xl font-extrabold font-mono ${active ? "text-emerald" : dscrColor(dscr!)}`}>
-                                {dscr!.toFixed(2)}x
-                              </p>
-                            ) : (
-                              <p className="text-xl font-extrabold font-mono text-emerald">{value}</p>
-                            )}
-                          </div>
+                  {/* ── DASHBOARD ── */}
+                  {activeTab === "dashboard" && (
+                    <TabPane id="dashboard">
+                      {/* KPI row */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {([
+                          { label: "Active deals",    value: "6",     delta: "+2 this week",       deltaColor: swatch.rainforest },
+                          { label: "Avg DSCR",        value: "1.31x", delta: "Healthy book",        deltaColor: swatch.rainforest },
+                          { label: "Pipeline vol.",   value: "$2.0M", delta: "+$0.4M MTD",           deltaColor: swatch.rainforest },
+                          { label: "Flagged states",  value: "2",     delta: "NJ · OH need review", deltaColor: "#9a7b00" },
+                        ] as const).map(({ label, value, delta, deltaColor }) => (
+                          <WhiteCard key={label} style={{ padding: "20px 20px 16px" }}>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.04em] mb-2" style={{ color: T.faint }}>{label}</div>
+                            <div className="font-bold font-mono" style={{ fontSize: "clamp(24px, 2.4vw, 32px)", letterSpacing: "-0.03em", color: T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</div>
+                            <div className="text-[12px] font-medium mt-1.5" style={{ color: deltaColor }}>{delta}</div>
+                          </WhiteCard>
                         ))}
                       </div>
-                    </div>
 
-                    {/* Tornado chart */}
-                    {sensResult.sensitivity.tornadoData.length > 0 && (
-                      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                        <h4 className="font-bold text-dark-teal text-sm mb-1">DSCR Sensitivity — Tornado</h4>
-                        <p className="text-[11px] text-slate-400 mb-4">Which inputs move DSCR the most (ranked by impact)</p>
-                        <div className="space-y-2">
-                          {sensResult.sensitivity.tornadoData.slice(0, 8).map((item) => {
-                            const maxImpact = sensResult.sensitivity.tornadoData[0].impact;
-                            const barWidth = Math.max(8, Math.round((item.impact / maxImpact) * 100));
-                            return (
-                              <div key={item.lever} className="flex items-center gap-3">
-                                <span className="text-[11px] text-slate-600 w-36 shrink-0 font-medium">{item.lever}</span>
-                                <div className="flex-1 flex items-center gap-1">
-                                  <div className="flex-1 bg-slate-100 rounded-full h-4 overflow-hidden">
-                                    <div className="h-full bg-dark-teal rounded-full transition-all" style={{ width: `${barWidth}%` }} />
+                      {/* Two-column (stacks on mobile) */}
+                      <div className="grid gap-4" style={{ gridTemplateColumns: "minmax(0,1.5fr) minmax(0,1fr)" }}>
+                        {/* Pipeline table */}
+                        <WhiteCard style={{ padding: "24px" }}>
+                          <div className="text-base font-bold mb-4" style={{ color: T.ink, letterSpacing: "-0.02em" }}>Active pipeline</div>
+                          <div>
+                            {demoPipeline.map((d) => {
+                              const riskLevel = riskFromDscr(d.dscr);
+                              const dCol = artifactDscrColor(d.dscr);
+                              const stagePill: React.CSSProperties = d.stage === "Submitted"
+                                ? { color: swatch.rainforest, background: `${swatch.rainforest}14` }
+                                : d.stage === "Priced"
+                                  ? { color: swatch.rainforest, background: `${swatch.rainforest}14` }
+                                  : { color: "#9a7b00", background: "rgba(154,123,0,0.1)" };
+                              return (
+                                <div key={d.prop}
+                                  className="grid items-center gap-3 transition cursor-default"
+                                  style={{
+                                    gridTemplateColumns: "1fr auto auto auto",
+                                    padding: "13px 10px",
+                                    borderBottom: `1px solid ${T.cardBorder}`,
+                                    borderRadius: radius.sm,
+                                  }}
+                                  onMouseEnter={e => e.currentTarget.style.background = T.inputBg}
+                                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                                  <div className="min-w-0">
+                                    <div className="text-[13px] font-semibold truncate" style={{ color: T.ink }}>{d.prop}</div>
+                                    <div className="text-[11px] mt-0.5" style={{ color: T.muted }}>{d.type} · ${Math.round(d.amt).toLocaleString()}</div>
                                   </div>
-                                  <span className="text-[10px] font-mono text-slate-500 w-14 text-right shrink-0">
-                                    {item.dscrAtLow.toFixed(2)}–{item.dscrAtHigh.toFixed(2)}x
-                                  </span>
+                                  <div className="font-mono font-bold text-sm" style={{ color: dCol, fontVariantNumeric: "tabular-nums" }}>{d.dscr.toFixed(2)}x</div>
+                                  <div className="text-[11px] font-semibold px-2.5 py-1" style={{ ...stagePill, borderRadius: radius.pill }}>{d.stage}</div>
+                                  <button onClick={() => switchTab("analyze")}
+                                    className="text-[12px] font-bold transition"
+                                    style={{ color: swatch.rainforest }}
+                                    onMouseEnter={e => e.currentTarget.style.color = swatch.midnight}
+                                    onMouseLeave={e => e.currentTarget.style.color = swatch.rainforest}>
+                                    Open →
+                                  </button>
                                 </div>
+                              );
+                            })}
+                          </div>
+                        </WhiteCard>
+
+                        {/* Right column */}
+                        <div className="flex flex-col gap-4">
+                          {/* Compliance status */}
+                          <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: `1px solid ${swatch.midnight}`, borderRadius: radius.md }}>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance</div>
+                            {([
+                              { label: "17a-4 WORM archive", status: "Active" },
+                              { label: "IC memos generated", status: "6 / 6" },
+                              { label: "State rules current", status: "Synced" },
+                              { label: "Exam export",         status: "Ready" },
+                            ] as const).map(({ label, status }) => (
+                              <div key={label} className="flex items-center justify-between py-2.5"
+                                style={{ borderBottom: `1px solid ${swatch.pistachio}15` }}>
+                                <span className="text-[13px] font-medium" style={{ color: `${swatch.pistachio}c0` }}>{label}</span>
+                                <span className="text-[11px] font-bold px-2 py-0.5"
+                                  style={{ color: swatch.midnight, background: swatch.emerald, borderRadius: radius.pill }}>
+                                  {status}
+                                </span>
                               </div>
+                            ))}
+                          </div>
+
+                          {/* State alerts */}
+                          <Card style={{ padding: "20px" }}>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.rainforest }}>State alerts</div>
+                            {([
+                              { mark: "✕", color: T.dangerText, text: "45 Harbor (NJ): prepay penalty high-risk for LLC — restructure or expect +0.25% rate." },
+                              { mark: "~",  color: "#9a7b00",    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
+                              { mark: "~",  color: "#9a7b00",    text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
+                            ] as const).map(({ mark, color, text }) => (
+                              <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                                <span className="font-bold shrink-0" style={{ color }}>{mark}</span>
+                                <span className="text-[12px] font-medium leading-relaxed" style={{ color: T.muted }}>{text}</span>
+                              </div>
+                            ))}
+                          </Card>
+                        </div>
+                      </div>
+                    </TabPane>
+                  )}
+
+                  {/* ── ANALYZE (Deal Workspace) ── */}
+                  {activeTab === "analyze" && (
+                    <TabPane id="analyze">
+                      {/* Purpose line */}
+                      <div className="pb-1">
+                        <p className="text-sm" style={{ color: T.muted }}>
+                          Enter deal inputs below. The engine solves <strong>DSCR</strong> (whether the property's rent can cover the loan payment), pricing, and risk in one pass — sensitivity and optimizer run at the same time.
+                        </p>
+                      </div>
+
+                      {/* Error */}
+                      {solveError && <ErrorBanner message={solveError} onRetry={handleAnalyze} />}
+
+                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+                        {/* Input form */}
+                        <WhiteCard className="lg:col-span-2" style={{ padding: "24px" }}>
+                          <h2 className="font-bold mb-4 text-base" style={{ color: T.ink }}>Deal Parameters</h2>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <FieldInput label="Purchase Price" type="number" value={dealForm.purchasePrice}
+                              onChange={e => setDealForm(p => ({ ...p, purchasePrice: e.target.value }))}
+                              helper="Total acquisition cost" />
+                            <FieldInput label="Loan Amount" type="number" value={dealForm.loanAmount}
+                              onChange={e => setDealForm(p => ({ ...p, loanAmount: e.target.value }))} />
+                            <FieldInput label="Gross Monthly Rent" type="number" value={dealForm.monthlyRent}
+                              onChange={e => setDealForm(p => ({ ...p, monthlyRent: e.target.value }))}
+                              helper="Market rent before vacancy" />
+                            <FieldInput label="FICO Score" type="number" value={dealForm.ficoScore}
+                              onChange={e => setDealForm(p => ({ ...p, ficoScore: e.target.value }))} />
+                            <FieldInput label="HOA (monthly)" type="number" value={dealForm.hoa}
+                              onChange={e => setDealForm(p => ({ ...p, hoa: e.target.value }))}
+                              helper="$0 if none" />
+                            <FieldInput label="State" type="text" maxLength={2} value={dealForm.state}
+                              onChange={e => setDealForm(p => ({ ...p, state: e.target.value.toUpperCase() }))}
+                              helper="2-letter code" />
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-3 mt-3">
+                            <FieldSelect label="Property" value={dealForm.propertyType}
+                              onChange={e => setDealForm(p => ({ ...p, propertyType: e.target.value }))}>
+                              <option value="SFR">SFR</option>
+                              <option value="2-4_UNIT">2–4 Unit</option>
+                              <option value="CONDO_WARRANTABLE">Condo</option>
+                              <option value="CONDO_NON_WARRANTABLE">Non-Warrantable</option>
+                              <option value="5+_UNIT">5+ Unit</option>
+                            </FieldSelect>
+                            <FieldSelect label="Purpose" value={dealForm.loanPurpose}
+                              onChange={e => setDealForm(p => ({ ...p, loanPurpose: e.target.value }))}>
+                              <option value="PURCHASE">Purchase</option>
+                              <option value="REFI_RATE_TERM">Rate/Term Refi</option>
+                              <option value="CASH_OUT_REFI">Cash-Out</option>
+                              <option value="DELAYED_FINANCING">Delayed Fin.</option>
+                            </FieldSelect>
+                            <FieldSelect label="Strategy" value={dealForm.strategy}
+                              onChange={e => setDealForm(p => ({ ...p, strategy: e.target.value }))}>
+                              <option value="LTR">LTR</option>
+                              <option value="STR">STR</option>
+                              <option value="MTR">MTR</option>
+                            </FieldSelect>
+                          </div>
+
+                          <p className="text-[10px] font-mono mt-3" style={{ color: T.faint }}>
+                            LTV: {ltv}% · Rate auto-solved by engine
+                          </p>
+
+                          <PrimaryBtn onClick={handleAnalyze} disabled={isRunning} className="w-full mt-4">
+                            {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
+                            {isRunning ? "Solving…" : "Analyze Deal"}
+                          </PrimaryBtn>
+
+                          {!solveResult && !isRunning && !solveError && (
+                            <p className="text-[10px] text-center mt-2" style={{ color: T.faint }}>
+                              Runs solve + sensitivity + optimizer in parallel
+                            </p>
+                          )}
+                        </WhiteCard>
+
+                        {/* Results */}
+                        <div className="lg:col-span-3 space-y-4">
+
+                          {/* Loading skeleton */}
+                          {isRunning && (
+                            <Card style={{ padding: "28px" }}>
+                              <div className="flex items-center gap-3 mb-6">
+                                <RefreshCw className="w-5 h-5 animate-spin" style={{ color: swatch.rainforest }} />
+                                <span className="text-sm font-semibold" style={{ color: T.ink }}>Solving deal…</span>
+                              </div>
+                              <div className="space-y-3">
+                                <Skeleton h={80} rounded={radius.md} />
+                                <div className="grid grid-cols-2 gap-3">
+                                  <Skeleton h={64} rounded={radius.md} />
+                                  <Skeleton h={64} rounded={radius.md} />
+                                </div>
+                                <Skeleton h={120} rounded={radius.md} />
+                              </div>
+                            </Card>
+                          )}
+
+                          {/* Empty state */}
+                          {!deal && !isRunning && !solveError && (
+                            <Card style={{ padding: "56px 24px", textAlign: "center" }}>
+                              <Calculator className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
+                              <p className="text-sm font-semibold" style={{ color: T.muted }}>Enter deal parameters and run the analysis.</p>
+                              <p className="text-xs mt-1" style={{ color: T.faint }}>
+                                DSCR = rent ÷ PITIA (the full monthly payment). Results appear here.
+                              </p>
+                            </Card>
+                          )}
+
+                          {deal && (() => {
+                            const risk = riskFromDscr(deal.dscr);
+                            return (
+                              <>
+                                {/* DSCR verdict card */}
+                                <div className={`p-6 rounded-lg border ${dscrBgClass(deal.dscr)}`} style={{ borderRadius: radius.md }}>
+                                  <div className="flex flex-wrap items-center gap-5 mb-4">
+                                    {/* Gauge artifact */}
+                                    <DscrGauge value={deal.dscr} size={120} />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span className={`text-4xl font-extrabold font-mono ${dscrColorClass(deal.dscr)}`}
+                                          style={{ fontVariantNumeric: "tabular-nums" }}>
+                                          {deal.dscr.toFixed(2)}x
+                                        </span>
+                                        {risk !== "none" && <RiskFlame level={risk} size={24} />}
+                                      </div>
+                                      <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${dscrColorClass(deal.dscr)}`}>
+                                        {dscrLabel(deal.dscr)} — Track 1 DSCR
+                                      </div>
+                                      <p className="text-sm" style={{ color: T.muted }}>{deal.dualTrackDSCR.verdict.summary}</p>
+                                    </div>
+                                  </div>
+                                  <Disclaimer />
+                                </div>
+
+                                {/* Dual-track */}
+                                <div className="grid grid-cols-2 gap-3">
+                                  {[deal.dualTrackDSCR.track1, deal.dualTrackDSCR.track2].map(track => (
+                                    <WhiteCard key={track.label} style={{ padding: "16px" }}>
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-semibold" style={{ color: T.muted }}>{track.label}</span>
+                                        <span className="text-[10px] font-bold px-2 py-0.5"
+                                          style={{
+                                            borderRadius: radius.pill,
+                                            color: track.passes ? swatch.midnight : T.dangerText,
+                                            background: track.passes ? swatch.emerald : T.dangerBg,
+                                          }}>
+                                          {track.passes ? "PASS" : "FAIL"}
+                                        </span>
+                                      </div>
+                                      <div className={`text-2xl font-extrabold font-mono ${track.passes ? "text-emerald-700" : "text-red-700"}`}
+                                        style={{ fontVariantNumeric: "tabular-nums" }}>
+                                        {track.dscr.toFixed(2)}x
+                                      </div>
+                                      <div className="text-[11px] mt-1" style={{ color: T.faint }}>Qualifying rent: {fmt$(track.qualifyingRent)}/mo</div>
+                                    </WhiteCard>
+                                  ))}
+                                </div>
+
+                                {/* PITIA breakdown */}
+                                <WhiteCard style={{ padding: "20px" }}>
+                                  <h4 className="font-bold text-sm mb-1" style={{ color: T.ink }}>PITIA Breakdown</h4>
+                                  <p className="text-[11px] mb-3" style={{ color: T.faint }}>
+                                    PITIA = the full monthly payment — principal, interest, taxes, insurance, HOA
+                                  </p>
+                                  <div className="space-y-2">
+                                    {[
+                                      { label: "Principal & Interest", value: deal.monthlyPITIA.principalAndInterest },
+                                      { label: "Taxes (monthly est.)", value: deal.monthlyPITIA.taxes },
+                                      { label: "Insurance (monthly)", value: deal.monthlyPITIA.insurance },
+                                      ...(deal.monthlyPITIA.hoa > 0 ? [{ label: "HOA", value: deal.monthlyPITIA.hoa }] : []),
+                                      ...(deal.monthlyPITIA.floodInsurance > 0 ? [{ label: "Flood Insurance", value: deal.monthlyPITIA.floodInsurance }] : []),
+                                    ].map(({ label, value }) => (
+                                      <div key={label} className="flex justify-between items-center text-sm">
+                                        <span style={{ color: T.muted }}>{label}</span>
+                                        <span className="font-mono font-semibold" style={{ color: T.ink, fontVariantNumeric: "tabular-nums" }}>{fmt$(value)}/mo</span>
+                                      </div>
+                                    ))}
+                                    <div className="flex justify-between items-center text-sm font-bold pt-2 mt-2" style={{ borderTop: `1px solid ${T.cardBorder}` }}>
+                                      <span style={{ color: T.ink }}>Total PITIA</span>
+                                      <span className="font-mono text-base" style={{ color: T.ink, fontVariantNumeric: "tabular-nums" }}>{fmt$(deal.monthlyPITIA.total)}/mo</span>
+                                    </div>
+                                  </div>
+                                </WhiteCard>
+
+                                {/* Key metrics */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                  {[
+                                    { label: "Solved Rate",    value: fmtPct(deal.solvedRate),          sub: deal.tripleRate.dateStamp },
+                                    { label: "Break-Even Rate", value: fmtPct(deal.dealBreakRate),       sub: "rate where DSCR = 1.0" },
+                                    { label: "Rate Headroom",  value: `${deal.rateHeadroomBps} bps`,    sub: deal.rateHeadroomBps > 0 ? "buffer before failure" : "rate too high" },
+                                    { label: "Loan Amount",    value: fmt$(deal.loanAmount),            sub: `${ltv}% LTV` },
+                                    { label: "Debt Yield",     value: `${deal.debtYield.toFixed(2)}%`,  sub: "NOI / loan amount" },
+                                    { label: "Cash to Close",  value: fmt$(deal.cashToClose.total),     sub: "base estimate" },
+                                  ].map(({ label, value, sub }) => (
+                                    <WhiteCard key={label} style={{ padding: "14px 16px" }}>
+                                      <p className="text-[10px] font-semibold uppercase tracking-[0.05em] mb-1" style={{ color: T.faint }}>{label}</p>
+                                      <p className="font-bold font-mono text-base" style={{ color: T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</p>
+                                      <p className="text-[10px] mt-0.5" style={{ color: T.faint }}>{sub}</p>
+                                    </WhiteCard>
+                                  ))}
+                                </div>
+
+                                {/* Top lenders */}
+                                {solveResult!.topLenders.length > 0 && (
+                                  <WhiteCard style={{ padding: "20px" }}>
+                                    <h4 className="font-bold text-sm mb-3" style={{ color: T.ink }}>Top Matching Lenders</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {solveResult!.topLenders.map((l, i) => (
+                                        <div key={i} className="px-3 py-1.5 text-xs"
+                                          style={{ background: T.inputBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.sm }}>
+                                          <span className="font-bold" style={{ color: T.ink }}>{l.name}</span>
+                                          <span className="ml-2 font-mono" style={{ color: T.faint }}>{l.score}/100</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </WhiteCard>
+                                )}
+
+                                {/* Quick-nav */}
+                                {(sensResult || optResult) && (
+                                  <div className="flex flex-wrap gap-3">
+                                    {sensResult && (
+                                      <GhostBtn onClick={() => switchTab("sensitivity")}>View Sensitivity Lab →</GhostBtn>
+                                    )}
+                                    {optResult && (
+                                      <GhostBtn onClick={() => switchTab("optimize")}>View Structure Optimizer →</GhostBtn>
+                                    )}
+                                  </div>
+                                )}
+                              </>
                             );
-                          })}
+                          })()}
                         </div>
                       </div>
-                    )}
+                    </TabPane>
+                  )}
 
-                    {/* Joint appraisal risk */}
-                    {sensResult.sensitivity.jointAppraisalRisk && (
-                      <div className={`rounded-2xl border p-5 ${
-                        sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "LOW" ? "bg-emerald/10 border-emerald/20" :
-                        sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "MODERATE" ? "bg-lemon-lime/10 border-lemon-lime/20" :
-                        "bg-red-50 border-red-200"
-                      }`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-bold text-sm text-dark-teal">Joint Appraisal Risk</h4>
-                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                            sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "LOW" ? "bg-emerald-100 text-emerald-700" :
-                            sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating === "MODERATE" ? "bg-yellow-100 text-yellow-700" :
-                            "bg-red-100 text-red-700"
-                          }`}>
-                            {sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-700">{sensResult.sensitivity.jointAppraisalRisk.summary}</p>
-                        <div className="mt-3 text-xs text-slate-600">
-                          Rent breakpoint: <strong>{fmt$(sensResult.sensitivity.jointAppraisalRisk.rentBreakpoint)}/mo</strong> ·
-                          Stress test (rent -10% + value -10%): <strong>{sensResult.sensitivity.jointAppraisalRisk.combinedStressTest.stressedDSCR.toFixed(2)}x DSCR</strong>
-                        </div>
+                  {/* ── SENSITIVITY LAB ── */}
+                  {activeTab === "sensitivity" && (
+                    <TabPane id="sensitivity">
+                      <div className="pb-1">
+                        <p className="text-sm" style={{ color: T.muted }}>
+                          Shows how far the deal can bend before it breaks. Run <strong>Analyze</strong> first — this tab populates from the same engine call. Use it to find the rent floor, max rate, and max price that still clear each DSCR threshold.
+                        </p>
                       </div>
-                    )}
-                  </>
-                )}
-              </motion.div>
-            )}
 
-            {/* ── OPTIMIZER ── */}
-            {activeTab === "optimize" && (
-              <motion.div key="optimize" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5">
-                {!optResult ? (
-                  <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-400">
-                    <Zap className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm font-semibold">Run DSCR Analyzer first to generate structure options.</p>
-                    <button onClick={() => setActiveTab("analyze")} className="mt-4 px-5 py-2 bg-dark-teal text-white text-xs font-bold rounded-xl transition">
-                      Go to Analyzer →
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-sm text-slate-500">{optResult.options.length} structures evaluated — sorted by Track 1 DSCR</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {[...optResult.options].sort((a, b) => b.track1DSCR - a.track1DSCR).map((opt, i) => {
-                        const isBest = i === 0;
-                        return (
-                          <div key={opt.name} className={`rounded-2xl border p-5 space-y-3 ${isBest ? "bg-dark-teal border-dark-teal shadow-lg" : "bg-white border-slate-100 shadow-sm"}`}>
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className={`font-bold text-sm ${isBest ? "text-white" : "text-dark-teal"}`}>{opt.name}</p>
-                                {isBest && <span className="text-[10px] bg-emerald text-dark-teal font-bold px-2 py-0.5 rounded mt-1 inline-block">BEST DSCR</span>}
-                              </div>
-                              <div className={`text-2xl font-extrabold font-mono ${isBest ? "text-emerald" : dscrColor(opt.track1DSCR)}`}>
-                                {opt.track1DSCR.toFixed(2)}x
-                              </div>
-                            </div>
-                            <div className="space-y-1.5">
-                              {[
-                                { label: "Rate", value: fmtPct(opt.rate) },
-                                { label: "Monthly P&I", value: fmt$(opt.monthlyPayment) },
-                                { label: "Monthly Cash Flow", value: `${opt.monthlyCashFlow >= 0 ? "+" : ""}${fmt$(opt.monthlyCashFlow)}` },
-                                { label: "Track 2 DSCR", value: `${opt.track2DSCR.toFixed(2)}x` },
-                              ].map(({ label, value }) => (
-                                <div key={label} className="flex justify-between text-xs">
-                                  <span className={isBest ? "text-pistachio/60" : "text-slate-500"}>{label}</span>
-                                  <span className={`font-mono font-semibold ${isBest ? "text-pistachio" : "text-slate-700"}`}>{value}</span>
-                                </div>
-                              ))}
-                            </div>
-                            {opt.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 pt-1 border-t border-current/10">
-                                {opt.tags.slice(0, 3).map(tag => (
-                                  <span key={tag} className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${isBest ? "bg-white/10 text-pistachio" : "bg-slate-100 text-slate-600"}`}>{tag}</span>
+                      {!sensResult ? (
+                        <Card style={{ padding: "64px 24px", textAlign: "center" }}>
+                          <BarChart2 className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
+                          <p className="text-sm font-semibold" style={{ color: T.muted }}>Run DSCR Analyzer first to populate sensitivity data.</p>
+                          <p className="text-xs mt-1 mb-5" style={{ color: T.faint }}>Sensitivity runs in the same engine call as the deal solve.</p>
+                          <PrimaryBtn onClick={() => switchTab("analyze")}>Go to Deal Workspace →</PrimaryBtn>
+                        </Card>
+                      ) : (
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Rent breakeven */}
+                            <WhiteCard style={{ padding: "20px" }}>
+                              <h4 className="font-bold text-sm mb-1" style={{ color: T.ink }}>Rent Breakeven</h4>
+                              <p className="text-[11px] mb-3" style={{ color: T.faint }}>Minimum monthly rent to hit each DSCR target</p>
+                              <div className="space-y-3">
+                                {[
+                                  { label: "1.0x — floor (barely qualifies)", value: sensResult.sensitivity.rentBreakeven.for1_0, warn: true },
+                                  { label: "1.10x — comfortable", value: sensResult.sensitivity.rentBreakeven.for1_10, warn: false },
+                                  { label: "1.25x — strong / best pricing", value: sensResult.sensitivity.rentBreakeven.for1_25, warn: false },
+                                ].map(({ label, value, warn }) => (
+                                  <div key={label} className="flex items-center justify-between gap-3">
+                                    <span className="text-xs flex-1" style={{ color: T.muted }}>{label}</span>
+                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: warn ? "#9a7b00" : swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
+                                      {fmt$(value)}/mo
+                                    </span>
+                                  </div>
                                 ))}
                               </div>
+                            </WhiteCard>
+
+                            {/* Rate breakeven */}
+                            <WhiteCard style={{ padding: "20px" }}>
+                              <h4 className="font-bold text-sm mb-1" style={{ color: T.ink }}>Max Rate</h4>
+                              <p className="text-[11px] mb-3" style={{ color: T.faint }}>Highest rate that still clears each DSCR threshold</p>
+                              <div className="space-y-3">
+                                {[
+                                  { label: "1.0x — absolute ceiling", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_0 },
+                                  { label: "1.10x — comfortable", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_10 },
+                                  { label: "1.25x — best execution", value: sensResult.sensitivity.rateBreakeven.maxRateFor1_25 },
+                                ].map(({ label, value }) => (
+                                  <div key={label} className="flex items-center justify-between gap-3">
+                                    <span className="text-xs flex-1" style={{ color: T.muted }}>{label}</span>
+                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
+                                      {fmtPct(value)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </WhiteCard>
+
+                            {/* Price breakeven */}
+                            <WhiteCard style={{ padding: "20px" }}>
+                              <h4 className="font-bold text-sm mb-1" style={{ color: T.ink }}>Max Purchase Price</h4>
+                              <p className="text-[11px] mb-3" style={{ color: T.faint }}>Highest price (at same LTV) that still qualifies</p>
+                              <div className="space-y-3">
+                                {[
+                                  { label: "1.0x floor", value: sensResult.sensitivity.priceBreakeven.for1_0 },
+                                  { label: "1.10x comfortable", value: sensResult.sensitivity.priceBreakeven.for1_10 },
+                                  { label: "1.25x strong", value: sensResult.sensitivity.priceBreakeven.for1_25 },
+                                ].map(({ label, value }) => (
+                                  <div key={label} className="flex items-center justify-between gap-3">
+                                    <span className="text-xs flex-1" style={{ color: T.muted }}>{label}</span>
+                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
+                                      {fmt$(value)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </WhiteCard>
+                          </div>
+
+                          {/* Structure alternatives */}
+                          <WhiteCard style={{ padding: "20px" }}>
+                            <h4 className="font-bold text-sm mb-1" style={{ color: T.ink }}>Structure Alternatives</h4>
+                            <p className="text-[11px] mb-4" style={{ color: T.faint }}>DSCR impact of amortization structure changes</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                              {deal && [
+                                { label: "30yr P&I (current)", dscr: deal.dscr, active: true, value: null as string | null },
+                                { label: "Interest-Only", dscr: sensResult.sensitivity.structureBreakeven.dscrWithIO, active: false, value: null as string | null },
+                                { label: "40yr Amortization", dscr: sensResult.sensitivity.structureBreakeven.dscrWith40yr, active: false, value: null as string | null },
+                                { label: "IO savings/month", dscr: null as number | null, active: false, value: fmt$(sensResult.sensitivity.structureBreakeven.monthlySavingsIO) },
+                              ].map(({ label, dscr, value, active }) => {
+                                const structRisk = dscr !== null ? riskFromDscr(dscr) : "none";
+                                return (
+                                  <div key={label} style={{
+                                    padding: "14px 16px",
+                                    borderRadius: radius.sm,
+                                    background: active ? swatch.midnight : T.cardBg,
+                                    border: `1px solid ${active ? swatch.midnight : T.cardBorder}`,
+                                  }}>
+                                    <p className="text-[10px] font-semibold mb-1.5" style={{ color: active ? `${swatch.pistachio}90` : T.faint }}>{label}</p>
+                                    {dscr !== null ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-xl font-extrabold font-mono" style={{ color: active ? swatch.emerald : artifactDscrColor(dscr), fontVariantNumeric: "tabular-nums" }}>
+                                          {dscr.toFixed(2)}x
+                                        </span>
+                                        {!active && structRisk !== "none" && <RiskFlame level={structRisk} size={16} />}
+                                      </div>
+                                    ) : (
+                                      <span className="text-xl font-extrabold font-mono" style={{ color: swatch.emerald, fontVariantNumeric: "tabular-nums" }}>{value}</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </WhiteCard>
+
+                          {/* Tornado chart */}
+                          {sensResult.sensitivity.tornadoData.length > 0 && (
+                            <WhiteCard style={{ padding: "20px" }}>
+                              <h4 className="font-bold text-sm mb-1" style={{ color: T.ink }}>Sensitivity — Tornado</h4>
+                              <p className="text-[11px] mb-4" style={{ color: T.faint }}>Which inputs move DSCR the most, ranked by impact</p>
+                              <div className="space-y-2.5">
+                                {sensResult.sensitivity.tornadoData.slice(0, 8).map((item) => {
+                                  const maxImpact = sensResult.sensitivity.tornadoData[0].impact;
+                                  const barWidth = Math.max(8, Math.round((item.impact / maxImpact) * 100));
+                                  const isDangerous = item.dscrAtLow < 1.0;
+                                  return (
+                                    <div key={item.lever} className="flex items-center gap-3">
+                                      <div className="flex items-center gap-1.5 w-36 shrink-0">
+                                        <span className="text-[11px] font-medium" style={{ color: T.muted }}>{item.lever}</span>
+                                        {isDangerous && <RiskFlame level="high" size={13} />}
+                                      </div>
+                                      <div className="flex-1 flex items-center gap-2">
+                                        <div className="flex-1 rounded-full overflow-hidden" style={{ height: 8, background: T.inputBg }}>
+                                          <div className="h-full transition-all"
+                                            style={{ width: `${barWidth}%`, background: isDangerous ? T.dangerText : swatch.rainforest, borderRadius: 999 }} />
+                                        </div>
+                                        <span className="text-[10px] font-mono w-20 text-right shrink-0" style={{ color: T.faint, fontVariantNumeric: "tabular-nums" }}>
+                                          {item.dscrAtLow.toFixed(2)}–{item.dscrAtHigh.toFixed(2)}x
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </WhiteCard>
+                          )}
+
+                          {/* Joint appraisal risk */}
+                          {sensResult.sensitivity.jointAppraisalRisk && (() => {
+                            const rating = sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating;
+                            const ratingStyle: React.CSSProperties =
+                              rating === "LOW" ? { color: swatch.rainforest, background: `${swatch.rainforest}14`, border: `1px solid ${swatch.rainforest}30` } :
+                              rating === "MODERATE" ? { color: "#9a7b00", background: "#fffbe6", border: "1px solid #ffe58f" } :
+                              { color: T.dangerText, background: T.dangerBg, border: `1px solid ${T.dangerBorder}` };
+                            return (
+                              <Card style={{ padding: "20px" }}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-bold text-sm" style={{ color: T.ink }}>Joint Appraisal Risk</h4>
+                                  <span className="text-xs font-bold px-2.5 py-1" style={{ ...ratingStyle, borderRadius: radius.pill }}>{rating}</span>
+                                </div>
+                                <p className="text-sm mb-3" style={{ color: T.muted }}>{sensResult.sensitivity.jointAppraisalRisk.summary}</p>
+                                <div className="text-xs" style={{ color: T.muted }}>
+                                  Rent breakpoint:{" "}
+                                  <strong className="font-mono" style={{ fontVariantNumeric: "tabular-nums" }}>
+                                    {fmt$(sensResult.sensitivity.jointAppraisalRisk.rentBreakpoint)}/mo
+                                  </strong>
+                                  {" · "}Stress (rent −10% + value −10%):{" "}
+                                  <strong className="font-mono" style={{ fontVariantNumeric: "tabular-nums" }}>
+                                    {sensResult.sensitivity.jointAppraisalRisk.combinedStressTest.stressedDSCR.toFixed(2)}x
+                                  </strong>
+                                </div>
+                              </Card>
+                            );
+                          })()}
+                        </>
+                      )}
+                    </TabPane>
+                  )}
+
+                  {/* ── STRUCTURE OPTIMIZER ── */}
+                  {activeTab === "optimize" && (
+                    <TabPane id="optimize">
+                      <div className="pb-1">
+                        <p className="text-sm" style={{ color: T.muted }}>
+                          Compares every loan structure the engine knows — 30yr, IO, 40yr, different term lengths — ranked by DSCR. Run <strong>Analyze</strong> first; this populates from the same call.
+                        </p>
+                      </div>
+
+                      {!optResult ? (
+                        <Card style={{ padding: "64px 24px", textAlign: "center" }}>
+                          <Zap className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
+                          <p className="text-sm font-semibold" style={{ color: T.muted }}>Run DSCR Analyzer first to generate structure options.</p>
+                          <div className="mt-5"><PrimaryBtn onClick={() => switchTab("analyze")}>Go to Deal Workspace →</PrimaryBtn></div>
+                        </Card>
+                      ) : (
+                        <>
+                          <p className="text-xs" style={{ color: T.faint }}>
+                            {optResult.options.length} structures evaluated — sorted by Track 1 DSCR, highest first
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[...optResult.options].sort((a, b) => b.track1DSCR - a.track1DSCR).map((opt, i) => {
+                              const isBest = i === 0;
+                              const optRisk = riskFromDscr(opt.track1DSCR);
+                              return (
+                                <div key={opt.name}
+                                  style={{
+                                    padding: "20px",
+                                    borderRadius: radius.md,
+                                    background: isBest ? swatch.midnight : swatch.white,
+                                    border: `1px solid ${isBest ? swatch.midnight : T.cardBorder}`,
+                                  }}>
+                                  <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                      <p className="font-bold text-sm mb-1" style={{ color: isBest ? swatch.pistachio : T.ink }}>{opt.name}</p>
+                                      {isBest && (
+                                        <span className="text-[10px] font-bold px-2 py-0.5"
+                                          style={{ background: swatch.lemon, color: swatch.midnight, borderRadius: radius.pill }}>
+                                          BEST DSCR
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-2xl font-extrabold font-mono"
+                                        style={{ color: isBest ? swatch.emerald : artifactDscrColor(opt.track1DSCR), fontVariantNumeric: "tabular-nums" }}>
+                                        {opt.track1DSCR.toFixed(2)}x
+                                      </span>
+                                      {!isBest && optRisk !== "none" && <RiskFlame level={optRisk} size={18} />}
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    {[
+                                      { label: "Rate",             value: fmtPct(opt.rate) },
+                                      { label: "Monthly P&I",     value: fmt$(opt.monthlyPayment) },
+                                      { label: "Monthly Cash Flow", value: `${opt.monthlyCashFlow >= 0 ? "+" : ""}${fmt$(opt.monthlyCashFlow)}` },
+                                      { label: "Track 2 DSCR",    value: `${opt.track2DSCR.toFixed(2)}x` },
+                                    ].map(({ label, value }) => (
+                                      <div key={label} className="flex justify-between text-xs">
+                                        <span style={{ color: isBest ? `${swatch.pistachio}80` : T.muted }}>{label}</span>
+                                        <span className="font-mono font-semibold" style={{ color: isBest ? swatch.pistachio : T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {opt.tags.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 pt-2 mt-2" style={{ borderTop: `1px solid ${isBest ? swatch.pistachio + "18" : T.cardBorder}` }}>
+                                      {opt.tags.slice(0, 3).map(tag => (
+                                        <span key={tag} className="text-[10px] px-1.5 py-0.5 font-semibold"
+                                          style={{
+                                            borderRadius: radius.sm,
+                                            background: isBest ? `${swatch.pistachio}12` : T.inputBg,
+                                            color: isBest ? swatch.pistachio : T.muted,
+                                          }}>
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </TabPane>
+                  )}
+
+                  {/* ── STATE RULES ── */}
+                  {activeTab === "state" && (
+                    <TabPane id="state">
+                      <div className="pb-1">
+                        <p className="text-sm" style={{ color: T.muted }}>
+                          Checks each state's prepayment penalty (PPP) laws, entity requirements, and ARM restrictions. Select a state or type a 2-letter code and look it up.
+                        </p>
+                      </div>
+
+                      <WhiteCard style={{ padding: "24px" }}>
+                        <h2 className="font-bold mb-1" style={{ color: T.ink }}>State PPP / Prepay Lookup</h2>
+                        <p className="text-xs mb-4" style={{ color: T.muted }}>
+                          PPP = prepayment penalty. Checks whether a penalty clause is legally enforceable in the selected state, what options remain, and what it costs if PPP is restricted.
+                        </p>
+                        <div className="flex flex-wrap gap-3 items-end">
+                          <FieldInput label="State (2-letter)" type="text" maxLength={2} value={stateInput}
+                            onChange={e => setStateInput(e.target.value.toUpperCase())}
+                            style={{ width: 88 }} />
+                          <PrimaryBtn onClick={handleStateRules} disabled={isLoadingState}>
+                            {isLoadingState ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                            Look Up
+                          </PrimaryBtn>
+                        </div>
+                        {/* Quick-pick state chips */}
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {["FL", "CA", "TX", "NY", "GA", "IL", "PA", "MN", "KS", "NM"].map(s => (
+                            <button key={s} onClick={() => setStateInput(s)}
+                              className="text-[11px] font-bold font-mono transition"
+                              style={{
+                                padding: "6px 12px",
+                                borderRadius: radius.sm,
+                                border: `1px solid ${stateInput === s ? swatch.rainforest : T.cardBorder}`,
+                                background: stateInput === s ? `${swatch.rainforest}10` : T.inputBg,
+                                color: stateInput === s ? swatch.rainforest : T.muted,
+                              }}>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </WhiteCard>
+
+                      {/* Loading skeleton */}
+                      {isLoadingState && (
+                        <Card style={{ padding: "24px" }}>
+                          <div className="flex items-center gap-3 mb-4">
+                            <RefreshCw className="w-4 h-4 animate-spin" style={{ color: swatch.rainforest }} />
+                            <span className="text-sm font-semibold" style={{ color: T.ink }}>Looking up state rules…</span>
+                          </div>
+                          <div className="space-y-3">
+                            <Skeleton h={64} />
+                            <div className="grid grid-cols-2 gap-3">
+                              <Skeleton h={80} />
+                              <Skeleton h={80} />
+                            </div>
+                          </div>
+                        </Card>
+                      )}
+
+                      {/* Error */}
+                      {stateError && !isLoadingState && <ErrorBanner message={stateError} onRetry={handleStateRules} />}
+
+                      {stateResult && !isLoadingState && (
+                        <div className="space-y-4">
+                          {/* Verdict */}
+                          <div style={{ ...pppBadgeStyle(stateResult.ppp.status), padding: "20px 24px", borderRadius: radius.md }}>
+                            <div className="flex items-start justify-between flex-wrap gap-3 mb-2">
+                              <div>
+                                <h3 className="font-bold text-lg" style={{ color: "inherit" }}>{stateResult.state} — Prepayment Penalty</h3>
+                                <p className="text-xs font-mono mt-0.5 opacity-70">{stateResult.ppp.status.replace(/_/g, " ")}</p>
+                              </div>
+                              <span className="text-sm font-bold px-3 py-1.5"
+                                style={{ ...pppBadgeStyle(stateResult.ppp.status), borderRadius: radius.sm }}>
+                                {stateResult.ppp.allowed ? "PPP ALLOWED" : "PPP RESTRICTED"}
+                              </span>
+                            </div>
+                            <p className="text-sm">{stateResult.ppp.reason}</p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Available options */}
+                            <WhiteCard style={{ padding: "20px" }}>
+                              <h4 className="font-bold text-sm mb-3" style={{ color: T.ink }}>Allowed Prepay Structures</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {stateResult.ppp.adjustedOptions.map(opt => (
+                                  <span key={opt} className="px-3 py-1.5 text-xs font-bold"
+                                    style={{ background: `${swatch.rainforest}12`, color: swatch.rainforest, border: `1px solid ${swatch.rainforest}30`, borderRadius: radius.sm }}>
+                                    {opt}
+                                  </span>
+                                ))}
+                                {stateResult.ppp.adjustedOptions.length === 0 && (
+                                  <span className="text-xs" style={{ color: T.faint }}>No standard PPP options available in this state</span>
+                                )}
+                              </div>
+                            </WhiteCard>
+
+                            {/* Cost of no PPP */}
+                            {!stateResult.ppp.allowed && (
+                              <div style={{ padding: "20px", background: T.warnBg, border: `1px solid ${T.warnBorder}`, borderRadius: radius.md }}>
+                                <h4 className="font-bold text-sm mb-3" style={{ color: T.warnText }}>No-PPP Cost Premium</h4>
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-sm">
+                                    <span style={{ color: T.warnText }}>Rate premium</span>
+                                    <span className="font-mono font-bold" style={{ color: T.warnText, fontVariantNumeric: "tabular-nums" }}>+{fmtPct(stateResult.ppp.noPPPPremiumRate)}</span>
+                                  </div>
+                                  <div className="flex justify-between text-sm">
+                                    <span style={{ color: T.warnText }}>Fee premium</span>
+                                    <span className="font-mono font-bold" style={{ color: T.warnText, fontVariantNumeric: "tabular-nums" }}>+{(stateResult.ppp.noPPPPremiumFee * 100).toFixed(3)}%</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Entity note */}
+                            {stateResult.ppp.requiresEntityVesting && (
+                              <Card style={{ padding: "20px" }}>
+                                <h4 className="font-bold text-sm mb-2" style={{ color: swatch.rainforest }}>Entity Vesting Required</h4>
+                                <p className="text-sm" style={{ color: T.muted }}>{stateResult.ppp.entityNote}</p>
+                              </Card>
                             )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-              </motion.div>
-            )}
 
-            {/* ── STATE PPP ── */}
-            {activeTab === "state" && (
-              <motion.div key="state" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
-                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 space-y-4">
-                  <div>
-                    <h2 className="font-bold text-dark-teal mb-1">Prepayment Penalty Legality</h2>
-                    <p className="text-xs text-slate-500">Engine checks statute database for PPP restrictions, entity rules, and ARM restrictions by state.</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <input type="text" maxLength={2} value={stateInput}
-                      onChange={e => setStateInput(e.target.value.toUpperCase())}
-                      placeholder="FL"
-                      className="w-24 px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition font-mono uppercase font-bold" />
-                    <button onClick={handleStateRules} disabled={isLoadingState}
-                      className="px-6 py-3 bg-dark-teal hover:bg-emerald hover:text-dark-teal text-pistachio font-bold rounded-xl transition flex items-center gap-2 disabled:opacity-60">
-                      {isLoadingState ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
-                      Look Up
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {["FL", "CA", "TX", "NY", "GA", "IL", "PA", "MN", "KS", "NM"].map(s => (
-                      <button key={s} onClick={() => setStateInput(s)}
-                        className="text-[11px] px-3 py-1.5 bg-slate-100 hover:bg-dark-teal hover:text-white rounded-lg font-bold transition font-mono">
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {stateResult && (
-                  <div className="space-y-4">
-                    {/* Status */}
-                    <div className={`p-6 rounded-2xl border ${pppBadgeColor(stateResult.ppp.status)}`}>
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="font-bold text-lg">{stateResult.state} — Prepayment Penalty</h3>
-                          <p className="text-xs opacity-70 mt-0.5 font-mono">{stateResult.ppp.status.replace(/_/g, " ")}</p>
-                        </div>
-                        <span className={`text-sm font-bold px-3 py-1.5 rounded-xl border ${pppBadgeColor(stateResult.ppp.status)}`}>
-                          {stateResult.ppp.allowed ? "ALLOWED" : "RESTRICTED"}
-                        </span>
-                      </div>
-                      <p className="text-sm">{stateResult.ppp.reason}</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Available prepay options */}
-                      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                        <h4 className="font-bold text-dark-teal text-sm mb-3">Allowed Prepay Options</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {stateResult.ppp.adjustedOptions.map(opt => (
-                            <span key={opt} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-lg">{opt}</span>
-                          ))}
-                          {stateResult.ppp.adjustedOptions.length === 0 && (
-                            <span className="text-xs text-slate-400">No standard PPP options available in this state</span>
+                          {stateResult.ppp.legalWarning && (
+                            <div className="flex items-start gap-3 p-4 text-sm"
+                              style={{ background: T.dangerBg, border: `1px solid ${T.dangerBorder}`, borderRadius: radius.md, color: T.dangerText }}>
+                              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                              <p>{stateResult.ppp.legalWarning}</p>
+                            </div>
                           )}
                         </div>
+                      )}
+                    </TabPane>
+                  )}
+
+                  {/* ── HISTORY ── */}
+                  {activeTab === "history" && (
+                    <TabPane id="history">
+                      <div className="pb-1">
+                        <p className="text-sm" style={{ color: T.muted }}>
+                          Every deal you've analyzed and every state lookup, in chronological order. Click a row to inspect the full result.
+                        </p>
                       </div>
 
-                      {/* Cost of no PPP */}
-                      {!stateResult.ppp.allowed && (
-                        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5">
-                          <h4 className="font-bold text-orange-700 text-sm mb-3">No-PPP Cost Premium</h4>
+                      {auditLogs.length === 0 ? (
+                        <Card style={{ padding: "64px 24px", textAlign: "center" }}>
+                          <History className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
+                          <p className="font-semibold text-sm" style={{ color: T.muted }}>No saved scenarios yet.</p>
+                          <p className="text-xs mt-1 mb-5" style={{ color: T.faint }}>Run a deal analysis or state lookup to start building your history.</p>
+                          <PrimaryBtn onClick={() => switchTab("analyze")}>Analyze a Deal →</PrimaryBtn>
+                        </Card>
+                      ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                          {/* Log list */}
                           <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-orange-600">Rate premium</span>
-                              <span className="font-mono font-bold text-orange-800">+{fmtPct(stateResult.ppp.noPPPPremiumRate)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-orange-600">Fee premium</span>
-                              <span className="font-mono font-bold text-orange-800">+{(stateResult.ppp.noPPPPremiumFee * 100).toFixed(3)}%</span>
-                            </div>
+                            {auditLogs.map(log => (
+                              <button key={log.id} onClick={() => setSelectedLog(log)} className="w-full text-left transition"
+                                style={{
+                                  background: selectedLog?.id === log.id ? `${swatch.rainforest}10` : swatch.white,
+                                  border: `1px solid ${selectedLog?.id === log.id ? swatch.rainforest : T.cardBorder}`,
+                                  borderRadius: radius.md,
+                                  padding: "14px 16px",
+                                }}>
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-2 h-2 rounded-full shrink-0"
+                                      style={{ background: log.type === "analyze" ? swatch.emerald : swatch.lemon }} />
+                                    <p className="text-sm font-semibold truncate" style={{ color: T.ink }}>{log.title}</p>
+                                  </div>
+                                  <button onClick={e => { e.stopPropagation(); deleteLog(log.id!, e as any); }}
+                                    className="p-1 transition shrink-0"
+                                    style={{ color: T.faint, borderRadius: radius.sm }}
+                                    onMouseEnter={e => e.currentTarget.style.color = T.dangerText}
+                                    onMouseLeave={e => e.currentTarget.style.color = T.faint}>
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                                <div className="flex items-center gap-3 mt-2">
+                                  <span className="text-[10px] font-bold px-2 py-0.5"
+                                    style={{
+                                      borderRadius: radius.pill,
+                                      background: log.type === "analyze" ? `${swatch.emerald}20` : `${swatch.lemon}40`,
+                                      color: log.type === "analyze" ? swatch.rainforest : "#9a7b00",
+                                    }}>
+                                    {log.type === "analyze" ? "DSCR Deal" : "State PPP"}
+                                  </span>
+                                  <span className="text-[10px]" style={{ color: T.faint }}>{new Date(log.timestamp).toLocaleString()}</span>
+                                </div>
+                              </button>
+                            ))}
                           </div>
+
+                          {/* Detail panel */}
+                          {selectedLog ? (
+                            <WhiteCard style={{ padding: "20px", overflow: "auto", maxHeight: 600 }}>
+                              <h3 className="font-bold text-sm mb-0.5" style={{ color: T.ink }}>{selectedLog.title}</h3>
+                              <p className="text-[10px] mb-4" style={{ color: T.faint }}>{new Date(selectedLog.timestamp).toLocaleString()}</p>
+                              {/* Human-readable summary if analyze type */}
+                              {selectedLog.type === "analyze" && selectedLog.output?.deal && (() => {
+                                const d = selectedLog.output.deal as DSCRResult;
+                                return (
+                                  <div className="space-y-2 mb-4 pb-4" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-2xl font-extrabold font-mono" style={{ color: artifactDscrColor(d.dscr), fontVariantNumeric: "tabular-nums" }}>{d.dscr.toFixed(2)}x</span>
+                                      <span className="text-xs font-bold" style={{ color: T.muted }}>DSCR — {dscrLabel(d.dscr)}</span>
+                                    </div>
+                                    <div className="text-xs space-y-1" style={{ color: T.muted }}>
+                                      <div>Solved rate: <strong className="font-mono">{fmtPct(d.solvedRate)}</strong></div>
+                                      <div>Total PITIA: <strong className="font-mono">{fmt$(d.monthlyPITIA?.total ?? 0)}/mo</strong></div>
+                                      <div>Rate headroom: <strong className="font-mono">{d.rateHeadroomBps} bps</strong></div>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                              <pre className="text-xs overflow-auto whitespace-pre-wrap" style={{ background: T.inputBg, borderRadius: radius.sm, padding: "12px", color: T.muted }}>
+                                {JSON.stringify(selectedLog.output, null, 2)}
+                              </pre>
+                            </WhiteCard>
+                          ) : (
+                            <Card style={{ padding: "40px 24px", textAlign: "center" }}>
+                              <p className="text-sm" style={{ color: T.faint }}>Click a scenario on the left to inspect its result.</p>
+                            </Card>
+                          )}
                         </div>
                       )}
+                    </TabPane>
+                  )}
 
-                      {/* Entity notes */}
-                      {stateResult.ppp.requiresEntityVesting && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-                          <h4 className="font-bold text-blue-700 text-sm mb-2">Entity Requirement</h4>
-                          <p className="text-sm text-blue-600">{stateResult.ppp.entityNote}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {stateResult.ppp.legalWarning && (
-                      <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl text-sm text-red-700">
-                        <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-                        <p>{stateResult.ppp.legalWarning}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            )}
-
-            {/* ── HISTORY ── */}
-            {activeTab === "history" && (
-              <motion.div key="history" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
-                {auditLogs.length === 0 ? (
-                  <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-16 text-center text-slate-400">
-                    <History className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                    <p className="font-semibold text-sm">No deal history yet.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                      {auditLogs.map(log => (
-                        <div key={log.id} onClick={() => setSelectedLog(log)}
-                          className={`bg-white border rounded-2xl p-4 cursor-pointer transition shadow-sm ${selectedLog?.id === log.id ? "border-[var(--color-emerald)] shadow-md" : "border-slate-100 hover:border-slate-200"}`}>
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <div className={`w-2 h-2 rounded-full shrink-0 ${log.type === "analyze" ? "bg-emerald" : "bg-yellow-400"}`} />
-                              <p className="text-sm font-semibold text-slate-700 truncate">{log.title}</p>
-                            </div>
-                            <button onClick={e => deleteLog(log.id!, e)} className="p-1 hover:text-red-500 text-slate-300 transition shrink-0">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                  {/* ── SETTINGS ── */}
+                  {activeTab === "settings" && (
+                    <TabPane id="settings">
+                      <WhiteCard className="max-w-xl" style={{ padding: "32px" }}>
+                        <h2 className="font-bold text-lg mb-1" style={{ color: T.ink }}>Broker Profile</h2>
+                        <p className="text-xs mb-6" style={{ color: T.muted }}>
+                          Your name and license info appear on IC memos and audit exports.
+                        </p>
+                        <form onSubmit={saveBrokerConfig} className="space-y-4">
+                          {[
+                            { key: "brokerName",    label: "Broker / Company Name",    helper: "Displayed on all exports" },
+                            { key: "nmls",          label: "NMLS License Number",      helper: "Required for compliance memos" },
+                            { key: "licenseType",   label: "License Type",             helper: "e.g. Mortgage Broker, Mortgage Banker" },
+                            { key: "primaryMarket", label: "Primary Markets (States)", helper: "e.g. FL, TX, GA" },
+                          ].map(({ key, label, helper }) => (
+                            <FieldInput key={key} label={label} helper={helper} type="text"
+                              value={(brokerConfig as any)[key]}
+                              onChange={e => setBrokerConfig(p => ({ ...p, [key]: e.target.value }))} />
+                          ))}
+                          <div className="space-y-1">
+                            <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>Default Disclaimer</label>
+                            <textarea rows={3} value={brokerConfig.autoDisclaimer}
+                              onChange={e => setBrokerConfig(p => ({ ...p, autoDisclaimer: e.target.value }))}
+                              className="w-full px-3 py-2.5 text-sm outline-none transition-colors resize-none"
+                              style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
+                              onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
+                              onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
                           </div>
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${log.type === "analyze" ? "bg-emerald/15 text-dark-teal" : "bg-yellow-50 text-lemon-lime"}`}>
-                              {log.type === "analyze" ? "DSCR Deal" : "State PPP"}
-                            </span>
-                            <span className="text-[10px] text-slate-400">{new Date(log.timestamp).toLocaleString()}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {selectedLog && (
-                      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 overflow-auto max-h-[600px]">
-                        <h3 className="font-bold text-dark-teal text-sm mb-1">{selectedLog.title}</h3>
-                        <p className="text-[10px] text-slate-400 mb-3">{new Date(selectedLog.timestamp).toLocaleString()}</p>
-                        <pre className="text-xs bg-slate-50 rounded-xl p-4 overflow-auto text-slate-600 whitespace-pre-wrap">
-                          {JSON.stringify(selectedLog.output, null, 2)}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            )}
+                          <PrimaryBtn type="submit" className="w-full">
+                            {brokerSaved ? <><CheckCircle className="w-4 h-4" /> Saved</> : "Save Profile"}
+                          </PrimaryBtn>
+                        </form>
+                      </WhiteCard>
+                    </TabPane>
+                  )}
 
-            {/* ── REFI TRACKER ── */}
-            {activeTab === "refi" && (
-              <motion.div key="refi" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <RefiTrackerPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
+                  {/* ── PASSTHROUGH PAGES ── */}
+                  {activeTab === "refi" && (
+                    <TabPane id="refi">
+                      <RefiTrackerPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "arm" && (
+                    <TabPane id="arm">
+                      <ARMPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "montecarlo" && (
+                    <TabPane id="montecarlo">
+                      <MonteCarloPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "returns" && (
+                    <TabPane id="returns">
+                      <ReturnsPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "tax" && (
+                    <TabPane id="tax">
+                      <TaxEnginePage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "stress" && (
+                    <TabPane id="stress">
+                      <StressMatrixPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "decision" && (
+                    <TabPane id="decision">
+                      <DecisionSupportPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "str" && (
+                    <TabPane id="str">
+                      <STRUnderwritingPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
+                  {activeTab === "portfolio" && (
+                    <TabPane id="portfolio">
+                      <PortfolioPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
+                    </TabPane>
+                  )}
 
-            {/* ── ARM RESET ── */}
-            {activeTab === "arm" && (
-              <motion.div key="arm" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <ARMPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── MONTE CARLO ── */}
-            {activeTab === "montecarlo" && (
-              <motion.div key="montecarlo" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <MonteCarloPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── RETURNS ── */}
-            {activeTab === "returns" && (
-              <motion.div key="returns" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <ReturnsPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── TAX ENGINE ── */}
-            {activeTab === "tax" && (
-              <motion.div key="tax" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <TaxEnginePage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── STRESS MATRIX ── */}
-            {activeTab === "stress" && (
-              <motion.div key="stress" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <StressMatrixPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── DECISION SUPPORT ── */}
-            {activeTab === "decision" && (
-              <motion.div key="decision" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <DecisionSupportPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── STR UNDERWRITING ── */}
-            {activeTab === "str" && (
-              <motion.div key="str" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <STRUnderwritingPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── PORTFOLIO ── */}
-            {activeTab === "portfolio" && (
-              <motion.div key="portfolio" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <PortfolioPage onBack={() => setActiveTab("dashboard")} onNavigate={() => setActiveTab("dashboard")} />
-              </motion.div>
-            )}
-
-            {/* ── SETTINGS ── */}
-            {activeTab === "settings" && (
-              <motion.div key="settings" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-8 max-w-xl">
-                  <h2 className="font-bold text-dark-teal text-lg mb-6">Broker Profile</h2>
-                  <form onSubmit={saveBrokerConfig} className="space-y-4">
-                    {[
-                      { key: "brokerName", label: "Broker / Company Name" },
-                      { key: "nmls", label: "NMLS License Number" },
-                      { key: "licenseType", label: "License Type" },
-                      { key: "primaryMarket", label: "Primary Markets (States)" },
-                    ].map(({ key, label }) => (
-                      <div key={key} className="space-y-1">
-                        <label className="text-xs font-bold text-slate-500">{label}</label>
-                        <input type="text" value={(brokerConfig as any)[key]}
-                          onChange={e => setBrokerConfig(p => ({ ...p, [key]: e.target.value }))}
-                          className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition" />
-                      </div>
-                    ))}
-                    <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-500">Default Disclaimer</label>
-                      <textarea rows={3} value={brokerConfig.autoDisclaimer}
-                        onChange={e => setBrokerConfig(p => ({ ...p, autoDisclaimer: e.target.value }))}
-                        className="w-full px-4 py-3 bg-slate-50 focus:bg-white border border-transparent focus:border-[var(--color-emerald)] rounded-xl outline-none text-sm transition resize-none" />
-                    </div>
-                    <button type="submit" className="w-full py-3.5 bg-dark-teal hover:bg-emerald hover:text-dark-teal text-pistachio font-bold rounded-xl transition shadow">
-                      {brokerSaved ? "✓ Saved" : "Save Profile"}
-                    </button>
-                  </form>
-                </div>
-              </motion.div>
-            )}
-
-          </AnimatePresence>
+                </AnimatePresence>
+              </div>
+            </div>
+          </main>
         </div>
-        </div>
-      </main>
       </div>
     </>
   );
