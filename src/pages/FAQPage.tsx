@@ -100,6 +100,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent="#004041"
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "Lender Intel", view: "lender-intel" },
@@ -118,7 +119,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       {/* ── HERO ── */}
       <section
         style={{
-          background: dc.dark,
+          background: dc.teal,
           color: dc.cream,
           padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(48px,6vh,72px)",
           overflow: "hidden",
@@ -319,7 +320,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       <section
         className="gs-reveal"
         style={{
-          background: dc.dark,
+          background: dc.teal,
           padding: "clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem)",
         }}
       >

@@ -4,14 +4,14 @@ import { DcShell, dc } from "../design/dc";
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const TEAM = [
-  { id: "team-dave",   name: "Dave Feldman",  role: "Cofounder & CEO" },
-  { id: "team-priya",  name: "Priya Rao",     role: "Cofounder & Head of Quant" },
-  { id: "team-alex",   name: "Alex Chen",     role: "VP Engineering" },
-  { id: "team-sarah",  name: "Sarah Jenkins", role: "Head of Capital Markets" },
-  { id: "team-marcus", name: "Marcus Webb",   role: "Principal Engineer" },
-  { id: "team-elena",  name: "Elena Rodriguez", role: "Director of Compliance" },
-  { id: "team-james",  name: "James Wilson",  role: "Product Manager" },
-  { id: "team-nina",   name: "Nina Patel",    role: "Lead Designer" },
+  { id: "team-dave",    name: "Dave Feldman",   role: "Cofounder & CEO" },
+  { id: "team-priya",   name: "Priya Rao",      role: "Cofounder & Head of Quant" },
+  { id: "team-marcus",  name: "Marcus Chen",    role: "Head of Lending" },
+  { id: "team-sara",    name: "Sara López",     role: "Head of Compliance" },
+  { id: "team-tobi",    name: "Tobi Okafor",   role: "Staff Engineer, Engine" },
+  { id: "team-anita",   name: "Anita Mehta",   role: "Product Designer" },
+  { id: "team-jordan",  name: "Jordan Brooks",  role: "Account Executive" },
+  { id: "team-hannah",  name: "Hannah Park",   role: "Compliance Counsel" },
 ];
 
 const JOBS = [
@@ -22,20 +22,31 @@ const JOBS = [
 ];
 
 const VALUES = [
-  { heading: "Speed is the product",         body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds, not a spreadsheet round-trip." },
-  { heading: "No black boxes",               body: "Every figure Greenstreet produces is computed by versioned code with a citation behind every rule. When a regulator asks where a number came from, we hand them the source." },
-  { heading: "Your borrower stays yours",    body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship. Your pipeline is yours." },
+  { heading: "Speed is the product",                    body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds, not a spreadsheet round-trip." },
+  { heading: "No black boxes",                          body: "Every figure Greenstreet produces is computed by versioned code with a citation behind every rule. When a regulator asks where a number came from, we hand them the source." },
+  { heading: "Your borrower stays yours",               body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship. Your pipeline is yours." },
   { heading: "Compliance is a feature, not a footnote", body: "State PPP rules, DSCR floors, seasoning requirements — baked into every output, not an afterthought appended to the printout." },
 ];
 
-// Scoped CSS — job-row hover only. No backdrop-filter, no glow, no animation.
+// ── Scoped styles ─────────────────────────────────────────────────────────────
+// Light-nav (lemon) override mirrors DealAnalyzerPage's pistachio pattern.
+// Job-row hover + CTA card lift are the only motion permitted (per design rules).
 const ABOUT_CSS = `
-.ab-job { transition: transform .14s, background .15s; }
-.ab-job:hover { transform: translateX(6px); background: #003738 !important; }
-.ab-job:hover .ab-jt { color: #eeefd3 !important; }
-.ab-job:hover .ab-ja { color: #d8d958 !important; }
-.cta-card { transition: transform .15s; }
-.cta-card:hover { transform: translateY(-4px); }
+  /* Lemon nav: swap all text to dark ink */
+  .dc-nav a { color: rgba(0,55,56,0.72) !important; }
+  .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
+  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,0.92) !important; backdrop-filter: blur(12px); }
+  /* Lemon footer: dark wordmark */
+  footer { color: rgba(0,55,56,0.55) !important; }
+  footer div[style] { color: #003738 !important; }
+  /* Job-row hover */
+  .ab-job { transition: transform .14s, background .15s; }
+  .ab-job:hover { transform: translateX(6px); background: #003738 !important; }
+  .ab-job:hover .ab-jt { color: #eeefd3 !important; }
+  .ab-job:hover .ab-ja { color: #d8d958 !important; }
+  /* CTA card lift */
+  .cta-card { transition: transform .15s; }
+  .cta-card:hover { transform: translateY(-4px); }
 `;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -55,6 +66,7 @@ export default function AboutPage({
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent={dc.lemon}
       navLinks={[
         { label: "Product",  view: "products" },
         { label: "Careers",  view: "careers" },
@@ -63,7 +75,7 @@ export default function AboutPage({
     >
       <style>{ABOUT_CSS}</style>
 
-      {/* ── HERO ── solid lemon, no glass/blur/glow ─────────────────────────── */}
+      {/* ── HERO — solid lemon, dark ink ──────────────────────────────────── */}
       <section
         style={{
           background: dc.lemon,
@@ -73,6 +85,7 @@ export default function AboutPage({
         }}
       >
         <div id="gs-hero-content" style={{ maxWidth: 1080, margin: "0 auto" }}>
+
           {/* Eyebrow */}
           <div
             style={{
@@ -87,15 +100,15 @@ export default function AboutPage({
             About Greenstreet
           </div>
 
-          {/* H1 — house standard clamp */}
+          {/* H1 */}
           <h1
             style={{
-              fontSize: "clamp(48px,7.5vw,116px)",
+              fontSize: "clamp(34px,4.6vw,68px)",
               fontWeight: 600,
-              lineHeight: 0.93,
-              letterSpacing: "-0.04em",
+              lineHeight: 1.04,
+              letterSpacing: "-0.035em",
               margin: "0 0 28px",
-              maxWidth: "18ch",
+              maxWidth: "24ch",
             }}
           >
             We got tired of watching good deals die in spreadsheets.
@@ -113,10 +126,12 @@ export default function AboutPage({
               margin: "0 0 36px",
             }}
           >
-            So we built the engine that kills that problem.
+            Greenstreet was founded by a broker and a quant who set out to build
+            DSCR software so good that pricing a rental loan any other way would
+            feel like negligence.
           </p>
 
-          {/* Two-track differentiator — most important claim */}
+          {/* 2-track differentiator badge */}
           <div
             style={{
               display: "inline-block",
@@ -124,7 +139,7 @@ export default function AboutPage({
               color: dc.lemon,
               borderRadius: 8,
               padding: "14px 24px",
-              fontSize: "clamp(15px,1.4vw,19px)",
+              fontSize: "clamp(14px,1.2vw,17px)",
               fontWeight: 600,
               letterSpacing: "-0.02em",
               marginBottom: 40,
@@ -148,9 +163,7 @@ export default function AboutPage({
               >
                 Founded by
               </div>
-              <div
-                style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}
-              >
+              <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>
                 Dave Feldman and Priya Rao
               </div>
             </div>
@@ -167,36 +180,15 @@ export default function AboutPage({
               >
                 Headquartered in
               </div>
-              <div
-                style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}
-              >
+              <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>
                 Austin, Texas
-              </div>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase" as const,
-                  color: "rgba(0,55,56,0.5)",
-                  marginBottom: 4,
-                }}
-              >
-                Founded
-              </div>
-              <div
-                style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}
-              >
-                2026
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── VISION — two stacked dc-band-2 rows ─────────────────────────────── */}
+      {/* ── VISION — two stacked 2-col blocks ────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
@@ -316,14 +308,13 @@ export default function AboutPage({
               an institution runs. Every figure Greenstreet produces is computed by
               versioned code with a citation behind every rule — never an LLM
               guess. When a regulator asks where a number came from, we hand them
-              the source. Programs go up to $4M per deal on most structures; higher
-              on portfolio blanket lines.
+              the source.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ── VALUES — 4-item dc-band-2 grid ──────────────────────────────────── */}
+      {/* ── VALUES — 4 principles, 2-col card grid ────────────────────────── */}
       <section
         style={{
           background: dc.mintBg,
@@ -406,7 +397,7 @@ export default function AboutPage({
         </div>
       </section>
 
-      {/* ── TEAM — dc-band-3 card grid ───────────────────────────────────────── */}
+      {/* ── TEAM — dark band, 4-col card grid ───────────────────────────── */}
       <section
         style={{
           background: dc.dark,
@@ -449,7 +440,7 @@ export default function AboutPage({
           </div>
 
           <div
-            className="gs-reveal dc-band-3"
+            className="gs-reveal"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4, 1fr)",
@@ -497,7 +488,7 @@ export default function AboutPage({
         </div>
       </section>
 
-      {/* ── JOBS — dc-band-2 (list + blurb) ─────────────────────────────────── */}
+      {/* ── JOBS — 2-col: list left / blurb right ───────────────────────── */}
       <section
         style={{
           background: dc.cream,
@@ -618,7 +609,7 @@ export default function AboutPage({
             </button>
           </div>
 
-          {/* Right: copy */}
+          {/* Right: blurb + visual placeholder */}
           <div>
             <p
               style={{
@@ -633,7 +624,7 @@ export default function AboutPage({
               We're building a generational company in DSCR lending — and always
               looking for talent to propel the mission.
             </p>
-            {/* Visual placeholder — solid fill, flat border */}
+            {/* Team photo placeholder — solid lemon fill */}
             <div
               style={{
                 display: "block",
@@ -648,7 +639,7 @@ export default function AboutPage({
         </div>
       </section>
 
-      {/* ── CTA — two cards ──────────────────────────────────────────────────── */}
+      {/* ── CTA — two cards ─────────────────────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
@@ -665,7 +656,7 @@ export default function AboutPage({
             gap: 20,
           }}
         >
-          {/* Card 1: Calculator */}
+          {/* Card 1: Demo */}
           <button
             onClick={() => onNavigate("dscr-calculator")}
             className="cta-card"
@@ -694,8 +685,7 @@ export default function AboutPage({
                 color: dc.cream,
               }}
             >
-              Price any DSCR deal — standard track or sub-1.0 — in under two
-              minutes.
+              Learn the how and why of Greenstreet in 15 minutes.
             </div>
             <span
               style={{
@@ -711,13 +701,13 @@ export default function AboutPage({
                 alignSelf: "flex-start",
               }}
             >
-              Open the calculator →
+              Book a live demo →
             </span>
           </button>
 
-          {/* Card 2: Rate quiz */}
+          {/* Card 2: Calculator */}
           <button
-            onClick={() => onNavigate("rate-quiz")}
+            onClick={() => onNavigate("dscr-calculator")}
             className="cta-card"
             style={{
               display: "flex",
@@ -744,7 +734,7 @@ export default function AboutPage({
                 color: dc.cream,
               }}
             >
-              Answer 5 questions. Get your matched rate band and program.
+              Price any DSCR deal — standard track or sub-1.0 — in under two minutes.
             </div>
             <span
               style={{
@@ -759,7 +749,7 @@ export default function AboutPage({
                 alignSelf: "flex-start",
               }}
             >
-              Take the rate quiz →
+              Open the calculator →
             </span>
           </button>
         </div>

@@ -6,7 +6,7 @@ import { DcShell, dc, Mono } from "../design/dc";
 const ARTICLE_CSS = `
   .bp-body p{font-size:clamp(17px,1.35vw,20px);font-weight:500;line-height:1.7;color:rgba(0,55,56,0.78);margin:0 0 22px;letter-spacing:-0.01em;}
   .bp-body h2{font-size:clamp(24px,2.6vw,34px);font-weight:600;letter-spacing:-0.03em;color:${dc.dark};margin:40px 0 16px;line-height:1.1;}
-  .bp-body blockquote{margin:32px 0;padding:4px 0 4px 26px;border-left:3px solid ${dc.lemon};font-size:clamp(20px,2vw,26px);font-weight:600;letter-spacing:-0.02em;line-height:1.3;color:${dc.dark};}
+  .bp-body blockquote{margin:32px 0;padding:16px 0 16px 28px;border-left:3px solid ${dc.lemon};font-size:clamp(20px,2vw,26px);font-weight:600;letter-spacing:-0.02em;line-height:1.3;color:${dc.dark};}
   .bp-body strong{font-weight:700;color:${dc.dark};}
   .bp-body ul{margin:0 0 20px;padding:0;list-style:none;}
   .bp-body li{color:#3f5252;font-size:17px;line-height:1.6;margin-bottom:12px;padding-left:26px;position:relative;}
@@ -46,7 +46,6 @@ export default function BlogPostPage({
     window.scrollTo(0, 0);
   }, [post]);
 
-  // Nav links wired to the shell
   const navLinks = [
     { label: "Guidance",     view: "blog" },
     { label: "Case Studies", view: "case-studies" },
@@ -71,78 +70,117 @@ export default function BlogPostPage({
     <DcShell onNavigate={onNavigate} navLinks={navLinks} cta={cta}>
       <style>{ARTICLE_CSS}</style>
 
-      {/* ── ARTICLE HERO ─────────────────────────────────────────────── */}
+      {/* ── ARTICLE HERO — narrow column, editorial masthead feel ────────── */}
       <section
         style={{
           background: dc.dark,
           color: dc.cream,
-          padding: "clamp(48px,6vh,80px) clamp(1.5rem,4vw,3rem) clamp(48px,6vh,72px)",
+          padding: "clamp(48px,6vh,80px) clamp(1.5rem,4vw,3rem) 0",
           overflow: "hidden",
         }}
       >
         <div id="gs-hero-content" style={{ maxWidth: 820, margin: "0 auto" }}>
-          {/* Back link */}
+
+          {/* Breadcrumb back link */}
           <a
             href="/blog"
             onClick={(e) => { e.preventDefault(); onNavigate("blog"); }}
-            style={{ fontSize: 13, fontWeight: 600, color: dc.emerald, textDecoration: "none", letterSpacing: "-0.01em" }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              color: dc.emerald,
+              textDecoration: "none",
+              letterSpacing: "-0.01em",
+            }}
           >
             ← All articles
           </a>
 
-          {/* Date + read time */}
+          {/* Category tag + read time */}
           <div
             style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "rgba(238,239,211,0.5)",
-              margin: "24px 0 16px",
-              letterSpacing: "-0.01em",
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              margin: "24px 0 18px",
             }}
           >
-            {post.date} · 6 min read
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                background: "rgba(216,217,88,0.12)",
+                padding: "4px 10px",
+                borderRadius: 4,
+              }}
+            >
+              {post.tag ?? "Insight"}
+            </span>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: "rgba(238,239,211,0.45)",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {post.date} · 6 min read
+            </span>
           </div>
 
-          {/* H1 — clamp matches design spec */}
+          {/* H1 */}
           <h1
             style={{
               fontSize: "clamp(34px,4.6vw,64px)",
               fontWeight: 600,
               lineHeight: 1.02,
               letterSpacing: "-0.035em",
-              margin: "0 0 32px",
+              margin: "0 0 28px",
               color: dc.cream,
             }}
           >
             {post.title}
           </h1>
 
-          {/* Byline row */}
+          {/* Byline + share — pinned to bottom of hero */}
           <div
             className="bp-byline"
-            style={{ display: "flex", alignItems: "center", gap: 14 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              borderTop: "1px solid rgba(238,239,211,0.1)",
+              paddingTop: 20,
+              paddingBottom: "clamp(28px,4vh,48px)",
+            }}
           >
-            {/* Author avatar — solid branded circle (no image drop zone) */}
+            {/* Author avatar — solid branded circle */}
             <div
               style={{
-                width: 52,
-                height: 52,
+                width: 44,
+                height: 44,
                 flexShrink: 0,
                 borderRadius: "50%",
                 background: dc.mintBg,
-                border: `1px solid rgba(238,239,211,0.18)`,
+                border: "1px solid rgba(238,239,211,0.18)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.dark }}>PR</Mono>
+              <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.dark }}>PR</Mono>
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", color: dc.cream }}>
+              <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em", color: dc.cream }}>
                 Priya Rao
               </div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.55)", letterSpacing: "-0.01em" }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", letterSpacing: "-0.01em" }}>
                 Cofounder &amp; Head of Quant
               </div>
             </div>
@@ -153,17 +191,17 @@ export default function BlogPostPage({
                 <span
                   key={label}
                   style={{
-                    width: 36,
-                    height: 36,
+                    width: 34,
+                    height: 34,
                     borderRadius: 6,
-                    background: "rgba(238,239,211,0.1)",
+                    background: "rgba(238,239,211,0.08)",
                     border: "1px solid rgba(238,239,211,0.14)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: 700,
-                    color: "rgba(238,239,211,0.7)",
+                    color: "rgba(238,239,211,0.6)",
                     cursor: "pointer",
                   }}
                 >
@@ -175,82 +213,165 @@ export default function BlogPostPage({
         </div>
       </section>
 
-      {/* ── LEAD IMAGE (solid branded panel) ────────────────────────── */}
+      {/* ── LEAD IMAGE — full-bleed editorial panel, branded glyph ────────── */}
       <section
         style={{
-          background: dc.cream,
-          padding: "clamp(32px,4vw,56px) clamp(1.5rem,4vw,3rem) 0",
+          background: dc.teal,
+          padding: 0,
         }}
       >
-        <div className="gs-reveal" style={{ maxWidth: 980, margin: "0 auto" }}>
+        <div className="gs-reveal" style={{ maxWidth: 980, margin: "0 auto", padding: `0 ${dc.pad}` }}>
           <div
             style={{
               width: "100%",
               aspectRatio: "16/9",
-              borderRadius: 12,
               background: dc.teal,
-              border: `1px solid rgba(238,239,211,0.1)`,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 16,
+              gap: 18,
               padding: "clamp(24px,3vw,48px)",
+              position: "relative",
             }}
           >
-            {/* Branded "engine" visual — monospaced stack, no animation, no blur */}
+            {/* Monospaced engine label */}
             <Mono
               style={{
-                fontSize: "clamp(13px,1.1vw,15px)",
+                fontSize: "clamp(11px,0.9vw,13px)",
                 fontWeight: 600,
-                color: "rgba(238,239,211,0.4)",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
+                color: "rgba(238,239,211,0.35)",
+                letterSpacing: "0.09em",
+                textTransform: "uppercase" as const,
               }}
             >
               The Greenstreet engine
             </Mono>
+
+            {/* Signature metric — deterministic output */}
             <Mono
               style={{
-                fontSize: "clamp(48px,7vw,96px)",
+                fontSize: "clamp(56px,9vw,112px)",
                 fontWeight: 700,
                 color: dc.cream,
-                lineHeight: 0.9,
+                lineHeight: 0.88,
               }}
             >
               1.11x
             </Mono>
+
             <div
               style={{
-                fontSize: "clamp(12px,1vw,14px)",
+                fontSize: "clamp(12px,0.95vw,14px)",
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.5)",
+                color: "rgba(238,239,211,0.45)",
                 letterSpacing: "-0.01em",
+                textAlign: "center",
               }}
             >
               Deterministic · Traceable · Same inputs → same outputs
             </div>
-            {/* Lemon rule accent — flat 1px, no glow */}
+
+            {/* Lemon rule accent */}
             <div
               style={{
-                width: "clamp(40px,6vw,80px)",
+                width: "clamp(40px,5vw,72px)",
                 height: 2,
                 background: dc.lemon,
                 borderRadius: 1,
-                marginTop: 8,
+                marginTop: 4,
               }}
             />
           </div>
         </div>
+
+        {/* Caption strip — editorial metadata below the lead image */}
+        <div
+          style={{
+            background: dc.dark,
+            borderTop: "1px solid rgba(238,239,211,0.08)",
+            padding: "10px clamp(1.5rem,4vw,3rem)",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 980,
+              margin: "0 auto",
+              display: "flex",
+              alignItems: "center",
+              gap: 20,
+            }}
+          >
+            <Mono
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "rgba(238,239,211,0.35)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase" as const,
+              }}
+            >
+              Fig. 1
+            </Mono>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                color: "rgba(238,239,211,0.4)",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              DSCR at 1.11× — the threshold where both coverage and cash flow hold under a 10% vacancy shock.
+            </span>
+          </div>
+        </div>
       </section>
 
-      {/* ── ARTICLE BODY ─────────────────────────────────────────────── */}
+      {/* ── ARTICLE BODY — prose column, max ~70ch, editorial margins ───────── */}
       <section
         style={{
           background: dc.cream,
-          padding: "clamp(40px,5vw,64px) clamp(1.5rem,4vw,3rem) clamp(56px,7vw,88px)",
+          padding: "clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem) clamp(64px,8vw,96px)",
         }}
       >
+        {/* Reading-progress eyebrow — thin lemon rule + section label */}
+        <div
+          className="gs-reveal"
+          style={{
+            maxWidth: 680,
+            margin: "0 auto 36px",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              height: 1,
+              background: "rgba(0,55,56,0.12)",
+            }}
+          />
+          <Mono
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.07em",
+              textTransform: "uppercase" as const,
+              color: "rgba(0,55,56,0.35)",
+            }}
+          >
+            Article
+          </Mono>
+          <div
+            style={{
+              flex: 1,
+              height: 1,
+              background: "rgba(0,55,56,0.12)",
+            }}
+          />
+        </div>
+
         <article className="bp-body gs-reveal" style={{ maxWidth: 680, margin: "0 auto" }}>
           {post.body.map((b: any, i: number) => {
             if (b.h)     return <h2 key={i}>{b.h}</h2>;
@@ -263,9 +384,54 @@ export default function BlogPostPage({
             return <p key={i}>{b.p}</p>;
           })}
         </article>
+
+        {/* End-of-article rule + share nudge */}
+        <div
+          className="gs-reveal"
+          style={{
+            maxWidth: 680,
+            margin: "48px auto 0",
+            paddingTop: 28,
+            borderTop: "1px solid rgba(0,55,56,0.12)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "rgba(0,55,56,0.45)",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Share this article
+          </span>
+          <div style={{ display: "flex", gap: 8 }}>
+            {["LinkedIn", "𝕏 / Twitter"].map((label) => (
+              <span
+                key={label}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: dc.rain,
+                  letterSpacing: "-0.01em",
+                  cursor: "pointer",
+                  borderBottom: `1px solid ${dc.rain}`,
+                  paddingBottom: 1,
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* ── CTA BAND ─────────────────────────────────────────────────── */}
+      {/* ── CTA BAND ─────────────────────────────────────────────────────── */}
       <section
         style={{
           background: dc.dark,
@@ -318,7 +484,7 @@ export default function BlogPostPage({
         </div>
       </section>
 
-      {/* ── RELATED ARTICLES ─────────────────────────────────────────── */}
+      {/* ── RELATED ARTICLES ─────────────────────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
@@ -352,7 +518,7 @@ export default function BlogPostPage({
                 style={{
                   background: "#fff",
                   borderRadius: 9,
-                  border: `1px solid rgba(0,55,56,0.08)`,
+                  border: "1px solid rgba(0,55,56,0.08)",
                   overflow: "hidden",
                   textDecoration: "none",
                   display: "flex",
@@ -386,7 +552,7 @@ export default function BlogPostPage({
                       fontSize: 12,
                       fontWeight: 600,
                       letterSpacing: "0.03em",
-                      textTransform: "uppercase",
+                      textTransform: "uppercase" as const,
                       color: dc.rain,
                       marginBottom: 10,
                     }}

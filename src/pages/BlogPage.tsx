@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
 
-// ── Card hover lift (no glass, no glow, no float) ────────────────────────────
+// ── Pistachio editorial identity ───────────────────────────────────────────────
+// Accent matches mockup: #eeefd3 nav + footer, dark-ink overrides on .dc-nav
+const BL_ACCENT = "#eeefd3";
+const BL_NAV_BORDER = "1px solid rgba(0,55,56,0.15)";
+
 const BL_CSS = `
 .bl-card { transition: transform .14s; }
 .bl-card:hover { transform: translateY(-4px); }
+/* Light-nav override: links + wordmark use dark ink on pistachio bg */
+.dc-nav a { color: rgba(0,55,56,0.72) !important; }
+.dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
+.dc-nav { border-bottom: ${BL_NAV_BORDER} !important; background: rgba(238,239,211,0.92) !important; backdrop-filter: blur(12px); }
+/* footer ink on pistachio footer */
+footer { color: rgba(0,55,56,0.55) !important; }
+footer div[style] { color: #003738 !important; }
 `;
 
 // ── Post data (all existing posts preserved) ──────────────────────────────────
@@ -329,6 +340,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent={BL_ACCENT}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "Lender Intel", view: "lender-intel" },

@@ -1,14 +1,15 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
 
-// ── Audience segments (from Solutions.dc.html renderVals, alternating layout) ──
+// ── Audience segments — data from Solutions.dc.html renderVals() ───────────────
+// Each segment has alternating content/visual order: even indices content-left,
+// odd indices content-right. This is the SIGNATURE of this page.
 interface Segment {
   tag: string;
   title: string;
   desc: string;
   cta: string;
   view: string;
-  // visual panel colours — solid fills, 1px borders only, no blur/glow
   panelBg: string;
   panelAccent: string;
   panelBody: string;
@@ -39,7 +40,7 @@ const SEGMENTS: Segment[] = [
   {
     tag: "Investors",
     title: "Underwrite like an institution",
-    desc: "After-tax IRR, stress-tested rate paths and a sensitivity matrix — the analysis a fund runs, on your own deals.",
+    desc: "After-tax IRR, Monte Carlo rate paths and a 120-cell stress matrix — the analysis a fund runs, on your own deals.",
     cta: "Explore investor tools",
     view: "investors",
     panelBg: dc.dark,
@@ -59,7 +60,7 @@ const SEGMENTS: Segment[] = [
     title: "One book, one underwriting view",
     desc: "Blended DSCR, aggregate equity and weighted rate across every door — the way a blanket lender actually sees your portfolio.",
     cta: "Open the portfolio builder",
-    view: "lender-intel",
+    view: "borrower-profiles",
     panelBg: dc.rain,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.60)",
@@ -92,7 +93,7 @@ const SEGMENTS: Segment[] = [
   },
 ];
 
-// ── Stat panel — solid fills, flat 1px grid, no blur/glow ─────────────────────
+// ── Stat panel: solid fills, flat 1-px grid, no blur/glow ────────────────────
 function StatPanel({ seg }: { seg: Segment }) {
   return (
     <div
@@ -129,13 +130,7 @@ function StatPanel({ seg }: { seg: Segment }) {
         }}
       >
         {seg.stats.map((st) => (
-          <div
-            key={st.k}
-            style={{
-              background: seg.statBg,
-              padding: "18px 16px",
-            }}
-          >
+          <div key={st.k} style={{ background: seg.statBg, padding: "18px 16px" }}>
             <Mono
               style={{
                 display: "block",
@@ -165,7 +160,10 @@ function StatPanel({ seg }: { seg: Segment }) {
   );
 }
 
-// ── Segment row — alternating content/visual order ────────────────────────────
+// ── SegmentRow: the CENTERPIECE — alternating content↔visual layout ───────────
+// Each row gets its own gs-reveal so GSAP fires per-row, not for the whole list.
+// CSS order property drives left/right alternation; the so-feat responsive override
+// neutralizes order on mobile so text always appears first.
 function SegmentRow({
   seg,
   index,
@@ -178,7 +176,7 @@ function SegmentRow({
   const contentFirst = index % 2 === 0;
   return (
     <div
-      className="gs-reveal dc-band-2"
+      className="gs-reveal so-feat"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -187,7 +185,14 @@ function SegmentRow({
       }}
     >
       {/* Content column */}
-      <div style={{ order: contentFirst ? 1 : 2, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+      <div
+        style={{
+          order: contentFirst ? 1 : 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+        }}
+      >
         <div
           style={{
             fontSize: 12,
@@ -254,7 +259,8 @@ function SegmentRow({
   );
 }
 
-// ── "Just want a rate?" card — intentionally informal, preserved from existing ─
+// ── "Just want a rate?" — intentionally informal closing card ─────────────────
+// Wired directly to rate-quiz. Kept as written in the mockup data.
 function RateQuizCard({ onNavigate }: { onNavigate: (v: string) => void }) {
   return (
     <div
@@ -304,7 +310,8 @@ function RateQuizCard({ onNavigate }: { onNavigate: (v: string) => void }) {
           maxWidth: "52ch",
         }}
       >
-        Five questions. A real rate tier and your matched Greenstreet program. No email, no credit pull, no pitch.
+        Five questions. A real rate tier and your matched Greenstreet program. No email, no credit
+        pull, no pitch.
       </p>
       <button
         onClick={() => onNavigate("rate-quiz")}
@@ -332,6 +339,8 @@ function RateQuizCard({ onNavigate }: { onNavigate: (v: string) => void }) {
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
+// accent = dc.dark: midnight nav + footer, cream body — Solutions' own identity.
+// No 3-step band. No generic HeroProof. Alternating segment list IS the page.
 export default function SolutionsPage({
   onBack,
   onNavigate,
@@ -347,6 +356,7 @@ export default function SolutionsPage({
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent={dc.dark}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "Lender Intel", view: "lender-intel" },
@@ -354,7 +364,17 @@ export default function SolutionsPage({
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
     >
-      {/* ── HERO — solid dark, eyebrow + large h1, no HeroProof for content page ── */}
+      {/* Page-scoped CSS: mobile stacking for the so-feat alternating grid.
+          On ≤900 px the grid collapses to 1 col; order resets so text leads. */}
+      <style>{`
+        @media (max-width: 900px) {
+          .so-feat { grid-template-columns: 1fr !important; }
+          .so-feat > * { order: unset !important; }
+        }
+      `}</style>
+
+      {/* ── HERO — midnight dark, "Who we serve" eyebrow, large h1 ─────────── */}
+      {/* No HeroProof — this is an audience-routing page, not a live tool */}
       <section
         style={{
           background: dc.dark,
@@ -390,7 +410,7 @@ export default function SolutionsPage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
+                fontSize: "clamp(44px,6.4vw,100px)",
                 fontWeight: 600,
                 lineHeight: 0.95,
                 letterSpacing: "-0.04em",
@@ -417,7 +437,10 @@ export default function SolutionsPage({
         </div>
       </section>
 
-      {/* ── ALTERNATING AUDIENCE SEGMENT FEATURE ROWS ── */}
+      {/* ── ALTERNATING AUDIENCE SEGMENT FEATURE ROWS — the centerpiece ──────── */}
+      {/* Each row: text ↔ stat panel alternates left/right per mockup.
+          Large gap between rows (clamp 56→120px) preserves the editorial pace.
+          No numbered steps, no generic band classes — this section IS the page. */}
       <section
         style={{
           background: dc.cream,
@@ -434,21 +457,16 @@ export default function SolutionsPage({
           }}
         >
           {SEGMENTS.map((seg, i) => (
-            <SegmentRow
-              key={seg.tag}
-              seg={seg}
-              index={i}
-              onNavigate={onNavigate}
-            />
+            <SegmentRow key={seg.tag} seg={seg} index={i} onNavigate={onNavigate} />
           ))}
         </div>
       </section>
 
-      {/* ── RATE QUIZ CARD ── */}
+      {/* ── "Just want a rate?" — informal closing card, routes to rate-quiz ── */}
       <section
         style={{
           background: dc.cream,
-          padding: `0 ${dc.pad} clamp(72px,10vh,120px)`,
+          padding: `0 ${dc.pad} clamp(56px,8vw,96px)`,
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
@@ -456,11 +474,11 @@ export default function SolutionsPage({
         </div>
       </section>
 
-      {/* ── EXPLORE ALL TOOLS LINK ── */}
+      {/* ── EXPLORE ALL TOOLS — pill button, cream background, per mockup ──── */}
       <section
         style={{
-          background: dc.mintBg,
-          padding: `clamp(32px,4vw,56px) ${dc.pad}`,
+          background: dc.cream,
+          padding: `clamp(32px,4vw,56px) ${dc.pad} clamp(72px,10vh,120px)`,
         }}
       >
         <div
@@ -479,7 +497,7 @@ export default function SolutionsPage({
               alignItems: "center",
               gap: 9,
               background: dc.mintBg,
-              border: "1px solid rgba(0,55,56,0.18)",
+              border: "none",
               borderRadius: 999,
               padding: "15px 30px",
               cursor: "pointer",

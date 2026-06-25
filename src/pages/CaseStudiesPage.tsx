@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
 
 // ── Case studies data (kept from existing page, framed as illustrative) ────────
@@ -125,53 +125,136 @@ const LOGOS: Record<string, string> = {
   "quintero-co": "/img/logos/cs-quintero-co.png",
 };
 
-// ── Static SVG line diagram — flat/solid, no glow, no animation ────────────────
-// Represents the Price → Match → Prove workflow from the mockup
+// ── CSS for SVG stroke-draw animation ──────────────────────────────────────────
+// Each path gets a known approximate length set as strokeDasharray/strokeDashoffset.
+// When the wrapper gains .cs-anim-active, the offsets animate to 0 (draw effect).
+// No GSAP needed — pure CSS keyframes, triggered once via IntersectionObserver.
+const CS_LINE_CSS = `
+@keyframes csLineDraw {
+  from { stroke-dashoffset: var(--cs-len); }
+  to   { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cs-anim-active .cs-line {
+    animation: csLineDraw var(--cs-dur, 1.1s) var(--cs-delay, 0s) cubic-bezier(.22,.68,0,1.2) forwards;
+  }
+}
+/* Nodes fade-in after lines draw */
+@keyframes csFadeIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cs-anim-active .cs-node {
+    animation: csFadeIn 0.4s var(--cs-ndelay, 0s) ease-out forwards;
+    opacity: 0;
+  }
+}
+`;
+
+// ── Animated SVG line diagram — stroke-draw on scroll-enter ────────────────────
 function PriceMatchProveDiagram() {
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("cs-anim-active");
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.25 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // Approximate path lengths for stroke-dasharray/offset:
+  // line1 (vertical 240,92→240,208): ~116px
+  // line2 (vertical 240,272→240,388): ~116px
+  // r1 cubic (208,60 → 80,240): ~280px
+  // r2 cubic (272,60 → 400,240): ~280px
+  // r3 cubic (208,240 → 80,420): ~280px
+  // r4 cubic (272,240 → 400,420): ~280px
+
   return (
-    <svg
-      viewBox="0 0 480 480"
-      style={{ width: "100%", display: "block" }}
-      fill="none"
-      aria-hidden="true"
-    >
-      {/* Node circles — solid fills, no glow */}
-      <circle cx="240" cy="60" r="32" fill={dc.dark} />
-      <circle cx="240" cy="240" r="32" fill={dc.rain} />
-      <circle cx="240" cy="420" r="32" fill={dc.lemon} />
-      {/* Node labels */}
-      <text
-        x="240" y="65" textAnchor="middle"
-        fill={dc.lemon}
-        fontFamily={dc.mono}
-        fontSize="12" fontWeight="700"
-      >01</text>
-      <text
-        x="240" y="245" textAnchor="middle"
-        fill={dc.cream}
-        fontFamily={dc.mono}
-        fontSize="12" fontWeight="700"
-      >02</text>
-      <text
-        x="240" y="425" textAnchor="middle"
-        fill={dc.dark}
-        fontFamily={dc.mono}
-        fontSize="12" fontWeight="700"
-      >03</text>
-      {/* Connecting lines — dashed, solid stroke colors, no animation */}
-      <path d="M 240,92 L 240,208" stroke={dc.dark} strokeWidth="2" strokeDasharray="8 4" />
-      <path d="M 240,272 L 240,388" stroke={dc.rain} strokeWidth="2" strokeDasharray="8 4" />
-      {/* Radiating lines */}
-      <path d="M 208,60 C 80,60 80,240 80,240" stroke={dc.dark} strokeWidth="1.5" opacity="0.35" />
-      <path d="M 272,60 C 400,60 400,240 400,240" stroke={dc.dark} strokeWidth="1.5" opacity="0.35" />
-      <path d="M 208,240 C 80,240 80,420 80,420" stroke={dc.rain} strokeWidth="1.5" opacity="0.35" />
-      <path d="M 272,240 C 400,240 400,420 400,420" stroke={dc.rain} strokeWidth="1.5" opacity="0.35" />
-      {/* End dots */}
-      <circle cx="80" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
-      <circle cx="400" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
-      <circle cx="80" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
-      <circle cx="400" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
-    </svg>
+    <div ref={wrapRef} style={{ position: "relative" }}>
+      <style>{CS_LINE_CSS}</style>
+      <svg
+        viewBox="0 0 480 480"
+        style={{ width: "100%", display: "block" }}
+        fill="none"
+        aria-hidden="true"
+      >
+        {/* Radiating curves — draw first, slower */}
+        <path
+          className="cs-line"
+          d="M 208,60 C 80,60 80,240 80,240"
+          stroke={dc.dark} strokeWidth="1.5" opacity="0.35"
+          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.1s",
+                   strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties}
+        />
+        <path
+          className="cs-line"
+          d="M 272,60 C 400,60 400,240 400,240"
+          stroke={dc.dark} strokeWidth="1.5" opacity="0.35"
+          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.2s",
+                   strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties}
+        />
+        <path
+          className="cs-line"
+          d="M 208,240 C 80,240 80,420 80,420"
+          stroke={dc.rain} strokeWidth="1.5" opacity="0.35"
+          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.6s",
+                   strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties}
+        />
+        <path
+          className="cs-line"
+          d="M 272,240 C 400,240 400,420 400,420"
+          stroke={dc.rain} strokeWidth="1.5" opacity="0.35"
+          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.7s",
+                   strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties}
+        />
+
+        {/* Spine connectors — draw after curves */}
+        <path
+          className="cs-line"
+          d="M 240,92 L 240,208"
+          stroke={dc.dark} strokeWidth="2" strokeDasharray="8 4"
+          style={{ "--cs-len": "116px", "--cs-dur": "0.7s", "--cs-delay": "0.45s",
+                   strokeDashoffset: 116 } as React.CSSProperties}
+        />
+        <path
+          className="cs-line"
+          d="M 240,272 L 240,388"
+          stroke={dc.rain} strokeWidth="2" strokeDasharray="8 4"
+          style={{ "--cs-len": "116px", "--cs-dur": "0.7s", "--cs-delay": "0.95s",
+                   strokeDashoffset: 116 } as React.CSSProperties}
+        />
+
+        {/* End dots — solid, no animation */}
+        <circle cx="80" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
+        <circle cx="400" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
+        <circle cx="80" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
+        <circle cx="400" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
+
+        {/* Node circles — fade in after spine draws */}
+        <circle className="cs-node" cx="240" cy="60" r="32" fill={dc.dark}
+          style={{ "--cs-ndelay": "0.05s" } as React.CSSProperties} />
+        <circle className="cs-node" cx="240" cy="240" r="32" fill={dc.rain}
+          style={{ "--cs-ndelay": "0.5s" } as React.CSSProperties} />
+        <circle className="cs-node" cx="240" cy="420" r="32" fill={dc.lemon}
+          style={{ "--cs-ndelay": "1.05s" } as React.CSSProperties} />
+
+        {/* Node labels — always on top */}
+        <text x="240" y="65" textAnchor="middle" fill={dc.lemon} fontFamily={dc.mono} fontSize="12" fontWeight="700">01</text>
+        <text x="240" y="245" textAnchor="middle" fill={dc.cream} fontFamily={dc.mono} fontSize="12" fontWeight="700">02</text>
+        <text x="240" y="425" textAnchor="middle" fill={dc.dark} fontFamily={dc.mono} fontSize="12" fontWeight="700">03</text>
+      </svg>
+    </div>
   );
 }
 
@@ -687,6 +770,7 @@ export default function CaseStudiesPage({
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent={dc.dark}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "Lender Intel", view: "lender-intel" },
@@ -859,26 +943,46 @@ export default function CaseStudiesPage({
         </div>
       </section>
 
-      {/* ── PRICE / MATCH / PROVE band: flat SVG + 3-panel copy ── */}
+      {/* ── PRICE / MATCH / PROVE band: animated SVG + 3-panel copy ── */}
+      {/* Signature centerpiece: greengo_lineanim — the workflow that makes every case study possible */}
       <section
-        className="gs-reveal"
         style={{
           background: dc.cream,
           padding: `clamp(64px,8vw,112px) ${dc.pad}`,
+          borderTop: `4px solid ${dc.dark}`,
         }}
       >
         <div
-          className="dc-band-2"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "clamp(240px,40%,480px) 1fr",
-            gap: "clamp(36px,5vw,72px)",
-            alignItems: "center",
           }}
         >
-          {/* Flat static SVG — no glow, no animation */}
+          {/* Section eyebrow label */}
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase" as const,
+              color: dc.rain,
+              marginBottom: "clamp(32px,4vw,56px)",
+              paddingBottom: 12,
+              borderBottom: `1px solid rgba(0,55,56,0.15)`,
+            }}
+          >
+            How it works — Price · Match · Prove
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "clamp(240px,40%,480px) 1fr",
+              gap: "clamp(36px,5vw,72px)",
+              alignItems: "center",
+            }}
+          >
+          {/* Animated stroke-draw SVG */}
           <PriceMatchProveDiagram />
 
           {/* 3-panel content */}
@@ -949,6 +1053,7 @@ export default function CaseStudiesPage({
                 </p>
               </div>
             ))}
+          </div>
           </div>
         </div>
       </section>

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
 
-// ── Use-case rows — numbered vertical list ────────────────────────────────────
+// ── Use-case rows — numbered vertical list (signature section) ────────────────
 interface UseCase {
   num: string;
   title: string;
@@ -60,28 +60,6 @@ const USECASES: UseCase[] = [
   },
 ];
 
-// ── Economics strip ───────────────────────────────────────────────────────────
-const ECONOMICS = [
-  {
-    label: "Typical Origination",
-    val: "1.0–2.0%",
-    note: "Of loan amount at close",
-    src: "Industry convention · lender published",
-  },
-  {
-    label: "YSP on Rate",
-    val: "0.50–1.50%",
-    note: "Rate buyup / premium pricing",
-    src: "Reg Z §1026.36(d) · broker comp rules",
-  },
-  {
-    label: "Avg Loan Size",
-    val: "$350K",
-    note: "SFR purchase, 25% down",
-    src: "Greenstreet engine · Apr 2026 deal sample",
-  },
-];
-
 const AS_OF = "Jun 22, 2026";
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -106,9 +84,9 @@ export default function BrokersPage({
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      accent={dc.dark}
     >
-      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
-      {/*   2-col: copy left, solid branded panel right. No glassmorphism.       */}
+      {/* ── HERO: 2-col — content left, product panel right ────────────────── */}
       <section
         style={{
           background: dc.dark,
@@ -141,9 +119,9 @@ export default function BrokersPage({
           >
             <div
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 600,
-                letterSpacing: "0.06em",
+                letterSpacing: "0.04em",
                 textTransform: "uppercase" as const,
                 color: dc.lemon,
               }}
@@ -152,9 +130,9 @@ export default function BrokersPage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
+                fontSize: "clamp(40px,5.6vw,84px)",
                 fontWeight: 600,
-                lineHeight: 0.93,
+                lineHeight: 0.97,
                 letterSpacing: "-0.04em",
                 margin: 0,
               }}
@@ -162,6 +140,8 @@ export default function BrokersPage({
               Quote with
               <br />
               confidence.
+              <br />
+              Close faster.
             </h1>
             <p
               style={{
@@ -178,51 +158,29 @@ export default function BrokersPage({
               chasing lender portals. Price, match and stress-test a DSCR deal
               in under a minute — then walk into the call knowing the answer.
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <button
-                onClick={() => onNavigate("dscr-calculator")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                  fontFamily: dc.sans,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Open the calculator →
-              </button>
-              <button
-                onClick={() => onNavigate("lender-intel")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                  cursor: "pointer",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  fontFamily: dc.sans,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                See programs
-              </button>
-            </div>
+            <button
+              onClick={() => onNavigate("dscr-calculator")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 600,
+                fontSize: 16,
+                border: "none",
+                cursor: "pointer",
+                padding: "15px 30px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Open the calculator →
+            </button>
           </div>
 
-          {/* Right column — solid branded panel (no glassmorphism, no glow) */}
+          {/* Right column — Greenstreet DSCR programs panel */}
           <div
             style={{
               height: "clamp(280px,40vh,520px)",
@@ -336,7 +294,8 @@ export default function BrokersPage({
         </div>
       </section>
 
-      {/* ── USECASE LIST: numbered vertical rows ─────────────────────────────── */}
+      {/* ── USE-CASE LIST: vertical rail + numbered rows (centrepiece) ────────── */}
+      {/*   This is the Brokers page signature — not shared with any other page.  */}
       <section
         style={{
           background: dc.cream,
@@ -352,15 +311,16 @@ export default function BrokersPage({
                 letterSpacing: "-0.03em",
                 margin: 0,
                 maxWidth: "18ch",
+                color: dc.dark,
               }}
             >
               Everything a producing broker needs.
             </h2>
           </div>
 
-          {/* Vertical list with left-rail line */}
+          {/* Numbered list with continuous left-rail */}
           <div style={{ position: "relative" }}>
-            {/* Vertical rail */}
+            {/* Vertical rail line — runs full height behind all bubbles */}
             <div
               style={{
                 position: "absolute",
@@ -371,6 +331,7 @@ export default function BrokersPage({
                 background: "rgba(0,55,56,0.15)",
               }}
             />
+
             {USECASES.map((u) => (
               <div
                 key={u.num}
@@ -383,7 +344,7 @@ export default function BrokersPage({
                   paddingBottom: "clamp(36px,4vw,56px)",
                 }}
               >
-                {/* Number bubble */}
+                {/* Numbered bubble — sits over the rail, alternating lemon/dark */}
                 <div
                   style={{
                     position: "relative",
@@ -392,7 +353,6 @@ export default function BrokersPage({
                     height: 44,
                     borderRadius: "50%",
                     background: u.numBg,
-                    border: "1px solid rgba(0,55,56,0.12)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -410,7 +370,7 @@ export default function BrokersPage({
                   </Mono>
                 </div>
 
-                {/* Content */}
+                {/* Row content */}
                 <div style={{ paddingTop: 10 }}>
                   <h3
                     style={{
@@ -460,376 +420,12 @@ export default function BrokersPage({
         </div>
       </section>
 
-      {/* ── ECONOMICS STRIP ──────────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.dark,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="gs-reveal"
-          style={{ maxWidth: dc.maxW, margin: "0 auto" }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase" as const,
-              color: dc.lemon,
-              marginBottom: 12,
-            }}
-          >
-            Broker economics
-          </div>
-          <h2
-            style={{
-              fontSize: "clamp(26px,3.2vw,44px)",
-              fontWeight: 600,
-              letterSpacing: "-0.035em",
-              lineHeight: 1.05,
-              color: dc.cream,
-              margin: "0 0 clamp(36px,4vw,56px)",
-            }}
-          >
-            What you earn on a funded deal.
-          </h2>
-
-          <div
-            className="dc-band-3"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 1,
-              background: "rgba(238,239,211,0.10)",
-              borderRadius: 9,
-              overflow: "hidden",
-            }}
-          >
-            {ECONOMICS.map((e) => (
-              <div
-                key={e.label}
-                style={{
-                  background: dc.dark,
-                  padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
-                  textAlign: "center",
-                }}
-              >
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,4.5vw,60px)",
-                    fontWeight: 600,
-                    color: dc.lemon,
-                    lineHeight: 1,
-                    marginBottom: 10,
-                  }}
-                >
-                  {e.val}
-                </Mono>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: dc.cream,
-                    marginBottom: 4,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {e.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: "rgba(238,239,211,0.5)",
-                    marginBottom: 14,
-                  }}
-                >
-                  {e.note}
-                </div>
-                <div
-                  style={{
-                    paddingTop: 12,
-                    borderTop: "1px solid rgba(238,239,211,0.10)",
-                    fontSize: 10,
-                    fontFamily: dc.mono,
-                    color: dc.emerald,
-                    letterSpacing: "0.02em",
-                  }}
-                >
-                  src · {e.src}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PROCESS: 4-step how a deal moves ─────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ marginBottom: 36 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.rain,
-                marginBottom: 12,
-              }}
-            >
-              How a deal moves
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(26px,3.2vw,44px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: 0,
-              }}
-            >
-              From file to funded — and you own the relationship.
-            </h2>
-          </div>
-
-          <div
-            className="gs-reveal"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 0,
-              maxWidth: 760,
-            }}
-          >
-            {[
-              {
-                n: "01",
-                title: "Send us the file",
-                body: "Property address, purchase price, rent, borrower FICO. That's it. We pre-screen against every Greenstreet program and come back with a full structure — rate, LTV, reserves, PPP options — within 24 hours.",
-                bg: dc.cream,
-                numColor: dc.lemon,
-                numBg: dc.dark,
-              },
-              {
-                n: "02",
-                title: "We place it, you review it",
-                body: "We find the best-fit Greenstreet program for your deal — rate, LTV, reserves, and PPP structure. You get one clean submission with real numbers — not a menu of maybes.",
-                bg: dc.dark,
-                numColor: dc.dark,
-                numBg: dc.lemon,
-              },
-              {
-                n: "03",
-                title: "You own the relationship",
-                body: "We process in the background. You stay in front of the borrower. Your yield spread, your repeat client, your referral pipeline. We don't touch your relationship — ever.",
-                bg: dc.cream,
-                numColor: dc.lemon,
-                numBg: dc.dark,
-              },
-              {
-                n: "04",
-                title: "Close in 14–30 days",
-                body: "DSCR moves faster than conventional because there are no income docs, no employment calls, no bank statement underwriting. Appraisal + title + credit. Greenstreet closes clean files in 14–21 days; complex ones in 21–30.",
-                bg: dc.lemon,
-                numColor: dc.dark,
-                numBg: dc.dark,
-              },
-            ].map((step, i) => (
-              <div
-                key={step.n}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "60px 1fr",
-                  gap: 24,
-                  alignItems: "start",
-                  padding: "clamp(24px,3vw,36px) clamp(22px,3vw,32px)",
-                  background: step.bg,
-                  borderRadius: i === 0 ? "9px 9px 0 0" : i === 3 ? "0 0 9px 9px" : 0,
-                  border: "1px solid rgba(0,55,56,0.08)",
-                  borderTop: i > 0 ? "none" : "1px solid rgba(0,55,56,0.08)",
-                }}
-              >
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: "50%",
-                    background: step.numBg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    marginTop: 4,
-                  }}
-                >
-                  <Mono
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: step.numColor,
-                    }}
-                  >
-                    {step.n}
-                  </Mono>
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: "clamp(17px,1.8vw,22px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.025em",
-                      color: step.bg === dc.dark ? dc.cream : dc.dark,
-                      marginBottom: 8,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {step.title}
-                  </div>
-                  <p
-                    style={{
-                      fontSize: "clamp(14px,1.2vw,16px)",
-                      fontWeight: 500,
-                      lineHeight: 1.6,
-                      color:
-                        step.bg === dc.dark
-                          ? "rgba(238,239,211,0.65)"
-                          : step.bg === dc.lemon
-                          ? "rgba(0,55,56,0.75)"
-                          : "rgba(0,55,56,0.65)",
-                      margin: 0,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {step.body}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA STRIP ────────────────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.dark,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="gs-reveal"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase" as const,
-              color: dc.lemon,
-              marginBottom: 16,
-            }}
-          >
-            Have a deal ready?
-          </div>
-          <h2
-            style={{
-              fontSize: "clamp(28px,3.8vw,52px)",
-              fontWeight: 600,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.0,
-              color: dc.cream,
-              margin: "0 0 16px",
-            }}
-          >
-            Send us the file.
-            <br />
-            Get a full structure back.
-          </h2>
-          <p
-            style={{
-              fontSize: "clamp(15px,1.3vw,18px)",
-              fontWeight: 500,
-              lineHeight: 1.55,
-              color: "rgba(238,239,211,0.65)",
-              maxWidth: "46ch",
-              margin: "0 auto 36px",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Address, rent, and FICO. We pre-screen same day and come back with a
-            complete structure — rate, LTV, reserves, prepay options.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              gap: 14,
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <button
-              onClick={() => onNavigate("portal")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: dc.lemon,
-                color: dc.dark,
-                fontWeight: 600,
-                fontSize: 16,
-                border: "none",
-                cursor: "pointer",
-                padding: "15px 30px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Submit a deal →
-            </button>
-            <button
-              onClick={() => onNavigate("dscr-calculator")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: "transparent",
-                color: dc.cream,
-                fontWeight: 600,
-                fontSize: 16,
-                border: "1px solid rgba(238,239,211,0.3)",
-                cursor: "pointer",
-                padding: "15px 26px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Price it first
-            </button>
-          </div>
-        </div>
-      </section>
-
       {/* ── BACK PILL ────────────────────────────────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
           padding: `0 ${dc.pad} clamp(72px,10vh,120px)`,
-          paddingTop: "clamp(48px,6vh,72px)",
+          paddingTop: "clamp(8px,2vh,24px)",
         }}
       >
         <div

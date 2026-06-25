@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { DcShell, dc } from "../design/dc";
+import { useDcGsap, dc, DC_CSS } from "../design/dc";
+import { MINT_BG, PISTACHIO, MIDNIGHT } from "../theme";
 
 // ─── Content data — three path-driven documents ────────────────────────────
 
@@ -172,10 +173,6 @@ const TERMS_DOC: LegalDoc = {
 };
 
 // ─── Path → document resolver ───────────────────────────────────────────────
-// Uses the `path` prop directly (passed from App with the current pathname and
-// re-keyed on each navigation), falling back to window.location.pathname for
-// direct URL entry. This avoids the stale-pathname bug where popstate fired
-// after the component had already read an old pathname.
 function resolveDoc(path: string | undefined): LegalDoc {
   const p = path ?? (typeof window !== "undefined" ? window.location.pathname : "");
   if (p.includes("terms-of-service")) return TERMS_DOC;
@@ -201,7 +198,7 @@ function useTocHighlight() {
       }
       links.forEach((l) => {
         const isActive = l === active;
-        l.style.color = isActive ? dc.dark : "rgba(0,55,56,0.50)";
+        l.style.color = isActive ? MIDNIGHT : "rgba(0,55,56,0.50)";
         l.style.fontWeight = isActive ? "600" : "500";
         l.style.borderLeftColor = isActive ? dc.rain : "transparent";
       });
@@ -212,16 +209,12 @@ function useTocHighlight() {
   }, []);
 }
 
-// ─── Sub-nav pill buttons (switch between the three docs) ────────────────────
-function DocSwitcher({
-  current,
-}: {
-  current: LegalDoc;
-}) {
-  const pills: { label: string; path: string; view: string }[] = [
-    { label: "Disclosures", path: "/legal", view: "legal" },
-    { label: "Privacy Policy", path: "/legal/privacy-policy", view: "legal/privacy-policy" },
-    { label: "Terms of Service", path: "/legal/terms-of-service", view: "legal/terms-of-service" },
+// ─── Doc switcher pills ──────────────────────────────────────────────────────
+function DocSwitcher({ current }: { current: LegalDoc }) {
+  const pills: { label: string; path: string }[] = [
+    { label: "Disclosures", path: "/legal" },
+    { label: "Privacy Policy", path: "/legal/privacy-policy" },
+    { label: "Terms of Service", path: "/legal/terms-of-service" },
   ];
 
   const currentHeading = current.heading.replace(".", "");
@@ -237,10 +230,6 @@ function DocSwitcher({
           <button
             key={p.label}
             onClick={() => {
-              // Navigate via history + popstate so App's router resolves the
-              // new path. The three legal docs share the "legal" PageView and
-              // are disambiguated by pathname (see resolveDoc), so we cannot
-              // round-trip through onNavigate(view) — it has no matching case.
               window.history.pushState({}, "", p.path);
               window.dispatchEvent(new PopStateEvent("popstate"));
               window.scrollTo({ top: 0 });
@@ -248,9 +237,9 @@ function DocSwitcher({
             style={{
               padding: "9px 18px",
               borderRadius: 6,
-              border: `1px solid ${isActive ? dc.rain : "rgba(0,55,56,0.20)"}`,
-              background: isActive ? dc.dark : "transparent",
-              color: isActive ? dc.cream : dc.dark,
+              border: `1px solid ${isActive ? MIDNIGHT : "rgba(0,55,56,0.22)"}`,
+              background: isActive ? MIDNIGHT : "transparent",
+              color: isActive ? MINT_BG : MIDNIGHT,
               fontSize: 13,
               fontWeight: 600,
               letterSpacing: "-0.01em",
@@ -264,6 +253,117 @@ function DocSwitcher({
         );
       })}
     </div>
+  );
+}
+
+// ─── Mint nav — light background, dark ink ───────────────────────────────────
+// The Legal mockup inverts the usual midnight nav: mint bg + #003738 text.
+// We render this directly rather than going through DcNav (which wires for dark bg).
+function LegalNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
+  return (
+    <nav
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        background: "rgba(232,233,191,0.94)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderBottom: "1px solid rgba(0,55,56,0.10)",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: dc.maxW,
+          margin: "0 auto",
+          padding: `0 ${dc.pad}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 74,
+        }}
+      >
+        {/* Wordmark — dark ink on mint */}
+        <a
+          href="/"
+          onClick={(e) => { e.preventDefault(); onNavigate?.("marketing"); }}
+          style={{
+            fontSize: 22,
+            fontWeight: 600,
+            letterSpacing: "-0.04em",
+            color: MIDNIGHT,
+            textDecoration: "none",
+          }}
+        >
+          Greenstreet
+        </a>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
+          {[
+            { label: "DSCR Calc", view: "dscr-calculator" },
+            { label: "Lender Intel", view: "lender-intel" },
+            { label: "State Rules", view: "state-laws" },
+          ].map((l) => (
+            <a
+              key={l.label}
+              href="#"
+              onClick={(e) => { e.preventDefault(); onNavigate?.(l.view); }}
+              style={{
+                color: "rgba(0,55,56,0.65)",
+                fontWeight: 500,
+                textDecoration: "none",
+                fontSize: 15,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {l.label}
+            </a>
+          ))}
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: MIDNIGHT,
+              color: MINT_BG,
+              fontWeight: 600,
+              fontSize: 14,
+              textDecoration: "none",
+              padding: "11px 22px",
+              borderRadius: 6,
+            }}
+          >
+            Price a deal →
+          </a>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// ─── Mint footer ─────────────────────────────────────────────────────────────
+function LegalFooter() {
+  return (
+    <footer style={{ background: MINT_BG, color: "rgba(0,55,56,0.55)", padding: `48px ${dc.pad}` }}>
+      <div
+        style={{
+          maxWidth: dc.maxW,
+          margin: "0 auto",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 16,
+        }}
+      >
+        <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.04em", color: MIDNIGHT }}>
+          Greenstreet
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
+      </div>
+    </footer>
   );
 }
 
@@ -283,6 +383,8 @@ export default function LegalPage({
     href: "#" + s.id,
   }));
 
+  const scope = useRef<HTMLDivElement>(null);
+  useDcGsap(scope);
   useTocHighlight();
 
   useEffect(() => {
@@ -291,17 +393,19 @@ export default function LegalPage({
   }, [path]);
 
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      navLinks={[
-        { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
-        { label: "State Rules", view: "state-laws" },
-      ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+    // Outer wrapper: mint base, dark ink — the full-page identity
+    <div
+      ref={scope}
+      style={{
+        background: MINT_BG,
+        color: MIDNIGHT,
+        fontFamily: dc.sans,
+        minHeight: "100vh",
+        overflowX: "hidden",
+        letterSpacing: "-0.02em",
+      }}
     >
-      {/* TOC link styles — flat 1px borders, no blur, no glass */}
-      <style>{`
+      <style>{DC_CSS}{`
         .lg-toc-link {
           transition: color .12s, border-left-color .12s;
           text-decoration: none;
@@ -313,14 +417,18 @@ export default function LegalPage({
           letter-spacing: -0.01em;
           border-left: 2px solid transparent;
         }
-        .lg-toc-link:hover { color: ${dc.dark} !important; }
+        .lg-toc-link:hover { color: ${MIDNIGHT} !important; }
         @media (max-width: 760px) { .lg-toc-col { display: none !important; } }
+        @media (max-width: 640px) { .lg-nav-link { display: none !important; } }
       `}</style>
 
-      {/* ── HERO ── solid pistachio, no blur/glow */}
+      {/* Mint nav — dark ink, no glass blur on the wordmark */}
+      <LegalNav onNavigate={onNavigate} />
+
+      {/* ── HERO — solid mint, dark ink ── */}
       <section
         style={{
-          background: dc.mintBg,
+          background: MINT_BG,
           padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(40px,5vh,64px)",
           overflow: "hidden",
         }}
@@ -339,13 +447,13 @@ export default function LegalPage({
           </div>
           <h1
             style={{
-              fontSize: "clamp(40px,5.5vw,84px)",
+              fontSize: "clamp(40px,5vw,76px)",
               fontWeight: 600,
               lineHeight: 0.99,
               letterSpacing: "-0.035em",
               margin: "0 0 18px",
               maxWidth: "18ch",
-              color: dc.dark,
+              color: MIDNIGHT,
             }}
           >
             {doc.heading}
@@ -367,11 +475,11 @@ export default function LegalPage({
         </div>
       </section>
 
-      {/* ── CONTENT: sticky TOC + sections card ── */}
+      {/* ── CONTENT: sticky TOC + sections card — cream band ── */}
       <section
         className="gs-reveal"
         style={{
-          background: dc.cream,
+          background: PISTACHIO,
           padding: "clamp(48px,6vw,80px) clamp(1.5rem,4vw,3rem) clamp(72px,10vh,120px)",
         }}
       >
@@ -404,12 +512,11 @@ export default function LegalPage({
             ))}
           </nav>
 
-          {/* Sections card — solid white, flat 1px border */}
+          {/* Sections card — solid white, flat border */}
           <div
             style={{
-              background: dc.white,
+              background: "#fff",
               borderRadius: 9,
-              border: "1px solid rgba(0,55,56,0.10)",
               padding: "clamp(32px,4vw,56px)",
             }}
           >
@@ -425,7 +532,7 @@ export default function LegalPage({
                     fontWeight: 600,
                     letterSpacing: "-0.03em",
                     margin: "0 0 16px",
-                    color: dc.dark,
+                    color: MIDNIGHT,
                   }}
                 >
                   {s.title}
@@ -448,7 +555,7 @@ export default function LegalPage({
               </div>
             ))}
 
-            {/* Footer line */}
+            {/* Contact footer line */}
             <div
               style={{
                 borderTop: "1px solid rgba(0,55,56,0.12)",
@@ -464,6 +571,9 @@ export default function LegalPage({
           </div>
         </div>
       </section>
-    </DcShell>
+
+      {/* Mint footer — dark ink wordmark */}
+      <LegalFooter />
+    </div>
   );
 }

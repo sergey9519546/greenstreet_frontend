@@ -8,6 +8,10 @@ interface Props {
   onNavigate?: (view: any) => void;
 }
 
+// Pistachio accent — matches the Rate Quiz mockup exactly.
+// Nav + footer: pistachio background, dark-ink text (light identity).
+const RQ_ACCENT = dc.cream; // #eeefd3
+
 // ── Quiz data — five questions, preserved verbatim ──────────────────────────
 const qs = [
   {
@@ -146,9 +150,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
     window.scrollTo(0, 0);
   }, []);
 
-  // Hero entrance — fires on mount (DcShell already runs useDcGsap for
-  // .gs-reveal, but the quiz hero uses a centred single-column layout so
-  // we target #rq-hero-content directly here)
+  // Hero entrance — targets #rq-hero-content children
   useGSAP(() => {
     const hc = document.querySelector("#rq-hero-content");
     if (hc) {
@@ -208,7 +210,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
       ? dc.emerald
       : result?.tier === "GOOD"
       ? dc.lemon
-      : "#a78bfa"; // soft purple for WEAK — still solid, no glow
+      : "#a78bfa";
 
   const scrollToQuiz = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -228,31 +230,31 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
         { label: "Lender Intel", view: "lender-intel" },
       ]}
       cta={{ label: "Take the quiz →", onClick: scrollToQuiz }}
+      accent={RQ_ACCENT}
     >
-      {/* Extra CSS — input resets + option hover only; no glass/float/blur */}
+      {/* Extra CSS — option hover only; no glass/float/blur */}
       <style>{`
         .rq-opt{cursor:pointer;transition:transform .12s,background .15s,border-color .15s;}
-        .rq-opt:hover{transform:translateY(-2px);border-color:${dc.emerald} !important;}
-        .rq-opt:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:8px;}
+        .rq-opt:hover{transform:translateY(-2px);border-color:${dc.rain} !important;}
+        .rq-opt:focus-visible{outline:2px solid ${dc.rain};outline-offset:2px;border-radius:8px;}
+        /* Nav is pistachio — override text colour to dark ink */
+        .dc-nav a,.dc-nav button{color:rgba(0,55,56,0.72) !important;}
+        .dc-nav a.dc-cta{color:${dc.cream} !important;background:${dc.dark} !important;}
+        .dc-nav a:first-child{color:${dc.dark} !important;}
       `}</style>
 
-      {/* ── HERO — solid dark, centred, quiz layout ────────────────────────── */}
+      {/* ── HERO — pistachio, centred, light identity ─────────────────────── */}
       <section
         style={{
-          position: "relative",
-          background: dc.dark,
-          color: dc.cream,
+          background: dc.cream,
+          color: dc.dark,
+          padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(32px,4vh,48px)",
           overflow: "hidden",
-          padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(32px,4vh,56px)",
         }}
       >
-        {/* Dot grid — flat texture, no blur/glow */}
-        <div className="gs-dot-grid" />
-
         <div
           id="rq-hero-content"
           style={{
-            position: "relative",
             maxWidth: 820,
             margin: "0 auto",
             textAlign: "center",
@@ -261,119 +263,68 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
           {/* Eyebrow */}
           <div
             style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: dc.lemon,
-              marginBottom: 22,
+              fontSize: 13,
+              fontWeight: 500,
+              color: "rgba(0,55,56,0.5)",
+              marginBottom: 20,
+              letterSpacing: "-0.01em",
             }}
           >
-            Find your program · 60-second quiz
+            Find your program / 60-second quiz
           </div>
 
-          {/* H1 — clamp required by spec */}
+          {/* H1 — matches mockup sizing exactly */}
           <h1
             style={{
-              fontSize: "clamp(48px,7.5vw,116px)",
+              fontSize: "clamp(44px,6vw,84px)",
               fontWeight: 600,
-              lineHeight: 0.93,
-              letterSpacing: "-0.04em",
-              margin: "0 0 28px",
-              color: dc.cream,
+              lineHeight: 0.98,
+              letterSpacing: "-0.035em",
+              margin: "0 0 22px",
+              color: dc.dark,
             }}
           >
-            Which DSCR loan<br />fits you?
+            Which DSCR loan fits you?
           </h1>
 
-          {/* Sub — compliance-safe, "five questions" preserved */}
+          {/* Sub — five questions, compliance-safe, no email/credit pull */}
           <p
             style={{
               fontSize: "clamp(17px,1.5vw,22px)",
               fontWeight: 500,
-              lineHeight: 1.5,
+              lineHeight: 1.45,
               letterSpacing: "-0.02em",
-              color: "rgba(238,239,211,0.7)",
-              maxWidth: "52ch",
-              margin: "0 auto 36px",
+              color: "rgba(0,55,56,0.62)",
+              maxWidth: "50ch",
+              margin: "0 auto",
             }}
           >
-            Five questions. One real rate tier. Greenstreet programs matched to your
-            deal profile.{" "}
-            <span style={{ color: "rgba(238,239,211,0.5)" }}>
+            Five questions. One real rate tier. Greenstreet programs matched to
+            your deal profile.{" "}
+            <span style={{ color: "rgba(0,55,56,0.42)" }}>
               No email, no account, no credit pull.
             </span>
           </p>
-
-          {/* Live progress dots — show current position even before quiz */}
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              justifyContent: "center",
-              maxWidth: 320,
-              margin: "0 auto 40px",
-            }}
-          >
-            {qs.map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  height: 5,
-                  borderRadius: 3,
-                  background:
-                    i < step
-                      ? dc.emerald
-                      : i === step && inQuiz
-                      ? dc.rain
-                      : "rgba(238,239,211,0.18)",
-                  transition: "background .3s",
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Hero CTA */}
-          <a
-            href="#rq-tool"
-            onClick={scrollToQuiz}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.lemon,
-              color: dc.dark,
-              fontWeight: 600,
-              fontSize: 16,
-              textDecoration: "none",
-              padding: "15px 30px",
-              borderRadius: 6,
-              border: "none",
-            }}
-          >
-            Start the quiz ↓
-          </a>
         </div>
       </section>
 
-      {/* ── QUIZ BAND ──────────────────────────────────────────────────────── */}
+      {/* ── QUIZ BAND — the centerpiece ────────────────────────────────────── */}
       <section
         id="rq-tool"
         className="gs-reveal"
         style={{
           background: dc.cream,
           padding:
-            "clamp(40px,5vh,72px) clamp(1.5rem,4vw,3rem) clamp(72px,10vh,128px)",
+            "clamp(16px,2vh,32px) clamp(1.5rem,4vw,3rem) clamp(72px,10vh,128px)",
         }}
       >
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          {/* Progress bar strip */}
+          {/* Progress bar strip — 5 segments, one per question */}
           <div
             style={{
               display: "flex",
               gap: 8,
-              marginBottom: 40,
+              marginBottom: 36,
             }}
           >
             {qs.map((_, i) => (
@@ -385,9 +336,9 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   borderRadius: 3,
                   background:
                     i < step
-                      ? dc.emerald
+                      ? "#4dbd97"
                       : i === step && inQuiz
-                      ? dc.rain
+                      ? "#006565"
                       : "rgba(0,55,56,0.12)",
                   transition: "background .3s",
                 }}
@@ -402,19 +353,18 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
               <div
                 id="rq-card"
                 style={{
-                  background: dc.white,
+                  background: "#fff",
                   borderRadius: 9,
                   padding: "clamp(32px,4vw,56px)",
-                  border: "1px solid rgba(0,55,56,0.1)",
                 }}
               >
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 600,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: dc.rain,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase" as const,
+                    color: "#006565",
                     marginBottom: 14,
                   }}
                 >
@@ -450,7 +400,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                       border: "1px solid rgba(0,55,56,0.1)",
                     }}
                   >
-                    {qs[step].education}
+                    {(qs[step] as any).education}
                   </div>
                 )}
 
@@ -534,43 +484,20 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   borderRadius: 9,
                   padding: "clamp(36px,4.5vw,60px)",
                   color: dc.cream,
-                  border: "1px solid rgba(238,239,211,0.12)",
                 }}
               >
-                {/* Tier pill */}
+                {/* "Your match" label */}
                 <div
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 18,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase" as const,
+                    color: dc.lemon,
+                    marginBottom: 14,
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: dc.dark,
-                      background: tierColor,
-                      padding: "4px 12px",
-                      borderRadius: 4,
-                    }}
-                  >
-                    {result.tier}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                      color: "rgba(238,239,211,0.5)",
-                    }}
-                  >
-                    Your match
-                  </div>
+                  Your match
                 </div>
 
                 {/* Program name */}
@@ -587,7 +514,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   {result.program}
                 </h2>
 
-                {/* Rate band */}
+                {/* Rate band — mono, lemon */}
                 <Mono
                   style={{
                     display: "block",
@@ -617,7 +544,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   {result.note}
                 </p>
 
-                {/* Stats grid — solid fills, flat 1px borders */}
+                {/* Stats grid — 2×2, solid fills */}
                 <div
                   style={{
                     display: "grid",
@@ -632,14 +559,14 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   {result.resultStats.map((r, i) => (
                     <div
                       key={i}
-                      style={{ background: dc.teal, padding: "20px 22px" }}
+                      style={{ background: "#004041", padding: "20px 22px" }}
                     >
                       <div
                         style={{
                           fontSize: 11,
                           fontWeight: 600,
                           letterSpacing: "0.04em",
-                          textTransform: "uppercase",
+                          textTransform: "uppercase" as const,
                           color: "rgba(238,239,211,0.5)",
                           marginBottom: 6,
                         }}
@@ -661,22 +588,6 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   ))}
                 </div>
 
-                {/* Compliance note */}
-                <p
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    lineHeight: 1.5,
-                    color: "rgba(238,239,211,0.4)",
-                    margin: "0 0 24px",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  Indicative rate band only — not a commitment to lend. Actual rate
-                  depends on final underwrite, property type, reserves, and market
-                  conditions. Contact +1 (555) 010-0000 for a full program quote.
-                </p>
-
                 {/* CTAs */}
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <a
@@ -696,7 +607,6 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                       textDecoration: "none",
                       padding: "15px 28px",
                       borderRadius: 6,
-                      border: "none",
                     }}
                   >
                     Price it exactly →
@@ -721,168 +631,6 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS BAND ─────────────────────────────────────────────── */}
-      <section
-        className="gs-reveal"
-        style={{
-          background: dc.cream,
-          padding: `clamp(0px,1px,1px) ${dc.pad} clamp(56px,7vw,96px)`,
-        }}
-      >
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <div
-            className="dc-band-3"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 1,
-              background: "rgba(0,55,56,0.12)",
-              borderRadius: 9,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                background: dc.cream,
-                padding: "clamp(24px,3vw,36px)",
-              }}
-            >
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(28px,3.5vw,44px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.03em",
-                  color: dc.lemon,
-                  marginBottom: 12,
-                  lineHeight: 1,
-                }}
-              >
-                01
-              </Mono>
-              <h3
-                style={{
-                  fontSize: "clamp(18px,2vw,24px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.025em",
-                  margin: "0 0 8px",
-                  lineHeight: 1.1,
-                  color: dc.dark,
-                }}
-              >
-                Five questions
-              </h3>
-              <p
-                style={{
-                  fontSize: 15,
-                  fontWeight: 500,
-                  lineHeight: 1.55,
-                  color: "rgba(0,55,56,0.6)",
-                  margin: 0,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Property type, credit, down payment, DSCR coverage, borrower
-                profile. Sixty seconds.
-              </p>
-            </div>
-
-            <div
-              style={{
-                background: dc.dark,
-                color: dc.cream,
-                padding: "clamp(24px,3vw,36px)",
-              }}
-            >
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(28px,3.5vw,44px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.03em",
-                  color: dc.emerald,
-                  marginBottom: 12,
-                  lineHeight: 1,
-                }}
-              >
-                02
-              </Mono>
-              <h3
-                style={{
-                  fontSize: "clamp(18px,2vw,24px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.025em",
-                  margin: "0 0 8px",
-                  lineHeight: 1.1,
-                  color: dc.cream,
-                }}
-              >
-                Tier match
-              </h3>
-              <p
-                style={{
-                  fontSize: 15,
-                  fontWeight: 500,
-                  lineHeight: 1.55,
-                  color: "rgba(238,239,211,0.65)",
-                  margin: 0,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Answers map to BEST / GOOD / WEAK tier logic. Rate band and
-                matched Greenstreet program surface instantly.
-              </p>
-            </div>
-
-            <div
-              style={{
-                background: dc.lemon,
-                padding: "clamp(24px,3vw,36px)",
-              }}
-            >
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(28px,3.5vw,44px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.03em",
-                  color: "rgba(0,55,56,0.5)",
-                  marginBottom: 12,
-                  lineHeight: 1,
-                }}
-              >
-                03
-              </Mono>
-              <h3
-                style={{
-                  fontSize: "clamp(18px,2vw,24px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.025em",
-                  margin: "0 0 8px",
-                  lineHeight: 1.1,
-                  color: dc.dark,
-                }}
-              >
-                Price exactly
-              </h3>
-              <p
-                style={{
-                  fontSize: 15,
-                  fontWeight: 500,
-                  lineHeight: 1.55,
-                  color: "rgba(0,55,56,0.65)",
-                  margin: 0,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Take your matched program to the DSCR Calculator for a
-                live PITIA and full deal underwrite. No calls needed.
-              </p>
-            </div>
           </div>
         </div>
       </section>

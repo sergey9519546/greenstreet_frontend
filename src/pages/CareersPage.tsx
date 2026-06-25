@@ -243,10 +243,10 @@ export default function CareersPage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
+                fontSize: "clamp(44px,5.8vw,88px)",
                 fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
+                lineHeight: 0.98,
+                letterSpacing: "-0.035em",
                 margin: "0 0 26px",
                 maxWidth: "17ch",
                 color: dc.dark,
@@ -256,57 +256,17 @@ export default function CareersPage({
             </h1>
             <p
               style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
+                fontSize: "clamp(18px,1.7vw,25px)",
                 fontWeight: 500,
-                lineHeight: 1.5,
+                lineHeight: 1.4,
                 letterSpacing: "-0.02em",
                 color: "rgba(0,55,56,0.68)",
-                maxWidth: "52ch",
-                margin: "0 0 36px",
+                maxWidth: "48ch",
+                margin: 0,
               }}
             >
-              Small team. Hard problems. Real math. We ship tools that professionals use when money is on the line — come build with us.
+              We're a small team shipping a generational tool for DSCR brokers and investors. Remote-first, deeply technical, allergic to hand-waving.
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a
-                href="#cr-jobs"
-                onClick={scrollToJobs}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.dark,
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                See openings ↓
-              </a>
-              <a
-                href="mailto:careers@greenstreetfinance.com"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(0,55,56,0.25)",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                careers@greenstreetfinance.com
-              </a>
-            </div>
           </div>
         </div>
       </section>
@@ -441,80 +401,6 @@ export default function CareersPage({
         </div>
       </section>
 
-      {/* ── OPEN APPLICATION CTA ─────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="gs-reveal"
-          style={{
-            maxWidth: 600,
-            margin: "0 auto",
-            background: dc.white,
-            borderRadius: 9,
-            border: "1px solid rgba(0,55,56,0.08)",
-            padding: "clamp(28px,3.5vw,44px)",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase" as const,
-              color: dc.rain,
-              marginBottom: 14,
-            }}
-          >
-            Don't see the right role?
-          </div>
-          <h2
-            style={{
-              fontSize: "clamp(20px,2.4vw,30px)",
-              fontWeight: 600,
-              letterSpacing: "-0.03em",
-              margin: "0 0 14px",
-              color: dc.dark,
-              lineHeight: 1.1,
-            }}
-          >
-            We're always glad to meet sharp people.
-          </h2>
-          <p
-            style={{
-              fontSize: 15,
-              fontWeight: 500,
-              lineHeight: 1.6,
-              color: "rgba(0,55,56,0.62)",
-              margin: "0 0 24px",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Lending, engineering, design, compliance. Send a note — tell us what you'd build.
-          </p>
-          <a
-            href="mailto:careers@greenstreetfinance.com"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: dc.dark,
-              color: dc.cream,
-              fontWeight: 600,
-              fontSize: 14,
-              textDecoration: "none",
-              padding: "12px 24px",
-              borderRadius: 6,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            careers@greenstreetfinance.com →
-          </a>
-        </div>
-      </section>
     </DcShell>
   );
 }

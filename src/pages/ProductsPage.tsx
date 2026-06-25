@@ -1,19 +1,19 @@
 import React, { useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono } from "../design/dc";
 
-// ── Tool definitions — alternating 2-col feature rows ────────────────────────
-// Panel colour sets: DARK=dark bg+lemon accent, LIGHT=mintBg+rain accent,
-// TEAL=teal bg+emerald accent, LEMON=lemon bg+rain accent.
-// contentOrder/visualOrder alternate each row (even: text-left, odd: text-right).
-// Tool descriptions kept from existing page (tighter than marketing site copy).
+gsap.registerPlugin(ScrollTrigger);
 
+// ── Tool definitions — alternating 2-col feature rows ────────────────────────
+// Panel colour sets rotate across the 11 tools so adjacent rows never share the
+// same background.  contentOrder / visualOrder alternate so text swaps sides.
 interface Tool {
   title: string;
   desc: string;
   cta: string;
   view: string;
   tag?: string;
-  // panel appearance
   panelBg: string;
   panelAccent: string;
   panelBody: string;
@@ -33,7 +33,7 @@ const TOOLS: Tool[] = [
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Deal Analyzer",
-    panelMetric: "1.11x",
+    panelMetric: "1.11×",
     panelNote: "Dual-track DSCR · lender + investor",
   },
   {
@@ -45,7 +45,7 @@ const TOOLS: Tool[] = [
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
     panelTag: "DSCR Calculator",
-    panelMetric: "1.11x",
+    panelMetric: "1.25×",
     panelNote: "Live dual-track coverage + lender shortlist",
   },
   {
@@ -74,7 +74,7 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Risk & Monte Carlo",
-    desc: "Vasicek SOFR rate paths plus a 120-cell stress matrix — know the probability DSCR breaks before the ARM resets.",
+    desc: "500 Vasicek SOFR rate paths — know the probability DSCR breaks before the ARM resets. Stochastic simulation, not a sensitivity table.",
     cta: "Open Monte Carlo",
     view: "monte-carlo",
     panelBg: dc.teal,
@@ -159,6 +159,10 @@ const TOOLS: Tool[] = [
 ];
 
 // ── Feature row ───────────────────────────────────────────────────────────────
+// Each row is a 2-col grid that alternates text/visual side.
+// Class "pr-feat" is Products-specific; ProductsPage registers its own GSAP
+// ScrollTrigger that staggers the two children per row (text → visual).
+// No gs-reveal or dc-band-2 — those are generic; pr-feat has its own motion.
 function FeatureRow({
   tool,
   index,
@@ -172,7 +176,7 @@ function FeatureRow({
 
   return (
     <div
-      className="pr-feat gs-reveal dc-band-2"
+      className="pr-feat"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -260,7 +264,6 @@ function FeatureRow({
             borderRadius: 12,
             overflow: "hidden",
             background: tool.panelBg,
-            border: "1px solid rgba(0,55,56,0.10)",
             padding: "clamp(18px, 2vw, 28px)",
             aspectRatio: "1.5",
             display: "flex",
@@ -327,6 +330,39 @@ export default function ProductsPage({
     window.scrollTo(0, 0);
   }, []);
 
+  // Products-specific GSAP: per-row child stagger on each .pr-feat.
+  // Registered after mount so all rows exist in the DOM.
+  useEffect(() => {
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) return;
+
+    const rows = document.querySelectorAll<HTMLElement>(".pr-feat");
+    rows.forEach((row) => {
+      gsap.from(Array.from(row.children), {
+        y: 50,
+        opacity: 0,
+        duration: 0.85,
+        stagger: 0.12,
+        ease: "power3.out",
+        clearProps: "all",
+        scrollTrigger: {
+          trigger: row,
+          start: "top 82%",
+          once: true,
+        },
+      });
+    });
+
+    const refresh = setTimeout(() => ScrollTrigger.refresh(), 200);
+    return () => {
+      clearTimeout(refresh);
+    };
+  }, []);
+
   return (
     <DcShell
       onNavigate={onNavigate}
@@ -337,7 +373,10 @@ export default function ProductsPage({
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
     >
-      {/* ── HERO: solid dark, left-aligned, eyebrow + h1 + sub ── */}
+      {/* ── HERO: solid dark, left-aligned, eyebrow + display h1 + sub ──────── */}
+      {/* id="pr-hero" matches the mockup; useDcGsap animates #gs-hero-content   */}
+      {/* children — here we put everything inside one wrapper so both the       */}
+      {/* title block and the sub-paragraph get the hero stagger treatment.       */}
       <section
         style={{
           background: dc.dark,
@@ -347,6 +386,7 @@ export default function ProductsPage({
         }}
       >
         <div
+          id="gs-hero-content"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
@@ -358,7 +398,8 @@ export default function ProductsPage({
             justifyContent: "space-between",
           }}
         >
-          <div id="gs-hero-content">
+          {/* Title block — eyebrow + display h1 */}
+          <div>
             <div
               style={{
                 fontSize: 13,
@@ -373,7 +414,7 @@ export default function ProductsPage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px, 7.5vw, 116px)",
+                fontSize: "clamp(46px, 7vw, 108px)",
                 fontWeight: 600,
                 lineHeight: 0.95,
                 letterSpacing: "-0.04em",
@@ -383,6 +424,8 @@ export default function ProductsPage({
               The DSCR Engine
             </h1>
           </div>
+
+          {/* Sub — separate child so hero stagger steps to it after the h1 */}
           <p
             style={{
               fontSize: "clamp(19px, 1.9vw, 28px)",
@@ -400,7 +443,7 @@ export default function ProductsPage({
         </div>
       </section>
 
-      {/* ── FEATURE LIST: alternating 2-col rows ── */}
+      {/* ── FEATURE LIST: alternating 2-col rows — the Products centrepiece ── */}
       <section
         style={{
           background: dc.cream,
@@ -427,7 +470,7 @@ export default function ProductsPage({
         </div>
       </section>
 
-      {/* ── BACK TO ALL / CTA STRIP ── */}
+      {/* ── BACK TO ALL TOOLS — matches mockup footer link ── */}
       <section
         style={{
           background: dc.cream,
@@ -435,7 +478,6 @@ export default function ProductsPage({
         }}
       >
         <div
-          className="gs-reveal"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
@@ -444,7 +486,7 @@ export default function ProductsPage({
           }}
         >
           <button
-            onClick={() => onNavigate("dscr-calculator")}
+            onClick={() => onNavigate("products")}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -465,7 +507,7 @@ export default function ProductsPage({
                 color: dc.dark,
               }}
             >
-              Price a deal now
+              Back to all tools
             </span>
             <span style={{ fontSize: 18, color: dc.rain }}>→</span>
           </button>
