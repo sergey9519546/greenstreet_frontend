@@ -15,6 +15,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius } from "../theme";
+import { SiteNav, SiteFooter } from "./SiteShell";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -282,9 +283,12 @@ export function DcShell({
   return (
     <div ref={scope} style={{ background: PISTACHIO, color: MIDNIGHT, fontFamily: font.family, minHeight: "100vh", overflowX: "hidden", letterSpacing: "-0.02em" }}>
       <style>{DC_CSS}</style>
-      <DcNav onNavigate={onNavigate} links={navLinks} cta={cta} bg={accent} />
+      {/* Shared site chrome (same nav + footer as the marketing home) so every
+          page is framed identically. Per-page navLinks/cta/accent are no longer
+          used for the shell — kept in the signature for back-compat only. */}
+      <SiteNav onNavigate={onNavigate} />
       {children}
-      <DcFooter bg={accent} />
+      <SiteFooter onNavigate={onNavigate} />
     </div>
   );
 }
