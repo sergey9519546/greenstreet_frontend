@@ -542,6 +542,18 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           </span>
                         )}
                       </div>
+                      {/* animated fit meter — re-fills live as you change the deal box */}
+                      <div style={{ marginTop: 12, height: 6, maxWidth: 340, background: "rgba(0,55,56,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${Math.min(100, Math.max(4, Math.round(p.score)))}%`,
+                            background: statusColor,
+                            borderRadius: 999,
+                            transition: "width .5s cubic-bezier(.16,.84,.44,1), background-color .3s",
+                          }}
+                        />
+                      </div>
                     </div>
 
                     {/* Fit score */}
