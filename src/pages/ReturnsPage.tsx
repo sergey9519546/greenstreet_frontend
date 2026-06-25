@@ -89,7 +89,9 @@ function calcIRR(opts: {
   let lo = -0.9,
     hi = 5;
   const flo = f(lo);
-  if (flo * f(hi) > 0) return 0;
+  // No sign change ⇒ no real IRR root. Return NaN (rendered as "—"), NOT 0 —
+  // a literal 0.0% reads as a real result next to the -66%/-47% neighbors.
+  if (flo * f(hi) > 0) return NaN;
   let curFlo = flo;
   for (let i = 0; i < 100; i++) {
     const m = (lo + hi) / 2;
@@ -210,12 +212,14 @@ export default function ReturnsPage({
   const verdictLabel =
     levIRR >= 12 ? "STRONG DEAL" : levIRR >= 8 ? "WORKABLE" : "WEAK";
 
-  const irrStr = levIRR.toFixed(1) + "%";
+  // "—" when there's no real IRR (NaN) instead of a misleading number.
+  const pct = (v: number) => (Number.isFinite(v) ? v.toFixed(1) + "%" : "—");
+  const irrStr = pct(levIRR);
   const emStr = em.toFixed(2) + "x";
 
   // Hero bars scale to the real computed returns (20% IRR ≈ full bar), so the
   // heights are honest and animate live as inputs change.
-  const barH = (v: number) => `${Math.max(6, Math.min(72, (v / 20) * 72))}%`;
+  const barH = (v: number) => (Number.isFinite(v) ? `${Math.max(6, Math.min(72, (v / 20) * 72))}%` : "6%");
 
   // Returns stack — engine already returns these as percentages (see returnsEngine
   // lines 156-159: `x * 10000 / 100`), so do NOT scale again.
@@ -229,7 +233,7 @@ export default function ReturnsPage({
     { label: "Yield on Cost", val: yoc.toFixed(2) + "%", color: dc.cream },
     { label: "Debt Yield", val: debtYield.toFixed(2) + "%", color: dc.cream },
     { label: "CoC Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon },
-    { label: "Unlevered IRR", val: unlIRR.toFixed(1) + "%", color: dc.cream },
+    { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream },
     { label: "Equity Multiple", val: emStr, color: dc.emerald },
   ];
 
@@ -255,8 +259,8 @@ export default function ReturnsPage({
     { label: "Annual Insurance", key: "annualInsurance", step: 100, prefix: "$", value: annualInsurance, set: setAnnualInsurance },
     { label: "Hold Years", key: "holdYears", step: 1, value: holdYears, set: setHoldYears },
     { label: "Exit Cap Rate", key: "exitCapRate", step: 0.25, suffix: "%", value: exitCapRate, set: setExitCapRate },
-    { label: "Rent Growth %", key: "rentGrowth", step: 0.5, suffix: "%", value: rentGrowth, set: setRentGrowth },
-    { label: "Vacancy %", key: "vacancy", step: 1, suffix: "%", value: vacancy, set: setVacancy },
+    { label: "Rent Growth", key: "rentGrowth", step: 0.5, suffix: "%", value: rentGrowth, set: setRentGrowth },
+    { label: "Vacancy", key: "vacancy", step: 1, suffix: "%", value: vacancy, set: setVacancy },
   ];
 
   return (
@@ -767,7 +771,7 @@ export default function ReturnsPage({
                                   borderRadius: 4,
                                 }}
                               >
-                                {r.toFixed(1)}%
+                                {Number.isFinite(r) ? r.toFixed(1) + "%" : "—"}
                               </td>
                             );
                           })}

@@ -103,6 +103,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [stateResult, setStateResult] = useState<StateResult | null>(null);
 
+  useEffect(() => { document.title = "InvestorGO | Greenstreet Finance"; }, []);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => { setCurrentUser(user); setAuthLoading(false); });
     return () => unsub();
@@ -226,8 +228,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           </button>
           <div className="text-center mb-8">
             <div className="w-12 h-12 rounded-xl bg-dark-teal text-emerald font-extrabold text-2xl flex items-center justify-center mx-auto mb-3 shadow">G</div>
-            <h3 className="font-display text-2xl font-bold tracking-tight">DSCR Deal Engine</h3>
-            <p className="text-slate-500 text-xs mt-1">Underwriting math runs server-side. Sign in to start pricing deals.</p>
+            <h3 className="font-display text-2xl font-bold tracking-tight">InvestorGO</h3>
+            <p className="text-slate-500 text-xs mt-1">Every engine and calculation in one place. Sign in to start pricing deals.</p>
           </div>
           {authError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">

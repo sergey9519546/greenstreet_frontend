@@ -66,6 +66,20 @@ export const dc = {
   r: radius,
 } as const;
 
+// View → canonical path (kept in sync with resolve.ts ROUTE_MAP) so DcNav links
+// render real hrefs instead of dead "#" anchors.
+const VIEW_HREF: Record<string, string> = {
+  marketing: "/", portal: "/investorgo",
+  brokers: "/brokers", investors: "/investors", "borrower-profiles": "/borrower-profiles", "brokers-partner": "/partners",
+  "dscr-calculator": "/dscr-calculator", "lender-intel": "/lender-intel", "state-laws": "/state-laws",
+  "deal-analyzer": "/deal-analyzer", "decision-support": "/decision-support",
+  faq: "/faq", blog: "/blog", "case-studies": "/case-studies", about: "/about", careers: "/careers",
+  legal: "/legal", "rate-quiz": "/rate-quiz", products: "/products", solutions: "/solutions", "book-demo": "/book-demo",
+  "refi-tracker": "/tools/refi-tracker", "arm-reset": "/tools/arm-reset", "monte-carlo": "/tools/monte-carlo",
+  returns: "/tools/returns", "tax-engine": "/tools/tax-engine", "stress-matrix": "/tools/stress-matrix",
+  "str-underwriting": "/tools/str-underwriting", portfolio: "/tools/portfolio",
+};
+
 // Shared CSS injected once per page.
 export const DC_CSS = `
 .gs-num::-webkit-outer-spin-button,.gs-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
@@ -161,16 +175,19 @@ export function DcNav({
     if (l.onClick) { e.preventDefault(); l.onClick(e); }
     else if (l.view && onNavigate) { e.preventDefault(); onNavigate(l.view); }
   };
+  // Real href per view (canonical paths from resolve.ts) so links aren't dead
+  // "#" anchors — middle-click, copy-link, and no-JS all work; onClick SPA-navs.
+  const hrefFor = (l: NavLink) => l.href || (l.view ? VIEW_HREF[l.view] : undefined) || "#";
   return (
     <nav className="dc-nav" style={{ position: "sticky", top: 0, zIndex: 50, background: bg, borderBottom: "1px solid rgba(238,239,211,0.12)" }}>
       <div style={{ maxWidth: dc.maxW, margin: "0 auto", padding: `0 ${dc.pad}`, display: "flex", alignItems: "center", justifyContent: "space-between", height: 74 }}>
         <a href="/" onClick={(e) => { e.preventDefault(); onNavigate?.("marketing"); }} style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO, textDecoration: "none" }}>Greenstreet</a>
         <div className="dc-navlinks" style={{ display: "flex", alignItems: "center", gap: 30 }}>
           {links.map((l) => (
-            <a key={l.label} className="dc-navlink" href={l.href || "#"} onClick={handle(l)} style={{ color: "rgba(238,239,211,0.78)", fontWeight: 500, textDecoration: "none", fontSize: 15, letterSpacing: "-0.01em" }}>{l.label}</a>
+            <a key={l.label} className="dc-navlink" href={hrefFor(l)} onClick={handle(l)} style={{ color: "rgba(238,239,211,0.78)", fontWeight: 500, textDecoration: "none", fontSize: 15, letterSpacing: "-0.01em" }}>{l.label}</a>
           ))}
           {cta && (
-            <a className="dc-cta" href={cta.href || "#"} onClick={handle(cta)} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 14, textDecoration: "none", padding: "11px 22px", borderRadius: 6 }}>{cta.label}</a>
+            <a className="dc-cta" href={hrefFor(cta)} onClick={handle(cta)} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 14, textDecoration: "none", padding: "11px 22px", borderRadius: 6 }}>{cta.label}</a>
           )}
         </div>
       </div>
