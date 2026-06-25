@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, useRevealOnView } from "../design/dc";
 import {
   simulateARMResetLadder,
   DEFAULT_ARM_PROGRAMS,

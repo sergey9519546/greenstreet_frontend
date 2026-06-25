@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #D8D958; font-family: "Outfit", sans-serif; }
+      #root { width: 1920px; height: 1080px; position: relative; }
+      
+      .title {
+        font-size: 80px;
+        color: #003738;
+        font-weight: 700;
+        position: absolute;
+        top: 150px;
+        left: 0;
+        width: 1920px;
+        text-align: center;
+        letter-spacing: -0.03em;
+      }
+      .accent { color: #006565; }
+
+      .questions-container {
+        position: absolute;
+        top: 350px;
+        left: 560px;
+        width: 800px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .q-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        padding: 24px 32px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 10px 30px rgba(0,55,56,0.1);
+        transform: translateX(-50px);
+        opacity: 0;
+      }
+
+      .q-num {
+        width: 48px;
+        height: 48px;
+        background: #006565;
+        color: #EEEFD3;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .q-text {
+        font-size: 28px;
+        font-weight: 600;
+        color: #003738;
+        flex: 1;
+      }
+      
+      .q-check {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #D8D958;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #003738;
+        font-weight: bold;
+        opacity: 0;
+        transform: scale(0);
+      }
+
+      .rate-tier {
+        position: absolute;
+        top: 450px;
+        left: 660px;
+        width: 600px;
+        background: #003738;
+        color: #EEEFD3;
+        border-radius: 24px;
+        padding: 60px;
+        text-align: center;
+        box-shadow: 0 40px 80px rgba(0,55,56,0.2);
+        opacity: 0;
+        transform: scale(0.8);
+        z-index: 10;
+      }
+      .rt-label { font-size: 32px; font-weight: 600; color: #D8D958; margin-bottom: 20px; }
+      .rt-val { font-size: 96px; font-weight: 700; }
+
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="step-03" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+      <div id="title" class="title">Four questions to a <span class="accent">real rate tier</span></div>
+
+      <div class="questions-container" id="qc">
+        <div class="q-card" id="q1">
+          <div class="q-num">1</div><div class="q-text">What is the property type?</div><div class="q-check" id="c1">✓</div>
+        </div>
+        <div class="q-card" id="q2">
+          <div class="q-num">2</div><div class="q-text">What is the FICO score?</div><div class="q-check" id="c2">✓</div>
+        </div>
+        <div class="q-card" id="q3">
+          <div class="q-num">3</div><div class="q-text">What is the Loan to Value (LTV)?</div><div class="q-check" id="c3">✓</div>
+        </div>
+        <div class="q-card" id="q4">
+          <div class="q-num">4</div><div class="q-text">What is the estimated rent?</div><div class="q-check" id="c4">✓</div>
+        </div>
+      </div>
+
+      <div class="rate-tier" id="rt">
+        <div class="rt-label">Unlocked Rate Tier</div>
+        <div class="rt-val">Tier 1</div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      tl.to("#title", { opacity: 1, y: 30, duration: 1, ease: "power3.out" }, 0.2);
+      
+      // Reveal questions
+      tl.to(".q-card", { opacity: 1, x: 0, duration: 0.6, stagger: 0.15, ease: "power2.out" }, 0.5);
+
+      // Check off questions quickly
+      tl.to("#c1", { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 1.5);
+      tl.to("#c2", { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 1.8);
+      tl.to("#c3", { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 2.1);
+      tl.to("#c4", { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, 2.4);
+
+      // Hide questions, show rate tier
+      tl.to("#qc", { opacity: 0, scale: 0.9, duration: 0.5 }, 3.0);
+      tl.to("#rt", { opacity: 1, scale: 1, duration: 0.8, ease: "elastic.out(1, 0.8)" }, 3.2);
+
+      // Outro
+      tl.to(["#title", "#rt"], { opacity: 0, y: -50, duration: 0.8, stagger: 0.1, ease: "power3.in" }, 5.0);
+
+      window.__timelines["step-03"] = tl;
+    </script>
+  </body>
+</html>

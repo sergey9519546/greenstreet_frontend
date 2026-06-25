@@ -10,7 +10,7 @@
 //    screenshot" placeholder with the tool's real signature metric
 //  • responsive nav (collapses under 640px, hairline border, visible focus rings)
 //  • tabular-nums on all mono figures so animated numbers never reflow-jitter
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -22,6 +22,31 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Reveal-on-scroll gate. Returns [ref, shown]; `shown` flips true the first time
+// the element scrolls into view — or instantly under reduced-motion, or via a 1.5s
+// safety timer if the observer never fires. Drive CSS *transitions* off `shown`
+// (state) rather than keyframe-animations-on-mount: a transition is idempotent
+// across React re-renders, so the reveal can never get stuck restarting at its
+// start frame (the bug that left grow-in bars invisible at scale 0). It also
+// always ends VISIBLE — no observer, no JS timer, reduced motion: still shown.
+export function useRevealOnView<T extends HTMLElement = HTMLDivElement>() {
+  const ref = useRef<T>(null);
+  const [shown, setShown] = useState<boolean>(() => prefersReducedMotion());
+  useEffect(() => {
+    if (shown) return;
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") { setShown(true); return; }
+    const io = new IntersectionObserver(
+      (entries) => { if (entries.some((e) => e.isIntersecting)) { setShown(true); io.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    io.observe(el);
+    const t = window.setTimeout(() => { setShown(true); io.disconnect(); }, 1500);
+    return () => { io.disconnect(); window.clearTimeout(t); };
+  }, [shown]);
+  return [ref, shown] as const;
+}
 
 // Re-export tokens under the dc.* alias used across ported pages.
 export const dc = {
