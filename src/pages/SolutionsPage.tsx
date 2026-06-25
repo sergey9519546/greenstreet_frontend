@@ -60,7 +60,7 @@ const SEGMENTS: Segment[] = [
     title: "One book, one underwriting view",
     desc: "Blended DSCR, aggregate equity and weighted rate across every door — the way a blanket lender actually sees your portfolio.",
     cta: "Open the portfolio builder",
-    view: "borrower-profiles",
+    view: "portfolio",
     panelBg: dc.rain,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.60)",

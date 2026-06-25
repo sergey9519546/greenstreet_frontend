@@ -106,7 +106,7 @@ export default function MonteCarloPage({
 
   // ── nav ──────────────────────────────────────────────────────────────────
   const navLinks = [
-    { label: "DSCR Calc",     view: "dscr-calc"    },
+    { label: "DSCR Calc",     view: "dscr-calculator" },
     { label: "Stress Matrix", view: "stress-matrix" },
   ];
   const cta = {

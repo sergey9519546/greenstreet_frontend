@@ -405,7 +405,7 @@ function StudyRow({
         </div>
 
         <button
-          onClick={() => onNavigate(`case-studies/${s.slug}`)}
+          onClick={() => (window.history.pushState({},'',`/case-studies/${s.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
           style={{
             background: "none",
             border: "none",

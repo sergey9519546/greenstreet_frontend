@@ -658,7 +658,7 @@ export default function AboutPage({
         >
           {/* Card 1: Demo */}
           <button
-            onClick={() => onNavigate("dscr-calculator")}
+            onClick={() => onNavigate("book-demo")}
             className="cta-card"
             style={{
               display: "flex",

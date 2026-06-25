@@ -486,7 +486,7 @@ export default function ProductsPage({
           }}
         >
           <button
-            onClick={() => onNavigate("products")}
+            onClick={() => onNavigate("marketing")}
             style={{
               display: "inline-flex",
               alignItems: "center",

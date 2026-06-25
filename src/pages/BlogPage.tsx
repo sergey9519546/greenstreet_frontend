@@ -311,7 +311,7 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
               {related.map((r) => (
                 <button
                   key={r.slug}
-                  onClick={() => onNavigate(`blog/${r.slug}`)}
+                  onClick={() => (window.history.pushState({},'',`/blog/${r.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
                   style={{ background: dc.white, borderRadius: 8, border: `1px solid rgba(0,55,56,0.10)`, padding: "20px 22px", textAlign: "left" as const, cursor: "pointer", fontFamily: dc.sans }}
                 >
                   <div style={{ color: "#647474", fontSize: 12, marginBottom: 6 }}>{r.date}</div>
@@ -368,7 +368,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
       <section className="gs-reveal" style={{ background: dc.cream, padding: `0 ${dc.pad} clamp(40px,5vw,64px)` }}>
         <button
           className="bl-card dc-hero"
-          onClick={() => onNavigate(`blog/${FEATURED_POST.slug}`)}
+          onClick={() => (window.history.pushState({},'',`/blog/${FEATURED_POST.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
           style={{
             display: "grid",
             gridTemplateColumns: "1.1fr 0.9fr",
@@ -446,7 +446,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
               <button
                 key={p.slug}
                 className="bl-card"
-                onClick={() => onNavigate(`blog/${p.slug}`)}
+                onClick={() => (window.history.pushState({},'',`/blog/${p.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
                 style={{
                   background: dc.white,
                   borderRadius: 9,

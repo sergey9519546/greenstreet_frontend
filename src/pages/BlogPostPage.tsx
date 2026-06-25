@@ -513,7 +513,7 @@ export default function BlogPostPage({
               <a
                 key={r.slug}
                 href={`/blog/${r.slug}`}
-                onClick={(e) => { e.preventDefault(); onNavigate(`blog/${r.slug}`); }}
+                onClick={(e) => { e.preventDefault(); (window.history.pushState({},'',`/blog/${r.slug}`),window.dispatchEvent(new PopStateEvent('popstate'))); }}
                 className="bp-card"
                 style={{
                   background: "#fff",
