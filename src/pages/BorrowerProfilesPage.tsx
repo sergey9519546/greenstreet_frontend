@@ -1,112 +1,726 @@
-import React from "react";
-import { swatch } from "../theme";
+import React, { useEffect, useState } from "react";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
-import { PageShell, AnimatedCard, AnimatedButton, AnimatedNumber, sectionTitle } from "./PageShell";
+// ── Six borrower archetypes (preserved from existing page + mockup data) ──────
+interface Profile {
+  num: string;
+  name: string;
+  tagline: string;
+  // Card face colours (solid fills, no blur/glass)
+  bg: string;
+  ink: string;
+  body: string;
+  accent: string;
+  // Back-face matched program
+  program: string;
+  rate: string;
+  specs: { k: string; v: string }[];
+  // CTA routes to an internal view
+  view: string;
+}
 
-const MINT = swatch.rainforest;
-const CREAM = swatch.midnight;
-const YELLOW = swatch.lemon;
-
-interface NavCard { tag: string; title: string; body: string; href: string; }
-
-const CARDS: NavCard[] = [
-  { tag: "First-time investor", title: "1–2 properties", body: "DSCR loans care about the property's income, not yours. Greenstreet's Core program starts at 660 FICO; Flex reaches 640. We'll walk you through reserves, entity setup, and what the lender actually needs to see.", href: "/solutions/financial-advisors" },
-  { tag: "Portfolio operator", title: "3–10 properties", body: "This is where blanket loans and cross-collateralization start making sense. Greenstreet's Multi-Family program underwrites around your existing book — not each property in isolation.", href: "/solutions/private-funds" },
-  { tag: "Institutional / LP", title: "10+ properties, LLCs, syndications", body: "Cap-stack underwriting, true-cost AEY, and after-tax IRR modeling. Most portfolio LPs use the Tax Engine for IC memos and quarterly LP reporting before they even pick up the phone.", href: "/solutions/hedge-funds" },
-  { tag: "Foreign national", title: "No SSN, foreign citizen", body: "Greenstreet's Global program takes ITIN and foreign-national borrowers — passport plus alternative credit, no Social Security number required. Expect 25–35% down and a 100–200bps rate premium.", href: "/solutions/ria-registration" },
-  { tag: "STR operator", title: "Airbnb / VRBO host", body: "Greenstreet's STR program accepts AirDNA projections at 80–100% by file, or a documented 12-month history, with STR legality pre-checked in all 50 states. NYC Local Law 18 changed the rules in September 2023 — check before you list.", href: "/solutions/broker-dealers" },
-  { tag: "Credit-challenged", title: "Sub-660 FICO", body: "Greenstreet's Flex program goes to 640 FICO with compensating factors and can handle sub-1.0 DSCR files. Below 640, you're looking at hard-money territory at 10%+ rates.", href: "/solutions/service-provider-platform" },
+const PROFILES: Profile[] = [
+  {
+    num: "01",
+    name: "The First-Timer",
+    tagline:
+      "One rental, owner-savvy but new to DSCR. Wants a clean, no-income-doc close.",
+    bg: dc.mintBg,
+    ink: dc.dark,
+    body: "rgba(0,55,56,0.62)",
+    accent: dc.rain,
+    program: "DSCR 1-4 Standard",
+    rate: "6.75–7.25%",
+    specs: [
+      { k: "FICO", v: "620+" },
+      { k: "LTV", v: "≤80%" },
+      { k: "DSCR", v: "≥1.00x" },
+    ],
+    view: "dscr-calculator",
+  },
+  {
+    num: "02",
+    name: "The Portfolio Operator",
+    tagline:
+      "40 doors and counting. Needs blanket lines and one underwriting relationship.",
+    bg: dc.dark,
+    ink: dc.cream,
+    body: "rgba(238,239,211,0.65)",
+    accent: dc.lemon,
+    program: "DSCR Portfolio / Blanket",
+    rate: "6.99–7.50%",
+    specs: [
+      { k: "Loan", v: "to $25M" },
+      { k: "LTV", v: "≤75%" },
+      { k: "DSCR", v: "≥1.25x" },
+    ],
+    view: "lender-intel",
+  },
+  {
+    num: "03",
+    name: "The Foreign National",
+    tagline:
+      "Overseas investor, no US credit file. Buying US rentals through an LLC.",
+    bg: dc.rain,
+    ink: dc.cream,
+    body: "rgba(238,239,211,0.7)",
+    accent: dc.lemon,
+    program: "DSCR Global",
+    rate: "7.50–8.25%",
+    specs: [
+      { k: "Down", v: "30%+" },
+      { k: "Credit", v: "Alt / passport" },
+      { k: "DSCR", v: "≥1.00x" },
+    ],
+    view: "lender-intel",
+  },
+  {
+    num: "04",
+    name: "The STR Host",
+    tagline:
+      "Short-term rental in a seasonal market. Income swings month to month.",
+    bg: dc.lemon,
+    ink: dc.dark,
+    body: "rgba(0,55,56,0.65)",
+    accent: dc.rain,
+    program: "DSCR — STR",
+    rate: "7.10–7.75%",
+    specs: [
+      { k: "Income", v: "ADR×occ" },
+      { k: "Haircut", v: "~75%" },
+      { k: "LTV", v: "≤75%" },
+    ],
+    view: "state-laws",
+  },
+  {
+    num: "05",
+    name: "The Thin-Margin Deal",
+    tagline:
+      "Great property, but rent barely covers PITIA. Sub-1.0 DSCR.",
+    bg: dc.mintBg,
+    ink: dc.dark,
+    body: "rgba(0,55,56,0.62)",
+    accent: dc.rain,
+    program: "DSCR Sub-1.0",
+    rate: "7.25–8.00%",
+    specs: [
+      { k: "DSCR", v: "≥0.75x" },
+      { k: "FICO", v: "680+" },
+      { k: "LTV", v: "≤70%" },
+    ],
+    view: "dscr-calculator",
+  },
+  {
+    num: "06",
+    name: "The Refi Candidate",
+    tagline:
+      "Bought high last year. Rates dropped — when does refinancing pay off?",
+    bg: dc.teal,
+    ink: dc.cream,
+    body: "rgba(238,239,211,0.65)",
+    accent: dc.emerald,
+    program: "DSCR Rate-Term / Cash-Out",
+    rate: "6.50–7.25%",
+    specs: [
+      { k: "Seasoning", v: "6 mo" },
+      { k: "Cash-out", v: "≤70%" },
+      { k: "Rate-term", v: "≤75%" },
+    ],
+    view: "dscr-calculator",
+  },
 ];
 
-export default function BorrowerProfilesPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
+// ── Flip card (CSS-only, no animation beyond the hover transform) ─────────────
+// Solid fills, flat 1px borders — no blur, no glow, no radial gradients.
+const FLIP_CSS = `
+.bp-flip { perspective: 1200px; cursor: pointer; }
+.bp-inner { position: relative; transition: transform .55s cubic-bezier(.2,.7,.2,1); transform-style: preserve-3d; }
+.bp-flip:hover .bp-inner, .bp-flip:focus-within .bp-inner { transform: rotateY(180deg); }
+.bp-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 8px; overflow: hidden; }
+.bp-back { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .bp-inner { transition: none !important; }
+  .bp-flip:hover .bp-inner, .bp-flip:focus-within .bp-inner { transform: none !important; }
+}
+@media (max-width: 900px) {
+  .bp-grid { grid-template-columns: 1fr !important; }
+}
+`;
+
+function ProfileCard({
+  p,
+  onNavigate,
+}: {
+  p: Profile;
+  onNavigate: (v: string) => void;
+}) {
   return (
-    <PageShell
-      title="Borrower Profiles"
-      subtitle="Six borrower types. Six different DSCR playbooks. Find your lane — and the Greenstreet program that actually funds it."
-      onBack={onBack} onNavigate={onNavigate}
+    <div
+      className="bp-flip gs-reveal"
+      style={{ height: 360 }}
+      tabIndex={0}
+      role="article"
+      aria-label={p.name}
     >
-      <div style={{ marginBottom: "40px", padding: "32px", background: "rgba(0,101,101,0.08)", borderRadius: "14px", border: "1px solid rgba(0,101,101,0.22)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px" }}>
-          {[
-            { value: 620, format: (v: number) => Math.round(v).toString(), label: "lowest FICO we'll quote" },
-            { value: 75, format: (v: number) => Math.round(v) + "%", label: "LTV most lenders cap at" },
-            { value: 0.75, format: (v: number) => v.toFixed(2) + "x", label: "DSCR floor (sub-1.0 lenders)" },
-            { value: 21, format: (v: number) => Math.round(v) + "-30d", label: "typical close time", isRange: true, value2: 30 },
-          ].map((s) => (
-            <div key={s.label} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "40px", fontWeight: 800, color: MINT, lineHeight: 1 }}>
-                {s.isRange ? (
-                  <span>
-                    <AnimatedNumber value={s.value} format={(v) => Math.round(v).toString()} />
-                    -
-                    <AnimatedNumber value={s.value2} format={(v) => Math.round(v).toString()} />d
-                  </span>
-                ) : (
-                  <AnimatedNumber value={s.value} format={s.format} />
-                )}
-              </div>
-              <div style={{ fontSize: "12px", color: "#5a6b6b", marginTop: "6px" }}>{s.label}</div>
+      <div className="bp-inner" style={{ height: "100%" }}>
+        {/* ── Front ── */}
+        <div
+          className="bp-face"
+          style={{
+            background: p.bg,
+            border: `1px solid rgba(0,55,56,0.10)`,
+            padding: 32,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <Mono
+              style={{
+                display: "block",
+                fontSize: 13,
+                fontWeight: 700,
+                color: p.accent,
+                marginBottom: 18,
+              }}
+            >
+              {p.num}
+            </Mono>
+            <div
+              style={{
+                fontSize: "clamp(22px,2.4vw,28px)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                color: p.ink,
+                lineHeight: 1.05,
+                marginBottom: 12,
+              }}
+            >
+              {p.name}
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={sectionTitle}>Find your profile</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
-        {CARDS.map((c) => (
-          <AnimatedCard key={c.title} hoverScale={true} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={{ fontSize: "10px", fontWeight: 700, padding: "3px 8px", borderRadius: "20px", background: "rgba(0,101,101,0.12)", color: MINT, border: `1px solid ${MINT}`, alignSelf: "flex-start", textTransform: "uppercase", letterSpacing: "0.06em" }}>{c.tag}</div>
-            <h3 style={{ fontSize: "20px", fontWeight: 700, color: CREAM, lineHeight: 1.2 }}>{c.title}</h3>
-            <p style={{ fontSize: "14px", color: "#4a5d5d", lineHeight: 1.6, flex: 1 }}>{c.body}</p>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: MINT, textDecoration: "underline", textUnderlineOffset: "3px" }}>Get started →</div>
-          </AnimatedCard>
-        ))}
-      </div>
-
-      <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
-        <div style={sectionTitle}>What your lender actually needs from you</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
-          {[
-            { doc: "Purchase contract (or refinance authorization)", note: "Fully executed. Wholesaler assignments need the assignment addendum too." },
-            { doc: "1007 / 1025 appraisal with rent schedule", note: "Self-employed rental income needs the 1007. Most lenders won't accept the lease alone." },
-            { doc: "2 months bank statements (all pages)", note: "Liquid reserves post-closing. Retirement accounts count at 70% if 59½+; crypto is $0." },
-            { doc: "Credit report (tri-merge)", note: "Pulled within 90 days of close. Most lenders ignore medical collections but flag recent lates." },
-            { doc: "Entity documents (LLC / Corp / Trust)", name: "Operating agreement, EIN, formation docs.", note: "All owners ≥51% must be on the loan. Max 4 owners in the borrowing entity." },
-            { doc: "Insurance binder (hazard + liability)", name: "Paid receipt or binder letter from agent.", note: "Lender needs to be shown as 'loss payee' for hazard. STR needs commercial liability." },
-          ].map((d) => (
-            <div key={d.doc} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
-              <div style={{ color: CREAM, fontWeight: 700, fontSize: "14px" }}>{d.doc}</div>
-              <div style={{ color: "#5a6b6b", fontSize: "12px", marginTop: "4px", lineHeight: 1.5 }}>{d.note}</div>
-            </div>
-          ))}
-        </div>
-      </AnimatedCard>
-
-      <AnimatedCard hoverScale={false} style={{ marginBottom: "32px" }}>
-        <div style={sectionTitle}>Mistakes borrowers make (and how to avoid them)</div>
-        {[
-          { mistake: "Not vesting in an LLC", fix: "Most lenders require entity vesting. Going individual adds 25-50bps and may disqualify you from business-purpose loans." },
-          { mistake: "Pulling credit too early", fix: "Credit inquiries stay on the report for 12 months for mortgage scoring. Run rate-shopping within a 14-day window to count as one inquiry." },
-          { mistake: "Funding the down payment from a gift", fix: "Some lenders accept gift funds with a 2-year seasoned donor letter. Cash-out proceeds from another property are usually cleaner." },
-          { mistake: "Skipping the LLC operating agreement update", fix: "Outdated operating agreements flag underwriter review. Add a 'real estate' purpose clause if you're lending to the LLC." },
-          { mistake: "Closing on the 25th of the month", fix: "Avoid mid-month closings. Per-diem interest from the 25th to month-end can cost $300-500. Aim for the 1st-5th." },
-        ].map((m, i) => (
-          <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "#ff6b6b", fontWeight: 600, fontSize: "14px" }}>✗ {m.mistake}</span>
-            </div>
-            <p style={{ color: "#4a5d5d", fontSize: "12px", marginTop: "6px", lineHeight: 1.5 }}><strong style={{ color: MINT }}>Fix:</strong> {m.fix}</p>
+            <p
+              style={{
+                fontSize: 15,
+                fontWeight: 500,
+                lineHeight: 1.5,
+                color: p.body,
+                margin: 0,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {p.tagline}
+            </p>
           </div>
-        ))}
-      </AnimatedCard>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: p.accent,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Hover to see the fit →
+          </div>
+        </div>
 
-      <div style={{ marginTop: "32px", padding: "32px", background: "#e8e9bf", borderRadius: "14px", border: "1px solid rgba(0,55,56,0.12)", textAlign: "center" }}>
-        <h3 style={{ fontSize: "22px", fontWeight: 700, color: CREAM, marginBottom: "8px" }}>Not sure where you fit?</h3>
-        <p style={{ fontSize: "14px", color: "#4a5d5d", marginBottom: "20px" }}>Answer 5 questions and get your Greenstreet program match and indicative rate. No signup, no email, no pitch.</p>
-        <AnimatedButton onClick={() => onNavigate("rate-quiz")} showArrow={true}>
-          Take the Rate Quiz
-        </AnimatedButton>
+        {/* ── Back ── */}
+        <div
+          className="bp-face bp-back"
+          style={{
+            background: dc.dark,
+            border: `1px solid rgba(238,239,211,0.12)`,
+            padding: 32,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            color: dc.cream,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                marginBottom: 10,
+              }}
+            >
+              Matched program
+            </div>
+            <div
+              style={{
+                fontSize: 21,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                lineHeight: 1.1,
+                marginBottom: 6,
+                color: dc.cream,
+              }}
+            >
+              {p.program}
+            </div>
+            <Mono
+              style={{
+                display: "block",
+                fontSize: 28,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: dc.lemon,
+                marginBottom: 16,
+              }}
+            >
+              {p.rate}
+            </Mono>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: 7 }}
+            >
+              {p.specs.map((sp) => (
+                <div
+                  key={sp.k}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 13,
+                    borderBottom: "1px solid rgba(238,239,211,0.10)",
+                    paddingBottom: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "rgba(238,239,211,0.6)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {sp.k}
+                  </span>
+                  <Mono style={{ fontSize: 13, fontWeight: 600, color: dc.cream }}>
+                    {sp.v}
+                  </Mono>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate(p.view)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              textAlign: "left" as const,
+              fontSize: 14,
+              fontWeight: 600,
+              color: dc.emerald,
+              letterSpacing: "-0.01em",
+              fontFamily: dc.sans,
+            }}
+          >
+            Price this scenario →
+          </button>
+        </div>
       </div>
-    </PageShell>
+    </div>
+  );
+}
+
+// ── Checklist items preserved from existing page ──────────────────────────────
+const DOCS = [
+  {
+    doc: "Purchase contract (or refinance authorization)",
+    note: "Fully executed. Wholesaler assignments need the assignment addendum too.",
+  },
+  {
+    doc: "1007 / 1025 appraisal with rent schedule",
+    note: "Self-employed rental income needs the 1007. Most lenders won't accept the lease alone.",
+  },
+  {
+    doc: "2 months bank statements (all pages)",
+    note: "Liquid reserves post-closing. Retirement accounts count at 70% if 59½+; crypto is $0.",
+  },
+  {
+    doc: "Credit report (tri-merge)",
+    note: "Pulled within 90 days of close. Most lenders ignore medical collections but flag recent lates.",
+  },
+  {
+    doc: "Entity documents (LLC / Corp / Trust)",
+    note: "All owners ≥51% must be on the loan. Max 4 owners in the borrowing entity.",
+  },
+  {
+    doc: "Insurance binder (hazard + liability)",
+    note: "Lender needs to be shown as 'loss payee' for hazard. STR needs commercial liability.",
+  },
+];
+
+const MISTAKES = [
+  {
+    mistake: "Not vesting in an LLC",
+    fix: "Most lenders require entity vesting. Going individual adds 25–50bps and may disqualify you from business-purpose loans.",
+  },
+  {
+    mistake: "Pulling credit too early",
+    fix: "Rate-shop within a 14-day window so inquiries count as one pull for mortgage scoring.",
+  },
+  {
+    mistake: "Funding the down payment from a gift",
+    fix: "Some lenders accept gift funds with a 2-year seasoned donor letter. Cash-out proceeds from another property are usually cleaner.",
+  },
+  {
+    mistake: "Skipping the LLC operating agreement update",
+    fix: "Outdated operating agreements flag underwriter review. Add a 'real estate' purpose clause.",
+  },
+  {
+    mistake: "Closing mid-month",
+    fix: "Per-diem interest from the 25th to month-end can cost $300–500. Aim for the 1st–5th.",
+  },
+];
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+export default function BorrowerProfilesPage({
+  onBack,
+  onNavigate,
+}: {
+  onBack: () => void;
+  onNavigate: (v: any) => void;
+}) {
+  useEffect(() => {
+    document.title = "Borrower Profiles | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
+  return (
+    <DcShell
+      onNavigate={onNavigate}
+      navLinks={[
+        { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Lender Intel", view: "lender-intel" },
+        { label: "State Rules", view: "state-laws" },
+      ]}
+      cta={{ label: "Find your fit →", view: "dscr-calculator" }}
+    >
+      <style>{FLIP_CSS}</style>
+
+      {/* ── HERO ── mint bg, dark ink — matches mockup exactly; no HeroProof, no CTA buttons ── */}
+      <section
+        style={{
+          background: dc.mintBg,
+          color: dc.dark,
+          overflow: "hidden",
+          padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`,
+        }}
+      >
+        <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "rgba(0,55,56,0.5)",
+              marginBottom: 20,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Who we serve / Borrower archetypes
+          </div>
+          <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
+            Six borrowers. One engine that fits them all.
+          </H1>
+          <Lead
+            style={{
+              color: "rgba(0,55,56,0.65)",
+              maxWidth: "54ch",
+              margin: 0,
+            }}
+          >
+            From the first-timer to the foreign national to the 40-door
+            portfolio operator — hover any card to see the program and terms
+            that match.
+          </Lead>
+        </div>
+      </section>
+
+      {/* ── PROFILE CARDS GRID ── 3-col flip-card grid; centerpiece of the page ── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(48px,6vw,80px) ${dc.pad} clamp(72px,10vh,120px)`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="bp-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 20,
+            }}
+          >
+            {PROFILES.map((p) => (
+              <ProfileCard key={p.num} p={p} onNavigate={onNavigate} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHAT YOUR LENDER NEEDS ── */}
+      <section
+        style={{
+          background: dc.mintBg,
+          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="gs-reveal" style={{ marginBottom: 36 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.rain,
+                marginBottom: 12,
+              }}
+            >
+              Pre-close checklist
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(26px,3.2vw,44px)",
+                fontWeight: 600,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.05,
+                margin: 0,
+              }}
+            >
+              What your lender actually needs from you.
+            </h2>
+          </div>
+
+          <div
+            className="gs-reveal dc-band-2"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 16,
+            }}
+          >
+            {DOCS.map((d) => (
+              <div
+                key={d.doc}
+                style={{
+                  padding: "14px 0",
+                  borderBottom: "1px solid rgba(0,55,56,0.12)",
+                }}
+              >
+                <div
+                  style={{
+                    color: dc.dark,
+                    fontWeight: 700,
+                    fontSize: 14,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {d.doc}
+                </div>
+                <div
+                  style={{
+                    color: "rgba(0,55,56,0.6)",
+                    fontSize: 12,
+                    marginTop: 4,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {d.note}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMMON MISTAKES ── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="gs-reveal" style={{ marginBottom: 36 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.rain,
+                marginBottom: 12,
+              }}
+            >
+              Watch-outs
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(26px,3.2vw,44px)",
+                fontWeight: 600,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.05,
+                margin: 0,
+              }}
+            >
+              Mistakes borrowers make — and how to avoid them.
+            </h2>
+          </div>
+
+          <div
+            className="gs-reveal"
+            style={{
+              background: dc.white,
+              borderRadius: 9,
+              border: "1px solid rgba(0,55,56,0.08)",
+              padding: "4px 28px 8px",
+            }}
+          >
+            {MISTAKES.map((m, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "16px 0",
+                  borderBottom:
+                    i < MISTAKES.length - 1
+                      ? "1px solid rgba(0,55,56,0.08)"
+                      : "none",
+                }}
+              >
+                <div
+                  style={{
+                    color: "#c0392b",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    marginBottom: 6,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  ✗ {m.mistake}
+                </div>
+                <p
+                  style={{
+                    color: "rgba(0,55,56,0.65)",
+                    fontSize: 13,
+                    margin: 0,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  <strong style={{ color: dc.rain }}>Fix: </strong>
+                  {m.fix}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA STRIP ── */}
+      <section
+        style={{
+          background: dc.dark,
+          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
+        }}
+      >
+        <div
+          className="gs-reveal"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase" as const,
+              color: dc.lemon,
+              marginBottom: 16,
+            }}
+          >
+            Not sure where you fit?
+          </div>
+          <h2
+            style={{
+              fontSize: "clamp(28px,3.8vw,52px)",
+              fontWeight: 600,
+              letterSpacing: "-0.04em",
+              lineHeight: 1.0,
+              color: dc.cream,
+              margin: "0 0 16px",
+            }}
+          >
+            Answer 5 questions.
+            <br />
+            Get your matched program.
+          </h2>
+          <p
+            style={{
+              fontSize: "clamp(15px,1.3vw,18px)",
+              fontWeight: 500,
+              lineHeight: 1.55,
+              color: "rgba(238,239,211,0.65)",
+              maxWidth: "46ch",
+              margin: "0 auto 36px",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            No signup, no email, no pitch. Indicative rate band in under two
+            minutes.
+          </p>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <button
+              onClick={() => onNavigate("dscr-calculator")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 600,
+                fontSize: 16,
+                border: "none",
+                cursor: "pointer",
+                padding: "15px 30px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Run the DSCR Calculator →
+            </button>
+            <button
+              onClick={() => onNavigate("lender-intel")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: "transparent",
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 16,
+                border: "1px solid rgba(238,239,211,0.3)",
+                cursor: "pointer",
+                padding: "15px 26px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Browse lender programs
+            </button>
+          </div>
+        </div>
+      </section>
+    </DcShell>
   );
 }

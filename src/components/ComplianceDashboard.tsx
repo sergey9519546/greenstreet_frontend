@@ -78,13 +78,13 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const userUid = currentUser?.uid ?? "demo-user";
   const userEmail = currentUser?.email ?? "demo@greenstreet.dev";
   const [authEmail, setAuthEmail] = useState(initialEmail || "");
-  const [authPassword, setAuthPassword] = useState("pass1234");
+  const [authPassword, setAuthPassword] = useState("");
   const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [authError, setAuthError] = useState("");
 
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "dashboard");
 
-  const [brokerConfig, setBrokerConfig] = useState({ brokerName: "Capital Mortgage Group", nmls: "123456", licenseType: "Mortgage Broker", primaryMarket: "Florida, California, Texas", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend. NMLS#123456." });
+  const [brokerConfig, setBrokerConfig] = useState({ brokerName: "", nmls: "", licenseType: "Mortgage Broker", primaryMarket: "", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend." });
   const [brokerSaved, setBrokerSaved] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
@@ -102,6 +102,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [stateInput, setStateInput] = useState("FL");
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [stateResult, setStateResult] = useState<StateResult | null>(null);
+
+  useEffect(() => { document.title = "InvestorGO | Greenstreet Finance"; }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => { setCurrentUser(user); setAuthLoading(false); });
@@ -226,8 +228,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           </button>
           <div className="text-center mb-8">
             <div className="w-12 h-12 rounded-xl bg-dark-teal text-emerald font-extrabold text-2xl flex items-center justify-center mx-auto mb-3 shadow">G</div>
-            <h3 className="font-display text-2xl font-bold tracking-tight">DSCR Deal Engine</h3>
-            <p className="text-slate-500 text-xs mt-1">Underwriting math runs server-side. Sign in to start pricing deals.</p>
+            <h3 className="font-display text-2xl font-bold tracking-tight">InvestorGO</h3>
+            <p className="text-slate-500 text-xs mt-1">Every engine and calculation in one place. Sign in to start pricing deals.</p>
           </div>
           {authError && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
@@ -270,160 +272,307 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   }
 
   // ── Portal ─────────────────────────────────────────────────────────────────
-  const tabs = [
-    { key: "dashboard", icon: <Shield className="w-4 h-4" />, label: "Hub" },
-    { key: "analyze", icon: <Calculator className="w-4 h-4" />, label: "DSCR Analyzer" },
-    { key: "sensitivity", icon: <BarChart2 className="w-4 h-4" />, label: "Sensitivity" },
-    { key: "optimize", icon: <Zap className="w-4 h-4" />, label: "Optimizer" },
-    { key: "state", icon: <MapPin className="w-4 h-4" />, label: "State PPP" },
-    { key: "refi", icon: <RefreshCw className="w-4 h-4" />, label: "Refi Tracker" },
-    { key: "arm", icon: <TrendingUp className="w-4 h-4" />, label: "ARM Reset" },
-    { key: "montecarlo", icon: <BarChart2 className="w-4 h-4" />, label: "Monte Carlo" },
-    { key: "returns", icon: <TrendingUp className="w-4 h-4" />, label: "Returns / IRR" },
-    { key: "tax", icon: <Calculator className="w-4 h-4" />, label: "Tax Engine" },
-    { key: "stress", icon: <BarChart2 className="w-4 h-4" />, label: "Stress Matrix" },
-    { key: "decision", icon: <Shield className="w-4 h-4" />, label: "Decision Support" },
-    { key: "str", icon: <Sparkles className="w-4 h-4" />, label: "STR Underwriting" },
-    { key: "portfolio", icon: <History className="w-4 h-4" />, label: "Portfolio" },
-    { key: "history", icon: <History className="w-4 h-4" />, label: "History", count: auditLogs.length },
-    { key: "settings", icon: <Settings2 className="w-4 h-4" />, label: "Profile" },
-  ] as const;
-
   const deal = solveResult?.deal;
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row antialiased font-sans">
+  // ── Sidebar nav data ─────────────────────────────────────────────────────
+  const navWorkspace = [
+    { key: "dashboard", icon: "≡", label: "Pipeline" },
+    { key: "analyze",   icon: "◰", label: "DSCR Analyzer" },
+    { key: "sensitivity", icon: "%", label: "Sensitivity" },
+    { key: "optimize",  icon: "⊕", label: "Optimizer" },
+    { key: "history",   icon: "⤓", label: "History", count: auditLogs.length },
+  ] as const;
 
-      {/* Sidebar */}
-      <aside className="w-full md:w-60 bg-dark-teal text-pistachio shrink-0 border-r border-midnight-green/30 flex flex-col justify-between py-6">
-        <div>
-          <div className="px-5 mb-8 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-white/10 text-emerald flex items-center justify-center font-bold text-lg">G</div>
-            <span className="font-bold text-lg text-white tracking-tight">Greenstreet</span>
-          </div>
-          <nav className="space-y-1 px-3">
-            {tabs.map(({ key, icon, label, count }: any) => (
-              <button key={key} onClick={() => { setActiveTab(key); setSelectedLog(null); }}
-                className={`w-full px-3 py-2.5 text-left text-sm rounded-xl font-semibold flex items-center gap-3 transition ${activeTab === key ? "bg-emerald text-dark-teal shadow" : "text-pistachio/70 hover:bg-white/10 hover:text-white"}`}>
-                {icon}
+  const navTools = [
+    { key: "state",       icon: "§", label: "State Rules" },
+    { key: "stress",      icon: "▦", label: "Stress Matrix" },
+    { key: "refi",        icon: "~", label: "Refi Tracker" },
+    { key: "returns",     icon: "$", label: "Returns / IRR" },
+    { key: "arm",         icon: "↺", label: "ARM Reset" },
+    { key: "montecarlo",  icon: "∿", label: "Monte Carlo" },
+    { key: "tax",         icon: "%", label: "Tax Engine" },
+    { key: "decision",    icon: "⊕", label: "Decision Support" },
+    { key: "str",         icon: "☼", label: "STR" },
+    { key: "portfolio",   icon: "◰", label: "Portfolio" },
+  ] as const;
+
+  const viewTitle: Record<DashboardTab, string> = {
+    dashboard: "Pipeline overview",
+    analyze: "DSCR Deal Analyzer",
+    sensitivity: "Sensitivity & Breakeven",
+    optimize: "Loan Structure Optimizer",
+    state: "State PPP / Prepay Rules",
+    refi: "Refi Tracker",
+    arm: "ARM Reset Risk",
+    montecarlo: "Monte Carlo Rate Paths",
+    returns: "Returns & IRR",
+    tax: "After-Tax IRR",
+    stress: "Stress Matrix",
+    decision: "Decision Support",
+    str: "STR Underwriting",
+    portfolio: "Portfolio Analyzer",
+    history: "Deal History",
+    settings: "Broker Profile",
+  };
+
+  // ── Demo pipeline data for workspace landing ──────────────────────────────
+  const demoPipeline = [
+    { prop: "1421 Oak St, Austin TX",    type: "SFR",    amt: 318750, dscr: 1.34, stage: "Submitted", risk: 0 },
+    { prop: "88 Bayshore, Tampa FL",     type: "Duplex", amt: 364000, dscr: 1.51, stage: "Priced",    risk: 0 },
+    { prop: "7 Desert Vw, Phoenix AZ",   type: "SFR",    amt: 304200, dscr: 0.98, stage: "Review",    risk: 1 },
+    { prop: "200 Beale, Memphis TN",     type: "4-plex", amt: 435000, dscr: 1.62, stage: "Submitted", risk: 0 },
+    { prop: "45 Harbor, Newark NJ",      type: "SFR",    amt: 280000, dscr: 1.12, stage: "Priced",    risk: 2 },
+    { prop: "19 Pine, Columbus OH",      type: "Duplex", amt: 255000, dscr: 1.28, stage: "Review",    risk: 1 },
+  ];
+
+  const brokerInitials = brokerConfig.brokerName
+    ? brokerConfig.brokerName.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase()
+    : userEmail.charAt(0).toUpperCase();
+
+  const brokerDisplayName = brokerConfig.brokerName || userEmail;
+  const brokerMarket = brokerConfig.primaryMarket || "Your Market";
+
+  return (
+    <div className="min-h-screen bg-pistachio text-dark-teal flex flex-col md:flex-row antialiased font-sans">
+
+      {/* ── Sidebar ── */}
+      <aside className="w-full md:w-[248px] bg-midnight-green text-pistachio shrink-0 flex flex-col" style={{ padding: "24px 16px" }}>
+        {/* Wordmark */}
+        <button onClick={onBackToMarketing}
+          className="text-left text-pistachio font-semibold text-xl tracking-tight mb-6 px-3 pb-6 hover:opacity-80 transition"
+          style={{ letterSpacing: "-0.04em", borderBottom: "none" }}>
+          Greenstreet
+        </button>
+
+        {/* Workspace section */}
+        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-pistachio/40 px-3 mb-2.5">Workspace</div>
+        <nav className="space-y-0.5">
+          {navWorkspace.map(({ key, icon, label, count }: any) => {
+            const active = activeTab === key;
+            return (
+              <button key={key}
+                onClick={() => { setActiveTab(key as DashboardTab); setSelectedLog(null); }}
+                className="w-full flex items-center gap-[11px] text-left text-sm rounded-md transition"
+                style={{
+                  padding: "11px 12px",
+                  fontWeight: active ? 600 : 500,
+                  color: active ? "#eeefd3" : "rgba(238,239,211,0.72)",
+                  background: active ? "rgba(238,239,211,0.1)" : "transparent",
+                }}>
+                <span className="font-mono w-[18px] text-center shrink-0"
+                  style={{ color: active ? "#d8d958" : "#4dbd97", fontSize: "14px" }}>
+                  {icon}
+                </span>
                 <span className="flex-1">{label}</span>
                 {count !== undefined && count > 0 && (
-                  <span className="bg-[#0c2f30] text-emerald text-[10px] px-2 py-0.5 rounded-full font-bold">{count}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                    style={{ background: "rgba(77,189,151,0.15)", color: "#4dbd97" }}>
+                    {count}
+                  </span>
                 )}
               </button>
-            ))}
-          </nav>
-        </div>
-        <div className="border-t border-midnight-green/30 pt-5 px-5 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-xs text-emerald">
-              {userEmail.charAt(0).toUpperCase()}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-white text-xs font-bold truncate">{userEmail}</p>
-              <p className="text-[10px] text-pistachio/50 font-mono">NMLS {brokerConfig.nmls}</p>
-            </div>
+            );
+          })}
+        </nav>
+
+        {/* Tools section */}
+        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-pistachio/40 px-3 mt-5 mb-2.5">Tools</div>
+        <nav className="space-y-0.5">
+          {navTools.map(({ key, icon, label }) => {
+            const active = activeTab === key;
+            return (
+              <button key={key}
+                onClick={() => { setActiveTab(key as DashboardTab); setSelectedLog(null); }}
+                className="w-full flex items-center gap-[11px] text-left text-sm rounded-md transition"
+                style={{
+                  padding: "10px 12px",
+                  fontWeight: 500,
+                  color: active ? "#eeefd3" : "rgba(238,239,211,0.72)",
+                  background: active ? "rgba(238,239,211,0.1)" : "transparent",
+                }}>
+                <span className="font-mono w-[18px] text-center shrink-0" style={{ color: "#4dbd97", fontSize: "14px" }}>
+                  {icon}
+                </span>
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* User chip */}
+        <div className="mt-auto flex items-center gap-2.5 px-3 pt-3"
+          style={{ borderTop: "1px solid rgba(238,239,211,0.1)" }}>
+          <span className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold shrink-0"
+            style={{ background: "#4dbd97", color: "#003738" }}>
+            {brokerInitials}
+          </span>
+          <div className="overflow-hidden">
+            <div className="text-[13px] font-semibold text-pistachio truncate">{brokerDisplayName}</div>
+            <div className="text-[11px] text-pistachio/50 truncate">{brokerMarket}</div>
           </div>
-          <div className="flex gap-2">
-            <button onClick={onBackToMarketing} className="flex-1 py-2 border border-[#EEEFD3]/15 hover:border-[#EEEFD3] text-white font-semibold text-[11px] rounded-lg transition">
-              ← Site
-            </button>
-            <button onClick={logoutUser} className="p-2 bg-[#0c2f30] hover:bg-red-900 text-pistachio rounded-lg transition" title="Sign Out">
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <button onClick={logoutUser} className="ml-auto p-1.5 hover:bg-pistachio/10 rounded transition text-pistachio/50 hover:text-pistachio shrink-0" title="Sign Out">
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 min-w-0 p-6 md:p-8 overflow-y-auto">
-        <div className="max-w-5xl w-full mx-auto">
+      {/* ── Main ── */}
+      <main className="flex-1 min-w-0 overflow-y-auto flex flex-col">
 
-          {/* Page header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4 mb-7 gap-3">
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 font-mono tracking-widest uppercase mb-0.5">DSCR Non-QM Wholesale · Sovereign OS</p>
-              <h1 className="font-bold text-2xl text-dark-teal tracking-tight">
-                {activeTab === "dashboard" && "Workspace Hub"}
-                {activeTab === "analyze" && "DSCR Deal Analyzer"}
-                {activeTab === "sensitivity" && "Sensitivity & Breakeven"}
-                {activeTab === "optimize" && "Loan Structure Optimizer"}
-                {activeTab === "state" && "State PPP / Prepay Rules"}
-                {activeTab === "refi" && "Refi Tracker"}
-                {activeTab === "arm" && "ARM Reset Risk"}
-                {activeTab === "montecarlo" && "Monte Carlo Rate Paths"}
-                {activeTab === "returns" && "Returns & IRR"}
-                {activeTab === "tax" && "After-Tax IRR (Tax Engine)"}
-                {activeTab === "stress" && "Stress Matrix"}
-                {activeTab === "decision" && "Decision Support (IC Memo)"}
-                {activeTab === "str" && "STR Underwriting (3 Worlds)"}
-                {activeTab === "portfolio" && "Portfolio Analyzer"}
-                {activeTab === "history" && "Deal History"}
-                {activeTab === "settings" && "Broker Profile"}
-              </h1>
+        {/* Sticky header — solid, no blur */}
+        <header className="sticky top-0 z-10 flex items-center justify-between"
+          style={{
+            background: "#eeefd3",
+            borderBottom: "1px solid rgba(0,55,56,0.1)",
+            padding: "20px clamp(20px,3vw,40px)",
+          }}>
+          <div>
+            <div className="text-[12px] font-semibold uppercase tracking-[0.04em]" style={{ color: "#006565" }}>
+              Workspace
             </div>
-            <span className="text-xs text-slate-400">{brokerConfig.brokerName} · NMLS {brokerConfig.nmls}</span>
+            <div className="font-semibold mt-0.5" style={{ fontSize: "clamp(20px,2vw,26px)", letterSpacing: "-0.03em", color: "#003738" }}>
+              {viewTitle[activeTab] ?? "Dashboard"}
+            </div>
           </div>
+          <button onClick={() => setActiveTab("analyze")}
+            className="inline-flex items-center gap-1.5 font-semibold text-sm transition"
+            style={{ background: "#003738", color: "#e8e9bf", padding: "11px 20px", borderRadius: "6px" }}>
+            + New deal
+          </button>
+        </header>
+
+        <div className="flex-1 p-6 md:p-8">
+          <div className="max-w-5xl w-full mx-auto">
 
           <AnimatePresence mode="wait">
 
             {/* ── DASHBOARD ── */}
             {activeTab === "dashboard" && (
-              <motion.div key="dashboard" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-7">
+              <motion.div key="dashboard" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-5">
+
+                {/* KPI row */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[
-                    { label: "Deals analyzed", value: auditLogs.filter(l => l.type === "analyze").length, suffix: "", sub: "in your history" },
-                    { label: "Avg DSCR", value: auditLogs.filter(l => l.type === "analyze" && l.output?.deal?.dscr).length > 0 ? (auditLogs.filter(l => l.type === "analyze" && l.output?.deal?.dscr).reduce((s, l) => s + (l.output?.deal?.dscr || 0), 0) / auditLogs.filter(l => l.type === "analyze" && l.output?.deal?.dscr).length).toFixed(2) : "—", suffix: "x", sub: "target ≥ 1.0x" },
-                    { label: "States researched", value: auditLogs.filter(l => l.type === "state-rules").length, suffix: "", sub: "PPP lookups" },
-                    { label: "Engine version", value: "v11", suffix: "", sub: "69 golden tests" },
-                  ].map(({ label, value, suffix, sub }) => (
-                    <div key={label} className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm">
-                      <p className="text-xs text-slate-400 font-semibold mb-1">{label}</p>
-                      <p className="text-3xl font-extrabold text-dark-teal font-mono">{value}{suffix}</p>
-                      <p className="text-[10px] text-emerald font-semibold mt-1">{sub}</p>
+                  {([
+                    { label: "Active deals",    value: "6",    color: "#003738", delta: "+2 this week",       deltaColor: "#006565" },
+                    { label: "Avg DSCR",        value: "1.31x", color: "#006565", delta: "Healthy book",       deltaColor: "#006565" },
+                    { label: "Pipeline volume", value: "$2.0M", color: "#003738", delta: "+$0.4M MTD",          deltaColor: "#006565" },
+                    { label: "Flagged states",  value: "2",    color: "#b04545", delta: "NJ · OH need review", deltaColor: "#9a7b00" },
+                  ] as const).map(({ label, value, color, delta, deltaColor }) => (
+                    <div key={label} className="bg-white rounded-lg p-6" style={{ border: "1px solid rgba(0,55,56,0.08)" }}>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.03em] mb-2.5" style={{ color: "rgba(0,55,56,0.5)" }}>{label}</div>
+                      <div className="font-semibold font-mono" style={{ fontSize: "clamp(26px,2.6vw,36px)", letterSpacing: "-0.03em", color }}>{value}</div>
+                      <div className="text-[13px] font-medium mt-1.5" style={{ color: deltaColor }}>{delta}</div>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-dark-teal text-pistachio p-7 rounded-2xl space-y-5">
-                  <div>
-                    <h3 className="text-lg font-bold text-white mb-1">How the math runs</h3>
-                    <p className="text-sm text-pistachio/70 max-w-2xl">Every number here is computed by the Sovereign Engine: dual-track DSCR solver, 19-lender provenance database, breakeven and tornado analysis, and a loan structure optimizer. The LLM is only used to narrate results.</p>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-[#EEEFD3]/10 pt-5">
-                    {[
-                      { key: "analyze", icon: <Calculator className="w-4 h-4 text-emerald" />, label: "DSCR Analyzer", desc: "Dual-track solve + PITIA" },
-                      { key: "sensitivity", icon: <BarChart2 className="w-4 h-4 text-emerald" />, label: "Sensitivity", desc: "Breakeven + tornado" },
-                      { key: "optimize", icon: <Zap className="w-4 h-4 text-emerald" />, label: "Optimizer", desc: "Structure comparison" },
-                      { key: "state", icon: <MapPin className="w-4 h-4 text-emerald" />, label: "State PPP", desc: "Prepay legality by state" },
-                    ].map(({ key, icon, label, desc }) => (
-                      <div key={key} onClick={() => setActiveTab(key as any)}
-                        className="bg-white/5 hover:bg-white/10 cursor-pointer border border-white/10 rounded-xl p-4 space-y-2 transition">
-                        {icon}
-                        <p className="font-bold text-white text-xs">{label}</p>
-                        <p className="text-[11px] text-pistachio/50">{desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {/* Two-column layout */}
+                <div className="grid gap-5" style={{ gridTemplateColumns: "1.55fr 1fr" }}>
 
-                {auditLogs.length > 0 && (
-                  <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5">
-                    <h3 className="font-bold text-dark-teal text-sm mb-3">Recent</h3>
-                    <div className="space-y-2">
-                      {auditLogs.slice(0, 5).map(log => (
-                        <div key={log.id} onClick={() => { setSelectedLog(log); setActiveTab("history"); }}
-                          className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-[var(--color-emerald)] hover:bg-slate-50 cursor-pointer transition">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${log.type === "analyze" ? "bg-emerald" : "bg-yellow-400"}`} />
-                            <span className="text-sm font-semibold text-slate-700 truncate max-w-xs">{log.title}</span>
+                  {/* Pipeline table */}
+                  <div className="bg-white rounded-lg p-7" style={{ border: "1px solid rgba(0,55,56,0.08)" }}>
+                    <div className="text-[17px] font-semibold mb-5" style={{ letterSpacing: "-0.02em" }}>Active pipeline</div>
+                    <div>
+                      {demoPipeline.map((d) => {
+                        const dscrNum = d.dscr;
+                        const dscrCol = dscrNum >= 1.25 ? "#006565" : dscrNum >= 1.0 ? "#9a7b00" : "#b04545";
+                        const stageBg = d.stage === "Submitted" ? "rgba(0,101,101,0.1)" : "rgba(0,55,56,0.05)";
+                        const stageCol = d.stage === "Submitted" ? "#006565" : d.stage === "Priced" ? "#006565" : "#9a7b00";
+                        return (
+                          <div key={d.prop}
+                            className="grid items-center gap-4 cursor-default transition"
+                            style={{
+                              gridTemplateColumns: "1fr auto auto auto",
+                              padding: "15px 12px",
+                              borderBottom: "1px solid rgba(0,55,56,0.07)",
+                              borderRadius: "6px",
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,55,56,0.03)")}
+                            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                            {/* Property */}
+                            <div>
+                              <div className="text-[14px] font-semibold mb-0.5" style={{ color: "#003738" }}>{d.prop}</div>
+                              <div className="flex gap-2 items-center">
+                                <span className="text-[12px] font-medium" style={{ color: "rgba(0,55,56,0.5)" }}>
+                                  {d.type} · ${Math.round(d.amt).toLocaleString()}
+                                </span>
+                                {d.risk === 2 && (
+                                  <span className="text-[10px] font-bold uppercase tracking-[0.04em] rounded px-1.5 py-0.5"
+                                    style={{ color: "#b04545", background: "rgba(176,69,69,0.1)" }}>
+                                    PPP risk
+                                  </span>
+                                )}
+                                {d.risk === 1 && (
+                                  <span className="text-[10px] font-bold uppercase tracking-[0.04em] rounded px-1.5 py-0.5"
+                                    style={{ color: "#9a7b00", background: "rgba(154,123,0,0.1)" }}>
+                                    threshold
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {/* DSCR */}
+                            <div className="font-mono text-[15px] font-bold" style={{ color: dscrCol }}>{d.dscr.toFixed(2)}x</div>
+                            {/* Stage pill */}
+                            <div className="text-[12px] font-semibold rounded px-[11px] py-1" style={{ color: stageCol, background: stageBg }}>
+                              {d.stage}
+                            </div>
+                            {/* Open */}
+                            <button
+                              onClick={() => setActiveTab("analyze")}
+                              className="text-[13px] font-semibold transition"
+                              style={{ color: "#006565" }}
+                              onMouseEnter={e => (e.currentTarget.style.color = "#003738")}
+                              onMouseLeave={e => (e.currentTarget.style.color = "#006565")}>
+                              Open →
+                            </button>
                           </div>
-                          <span className="text-[10px] text-slate-400 shrink-0">{new Date(log.timestamp).toLocaleDateString()}</span>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Right column */}
+                  <div className="flex flex-col gap-5">
+                    {/* Compliance status */}
+                    <div className="rounded-lg p-6" style={{ background: "#003738", color: "#eeefd3", border: "1px solid rgba(0,55,56,0.2)" }}>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: "#d8d958" }}>
+                        Compliance status
+                      </div>
+                      {([
+                        { label: "17a-4 WORM archive", status: "Active",  statusColor: "#003738", statusBg: "#d8d958" },
+                        { label: "IC memos generated", status: "6 / 6",   statusColor: "#003738", statusBg: "#4dbd97" },
+                        { label: "State rules current", status: "Synced",  statusColor: "#003738", statusBg: "#4dbd97" },
+                        { label: "Exam export",         status: "Ready",   statusColor: "#003738", statusBg: "#4dbd97" },
+                      ] as const).map(({ label, status, statusColor, statusBg }) => (
+                        <div key={label} className="flex items-center justify-between py-2.5"
+                          style={{ borderBottom: "1px solid rgba(238,239,211,0.1)" }}>
+                          <span className="text-[14px] font-medium" style={{ color: "rgba(238,239,211,0.8)" }}>{label}</span>
+                          <span className="text-[12px] font-semibold tracking-[0.02em] rounded px-2.5 py-1"
+                            style={{ color: statusColor, background: statusBg }}>
+                            {status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* State-rule alerts */}
+                    <div className="rounded-lg p-6" style={{ background: "#e8e9bf", border: "1px solid rgba(0,55,56,0.1)" }}>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: "#006565" }}>
+                        State-rule alerts
+                      </div>
+                      {([
+                        { mark: "✕", markColor: "#b04545", text: "45 Harbor (NJ): prepay penalty high-risk for LLC — restructure or expect +0.25% rate." },
+                        { mark: "~", markColor: "#9a7b00", text: "19 Pine (OH): threshold-based PPP — confirm loan clears the $116,356 exemption." },
+                        { mark: "~", markColor: "#9a7b00", text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
+                      ] as const).map(({ mark, markColor, text }) => (
+                        <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
+                          <span className="font-bold shrink-0" style={{ color: markColor }}>{mark}</span>
+                          <span className="text-[13px] font-medium leading-relaxed" style={{ color: "rgba(0,55,56,0.72)" }}>{text}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
+                </div>
               </motion.div>
             )}
 
@@ -1074,6 +1223,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             )}
 
           </AnimatePresence>
+        </div>
         </div>
       </main>
     </div>

@@ -47,6 +47,22 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── Leads (See If You Qualify form) ────────────────────────────────────────
+    // Anonymous users can submit lead forms. No one can read/update/delete leads.
+    // Field validation: require the minimal expected fields and cap string lengths
+    // to prevent junk/spam writes and oversized document abuse.
+    match /leads/{leadId} {
+      allow create: if
+        // Must include these fields — extra fields are permitted (Firestore doesn't strip them)
+        request.resource.data.keys().hasAll(['submittedAt']) &&
+        // Enforce string length caps on common text fields (if present)
+        (!('email' in request.resource.data) || request.resource.data.email is string && request.resource.data.email.size() <= 200) &&
+        (!('name' in request.resource.data)  || request.resource.data.name  is string && request.resource.data.name.size()  <= 200) &&
+        (!('phone' in request.resource.data)  || request.resource.data.phone  is string && request.resource.data.phone.size()  <= 30)  &&
+        (!('message' in request.resource.data) || request.resource.data.message is string && request.resource.data.message.size() <= 2000);
+      allow read, update, delete: if false;
+    }
+
     // ── Block everything else ─────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

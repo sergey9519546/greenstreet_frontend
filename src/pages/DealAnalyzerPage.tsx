@@ -1,192 +1,1133 @@
-import React, { useState, useMemo } from "react";
-import { swatch } from "../theme";
-import { DSCR_PROGRAMS, lookupMaxLTV } from "../data/dscrPrograms";
+import React, { useState, useEffect } from "react";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
-import {
-  PageShell,
-  sectionTitle,
-  AnimatedCard,
-  AnimatedNumber,
-  PremiumInput
-} from "./PageShell";
+interface Props {
+  onBack?: () => void;
+  onNavigate?: (view: any) => void;
+}
 
-const MINT = swatch.rainforest;
-const CREAM = swatch.midnight;
-const YELLOW = swatch.lemon;
+const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
-function fmt$(n: number) { return "$" + Math.round(n).toLocaleString("en-US"); }
+// Deal Analyzer uses a pistachio/cream nav — distinct from the midnight default
+// used by the DSCR Calculator and the rainforest used by State Laws.
+const DA_ACCENT = "#eeefd3"; // pistachio cream (matches mockup body + nav)
+const DA_NAV_BORDER = "1px solid rgba(0,55,56,0.15)";
 
-export default function DealAnalyzerPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
-  const [purchasePrice, setPurchasePrice] = useState(425000);
-  const [downPct, setDownPct] = useState(25);
-  const [monthlyRent, setMonthlyRent] = useState(3000);
+export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
+  useEffect(() => {
+    document.title = "Deal Analyzer | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
+  // --- Inputs ---
+  const [price, setPrice] = useState(425000);
+  const [down, setDown] = useState(25);
+  const [rent, setRent] = useState(3000);
   const [rate, setRate] = useState(7.0);
-  const [fico, setFico] = useState(720);
-  const [state, setState] = useState("TX");
-  const [annualTaxes, setAnnualTaxes] = useState(5000);
-  const [annualInsurance, setAnnualInsurance] = useState(2000);
+  const [tax, setTax] = useState(5000);
+  const [ins, setIns] = useState(2000);
   const [hoa, setHoa] = useState(0);
+  const [stateCode, setStateCode] = useState("TX");
 
-  const result = useMemo(() => {
-    const loanAmount = purchasePrice * (1 - downPct / 100);
-    const cashInvested = purchasePrice - loanAmount;
-    const r = rate / 100 / 12;
-    const piMonthly = (loanAmount * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
-    const pitia = piMonthly + annualTaxes / 12 + annualInsurance / 12 + hoa;
-    const dscr = pitia > 0 ? monthlyRent / pitia : 0;
-    const cashFlow = monthlyRent - pitia;
-    const noi = (monthlyRent * 0.92 * 12) - annualTaxes - annualInsurance - hoa * 12 - monthlyRent * 12 * 0.13;
-    const capRate = (noi / purchasePrice) * 100;
-    const debtYield = (noi / loanAmount) * 100;
+  // --- Engine computation ---
+  const loan = price * (1 - down / 100);
+  const r = rate / 100 / 12;
+  const piMo = r > 0 ? (loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1) : 0;
+  const pitia = piMo + tax / 12 + ins / 12 + hoa;
+  const dscr = pitia > 0 ? rent / pitia : 0;
+  const cashFlow = rent - pitia;
+  const noi = rent * 0.92 * 12 - tax - ins;
+  const capRate = (noi / price) * 100;
+  const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
 
-    let ltv, verdict, verdictColor;
-    if (dscr >= 1.25) { ltv = "STRONG"; verdictColor = MINT; }
-    else if (dscr >= 1.00) { ltv = "QUALIFIES"; verdictColor = YELLOW; }
-    else if (dscr >= 0.75) { ltv = "SUB-1.0"; verdictColor = "#018582"; }
-    else { ltv = "DEAL BREAK"; verdictColor = "#ff6b6b"; }
+  // --- Verdict ---
+  let vLabel = "DEAL BREAK";
+  let verdictColor = "#ff6b6b";
+  let verdictBg = "rgba(74,21,21,0.07)";
+  let verdictNote =
+    "Below 0.75x DSCR. Most lenders decline without strong compensating factors.";
 
-    const stateAdjustments: Record<string, { rateAdj: number; pppNote: string; extra: string }> = {
-      NJ: { rateAdj: 0.25, pppNote: "PPP HIGH-RISK for LLC; C-Corp/S-Corp only", extra: "Some lenders won't quote." },
-      MD: { rateAdj: 0.50, pppNote: "PPP de facto prohibited", extra: "Most DSCR lenders decline." },
-      KS: { rateAdj: 0.50, pppNote: "PPP de facto prohibited", extra: "Most DSCR lenders decline." },
-      MN: { rateAdj: 0.10, pppNote: "Business-purpose ALLOWED (HF 3437 eff. 8/1/2026)", extra: "Consumer still prohibited." },
-      NY: { rateAdj: 0.25, pppNote: "Business-purpose ALLOWED; criminal usury usury cap 25%", extra: "Banking Law §6-l." },
-      PA: { rateAdj: 0.10, pppNote: "Threshold-based ($319,777 in 2026)", extra: "Above threshold: business-purpose allowed." },
-      OH: { rateAdj: 0.10, pppNote: "Threshold-based ($116,356 in 2026)", extra: "Above threshold: max 1% penalty, 5yr cap." },
+  if (dscr >= 1.25) {
+    vLabel = "STRONG";
+    verdictColor = dc.rain;
+    verdictBg = "rgba(0,101,101,0.06)";
+    verdictNote =
+      "Strong coverage. Qualifies at best pricing tiers with most programs.";
+  } else if (dscr >= 1.0) {
+    vLabel = "QUALIFIES";
+    verdictColor = dc.lemon;
+    verdictBg = "rgba(216,217,88,0.10)";
+    verdictNote =
+      "Meets the 1.0 minimum. Check lender-specific floors and reserves.";
+  } else if (dscr >= 0.75) {
+    vLabel = "SUB-1.0";
+    verdictColor = "#018582";
+    verdictBg = "rgba(1,133,130,0.08)";
+    verdictNote =
+      "Some lenders accept 0.75+ with strong FICO, low LTV, or reserves.";
+  }
+
+  // --- State PPP rule ---
+  const adjMap: Record<string, { adj: number; ppp: string; extra: string }> = {
+    NJ: {
+      adj: 0.25,
+      ppp: "PPP HIGH-RISK for LLC; C-Corp/S-Corp only.",
+      extra: "Some lenders decline or reprice.",
+    },
+    MD: {
+      adj: 0.5,
+      ppp: "PPP de facto prohibited.",
+      extra: "Most DSCR lenders decline.",
+    },
+    KS: {
+      adj: 0.5,
+      ppp: "PPP de facto prohibited.",
+      extra: "Most DSCR lenders decline.",
+    },
+    MN: {
+      adj: 0.1,
+      ppp: "Business-purpose ALLOWED (HF 3437 eff. 8/1/2026).",
+      extra: "Consumer still prohibited.",
+    },
+    NY: {
+      adj: 0.25,
+      ppp: "Business-purpose ALLOWED; criminal usury cap 25%.",
+      extra: "Banking Law 6-l.",
+    },
+    TX: {
+      adj: 0,
+      ppp: "No state PPP restrictions for business-purpose DSCR.",
+      extra: "Standard pricing applies.",
+    },
+  };
+  const sa =
+    adjMap[stateCode.toUpperCase()] || {
+      adj: 0,
+      ppp: "No state PPP restrictions for business-purpose DSCR.",
+      extra: "Standard pricing applies.",
     };
-    const sa = stateAdjustments[state] || { rateAdj: 0, pppNote: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." };
 
-    const ltvNeeded = 100 - downPct;
-    const matchedPrograms = DSCR_PROGRAMS
-      .map((p) => {
-        const offerLTV = lookupMaxLTV(p, fico, loanAmount, dscr >= 0.01 ? dscr : null, "purchase");
-        return offerLTV !== null && offerLTV >= ltvNeeded ? { program: p, offerLTV } : null;
-      })
-      .filter((x): x is { program: typeof DSCR_PROGRAMS[0]; offerLTV: number } => x !== null);
+  // --- Greenstreet programs (no competitor names) ---
+  const programs = [
+    {
+      name: "Greenstreet DSCR — Best tier",
+      rateStr: (rate + sa.adj - 0.875).toFixed(3) + "%",
+    },
+    {
+      name: "Greenstreet DSCR — Standard",
+      rateStr: (rate + sa.adj - 0.5).toFixed(3) + "%",
+    },
+    {
+      name: "Greenstreet DSCR — Sub-1.0",
+      rateStr: (rate + sa.adj - 0.1).toFixed(3) + "%",
+    },
+    {
+      name: "Greenstreet DSCR — Multi-Family",
+      rateStr: (rate + sa.adj).toFixed(3) + "%",
+    },
+    {
+      name: "Greenstreet DSCR — Global",
+      rateStr: (rate + sa.adj + 0.1).toFixed(3) + "%",
+    },
+  ];
 
-    return { loanAmount, cashInvested, piMonthly, pitia, dscr, cashFlow, noi, capRate, debtYield, ltv, verdictColor, sa, matchedPrograms };
-  }, [purchasePrice, downPct, monthlyRent, rate, fico, state, annualTaxes, annualInsurance, hoa]);
+  const scrollToTool = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.querySelector("#da-tool");
+    if (el)
+      window.scrollTo({
+        top: el.getBoundingClientRect().top + window.scrollY - 30,
+        behavior: "smooth",
+      });
+  };
 
   return (
-    <PageShell
-      title="DSCR Deal Analyzer"
-      subtitle="The most important tool on the site. Plug in 7 numbers, get the verdict and the lender shortlist. No signup."
-      onBack={onBack} onNavigate={onNavigate}
+    <DcShell
+      onNavigate={onNavigate}
+      accent={DA_ACCENT}
+      navLinks={[
+        { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Lenders", view: "lender-intel" },
+      ]}
+      cta={{ label: "Analyze a deal →", onClick: scrollToTool }}
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "40px", alignItems: "start" }}>
-        <AnimatedCard hoverScale={false}>
-          <div style={sectionTitle}>Property</div>
-          {[
-            { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
-            { label: "Down Payment", value: downPct, set: setDownPct, step: 1, suffix: "%" },
-            { label: "Monthly Rent (qualifying)", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
-            { label: "Note Rate", value: rate, set: setRate, step: 0.125, suffix: "%" },
-            { label: "Borrower FICO", value: fico, set: setFico, step: 20 },
-          ].map((f) => (
-            <PremiumInput
-              key={f.label}
-              type="number"
-              label={f.label}
-              value={f.value}
-              step={f.step}
-              prefixSymbol={f.prefix}
-              suffixSymbol={(f as { suffix?: string }).suffix}
-              onChange={(e) => f.set(+e.target.value)}
-            />
-          ))}
-          <div style={{ ...sectionTitle, marginTop: "20px" }}>Carrying Costs</div>
-          {[
-            { label: "Annual Taxes", value: annualTaxes, set: setAnnualTaxes, step: 250, prefix: "$" },
-            { label: "Annual Insurance", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$" },
-            { label: "Monthly HOA", value: hoa, set: setHoa, step: 25, prefix: "$" },
-          ].map((f) => (
-            <PremiumInput
-              key={f.label}
-              type="number"
-              label={f.label}
-              value={f.value}
-              step={f.step}
-              prefixSymbol={f.prefix}
-              suffixSymbol={(f as { suffix?: string }).suffix}
-              onChange={(e) => f.set(+e.target.value)}
-            />
-          ))}
-          <PremiumInput
-            type="text"
-            maxLength={2}
-            label="State"
-            value={state}
-            onChange={(e) => setState(e.target.value.toUpperCase())}
-            style={{ fontWeight: 700 }}
-          />
-        </AnimatedCard>
+      {/* Extra CSS: hide spinners; override nav link ink for light nav */}
+      <style>{`
+        .da-num::-webkit-outer-spin-button,.da-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+        .da-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.dark};letter-spacing:-0.02em;}
+        /* Light-nav override: links + wordmark use dark ink on pistachio bg */
+        .dc-nav a{color:rgba(0,55,56,0.72) !important;}
+        .dc-nav a[style*="background"]{color:${dc.cream} !important;}
+        .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
+        /* nav border */
+        .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:rgba(238,239,211,1) !important;}
+        /* footer ink on pistachio footer */
+        footer{color:rgba(0,55,56,0.55) !important;}
+        footer div[style]{color:${dc.dark} !important;}
+      `}</style>
 
-        <div>
-          <AnimatedCard hoverScale={true} style={{ textAlign: "center", borderColor: result.verdictColor }}>
-            <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "12px" }}>Verdict</div>
-            <div style={{ fontSize: "72px", fontWeight: 800, color: result.verdictColor, lineHeight: 1 }}>
-              <AnimatedNumber value={result.dscr} format={(v) => `${v.toFixed(2)}x`} />
-            </div>
-            <div style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: result.verdictColor, margin: "8px 0 16px" }}>{result.ltv}</div>
-            <div style={{ fontSize: "14px", color: "#4a5d5d" }}>
-              Track 1 DSCR at {rate}% · {state} · {downPct}% down
-            </div>
-          </AnimatedCard>
+      {/* ── HERO — dark midnight band, two-col: copy left / live verdict badge right ── */}
+      <section
+        style={{
+          position: "relative",
+          background: dc.dark,
+          color: dc.cream,
+          overflow: "hidden",
+          minHeight: "clamp(480px,60vh,760px)",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {/* dot grid */}
+        <div className="gs-dot-grid" />
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "20px" }}>
-            {[
-              { label: "Monthly Cash Flow", value: result.cashFlow, format: (v: number) => fmt$(v), color: result.cashFlow > 0 ? MINT : "#ff6b6b" },
-              { label: "Cap Rate", value: result.capRate, format: (v: number) => `${v.toFixed(2)}%`, color: CREAM },
-              { label: "Debt Yield", value: result.debtYield, format: (v: number) => `${v.toFixed(2)}%`, color: CREAM },
-            ].map((m) => (
-              <AnimatedCard key={m.label} hoverScale={true} style={{ background: "#e8e9bf", padding: "12px", textAlign: "center" }}>
-                <div style={{ fontSize: "10px", color: "#5a6b6b", letterSpacing: "0.1em", textTransform: "uppercase" }}>{m.label}</div>
-                <div style={{ fontSize: "22px", fontWeight: 800, color: m.color, marginTop: "4px" }}>
-                  <AnimatedNumber value={m.value} format={m.format} />
-                </div>
-              </AnimatedCard>
-            ))}
+        <div
+          className="dc-hero"
+          style={{
+            position: "relative",
+            width: "100%",
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            padding: `clamp(48px,7vh,88px) ${dc.pad}`,
+            display: "grid",
+            gridTemplateColumns: "1.1fr 0.9fr",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "center",
+          }}
+        >
+          {/* Left — hero copy stagger fires on #gs-hero-content */}
+          <div id="gs-hero-content">
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: dc.dark,
+                background: dc.lemon,
+                padding: "7px 14px",
+                borderRadius: 100,
+                marginBottom: 24,
+              }}
+            >
+              Deal Analyzer &middot; Full underwrite
+            </div>
+            <H1 style={{ margin: "0 0 28px" }}>
+              Plug in 7 numbers.
+              <br />
+              Get the verdict.
+            </H1>
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
+              DSCR, cash flow, cap rate, debt yield, state PPP rule and your
+              live Greenstreet program shortlist &mdash; from one screen.
+            </Lead>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <Btn label="Run the analyzer" href="#da-tool" onClick={scrollToTool} />
+              <Btn
+                label="State rules"
+                variant="secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate?.("state-laws");
+                }}
+              />
+            </div>
           </div>
 
-          <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
-            <div style={sectionTitle}>State Rule ({state})</div>
-            <p style={{ fontSize: "13px", color: CREAM, lineHeight: 1.6, marginBottom: "8px" }}>{result.sa.pppNote}</p>
-            <p style={{ fontSize: "12px", color: "#5a6b6b", lineHeight: 1.5 }}>{result.sa.extra}</p>
-            {result.sa.rateAdj > 0 && (
-              <p style={{ fontSize: "12px", color: YELLOW, marginTop: "8px" }}>Rate adjustment: +{result.sa.rateAdj.toFixed(2)}% over base pricing.</p>
-            )}
-          </AnimatedCard>
-
-          <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
-            <div style={sectionTitle}>Your Greenstreet Program Options</div>
-            {result.matchedPrograms.length === 0 ? (
-              <p style={{ color: "#5a6b6b", fontSize: "13px", lineHeight: 1.6 }}>
-                No standard program matches at {fico} FICO / {100 - downPct}% LTV / {result.dscr.toFixed(2)}x DSCR.
-                Adjust FICO, down payment, or talk to a Greenstreet specialist — exceptions exist.
-              </p>
-            ) : (
-              result.matchedPrograms.map(({ program: p, offerLTV }) => (
-                <div key={p.id} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: CREAM, fontWeight: 700, fontSize: "14px" }}>{p.name}</span>
-                    <span style={{ color: MINT, fontFamily: "monospace", fontWeight: 700, fontSize: "13px" }}>
-                      up to {offerLTV}% LTV
-                    </span>
+          {/* Right — mockup's live "Deal verdict" badge floating over a product surface.
+              This is the DA signature: NOT the HeroProof device-panel used by the
+              DSCR Calculator. The badge reads the live computed DSCR + verdict. */}
+          <div style={{ position: "relative" }}>
+            {/* Product surface placeholder (replaces image-slot in the mockup) */}
+            <div
+              style={{
+                width: "100%",
+                aspectRatio: "1.1",
+                borderRadius: 16,
+                background: dc.teal,
+                border: "1px solid rgba(238,239,211,0.12)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 10,
+                padding: "clamp(24px,3vw,40px)",
+              }}
+            >
+              {/* Mini underwrite grid — shows the tool is computing, not static */}
+              <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { label: "PITIA / mo", val: fmt(pitia) },
+                  { label: "Monthly rent", val: fmt(rent) },
+                  { label: "Cap rate", val: capRate.toFixed(2) + "%" },
+                  { label: "Debt yield", val: debtYield.toFixed(2) + "%" },
+                ].map((cell) => (
+                  <div
+                    key={cell.label}
+                    style={{
+                      background: "rgba(238,239,211,0.06)",
+                      borderRadius: 8,
+                      padding: "12px 14px",
+                    }}
+                  >
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>
+                      {cell.label}
+                    </div>
+                    <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.cream, lineHeight: 1 }}>
+                      {cell.val}
+                    </Mono>
                   </div>
-                  <p style={{ color: MINT, fontSize: "11px", marginTop: "2px" }}>{p.tagline}</p>
-                  <p style={{ color: "#5a6b6b", fontSize: "11px", marginTop: "2px", lineHeight: 1.4 }}>
-                    {p.features.slice(0, 2).join(" · ")}
-                  </p>
-                </div>
-              ))
-            )}
-          </AnimatedCard>
+                ))}
+              </div>
+              <div style={{ width: "100%", height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
+              <div style={{ width: "100%", background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Cash flow / mo</div>
+                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>
+                  {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
+                </Mono>
+              </div>
+            </div>
 
-          <div style={{ marginTop: "20px", padding: "14px 18px", background: "rgba(0,101,101,0.08)", borderRadius: "10px", border: "1px solid rgba(0,101,101,0.22)", fontSize: "12px", color: "#4a5d5d", lineHeight: 1.6 }}>
-            <strong style={{ color: MINT }}>Want the full deal?</strong> Open the <a href="/dscr-calculator" style={{ color: MINT, fontWeight: 600 }}>DSCR Calculator</a> for a Track 1/Track 2 breakdown, or run the <a href="/decision-support" style={{ color: MINT, fontWeight: 600 }}>Decision Support</a> tool for an IC-memo-grade verdict.
+            {/* THE SIGNATURE: floating Deal verdict badge — mockup line 53-57 */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: -16,
+                left: -12,
+                background: dc.lemon,
+                borderRadius: 10,
+                padding: "16px 20px",
+                zIndex: 2,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  color: "rgba(0,55,56,0.6)",
+                  marginBottom: 3,
+                }}
+              >
+                Deal verdict
+              </div>
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: 34,
+                  fontWeight: 600,
+                  letterSpacing: "-0.03em",
+                  color: dc.dark,
+                  lineHeight: 1,
+                }}
+              >
+                {dscr.toFixed(2)}x
+              </Mono>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: verdictColor,
+                  marginTop: 3,
+                }}
+              >
+                {vLabel}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </PageShell>
+      </section>
+
+      
+
+      {/* ── 3-STEP BAND (mockup lines 63-71 — verified present in the mockup) ── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="gs-reveal dc-band-3"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: "1px",
+              background: "rgba(0,55,56,0.12)",
+              borderRadius: 9,
+              overflow: "hidden",
+            }}
+          >
+            {/* Step 01 — pistachio tile */}
+            <div
+              style={{
+                background: dc.cream,
+                padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
+              }}
+            >
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: "clamp(32px,4vw,52px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.03em",
+                  color: dc.lemon,
+                  marginBottom: 14,
+                  lineHeight: 1,
+                }}
+              >
+                01
+              </Mono>
+              <h3
+                style={{
+                  fontSize: "clamp(20px,2.2vw,28px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.025em",
+                  margin: "0 0 10px",
+                  lineHeight: 1.1,
+                }}
+              >
+                Property
+              </h3>
+              <p
+                style={{
+                  fontSize: "clamp(15px,1.2vw,17px)",
+                  fontWeight: 500,
+                  lineHeight: 1.55,
+                  color: "rgba(0,55,56,0.6)",
+                  margin: 0,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Seven fields: price, rent, rate, taxes, insurance, HOA, state.
+                Thirty seconds.
+              </p>
+            </div>
+
+            {/* Step 02 — dark tile */}
+            <div
+              style={{
+                background: dc.dark,
+                color: dc.cream,
+                padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
+              }}
+            >
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: "clamp(32px,4vw,52px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.03em",
+                  color: dc.emerald,
+                  marginBottom: 14,
+                  lineHeight: 1,
+                }}
+              >
+                02
+              </Mono>
+              <h3
+                style={{
+                  fontSize: "clamp(20px,2.2vw,28px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.025em",
+                  margin: "0 0 10px",
+                  lineHeight: 1.1,
+                  color: dc.cream,
+                }}
+              >
+                Underwrite
+              </h3>
+              <p
+                style={{
+                  fontSize: "clamp(15px,1.2vw,17px)",
+                  fontWeight: 500,
+                  lineHeight: 1.55,
+                  color: "rgba(238,239,211,0.65)",
+                  margin: 0,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                DSCR, PITIA, cash flow, cap rate, debt yield. State PPP rule
+                checked.
+              </p>
+            </div>
+
+            {/* Step 03 — lemon tile */}
+            <div
+              style={{
+                background: dc.lemon,
+                padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
+              }}
+            >
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: "clamp(32px,4vw,52px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.03em",
+                  color: "rgba(0,55,56,0.5)",
+                  marginBottom: 14,
+                  lineHeight: 1,
+                }}
+              >
+                03
+              </Mono>
+              <h3
+                style={{
+                  fontSize: "clamp(20px,2.2vw,28px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.025em",
+                  margin: "0 0 10px",
+                  lineHeight: 1.1,
+                }}
+              >
+                Programs
+              </h3>
+              <p
+                style={{
+                  fontSize: "clamp(15px,1.2vw,17px)",
+                  fontWeight: 500,
+                  lineHeight: 1.55,
+                  color: "rgba(0,55,56,0.65)",
+                  margin: 0,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                5 matched Greenstreet programs ranked by fit. Rates shift live.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TOOL ── */}
+      <section
+        id="da-tool"
+        style={{
+          background: dc.cream,
+          padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          {/* Section header */}
+          <div className="gs-reveal" style={{ marginBottom: 48 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: dc.rain,
+                marginBottom: 12,
+              }}
+            >
+              Live deal analyzer
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(30px,3.8vw,52px)",
+                fontWeight: 600,
+                letterSpacing: "-0.035em",
+                lineHeight: 1.0,
+                margin: 0,
+              }}
+            >
+              Seven fields in. Full underwrite out.
+            </h2>
+          </div>
+
+          {/* Grid: inputs + results */}
+          <div
+            className="gs-reveal dc-split"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "400px 1fr",
+              gap: 36,
+              alignItems: "start",
+            }}
+          >
+            {/* ── INPUTS ── */}
+            <div
+              style={{
+                background: dc.white,
+                borderRadius: 9,
+                padding: 30,
+                border: "1px solid rgba(0,55,56,0.1)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  color: dc.rain,
+                  marginBottom: 20,
+                }}
+              >
+                Property
+              </div>
+
+              {/* Purchase Price */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  Purchase Price
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={5000}
+                    value={price}
+                    onChange={(e) => setPrice(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                </div>
+              </label>
+
+              {/* Down Payment */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  Down Payment
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={1}
+                    value={down}
+                    onChange={(e) => setDown(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>%</span>
+                </div>
+              </label>
+
+              {/* Monthly Rent */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  Monthly Rent
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={100}
+                    value={rent}
+                    onChange={(e) => setRent(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                </div>
+              </label>
+
+              {/* Note Rate */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  Note Rate
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={0.125}
+                    value={rate}
+                    onChange={(e) => setRate(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>%</span>
+                </div>
+              </label>
+
+              {/* Annual Taxes */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  Annual Taxes
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={250}
+                    value={tax}
+                    onChange={(e) => setTax(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                </div>
+              </label>
+
+              {/* Annual Insurance */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  Annual Insurance
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={100}
+                    value={ins}
+                    onChange={(e) => setIns(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                </div>
+              </label>
+
+              {/* HOA */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  HOA / mo
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={50}
+                    value={hoa}
+                    onChange={(e) => setHoa(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                </div>
+              </label>
+
+              {/* State */}
+              <label style={{ display: "block", marginBottom: 0 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  State (2-letter)
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <input
+                    className="da-num"
+                    type="text"
+                    maxLength={2}
+                    value={stateCode}
+                    onChange={(e) =>
+                      setStateCode(e.target.value.toUpperCase().slice(0, 2))
+                    }
+                    style={{
+                      padding: "11px 7px",
+                      fontSize: 16,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  />
+                </div>
+              </label>
+            </div>
+
+            {/* ── RESULTS ── */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {/* BIG VERDICT */}
+              <div
+                style={{
+                  background: verdictBg,
+                  border: `2px solid ${verdictColor}`,
+                  borderRadius: 12,
+                  padding: "clamp(28px,3.5vw,44px)",
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
+                  gap: 24,
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ textAlign: "center" }}>
+                  <Mono
+                    style={{
+                      display: "block",
+                      fontSize: "clamp(64px,8vw,108px)",
+                      fontWeight: 600,
+                      letterSpacing: "-0.04em",
+                      color: dc.dark,
+                      lineHeight: 0.9,
+                    }}
+                  >
+                    {dscr.toFixed(2)}x
+                  </Mono>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: verdictColor,
+                      marginTop: 10,
+                    }}
+                  >
+                    {vLabel}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: "rgba(0,55,56,0.7)",
+                      marginBottom: 20,
+                      lineHeight: 1.5,
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {verdictNote}
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr",
+                      gap: 14,
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: "rgba(0,55,56,0.05)",
+                        borderRadius: 8,
+                        padding: 14,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Mono
+                        style={{
+                          display: "block",
+                          fontSize: "clamp(18px,2vw,24px)",
+                          fontWeight: 600,
+                          letterSpacing: "-0.02em",
+                          color: dc.dark,
+                        }}
+                      >
+                        {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
+                      </Mono>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: "rgba(0,55,56,0.5)",
+                          marginTop: 4,
+                        }}
+                      >
+                        cash flow
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        background: "rgba(0,55,56,0.05)",
+                        borderRadius: 8,
+                        padding: 14,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Mono
+                        style={{
+                          display: "block",
+                          fontSize: "clamp(18px,2vw,24px)",
+                          fontWeight: 600,
+                          letterSpacing: "-0.02em",
+                          color: dc.dark,
+                        }}
+                      >
+                        {capRate.toFixed(2)}%
+                      </Mono>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: "rgba(0,55,56,0.5)",
+                          marginTop: 4,
+                        }}
+                      >
+                        cap rate
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        background: "rgba(0,55,56,0.05)",
+                        borderRadius: 8,
+                        padding: 14,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Mono
+                        style={{
+                          display: "block",
+                          fontSize: "clamp(18px,2vw,24px)",
+                          fontWeight: 600,
+                          letterSpacing: "-0.02em",
+                          color: dc.dark,
+                        }}
+                      >
+                        {debtYield.toFixed(2)}%
+                      </Mono>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: "rgba(0,55,56,0.5)",
+                          marginTop: 4,
+                        }}
+                      >
+                        debt yield
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* STATE RULE */}
+              <div
+                style={{
+                  background: dc.dark,
+                  borderRadius: 9,
+                  padding: 26,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: dc.lemon,
+                    marginBottom: 10,
+                  }}
+                >
+                  State rule ({stateCode || "—"})
+                </div>
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: "rgba(238,239,211,0.75)",
+                    margin: "0 0 6px",
+                    lineHeight: 1.5,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {sa.ppp}
+                </p>
+                <p
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: "rgba(238,239,211,0.5)",
+                    margin: 0,
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {sa.extra}
+                </p>
+              </div>
+
+              {/* MATCHED PROGRAMS */}
+              <div
+                style={{
+                  background: dc.white,
+                  borderRadius: 9,
+                  padding: 24,
+                  border: "1px solid rgba(0,55,56,0.1)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: dc.rain,
+                    marginBottom: 14,
+                  }}
+                >
+                  Matched programs
+                </div>
+                {programs.map((p, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "10px 0",
+                      borderBottom: "1px solid rgba(0,55,56,0.07)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: dc.dark,
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {p.name}
+                    </span>
+                    <Mono
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: dc.rain,
+                      }}
+                    >
+                      {p.rateStr}
+                    </Mono>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </DcShell>
   );
 }

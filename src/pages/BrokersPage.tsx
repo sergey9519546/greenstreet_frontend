@@ -1,123 +1,484 @@
-import React from "react";
-import {
-  PageShell,
-  sectionTitle,
-  AnimatedCard,
-  AnimatedButton,
-} from "./PageShell";
-import { swatch } from "../theme";
+import React, { useEffect } from "react";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
-const MINT = swatch.rainforest;
-const CREAM = swatch.midnight;
-const YELLOW = swatch.lemon;
-const FADED = swatch.midnightFaded;
+// ── Use-case rows — numbered vertical list (signature section) ────────────────
+interface UseCase {
+  num: string;
+  title: string;
+  desc: string;
+  cta: string;
+  view: string;
+  numBg: string;
+  numInk: string;
+}
+
+const USECASES: UseCase[] = [
+  {
+    num: "01",
+    title: "Price the deal in under a minute",
+    desc: "Enter the property address, rent, rate and costs. Get DSCR, Track 1 and Track 2 analysis, cash-on-cash return and break-even — no login, no guesswork.",
+    cta: "Open the calculator",
+    view: "dscr-calculator",
+    numBg: dc.lemon,
+    numInk: dc.dark,
+  },
+  {
+    num: "02",
+    title: "Match the best-fit Greenstreet program for every file",
+    desc: "Your deal is scored against Greenstreet DSCR program boxes — FICO floors, LTV caps, DSCR minimums, state coverage and entity rules — ranked by fit before you make a single call.",
+    cta: "Open Lender Intel",
+    view: "lender-intel",
+    numBg: dc.dark,
+    numInk: dc.lemon,
+  },
+  {
+    num: "03",
+    title: "Know the state rule before it bites",
+    desc: "Prepayment-penalty, usury and STR rules for all 50 states, each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you quote.",
+    cta: "Open State Rules",
+    view: "state-laws",
+    numBg: dc.lemon,
+    numInk: dc.dark,
+  },
+  {
+    num: "04",
+    title: "Stress-test the rate and the rent",
+    desc: "A 120-cell rate × rent shock matrix across five risk zones — run it in seconds to show the borrower how far the deal bends before it breaks.",
+    cta: "Open Stress Matrix",
+    view: "stress-matrix",
+    numBg: dc.dark,
+    numInk: dc.lemon,
+  },
+  {
+    num: "05",
+    title: "Submit clean. Close fast.",
+    desc: "The IC memo, the state rule and the stress matrix — all defensible, all citable. Hand the lender the package they need to say yes the first time.",
+    cta: "Open Deal Analyzer",
+    view: "deal-analyzer",
+    numBg: dc.lemon,
+    numInk: dc.dark,
+  },
+];
+
 const AS_OF = "Jun 22, 2026";
 
-const STEPS = [
-  { n: "01", title: "Send us the file", body: "Property address, purchase price, rent, borrower FICO. That's it. We pre-screen against every Greenstreet program and come back with a full structure — rate, LTV, reserves, PPP options — within 24 hours." },
-  { n: "02", title: "We place it, you review it", body: "We match your deal to the Greenstreet program with the highest approval probability and best rate. You get one clean structure with real numbers — not a menu of maybes." },
-  { n: "03", title: "You own the relationship", body: "We process in the background. You stay in front of the borrower. Your yield spread, your repeat client, your referral pipeline. We don't touch your relationship — ever." },
-  { n: "04", title: "Close in 14–30 days", body: `DSCR moves faster than conventional because there are no income docs, no employment calls, no bank statement underwriting. Appraisal + title + credit. Greenstreet closes clean files in 14–21 days; complex ones in 21–30.` },
-];
+// ── Page ──────────────────────────────────────────────────────────────────────
+export default function BrokersPage({
+  onBack,
+  onNavigate,
+}: {
+  onBack: () => void;
+  onNavigate: (v: any) => void;
+}) {
+  useEffect(() => {
+    document.title = "For Brokers | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
 
-const WHY = [
-  { icon: "🏆", title: "One application. Every program.", body: "DSCR for 1–4 units, multi-family, and foreign nationals — plus full-doc, bank-statement, 1099, and asset-based. Submit once and Greenstreet places your file in the best-fitting program. No hunting across portals." },
-  { icon: "📊", title: "Model the deal before you pitch it", body: "Run your file through the Deal Analyzer before you pick up the phone. Know the DSCR, break-even rate, and program eligibility before the conversation starts — so you never quote what you can't deliver." },
-  { icon: "⚡", title: "We are not your competition", body: "Wholesale means wholesale. Your borrower is yours — before, during, and after close. We underwrite, fund, and step back. Your relationship survives the transaction." },
-  { icon: "📍", title: "50-state compliance, already done", body: "We track prepay and usury law across all 50 states, refreshed Q2 2026. Before you structure a deal in Ohio, Pennsylvania, New Jersey, or Minnesota, the engine has already flagged what you need to know." },
-];
-
-const ECONOMICS = [
-  { label: "Typical Origination", val: "1.0–2.0%", note: "Of loan amount at close", src: "Industry convention · lender published" },
-  { label: "YSP on Rate", val: "0.50–1.50%", note: "Rate buyup / premium pricing", src: "Reg Z §1026.36(d) · broker comp rules" },
-  { label: "Avg Loan Size", val: "$350K", note: "SFR purchase, 25% down", src: "Greenstreet engine · Apr 2026 deal sample" },
-];
-
-export default function BrokersPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   return (
-    <PageShell
-      title="Partner With Greenstreet"
-      subtitle={`Non-QM wholesale for mortgage professionals who are tired of chasing lender portals. One relationship. Seven programs. In-house underwriting and funding. Last refreshed ${AS_OF}.`}
-      onBack={onBack} onNavigate={onNavigate}
+    <DcShell
+      onNavigate={onNavigate}
+      navLinks={[
+        { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Lender Intel", view: "lender-intel" },
+        { label: "State Rules", view: "state-laws" },
+      ]}
+      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      accent={dc.dark}
     >
-      <div style={sectionTitle}>Why brokers choose Greenstreet</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px", marginBottom: "60px" }}>
-        {WHY.map(w => (
-          <AnimatedCard key={w.title} themeName="light" hoverScale={true}>
-            <div style={{ fontSize: "28px", marginBottom: "12px" }}>{w.icon}</div>
-            <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "8px" }}>{w.title}</div>
-            <div style={{ color: "rgba(0,55,56,0.8)", fontSize: "14px", lineHeight: 1.6 }}>{w.body}</div>
-          </AnimatedCard>
-        ))}
-      </div>
-
-      <div style={sectionTitle}>How a deal moves through Greenstreet</div>
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "60px", maxWidth: "720px" }}>
-        {STEPS.map(s => (
-          <AnimatedCard key={s.n} style={{ display: "grid", gridTemplateColumns: "60px 1fr", gap: "20px", alignItems: "center" }} hoverScale={true}>
-            <div style={{ color: MINT, fontWeight: 900, fontSize: "28px" }}>{s.n}</div>
-            <div>
-              <div style={{ color: CREAM, fontWeight: 700, fontSize: "16px", marginBottom: "6px" }}>{s.title}</div>
-              <div style={{ color: "rgba(0,55,56,0.8)", fontSize: "14px", lineHeight: 1.6 }}>{s.body}</div>
+      {/* ── HERO: 2-col — content left, product panel right ────────────────── */}
+      <section
+        style={{
+          background: dc.dark,
+          color: dc.cream,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          id="gs-hero-content"
+          className="dc-hero"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            padding: `clamp(56px,7vh,96px) ${dc.pad}`,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "clamp(36px,5vw,72px)",
+            alignItems: "center",
+            minHeight: "clamp(440px,56vh,700px)",
+          }}
+        >
+          {/* Left column — copy */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "clamp(18px,2.5vw,32px)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+              }}
+            >
+              For Brokers
             </div>
-          </AnimatedCard>
-        ))}
-      </div>
+            <H1 style={{ margin: 0 }}>
+              Quote with
+              <br />
+              confidence.
+              <br />
+              Close faster.
+            </H1>
+            <Lead
+              style={{
+                color: "rgba(238,239,211,0.72)",
+                margin: 0,
+                maxWidth: "38ch",
+              }}
+            >
+              Price, match and stress-test a DSCR deal in under a minute —
+              then walk into the lender call knowing the answer.
+            </Lead>
+            <Btn
+              label="Open the calculator"
+              onClick={() => onNavigate("dscr-calculator")}
+            />
+          </div>
 
-      <AnimatedCard style={{ maxWidth: "640px", marginBottom: "40px" }} hoverScale={false}>
-        <div style={sectionTitle}>What you earn on a funded deal</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "24px" }}>
-          {ECONOMICS.map(e => (
-            <div key={e.label} style={{ textAlign: "center" }}>
-              <div style={{ color: MINT, fontWeight: 800, fontSize: "24px" }}>{e.val}</div>
-              <div style={{ color: CREAM, fontWeight: 600, fontSize: "13px", marginTop: "4px" }}>{e.label}</div>
-              <div style={{ color: "rgba(0,55,56,0.6)", fontSize: "12px" }}>{e.note}</div>
-              <div style={{
-                marginTop: "8px", paddingTop: "8px", borderTop: `1px dashed ${FADED}`,
-                fontSize: "10px", color: MINT, fontFamily: "JetBrains Mono, monospace",
-              }}>
-                src · {e.src}
+          {/* Right column — Greenstreet DSCR programs panel */}
+          <div
+            style={{
+              height: "clamp(280px,40vh,520px)",
+              borderRadius: 12,
+              overflow: "hidden",
+              background: dc.teal,
+              border: "1px solid rgba(238,239,211,0.12)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              padding: "clamp(28px,3.5vw,44px)",
+            }}
+          >
+            {/* Header row */}
+            <div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase" as const,
+                  color: dc.lemon,
+                  marginBottom: 16,
+                }}
+              >
+                Greenstreet DSCR programs
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                }}
+              >
+                {[
+                  { label: "1–4 Unit Standard", spec: "≥1.00x DSCR" },
+                  { label: "Portfolio / Blanket", spec: "to $25M" },
+                  { label: "Foreign National", spec: "30%+ down" },
+                  { label: "STR / Airbnb", spec: "ADR × occ" },
+                  { label: "Sub-1.0", spec: "≥0.75x DSCR" },
+                ].map((row) => (
+                  <div
+                    key={row.label}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "9px 0",
+                      borderBottom: "1px solid rgba(238,239,211,0.10)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: dc.cream,
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {row.label}
+                    </span>
+                    <Mono
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: dc.emerald,
+                      }}
+                    >
+                      {row.spec}
+                    </Mono>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+            {/* Footer row */}
+            <div
+              style={{
+                paddingTop: 16,
+                borderTop: "1px solid rgba(238,239,211,0.10)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: "rgba(238,239,211,0.5)",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                In-house underwriting · wholesale
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase" as const,
+                  color: dc.lemon,
+                  padding: "4px 10px",
+                  border: "1px solid rgba(216,217,88,0.4)",
+                  borderRadius: 4,
+                }}
+              >
+                Live programs
+              </span>
+            </div>
+          </div>
         </div>
-      </AnimatedCard>
+      </section>
 
-      <AnimatedCard style={{ maxWidth: "600px", borderColor: MINT, background: "rgba(0,101,101,0.06)" }} hoverScale={false}>
-        <div style={sectionTitle}>Have a deal ready to go?</div>
-        <p style={{ color: "rgba(0,55,56,0.8)", fontSize: "15px", marginBottom: "20px", lineHeight: 1.6 }}>
-          Send us the address, rent, and FICO. We pre-screen same day and come back with a complete structure — rate, LTV, reserves, prepay options.
-        </p>
-        <div style={{ display: "flex", gap: "12px" }}>
-          <AnimatedButton onClick={() => window.location.href = "mailto:deals@greenstreetfinance.com"}>
-            Submit a Deal
-          </AnimatedButton>
-          {/* TODO: replace placeholder with Greenstreet's real line before launch */}
-          <AnimatedButton variant="secondary" onClick={() => window.location.href = "tel:+15550100000"}>
-            Call Us
-          </AnimatedButton>
+      {/* ── USE-CASE LIST: vertical rail + numbered rows (centrepiece) ────────── */}
+      {/*   This is the Brokers page signature — not shared with any other page.  */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(64px,8vw,112px) ${dc.pad} clamp(40px,5vw,64px)`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="gs-reveal" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.4vw,46px)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                margin: 0,
+                maxWidth: "18ch",
+                color: dc.dark,
+              }}
+            >
+              Everything a producing broker needs.
+            </h2>
+          </div>
+
+          {/* Numbered list with continuous left-rail */}
+          <div style={{ position: "relative" }}>
+            {/* Vertical rail line — runs full height behind all bubbles */}
+            <div
+              style={{
+                position: "absolute",
+                left: 22,
+                top: 0,
+                bottom: 0,
+                width: 1,
+                background: "rgba(0,55,56,0.15)",
+              }}
+            />
+
+            {USECASES.map((u) => (
+              <div
+                key={u.num}
+                className="gs-reveal"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "44px 1fr",
+                  gap: "clamp(20px,3vw,48px)",
+                  alignItems: "start",
+                  paddingBottom: "clamp(36px,4vw,56px)",
+                }}
+              >
+                {/* Numbered bubble — sits over the rail, alternating lemon/dark */}
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 1,
+                    width: 44,
+                    height: 44,
+                    borderRadius: "50%",
+                    background: u.numBg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Mono
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: u.numInk,
+                    }}
+                  >
+                    {u.num}
+                  </Mono>
+                </div>
+
+                {/* Row content */}
+                <div style={{ paddingTop: 10 }}>
+                  <h3
+                    style={{
+                      fontSize: "clamp(21px,2.2vw,30px)",
+                      fontWeight: 600,
+                      letterSpacing: "-0.03em",
+                      margin: "0 0 12px",
+                      color: dc.dark,
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {u.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: "clamp(16px,1.35vw,19px)",
+                      fontWeight: 500,
+                      lineHeight: 1.6,
+                      color: "rgba(0,55,56,0.65)",
+                      margin: "0 0 16px",
+                      maxWidth: "58ch",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {u.desc}
+                  </p>
+                  <button
+                    onClick={() => onNavigate(u.view)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      color: dc.rain,
+                      letterSpacing: "-0.01em",
+                      fontFamily: dc.sans,
+                    }}
+                  >
+                    {u.cta} →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </AnimatedCard>
+      </section>
 
-      {/* Freshness signal */}
-      <div style={{
-        marginTop: "24px", padding: "14px 18px",
-        background: "rgba(216,217,88,0.12)", borderRadius: "10px",
-        border: `1px solid rgba(216,217,88,0.3)`,
-        display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap",
-        maxWidth: "640px",
-      }}>
-        <span style={{
-          fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-          padding: "4px 10px", borderRadius: "999px",
-          background: "#d8d958", color: "#003738",
-        }}>
-          Reviewed
-        </span>
-        <span style={{ fontSize: "13px", color: CREAM, fontWeight: 600 }}>
-          Page refreshed {AS_OF} · program lineup + fees reviewed · next review Jul 22, 2026
-        </span>
-      </div>
-    </PageShell>
+      {/* ── BACK PILL ────────────────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `0 ${dc.pad} clamp(72px,10vh,120px)`,
+          paddingTop: "clamp(8px,2vh,24px)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            onClick={() => onBack()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              background: dc.mintBg,
+              border: "none",
+              borderRadius: 999,
+              padding: "15px 30px",
+              cursor: "pointer",
+              fontFamily: dc.sans,
+            }}
+          >
+            <span
+              style={{
+                fontSize: "clamp(16px,1.4vw,19px)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: dc.dark,
+              }}
+            >
+              Back to all tools
+            </span>
+            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
+          </button>
+        </div>
+      </section>
+
+      {/* ── FRESHNESS SIGNAL ─────────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `0 ${dc.pad} clamp(36px,4vh,48px)`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
+              padding: "14px 18px",
+              background: "rgba(216,217,88,0.12)",
+              borderRadius: 10,
+              border: "1px solid rgba(216,217,88,0.3)",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase" as const,
+                padding: "4px 10px",
+                borderRadius: 999,
+                background: dc.lemon,
+                color: dc.dark,
+              }}
+            >
+              Reviewed
+            </span>
+            <span
+              style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}
+            >
+              Page refreshed {AS_OF} · program lineup + fees reviewed · next
+              review Jul 22, 2026
+            </span>
+          </div>
+        </div>
+      </section>
+    </DcShell>
   );
 }

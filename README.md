@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Greenstreet DSCR Engine
 
-# Run and deploy your AI Studio app
+Active full-stack product repo for the Greenstreet Finance DSCR / Non-QM deal engine.
 
-This contains everything you need to run your app locally.
+## What This Repo Contains
 
-View your app in AI Studio: https://ai.studio/apps/ec90656a-daaa-4e6c-89d0-5e4a012cc880
+- React 19 + Vite frontend
+- Express/Firebase-compatible server entrypoints
+- Deterministic DSCR engine modules in `src/engine`
+- Marketing/product pages, calculators, lender logic, and QA artifacts
 
-## Run Locally
+The project root outside this folder is the research corpus, data lake, legacy reference code, and generated artifact area. Do not treat root-level research files as part of the app source tree.
 
-**Prerequisites:**  Node.js
+## Commands
 
+```bash
+npm install
+npm run dev
+npm run lint
+npm run test
+npm run build
+npm run start
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Environment
+
+Copy `.env.example` or `.env.production.example` and fill in local values. Real `.env` files are ignored and should not be committed.
+
+## Important Boundaries
+
+- `greenstreet_frontend/` is the active product repo.
+- `../DSCR_SOVEREIGN_OS/` is a legacy/reference repo, not code to promote directly.
+- `../DSCR_Datasets/` is the raw dataset lake.
+- `../00_engine/data/` is derived/rebuildable engine data and testbed output.

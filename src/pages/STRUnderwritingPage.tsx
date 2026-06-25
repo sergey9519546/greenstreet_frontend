@@ -1,30 +1,282 @@
 import React, { useState, useMemo } from "react";
-import { swatch } from "../theme";
-
-import {
-  PageShell,
-  sectionTitle,
-  AnimatedCard,
-  AnimatedNumber,
-  PremiumInput
-} from "./PageShell";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
-import { solveDSCR } from "../engine/engine";
-import { buildEngineInputs } from "../engine/inputs";
 import type { PropertyInputs } from "../engine/types";
 
-const MINT = swatch.emerald;
-const CREAM = swatch.midnight;
-const YELLOW = swatch.lemon;
-const STATES = ["AL","AK","AZ","AR","CA","CO","CT","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"];
+// ── number formatting ──────────────────────────────────────────────────────
+const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+// ── DSCR verdict helpers ───────────────────────────────────────────────────
+function dscrColor(d: number): string {
+  if (d >= 1.25) return "#006565";
+  if (d >= 1.0) return "#9a7b00";
+  return "#d32f2f";
+}
+function dscrLabel(d: number): string {
+  if (d >= 1.25) return "STRONG";
+  if (d >= 1.0) return "QUALIFIES";
+  if (d >= 0.75) return "SUB-1.0";
+  return "BELOW FLOOR";
+}
 
-export default function STRUnderwritingPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
+// ── input field row ────────────────────────────────────────────────────────
+function Field({
+  label,
+  value,
+  step,
+  prefix,
+  suffix,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  step: number;
+  prefix?: string;
+  suffix?: string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label style={{ display: "block", marginBottom: 12 }}>
+      <span
+        style={{
+          display: "block",
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          color: "rgba(238,239,211,0.5)",
+          marginBottom: 5,
+        }}
+      >
+        {label}
+      </span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          background: "#003a39",
+          borderRadius: 7,
+          padding: "0 12px",
+        }}
+      >
+        {prefix && (
+          <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{prefix}</span>
+        )}
+        <input
+          className="str-num"
+          type="number"
+          step={step}
+          value={value}
+          onChange={(e) => onChange(+e.target.value)}
+          style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
+        />
+        {suffix && (
+          <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{suffix}</span>
+        )}
+      </div>
+    </label>
+  );
+}
+
+// ── month table ────────────────────────────────────────────────────────────
+function MonthTable({
+  months,
+}: {
+  months: Array<{
+    month: string;
+    seasonalityIndex: number;
+    projectedRevenue: number;
+    haircutRevenue: number;
+    monthlyDSCR: number;
+    isOffSeason: boolean;
+  }>;
+}) {
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          minWidth: 400,
+          fontFamily: dc.mono,
+          fontSize: 12,
+        }}
+      >
+        <thead>
+          <tr>
+            {["Mo", "Occ", "Net Rev", "DSCR"].map((h) => (
+              <th
+                key={h}
+                style={{
+                  padding: "6px 10px",
+                  textAlign: h === "Mo" ? "left" : "right",
+                  color: "rgba(238,239,211,0.42)",
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                  textTransform: "uppercase",
+                  fontSize: 10,
+                  borderBottom: "1px solid rgba(238,239,211,0.1)",
+                }}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {months.map((m) => {
+            const c =
+              m.monthlyDSCR >= 1.25
+                ? dc.emerald
+                : m.monthlyDSCR >= 1.0
+                ? dc.lemon
+                : "#e06363";
+            return (
+              <tr key={m.month}>
+                <td
+                  style={{
+                    padding: "6px 10px",
+                    color: dc.cream,
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
+                  }}
+                >
+                  {m.month}
+                </td>
+                <td
+                  style={{
+                    padding: "6px 10px",
+                    textAlign: "right",
+                    color: "rgba(238,239,211,0.5)",
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
+                  }}
+                >
+                  {m.seasonalityIndex}
+                </td>
+                <td
+                  style={{
+                    padding: "6px 10px",
+                    textAlign: "right",
+                    color: dc.cream,
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
+                  }}
+                >
+                  {fmt(m.projectedRevenue)}
+                </td>
+                <td
+                  style={{
+                    padding: "6px 10px",
+                    textAlign: "right",
+                    color: c,
+                    fontWeight: 700,
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
+                  }}
+                >
+                  {m.monthlyDSCR.toFixed(2)}x
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Seasonality bar chart ──────────────────────────────────────────────────
+function SeasonalityBars({
+  months,
+}: {
+  months: Array<{
+    month: string;
+    seasonalityIndex: number;
+    monthlyDSCR: number;
+    isOffSeason: boolean;
+  }>;
+}) {
+  const maxIndex = Math.max(...months.map((m) => m.seasonalityIndex));
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(12,1fr)",
+        gap: 4,
+        alignItems: "flex-end",
+        height: 96,
+      }}
+    >
+      {months.map((m) => {
+        const heightPct = (m.seasonalityIndex / maxIndex) * 100;
+        const c =
+          m.monthlyDSCR >= 1.25
+            ? dc.emerald
+            : m.monthlyDSCR >= 1.0
+            ? dc.lemon
+            : "#e06363";
+        const bgAlpha = m.isOffSeason ? "22" : "33";
+        return (
+          <div
+            key={m.month}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: `${heightPct}%`,
+                background: `${c}${bgAlpha}`,
+                borderTop: `2px solid ${c}`,
+                borderRadius: "3px 3px 0 0",
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                paddingTop: 3,
+                minHeight: 16,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  fontFamily: dc.mono,
+                  color: c,
+                  lineHeight: 1,
+                }}
+              >
+                {m.seasonalityIndex}
+              </span>
+            </div>
+            <div
+              style={{
+                fontSize: 8,
+                color: "rgba(238,239,211,0.45)",
+                marginTop: 3,
+                textAlign: "center",
+                letterSpacing: 0,
+              }}
+            >
+              {m.month}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// PAGE
+// ══════════════════════════════════════════════════════════════════════════
+export default function STRUnderwritingPage({
+  onBack,
+  onNavigate,
+}: {
+  onBack: () => void;
+  onNavigate: (v: any) => void;
+}) {
+  // ── inputs ───────────────────────────────────────────────────────────────
   const [state, setState] = useState("TX");
-  const [purchasePrice, setPurchasePrice] = useState(425000);
+  const [purchasePrice, setPurchasePrice] = useState(480000);
   const [ltv, setLtv] = useState(75);
-  const [rate, setRate] = useState(7.0);
+  const [rate, setRate] = useState(7.5);
   const [strRent, setStrRent] = useState(4500);
   const [ltvRent, setLtvRent] = useState(3000);
   const [documentedRent, setDocumentedRent] = useState(2800);
@@ -32,6 +284,7 @@ export default function STRUnderwritingPage({ onBack, onNavigate }: { onBack: ()
   const [annualInsurance, setAnnualInsurance] = useState(2000);
   const [hoa, setHoa] = useState(0);
 
+  // ── engine ───────────────────────────────────────────────────────────────
   const result = useMemo(() => {
     try {
       const property: PropertyInputs = {
@@ -55,136 +308,669 @@ export default function STRUnderwritingPage({ onBack, onNavigate }: { onBack: ()
         isDecliningMarket: false,
         hoaSTRPolicy: "UNKNOWN",
       };
-      const loanAmount = purchasePrice * (1 - ltv / 100);
-      const underwriting = evaluateSTRUnderwriting(property, loanAmount, rate, 30, "0", annualTaxes, annualInsurance, hoa, 0);
-      // checkSTRLegality needs the full 9-arg jurisdiction signature. The page
-      // exposes only state, so the rest default to a conservative
-      // UNKNOWN-HOA / no-permit / moderate-enforcement profile.
-      const legality = checkSTRLegality(state, "", "UNKNOWN", false, true, 0, false, "MODERATE", false);
-      // Monthly seasonality is already computed inside evaluateSTRUnderwriting;
-      // reuse it instead of recomputing (engine owns the haircut + PITIA math).
+      const loanAmount = purchasePrice * (ltv / 100);
+      const underwriting = evaluateSTRUnderwriting(
+        property,
+        loanAmount,
+        rate,
+        30,
+        "0",
+        annualTaxes,
+        annualInsurance,
+        hoa,
+        0,
+      );
+      const legality = checkSTRLegality(
+        state,
+        "",
+        "UNKNOWN",
+        false,
+        true,
+        0,
+        false,
+        "MODERATE",
+        false,
+      );
       const seasonality = underwriting.monthlySeasonality;
       return { underwriting, legality, seasonality, loanAmount };
-    } catch (e) {
+    } catch {
       return null;
     }
-  }, [state, purchasePrice, ltv, rate, strRent, ltvRent, documentedRent, annualTaxes, annualInsurance, hoa]);
+  }, [
+    state,
+    purchasePrice,
+    ltv,
+    rate,
+    strRent,
+    ltvRent,
+    documentedRent,
+    annualTaxes,
+    annualInsurance,
+    hoa,
+  ]);
+
+  // ── derived display values ────────────────────────────────────────────────
+  const bestDSCR = result
+    ? Math.max(
+        result.underwriting.world1_LTR.dscr,
+        result.underwriting.world2_Projected.dscr,
+        result.underwriting.world3_Documented.dscr,
+      )
+    : null;
+
+  const dscrStr = bestDSCR !== null ? bestDSCR.toFixed(2) + "x" : "—";
+  const verdict = bestDSCR !== null ? dscrLabel(bestDSCR) : "—";
+  const vColor = bestDSCR !== null
+    ? (bestDSCR >= 1.25 ? dc.emerald : bestDSCR >= 1.0 ? dc.lemon : "#e06363")
+    : "rgba(238,239,211,0.35)";
+
+  const grossAnnual = result
+    ? result.underwriting.world2_Projected.qualifyingRent * 12 / 0.8
+    : 0;
+
+  const uwMonthly = result ? result.underwriting.bestQualifyingRent : 0;
+
+  const TEAL = "#004041";
+
+  const scrollToTool = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const el = document.querySelector("#str-tool");
+    if (el)
+      window.scrollTo({
+        top: el.getBoundingClientRect().top + window.scrollY - 30,
+        behavior: "smooth",
+      });
+  };
 
   return (
-    <PageShell
-      title="STR Underwriting"
-      subtitle="Calls engine.evaluateSTRUnderwriting. Three worlds: World 1 LTR (lease rent), World 2 Projected STR, World 3 Documented STR. Returns the qualifying rent the lender will use, the best world, and the legality gate."
-      onBack={onBack} onNavigate={onNavigate}
+    <DcShell
+      onNavigate={onNavigate}
+      accent={TEAL}
+      navLinks={[
+        { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Lenders", view: "lender-intel" },
+      ]}
+      cta={{ label: "Underwrite STR →", onClick: scrollToTool }}
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "40px", alignItems: "start" }}>
-        <AnimatedCard hoverScale={false}>
-          <div style={sectionTitle}>Property & Rent Inputs</div>
-          <div style={{ marginBottom: "10px" }}>
-            <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: MINT, marginBottom: "6px" }}>State</label>
-            <select value={state} onChange={(e) => setState(e.target.value)} style={{ width: "100%", background: "rgba(0,55,56,0.05)", border: "1px solid rgba(0,55,56,0.4)", color: CREAM, borderRadius: "8px", padding: "10px 14px", fontSize: "14px", outline: "none" }}>
-              {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+      {/* ── spinner-hide + flat input override ─────────────────────────── */}
+      <style>{`
+        .str-num::-webkit-outer-spin-button,.str-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+        .str-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+      `}</style>
+
+      {/* ══ HERO — dark bg matches mockup, 2-col: copy left, stats right ══ */}
+      <section
+        id="st-hero"
+        style={{
+          position: "relative",
+          background: dc.dark,
+          color: dc.cream,
+          overflow: "hidden",
+          padding: "clamp(56px,8vh,108px) clamp(1.5rem,4vw,3rem) clamp(44px,6vh,76px)",
+        }}
+      >
+        <div className="gs-dot-grid" />
+        <div
+          className="dc-hero"
+          style={{
+            position: "relative",
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1.02fr 0.98fr",
+            gap: "clamp(36px,5vw,72px)",
+            alignItems: "center",
+          }}
+        >
+          <div id="gs-hero-content">
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: dc.dark,
+                background: dc.lemon,
+                borderRadius: 100,
+                padding: "7px 14px",
+                marginBottom: 24,
+              }}
+            >
+              STR · ADR × occupancy × seasonality
+            </div>
+            <H1 style={{ margin: "0 0 26px", color: dc.cream }}>
+              Will the STR cash flow in the off-season?
+            </H1>
+            <Lead
+              style={{
+                color: "rgba(238,239,211,0.68)",
+                maxWidth: "46ch",
+                margin: "0 0 36px",
+              }}
+            >
+              Month-by-month revenue from ADR, occupancy and a seasonality curve — then the DSCR a lender will actually underwrite, off-season included.
+            </Lead>
+            <Btn label="Open the STR engine ↓" href="#str-tool" onClick={scrollToTool} />
           </div>
-          {[
-            { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
-            { label: "LTV", value: ltv, set: setLtv, step: 1, suffix: "%" },
-            { label: "Note Rate", value: rate, set: setRate, step: 0.125, suffix: "%" },
-            { label: "LTR Lease Rent", value: ltvRent, set: setLtvRent, step: 100, prefix: "$" },
-            { label: "STR Projected Rent", value: strRent, set: setStrRent, step: 100, prefix: "$" },
-            { label: "STR Documented Rent (12mo)", value: documentedRent, set: setDocumentedRent, step: 100, prefix: "$" },
-            { label: "Annual Taxes", value: annualTaxes, set: setAnnualTaxes, step: 250, prefix: "$" },
-            { label: "Annual Insurance", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$" },
-            { label: "Monthly HOA", value: hoa, set: setHoa, step: 25, prefix: "$" },
-          ].map((f) => (
-            <PremiumInput
-              key={f.label}
-              type="number"
-              label={f.label}
-              value={f.value}
-              step={f.step}
-              prefixSymbol={f.prefix}
-              suffixSymbol={f.suffix}
-              onChange={(e) => f.set(+e.target.value)}
-            />
-          ))}
-        </AnimatedCard>
 
-        <div>
-          {!result ? (
-            <AnimatedCard hoverScale={false} style={{ textAlign: "center", padding: "40px" }}>
-              <p style={{ color: "#ff6b6b" }}>Engine returned no result.</p>
-            </AnimatedCard>
-          ) : (
-            <>
-              <AnimatedCard hoverScale={true} style={{ borderColor: result.legality.status === "CLEAR" ? MINT : result.legality.status === "RESTRICTED" ? YELLOW : result.legality.status === "UNCERTAIN" ? YELLOW : "#ff6b6b" }}>
-                <div style={sectionTitle}>Legality Gate (engine.checkSTRLegality)</div>
-                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                  <div style={{ fontSize: "36px", fontWeight: 800, color: result.legality.status === "CLEAR" ? MINT : result.legality.status === "RESTRICTED" ? YELLOW : result.legality.status === "UNCERTAIN" ? YELLOW : "#ff6b6b", flex: 1 }}>
-                    {result.legality.status}
-                  </div>
-                  <div style={{ fontSize: "11px", padding: "6px 12px", borderRadius: "20px", background: result.legality.incomeEnabled ? "rgba(77,189,151,0.2)" : "rgba(255,107,107,0.2)", color: result.legality.incomeEnabled ? MINT : "#ff6b6b", border: `1px solid ${result.legality.incomeEnabled ? MINT : "#ff6b6b"}`, fontWeight: 700 }}>
-                    {result.legality.incomeEnabled ? "STR INCOME USED" : "LTR ONLY"}
-                  </div>
+          {/* Right — live metric preview */}
+          <div
+            style={{
+              background: "linear-gradient(160deg,#00302f,#002423)",
+              borderRadius: 16,
+              padding: 24,
+              border: "1px solid rgba(238,239,211,0.1)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)" }}>Underwritten DSCR</div>
+              <Mono style={{ fontSize: 13, fontWeight: 700, color: vColor }}>{dscrStr}</Mono>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+              {result ? [
+                { label: "Gross annual", val: fmt(grossAnnual), color: dc.cream },
+                { label: "UW /mo", val: fmt(uwMonthly), color: dc.lemon },
+                { label: "DSCR", val: dscrStr, color: vColor },
+              ].map((m) => (
+                <div key={m.label} style={{ background: "rgba(238,239,211,0.07)", borderRadius: 10, padding: "14px 12px", textAlign: "center" }}>
+                  <Mono style={{ display: "block", fontSize: "clamp(14px,1.6vw,20px)", fontWeight: 700, color: m.color, lineHeight: 1 }}>{m.val}</Mono>
+                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.4)", marginTop: 4, fontWeight: 500 }}>{m.label}</div>
                 </div>
-                <p style={{ color: "#aaa", fontSize: "13px", marginTop: "12px", lineHeight: 1.6 }}>{result.legality.summary}</p>
-              </AnimatedCard>
+              )) : (
+                <div style={{ gridColumn: "1/-1", textAlign: "center", color: "rgba(238,239,211,0.35)", fontSize: 13, padding: "20px 0" }}>Enter inputs below</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "20px" }}>
-                {[
-                  { label: "World 1: LTR", value: result.underwriting.world1_LTR.dscr, rent: result.underwriting.world1_LTR.qualifyingRent },
-                  { label: "World 2: STR Projected", value: result.underwriting.world2_Projected.dscr, rent: result.underwriting.world2_Projected.qualifyingRent },
-                  { label: "World 3: STR Documented", value: result.underwriting.world3_Documented.dscr, rent: result.underwriting.world3_Documented.qualifyingRent },
-                ].map((w) => (
-                  <AnimatedCard key={w.label} hoverScale={true} style={{ background: "rgba(0,55,56,0.04)", padding: "16px", border: w.label.includes(result.underwriting.bestWorld) ? `2px solid ${MINT}` : "1px solid rgba(0,55,56,0.1)" }}>
-                    <div style={{ fontSize: "11px", color: "#888", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>{w.label}</div>
-                    <div style={{ fontSize: "28px", fontWeight: 800, color: w.value >= 1.25 ? MINT : w.value >= 1.0 ? YELLOW : "#ff6b6b", marginTop: "6px" }}>
-                      <AnimatedNumber value={w.value} format={(v) => `${v.toFixed(2)}x`} />
-                    </div>
-                    <div style={{ fontSize: "11px", color: "#888", marginTop: "4px" }}>
-                      Qualifying Rent: <AnimatedNumber value={w.rent} format={(v) => `$${Math.round(v).toLocaleString()}`} />
-                    </div>
-                  </AnimatedCard>
-                ))}
+      {/* ══ TOOL — dark teal, matches mockup #003a39 ══════════════════════ */}
+      <section
+        id="str-tool"
+        style={{
+          background: "#003a39",
+          color: dc.cream,
+          padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
+          borderTop: "1px solid rgba(238,239,211,0.07)",
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+
+          {/* Section header */}
+          <div className="gs-reveal" style={{ marginBottom: 30 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: dc.lemon,
+                marginBottom: 12,
+              }}
+            >
+              Live STR engine
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(30px,3.8vw,52px)",
+                fontWeight: 600,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                margin: 0,
+                color: dc.cream,
+              }}
+            >
+              Underwritten DSCR{" "}
+              <Mono style={{ color: vColor }}>{dscrStr}</Mono>
+            </h2>
+          </div>
+
+          {/* inputs + results split */}
+          <div
+            className="gs-reveal dc-split"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "280px 1fr",
+              gap: 36,
+              alignItems: "start",
+            }}
+          >
+            {/* ── INPUTS ─────────────────────────────────────────────── */}
+            <div
+              style={{
+                background: "#002a29",
+                borderRadius: 14,
+                padding: 28,
+                border: "1px solid rgba(238,239,211,0.08)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  color: dc.emerald,
+                  marginBottom: 18,
+                }}
+              >
+                STR assumptions
               </div>
 
-              <AnimatedCard hoverScale={true} style={{ marginTop: "20px", background: "rgba(77,189,151,0.08)", borderColor: MINT }}>
-                <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: MINT, marginBottom: "8px" }}>Best World Selected by Engine</div>
-                <div style={{ fontSize: "24px", fontWeight: 800, color: CREAM }}>{result.underwriting.bestWorld}</div>
-                <div style={{ fontSize: "12px", color: "#aaa", marginTop: "6px" }}>
-                  Haircut Applied: <strong style={{ color: CREAM }}><AnimatedNumber value={result.underwriting.haircutPercent * 100} format={(v) => `${v.toFixed(1)}%`} /></strong>
+              {/* State field */}
+              <label style={{ display: "block", marginBottom: 12 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(238,239,211,0.5)",
+                    marginBottom: 5,
+                  }}
+                >
+                  State
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: "#003a39",
+                    borderRadius: 7,
+                    padding: "0 12px",
+                  }}
+                >
+                  <input
+                    className="str-num"
+                    type="text"
+                    maxLength={2}
+                    value={state}
+                    onChange={(e) => setState(e.target.value.toUpperCase().slice(0, 2))}
+                    style={{
+                      padding: "10px 6px",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                    }}
+                  />
                 </div>
-                <div style={{ fontSize: "12px", color: "#aaa", marginTop: "4px" }}>
-                  Best Qualifying Rent: <strong style={{ color: CREAM }}><AnimatedNumber value={result.underwriting.bestQualifyingRent} format={(v) => `$${Math.round(v).toLocaleString()}`} />/mo</strong>
-                </div>
-              </AnimatedCard>
+              </label>
 
-              <AnimatedCard hoverScale={true} style={{ marginTop: "20px" }}>
-                <div style={sectionTitle}>Monthly Seasonality (engine.computeSTRMonthlySeasonality)</div>
-                <div style={{ fontSize: "11px", color: "#888", marginBottom: "12px" }}>National average STR monthly index (100 = annual mean). Multiply projected annual rent by these to get month-by-month revenue.</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "6px" }}>
-                  {(result.seasonality?.months ?? []).map((m, i) => {
-                    const height = Math.max(20, (m.seasonalityIndex / 130) * 100);
-                    const color = m.seasonalityIndex >= 110 ? MINT : m.seasonalityIndex >= 95 ? YELLOW : "#ff6b6b";
-                    return (
-                      <div key={i} style={{ background: "rgba(0,55,56,0.04)", borderRadius: "6px", padding: "8px 4px", textAlign: "center" }}>
-                        <div style={{ fontSize: "10px", color: "#888", marginBottom: "4px" }}>{MONTHS[i]}</div>
-                        <div style={{ height: `${height}px`, background: `${color}44`, borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", color, fontWeight: 700, fontSize: "11px", marginBottom: "4px" }}>{m.seasonalityIndex}</div>
-                        <div style={{ fontSize: "11px", color: CREAM, fontWeight: 700 }}>
-                          <AnimatedNumber value={m.projectedRevenue} format={(v) => `$${Math.round(v).toLocaleString()}`} />
+              <Field label="Purchase Price" value={purchasePrice} step={5000} prefix="$" onChange={setPurchasePrice} />
+              <Field label="LTV" value={ltv} step={5} suffix="%" onChange={setLtv} />
+              <Field label="Note Rate" value={rate} step={0.125} suffix="%" onChange={setRate} />
+              <Field label="LTR Lease Rent /mo" value={ltvRent} step={100} prefix="$" onChange={setLtvRent} />
+              <Field label="STR Projected /mo" value={strRent} step={100} prefix="$" onChange={setStrRent} />
+              <Field label="STR Documented /mo" value={documentedRent} step={100} prefix="$" onChange={setDocumentedRent} />
+              <Field label="Annual Taxes" value={annualTaxes} step={250} prefix="$" onChange={setAnnualTaxes} />
+              <Field label="Annual Insurance" value={annualInsurance} step={100} prefix="$" onChange={setAnnualInsurance} />
+              <Field label="Monthly HOA" value={hoa} step={25} prefix="$" onChange={setHoa} />
+            </div>
+
+            {/* ── RESULTS ────────────────────────────────────────────── */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {!result ? (
+                <div
+                  style={{
+                    background: "#002a29",
+                    borderRadius: 14,
+                    padding: 40,
+                    textAlign: "center",
+                    border: "1px solid rgba(238,239,211,0.08)",
+                  }}
+                >
+                  <p style={{ color: "#e06363", margin: 0 }}>Engine returned no result. Check inputs.</p>
+                </div>
+              ) : (
+                <>
+                  {/* ── THREE METRICS ROW (matches mockup 3-tile strip) ─────── */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr",
+                      gap: "1px",
+                      background: "rgba(238,239,211,0.1)",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      border: "1px solid rgba(238,239,211,0.08)",
+                    }}
+                  >
+                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                      <Mono
+                        style={{
+                          display: "block",
+                          fontSize: "clamp(22px,2.8vw,36px)",
+                          fontWeight: 600,
+                          letterSpacing: "-0.03em",
+                          color: dc.cream,
+                        }}
+                      >
+                        {fmt(grossAnnual)}
+                      </Mono>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                        gross annual
+                      </div>
+                    </div>
+                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                      <Mono
+                        style={{
+                          display: "block",
+                          fontSize: "clamp(22px,2.8vw,36px)",
+                          fontWeight: 600,
+                          letterSpacing: "-0.03em",
+                          color: dc.lemon,
+                        }}
+                      >
+                        {fmt(uwMonthly)}
+                      </Mono>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                        underwritten /mo
+                      </div>
+                    </div>
+                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                      <Mono
+                        style={{
+                          display: "block",
+                          fontSize: "clamp(22px,2.8vw,36px)",
+                          fontWeight: 600,
+                          letterSpacing: "-0.03em",
+                          color: vColor,
+                        }}
+                      >
+                        {dscrStr}
+                      </Mono>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                        underwritten DSCR
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── THREE WORLDS ───────────────────────────────────── */}
+                  <div
+                    className="dc-band-3"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr",
+                      gap: "1px",
+                      background: "rgba(238,239,211,0.1)",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      border: "1px solid rgba(238,239,211,0.08)",
+                    }}
+                  >
+                    {[
+                      {
+                        label: "World 1 — LTR",
+                        world: result.underwriting.world1_LTR,
+                        bg: "#002a29",
+                      },
+                      {
+                        label: "World 2 — Projected",
+                        world: result.underwriting.world2_Projected,
+                        bg: "#002a29",
+                      },
+                      {
+                        label: "World 3 — Documented",
+                        world: result.underwriting.world3_Documented,
+                        bg: "#002a29",
+                      },
+                    ].map(({ label, world, bg }) => {
+                      const isBest = label
+                        .toLowerCase()
+                        .includes(result.underwriting.bestWorld.toLowerCase().slice(0, 5));
+                      return (
+                        <div
+                          key={label}
+                          style={{
+                            background: bg,
+                            padding: 24,
+                            textAlign: "center",
+                            outline: isBest ? `2px solid ${dc.emerald}` : undefined,
+                            outlineOffset: isBest ? -2 : undefined,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              letterSpacing: "0.05em",
+                              textTransform: "uppercase",
+                              color: "rgba(238,239,211,0.5)",
+                              marginBottom: 8,
+                            }}
+                          >
+                            {label}
+                          </div>
+                          <Mono
+                            style={{
+                              display: "block",
+                              fontSize: "clamp(22px,2.8vw,36px)",
+                              fontWeight: 600,
+                              letterSpacing: "-0.03em",
+                              color: dscrColor(world.dscr) === "#006565" ? dc.emerald : dscrColor(world.dscr) === "#9a7b00" ? dc.lemon : "#e06363",
+                            }}
+                          >
+                            {world.dscr.toFixed(2)}x
+                          </Mono>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 500,
+                              color: "rgba(238,239,211,0.5)",
+                              marginTop: 5,
+                            }}
+                          >
+                            {fmt(world.qualifyingRent)}/mo qualifying
+                          </div>
+                          {isBest && (
+                            <div
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                letterSpacing: "0.06em",
+                                textTransform: "uppercase",
+                                color: dc.emerald,
+                                marginTop: 6,
+                              }}
+                            >
+                              ✓ Selected
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* ── SEASONALITY BAR CHART + TABLE (centerpiece) ────── */}
+                  {result.seasonality?.months && (
+                    <div
+                      style={{
+                        background: "#002a29",
+                        borderRadius: 14,
+                        padding: 22,
+                        border: "1px solid rgba(238,239,211,0.08)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: dc.emerald,
+                          marginBottom: 4,
+                        }}
+                      >
+                        Month-by-month
+                      </div>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "rgba(238,239,211,0.5)",
+                          margin: "0 0 16px",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        US national AirDNA seasonality index · off-season months in red
+                      </p>
+
+                      {/* Signature seasonality bar chart */}
+                      <div style={{ marginBottom: 20 }}>
+                        <SeasonalityBars months={result.seasonality.months} />
+                      </div>
+
+                      {/* off-season / peak legend */}
+                      <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(224,99,99,0.2)", border: "1px solid #e06363" }} />
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(216,217,88,0.2)", border: `1px solid ${dc.lemon}` }} />
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Qualifies (1.0–1.24x)</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(77,189,151,0.2)", border: `1px solid ${dc.emerald}` }} />
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Peak (≥ 1.25x)</span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </AnimatedCard>
 
-              <div style={{ marginTop: "16px", padding: "14px 18px", background: "rgba(216,217,88,0.08)", borderRadius: "10px", border: "1px solid rgba(216,217,88,0.2)", fontSize: "12px", color: "#aaa", lineHeight: 1.6 }}>
-                <strong style={{ color: YELLOW }}>Engine:</strong> src/engine/strUnderwriting.ts → evaluateSTRUnderwriting + checkSTRLegality + computeSTRMonthlySeasonality. {result.legality.status} state, STR income {result.legality.incomeEnabled ? "available for qualifying" : "blocked — falls back to LTR (World 1)"}. Best world DSCR = {result.underwriting.world1_LTR.dscr >= result.underwriting.world2_Projected.dscr && result.underwriting.world1_LTR.dscr >= result.underwriting.world3_Documented.dscr ? result.underwriting.world1_LTR.dscr.toFixed(2) : result.underwriting.world2_Projected.dscr >= result.underwriting.world3_Documented.dscr ? result.underwriting.world2_Projected.dscr.toFixed(2) : result.underwriting.world3_Documented.dscr.toFixed(2)}x.
-              </div>
-            </>
-          )}
+                      {/* full table */}
+                      <MonthTable months={result.seasonality.months} />
+
+                      {/* off-season warning */}
+                      {result.seasonality.offSeasonMonths?.length > 0 && (
+                        <div
+                          style={{
+                            marginTop: 14,
+                            padding: "12px 16px",
+                            background: "rgba(224,99,99,0.08)",
+                            borderRadius: 7,
+                            border: "1px solid rgba(224,99,99,0.25)",
+                            fontSize: 12,
+                            color: "#e06363",
+                            lineHeight: 1.55,
+                          }}
+                        >
+                          <strong>
+                            {result.seasonality.offSeasonMonths.length} off-season month
+                            {result.seasonality.offSeasonMonths.length > 1 ? "s" : ""}:
+                          </strong>{" "}
+                          {result.seasonality.offSeasonMonths.join(", ")} — DSCR below 1.0.
+                          Reserve cash to cover PITIA gaps.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── LEGALITY GATE ──────────────────────────────────── */}
+                  <div
+                    style={{
+                      background: dc.dark,
+                      borderRadius: 9,
+                      padding: 22,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 16,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: dc.lemon,
+                          marginBottom: 6,
+                        }}
+                      >
+                        Legality gate — {state || "—"}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 24,
+                          fontWeight: 700,
+                          color:
+                            result.legality.status === "CLEAR"
+                              ? dc.emerald
+                              : result.legality.status === "RESTRICTED"
+                              ? "#e06363"
+                              : dc.lemon,
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        {result.legality.status}
+                      </div>
+                      <p
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          color: "rgba(238,239,211,0.65)",
+                          margin: "6px 0 0",
+                          lineHeight: 1.5,
+                          letterSpacing: "-0.01em",
+                        }}
+                      >
+                        {result.legality.summary}
+                      </p>
+                    </div>
+                    <div
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: 20,
+                        background: result.legality.incomeEnabled
+                          ? "rgba(77,189,151,0.15)"
+                          : "rgba(211,47,47,0.15)",
+                        border: `1px solid ${result.legality.incomeEnabled ? dc.emerald : "#e06363"}`,
+                        color: result.legality.incomeEnabled ? dc.emerald : "#e06363",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {result.legality.incomeEnabled ? "STR INCOME USED" : "LTR ONLY"}
+                    </div>
+                  </div>
+
+                  {/* ── ENGINE FOOTNOTE ────────────────────────────────── */}
+                  <div
+                    style={{
+                      padding: "14px 18px",
+                      background: "rgba(238,239,211,0.05)",
+                      borderRadius: 9,
+                      border: "1px solid rgba(238,239,211,0.08)",
+                      fontSize: 12,
+                      color: "rgba(238,239,211,0.5)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    <strong style={{ color: dc.emerald }}>Engine:</strong>{" "}
+                    <code>evaluateSTRUnderwriting</code> +{" "}
+                    <code>checkSTRLegality</code> +{" "}
+                    <code>computeSTRMonthlySeasonality</code>. State{" "}
+                    <strong>{state}</strong>: {result.legality.status} — STR income{" "}
+                    {result.legality.incomeEnabled
+                      ? "available for qualifying"
+                      : "blocked, falls back to World 1 LTR"}
+                    . Best world: <strong>{result.underwriting.bestWorld}</strong>,
+                    qualifying rent{" "}
+                    <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </PageShell>
+      </section>
+    </DcShell>
   );
 }

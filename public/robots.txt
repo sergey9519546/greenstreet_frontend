@@ -3,8 +3,8 @@ Allow: /
 
 # Block internal app routes from being indexed
 Disallow: /api/
-Disallow: /dscrgo
+Disallow: /investorgo
 Disallow: /dashboard
 Disallow: /broker-portal
 
-Sitemap: https://greenstreet.capital/sitemap.xml
+Sitemap: https://greenstreet.com/sitemap.xml

@@ -230,7 +230,11 @@ export function computeHoldMatrix(
         cashFlows[cashFlows.length - 1].amount += netExit;
 
         const irr = computeXIRR(cashFlows);
-        const equityMultiple = (cashFlows.slice(1).reduce((s, cf) => s + cf.amount, 0) + cashInvested) / cashInvested;
+        // FIX (bug audit): Equity Multiple = total distributions / equity invested.
+        // Previous code added cashInvested to the numerator, inflating EM by exactly 1.0x
+        // (e.g., a true 2.5x EM was reported as 3.5x). Cash flows[1..n] already
+        // contain all distributions (operating + exit) — no double-counting needed.
+        const equityMultiple = cashFlows.slice(1).reduce((s, cf) => s + cf.amount, 0) / cashInvested;
 
         const verdict = classifyIRR(irr, rentGrowth, exitCapDelta);
 

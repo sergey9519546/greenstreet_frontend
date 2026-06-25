@@ -218,7 +218,7 @@ export function computeRentSensitivity(
   rentSteps?: number[],
   strategy: 'LTR' | 'STR' | 'MTR' = 'LTR',
 ): { rent: number; track1DSCR: number; track2DSCR: number; status: string }[] {
-  const vacancyPct = strategy === 'STR' ? 25 : strategy === 'MTR' ? 12 : 8;
+  const vacancyPct = 8;
   const managementPct = 8;
   const maintenancePct = 5;
   const totalDeductionPct = vacancyPct + managementPct + maintenancePct;

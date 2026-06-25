@@ -1,45 +1,510 @@
-import React from "react";
-import { swatch } from "../theme";
+import React, { useEffect } from "react";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
-import { PageShell, AnimatedCard } from "./PageShell";
+// ── Audience segments — data from Solutions.dc.html renderVals() ───────────────
+// Each segment has alternating content/visual order: even indices content-left,
+// odd indices content-right. This is the SIGNATURE of this page.
+interface Segment {
+  tag: string;
+  title: string;
+  desc: string;
+  cta: string;
+  view: string;
+  panelBg: string;
+  panelAccent: string;
+  panelBody: string;
+  gridline: string;
+  statBg: string;
+  stats: { v: string; k: string }[];
+}
 
-const MINT = swatch.rainforest;
-const CREAM = swatch.midnight;
-
-const AUDIENCES = [
-  { href: "/brokers", icon: "🤝", title: "Mortgage Brokers", desc: "One application. Seven programs. You keep the borrower relationship and the yield spread — we underwrite and fund in the background.", cta: "For Brokers" },
-  { href: "/investors", icon: "📈", title: "Real Estate Investors", desc: "Stress tests, after-tax IRR, ARM reset modeling, and Greenstreet program match — every tool you need to know if a deal works before you commit to it.", cta: "For Investors" },
-  { href: "/borrower-profiles", icon: "👤", title: "By Borrower Profile", desc: "First-timer, STR operator, BRRRR recycler, ITIN borrower, cash-out refi — find your lane and the Greenstreet program that actually funds it.", cta: "Borrower Profiles" },
-  { href: "/rate-quiz", icon: "⚡", title: "Just want a rate?", desc: "Five questions. A real rate tier and your matched Greenstreet program. No email, no credit pull, no pitch.", cta: "Rate Quiz" },
+const SEGMENTS: Segment[] = [
+  {
+    tag: "Brokers",
+    title: "Quote with confidence, close faster",
+    desc: "Run a deal in seconds, hand the borrower a defensible rate band, and match to the right program before you ever call a lender.",
+    cta: "See the broker workflow",
+    view: "brokers",
+    panelBg: dc.mintBg,
+    panelAccent: dc.rain,
+    panelBody: "rgba(0,55,56,0.55)",
+    gridline: "rgba(0,55,56,0.10)",
+    statBg: dc.cream,
+    stats: [
+      { v: "<60s", k: "to a priced deal" },
+      { v: "19", k: "lender programs" },
+      { v: "50", k: "state rule sets" },
+      { v: "0", k: "income docs" },
+    ],
+  },
+  {
+    tag: "Investors",
+    title: "Underwrite like an institution",
+    desc: "After-tax IRR, Monte Carlo rate paths and a 120-cell stress matrix — the analysis a fund runs, on your own deals.",
+    cta: "Explore investor tools",
+    view: "investors",
+    panelBg: dc.dark,
+    panelAccent: dc.lemon,
+    panelBody: "rgba(238,239,211,0.55)",
+    gridline: "rgba(238,239,211,0.12)",
+    statBg: dc.teal,
+    stats: [
+      { v: "14.4%", k: "levered IRR" },
+      { v: "500×", k: "rate sims" },
+      { v: "§469", k: "PAL handled" },
+      { v: "4×4", k: "sensitivity" },
+    ],
+  },
+  {
+    tag: "Funds & Portfolios",
+    title: "One book, one underwriting view",
+    desc: "Blended DSCR, aggregate equity and weighted rate across every door — the way a blanket lender actually sees your portfolio.",
+    cta: "Open the portfolio builder",
+    view: "portfolio",
+    panelBg: dc.rain,
+    panelAccent: dc.lemon,
+    panelBody: "rgba(238,239,211,0.60)",
+    gridline: "rgba(238,239,211,0.14)",
+    statBg: "#005152",
+    stats: [
+      { v: "$25M", k: "blanket lines" },
+      { v: "1.49×", k: "blended DSCR" },
+      { v: "40+", k: "doors modeled" },
+      { v: "1", k: "relationship" },
+    ],
+  },
+  {
+    tag: "Lenders & Partners",
+    title: "Provenance you can defend at exam",
+    desc: "Every rule traces to a citation. Hand a regulator the matrix, the state rule and the IC memo as collateral.",
+    cta: "See the lender dashboard",
+    view: "lender-intel",
+    panelBg: dc.lemon,
+    panelAccent: dc.rain,
+    panelBody: "rgba(0,55,56,0.60)",
+    gridline: "rgba(0,55,56,0.12)",
+    statBg: "#e3e463",
+    stats: [
+      { v: "17a-4", k: "WORM compliant" },
+      { v: "100%", k: "cited rules" },
+      { v: "IC", k: "memo output" },
+      { v: "0", k: "LLM in math" },
+    ],
+  },
 ];
 
-export default function SolutionsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void; }) {
+// ── Stat panel: solid fills, flat 1-px grid, no blur/glow ────────────────────
+function StatPanel({ seg }: { seg: Segment }) {
   return (
-    <PageShell
-      title="Who We Work With"
-      subtitle="DSCR is a different kind of lending. Here's the right starting point depending on whether you're a broker, an investor, or a borrower figuring out where you fit."
-      onBack={onBack} onNavigate={onNavigate}
+    <div
+      style={{
+        borderRadius: 12,
+        overflow: "hidden",
+        background: seg.panelBg,
+        border: "1px solid rgba(0,55,56,0.10)",
+        padding: "clamp(20px,2.2vw,30px)",
+        aspectRatio: "1.4",
+        boxSizing: "border-box",
+      }}
     >
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px,1fr))", gap: "20px" }}>
-        {AUDIENCES.map((a) => (
-          <a
-            key={a.href}
-            href={a.href}
-            onClick={(e) => {
-              e.preventDefault();
-              onNavigate(a.href.replace("/", "") as any);
-            }}
-            style={{ textDecoration: "none" }}
-          >
-            <AnimatedCard hoverScale={true} style={{ height: "100%", display: "flex", flexDirection: "column", padding: "28px" }}>
-              <div style={{ fontSize: "32px", marginBottom: "14px" }}>{a.icon}</div>
-              <div style={{ color: CREAM, fontWeight: 700, fontSize: "20px", marginBottom: "10px" }}>{a.title}</div>
-              <p style={{ color: "#4a5d5d", fontSize: "15px", lineHeight: 1.6, flex: 1 }}>{a.desc}</p>
-              <div style={{ color: MINT, fontSize: "14px", fontWeight: 600, marginTop: "20px" }}>{a.cta} →</div>
-            </AnimatedCard>
-          </a>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          textTransform: "uppercase" as const,
+          color: seg.panelAccent,
+          marginBottom: 16,
+        }}
+      >
+        {seg.tag}
+      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 1,
+          background: seg.gridline,
+          borderRadius: 8,
+          overflow: "hidden",
+        }}
+      >
+        {seg.stats.map((st) => (
+          <div key={st.k} style={{ background: seg.statBg, padding: "18px 16px" }}>
+            <Mono
+              style={{
+                display: "block",
+                fontSize: "clamp(22px,2.4vw,32px)",
+                fontWeight: 600,
+                color: seg.panelAccent,
+                lineHeight: 1,
+              }}
+            >
+              {st.v}
+            </Mono>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                color: seg.panelBody,
+                marginTop: 3,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {st.k}
+            </div>
+          </div>
         ))}
       </div>
-    </PageShell>
+    </div>
+  );
+}
+
+// ── SegmentRow: the CENTERPIECE — alternating content↔visual layout ───────────
+// Each row gets its own gs-reveal so GSAP fires per-row, not for the whole list.
+// CSS order property drives left/right alternation; the so-feat responsive override
+// neutralizes order on mobile so text always appears first.
+function SegmentRow({
+  seg,
+  index,
+  onNavigate,
+}: {
+  seg: Segment;
+  index: number;
+  onNavigate: (v: string) => void;
+}) {
+  const contentFirst = index % 2 === 0;
+  return (
+    <div
+      className="gs-reveal so-feat"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "clamp(32px,5vw,80px)",
+        alignItems: "center",
+      }}
+    >
+      {/* Content column */}
+      <div
+        style={{
+          order: contentFirst ? 1 : 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase" as const,
+            color: dc.rain,
+            marginBottom: 14,
+          }}
+        >
+          {seg.tag}
+        </div>
+        <h2
+          style={{
+            fontSize: "clamp(28px,3.4vw,46px)",
+            fontWeight: 600,
+            letterSpacing: "-0.03em",
+            lineHeight: 1.04,
+            margin: "0 0 18px",
+            color: dc.dark,
+          }}
+        >
+          {seg.title}
+        </h2>
+        <p
+          style={{
+            fontSize: "clamp(17px,1.4vw,21px)",
+            fontWeight: 500,
+            lineHeight: 1.55,
+            color: "rgba(0,55,56,0.68)",
+            margin: "0 0 28px",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {seg.desc}
+        </p>
+        <button
+          onClick={() => onNavigate(seg.view)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            background: dc.dark,
+            color: dc.cream,
+            fontWeight: 600,
+            fontSize: 15,
+            border: "none",
+            cursor: "pointer",
+            padding: "13px 26px",
+            borderRadius: 6,
+            fontFamily: dc.sans,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {seg.cta} →
+        </button>
+      </div>
+
+      {/* Visual panel column */}
+      <div style={{ order: contentFirst ? 2 : 1 }}>
+        <StatPanel seg={seg} />
+      </div>
+    </div>
+  );
+}
+
+// ── "Just want a rate?" — intentionally informal closing card ─────────────────
+// Wired directly to rate-quiz. Kept as written in the mockup data.
+function RateQuizCard({ onNavigate }: { onNavigate: (v: string) => void }) {
+  return (
+    <div
+      className="gs-reveal"
+      style={{
+        background: dc.lemon,
+        border: "1px solid rgba(0,55,56,0.12)",
+        borderRadius: 9,
+        padding: "clamp(28px,3.5vw,44px)",
+        display: "flex",
+        flexDirection: "column" as const,
+        gap: 16,
+        alignItems: "flex-start",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          textTransform: "uppercase" as const,
+          color: dc.rain,
+        }}
+      >
+        Rate quiz
+      </div>
+      <h2
+        style={{
+          fontSize: "clamp(24px,2.8vw,38px)",
+          fontWeight: 600,
+          letterSpacing: "-0.035em",
+          lineHeight: 1.05,
+          margin: 0,
+          color: dc.dark,
+        }}
+      >
+        Just want a rate?
+      </h2>
+      <p
+        style={{
+          fontSize: "clamp(16px,1.3vw,19px)",
+          fontWeight: 500,
+          lineHeight: 1.5,
+          color: "rgba(0,55,56,0.7)",
+          margin: 0,
+          letterSpacing: "-0.01em",
+          maxWidth: "52ch",
+        }}
+      >
+        Five questions. A real rate tier and your matched Greenstreet program. No email, no credit
+        pull, no pitch.
+      </p>
+      <button
+        onClick={() => onNavigate("rate-quiz")}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          background: dc.dark,
+          color: dc.cream,
+          fontWeight: 600,
+          fontSize: 15,
+          border: "none",
+          cursor: "pointer",
+          padding: "13px 26px",
+          borderRadius: 6,
+          fontFamily: dc.sans,
+          letterSpacing: "-0.01em",
+          marginTop: 4,
+        }}
+      >
+        Take the rate quiz →
+      </button>
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+// accent = dc.dark: midnight nav + footer, cream body — Solutions' own identity.
+// No 3-step band. No generic HeroProof. Alternating segment list IS the page.
+export default function SolutionsPage({
+  onBack,
+  onNavigate,
+}: {
+  onBack: () => void;
+  onNavigate: (v: any) => void;
+}) {
+  useEffect(() => {
+    document.title = "Who We Serve | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
+  return (
+    <DcShell
+      onNavigate={onNavigate}
+      accent={dc.dark}
+      navLinks={[
+        { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Lender Intel", view: "lender-intel" },
+        { label: "State Rules", view: "state-laws" },
+      ]}
+      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+    >
+      {/* Page-scoped CSS: mobile stacking for the so-feat alternating grid.
+          On ≤900 px the grid collapses to 1 col; order resets so text leads. */}
+      <style>{`
+        @media (max-width: 900px) {
+          .so-feat { grid-template-columns: 1fr !important; }
+          .so-feat > * { order: unset !important; }
+        }
+      `}</style>
+
+      {/* ── HERO — midnight dark, "Who we serve" eyebrow, large h1 ─────────── */}
+      {/* No HeroProof — this is an audience-routing page, not a live tool */}
+      <section
+        style={{
+          background: dc.dark,
+          color: dc.cream,
+          padding: `clamp(64px,9vh,128px) ${dc.pad}`,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column" as const,
+            alignItems: "flex-start",
+            gap: "clamp(28px,4vw,48px)",
+            minHeight: "clamp(280px,38vh,420px)",
+            justifyContent: "space-between",
+          }}
+        >
+          <div id="gs-hero-content">
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                marginBottom: 18,
+              }}
+            >
+              Who we serve
+            </div>
+            <H1 style={{ margin: 0, maxWidth: "15ch" }}>
+              Built for everyone in the deal
+            </H1>
+          </div>
+          <Lead
+            style={{
+              color: "rgba(238,239,211,0.72)",
+              maxWidth: "40ch",
+              margin: 0,
+            }}
+          >
+            Brokers, investors, funds and lenders all work off the same provenance-tracked math.
+          </Lead>
+        </div>
+      </section>
+
+      {/* ── ALTERNATING AUDIENCE SEGMENT FEATURE ROWS — the centerpiece ──────── */}
+      {/* Each row: text ↔ stat panel alternates left/right per mockup.
+          Large gap between rows (clamp 56→120px) preserves the editorial pace.
+          No numbered steps, no generic band classes — this section IS the page. */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(64px,8vw,112px) ${dc.pad} clamp(40px,5vw,64px)`,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column" as const,
+            gap: "clamp(56px,8vw,120px)",
+          }}
+        >
+          {SEGMENTS.map((seg, i) => (
+            <SegmentRow key={seg.tag} seg={seg} index={i} onNavigate={onNavigate} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── "Just want a rate?" — informal closing card, routes to rate-quiz ── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `0 ${dc.pad} clamp(56px,8vw,96px)`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <RateQuizCard onNavigate={onNavigate} />
+        </div>
+      </section>
+
+      {/* ── EXPLORE ALL TOOLS — pill button, cream background, per mockup ──── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(32px,4vw,56px) ${dc.pad} clamp(72px,10vh,120px)`,
+        }}
+      >
+        <div
+          className="gs-reveal"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            onClick={() => onNavigate("marketing")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              background: dc.mintBg,
+              border: "none",
+              borderRadius: 999,
+              padding: "15px 30px",
+              cursor: "pointer",
+              fontFamily: dc.sans,
+            }}
+          >
+            <span
+              style={{
+                fontSize: "clamp(16px,1.4vw,19px)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: dc.dark,
+              }}
+            >
+              Explore all tools
+            </span>
+            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
+          </button>
+        </div>
+      </section>
+    </DcShell>
   );
 }

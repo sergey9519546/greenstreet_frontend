@@ -1,1 +1,0 @@
-`(function(){\ngsap.registerPlugin(ScrollTrigger,Observer,Flip);\n})();`

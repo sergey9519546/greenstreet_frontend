@@ -1,24 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "../components/Logo";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Design tokens — single source of truth in src/theme.ts (Webflow-faithful)
 import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED } from "../theme";
+import type { PageView } from "../router/resolve";
 
-type View =
-  | "marketing" | "portal" | "products" | "solutions" | "about"
-  | "careers" | "case-studies" | "blog" | "faq" | "rate-quiz"
-  | "legal" | "dscr-calculator" | "lender-intel" | "state-laws"
-  | "deal-analyzer" | "borrower-profiles" | "brokers" | "investors";
-
-const NAV: { label: string; view: View }[] = [
+const NAV: { label: string; view: PageView }[] = [
   { label: "Product", view: "products" },
   { label: "Who We Serve", view: "solutions" },
   { label: "Resources", view: "blog" },
   { label: "About", view: "about" },
 ];
 
-const FOOTER: { h: string; links: { label: string; view: View; href?: string }[] }[] = [
+const FOOTER: { h: string; links: { label: string; view: PageView; href?: string }[] }[] = [
   {
     h: "Product",
     links: [
@@ -61,7 +59,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
   subtitle?: string;
   children: React.ReactNode;
   onBack: () => void;
-  onNavigate: (view: View) => void;
+  onNavigate: (view: PageView) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
@@ -84,44 +82,32 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
     window.scrollTo(0, 0);
   }, [title, subtitle]);
 
-  useEffect(() => {
-    const g = (window as any).gsap;
-    const ST = (window as any).ScrollTrigger;
-    if (!g || !ST) return;
-
-    const kills: any[] = [];
-
+  useGSAP(() => {
     // Header: stagger-in on mount (label → h1 → subtitle)
     if (headerRef.current) {
       const headerEls = headerRef.current.children;
-      kills.push(
-        g.from(headerEls, {
-          y: 52, opacity: 0, duration: 0.85,
-          stagger: 0.13, ease: "power3.out", clearProps: "all",
-        })
-      );
+      gsap.from(headerEls, {
+        y: 52, opacity: 0, duration: 0.85,
+        stagger: 0.13, ease: "power3.out", clearProps: "all",
+      });
     }
 
     // Main content: batch-reveal children as they scroll in
     if (mainRef.current) {
       const targets = mainRef.current.querySelectorAll(":scope > *");
       targets.forEach((el, i) => {
-        kills.push(
-          g.from(el, {
-            y: 40, opacity: 0, duration: 0.7,
-            ease: "power3.out", clearProps: "all",
-            delay: i < 3 ? i * 0.07 : 0,
-            scrollTrigger: {
-              trigger: el,
-              start: "top 88%",
-              once: true,
-            },
-          })
-        );
+        gsap.from(el, {
+          y: 40, opacity: 0, duration: 0.7,
+          ease: "power3.out", clearProps: "all",
+          delay: i < 3 ? i * 0.07 : 0,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 88%",
+            once: true,
+          },
+        });
       });
     }
-
-    return () => { kills.forEach((t) => { try { t?.scrollTrigger?.kill(); t?.kill?.(); } catch (_) {} }); };
   }, [title]);  // re-run when page changes
 
   return (
@@ -181,9 +167,9 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
             
             <div className="nav-links-contain">
               <div className="nav-links-wrap">
-                <a className="nav-link w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>
-                    DSCR<span style={{ color: MIDNIGHT, fontWeight: 500 }}>Go</span>
+                    Investor<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
                   </div>
                 </a>
                 <a className="nav-link w-inline-block" href="/products" onClick={(e) => { e.preventDefault(); onNavigate("products"); }}>
@@ -198,7 +184,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <a className="nav-link w-inline-block" href="/about" onClick={(e) => { e.preventDefault(); onNavigate("about"); }}>
                   <div className="nav_links_text">About</div>
                 </a>
-                <a className="nav-link is-underline w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link is-underline w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div>Login</div>
                 </a>
                 <div className="nav-btn">
@@ -231,12 +217,12 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
         {/* Mobile dropdown menu rendering */}
         {menuOpen && (
           <div className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>DSCR</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>Go</span></a>
+            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>Investor</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
             <a href="/products" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("products"); setMenuOpen(false); }}>Product</a>
             <a href="/solutions" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("solutions"); setMenuOpen(false); }}>Who We Serve</a>
             <a href="/blog" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("blog"); setMenuOpen(false); }}>Resources</a>
             <a href="/about" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("about"); setMenuOpen(false); }}>About</a>
-            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
+            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
             <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); setMenuOpen(false); }}>Book a demo</a>
           </div>
         )}
@@ -333,7 +319,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                   <a className="footer_link_wrap w-inline-block" href="/careers" onClick={(e) => { e.preventDefault(); onNavigate("careers"); }}>
                     <div className="footer_link_text u-weight-bold">Jobs</div>
                   </a>
-                  <a className="footer_link_wrap w-inline-block" href="/security.html">
+                  <a className="footer_link_wrap w-inline-block" href="/legal" onClick={(e) => { e.preventDefault(); onNavigate("legal"); }}>
                     <div className="footer_link_text u-weight-bold">Security & Privacy</div>
                   </a>
                 </div>
@@ -361,7 +347,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <a className="footer_bottom_link_wrap w-inline-block" href="/terms-of-service" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/terms-of-service"); window.dispatchEvent(new PopStateEvent("popstate")); }}>
                   <div className="footer_bottom_link_text u-text-style-small">Terms of Service</div>
                 </a>
-                <a className="footer_bottom_link_wrap w-inline-block" href="/security.html">
+                <a className="footer_bottom_link_wrap w-inline-block" href="/legal" onClick={(e) => { e.preventDefault(); onNavigate("legal"); }}>
                   <div className="footer_bottom_link_text u-text-style-small">Data Privacy & Security</div>
                 </a>
               </div>
