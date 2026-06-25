@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
@@ -72,6 +72,31 @@ export default function MonteCarloPage({
   const sofrY5  = result ? result.sofrAtHorizon.year5.mean.toFixed(2)  + "%" : "—";
   const sofrY10 = result ? result.sofrAtHorizon.year10.mean.toFixed(2) + "%" : "—";
 
+  // ── mc-path stroke-draw animation (mockup signature) ─────────────────────
+  useEffect(() => {
+    let raf = 0;
+    const animate = () => {
+      const paths = document.querySelectorAll<SVGPathElement>(".mc-path");
+      if (!paths.length) { raf = requestAnimationFrame(animate); return; }
+      const reduce =
+        typeof window !== "undefined" &&
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce) return;
+      paths.forEach((p, i) => {
+        const len = p.getTotalLength ? p.getTotalLength() : 420;
+        p.style.strokeDasharray = String(len);
+        p.style.strokeDashoffset = String(len);
+        p.style.transition = `stroke-dashoffset ${1.4 + i * 0.12}s ease-out ${0.5 + i * 0.12}s`;
+        // force reflow then trigger
+        void p.getBoundingClientRect();
+        p.style.strokeDashoffset = "0";
+      });
+    };
+    raf = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   // ── scroll helper ────────────────────────────────────────────────────────
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -91,7 +116,11 @@ export default function MonteCarloPage({
   };
 
   return (
-    <DcShell onNavigate={onNavigate} navLinks={navLinks} cta={cta}>
+    <DcShell onNavigate={onNavigate} accent="#004041" navLinks={navLinks} cta={cta}>
+      <style>{`
+        @media (max-width:900px){.mc-3step{grid-template-columns:1fr !important;}}
+        .mc-path{fill:none;stroke-linecap:round;}
+      `}</style>
 
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section
@@ -207,7 +236,7 @@ export default function MonteCarloPage({
         padding: `clamp(48px,6vw,72px) ${dc.pad}`,
       }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal dc-band-3" style={{
+          <div className="gs-reveal mc-3step" style={{
             display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
             gap: 1, background: "rgba(0,55,56,0.12)",
             borderRadius: 9, overflow: "hidden",
@@ -403,7 +432,7 @@ export default function MonteCarloPage({
               </div>
 
               {/* SOFR at horizons */}
-              <div className="dc-band-3" style={{
+              <div style={{
                 background: dc.dark, borderRadius: 9, padding: 22,
                 display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16,
               }}>

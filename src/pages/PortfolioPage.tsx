@@ -1,7 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono, HeroProof } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 import { analyzePortfolio } from "../engine/portfolio";
 import { buildEngineInputs } from "../engine/inputs";
+
+// Portfolio page uses pistachio nav (matching its mockup body color)
+const PF_ACCENT = "#eeefd3";
+const PF_NAV_BORDER = "1px solid rgba(0,55,56,0.15)";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -176,24 +180,26 @@ export default function PortfolioPage({
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
   };
 
-  // ── HeroProof chip based on blended DSCR ─────────────────────────────────
-  const chipLabel = agg.blend >= 1.25 ? "STRONG BOOK" : agg.blend >= 1.0 ? "QUALIFIES" : "NEEDS WORK";
-  const chipColor = blendColor;
-
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent={PF_ACCENT}
       navLinks={[
         { label: "DSCR Calc",  view: "dscr-calculator" },
         { label: "Deal Analyzer", view: "deal-analyzer" },
       ]}
       cta={{ label: "Build portfolio →", onClick: scrollToTool }}
     >
-      {/* Suppress number spinners on inline inputs */}
+      {/* Pistachio-nav ink overrides (same pattern as DealAnalyzerPage) */}
       <style>{`
         .pf-in::-webkit-outer-spin-button,.pf-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .pf-in{width:68px;border:none;background:${dc.cream};outline:none;font-family:${dc.mono};color:${dc.dark};text-align:right;border-radius:5px;padding:6px 8px;font-size:13px;font-weight:600;}
         .pf-row:hover{background:rgba(0,55,56,0.03);}
+        .dc-nav a{color:rgba(0,55,56,0.72) !important;}
+        .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
+        .dc-nav{border-bottom:${PF_NAV_BORDER} !important;background:rgba(238,239,211,0.92) !important;backdrop-filter:blur(12px);}
+        footer{color:rgba(0,55,56,0.55) !important;}
+        footer div[style]{color:${dc.dark} !important;}
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -252,13 +258,30 @@ export default function PortfolioPage({
             </div>
           </div>
 
-          {/* Right — live blended DSCR wired to real engine */}
-          <HeroProof
-            eyebrow="Blended portfolio DSCR"
-            value={blendStr}
-            sub={`${rows.length} properties · ${equityStr} equity`}
-            chip={{ label: chipLabel, color: chipColor }}
-          />
+          {/* Right — 4-property preview cards (matches mockup hero right column) */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {computed.slice(0, 4).map((c, idx) => {
+              const dscrColor = c.dscr >= 1.25 ? dc.emerald : c.dscr >= 1.0 ? dc.lemon : "#ff6b6b";
+              // Alternate card backgrounds to match mockup: cream, dark, lemon, teal
+              const cardBg   = [dc.mintBg, dc.dark,  dc.lemon, "#006565"][idx % 4];
+              const labelClr = [dc.rain,   "#4dbd97","rgba(0,55,56,0.6)", dc.lemon][idx % 4];
+              const nameClr  = [dc.dark,   dc.cream, dc.dark,  dc.cream][idx % 4];
+              const dscrClr  = [dc.dark,   dc.cream, dc.dark,  dc.cream][idx % 4];
+              const subClr   = ["rgba(0,55,56,0.5)", "rgba(238,239,211,0.5)", "rgba(0,55,56,0.6)", "rgba(238,239,211,0.6)"][idx % 4];
+              const borderSt = idx === 1 ? "1px solid rgba(238,239,211,0.2)" : "none";
+              return (
+                <div key={c.id} style={{ background: cardBg, border: borderSt, borderRadius: 10, padding: "16px 14px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: labelClr, marginBottom: 6 }}>
+                    {c.propertyType} {c.name}
+                  </div>
+                  <Mono style={{ display: "block", fontSize: 24, fontWeight: 600, color: idx === 0 ? dscrColor : dscrClr, letterSpacing: "-0.02em", lineHeight: 1 }}>
+                    {c.dscr.toFixed(2)}x
+                  </Mono>
+                  <div style={{ fontSize: 11, color: subClr, marginTop: 2 }}>{c.ltv.toFixed(0)}% LTV</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 

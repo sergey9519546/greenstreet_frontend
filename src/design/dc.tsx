@@ -105,6 +105,11 @@ export function useDcGsap(scope: React.RefObject<HTMLElement>) {
       document.querySelectorAll(".gs-reveal").forEach((el) => {
         gsap.from(el, { y: 40, opacity: 0, duration: 0.85, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
       });
+      // Pop-in stagger for signature grids/tiles (e.g. the State Laws map cells).
+      const pop = document.querySelectorAll(".dc-pop");
+      if (pop.length) {
+        gsap.from(pop, { scale: 0, opacity: 0, duration: 0.4, stagger: { each: 0.012, from: "start" }, delay: 0.25, ease: "back.out(1.5)", clearProps: "all", scrollTrigger: { trigger: pop[0], start: "top 90%", once: true } });
+      }
       const t = setTimeout(() => ScrollTrigger.refresh(), 200);
       return () => clearTimeout(t);
     },
@@ -120,17 +125,19 @@ export function DcNav({
   onNavigate,
   links = [],
   cta,
+  bg = MIDNIGHT,
 }: {
   onNavigate?: (v: string) => void;
   links?: NavLink[];
   cta?: NavLink;
+  bg?: string;
 }) {
   const handle = (l: NavLink) => (e: React.MouseEvent) => {
     if (l.onClick) { e.preventDefault(); l.onClick(e); }
     else if (l.view && onNavigate) { e.preventDefault(); onNavigate(l.view); }
   };
   return (
-    <nav className="dc-nav" style={{ position: "sticky", top: 0, zIndex: 50, background: MIDNIGHT, borderBottom: "1px solid rgba(238,239,211,0.12)" }}>
+    <nav className="dc-nav" style={{ position: "sticky", top: 0, zIndex: 50, background: bg, borderBottom: "1px solid rgba(238,239,211,0.12)" }}>
       <div style={{ maxWidth: dc.maxW, margin: "0 auto", padding: `0 ${dc.pad}`, display: "flex", alignItems: "center", justifyContent: "space-between", height: 74 }}>
         <a href="/" onClick={(e) => { e.preventDefault(); onNavigate?.("marketing"); }} style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO, textDecoration: "none" }}>Greenstreet</a>
         <div className="dc-navlinks" style={{ display: "flex", alignItems: "center", gap: 30 }}>
@@ -146,9 +153,9 @@ export function DcNav({
   );
 }
 
-export function DcFooter() {
+export function DcFooter({ bg = MIDNIGHT }: { bg?: string } = {}) {
   return (
-    <footer style={{ background: MIDNIGHT, color: "rgba(238,239,211,0.55)", padding: `48px ${dc.pad}` }}>
+    <footer style={{ background: bg, color: "rgba(238,239,211,0.55)", padding: `48px ${dc.pad}` }}>
       <div style={{ maxWidth: dc.maxW, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO }}>Greenstreet</div>
         <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
@@ -219,20 +226,23 @@ export function DcShell({
   onNavigate,
   navLinks,
   cta,
+  accent = MIDNIGHT,
 }: {
   children: React.ReactNode;
   onNavigate?: (v: string) => void;
   navLinks?: NavLink[];
   cta?: NavLink;
+  /** Nav + footer background — lets each page carry its own colour identity. */
+  accent?: string;
 }) {
   const scope = useRef<HTMLDivElement>(null);
   useDcGsap(scope);
   return (
     <div ref={scope} style={{ background: PISTACHIO, color: MIDNIGHT, fontFamily: font.family, minHeight: "100vh", overflowX: "hidden", letterSpacing: "-0.02em" }}>
       <style>{DC_CSS}</style>
-      <DcNav onNavigate={onNavigate} links={navLinks} cta={cta} />
+      <DcNav onNavigate={onNavigate} links={navLinks} cta={cta} bg={accent} />
       {children}
-      <DcFooter />
+      <DcFooter bg={accent} />
     </div>
   );
 }

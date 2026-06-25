@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono, HeroProof } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 
 interface Props {
   onBack?: () => void;
@@ -7,6 +7,11 @@ interface Props {
 }
 
 const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+
+// Deal Analyzer uses a pistachio/cream nav — distinct from the midnight default
+// used by the DSCR Calculator and the rainforest used by State Laws.
+const DA_ACCENT = "#eeefd3"; // pistachio cream (matches mockup body + nav)
+const DA_NAV_BORDER = "1px solid rgba(0,55,56,0.15)";
 
 export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   useEffect(() => {
@@ -139,20 +144,29 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent={DA_ACCENT}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "Lenders", view: "lender-intel" },
       ]}
       cta={{ label: "Analyze a deal →", onClick: scrollToTool }}
     >
-      {/* Extra CSS: hide number spinners, text-transform state input */}
+      {/* Extra CSS: hide spinners; override nav link ink for light nav */}
       <style>{`
         .da-num::-webkit-outer-spin-button,.da-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .da-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.dark};letter-spacing:-0.02em;}
-        @keyframes gsFloat{from,to{transform:none;}}
+        /* Light-nav override: links + wordmark use dark ink on pistachio bg */
+        .dc-nav a{color:rgba(0,55,56,0.72) !important;}
+        .dc-nav a[style*="background"]{color:${dc.cream} !important;}
+        .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
+        /* nav border */
+        .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:rgba(238,239,211,0.92) !important;backdrop-filter:blur(12px);}
+        /* footer ink on pistachio footer */
+        footer{color:rgba(0,55,56,0.55) !important;}
+        footer div[style]{color:${dc.dark} !important;}
       `}</style>
 
-      {/* ── HERO ── */}
+      {/* ── HERO — dark midnight band, two-col: copy left / live verdict badge right ── */}
       <section
         style={{
           position: "relative",
@@ -164,7 +178,12 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           alignItems: "center",
         }}
       >
+        {/* dot grid */}
         <div className="gs-dot-grid" />
+        {/* ambient glows from mockup */}
+        <div style={{ position: "absolute", top: "-20%", right: "-8%", width: "52%", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle,rgba(216,217,88,0.10),transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-15%", left: "5%", width: "42%", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle,rgba(77,189,151,0.09),transparent 70%)", pointerEvents: "none" }} />
+
         <div
           className="dc-hero"
           style={{
@@ -179,7 +198,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             alignItems: "center",
           }}
         >
-          {/* Left column — hero stagger fires on id="gs-hero-content" */}
+          {/* Left — hero copy stagger fires on #gs-hero-content */}
           <div id="gs-hero-content">
             <div
               style={{
@@ -264,17 +283,114 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             </div>
           </div>
 
-          {/* Right column — live product surface */}
-          <HeroProof
-            eyebrow="Live underwrite"
-            value={`${dscr.toFixed(2)}x`}
-            sub="Track 1 DSCR · seven inputs in"
-            chip={{ label: vLabel, color: verdictColor }}
-          />
+          {/* Right — mockup's live "Deal verdict" badge floating over a product surface.
+              This is the DA signature: NOT the HeroProof device-panel used by the
+              DSCR Calculator. The badge reads the live computed DSCR + verdict. */}
+          <div style={{ position: "relative" }}>
+            {/* Product surface placeholder (replaces image-slot in the mockup) */}
+            <div
+              style={{
+                width: "100%",
+                aspectRatio: "1.1",
+                borderRadius: 16,
+                background: dc.teal,
+                border: "1px solid rgba(238,239,211,0.12)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 10,
+                padding: "clamp(24px,3vw,40px)",
+              }}
+            >
+              {/* Mini underwrite grid — shows the tool is computing, not static */}
+              <div style={{ width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { label: "PITIA / mo", val: fmt(pitia) },
+                  { label: "Monthly rent", val: fmt(rent) },
+                  { label: "Cap rate", val: capRate.toFixed(2) + "%" },
+                  { label: "Debt yield", val: debtYield.toFixed(2) + "%" },
+                ].map((cell) => (
+                  <div
+                    key={cell.label}
+                    style={{
+                      background: "rgba(238,239,211,0.06)",
+                      borderRadius: 8,
+                      padding: "12px 14px",
+                    }}
+                  >
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>
+                      {cell.label}
+                    </div>
+                    <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.cream, lineHeight: 1 }}>
+                      {cell.val}
+                    </Mono>
+                  </div>
+                ))}
+              </div>
+              <div style={{ width: "100%", height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
+              <div style={{ width: "100%", background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Cash flow / mo</div>
+                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>
+                  {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
+                </Mono>
+              </div>
+            </div>
+
+            {/* THE SIGNATURE: floating Deal verdict badge — mockup line 53-57 */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: -16,
+                left: -12,
+                background: dc.lemon,
+                borderRadius: 10,
+                padding: "16px 20px",
+                zIndex: 2,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  color: "rgba(0,55,56,0.6)",
+                  marginBottom: 3,
+                }}
+              >
+                Deal verdict
+              </div>
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: 34,
+                  fontWeight: 600,
+                  letterSpacing: "-0.03em",
+                  color: dc.dark,
+                  lineHeight: 1,
+                }}
+              >
+                {dscr.toFixed(2)}x
+              </Mono>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: verdictColor,
+                  marginTop: 3,
+                }}
+              >
+                {vLabel}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── 3-STEP BAND ── */}
+      {/* ── 3-STEP BAND (mockup lines 63-71 — verified present in the mockup) ── */}
       <section
         style={{
           background: dc.cream,
@@ -293,7 +409,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               overflow: "hidden",
             }}
           >
-            {/* Step 01 */}
+            {/* Step 01 — pistachio tile */}
             <div
               style={{
                 background: dc.cream,
@@ -339,7 +455,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </p>
             </div>
 
-            {/* Step 02 */}
+            {/* Step 02 — dark tile */}
             <div
               style={{
                 background: dc.dark,
@@ -387,7 +503,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </p>
             </div>
 
-            {/* Step 03 */}
+            {/* Step 03 — lemon tile */}
             <div
               style={{
                 background: dc.lemon,
@@ -719,8 +835,44 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 </div>
               </label>
 
-              {/* State */}
+              {/* HOA */}
               <label style={{ display: "block", marginBottom: 16 }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    color: "rgba(0,55,56,0.5)",
+                    marginBottom: 7,
+                  }}
+                >
+                  HOA / mo
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    background: dc.cream,
+                    borderRadius: 6,
+                    padding: "0 12px",
+                  }}
+                >
+                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
+                  <input
+                    className="da-num"
+                    type="number"
+                    step={50}
+                    value={hoa}
+                    onChange={(e) => setHoa(+e.target.value)}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
+                </div>
+              </label>
+
+              {/* State */}
+              <label style={{ display: "block", marginBottom: 0 }}>
                 <span
                   style={{
                     display: "block",

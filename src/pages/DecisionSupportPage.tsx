@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono, HeroProof } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
@@ -7,22 +7,20 @@ import type { LenderRankingEntry } from "../engine/types";
 import { DSCR_PROGRAMS, lookupMaxLTV } from "../data/dscrPrograms";
 
 // ── helpers ─────────────────────────────────────────────────────────────────
-function fmt$(n: number) { return "$" + Math.round(n).toLocaleString("en-US"); }
-
 function verdictColor(v: string): string {
   if (v === "PROCEED") return dc.emerald;
   if (v === "RESTRUCTURE") return "#d8d958";
   return "#ff6b6b";
 }
 function verdictBg(v: string): string {
-  if (v === "PROCEED") return "rgba(77,189,151,0.08)";
-  if (v === "RESTRUCTURE") return "rgba(216,217,88,0.10)";
-  return "rgba(74,21,21,0.07)";
+  if (v === "PROCEED") return "#4dbd97";
+  if (v === "RESTRUCTURE") return "#d8d958";
+  return "#3a1414";
 }
 function verdictInk(v: string): string {
-  if (v === "PROCEED") return dc.rain;
-  if (v === "RESTRUCTURE") return "#7a6200";
-  return "#d32f2f";
+  if (v === "PROCEED") return dc.dark;
+  if (v === "RESTRUCTURE") return dc.dark;
+  return "#ffd9d9";
 }
 function gradeColor(g: string): string {
   if (g === "A" || g === "B") return dc.rain;
@@ -33,6 +31,53 @@ function factorColor(v: number): string {
   if (v >= 66) return dc.emerald;
   if (v >= 40) return "#d8d958";
   return "#ff6b6b";
+}
+
+// Map composite 0-100 to needle rotation -74..+74 deg (left=NO-GO, right=GO)
+function compositeToNeedleDeg(composite: number): number {
+  return -74 + (composite / 100) * 148;
+}
+
+// ── Gauge SVG — signature hero element ───────────────────────────────────────
+function VerdictGauge({ composite }: { composite: number }) {
+  const needleDeg = compositeToNeedleDeg(composite);
+  const needleStyle: React.CSSProperties = {
+    transformOrigin: "140px 150px",
+    transform: `rotate(${needleDeg}deg)`,
+    transition: "transform 0.55s cubic-bezier(.4,0,.2,1)",
+  };
+
+  return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "clamp(12px,2vw,28px)" }}>
+      <svg
+        id="ds-gauge"
+        viewBox="0 0 280 175"
+        style={{ width: "100%", maxWidth: 380, overflow: "visible" }}
+        aria-label={`Verdict gauge — composite score ${composite}/100`}
+      >
+        {/* Arc segments: NO-GO (red), CONDITIONAL (yellow), GO (green) */}
+        <path d="M 30,150 A 110,110 0 0 1 73,64"   fill="none" stroke="#ff6b6b" strokeWidth="16" strokeLinecap="round" />
+        <path d="M 86,54  A 110,110 0 0 1 194,54"  fill="none" stroke="#d8d958" strokeWidth="16" strokeLinecap="round" />
+        <path d="M 207,64 A 110,110 0 0 1 250,150" fill="none" stroke="#4dbd97" strokeWidth="16" strokeLinecap="round" />
+
+        {/* Needle */}
+        <g style={needleStyle}>
+          <line x1="140" y1="150" x2="140" y2="60" stroke="#eeefd3" strokeWidth="4" strokeLinecap="round" />
+          <circle cx="140" cy="150" r="9" fill="#eeefd3" />
+        </g>
+
+        {/* Zone labels */}
+        <text x="28"  y="170" fill="rgba(255,107,107,0.85)"  fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">NO-GO</text>
+        <text x="140" y="34"  fill="rgba(216,217,88,0.95)"   fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">CONDITIONAL</text>
+        <text x="252" y="170" fill="rgba(77,189,151,0.95)"   fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">GO</text>
+
+        {/* Composite score centred below pivot */}
+        <text x="140" y="168" fill="rgba(238,239,211,0.55)" fontSize="13" fontFamily="'JetBrains Mono',monospace" textAnchor="middle" fontWeight="600">
+          {composite}/100
+        </text>
+      </svg>
+    </div>
+  );
 }
 
 // ── component ────────────────────────────────────────────────────────────────
@@ -121,7 +166,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         track1DSCR: deal.dscr,
         track2DSCR,
         lenderMinDSCR,
-        afterTaxIRR,          // ← fixed: now uses the local computed value
+        afterTaxIRR,          // fixed: now uses the local computed value
         preTaxIRR: afterTaxIRR,
         year1CoC,
         dealBreakRate: deal.dealBreakRate,
@@ -203,190 +248,108 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
   };
 
-  // Derive chip / proof values for hero
-  const heroVerdict = result?.verdict.verdict ?? "—";
-  const heroDSCR    = result?.deal.dscr ?? 0;
-  const heroGrade   = result?.grade ?? "—";
-  const heroComposite = result?.composite ?? 0;
-  const chipColor   = verdictColor(heroVerdict);
+  const heroVerdict  = result?.verdict.verdict ?? "—";
+  const heroComposite = result?.composite ?? 50;
 
   return (
     <DcShell
       onNavigate={onNavigate}
       navLinks={[
-        { label: "DSCR Calc",   view: "dscr-calculator" },
+        { label: "DSCR Calc",     view: "dscr-calculator" },
         { label: "Deal Analyzer", view: "deal-analyzer" },
       ]}
       cta={{ label: "Get the verdict →", onClick: scrollToTool }}
     >
-      {/* Extra CSS: hide number spinners only */}
+      {/* Extra CSS: hide number spinners */}
       <style>{`
         .ds-in::-webkit-outer-spin-button,.ds-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .ds-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ── HERO ── */}
+      {/* ── HERO — dark, 2-col: copy left / gauge right (mockup signature) ── */}
       <section
         style={{
-          position: "relative",
           background: dc.dark,
           color: dc.cream,
+          padding: `clamp(64px,9vh,120px) ${dc.pad} clamp(56px,7vh,92px)`,
           overflow: "hidden",
-          minHeight: "clamp(480px,60vh,760px)",
-          display: "flex",
-          alignItems: "center",
         }}
       >
-        <div className="gs-dot-grid" />
         <div
           className="dc-hero"
           style={{
-            position: "relative",
-            width: "100%",
             maxWidth: dc.maxW,
             margin: "0 auto",
-            padding: `clamp(48px,7vh,88px) ${dc.pad}`,
             display: "grid",
             gridTemplateColumns: "1.05fr 0.95fr",
-            gap: "clamp(32px,5vw,72px)",
+            gap: "clamp(36px,5vw,80px)",
             alignItems: "center",
           }}
         >
-          {/* Left: hero content with GSAP stagger */}
+          {/* Left: hero copy */}
           <div id="gs-hero-content">
             <div
               style={{
                 fontSize: 12,
                 fontWeight: 600,
-                letterSpacing: "0.06em",
+                letterSpacing: "0.03em",
                 textTransform: "uppercase",
                 color: dc.lemon,
-                marginBottom: 22,
+                marginBottom: 24,
               }}
             >
               Underwriting verdict · IC memo · risk flags
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
+                fontSize: "clamp(44px,5.8vw,84px)",
                 fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 28px",
+                lineHeight: 0.98,
+                letterSpacing: "-0.035em",
+                margin: "0 0 24px",
               }}
             >
               One verdict.
               <br />
-              Every signal
-              <br />
-              weighed.
+              Every signal weighed.
             </h1>
             <p
               style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
+                fontSize: "clamp(17px,1.4vw,21px)",
                 fontWeight: 500,
                 lineHeight: 1.5,
                 letterSpacing: "-0.02em",
                 color: "rgba(238,239,211,0.7)",
-                maxWidth: "48ch",
+                maxWidth: "50ch",
                 margin: "0 0 36px",
               }}
             >
-              DSCR, leverage, returns, and state risk roll into a single
-              composite — GO, CONDITIONAL, or NO-GO — spelled out like an
-              investment-committee memo.
+              DSCR, leverage, returns, liquidity and state risk roll into a single
+              composite — GO, CONDITIONAL, or NO-GO — with the reasons spelled out
+              like an investment-committee memo.
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a
-                href="#ds-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                }}
-              >
-                Run the decision engine ↓
-              </a>
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                }}
-              >
-                DSCR calculator
-              </a>
-            </div>
+            <a
+              href="#ds-tool"
+              onClick={scrollToTool}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: "none",
+                padding: "15px 30px",
+                borderRadius: 6,
+              }}
+            >
+              Run the decision engine →
+            </a>
           </div>
 
-          {/* Right: live HeroProof wired to real verdict */}
-          <HeroProof
-            eyebrow="IC verdict — live"
-            value={result ? `Grade ${heroGrade}` : "—"}
-            sub={
-              result
-                ? `${heroDSCR.toFixed(2)}x DSCR · composite ${heroComposite}/100`
-                : "Enter inputs below"
-            }
-            chip={{ label: heroVerdict, color: chipColor }}
-          />
-        </div>
-      </section>
-
-      {/* ── 3-STEP BAND ── */}
-      <section style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            className="gs-reveal dc-band-3"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: "1px",
-              background: "rgba(0,55,56,0.12)",
-              borderRadius: 9,
-              overflow: "hidden",
-            }}
-          >
-            <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.lemon, marginBottom: 14, lineHeight: 1 }}>01</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Inputs</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.6)", margin: 0 }}>
-                Purchase price, down payment, rent, rate, FICO, taxes, insurance. Eight fields.
-              </p>
-            </div>
-            <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.emerald, marginBottom: 14, lineHeight: 1 }}>02</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Underwrite</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0 }}>
-                Dual-track DSCR, kill-criterion check, acquisition score, return grade — live.
-              </p>
-            </div>
-            <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Verdict</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0 }}>
-                GO / CONDITIONAL / NO-GO with the binding constraint spelled out as an IC memo.
-              </p>
-            </div>
-          </div>
+          {/* Right: live verdict gauge — the mockup's signature */}
+          <VerdictGauge composite={heroComposite} />
         </div>
       </section>
 
@@ -397,13 +360,13 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           {/* Section header */}
-          <div className="gs-reveal" style={{ marginBottom: 12 }}>
+          <div className="gs-reveal" style={{ marginBottom: 40 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
               Live decision-support engine
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.02, margin: "0 0 40px" }}>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.02, margin: 0 }}>
               Verdict:{" "}
-              <span style={{ color: verdictInk(heroVerdict) }}>
+              <span style={{ color: result ? verdictInk(heroVerdict) : dc.rain }}>
                 {result?.verdict.verdict ?? "—"}
               </span>{" "}
               · composite {heroComposite}/100
@@ -415,21 +378,21 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             className="gs-reveal dc-split"
             style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 36, alignItems: "start" }}
           >
-            {/* ── INPUTS (dark panel, matches mockup) ── */}
+            {/* ── INPUTS (dark panel) ── */}
             <div style={{ background: dc.dark, borderRadius: 9, padding: 30 }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 20 }}>
                 Deal &amp; Borrower
               </div>
 
               {([
-                { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$", suffix: "" },
-                { label: "Down Payment",   value: downPct,        set: setDownPct,        step: 1,    prefix: "",  suffix: "%" },
-                { label: "Note Rate",      value: rate,           set: setRate,           step: 0.125, prefix: "", suffix: "%" },
-                { label: "Monthly Rent",   value: monthlyRent,    set: setMonthlyRent,    step: 100,  prefix: "$", suffix: "" },
-                { label: "FICO",           value: fico,           set: setFico,           step: 5,    prefix: "",  suffix: "" },
-                { label: "Annual Taxes",   value: annualTaxes,    set: setAnnualTaxes,    step: 250,  prefix: "$", suffix: "" },
+                { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000,  prefix: "$", suffix: "" },
+                { label: "Down Payment",   value: downPct,        set: setDownPct,        step: 1,     prefix: "",  suffix: "%" },
+                { label: "Note Rate",      value: rate,           set: setRate,           step: 0.125, prefix: "",  suffix: "%" },
+                { label: "Monthly Rent",   value: monthlyRent,    set: setMonthlyRent,    step: 100,   prefix: "$", suffix: "" },
+                { label: "FICO",           value: fico,           set: setFico,           step: 5,     prefix: "",  suffix: "" },
+                { label: "Annual Taxes",   value: annualTaxes,    set: setAnnualTaxes,    step: 250,   prefix: "$", suffix: "" },
                 { label: "Annual Ins.",    value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$", suffix: "" },
-                { label: "Monthly HOA",    value: hoa,            set: setHoa,            step: 25,   prefix: "$", suffix: "" },
+                { label: "Monthly HOA",    value: hoa,            set: setHoa,            step: 25,    prefix: "$", suffix: "" },
               ] as const).map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
                   <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
@@ -463,7 +426,6 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 <div
                   style={{
                     background: verdictBg(result.verdict.verdict),
-                    border: `2px solid ${verdictColor(result.verdict.verdict)}`,
                     borderRadius: 9,
                     padding: 34,
                   }}
@@ -484,7 +446,11 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     {result.verdict.verdict}
                   </Mono>
                   <div style={{ fontSize: 16, fontWeight: 500, color: verdictInk(result.verdict.verdict), opacity: 0.85, marginTop: 12, letterSpacing: "-0.02em" }}>
-                    Binding constraint: <strong>{result.verdict.bindingConstraint}</strong>
+                    {result.verdict.verdict === "PROCEED"
+                      ? "Clears underwriting on all primary signals. Proceed to term sheet."
+                      : result.verdict.verdict === "RESTRUCTURE"
+                      ? "Workable with compensating factors. Tighten the weak signals before IC."
+                      : "Fails one or more hard gates. Restructure the deal or pass."}
                   </div>
                 </div>
 
@@ -494,8 +460,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "1px", background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}
                 >
                   {[
-                    { label: "Track 1 DSCR", val: `${result.deal.dscr.toFixed(2)}x`,   color: result.deal.dscr >= 1.25 ? dc.rain : result.deal.dscr >= 1.0 ? "#a16207" : "#d32f2f" },
-                    { label: "Track 2 DSCR", val: `${result.track2DSCR.toFixed(2)}x`,   color: result.track2DSCR >= 1.25 ? dc.rain : result.track2DSCR >= 1.0 ? "#a16207" : "#d32f2f" },
+                    { label: "Track 1 DSCR", val: `${result.deal.dscr.toFixed(2)}x`,    color: result.deal.dscr >= 1.25 ? dc.rain : result.deal.dscr >= 1.0 ? "#a16207" : "#d32f2f" },
+                    { label: "Track 2 DSCR", val: `${result.track2DSCR.toFixed(2)}x`,    color: result.track2DSCR >= 1.25 ? dc.rain : result.track2DSCR >= 1.0 ? "#a16207" : "#d32f2f" },
                     { label: "Rate cushion",  val: `${Math.round(result.deal.rateHeadroomBps)} bps`, color: result.deal.rateHeadroomBps > 50 ? dc.rain : "#d32f2f" },
                     { label: "Acq score",     val: `${Math.round(result.acq.score)}/100`, color: result.acq.score >= 75 ? dc.rain : result.acq.score >= 60 ? "#a16207" : "#d32f2f" },
                   ].map((m) => (

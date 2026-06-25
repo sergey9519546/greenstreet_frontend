@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono, HeroProof } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 import {
   simulateARMResetLadder,
   DEFAULT_ARM_PROGRAMS,
@@ -151,12 +151,6 @@ export default function ARMPage({
       });
   };
 
-  // HeroProof live value: payment shock at worst-case first reset
-  const heroShockPct = result ? result.paymentShockPct : 0;
-  const heroChipColor = shockColor(heroShockPct);
-  const heroChipLabel =
-    heroShockPct > 20 ? "HIGH SHOCK" : heroShockPct > 8 ? "MODERATE" : "LOW SHOCK";
-
   return (
     <DcShell
       onNavigate={onNavigate}
@@ -172,163 +166,89 @@ export default function ARMPage({
         .arm-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ── HERO ── */}
+      {/* ── HERO — centered, payment-shock timeline as signature ── */}
       <section
+        id="ar-hero"
         style={{
-          position: "relative",
           background: dc.dark,
           color: dc.cream,
+          padding: "clamp(64px,9vh,128px) clamp(1.5rem,4vw,3rem) clamp(56px,7vh,96px)",
           overflow: "hidden",
-          minHeight: "clamp(480px,60vh,760px)",
-          display: "flex",
-          alignItems: "center",
         }}
       >
-        <div className="gs-dot-grid" />
         <div
-          className="dc-hero"
-          style={{
-            position: "relative",
-            width: "100%",
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            padding: `clamp(48px,7vh,88px) ${dc.pad}`,
-            display: "grid",
-            gridTemplateColumns: "1.1fr 0.9fr",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "center",
-          }}
+          id="gs-hero-content"
+          style={{ maxWidth: 1080, margin: "0 auto", textAlign: "center" }}
         >
-          <div id="gs-hero-content">
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: dc.lemon,
-                marginBottom: 22,
-              }}
-            >
-              5/6 · 7/6 · 10/6 ARM &nbsp;·&nbsp; SOFR + margin &nbsp;·&nbsp; caps enforced
-            </div>
-            <h1
-              style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 28px",
-              }}
-            >
-              What happens when
-              <br />
-              the fixed period
-              <br />
-              ends?
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
-                color: "rgba(238,239,211,0.7)",
-                maxWidth: "48ch",
-                margin: "0 0 36px",
-              }}
-            >
-              Model the payment shock at first reset, every subsequent
-              adjustment, and the lifetime cap — initial and periodic caps
-              applied exactly as written in the note.
-            </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 48 }}>
-              <a
-                href="#arm-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                }}
-              >
-                Model the reset ↓
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigate?.("dscr-calculator");
-                }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                }}
-              >
-                DSCR Calculator
-              </a>
-            </div>
+          {/* Eyebrow */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "0.02em",
+              textTransform: "uppercase",
+              color: dc.lemon,
+              marginBottom: 26,
+            }}
+          >
+            5/6 · 7/6 · 10/6 ARM &nbsp;·&nbsp; SOFR + margin &nbsp;·&nbsp; caps
           </div>
 
-          {/* HeroProof — wired to worst-case first-reset payment shock */}
-          <HeroProof
-            eyebrow="First-reset payment shock"
-            value={
-              result
-                ? `+${result.paymentShockPct.toFixed(1)}%`
-                : "—"
-            }
-            sub={
-              result
-                ? `${fmt$(result.piInitial)}/mo → ${fmt$(result.piAtWorstFirstReset)}/mo at year ${result.firstResetYear}`
-                : "Enter inputs below"
-            }
-            chip={{ label: heroChipLabel, color: heroChipColor }}
-          />
-        </div>
-      </section>
-
-      {/* ── 3-STEP TIMELINE BAND ── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            className="gs-reveal dc-band-3"
+          {/* Headline */}
+          <h1
             style={{
-              display: "grid",
-              gridTemplateColumns: "5fr 2fr 3fr",
-              gap: "1px",
-              background: "rgba(0,55,56,0.12)",
+              fontSize: "clamp(46px,6.6vw,92px)",
+              fontWeight: 600,
+              lineHeight: 0.98,
+              letterSpacing: "-0.035em",
+              margin: "0 0 26px",
+            }}
+          >
+            What happens when
+            <br />
+            the fixed period ends?
+          </h1>
+
+          {/* Sub */}
+          <p
+            style={{
+              fontSize: "clamp(17px,1.5vw,22px)",
+              fontWeight: 500,
+              lineHeight: 1.5,
+              letterSpacing: "-0.015em",
+              color: "rgba(238,239,211,0.7)",
+              maxWidth: "58ch",
+              margin: "0 auto 44px",
+            }}
+          >
+            Model the payment shock at first reset, every subsequent adjustment,
+            and the lifetime cap — initial and periodic caps applied exactly as
+            written in the note.
+          </p>
+
+          {/* ── PAYMENT-SHOCK TIMELINE — the hero's signature ── */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "stretch",
+              maxWidth: 960,
+              margin: "0 auto 36px",
               borderRadius: 8,
               overflow: "hidden",
             }}
           >
-            {/* Fixed period */}
+            {/* Segment 1: Fixed */}
             <div
+              className="ar-seg"
               style={{
+                flex: 5,
                 background: dc.emerald,
                 color: dc.dark,
-                padding: "clamp(22px,3vw,34px) clamp(18px,2.5vw,28px)",
+                padding: "22px 20px",
+                textAlign: "left",
               }}
             >
               <div
@@ -338,22 +258,35 @@ export default function ARMPage({
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
                   opacity: 0.7,
-                  marginBottom: 6,
                 }}
               >
-                {result ? `Years 1–${result.fixedYears}` : "Fixed period"}
+                {result ? `Years 1–${result.fixedYears}` : "Years 1–5"}
               </div>
-              <Mono style={{ display: "block", fontSize: "clamp(22px,2.6vw,32px)", fontWeight: 600, lineHeight: 1.1 }}>Fixed</Mono>
-              <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 4 }}>
-                {result ? `${result.cfg.initialRate.toFixed(3)}% locked` : "rate locked"}
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: "clamp(20px,2.4vw,30px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  marginTop: 4,
+                }}
+              >
+                Fixed
+              </Mono>
+              <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 2 }}>
+                {result ? `${result.cfg.initialRate.toFixed(2)}% locked` : "7.00% locked"}
               </div>
             </div>
-            {/* First reset */}
+
+            {/* Segment 2: First reset */}
             <div
+              className="ar-seg"
               style={{
+                flex: 2,
                 background: dc.lemon,
                 color: dc.dark,
-                padding: "clamp(22px,3vw,34px) clamp(18px,2.5vw,28px)",
+                padding: "22px 16px",
+                textAlign: "left",
               }}
             >
               <div
@@ -363,22 +296,35 @@ export default function ARMPage({
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
                   opacity: 0.7,
-                  marginBottom: 6,
                 }}
               >
                 First reset
               </div>
-              <Mono style={{ display: "block", fontSize: "clamp(22px,2.6vw,32px)", fontWeight: 600, lineHeight: 1.1 }}>
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: "clamp(20px,2.4vw,30px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  marginTop: 4,
+                }}
+              >
                 {result ? `+${result.cfg.initialCapPct.toFixed(1)}%` : "+2.0%"}
               </Mono>
-              <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 4 }}>cap-limited</div>
+              <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 2 }}>
+                cap-limited
+              </div>
             </div>
-            {/* Adjusts */}
+
+            {/* Segment 3: Adjusts */}
             <div
+              className="ar-seg"
               style={{
+                flex: 3,
                 background: dc.rain,
                 color: dc.cream,
-                padding: "clamp(22px,3vw,34px) clamp(18px,2.5vw,28px)",
+                padding: "22px 18px",
+                textAlign: "left",
               }}
             >
               <div
@@ -388,16 +334,77 @@ export default function ARMPage({
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
                   opacity: 0.65,
-                  marginBottom: 6,
                 }}
               >
                 {result ? `Years ${result.fixedYears + 1}–30` : "Years 6–30"}
               </div>
-              <Mono style={{ display: "block", fontSize: "clamp(22px,2.6vw,32px)", fontWeight: 600, lineHeight: 1.1, color: dc.cream }}>Adjusts</Mono>
-              <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.7, marginTop: 4 }}>
-                {result ? `SOFR + ${result.cfg.marginPct.toFixed(2)}%` : "SOFR + margin"}
+              <Mono
+                style={{
+                  display: "block",
+                  fontSize: "clamp(20px,2.4vw,30px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  marginTop: 4,
+                  color: dc.cream,
+                }}
+              >
+                Adjusts
+              </Mono>
+              <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.7, marginTop: 2 }}>
+                {result ? `SOFR + ${result.cfg.marginPct.toFixed(2)}%` : "SOFR + 2.75%"}
               </div>
             </div>
+          </div>
+
+          {/* CTA row */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 14,
+              flexWrap: "wrap",
+            }}
+          >
+            <a
+              href="#arm-tool"
+              onClick={scrollToTool}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 600,
+                fontSize: 14,
+                textDecoration: "none",
+                padding: "11px 22px",
+                borderRadius: 6,
+              }}
+            >
+              Model the reset →
+            </a>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate?.("dscr-calculator");
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: "transparent",
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 14,
+                textDecoration: "none",
+                padding: "11px 18px",
+                borderRadius: 6,
+                border: "1px solid rgba(238,239,211,0.3)",
+              }}
+            >
+              DSCR Calculator
+            </a>
           </div>
         </div>
       </section>

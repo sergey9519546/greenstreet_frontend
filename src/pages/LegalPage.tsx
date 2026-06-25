@@ -68,7 +68,7 @@ const DISCLOSURES: LegalDoc = {
       ],
     },
   ],
-  contactLine: "Questions about these terms? Contact legal@greenstreet.example.",
+  contactLine: "Questions about these terms? Contact legal@greenstreetfinance.com.",
 };
 
 const PRIVACY_DOC: LegalDoc = {
@@ -215,10 +215,8 @@ function useTocHighlight() {
 // ─── Sub-nav pill buttons (switch between the three docs) ────────────────────
 function DocSwitcher({
   current,
-  onNavigate,
 }: {
   current: LegalDoc;
-  onNavigate?: (v: string) => void;
 }) {
   const pills: { label: string; path: string; view: string }[] = [
     { label: "Disclosures", path: "/legal", view: "legal" },
@@ -239,8 +237,13 @@ function DocSwitcher({
           <button
             key={p.label}
             onClick={() => {
+              // Navigate via history + popstate so App's router resolves the
+              // new path. The three legal docs share the "legal" PageView and
+              // are disambiguated by pathname (see resolveDoc), so we cannot
+              // round-trip through onNavigate(view) — it has no matching case.
               window.history.pushState({}, "", p.path);
-              onNavigate?.(p.view);
+              window.dispatchEvent(new PopStateEvent("popstate"));
+              window.scrollTo({ top: 0 });
             }}
             style={{
               padding: "9px 18px",
@@ -360,7 +363,7 @@ export default function LegalPage({
           >
             {doc.sub}
           </p>
-          <DocSwitcher current={doc} onNavigate={onNavigate} />
+          <DocSwitcher current={doc} />
         </div>
       </section>
 

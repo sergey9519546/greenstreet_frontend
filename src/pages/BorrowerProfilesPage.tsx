@@ -142,6 +142,9 @@ const FLIP_CSS = `
   .bp-inner { transition: none !important; }
   .bp-flip:hover .bp-inner, .bp-flip:focus-within .bp-inner { transform: none !important; }
 }
+@media (max-width: 900px) {
+  .bp-grid { grid-template-columns: 1fr !important; }
+}
 `;
 
 function ProfileCard({
@@ -400,112 +403,58 @@ export default function BorrowerProfilesPage({
     >
       <style>{FLIP_CSS}</style>
 
-      {/* ── HERO ── solid dark, left column content, no HeroProof metric panel ── */}
+      {/* ── HERO ── mint bg, dark ink — matches mockup exactly; no HeroProof, no CTA buttons ── */}
       <section
         style={{
-          background: dc.dark,
-          color: dc.cream,
+          background: dc.mintBg,
+          color: dc.dark,
           overflow: "hidden",
           padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`,
         }}
       >
-        <div
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-          }}
-        >
-          <div id="gs-hero-content">
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 20,
-              }}
-            >
-              Who we serve · Borrower archetypes
-            </div>
-            <h1
-              style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 24px",
-                maxWidth: "16ch",
-              }}
-            >
-              Six borrowers.
-              <br />
-              One engine that
-              <br />
-              fits them all.
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
-                color: "rgba(238,239,211,0.7)",
-                maxWidth: "52ch",
-                margin: "0 0 36px",
-              }}
-            >
-              From the first-timer to the foreign national to the 40-door
-              portfolio operator — hover any card to see the program and terms
-              that match.
-            </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <button
-                onClick={() => onNavigate("dscr-calculator")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                  fontFamily: dc.sans,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Run the DSCR calc ↓
-              </button>
-              <button
-                onClick={() => onNavigate("lender-intel")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                  cursor: "pointer",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  fontFamily: dc.sans,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                See lender programs
-              </button>
-            </div>
+        <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "rgba(0,55,56,0.5)",
+              marginBottom: 20,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Who we serve / Borrower archetypes
           </div>
+          <h1
+            style={{
+              fontSize: "clamp(46px,6.4vw,92px)",
+              fontWeight: 600,
+              lineHeight: 0.97,
+              letterSpacing: "-0.035em",
+              margin: "0 0 24px",
+              maxWidth: "16ch",
+            }}
+          >
+            Six borrowers. One engine that fits them all.
+          </h1>
+          <p
+            style={{
+              fontSize: "clamp(18px,1.6vw,23px)",
+              fontWeight: 500,
+              lineHeight: 1.45,
+              letterSpacing: "-0.02em",
+              color: "rgba(0,55,56,0.65)",
+              maxWidth: "54ch",
+              margin: 0,
+            }}
+          >
+            From the first-timer to the foreign national to the 40-door
+            portfolio operator — hover any card to see the program and terms
+            that match.
+          </p>
         </div>
       </section>
 
-      {/* ── PROFILE CARDS GRID ── */}
+      {/* ── PROFILE CARDS GRID ── 3-col flip-card grid; centerpiece of the page ── */}
       <section
         style={{
           background: dc.cream,
@@ -513,35 +462,8 @@ export default function BorrowerProfilesPage({
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ marginBottom: 48 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.rain,
-                marginBottom: 12,
-              }}
-            >
-              Six archetypes
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.5vw,48px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.0,
-                margin: 0,
-                maxWidth: "22ch",
-              }}
-            >
-              Find your profile — and the program behind it.
-            </h2>
-          </div>
-
           <div
-            className="dc-band-3"
+            className="bp-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",

@@ -1,9 +1,13 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
+import { gsap } from "gsap";
 import { analyzeRefi } from "../engine/refiTracker";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+
+// Mint accent — the page's distinct colour identity (light warm-green)
+const MINT = dc.mintBg; // #e8e9bf
 
 // Colour helpers (via dc tokens only, no local consts)
 const scoreColor = (score: number) =>
@@ -23,7 +27,14 @@ export default function RefiTrackerPage({
     window.scrollTo(0, 0);
   }, []);
 
-  // ── Inputs (all preserved from original engine) ──
+  // Ref to the SVG lines for draw animation
+  const costLineRef = useRef<SVGPathElement>(null);
+  const saveLineRef = useRef<SVGPathElement>(null);
+  const dotRef = useRef<SVGCircleElement>(null);
+  const lblRef = useRef<SVGTextElement>(null);
+  const animatedOnce = useRef(false);
+
+  // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
   const [currentBalance, setCurrentBalance] = useState(340000);
   const [currentRate, setCurrentRate] = useState(7.25);
@@ -135,16 +146,47 @@ export default function RefiTrackerPage({
       });
   };
 
-  // Break-even chart values for SVG (solid/flat — no glow)
+  // ── Break-even chart geometry ──
   const beMonths = result?.breakEvenMonths ?? 36;
-  // Map break-even month into SVG x coord (0–60 month range → 0–420px)
   const bePct = Math.min(1, Math.max(0, beMonths / 60));
   const beDotX = Math.round(bePct * 420);
-  // Savings line: starts bottom-left (0,178), crosses cost line at beDotX,40
-  const savEndY = Math.max(10, 178 - (178 - 40) * (420 / Math.max(1, beDotX)));
   const showDot = result !== null && beMonths < 120;
 
-  // Input field definitions (split into two groups matching mockup)
+  // ── Animate SVG lines on mount (draw-on effect, matches mockup rf-line anim) ──
+  useEffect(() => {
+    if (animatedOnce.current) return;
+    const reduce =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+
+    const cost = costLineRef.current;
+    const save = saveLineRef.current;
+    const dot = dotRef.current;
+    const lbl = lblRef.current;
+    if (!cost || !save) return;
+
+    animatedOnce.current = true;
+
+    // Cost line: fixed length 420
+    const costLen = 420;
+    const saveLen = save.getTotalLength ? save.getTotalLength() : 420;
+
+    // Set initial dash state — cost keeps its 6,4 dashes but offset hides it
+    gsap.set(cost, { strokeDasharray: "6,4", strokeDashoffset: costLen });
+    gsap.set(save, { strokeDasharray: saveLen, strokeDashoffset: saveLen });
+    if (dot) gsap.set(dot, { opacity: 0 });
+    if (lbl) gsap.set(lbl, { opacity: 0 });
+
+    gsap.to(cost, { strokeDashoffset: 0, duration: 1.3, delay: 0.5, ease: "power2.inOut" });
+    gsap.to(save, { strokeDashoffset: 0, duration: 1.3, delay: 0.7, ease: "power2.inOut" });
+    if (dot && lbl && showDot) {
+      gsap.to([dot, lbl], { opacity: 1, duration: 0.5, delay: 1.7 });
+    }
+  }, []); // run once on mount
+
+  // Input field definitions
   const loanFields: Array<{
     label: string;
     value: number;
@@ -175,18 +217,19 @@ export default function RefiTrackerPage({
       ]}
       cta={{ label: "Check refi →", onClick: scrollToTool }}
     >
-      {/* Input spinner reset only — no shell style */}
+      {/* Input spinner reset only */}
       <style>{`
         .rt-num::-webkit-outer-spin-button,.rt-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .rt-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:#eeefd3;letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ── HERO (cream bg, break-even chart) ── */}
+      {/* ── HERO — MINT background, dark ink, break-even chart as signature ── */}
       <section
+        id="rf-hero"
         style={{
-          background: dc.cream,
+          background: MINT,
           color: dc.dark,
-          padding: "clamp(56px,8vh,100px) clamp(1.5rem,4vw,3rem) clamp(48px,6vh,80px)",
+          padding: "clamp(56px,8vh,100px) clamp(1.25rem,4vw,2.5rem) clamp(48px,6vh,80px)",
           overflow: "hidden",
         }}
       >
@@ -223,44 +266,43 @@ export default function RefiTrackerPage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
+                fontSize: "clamp(40px,5.5vw,76px)",
                 fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 24px",
+                lineHeight: 1.02,
+                letterSpacing: "-0.02em",
+                margin: "0 0 22px",
               }}
             >
-              Should you refi<br />this DSCR<br />loan yet?
+              Should you refi this DSCR loan yet?
             </h1>
             <p
               style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
+                fontSize: "clamp(16px,1.4vw,20px)",
+                lineHeight: 1.55,
                 letterSpacing: "-0.02em",
                 color: "rgba(0,55,56,0.7)",
-                maxWidth: "48ch",
-                margin: "0 0 36px",
+                maxWidth: "52ch",
+                margin: "0 0 32px",
               }}
             >
               Seasoning, equity, DSCR headroom, and monthly savings — scored
-              0–100. Break-even month where refi costs cross cumulative savings.
+              0–100. Plus the break-even month where refi costs cross savings.
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 48 }}>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 40 }}>
               <a
                 href="#rf-tool"
                 onClick={scrollToTool}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 9,
+                  gap: 10,
                   background: dc.dark,
-                  color: dc.cream,
-                  fontWeight: 600,
+                  color: MINT,
+                  fontWeight: 700,
                   fontSize: 16,
                   textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
+                  padding: "14px 28px",
+                  borderRadius: 8,
                 }}
               >
                 Open the refi tracker ↓
@@ -280,21 +322,21 @@ export default function RefiTrackerPage({
                   fontWeight: 600,
                   fontSize: 16,
                   textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
+                  padding: "14px 22px",
+                  borderRadius: 8,
                   border: "1px solid rgba(0,55,56,0.3)",
                 }}
               >
                 DSCR calc
               </a>
             </div>
-            {/* Live stat bar */}
-            <div style={{ display: "flex", gap: "clamp(24px,4vw,52px)", flexWrap: "wrap" }}>
+            {/* Live stat bar — live output under the hero CTA */}
+            <div style={{ display: "flex", gap: "clamp(24px,4vw,48px)", flexWrap: "wrap" }}>
               <div>
                 <Mono
                   style={{
                     display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
+                    fontSize: "clamp(32px,3.6vw,48px)",
                     fontWeight: 600,
                     color: vColor,
                     lineHeight: 1,
@@ -302,22 +344,15 @@ export default function RefiTrackerPage({
                 >
                   {result ? Math.round(score) : "—"}
                 </Mono>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "rgba(0,55,56,0.55)",
-                    marginTop: 4,
-                  }}
-                >
-                  readiness score /100
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", marginTop: 4 }}>
+                  readiness / 100
                 </div>
               </div>
               <div>
                 <Mono
                   style={{
                     display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
+                    fontSize: "clamp(32px,3.6vw,48px)",
                     fontWeight: 600,
                     color: dc.rain,
                     lineHeight: 1,
@@ -325,14 +360,7 @@ export default function RefiTrackerPage({
                 >
                   {result && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
                 </Mono>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "rgba(0,55,56,0.55)",
-                    marginTop: 4,
-                  }}
-                >
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", marginTop: 4 }}>
                   break-even
                 </div>
               </div>
@@ -340,7 +368,7 @@ export default function RefiTrackerPage({
                 <Mono
                   style={{
                     display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
+                    fontSize: "clamp(32px,3.6vw,48px)",
                     fontWeight: 600,
                     color: dc.rain,
                     lineHeight: 1,
@@ -348,27 +376,20 @@ export default function RefiTrackerPage({
                 >
                   {result ? fmt$(result.cashOutMaxAmount) : "—"}
                 </Mono>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "rgba(0,55,56,0.55)",
-                    marginTop: 4,
-                  }}
-                >
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", marginTop: 4 }}>
                   cash-out capacity
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right — break-even chart (solid/flat, no glow) */}
+          {/* Right — break-even crossing-lines chart (THE signature visual) */}
           <div
             style={{
               background: dc.dark,
               borderRadius: 16,
               padding: 26,
-              border: "1px solid rgba(238,239,211,0.14)",
+              boxShadow: "0 40px 80px -20px rgba(0,55,56,0.4)",
             }}
           >
             <div
@@ -384,48 +405,57 @@ export default function RefiTrackerPage({
               Break-even crossover
             </div>
             <svg
+              id="rf-svg"
               viewBox="0 0 420 200"
               style={{ width: "100%", display: "block", overflow: "visible" }}
             >
               {/* Axes */}
               <line x1="0" y1="180" x2="420" y2="180" stroke="rgba(238,239,211,0.2)" strokeWidth="1" />
               <line x1="0" y1="20" x2="0" y2="180" stroke="rgba(238,239,211,0.2)" strokeWidth="1" />
-              {/* Refi cost line (flat, dashed, red) */}
+              {/* Refi cost line — flat dashed red, animated draw */}
               <path
+                ref={costLineRef}
+                id="rf-cost"
                 d="M 0,40 L 420,40"
                 fill="none"
                 stroke="#ff6b6b"
                 strokeWidth="2.5"
                 strokeDasharray="6,4"
               />
-              {/* Cumulative savings line (rising, solid) */}
+              {/* Cumulative savings line — rising solid emerald, animated draw */}
               <path
-                d={`M 0,178 L 420,${Math.max(10, 178 - 148)}`}
+                ref={saveLineRef}
+                id="rf-save"
+                d="M 0,178 L 420,30"
                 fill="none"
                 stroke={dc.emerald}
                 strokeWidth="3"
               />
-              {/* Break-even dot */}
+              {/* Break-even intersection dot + label */}
+              <circle
+                ref={dotRef}
+                id="rf-dot"
+                cx={beDotX}
+                cy={40}
+                r={6}
+                fill={dc.lemon}
+                opacity={showDot ? 1 : 0}
+              />
               {showDot && (
-                <>
-                  <circle
-                    cx={beDotX}
-                    cy={40}
-                    r={6}
-                    fill={dc.lemon}
-                  />
-                  <text
-                    x={Math.min(beDotX + 8, 330)}
-                    y={36}
-                    fill={dc.lemon}
-                    fontSize={11}
-                    fontFamily={dc.mono}
-                  >
-                    break-even ≈ mo {Math.round(beMonths)}
-                  </text>
-                </>
+                <text
+                  ref={lblRef}
+                  id="rf-lbl"
+                  x={Math.min(beDotX + 8, 310)}
+                  y={36}
+                  fill={dc.lemon}
+                  fontSize={11}
+                  fontFamily={dc.mono}
+                  opacity={1}
+                >
+                  break-even ≈ mo {Math.round(beMonths)}
+                </text>
               )}
-              {/* Labels */}
+              {/* Static labels */}
               <text x="6" y="34" fill="rgba(255,107,107,0.8)" fontSize={10} fontFamily={dc.mono}>refi cost</text>
               <text x="6" y="170" fill="rgba(77,189,151,0.9)" fontSize={10} fontFamily={dc.mono}>cumulative savings →</text>
             </svg>
@@ -762,7 +792,7 @@ export default function RefiTrackerPage({
                             {f.score} / {f.maxScore}
                           </Mono>
                         </div>
-                        {/* Progress bar — solid fill, 1px border */}
+                        {/* Progress bar */}
                         <div
                           style={{
                             height: 5,
@@ -818,6 +848,75 @@ export default function RefiTrackerPage({
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── MINT CLOSING BAND — matches mockup footer treatment (mint bg, dark ink) ── */}
+      <section
+        style={{
+          background: MINT,
+          color: dc.dark,
+          padding: `clamp(40px,5vw,64px) ${dc.pad}`,
+          borderTop: "1px solid rgba(0,55,56,0.2)",
+        }}
+      >
+        <div
+          className="gs-reveal"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 24,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: dc.rain,
+                marginBottom: 8,
+              }}
+            >
+              Ready to run the numbers?
+            </div>
+            <p
+              style={{
+                fontSize: "clamp(20px,2.2vw,28px)",
+                fontWeight: 600,
+                letterSpacing: "-0.025em",
+                color: dc.dark,
+                margin: 0,
+                maxWidth: "44ch",
+              }}
+            >
+              Run your DSCR calc first — confirm the loan qualifies before pricing the refi.
+            </p>
+          </div>
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              background: dc.dark,
+              color: MINT,
+              fontWeight: 700,
+              fontSize: 16,
+              textDecoration: "none",
+              padding: "15px 30px",
+              borderRadius: 8,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Open DSCR Calc →
+          </a>
         </div>
       </section>
     </DcShell>

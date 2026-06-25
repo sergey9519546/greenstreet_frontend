@@ -1,7 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono, HeroProof } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
+
+// ── Mint accent — the Stress Matrix colour identity ──────────────────────────
+// Hero section background: #e8e9bf (mint).  Nav stays midnight for contrast.
+const MINT = "#e8e9bf";
+const DARK_INK = "#003738";
 
 export default function StressMatrixPage({
   onBack,
@@ -72,25 +77,14 @@ export default function StressMatrixPage({
   const safeCount = (result?.zoneCounts.SAFE ?? 0) + (result?.zoneCounts.COMFORTABLE ?? 0);
   const breakCount = result?.zoneCounts.DEAL_BREAK ?? 0;
 
-  // Chip color for HeroProof based on base DSCR zone
-  const baseZone: StressRiskZone = classifyRiskZone(baseDSCR);
-  const zoneChipColor: Record<StressRiskZone, string> = {
-    SAFE: dc.emerald,
-    COMFORTABLE: dc.emerald,
-    MARGINAL: dc.lemon,
-    FRAGILE: "#f97316",
-    DEAL_BREAK: "#ff6b6b",
-  };
-  const chipColor = zoneChipColor[baseZone];
-
   // Cell background + ink colors matching the mockup's exact palette
   function cellStyle(zone: StressRiskZone, isBaseCell: boolean): React.CSSProperties {
     const styles: Record<StressRiskZone, { bg: string; ink: string }> = {
-      SAFE:       { bg: dc.rain,             ink: dc.cream },
-      COMFORTABLE:{ bg: dc.emerald,          ink: dc.dark  },
-      MARGINAL:   { bg: "rgba(216,217,88,0.85)", ink: dc.dark },
-      FRAGILE:    { bg: "rgba(249,115,22,0.85)", ink: "#fff"  },
-      DEAL_BREAK: { bg: "rgba(255,107,107,0.9)", ink: "#fff"  },
+      SAFE:        { bg: dc.rain,                   ink: dc.cream },
+      COMFORTABLE: { bg: dc.emerald,                ink: dc.dark  },
+      MARGINAL:    { bg: "rgba(216,217,88,0.85)",   ink: dc.dark  },
+      FRAGILE:     { bg: "rgba(249,115,22,0.85)",   ink: "#fff"   },
+      DEAL_BREAK:  { bg: "rgba(255,107,107,0.9)",   ink: "#fff"   },
     };
     const { bg, ink } = styles[zone];
     return {
@@ -106,6 +100,37 @@ export default function StressMatrixPage({
     };
   }
 
+  // ── Preview cells for the hero mini-heatmap (4 rows × 10 cols = 40 cells) ──
+  const previewCells = useMemo(() => {
+    const RENT_OFFSETS = [-25, -20, -15, -10, -5, 0, 5, 10, 15, 20];
+    const BPS_ROWS = [-50, 0, 50, 100];
+    const loan = purchasePrice * (1 - downPct / 100);
+    const fixed = annualTaxes / 12 + annualInsurance / 12;
+    function pi(loanAmt: number, rate: number, months: number) {
+      const r = rate / 100 / 12;
+      if (r === 0) return loanAmt / months;
+      return (loanAmt * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+    }
+    const cells: { bg: string; ink: string; v: string }[] = [];
+    BPS_ROWS.forEach((bps) => {
+      RENT_OFFSETS.forEach((rp) => {
+        const rate = Math.max(0.5, baseRate + bps / 100);
+        const piAmt = pi(loan, rate, 360);
+        const d = piAmt + fixed > 0 ? (monthlyRent * (1 + rp / 100)) / (piAmt + fixed) : 0;
+        const zone = classifyRiskZone(d);
+        const { bg, ink } = {
+          SAFE:        { bg: dc.rain,                 ink: dc.cream },
+          COMFORTABLE: { bg: dc.emerald,              ink: dc.dark  },
+          MARGINAL:    { bg: "rgba(216,217,88,0.85)", ink: dc.dark  },
+          FRAGILE:     { bg: "rgba(249,115,22,0.85)", ink: "#fff"   },
+          DEAL_BREAK:  { bg: "rgba(255,107,107,0.9)", ink: "#fff"   },
+        }[zone];
+        cells.push({ bg, ink, v: d.toFixed(1) });
+      });
+    });
+    return cells;
+  }, [purchasePrice, downPct, baseRate, monthlyRent, annualTaxes, annualInsurance]);
+
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
     const el = document.querySelector("#sm-tool");
@@ -114,11 +139,11 @@ export default function StressMatrixPage({
 
   // ── Legend data ──────────────────────────────────────────────
   const legend: { zone: StressRiskZone; label: string; color: string }[] = [
-    { zone: "SAFE",       label: "SAFE ≥1.50",       color: dc.rain    },
-    { zone: "COMFORTABLE",label: "COMFORTABLE ≥1.25", color: dc.emerald },
-    { zone: "MARGINAL",   label: "MARGINAL ≥1.00",    color: "#d8d958"  },
-    { zone: "FRAGILE",    label: "FRAGILE ≥0.85",     color: "#f97316"  },
-    { zone: "DEAL_BREAK", label: "DEAL_BREAK <0.85",  color: "#ff6b6b"  },
+    { zone: "SAFE",        label: "SAFE ≥1.50",       color: dc.rain    },
+    { zone: "COMFORTABLE", label: "COMFORTABLE ≥1.25", color: dc.emerald },
+    { zone: "MARGINAL",    label: "MARGINAL ≥1.00",    color: "#d8d958"  },
+    { zone: "FRAGILE",     label: "FRAGILE ≥0.85",     color: "#f97316"  },
+    { zone: "DEAL_BREAK",  label: "DEAL_BREAK <0.85",  color: "#ff6b6b"  },
   ];
 
   return (
@@ -134,21 +159,43 @@ export default function StressMatrixPage({
       <style>{`
         .sm-num::-webkit-outer-spin-button,.sm-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .sm-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
+        .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:${dc.mono};font-size:9px;font-weight:700;}
       `}</style>
 
-      {/* ── HERO ─────────────────────────────────────────────── */}
+      {/* ── HERO — mint background, dark ink ─────────────────── */}
       <section
         style={{
           position: "relative",
-          background: dc.dark,
-          color: dc.cream,
+          background: MINT,
           overflow: "hidden",
           minHeight: "clamp(480px,60vh,760px)",
           display: "flex",
           alignItems: "center",
         }}
       >
-        <div className="gs-dot-grid" />
+        {/* Dot grid — dark dots on mint */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: "radial-gradient(rgba(0,0,0,0.04) 1px,transparent 1px)",
+            backgroundSize: "34px 34px",
+            pointerEvents: "none",
+          }}
+        />
+        {/* Radial accent blob */}
+        <div
+          style={{
+            position: "absolute",
+            top: "-15%",
+            right: "-5%",
+            width: "50%",
+            aspectRatio: "1",
+            borderRadius: "50%",
+            background: "radial-gradient(circle,rgba(0,101,101,0.09),transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
         <div
           className="dc-hero"
           style={{
@@ -163,7 +210,7 @@ export default function StressMatrixPage({
             alignItems: "center",
           }}
         >
-          {/* Left — stagger fires on id="gs-hero-content" */}
+          {/* Left — hero copy on mint */}
           <div id="gs-hero-content">
             <div
               style={{
@@ -171,7 +218,7 @@ export default function StressMatrixPage({
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.lemon,
+                color: "#006565",
                 marginBottom: 22,
               }}
             >
@@ -179,18 +226,15 @@ export default function StressMatrixPage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
+                fontSize: "clamp(46px,7vw,108px)",
                 fontWeight: 600,
                 lineHeight: 0.93,
                 letterSpacing: "-0.04em",
                 margin: "0 0 28px",
+                color: DARK_INK,
               }}
             >
-              See every
-              <br />
-              stress scenario
-              <br />
-              at once.
+              See every stress scenario in one view.
             </h1>
             <p
               style={{
@@ -198,133 +242,66 @@ export default function StressMatrixPage({
                 fontWeight: 500,
                 lineHeight: 1.5,
                 letterSpacing: "-0.02em",
-                color: "rgba(238,239,211,0.7)",
+                color: "rgba(0,55,56,0.65)",
                 maxWidth: "48ch",
                 margin: "0 0 36px",
               }}
             >
-              120 cells. Rate shocks &minus;150 to +200bps. Rent shocks &minus;25% to +20%.
-              Five risk zones from SAFE to DEAL_BREAK, computed live.
+              120 cells. Rate shocks &minus;150 to +200bps. Rent shocks &minus;25% to +20%. Five risk zones from SAFE to DEAL_BREAK.
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 48 }}>
-              <a
-                href="#sm-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                }}
-              >
-                Open the matrix ↓
-              </a>
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                }}
-              >
-                DSCR Calculator
-              </a>
-            </div>
-            {/* Stat row — count-up */}
-            <div style={{ display: "flex", gap: "clamp(24px,4vw,52px)", flexWrap: "wrap" }}>
-              <div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
-                    fontWeight: 600,
-                    color: dc.emerald,
-                    lineHeight: 1,
-                  }}
-                >
-                  <span data-count="120">0</span>
-                </Mono>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
-                  stress cells
-                </div>
-              </div>
-              <div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
-                    fontWeight: 600,
-                    color: dc.emerald,
-                    lineHeight: 1,
-                  }}
-                >
-                  <span data-count="5">0</span>
-                </Mono>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
-                  risk zones
-                </div>
-              </div>
-              <div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
-                    fontWeight: 600,
-                    color: dc.lemon,
-                    lineHeight: 1,
-                  }}
-                >
-                  live
-                </Mono>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
-                  as you type
-                </div>
-              </div>
-            </div>
+            <a
+              href="#sm-tool"
+              onClick={scrollToTool}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: DARK_INK,
+                color: MINT,
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: "none",
+                padding: "15px 30px",
+                borderRadius: 6,
+              }}
+            >
+              Open the matrix ↓
+            </a>
           </div>
 
-          {/* Right — live HeroProof: base DSCR + SAFE/DEAL_BREAK counts */}
-          <HeroProof
-            eyebrow="Live stress preview"
-            value={`${baseDSCR.toFixed(2)}x`}
-            sub={
-              <>
-                <span style={{ color: dc.emerald }}>{safeCount} SAFE</span>
-                {" · "}
-                <span style={{ color: "#ff6b6b" }}>{breakCount} DEAL_BREAK</span>
-                {" of "}
-                {result?.totalCells ?? 120}
-                {" cells"}
-              </>
-            }
-            chip={{ label: baseZone, color: chipColor }}
-          />
+          {/* Right — live mini heatmap (4×10 preview grid) */}
+          <div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(10, 1fr)",
+                gap: 5,
+                background: DARK_INK,
+                borderRadius: 14,
+                padding: 14,
+              }}
+            >
+              {previewCells.map((c, i) => (
+                <div
+                  key={i}
+                  className="sm-cell-mini"
+                  style={{ background: c.bg, color: c.ink }}
+                >
+                  {c.v}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── 3-STEP BAND ──────────────────────────────────────── */}
+      {/* ── 3-STEP BAND (from mockup §59–68) ─────────────────── */}
       <section
         className="gs-reveal"
         style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div
-            className="dc-band-3"
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr",
@@ -402,7 +379,6 @@ export default function StressMatrixPage({
                 Base deal
               </div>
 
-              {/* Purchase Price */}
               <InputField label="Purchase Price" prefix="$">
                 <input
                   className="sm-num"
@@ -414,7 +390,6 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              {/* Down % */}
               <InputField label="Down %" suffix="%">
                 <input
                   className="sm-num"
@@ -428,7 +403,6 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              {/* Base Rate */}
               <InputField label="Base Rate" suffix="%">
                 <input
                   className="sm-num"
@@ -440,7 +414,6 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              {/* Monthly Rent */}
               <InputField label="Monthly Rent" prefix="$">
                 <input
                   className="sm-num"
@@ -452,7 +425,6 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              {/* Annual Taxes */}
               <InputField label="Annual Taxes" prefix="$">
                 <input
                   className="sm-num"
@@ -464,7 +436,6 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              {/* Annual Insurance */}
               <InputField label="Annual Insurance" prefix="$">
                 <input
                   className="sm-num"
@@ -476,7 +447,6 @@ export default function StressMatrixPage({
                 />
               </InputField>
 
-              {/* HOA */}
               <InputField label="Monthly HOA" prefix="$">
                 <input
                   className="sm-num"

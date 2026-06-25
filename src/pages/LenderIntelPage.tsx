@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono, HeroProof } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 
 interface Props {
@@ -120,16 +120,12 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
   const hr = HIGH_RISK_STATES.includes((stateCode || "").toUpperCase());
 
-  // Hero chip: best-fit program name or "No match"
-  const bestFit = scored[0];
-  const heroChipLabel = bestFit?.fits ? `${matchCount} of ${total} fit` : `${matchCount} of ${total} fit`;
-  const heroChipColor = matchCount > 0 ? dc.rain : "#b04545";
-
   return (
     <DcShell
       onNavigate={onNavigate}
+      accent="#004041"
       navLinks={[
-        { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Calculator", view: "dscr-calculator" },
         { label: "Deal Analyzer", view: "deal-analyzer" },
         { label: "State Rules", view: "state-laws" },
       ]}
@@ -141,227 +137,83 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         .li-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ── HERO ── */}
+      {/* ── HERO — dark-teal, single-column, mockup-faithful ── */}
       <section
         style={{
-          position: "relative",
-          background: dc.dark,
+          background: dc.teal,
           color: dc.cream,
+          padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(56px,7vh,88px)",
           overflow: "hidden",
-          minHeight: "clamp(480px,60vh,760px)",
-          display: "flex",
-          alignItems: "center",
         }}
       >
-        <div className="gs-dot-grid" />
-        <div
-          className="dc-hero"
-          style={{
-            position: "relative",
-            width: "100%",
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            padding: `clamp(48px,7vh,88px) ${dc.pad}`,
-            display: "grid",
-            gridTemplateColumns: "1.1fr 0.9fr",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "center",
-          }}
-        >
-          {/* Left — hero stagger */}
-          <div id="gs-hero-content">
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: dc.lemon,
-                marginBottom: 22,
-              }}
-            >
-              Lender Intelligence &middot; {total} Programs &middot; Live scoring
-            </div>
-            <h1
-              style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 28px",
-              }}
-            >
-              {total} Greenstreet
-              <br />
-              programs,
-              <br />
-              ranked live.
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
-                color: "rgba(238,239,211,0.7)",
-                maxWidth: "46ch",
-                margin: "0 0 36px",
-              }}
-            >
-              Real DSCR program boxes — FICO floors, LTV caps, DSCR minimums, state
-              coverage. Dial in your deal; every program scores and re-ranks instantly.
-            </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 44 }}>
-              <a
-                href="#li-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                }}
-              >
-                Match my deal ↓
-              </a>
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                }}
-              >
-                Full deal analyzer
-              </a>
-            </div>
-            {/* Count-up stats */}
-            <div style={{ display: "flex", gap: "clamp(24px,4vw,52px)", flexWrap: "wrap" }}>
-              <div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
-                    fontWeight: 600,
-                    color: dc.emerald,
-                    lineHeight: 1,
-                  }}
-                >
-                  <span data-count={total}>0</span>
-                </Mono>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
-                  DSCR programs
-                </div>
-              </div>
-              <div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
-                    fontWeight: 600,
-                    color: dc.emerald,
-                    lineHeight: 1,
-                  }}
-                >
-                  <span data-count={50}>0</span>
-                </Mono>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
-                  states covered
-                </div>
-              </div>
-              <div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,4vw,52px)",
-                    fontWeight: 600,
-                    color: dc.lemon,
-                    lineHeight: 1,
-                  }}
-                >
-                  85%
-                </Mono>
-                <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
-                  max LTV available
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right — live product surface */}
-          <HeroProof
-            eyebrow="Live program match"
-            value={
-              <span>
-                <span data-count={matchCount} style={{ display: "inline" }}>{matchCount}</span>
-                <span style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 500, opacity: 0.55 }}>/{total}</span>
-              </span>
-            }
-            sub={
-              bestFit?.fits
-                ? `Best fit: ${bestFit.name}`
-                : matchCount === 0
-                ? "Adjust the deal box below"
-                : `${matchCount} program${matchCount !== 1 ? "s" : ""} qualify`
-            }
-            chip={{ label: heroChipLabel, color: heroChipColor }}
-          />
-        </div>
-      </section>
-
-      {/* ── 3-STEP BAND ── */}
-      <section
-        className="gs-reveal"
-        style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+        <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          {/* Eyebrow */}
           <div
-            className="dc-band-3"
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: "1px",
-              background: "rgba(0,55,56,0.12)",
-              borderRadius: 9,
-              overflow: "hidden",
+              fontSize: 13,
+              fontWeight: 500,
+              color: "rgba(238,239,211,0.5)",
+              marginBottom: 20,
+              letterSpacing: "-0.01em",
             }}
           >
-            <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.lemon, marginBottom: 14, lineHeight: 1 }}>01</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Enter your deal</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.6)", margin: 0, letterSpacing: "-0.01em" }}>
-                FICO, LTV, DSCR, loan amount, state. Five inputs — fifteen seconds.
-              </p>
-            </div>
-            <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.emerald, marginBottom: 14, lineHeight: 1 }}>02</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Score & rank</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                Every program checks four criteria. Fit score updates live as you change any input.
-              </p>
-            </div>
-            <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Apply once</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                One application covers all Greenstreet programs. We place your file into the best fit and fund it in-house.
-              </p>
-            </div>
+            Product / Lender Intelligence
+          </div>
+
+          {/* H1 */}
+          <h1
+            style={{
+              fontSize: "clamp(46px,6.4vw,92px)",
+              fontWeight: 600,
+              lineHeight: 0.97,
+              letterSpacing: "-0.035em",
+              margin: "0 0 24px",
+              maxWidth: "15ch",
+            }}
+          >
+            {total} lenders, ranked for your exact deal.
+          </h1>
+
+          {/* Sub */}
+          <p
+            style={{
+              fontSize: "clamp(18px,1.6vw,23px)",
+              fontWeight: 500,
+              lineHeight: 1.45,
+              letterSpacing: "-0.02em",
+              color: "rgba(238,239,211,0.7)",
+              maxWidth: "52ch",
+              margin: "0 0 40px",
+            }}
+          >
+            A provenance-tracked database of real DSCR program boxes — FICO floors,
+            LTV caps, DSCR minimums, state coverage and entity rules. Score your deal
+            against every one.
+          </p>
+
+          {/* Program name chips — the hero's live "19 chips" identity */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, maxWidth: 920 }}>
+            {scored.map((p) => (
+              <span
+                key={p.id}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  background: p.fits
+                    ? "rgba(238,239,211,0.15)"
+                    : "rgba(238,239,211,0.06)",
+                  border: `1px solid ${p.fits ? "rgba(238,239,211,0.3)" : "rgba(238,239,211,0.12)"}`,
+                  borderRadius: 6,
+                  padding: "8px 14px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: p.fits ? dc.cream : "rgba(238,239,211,0.55)",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {p.name}
+              </span>
+            ))}
           </div>
         </div>
       </section>

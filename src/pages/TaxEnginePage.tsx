@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { DcShell, dc, Mono, HeroProof } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 import { computeAfterTaxIRR } from "../engine/taxEngine";
 import { calculatePI } from "../engine/engine";
 import type { TaxProfile, FilingStatus } from "../engine/types";
@@ -128,19 +128,41 @@ export default function TaxEnginePage({
         .te-sel{width:100%;border:none;outline:none;font-family:${dc.sans};-webkit-appearance:none;cursor:pointer;background:transparent;color:${dc.cream};letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ── HERO ── */}
+      {/* ── HERO — lemon field, dark ink ── */}
       <section
         style={{
           position: "relative",
-          background: dc.dark,
-          color: dc.cream,
+          background: dc.lemon,
+          color: dc.dark,
           overflow: "hidden",
           minHeight: "clamp(480px,60vh,760px)",
           display: "flex",
           alignItems: "center",
         }}
       >
-        <div className="gs-dot-grid" />
+        {/* subtle dot grid in dark ink at low opacity */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: "radial-gradient(rgba(0,55,56,0.06) 1px,transparent 1px)",
+            backgroundSize: "34px 34px",
+            pointerEvents: "none",
+          }}
+        />
+        {/* ambient radial glow */}
+        <div
+          style={{
+            position: "absolute",
+            top: "-20%",
+            right: "-8%",
+            width: "55%",
+            aspectRatio: "1",
+            borderRadius: "50%",
+            background: "radial-gradient(circle,rgba(0,55,56,0.08),transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
         <div
           className="dc-hero"
           style={{
@@ -162,7 +184,7 @@ export default function TaxEnginePage({
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.lemon,
+                color: "rgba(0,55,56,0.6)",
                 marginBottom: 22,
               }}
             >
@@ -170,11 +192,12 @@ export default function TaxEnginePage({
             </div>
             <h1
               style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
+                fontSize: "clamp(46px,7vw,108px)",
                 fontWeight: 600,
                 lineHeight: 0.93,
                 letterSpacing: "-0.04em",
                 margin: "0 0 28px",
+                color: dc.dark,
               }}
             >
               What does it really earn after taxes?
@@ -185,244 +208,101 @@ export default function TaxEnginePage({
                 fontWeight: 500,
                 lineHeight: 1.5,
                 letterSpacing: "-0.02em",
-                color: "rgba(238,239,211,0.7)",
+                color: "rgba(0,55,56,0.72)",
                 maxWidth: "48ch",
                 margin: "0 0 36px",
               }}
             >
               After-tax IRR with depreciation shield, §1250 recapture, LTCG,
-              NIIT, and IRC §469 passive-loss rules — wired to real engine
-              output, not estimates.
+              NIIT and IRC §469 passive-loss rules.
             </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a
-                href="#te-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                }}
-              >
-                Open the tax engine ↓
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigate?.("deal-analyzer");
-                }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                }}
-              >
-                Deal Analyzer
-              </a>
-            </div>
+            <a
+              href="#te-tool"
+              onClick={scrollToTool}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: dc.dark,
+                color: dc.lemon,
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: "none",
+                padding: "15px 30px",
+                borderRadius: 6,
+              }}
+            >
+              Open the tax engine ↓
+            </a>
           </div>
 
-          {/* Right — live HeroProof wired to real After-Tax IRR */}
-          <HeroProof
-            eyebrow="After-Tax IRR Engine"
-            value={
-              <span style={{ color: irrColor }}>{afterTaxStr}</span>
-            }
-            sub={
-              result
-                ? `Pre-tax ${preTaxStr} · Tax drag ${dragStr}`
-                : "Enter inputs to compute"
-            }
-            chip={
-              result
-                ? {
-                    label:
-                      afterTaxIRR >= 10
-                        ? "STRONG RETURN"
-                        : afterTaxIRR >= 6
-                        ? "MODERATE"
-                        : "REVIEW DEAL",
-                    color: irrColor,
-                  }
-                : undefined
-            }
-          />
-        </div>
-      </section>
-
-      {/* ── 3-STEP BAND ── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          {/* Right — live IRR card matching the mockup's dark teal panel */}
           <div
-            className="gs-reveal dc-band-3"
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: "1px",
-              background: "rgba(0,55,56,0.12)",
-              borderRadius: 9,
-              overflow: "hidden",
+              background: dc.dark,
+              borderRadius: 16,
+              padding: 28,
+              color: dc.cream,
             }}
           >
-            {/* Step 01 */}
             <div
               style={{
-                background: dc.cream,
-                padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: dc.lemon,
+                marginBottom: 16,
               }}
             >
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(32px,4vw,52px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.03em",
-                  color: dc.lemon,
-                  marginBottom: 14,
-                  lineHeight: 1,
-                }}
-              >
-                01
-              </Mono>
-              <h3
-                style={{
-                  fontSize: "clamp(20px,2.2vw,28px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.025em",
-                  margin: "0 0 10px",
-                  lineHeight: 1.1,
-                }}
-              >
-                Depreciation
-              </h3>
-              <p
-                style={{
-                  fontSize: "clamp(15px,1.2vw,17px)",
-                  fontWeight: 500,
-                  lineHeight: 1.55,
-                  color: "rgba(0,55,56,0.6)",
-                  margin: 0,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                IRC §167 27.5yr straight-line on building basis. Land excluded.
-                Annual shield computed from your actual allocation.
-              </p>
+              After-Tax IRR Engine
             </div>
-
-            {/* Step 02 */}
-            <div
-              style={{
-                background: dc.dark,
-                color: dc.cream,
-                padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
-              }}
-            >
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(32px,4vw,52px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.03em",
+            <div style={{ display: "flex", flexDirection: "column", gap: 0, marginBottom: 18 }}>
+              {[
+                {
+                  label: "Depreciation shield",
+                  val: result ? fmt$(result.totalDepreciationShield / Math.max(1, holdYears)) + "/yr" : "—",
                   color: dc.emerald,
-                  marginBottom: 14,
-                  lineHeight: 1,
-                }}
-              >
-                02
-              </Mono>
-              <h3
-                style={{
-                  fontSize: "clamp(20px,2.2vw,28px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.025em",
-                  margin: "0 0 10px",
-                  lineHeight: 1.1,
+                },
+                {
+                  label: "Pre-tax IRR",
+                  val: preTaxStr,
                   color: dc.cream,
-                }}
-              >
-                PAL rules
-              </h3>
-              <p
-                style={{
-                  fontSize: "clamp(15px,1.2vw,17px)",
-                  fontWeight: 500,
-                  lineHeight: 1.55,
-                  color: "rgba(238,239,211,0.65)",
-                  margin: 0,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                IRC §469 passive-activity-loss rules with REP exception and the
-                $25K/$12.5K MAGI-phased allowance.
-              </p>
+                },
+                {
+                  label: "Tax drag",
+                  val: drag > 0 ? "-" + Math.abs(drag).toFixed(1) + " pts" : drag.toFixed(1) + " pts",
+                  color: "#ff6b6b",
+                },
+              ].map((r) => (
+                <div
+                  key={r.label}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 13,
+                    padding: "8px 0",
+                    borderBottom: "1px solid rgba(238,239,211,0.1)",
+                  }}
+                >
+                  <span style={{ color: "rgba(238,239,211,0.6)" }}>{r.label}</span>
+                  <Mono style={{ color: r.color, fontWeight: 700, fontSize: 13 }}>{r.val}</Mono>
+                </div>
+              ))}
             </div>
-
-            {/* Step 03 */}
-            <div
-              style={{
-                background: dc.lemon,
-                padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: dc.lemon }}>After-Tax IRR</span>
               <Mono
                 style={{
-                  display: "block",
-                  fontSize: "clamp(32px,4vw,52px)",
+                  fontSize: "clamp(36px,4vw,48px)",
                   fontWeight: 600,
+                  color: irrColor,
                   letterSpacing: "-0.03em",
-                  color: "rgba(0,55,56,0.5)",
-                  marginBottom: 14,
                   lineHeight: 1,
                 }}
               >
-                03
+                {afterTaxStr}
               </Mono>
-              <h3
-                style={{
-                  fontSize: "clamp(20px,2.2vw,28px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.025em",
-                  margin: "0 0 10px",
-                  lineHeight: 1.1,
-                }}
-              >
-                Exit tax
-              </h3>
-              <p
-                style={{
-                  fontSize: "clamp(15px,1.2vw,17px)",
-                  fontWeight: 500,
-                  lineHeight: 1.55,
-                  color: "rgba(0,55,56,0.65)",
-                  margin: 0,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                §1250 recapture at 25%, LTCG at 0/15/20%, §1411 NIIT 3.8%
-                where MAGI exceeds threshold.
-              </p>
             </div>
           </div>
         </div>
