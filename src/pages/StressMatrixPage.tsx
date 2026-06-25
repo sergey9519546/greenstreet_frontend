@@ -1,12 +1,41 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
 
+gsap.registerPlugin(ScrollTrigger, useGSAP);
+
 // ── Mint accent — the Stress Matrix colour identity ──────────────────────────
-// Hero section background: #e8e9bf (mint).  Nav stays midnight for contrast.
 const MINT = "#e8e9bf";
 const DARK_INK = "#003738";
+
+// ── Risk zone display config ─────────────────────────────────────────────────
+const ZONE_COLORS: Record<StressRiskZone, { bg: string; ink: string }> = {
+  SAFE:        { bg: dc.rain,                   ink: dc.cream },
+  COMFORTABLE: { bg: dc.emerald,                ink: dc.dark  },
+  MARGINAL:    { bg: "rgba(216,217,88,0.85)",   ink: dc.dark  },
+  FRAGILE:     { bg: "rgba(249,115,22,0.85)",   ink: "#fff"   },
+  DEAL_BREAK:  { bg: "rgba(255,107,107,0.9)",   ink: "#fff"   },
+};
+
+const ZONE_ACCENT: Record<StressRiskZone, string> = {
+  SAFE:        dc.rain,
+  COMFORTABLE: dc.emerald,
+  MARGINAL:    "#d8d958",
+  FRAGILE:     "#f97316",
+  DEAL_BREAK:  "#ff6b6b",
+};
+
+// ── Pinned cell info shape ───────────────────────────────────────────────────
+interface PinnedCell {
+  rateBps: number;      // offset bps from base (e.g. +150)
+  rentPct: number;      // rent offset % (e.g. -10)
+  dscr: number;
+  zone: StressRiskZone;
+}
 
 export default function StressMatrixPage({
   onBack,
@@ -28,6 +57,22 @@ export default function StressMatrixPage({
   const [annualTaxes, setAnnualTaxes] = useState(5000);
   const [annualInsurance, setAnnualInsurance] = useState(2000);
   const [hoa, setHoa] = useState(0);
+
+  // ── Hover tooltip state ──────────────────────────────────────
+  const [hoverCell, setHoverCell] = useState<{
+    rateBps: number;
+    rentPct: number;
+    dscr: number;
+    zone: StressRiskZone;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // ── Pinned cell (click-to-pin) ───────────────────────────────
+  const [pinned, setPinned] = useState<PinnedCell | null>(null);
+
+  // ── GSAP ref for the heatmap build-in ───────────────────────
+  const matrixRef = useRef<HTMLDivElement>(null);
 
   // ── Engine computation ───────────────────────────────────────
   const result = useMemo(() => {
@@ -72,21 +117,39 @@ export default function StressMatrixPage({
     }
   }, [purchasePrice, downPct, baseRate, monthlyRent, annualTaxes, annualInsurance, hoa]);
 
+  // ── GSAP build-in: cells pop/fade from top-left corner on scroll-into-view ──
+  useGSAP(
+    () => {
+      if (
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+      )
+        return;
+
+      gsap.from(".sm-cell", {
+        opacity: 0,
+        scale: 0.72,
+        duration: 0.38,
+        ease: "back.out(1.5)",
+        stagger: { each: 0.012, from: "start" },
+        scrollTrigger: {
+          trigger: matrixRef.current,
+          start: "top 84%",
+          once: true,
+        },
+      });
+    },
+    { scope: matrixRef, dependencies: [result] }
+  );
+
   // ── Derived display values ───────────────────────────────────
   const baseDSCR = result?.baseTrack1DSCR ?? 0;
   const safeCount = (result?.zoneCounts.SAFE ?? 0) + (result?.zoneCounts.COMFORTABLE ?? 0);
   const breakCount = result?.zoneCounts.DEAL_BREAK ?? 0;
 
-  // Cell background + ink colors matching the mockup's exact palette
-  function cellStyle(zone: StressRiskZone, isBaseCell: boolean): React.CSSProperties {
-    const styles: Record<StressRiskZone, { bg: string; ink: string }> = {
-      SAFE:        { bg: dc.rain,                   ink: dc.cream },
-      COMFORTABLE: { bg: dc.emerald,                ink: dc.dark  },
-      MARGINAL:    { bg: "rgba(216,217,88,0.85)",   ink: dc.dark  },
-      FRAGILE:     { bg: "rgba(249,115,22,0.85)",   ink: "#fff"   },
-      DEAL_BREAK:  { bg: "rgba(255,107,107,0.9)",   ink: "#fff"   },
-    };
-    const { bg, ink } = styles[zone];
+  // Cell background + ink colors
+  function cellStyle(zone: StressRiskZone, isBaseCell: boolean, isHovered: boolean): React.CSSProperties {
+    const { bg, ink } = ZONE_COLORS[zone];
     return {
       borderRadius: 4,
       background: bg,
@@ -96,7 +159,14 @@ export default function StressMatrixPage({
       fontFamily: dc.mono,
       textAlign: "center",
       padding: "6px 3px",
-      outline: isBaseCell ? `2px solid ${dc.lemon}` : "none",
+      outline: isBaseCell ? `2px solid ${dc.lemon}` : isHovered ? `2px solid rgba(255,255,255,0.7)` : "none",
+      outlineOffset: isBaseCell || isHovered ? 1 : 0,
+      filter: isHovered ? "brightness(1.18)" : "none",
+      transform: isHovered ? "scale(1.08)" : "scale(1)",
+      transition: "filter 0.12s, transform 0.12s, outline-color 0.12s",
+      cursor: "pointer",
+      position: "relative",
+      zIndex: isHovered ? 2 : 1,
     };
   }
 
@@ -118,13 +188,7 @@ export default function StressMatrixPage({
         const piAmt = pi(loan, rate, 360);
         const d = piAmt + fixed > 0 ? (monthlyRent * (1 + rp / 100)) / (piAmt + fixed) : 0;
         const zone = classifyRiskZone(d);
-        const { bg, ink } = {
-          SAFE:        { bg: dc.rain,                 ink: dc.cream },
-          COMFORTABLE: { bg: dc.emerald,              ink: dc.dark  },
-          MARGINAL:    { bg: "rgba(216,217,88,0.85)", ink: dc.dark  },
-          FRAGILE:     { bg: "rgba(249,115,22,0.85)", ink: "#fff"   },
-          DEAL_BREAK:  { bg: "rgba(255,107,107,0.9)", ink: "#fff"   },
-        }[zone];
+        const { bg, ink } = ZONE_COLORS[zone];
         cells.push({ bg, ink, v: d.toFixed(1) });
       });
     });
@@ -146,6 +210,11 @@ export default function StressMatrixPage({
     { zone: "DEAL_BREAK",  label: "DEAL_BREAK <0.85",  color: "#ff6b6b"  },
   ];
 
+  // ── Zone label readable string ───────────────────────────────
+  function zoneLabel(zone: StressRiskZone): string {
+    return zone.replace("_", " ");
+  }
+
   return (
     <DcShell
       onNavigate={onNavigate}
@@ -155,11 +224,12 @@ export default function StressMatrixPage({
       ]}
       cta={{ label: "Run stress test →", onClick: scrollToTool }}
     >
-      {/* Spinner suppression — the one allowed local style */}
+      {/* Spinner suppression + cell hover styles */}
       <style>{`
         .sm-num::-webkit-outer-spin-button,.sm-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .sm-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:${dc.mono};font-size:9px;font-weight:700;}
+        .sm-cell{display:block;width:100%;}
       `}</style>
 
       {/* ── HERO — mint background, dark ink ─────────────────── */}
@@ -316,7 +386,7 @@ export default function StressMatrixPage({
         </div>
       </section>
 
-      {/* ── 3-STEP BAND (from mockup §59–68) ─────────────────── */}
+      {/* ── 3-STEP BAND ──────────────────────────────────────── */}
       <section
         className="gs-reveal"
         style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}
@@ -492,7 +562,7 @@ export default function StressMatrixPage({
               </div>
             </div>
 
-            {/* ── HEATMAP ──────────────────────────────────────── */}
+            {/* ── HEATMAP + PINNED READOUT ──────────────────────── */}
             <div>
               {!result ? (
                 <div style={{ padding: 40, textAlign: "center", color: "#ff6b6b", background: "rgba(255,107,107,0.08)", borderRadius: 9, border: "1px solid rgba(255,107,107,0.3)" }}>
@@ -513,8 +583,12 @@ export default function StressMatrixPage({
                     DOWN = rate offset bps &middot; ACROSS = rent offset %
                   </div>
 
-                  {/* Heatmap table */}
-                  <div style={{ overflowX: "auto" }}>
+                  {/* ── Heatmap table — wrapped in a position:relative container for the tooltip ── */}
+                  <div
+                    ref={matrixRef}
+                    style={{ overflowX: "auto", position: "relative" }}
+                    onMouseLeave={() => setHoverCell(null)}
+                  >
                     <table style={{ borderCollapse: "separate", borderSpacing: 2, minWidth: 580 }}>
                       <thead>
                         <tr>
@@ -552,9 +626,39 @@ export default function StressMatrixPage({
                               </td>
                               {row.map((cell, ci) => {
                                 const isBaseCell = isBaseRow && Math.abs(cell.rentOffsetPct) < 0.001;
+                                const isHovered =
+                                  hoverCell !== null &&
+                                  hoverCell.rateBps === offsetBps &&
+                                  Math.abs(hoverCell.rentPct - cell.rentOffsetPct) < 0.001;
                                 return (
-                                  <td key={ci} style={{ padding: 2 }} title={cell.interpretation}>
-                                    <div style={cellStyle(cell.riskZone, isBaseCell)}>
+                                  <td
+                                    key={ci}
+                                    style={{ padding: 2 }}
+                                    onMouseEnter={(e) => {
+                                      const rect = (e.currentTarget.closest("[style*='overflow']") as HTMLElement)?.getBoundingClientRect();
+                                      const tdRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                      setHoverCell({
+                                        rateBps: offsetBps,
+                                        rentPct: cell.rentOffsetPct,
+                                        dscr: cell.track1DSCR,
+                                        zone: cell.riskZone,
+                                        x: rect ? tdRect.left - rect.left + tdRect.width / 2 : 0,
+                                        y: rect ? tdRect.top - rect.top : 0,
+                                      });
+                                    }}
+                                    onClick={() => {
+                                      setPinned({
+                                        rateBps: offsetBps,
+                                        rentPct: cell.rentOffsetPct,
+                                        dscr: cell.track1DSCR,
+                                        zone: cell.riskZone,
+                                      });
+                                    }}
+                                  >
+                                    <div
+                                      className="sm-cell"
+                                      style={cellStyle(cell.riskZone, isBaseCell, isHovered)}
+                                    >
                                       {cell.track1DSCR.toFixed(2)}
                                     </div>
                                   </td>
@@ -565,7 +669,99 @@ export default function StressMatrixPage({
                         })}
                       </tbody>
                     </table>
+
+                    {/* ── Floating hover tooltip (follows cursor via cell position) ── */}
+                    {hoverCell && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: hoverCell.x + 10,
+                          top: hoverCell.y - 8,
+                          pointerEvents: "none",
+                          background: "#001f20",
+                          border: `1px solid ${ZONE_ACCENT[hoverCell.zone]}44`,
+                          borderRadius: 8,
+                          padding: "10px 13px",
+                          minWidth: 168,
+                          boxShadow: "0 14px 32px -8px rgba(0,0,0,0.7)",
+                          zIndex: 20,
+                        }}
+                      >
+                        {/* Rate + rent shock line */}
+                        <div style={{ display: "flex", gap: 8, marginBottom: 7, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: dc.mono, color: "rgba(238,239,211,0.55)", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "2px 6px" }}>
+                            {hoverCell.rateBps >= 0 ? "+" : ""}{hoverCell.rateBps} bps
+                          </span>
+                          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: dc.mono, color: "rgba(238,239,211,0.55)", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "2px 6px" }}>
+                            {hoverCell.rentPct >= 0 ? "+" : ""}{hoverCell.rentPct.toFixed(0)}% rent
+                          </span>
+                        </div>
+                        {/* DSCR — mono, prominent */}
+                        <div style={{ fontSize: 22, fontWeight: 700, fontFamily: dc.mono, color: dc.cream, letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 5 }}>
+                          {hoverCell.dscr.toFixed(2)}x
+                        </div>
+                        {/* Zone badge */}
+                        <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ZONE_ACCENT[hoverCell.zone], padding: "2px 0" }}>
+                          {zoneLabel(hoverCell.zone)}
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* ── Click-to-pin readout ─────────────────────── */}
+                  {pinned && (
+                    <div
+                      style={{
+                        marginTop: 20,
+                        background: "#001f20",
+                        border: `1.5px solid ${ZONE_ACCENT[pinned.zone]}55`,
+                        borderRadius: 10,
+                        padding: "18px 22px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 24,
+                        flexWrap: "wrap",
+                        position: "relative",
+                      }}
+                    >
+                      {/* Dismiss */}
+                      <button
+                        onClick={() => setPinned(null)}
+                        aria-label="Dismiss pinned scenario"
+                        style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", color: "rgba(238,239,211,0.3)", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: 0 }}
+                      >
+                        ×
+                      </button>
+
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Rate shock</div>
+                        <Mono style={{ fontSize: 20, fontWeight: 700, color: dc.cream }}>
+                          {pinned.rateBps >= 0 ? "+" : ""}{pinned.rateBps} bps
+                        </Mono>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Rent shock</div>
+                        <Mono style={{ fontSize: 20, fontWeight: 700, color: dc.cream }}>
+                          {pinned.rentPct >= 0 ? "+" : ""}{pinned.rentPct.toFixed(0)}%
+                        </Mono>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>DSCR</div>
+                        <Mono style={{ fontSize: 28, fontWeight: 700, color: dc.lemon, letterSpacing: "-0.03em" }}>
+                          {pinned.dscr.toFixed(2)}x
+                        </Mono>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Risk zone</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.01em", color: ZONE_ACCENT[pinned.zone] }}>
+                          {zoneLabel(pinned.zone)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Legend */}
                   <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 16 }}>
