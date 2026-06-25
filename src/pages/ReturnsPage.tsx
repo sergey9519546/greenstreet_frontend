@@ -62,20 +62,20 @@ function calcIRR(opts: {
   const hold = Math.max(1, Math.min(15, holdYears));
   const cfs: number[] = [-cashInv];
 
+  // NOI must match returnsEngine: mgmt 8% + maint 5% + turnover 2% of GROSS rent
+  // (before vacancy). Omitting these overstates IRR — dangerous for a lending tool.
+  const OPEX_PCT = 15;
+  const noiForYear = (yrOffset: number) => {
+    const gross = monthlyRent * 12 * Math.pow(1 + rentGrowth / 100, yrOffset);
+    const egi = gross * (1 - vacancy / 100);
+    return egi - annualTaxes - annualInsurance - hoa * 12 - gross * (OPEX_PCT / 100);
+  };
+
   for (let yr = 1; yr <= hold; yr++) {
-    const rentY =
-      monthlyRent * 12 * Math.pow(1 + rentGrowth / 100, yr - 1) * (1 - vacancy / 100);
-    const noi = rentY - annualTaxes - annualInsurance - hoa * 12;
+    const noi = noiForYear(yr - 1);
     let cf = noi - piMo * 12;
     if (yr === hold) {
-      const stabNOI =
-        monthlyRent *
-          12 *
-          Math.pow(1 + rentGrowth / 100, yr) *
-          (1 - vacancy / 100) -
-        annualTaxes -
-        annualInsurance -
-        hoa * 12;
+      const stabNOI = noiForYear(yr); // next-year stabilized NOI capitalizes the exit
       const exit = stabNOI / (exitCapRate / 100);
       const bal = remBal(hold * 12);
       cf += exit - exit * 0.06 - bal - loan * (prepayAtExit / 100);
@@ -195,15 +195,12 @@ export default function ReturnsPage({
     prepayAtExit,
   };
 
-  // Prefer real engine IRR; fall back to inline bisection if engine failed
-  const levIRR =
-    engineResult !== null
-      ? engineResult.leveredIRR
-      : calcIRR(irrOpts) * 100;
-  const unlIRR =
-    engineResult !== null
-      ? engineResult.unleveredIRR
-      : calcIRR({ ...irrOpts, ltv: 0 }) * 100;
+  // IRR via the inline model so the headline honors *every* input the user can
+  // edit — exit cap, rent growth, vacancy, prepay — exactly like the sensitivity
+  // matrix below. computeReturns uses fixed internal exit assumptions, so the
+  // engine IRR would ignore those three fields and the headline would go stale.
+  const levIRR = calcIRR(irrOpts) * 100;
+  const unlIRR = calcIRR({ ...irrOpts, ltv: 0 }) * 100;
 
   const cashInv = purchasePrice * (1 - ltv / 100);
   const em = engineResult !== null ? engineResult.equityMultiple : 1;
@@ -216,11 +213,16 @@ export default function ReturnsPage({
   const irrStr = levIRR.toFixed(1) + "%";
   const emStr = em.toFixed(2) + "x";
 
-  // Returns stack — prefer engine values, guard against null
-  const entryCapRate = engineResult !== null ? engineResult.entryCapRate * 100 : 0;
-  const yoc = engineResult !== null ? engineResult.yieldOnCost * 100 : 0;
-  const debtYield = engineResult !== null ? engineResult.debtYield * 100 : 0;
-  const coc = engineResult !== null ? engineResult.year1CashOnCash * 100 : 0;
+  // Hero bars scale to the real computed returns (20% IRR ≈ full bar), so the
+  // heights are honest and animate live as inputs change.
+  const barH = (v: number) => `${Math.max(6, Math.min(72, (v / 20) * 72))}%`;
+
+  // Returns stack — engine already returns these as percentages (see returnsEngine
+  // lines 156-159: `x * 10000 / 100`), so do NOT scale again.
+  const entryCapRate = engineResult !== null ? engineResult.entryCapRate : 0;
+  const yoc = engineResult !== null ? engineResult.yieldOnCost : 0;
+  const debtYield = engineResult !== null ? engineResult.debtYield : 0;
+  const coc = engineResult !== null ? engineResult.year1CashOnCash : 0;
 
   const stack = [
     { label: "Entry Cap Rate", val: entryCapRate.toFixed(2) + "%", color: dc.cream },
@@ -379,21 +381,21 @@ export default function ReturnsPage({
             }}
           >
             <HeroBar
-              heightPct="32%"
+              heightPct={barH(coc)}
               gradient="linear-gradient(180deg,#4dbd97,#006565)"
               label="CoC"
-              valLabel="8.2%"
+              valLabel={coc.toFixed(1) + "%"}
               valColor={dc.emerald}
             />
             <HeroBar
-              heightPct="44%"
+              heightPct={barH(unlIRR)}
               gradient="linear-gradient(180deg,#4dbd97,#006565)"
               label="Unlev."
-              valLabel="9.1%"
+              valLabel={unlIRR.toFixed(1) + "%"}
               valColor={dc.emerald}
             />
             <HeroBar
-              heightPct="58%"
+              heightPct={barH(levIRR)}
               gradient={`linear-gradient(180deg,${dc.lemon},#a8a838)`}
               label="Lev. IRR"
               valLabel={irrStr}
