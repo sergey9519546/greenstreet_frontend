@@ -192,6 +192,20 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         </div>
       </section>
 
+      {/* EXPLAINER — rendered HyperFrames loop introducing the DSCR calculator */}
+      <section style={{ background: MIDNIGHT, padding: `0 clamp(1.5rem,4vw,3rem) clamp(40px,5vw,64px)` }}>
+        <div className="gs-reveal" style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <video
+            src="/video/dscr-explainer.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{ width: '100%', display: 'block', borderRadius: 16, border: '1px solid rgba(238,239,211,0.18)', aspectRatio: '16 / 9', objectFit: 'cover', background: MIDNIGHT }}
+          />
+        </div>
+      </section>
+
       {/* 3-STEP EXPLAINER BAND */}
       <section id="gs-steps" style={{ background: PISTACHIO, padding: 'clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>

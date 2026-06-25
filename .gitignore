@@ -56,3 +56,6 @@ __pycache__/
 # HyperFrames render outputs (mp4 lives in public/video)
 hf-statelaws/renders/
 hf-*/node_modules/
+hf-*/.claude/
+hf-*/renders/
+hf-*/skills-lock.json

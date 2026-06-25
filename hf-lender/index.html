@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #004041; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #eeefd3; }
+      #stage { position: absolute; inset: 0; }
+      .dotgrid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 2px, transparent 2px); background-size: 46px 46px; pointer-events: none; }
+
+      /* ── wordmark ── */
+      #wordmark { position: absolute; left: 160px; top: 90px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #eeefd3; }
+
+      /* ── Scene A: title ── */
+      #sceneA { position: absolute; left: 160px; top: 280px; }
+      #titleLine1 { display: block; font-size: 110px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.0; color: #eeefd3; }
+      #titleLine2 { display: block; font-size: 110px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.0; color: #d8d958; }
+      #titleSub   { display: block; font-size: 34px; font-weight: 500; color: rgba(238,239,211,0.62); margin-top: 22px; letter-spacing: -0.01em; }
+
+      /* ── Scene B: program stack ── */
+      #sceneB { position: absolute; left: 140px; top: 130px; width: 1640px; }
+      #stackLabel { font-size: 22px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(238,239,211,0.50); margin-bottom: 28px; }
+      #stackWrap { position: relative; }
+      .prog-tile {
+        display: block;
+        width: 1300px;
+        height: 108px;
+        border-radius: 14px;
+        background: rgba(238,239,211,0.07);
+        border: 1px solid rgba(238,239,211,0.13);
+        margin-bottom: 14px;
+        position: relative;
+      }
+      .prog-tile .tile-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+      }
+      .tile-name { font-size: 31px; font-weight: 600; letter-spacing: -0.025em; color: #eeefd3; }
+      .tile-tag  { font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 700; color: rgba(238,239,211,0.40); }
+
+      /* best-fit highlight layer — overlaid absolutely, starts hidden */
+      #bestLayer {
+        display: block;
+        width: 1300px;
+        height: 108px;
+        border-radius: 14px;
+        background: #d8d958;
+        border: 1px solid #d8d958;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      #bestLayerInner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 40px;
+      }
+      #bestLayerName { font-size: 31px; font-weight: 600; letter-spacing: -0.025em; color: #003232; }
+      #bestLayerRight { display: flex; align-items: center; gap: 24px; }
+      #bestChip {
+        display: inline-block;
+        background: #004041;
+        color: #d8d958;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border-radius: 6px;
+        padding: 6px 16px;
+      }
+      #rateVal {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 42px;
+        font-weight: 700;
+        color: #003232;
+        letter-spacing: -0.03em;
+      }
+
+      /* ── Scene C: deal chips ── */
+      #chipsRow { position: absolute; left: 140px; bottom: 108px; display: flex; gap: 24px; }
+      .chip {
+        display: inline-block;
+        border-radius: 8px;
+        padding: 12px 26px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .chip-fico { background: rgba(77,189,151,0.18); color: #4dbd97; border: 1px solid rgba(77,189,151,0.35); }
+      .chip-ltv  { background: rgba(216,217,88,0.14); color: #d8d958; border: 1px solid rgba(216,217,88,0.3); }
+      .chip-dscr { background: rgba(238,239,211,0.10); color: #eeefd3; border: 1px solid rgba(238,239,211,0.2); }
+      .chip-prop { background: rgba(77,189,151,0.10); color: #4dbd97; border: 1px solid rgba(77,189,151,0.2); }
+
+      /* ── End card ── */
+      #end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #004041; }
+      #endH   { display: block; font-size: 96px; font-weight: 600; text-align: center; max-width: 22ch; line-height: 1.0; letter-spacing: -0.04em; }
+      #endSub { display: block; font-size: 38px; font-weight: 500; color: rgba(238,239,211,0.68); margin-top: 30px; letter-spacing: -0.02em; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="9"
+      data-width="1920"
+      data-height="1080"
+      style="position: relative; width: 1920px; height: 1080px; overflow: hidden;"
+    >
+      <!-- ── Stage: full-frame background clip ── -->
+      <div id="stage" class="clip" data-start="0" data-duration="9" data-track-index="1">
+        <div class="dotgrid"></div>
+        <div id="wordmark">Greenstreet</div>
+
+        <!-- ── Scene A: title ── track 2, 0–2.2s ── -->
+        <div id="sceneA" class="clip" data-start="0" data-duration="2.2" data-track-index="2">
+          <span id="titleLine1">19 programs.</span>
+          <span id="titleLine2">Ranked for your deal.</span>
+          <span id="titleSub">Instant fit-score. Every DSCR box, live.</span>
+        </div>
+
+        <!-- ── Scene B: stack ── track 3, 1.8–7.2s ── -->
+        <div id="sceneB" class="clip" data-start="1.8" data-duration="5.4" data-track-index="3">
+          <div id="stackLabel">Program match</div>
+          <div id="stackWrap">
+            <div class="prog-tile" id="tile1">
+              <div class="tile-inner">
+                <span class="tile-name">Greenstreet DSCR — Best Tier</span>
+                <span class="tile-tag">PRIME</span>
+              </div>
+            </div>
+            <div class="prog-tile" id="tile2">
+              <div class="tile-inner">
+                <span class="tile-name">Greenstreet DSCR — Standard</span>
+                <span class="tile-tag">STD</span>
+              </div>
+            </div>
+            <div class="prog-tile" id="tile3">
+              <div class="tile-inner">
+                <span class="tile-name">Greenstreet DSCR — Sub-1.0</span>
+                <span class="tile-tag">SUB</span>
+              </div>
+            </div>
+            <div class="prog-tile" id="tile4">
+              <div class="tile-inner">
+                <span class="tile-name">Greenstreet DSCR — Multi-Family</span>
+                <span class="tile-tag">MF</span>
+              </div>
+            </div>
+            <div class="prog-tile" id="tile5">
+              <div class="tile-inner">
+                <span class="tile-name">Greenstreet DSCR — Global</span>
+                <span class="tile-tag">GLOB</span>
+              </div>
+            </div>
+            <div class="prog-tile" id="tile6">
+              <div class="tile-inner">
+                <span class="tile-name">Greenstreet DSCR — STR</span>
+                <span class="tile-tag">STR</span>
+              </div>
+            </div>
+
+            <!-- best-fit highlight layer sits on top of tile1 -->
+            <div id="bestLayer">
+              <div id="bestLayerInner">
+                <span id="bestLayerName">Greenstreet DSCR — Best Tier</span>
+                <div id="bestLayerRight">
+                  <span id="bestChip">BEST FIT</span>
+                  <span id="rateVal">6.125%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Scene C: deal chips ── track 4, 5.4–7.6s ── -->
+        <div id="chipsRow" class="clip" data-start="5.4" data-duration="2.2" data-track-index="4">
+          <span class="chip chip-fico">FICO 720</span>
+          <span class="chip chip-ltv">LTV 75%</span>
+          <span class="chip chip-dscr">DSCR 1.15x</span>
+          <span class="chip chip-prop">SFR / SF</span>
+        </div>
+
+        <!-- ── End card ── track 5, 7.4–9.0s ── -->
+        <div id="end" class="clip" data-start="7.4" data-duration="1.6" data-track-index="5">
+          <span id="endH">19 programs, ranked instantly.</span>
+          <span id="endSub">— Greenstreet</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // ── Initial hidden states (all set synchronously before timeline) ──
+      gsap.set("#wordmark",    { opacity: 0 });
+      gsap.set("#titleLine1",  { opacity: 0, y: 44 });
+      gsap.set("#titleLine2",  { opacity: 0, y: 44 });
+      gsap.set("#titleSub",    { opacity: 0, y: 24 });
+      gsap.set("#stackLabel",  { opacity: 0 });
+      gsap.set(["#tile1","#tile2","#tile3","#tile4","#tile5","#tile6"], { opacity: 0, x: -48 });
+      gsap.set("#bestLayer",   { opacity: 0, scaleX: 0.96, transformOrigin: "left center" });
+      gsap.set("#bestChip",    { opacity: 0 });
+      gsap.set("#rateVal",     { opacity: 0 });
+      gsap.set(".chip",        { opacity: 0, y: 22 });
+      gsap.set("#end",         { opacity: 0 });
+      gsap.set("#endH",        { opacity: 0, y: 44 });
+      gsap.set("#endSub",      { opacity: 0, y: 24 });
+
+      // ── Scene A: title in (0.1–1.4s) ──
+      tl.to("#wordmark",   { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.1);
+      tl.to("#titleLine1", { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" }, 0.2);
+      tl.to("#titleLine2", { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" }, 0.52);
+      tl.to("#titleSub",   { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.84);
+
+      // ── Scene A out (1.76–2.2s) ──
+      tl.to("#sceneA", { opacity: 0, x: -56, duration: 0.44, ease: "power2.in" }, 1.76);
+
+      // ── Scene B: stack label + tiles in (2.0–3.4s) ──
+      tl.to("#stackLabel", { opacity: 1, duration: 0.4, ease: "power2.out" }, 2.0);
+      tl.to(
+        ["#tile1","#tile2","#tile3","#tile4","#tile5","#tile6"],
+        { opacity: 1, x: 0, duration: 0.5, ease: "power3.out", stagger: { each: 0.10, from: "start" } },
+        2.12
+      );
+
+      // ── Best-fit rise: tile1 fades back, bestLayer slides in, chip + rate appear (3.4–4.8s) ──
+      tl.to("#tile1", { opacity: 0, duration: 0.32, ease: "power2.in" }, 3.4);
+      tl.to("#bestLayer", { opacity: 1, scaleX: 1, duration: 0.48, ease: "power3.out" }, 3.48);
+      tl.to("#bestChip",  { opacity: 1, duration: 0.36, ease: "power2.out" }, 3.80);
+      tl.to("#rateVal",   { opacity: 1, duration: 0.36, ease: "power2.out" }, 4.00);
+
+      // Dim remaining tiles
+      tl.to(["#tile2","#tile3","#tile4","#tile5","#tile6"], { opacity: 0.34, duration: 0.4 }, 3.52);
+
+      // ── Scene C: chips in (5.4–6.5s) ──
+      tl.to(
+        ".chip",
+        { opacity: 1, y: 0, duration: 0.45, ease: "power3.out", stagger: { each: 0.12, from: "start" } },
+        5.4
+      );
+
+      // ── Scene B + chips out (7.0–7.44s) ──
+      tl.to(["#sceneB","#chipsRow"], { opacity: 0, duration: 0.44, ease: "power2.in" }, 7.0);
+      tl.set("#sceneB, #chipsRow", { opacity: 0 }, 7.40);
+
+      // ── End card in (7.4–9.0s) ──
+      tl.to("#end",   { opacity: 1, duration: 0.55, ease: "power2.out" }, 7.4);
+      tl.to("#endH",  { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" }, 7.6);
+      tl.to("#endSub",{ opacity: 1, y: 0, duration: 0.60, ease: "power3.out" }, 7.96);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -295,6 +295,27 @@ export default function StressMatrixPage({
         </div>
       </section>
 
+      {/* ── EXPLAINER VIDEO ──────────────────────────────────── */}
+      <section style={{ background: DARK_INK, padding: `clamp(32px,4vw,52px) ${dc.pad}` }}>
+        <div className="gs-reveal" style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <video
+            src="/video/stress-explainer.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{
+              width: "100%",
+              display: "block",
+              borderRadius: 16,
+              aspectRatio: "16 / 9",
+              objectFit: "cover",
+              background: DARK_INK,
+            }}
+          />
+        </div>
+      </section>
+
       {/* ── 3-STEP BAND (from mockup §59–68) ─────────────────── */}
       <section
         className="gs-reveal"
