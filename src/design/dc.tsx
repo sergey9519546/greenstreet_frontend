@@ -226,11 +226,11 @@ export const Lead = mk("p", "u-text-style-large");   // section description / le
 export const Body = mk("p", "u-text-style-h6");       // base body copy
 
 /** Webflow primary/secondary button (lemon-lime fill, arrow) — matches home. */
-export function Btn({ label, onClick, href = "#", variant = "primary", style }: { label: string; onClick?: (e: React.MouseEvent) => void; href?: string; variant?: "primary" | "secondary"; style?: React.CSSProperties }) {
+export function Btn({ label, onClick, href, variant = "primary", style }: { label: string; onClick?: (e: React.MouseEvent) => void; href?: string; variant?: "primary" | "secondary"; style?: React.CSSProperties }) {
   return (
     <div className="btn_main_wrap" data-wf--btn-main--style={variant} style={{ display: "inline-block", ...style }}>
       <div className="g_clickable_wrap">
-        <a className="g_clickable_link w-inline-block" href={href} onClick={onClick}><span className="g_clickable_text u-sr-only">{label}</span></a>
+        <a className="g_clickable_link w-inline-block" {...(href !== undefined ? { href } : {})} onClick={onClick}><span className="g_clickable_text u-sr-only">{label}</span></a>
       </div>
       <div className="btn_main_text" onClick={onClick}>{label}</div>
       <div className="btn-arrow-wrap">

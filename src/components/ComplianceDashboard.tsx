@@ -78,7 +78,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const userUid = currentUser?.uid ?? "demo-user";
   const userEmail = currentUser?.email ?? "demo@greenstreet.dev";
   const [authEmail, setAuthEmail] = useState(initialEmail || "");
-  const [authPassword, setAuthPassword] = useState("pass1234");
+  const [authPassword, setAuthPassword] = useState("");
   const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [authError, setAuthError] = useState("");
 
@@ -284,10 +284,16 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   ] as const;
 
   const navTools = [
-    { key: "state",     icon: "§", label: "State Rules" },
-    { key: "stress",    icon: "▦", label: "Stress Matrix" },
-    { key: "refi",      icon: "~", label: "Refi Tracker" },
-    { key: "returns",   icon: "$", label: "Returns / IRR" },
+    { key: "state",       icon: "§", label: "State Rules" },
+    { key: "stress",      icon: "▦", label: "Stress Matrix" },
+    { key: "refi",        icon: "~", label: "Refi Tracker" },
+    { key: "returns",     icon: "$", label: "Returns / IRR" },
+    { key: "arm",         icon: "↺", label: "ARM Reset" },
+    { key: "montecarlo",  icon: "∿", label: "Monte Carlo" },
+    { key: "tax",         icon: "%", label: "Tax Engine" },
+    { key: "decision",    icon: "⊕", label: "Decision Support" },
+    { key: "str",         icon: "☼", label: "STR" },
+    { key: "portfolio",   icon: "◰", label: "Portfolio" },
   ] as const;
 
   const viewTitle: Record<DashboardTab, string> = {

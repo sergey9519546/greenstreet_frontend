@@ -20,6 +20,203 @@ footer div[style] { color: #003738 !important; }
 
 // ── Post data (all existing posts preserved) ──────────────────────────────────
 export const POSTS = [
+  // ── DSCR EDUCATION ARTICLES (added 2026-06-25) ──────────────────────────────
+  {
+    slug: "what-is-dscr-how-it-works",
+    date: "June 25, 2026", tag: "Lending",
+    title: "What is DSCR? The complete guide to how the ratio works and why it matters",
+    summary: "DSCR = rent ÷ PITIA. That single ratio determines whether you qualify — and by how much. Here's how lenders actually calculate it, what counts as income, and what the tiers mean for your rate.",
+    body: [
+      { p: "DSCR stands for Debt Service Coverage Ratio. It is the single number that determines whether a non-QM investment property loan qualifies. Unlike a conventional mortgage that weighs your W-2s and tax returns, a DSCR loan is underwritten on the property's ability to pay for itself — not yours." },
+      { h: "The formula: rent ÷ PITIA" },
+      { p: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. That's it. If the property rents for $2,400/month and the full payment (principal + interest + taxes + insurance + HOA) is $2,000/month, the DSCR is 1.20x. The property generates 20% more income than it costs to carry." },
+      { h: "What goes into PITIA" },
+      { list: [
+        "P — Principal reduction on the loan balance.",
+        "I — Interest at the note rate.",
+        "T — Property taxes. Lenders use the actual annual tax bill ÷ 12. If you're buying in a county with a high mill rate, this number moves the DSCR more than most borrowers expect.",
+        "I — Hazard insurance (and flood insurance if required). Coastal properties in FEMA Special Flood Hazard Areas can see $300–600/month here — that alone can push an otherwise-qualifying deal below 1.0.",
+        "A — HOA dues (if applicable). Full monthly HOA included at face value.",
+      ]},
+      { h: "What counts as gross rent" },
+      { p: "For a standard long-term rental, lenders use the lower of: (1) the actual signed lease, or (2) the Form 1007 market rent from the appraisal. If there's no lease — vacant property, new acquisition — the 1007 rent stands on its own. That's why 63% of DSCR loans close without a signed lease: the appraisal rent is sufficient." },
+      { p: "For short-term rentals (Airbnb, VRBO), lenders typically use the lower of: the 1007 long-term rent, AirDNA projected income × 70–80%, or documented 12-month STR gross revenue. See our STR underwriting article for the full logic." },
+      { h: "DSCR tiers and what they mean for your deal" },
+      { list: [
+        "≥ 1.25x — Clean file. Best rate tier, 3 months reserves, max program availability.",
+        "1.00–1.24x — Standard qualifying range. Solid access to programs but rate adds 0.125–0.375% vs the best tier.",
+        "0.75–0.99x (sub-1.0) — Deal qualifies but lender options narrow sharply, reserves jump to 9–12 months, and the rate premium is meaningful. Compensating factors (740+ FICO, low LTV) are required.",
+        "< 0.75x — Almost no institutional lender program covers this. Hard money or bridge are the realistic paths.",
+      ]},
+      { h: "Why DSCR ≠ cash flow" },
+      { p: "DSCR uses gross rent, not net. It doesn't subtract vacancy, property management, repairs, or capital expenditures. A 1.15x DSCR property is not necessarily cash-flow-positive after accounting for those real operating costs. Run the net analysis separately — the DSCR gets you through underwriting, but your actual return depends on the full operating picture." },
+      { quote: "DSCR is the lender's question: does the rent cover the payment? It's not the investor's question: does the property actually cash flow after expenses?" },
+    ],
+    glyph: "÷", glyphColor: dc.lemon, bg: dc.dark,
+    author: "Priya Rao",
+    featured: false,
+  },
+  {
+    slug: "dscr-pitia-breakdown-qualifying-income",
+    date: "June 25, 2026", tag: "Lending",
+    title: "PITIA breakdown: the five numbers that determine whether your DSCR deal qualifies",
+    summary: "Principal, interest, taxes, insurance, and HOA. Each one can move the DSCR enough to make or break a deal. Here's how to model all five before you go to contract.",
+    body: [
+      { p: "Most DSCR deals that fail at underwriting don't fail because the rent was too low. They fail because the PITIA was larger than the borrower modeled. Property taxes and insurance are the two most common surprises. Here's how to calculate each component accurately before you put a deal under contract." },
+      { h: "Principal and interest" },
+      { p: "P&I is the straightforward part. Use the actual rate your lender is quoting — not the advertised floor rate, the real rate for your file (based on your FICO, LTV, and program). A 0.50% rate difference on a $400,000 loan is roughly $125/month. That's enough to swing a 1.08x DSCR to 1.01x. Get a real rate lock before you model." },
+      { h: "Property taxes" },
+      { p: "Use the actual annual tax bill divided by 12. Do not use the current owner's tax bill if the property is in a state with homestead exemptions (California, Florida, Texas) or assessment caps — after transfer, the exemption usually resets to the purchase price. In Texas, expect annual taxes of 1.8–2.8% of assessed value. On a $350,000 Texas property, that's $525–$817/month. Many borrowers model $200." },
+      { h: "Insurance" },
+      { p: "Get a real insurance quote before you model PITIA. Hazard insurance on a SFR runs $800–$2,000/year in most markets — $67–$167/month. But coastal markets with wind, hail, or flood exposure are different. Florida all-perils coverage on a property in a SFHA can run $4,000–$8,000+/year. A $500/month insurance line item on a deal with $2,200/month rent produces a DSCR that almost certainly fails." },
+      { h: "HOA dues" },
+      { p: "HOA is included at face value — the full monthly amount. If a condo has a $600/month HOA and you're counting on $1,800/month rent to qualify, the HOA alone consumes a third of your rent in PITIA before debt service. Higher-HOA properties require proportionally higher rents to hit the same DSCR." },
+      { h: "The deal-break rate: model it before you close" },
+      { p: "Once you have accurate PITIA, calculate your deal-break rate: the interest rate at which DSCR would fall exactly to 1.00x. The gap between your offered rate and the deal-break rate (in basis points) tells you how much rate shock the deal can absorb — on a refinance, an ARM reset, or a future sale situation. Greenstreet's Deal Analyzer surfaces this number on every calculation." },
+      { quote: "Tax and insurance are the two PITIA components that sink deals at underwriting. Model both from real sources — county records and an actual insurance quote — before you go to contract." },
+    ],
+    glyph: "Σ", glyphColor: dc.dark, bg: dc.lemon,
+    author: "Marcus Chen",
+    featured: false,
+  },
+  {
+    slug: "dscr-ltv-down-payment-fico",
+    date: "June 24, 2026", tag: "Lending",
+    title: "LTV, down payment, and FICO tiers: how the three dials move your DSCR rate",
+    summary: "Three variables move a DSCR rate more than any other: LTV, FICO, and whether you accept a prepayment penalty. Here's the pricing matrix and what each lever costs.",
+    body: [
+      { p: "DSCR rates are not one-size-fits-all. Every lender prices DSCR loans through a matrix of adjustments stacked on top of a base rate. The three biggest dials are loan-to-value (LTV), FICO score, and prepayment penalty election. Understanding how they interact tells you how to structure a deal for the best rate — and where there's no shortcut." },
+      { h: "LTV: the biggest single dial" },
+      { list: [
+        "≤ 65% LTV — Best pricing, usually ≥ 0.25% below the 75% tier. Rarely possible on a typical acquisition without a large down payment.",
+        "≤ 75% LTV (25% down) — The Greenstreet Premier tier's sweet spot. Most programs publish their headline rate here.",
+        "≤ 80% LTV (20% down) — Standard minimum down payment. Add 0.25–0.50% vs 75% depending on program.",
+        "75.01–80% LTV is the most common bracket for first-time DSCR investors and the one where rate expectations typically need calibration.",
+      ]},
+      { h: "FICO tiers" },
+      { p: "FICO drives both rate and program access. The breakpoints vary by lender, but a representative tiering for the Greenstreet Core program is:" },
+      { list: [
+        "740+ — Best rate tier. Full program access including 5/1 ARM and interest-only.",
+        "720–739 — 0.125–0.25% above best tier.",
+        "700–719 — 0.25–0.50% above. Some programs add an LTV restriction.",
+        "680–699 — 0.375–0.75% above. Reserve requirements increase.",
+        "660–679 — Core floor. Narrower program selection; STR and some condo types excluded.",
+        "640–659 — Flex program only. Compensating factors (DSCR ≥ 1.20, 12 months reserves) required.",
+      ]},
+      { h: "Prepayment penalty: the 0.50–0.80% you're trading away" },
+      { p: "A 3-year or 5-year prepayment penalty (step-down: 5/4/3/2/1% or 3/2/1%) saves 0.50–0.80% in rate compared to the no-PPP option on most lenders' sheets. That's a meaningful difference. If you plan to hold the property for more than three years and won't need to sell or refinance, the PPP rate is almost always the better economic choice — the rate savings compound monthly." },
+      { p: "Caution: some states restrict or prohibit PPPs on investment-property loans. New Jersey is the most notable high-risk state. Check the State Rules page before assuming a PPP is available in your target market." },
+      { h: "How to combine the three dials" },
+      { p: "The best DSCR rate available requires all three: ≤ 75% LTV + 740+ FICO + PPP accepted. Drop one dial and you lose 0.25–0.50%. Drop two and you can easily be 0.75–1.25% above the headline. A borrower with a 680 FICO who puts 20% down and waives the PPP is realistically looking at 1.00–1.50% above the advertised rate — which should set expectations before the first term sheet comes in." },
+      { quote: "The headline rate requires the headline file. Stack LTV ≤ 75%, FICO ≥ 740, and a PPP, or expect to land somewhere between that rate and the market mid-range." },
+    ],
+    glyph: "LTV", glyphColor: dc.rain, bg: dc.mintBg,
+    author: "Sara López",
+    featured: false,
+  },
+  {
+    slug: "dscr-refinance-rate-term-cashout-seasoning",
+    date: "June 23, 2026", tag: "Lending",
+    title: "DSCR refinance: rate-term vs cash-out, seasoning rules, and break-even math",
+    summary: "Rate-term refi vs cash-out refi aren't just different loan types — they have different seasoning rules, LTV limits, and DSCR requirements. Here's how to decide and when the math actually works.",
+    body: [
+      { p: "Refinancing a DSCR property is not a simple rate-and-term swap. The type of refinance you're doing, how long you've owned the property, and what the property appraises at today all interact to determine what's possible, at what LTV, and whether the economics make sense. Here's the full picture." },
+      { h: "Rate-term refinance: the cleaner path" },
+      { p: "A rate-term (R/T) refi simply replaces your existing loan with a new one — different rate, different term, no cash out (or only enough cash to cover closing costs). Rate-term refis generally get better LTV limits and slightly lower rates than cash-out refis, because the lender is not increasing the loan balance relative to the property's value." },
+      { list: [
+        "LTV limit: 80% on most programs for a standard R/T refi; 75% for the best rate tier.",
+        "Seasoning: typically 6 months from the original closing date before a rate-term refi is available. Some lenders require only 3 months.",
+        "DSCR requirement: same as purchase — generally ≥ 1.00x at the new rate and new payment.",
+        "No-cash-out rule: any cash back at closing above closing cost reimbursement converts the loan to a cash-out refi and changes the terms.",
+      ]},
+      { h: "Cash-out refinance: the equity extraction play" },
+      { p: "A cash-out refi pulls equity out of the property — funds you can redeploy into the next acquisition, capital improvements, or other uses. It comes with tighter restrictions than R/T." },
+      { list: [
+        "LTV limit: 75% maximum on most DSCR programs. Some programs go to 70% on higher-balance loans or STR properties.",
+        "Seasoning: 12 months from the original closing date is the standard floor for investment property cash-out refis. Some lenders allow 6 months with a delayed-financing exception (if you purchased cash).",
+        "DSCR: must qualify at the new, higher loan balance and the new payment. If the property has appreciated, the higher value increases your LTV headroom. If rates have risen since purchase, the higher payment may compress the DSCR.",
+        "6-month bank statement: most lenders want to see 6 months of property ownership documented and verified.",
+      ]},
+      { h: "Break-even math: the question that determines if the refi pencils" },
+      { p: "Refinancing costs money — typically 1.5–3% of the loan amount in lender fees, title, appraisal, and closing costs. To know whether a rate-term refi makes financial sense, calculate the break-even month:" },
+      { p: "Break-even months = Total closing costs ÷ Monthly payment reduction. If closing costs are $8,000 and the new payment is $300/month lower, break-even is month 27. If you sell or refinance again before month 27, the refi cost money net. After month 27, every month is savings." },
+      { p: "Factor in prepayment penalty if you have one on the existing loan. A 3% PPP on a $400,000 loan is $12,000 — that's $12,000 added to your break-even calculation, which can push break-even past 5 years even on a 1.00% rate reduction." },
+      { h: "When cash-out makes sense vs rate-term" },
+      { list: [
+        "Rate-term: rates dropped meaningfully (≥ 0.75%), you're past seasoning, deal-break rate gives you headroom. Focus: reduce carrying cost.",
+        "Cash-out: equity has built up (appreciation + paydown), you have another acquisition that can deploy the capital efficiently, and you can extract equity at a rate that pencils against the new deal's projected return.",
+        "Hybrid: if rates dropped AND you need capital, check if a rate-term to 80% LTV gets you the cash you need — it may carry a better rate than a cash-out at 75% LTV.",
+      ]},
+      { quote: "The break-even month is the number that makes the refinance decision rational instead of emotional. Run it before you pay the appraisal." },
+    ],
+    glyph: "↺", glyphColor: dc.lemon, bg: dc.dark,
+    author: "Priya Rao",
+    featured: false,
+  },
+  {
+    slug: "dscr-approval-issues-sub-10-fico-reserves",
+    date: "June 23, 2026", tag: "Underwriting",
+    title: "Six things that kill DSCR approvals — and how to fix each one before you submit",
+    summary: "Sub-1.0 DSCR, FICO below 660, thin reserves, LLC issues, STR rent calculation errors, and prepay-penalty state surprises. Six problems underwriters see on every desk, with the fix for each.",
+    body: [
+      { p: "DSCR underwriting is simpler than conventional — no tax returns, no DTI, no employment history. But the problems that kill deals are predictable, and they recur on almost every submission desk. Here are the six most common, with what actually fixes them." },
+      { h: "1. DSCR below 1.0" },
+      { p: "The most common problem. Options when you're below 1.0:" },
+      { list: [
+        "Increase the down payment: a larger equity stake reduces the loan balance, which reduces P&I, which raises DSCR. Going from 80% to 75% LTV on a $400K loan saves roughly $110/month in P&I at current rates — often enough to cross 1.0.",
+        "Accept an ARM instead of a 30-year fixed: a 5/1 ARM typically starts 0.50–1.00% below a fixed rate, which directly lowers the monthly payment. Model the DSCR at both the initial rate and the worst-case reset cap to confirm the deal survives a rate reset.",
+        "Find a sub-1.0 program: some lenders accept DSCR down to 0.75–0.80 with strong compensating factors (740+ FICO, 12 months reserves). Options are narrower, rates are higher, but the deal can close.",
+        "Walk away: if the math doesn't pencil at 0.75x DSCR, no creative structuring fixes a fundamentally uneconomical deal.",
+      ]},
+      { h: "2. FICO below the program floor" },
+      { p: "Most Greenstreet programs require 660+. If the borrower is at 640–659, the Flex program may apply. Below 640, DSCR loan options largely disappear. Fix options: pay down revolving balances before application (utilization below 30% often moves scores 20–40 points over 30–60 days), dispute legitimate errors, or wait for a seasoning cycle on a derogatory." },
+      { h: "3. Insufficient reserves" },
+      { p: "Reserves = liquid assets held after closing. The floor at DSCR ≥ 1.25 is 3 months PITIA. Overlays add months for: STR (+3), condo (+3), FICO <680 (+3), first-time investor (+3), loan >$1M (+6), foreign national (+6). These stack. A first-time investor on an STR condo is looking at 3 + 3 + 3 + 3 = 12 months reserves before the lender adds their own overlay. Make sure the borrower is computing reserves on the PITIA including the new loan — not on the list price or an old payment estimate." },
+      { h: "4. LLC structure issues" },
+      { p: "Most DSCR lenders require personal guaranty on LLC-vested deals. Layered LLCs (LLC inside LLC) are limited to 2 layers. The guarantor must own ≥ 51% of the entity. More than 4 members often triggers a decline. And New Jersey LLC vesting is a specific high-risk: some lenders will not do NJ LLC deals due to prepay-penalty ambiguity under N.J.S.A. 46:10B-2. If your deal is in NJ, verify LLC treatment with the lender before you take the application." },
+      { h: "5. STR rent calculation errors" },
+      { p: "Short-term rental income cannot be plugged in at the gross booking number. Lenders use the lower of: Form 1007 long-term market rent, AirDNA projected revenue × 70–80%, or documented 12-month STR gross history. If the 1007 market rent for long-term use is $1,800/month but AirDNA projects $4,200/month gross, the lender qualifies on $1,800 — or on 75% of $4,200 = $3,150 if you have 12 months of documented STR history. Understand which figure controls before you model the DSCR." },
+      { h: "6. Prepay-penalty state restrictions" },
+      { p: "Some states restrict or ban prepayment penalties on certain loan types. Key ones to check: New Jersey (ambiguous on investment-property PPPs at the LLC level), Minnesota (changed August 1, 2026 — business-purpose DSCR loans now allowed full PPPs), and several others with civil penalty provisions for non-compliant PPP language. If you're accepting a PPP rate for the better pricing, confirm the penalty is enforceable in the property's state before the borrower signs. A PPP that's void under state law doesn't give the lender the risk protection they priced — which can trigger a repurchase." },
+      { quote: "The six problems above recur in roughly that order of frequency. Check your file against all six before submission, not after the underwriter calls." },
+    ],
+    glyph: "✕→✓", glyphColor: dc.emerald, bg: dc.teal,
+    author: "Sara López",
+    featured: false,
+  },
+  {
+    slug: "dscr-foreign-nationals-itin",
+    date: "June 22, 2026", tag: "Lending",
+    title: "Foreign nationals and ITIN borrowers: how DSCR qualification actually works",
+    summary: "No SSN? No problem — if you know which program applies. Foreign nationals and ITIN borrowers qualify on DSCR just like domestic investors, with a few additional requirements and a narrower program set.",
+    body: [
+      { p: "One of the overlooked strengths of DSCR lending is that it doesn't depend on U.S.-source income verification, W-2 history, or Social Security Numbers the way conventional lending does. Because qualification is property-based rather than borrower-income-based, foreign nationals and ITIN borrowers can access DSCR programs — with the right program and the right documentation." },
+      { h: "Who qualifies as a foreign national vs ITIN borrower" },
+      { list: [
+        "ITIN borrower: holds a U.S. Individual Taxpayer Identification Number (ITIN) — typically a permanent resident, non-resident alien, or visa holder with U.S. tax filing history. May or may not have a Social Security Number.",
+        "Foreign national (no SSN): a non-U.S. citizen with no ITIN and no SSN. Qualifies solely on the property cash flow and a non-U.S. credit profile.",
+        "The distinction matters because program availability differs: ITIN borrowers access most standard DSCR programs with minor overlays; foreign nationals with no U.S. credit require the Global program or equivalent.",
+      ]},
+      { h: "How DSCR calculation works for foreign national files" },
+      { p: "The DSCR formula is identical: gross monthly rent ÷ PITIA. Foreign national status doesn't change the math. What changes is the documentation, reserves requirement, and available programs:" },
+      { list: [
+        "Minimum DSCR: 1.0x (same as domestic). No DSCR penalty for foreign national status alone.",
+        "FICO / credit: lenders accept international credit reports (Equifax, Experian international divisions) or a letter from a foreign bank. Some programs require a minimum 24-month international credit history.",
+        "Reserves: typically +6 months overlay on top of the standard reserve requirement. A foreign national on a standard deal at 1.20x DSCR may need 9–12 months total reserves.",
+        "LTV: typically capped at 70–75% vs 80% for domestic. Best pricing at 65–70% LTV.",
+        "Guaranty: personal guaranty required; some programs require a U.S.-based co-signer or entity structure.",
+        "Bank statements: 6–12 months of foreign bank statements for reserves verification; SWIFT-verified.",
+      ]},
+      { h: "Entity vesting for foreign nationals" },
+      { p: "Many foreign national investors prefer to hold U.S. investment property in a U.S. LLC. This is generally allowed — verify with the lender that the LLC structure meets their requirements (see the LLC section in our DSCR Approval Issues article). A U.S. LLC held by a foreign national can vest title while the lender still requires a personal guaranty from the foreign national owner." },
+      { h: "Tax considerations" },
+      { p: "Foreign nationals with U.S. real property income are subject to FIRPTA (Foreign Investment in Real Property Tax Act) withholding on sale. DSCR loan qualification does not depend on U.S. tax status, but the borrower should work with a CPA familiar with cross-border real estate tax before closing — the tax implications on exit can be significant." },
+      { quote: "DSCR is one of the most accessible U.S. lending products for foreign investors, because the loan doesn't depend on where you earned your money — only on what the property earns." },
+    ],
+    glyph: "🌐", glyphColor: dc.lemon, bg: dc.dark,
+    author: "Marcus Chen",
+    featured: false,
+  },
   {
     slug: "obbba-2025-real-estate-tax-changes",
     date: "June 23, 2026", tag: "Tax",
@@ -203,7 +400,7 @@ const GRID_POSTS = POSTS.filter((p) => !p.featured);
 const FEATURED_POST = POSTS.find((p) => p.featured)!;
 
 // ── Tag filter list ───────────────────────────────────────────────────────────
-const ALL_TAGS = ["All", "Tax", "Compliance", "Rates", "Underwriting", "Lending", "STR", "Process", "Product"];
+const ALL_TAGS = ["All", "Lending", "Tax", "Compliance", "Rates", "Underwriting", "STR", "Process", "Product"];
 
 // ── Reusable article body renderer ───────────────────────────────────────────
 function ArticleBody({ blocks }: { blocks: { p?: string; h?: string; quote?: string; list?: string[] }[] }) {
@@ -283,23 +480,31 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <ArticleBody blocks={post.body} />
 
-          {/* CTA card */}
+          {/* CTA card — qualifier + deal analyzer */}
           <div
             className="gs-reveal"
             style={{ marginTop: 44, borderRadius: 9, border: `1px solid ${dc.rain}`, background: "rgba(0,101,101,0.07)", padding: "28px 32px" }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 10 }}>
-              Run the numbers
+              Ready to run a real deal?
             </div>
-            <p style={{ color: "#4a5d5d", fontSize: 15, marginBottom: 18, lineHeight: 1.6 }}>
-              Model a live deal — DSCR, break-even rate, and your Greenstreet program match in minutes.
+            <p style={{ color: "#4a5d5d", fontSize: 15, marginBottom: 20, lineHeight: 1.6 }}>
+              Model DSCR, break-even rate, and your program match — or check whether your deal qualifies right now.
             </p>
-            <button
-              onClick={() => onNavigate("dscr-calculator")}
-              style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "11px 22px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em" }}
-            >
-              Open the Deal Analyzer →
-            </button>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
+              <button
+                onClick={() => onNavigate("dscr-calculator")}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "11px 22px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+              >
+                Open the Deal Analyzer →
+              </button>
+              <button
+                onClick={() => (window as any).openQualify?.()}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "11px 22px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+              >
+                See if your deal qualifies →
+              </button>
+            </div>
           </div>
 
           {/* Keep reading */}

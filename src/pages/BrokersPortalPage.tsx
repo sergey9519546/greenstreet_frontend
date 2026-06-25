@@ -203,44 +203,20 @@ export default function BrokersPortalPage({
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input
-                className="gs-num"
-                type="email"
-                placeholder="you@brokerage.com"
+              {/* CTA block — real Firebase auth lives in the portal/ComplianceDashboard */}
+              <p
                 style={{
-                  width: "100%",
-                  background: dc.dark,
-                  color: dc.cream,
-                  border: "1px solid rgba(238,239,211,0.18)",
-                  borderRadius: 6,
-                  padding: "13px 14px",
                   fontSize: 15,
                   fontWeight: 500,
+                  lineHeight: 1.5,
+                  color: "rgba(238,239,211,0.7)",
+                  margin: "0 0 4px",
                   letterSpacing: "-0.01em",
-                  boxSizing: "border-box",
-                  outline: "none",
-                  fontFamily: dc.sans,
                 }}
-              />
-              <input
-                className="gs-num"
-                type="password"
-                placeholder="Password"
-                style={{
-                  width: "100%",
-                  background: dc.dark,
-                  color: dc.cream,
-                  border: "1px solid rgba(238,239,211,0.18)",
-                  borderRadius: 6,
-                  padding: "13px 14px",
-                  fontSize: 15,
-                  fontWeight: 500,
-                  letterSpacing: "-0.01em",
-                  boxSizing: "border-box",
-                  outline: "none",
-                  fontFamily: dc.sans,
-                }}
-              />
+              >
+                Access your saved deals, lender submissions, and co-branded
+                quotes in one place.
+              </p>
               <button
                 onClick={() => onNavigate("portal")}
                 style={{
@@ -261,7 +237,7 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Sign in →
+                Sign in to InvestorGO →
               </button>
 
               <div

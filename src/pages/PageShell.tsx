@@ -7,21 +7,16 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Design tokens — single source of truth in src/theme.ts (Webflow-faithful)
 import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED } from "../theme";
+import type { PageView } from "../router/resolve";
 
-type View =
-  | "marketing" | "portal" | "products" | "solutions" | "about"
-  | "careers" | "case-studies" | "blog" | "faq" | "rate-quiz"
-  | "legal" | "dscr-calculator" | "lender-intel" | "state-laws"
-  | "deal-analyzer" | "borrower-profiles" | "brokers" | "investors";
-
-const NAV: { label: string; view: View }[] = [
+const NAV: { label: string; view: PageView }[] = [
   { label: "Product", view: "products" },
   { label: "Who We Serve", view: "solutions" },
   { label: "Resources", view: "blog" },
   { label: "About", view: "about" },
 ];
 
-const FOOTER: { h: string; links: { label: string; view: View; href?: string }[] }[] = [
+const FOOTER: { h: string; links: { label: string; view: PageView; href?: string }[] }[] = [
   {
     h: "Product",
     links: [
@@ -64,7 +59,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
   subtitle?: string;
   children: React.ReactNode;
   onBack: () => void;
-  onNavigate: (view: View) => void;
+  onNavigate: (view: PageView) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
@@ -324,7 +319,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                   <a className="footer_link_wrap w-inline-block" href="/careers" onClick={(e) => { e.preventDefault(); onNavigate("careers"); }}>
                     <div className="footer_link_text u-weight-bold">Jobs</div>
                   </a>
-                  <a className="footer_link_wrap w-inline-block" href="/security.html">
+                  <a className="footer_link_wrap w-inline-block" href="/legal" onClick={(e) => { e.preventDefault(); onNavigate("legal"); }}>
                     <div className="footer_link_text u-weight-bold">Security & Privacy</div>
                   </a>
                 </div>
@@ -352,7 +347,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <a className="footer_bottom_link_wrap w-inline-block" href="/terms-of-service" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/terms-of-service"); window.dispatchEvent(new PopStateEvent("popstate")); }}>
                   <div className="footer_bottom_link_text u-text-style-small">Terms of Service</div>
                 </a>
-                <a className="footer_bottom_link_wrap w-inline-block" href="/security.html">
+                <a className="footer_bottom_link_wrap w-inline-block" href="/legal" onClick={(e) => { e.preventDefault(); onNavigate("legal"); }}>
                   <div className="footer_bottom_link_text u-text-style-small">Data Privacy & Security</div>
                 </a>
               </div>

@@ -92,6 +92,7 @@ function viewToPath(view: PageView): string {
     case "investors":         return "/investors";
     case "faq":               return "/faq";
     case "blog":              return "/blog";
+    case "blog-post":         return "/blog";
     case "case-studies":      return "/case-studies";
     case "rate-quiz":         return "/rate-quiz";
     case "refi-tracker":      return "/tools/refi-tracker";

@@ -11,6 +11,9 @@
  * Respects localStorage key "gs_qualify_seen" — once set, never auto-opens again.
  *
  * Exposes window.openQualify and window.closeQualify for external CTAs.
+ *
+ * ADDED: hover state (midnight bg / pistachio text) on the sticky pill trigger.
+ * Animation CSS injected via local <style> tag — no shared files modified.
  */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import QualifyModal from "./QualifyModal";
@@ -27,10 +30,45 @@ const STORAGE_KEY = "gs_qualify_seen";
 const AUTO_OPEN_DELAY_MS = 30_000;
 const SCROLL_THRESHOLD = 0.55;
 
+// Widget-specific CSS — injected once, no shared files touched.
+const WIDGET_CSS = `
+  .qw-pill {
+    transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease !important;
+  }
+  .qw-pill:hover {
+    background: ${swatch.midnight} !important;
+    color: ${swatch.pistachio} !important;
+    box-shadow: 0 4px 16px rgba(0,55,56,0.28) !important;
+  }
+  .qw-pill:active {
+    transform: translateY(1px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .qw-pill {
+      transition: none !important;
+    }
+  }
+`;
+
+let _widgetStylesInjected = false;
+function ensureWidgetStyles() {
+  if (_widgetStylesInjected || typeof document === "undefined") return;
+  _widgetStylesInjected = true;
+  const el = document.createElement("style");
+  el.setAttribute("data-qw", "1");
+  el.textContent = WIDGET_CSS;
+  document.head.appendChild(el);
+}
+
 export default function QualifyWidget() {
   const [open, setOpen] = useState(false);
   const autoTriggeredRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Inject widget CSS once on mount
+  useEffect(() => {
+    ensureWidgetStyles();
+  }, []);
 
   const openModal = useCallback(() => {
     setOpen(true);
@@ -101,6 +139,7 @@ export default function QualifyWidget() {
         <button
           onClick={openModal}
           aria-label="See if you qualify"
+          className="qw-pill"
           style={{
             position: "fixed",
             bottom: 24,

@@ -1,91 +1,154 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
-const AS_OF = "Jun 22, 2026";
+const AS_OF = "Jun 25, 2026";
 
-// Source attribution per answer — added 2026-06-22 refresh.
+// Source attribution per answer — refreshed 2026-06-25.
 // Each `src` is the primary source a curious reader (or AI search engine) can verify.
-const FAQS = [
+// Groups: Basics, Qualification, Income & Property, Refinance, Compliance & Regulatory
+const FAQS: { q: string; a: string; src: string; group?: string }[] = [
+  // ── GROUP: The basics ─────────────────────────────────────────────────────────
   {
+    group: "The basics",
     q: "What is a DSCR loan?",
     a: "A DSCR (Debt Service Coverage Ratio) loan qualifies based on rental income, not your personal income or tax returns. The lender divides the property's gross monthly rent by its total monthly payment (PITIA: principal, interest, taxes, insurance, and HOA). A DSCR ≥ 1.0 means rent covers the payment. No W-2s, no pay stubs, no employment history required.",
     src: "12 CFR 1026.43 · TILA / Reg Z QM rules",
   },
   {
-    q: "What DSCR do I need to qualify?",
-    a: "Most lenders require DSCR ≥ 1.00. Some accept as low as 0.75 with compensating factors (strong FICO, more reserves). The sweet spot is 1.20+ where you get the best rates and only 3 months reserves. Sub-1.0 deals exist but your lender options narrow significantly.",
-    src: "Greenstreet lender matrix · Apr 2026 sweep",
+    group: "The basics",
+    q: "How is DSCR calculated? Walk me through the formula.",
+    a: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. Example: a property rents for $2,400/month. PITIA = $1,450 P&I + $350 taxes + $140 insurance + $60 HOA = $2,000. DSCR = $2,400 ÷ $2,000 = 1.20x. The property generates 20% more than it costs. Lenders use the lower of the signed lease rent or the Form 1007 appraiser market-rent estimate — not the listing description or Zillow estimate.",
+    src: "Fannie Mae 1007 form · Greenstreet engine.ts DSCR calc",
   },
   {
-    q: "What credit score do I need?",
-    a: "Greenstreet wants 660+ for the Core program; Flex goes to 640 with compensating factors. Higher FICO = lower rate — going from 660 to 740+ can save 0.75–1.50% and move you toward our Premier tier. ITIN borrowers and foreign nationals (no SSN) qualify on the Global program.",
-    src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
+    group: "The basics",
+    q: "What does PITIA stand for and what goes into it?",
+    a: "P = Principal. I = Interest at the note rate. T = Property taxes (actual annual bill ÷ 12 — use the post-sale assessed value, not the seller's homestead-exempt bill). I = Insurance (hazard + flood if required — get a real quote before modeling; coastal properties can run $300–600/month). A = HOA dues (full monthly amount). Each component can move the DSCR enough to make or break qualification — taxes and insurance are the two most common surprises at underwriting.",
+    src: "Greenstreet engine.ts · PITIA model · FEMA RR2.0 coastal data",
   },
   {
-    q: "Do I need a signed lease to qualify?",
-    a: "No. 63% of 2025 DSCR loans closed without a signed lease. Lenders use Form 1007 market rent from the appraisal to qualify the deal. If you have a lease that's within 20% of the 1007 rent, the lender uses the lower of the two. Vacant properties are fine.",
-    src: "Verus/S&P 2025 DSCR securitization data",
-  },
-  {
-    q: "How much down payment do I need?",
-    a: "The standard minimum is 20% down (80% LTV). Greenstreet prices its best rates at 75% LTV (25% down). Strong files (740+ FICO, DSCR ≥ 1.0, SFR purchase) can push higher LTV. Lower down payment = higher rate via LTV pricing adjustments.",
-    src: "Greenstreet lender matrix · Apr 2026",
-  },
-  {
-    q: "Can I use a DSCR loan for a short-term rental (Airbnb)?",
-    a: "Yes, but it's more complex. Lenders use the lower of: (1) 1007 long-term rental appraisal, (2) AirDNA projected income × 70–80%, or (3) documented 12-month STR history. Greenstreet's STR program accepts AirDNA projections or a documented 12-month history, with legality pre-checked in all 50 states. NYC's Local Law 18 (September 2023) bans most STR use in primary residences — check local regulations first.",
-    src: "50-state STR matrix · Q2 2026 · Minut 2026 + state statutes",
-  },
-  {
-    q: "What properties qualify for DSCR loans?",
-    a: "Eligible: SFR (attached and detached), 2–4 unit residential, warrantable and non-warrantable condos, condotels (with conditions), manufactured/modular, ADUs. Ineligible: assisted living/group homes, agricultural (>20 acres), co-ops, fractional/timeshares, mixed-use commercial, <500 sqft. Properties must be C4 condition or better.",
-    src: "Fannie Mae Property Eligibility Guide · Greenstreet underwriter notes",
-  },
-  {
-    q: "What is a prepayment penalty (PPP) and do I need one?",
-    a: "A PPP is a fee for paying off the loan early (via sale or refinance), typically structured as a declining schedule — 5/4/3/2/1% over 5 years or 3/2/1% over 3 years. Lenders often give a better rate if you accept a PPP (usually 0.50–0.80% lower). Without a PPP, expect to pay more in rate. Some states restrict or ban PPPs — check our State Laws page.",
-    src: "Greenstreet statePppLaws.ts · 50-state matrix",
-  },
-  {
-    q: "How fast can I close a DSCR loan?",
-    a: "Faster than conventional. Greenstreet targets 14–21 days on clean files and 21–30 on complex ones. The process is streamlined because there's no income verification — just the appraisal (1007 rent schedule), property docs, and credit.",
-    src: "Lender-published turn times · Apr 2026 sweep",
-  },
-  {
-    q: "What reserves do I need?",
-    a: "Reserves = liquid assets you must hold after closing (in months of PITIA). At DSCR ≥ 1.25: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add months for: STR, condos, FICO <680, first-time investor, loans >$1M, foreign nationals. Retirement accounts count at 70% if you're 59½+. Crypto counts as zero.",
-    src: "Greenstreet reserveEngine.ts · 5-overlay model",
-  },
-  {
-    q: "Can I hold the property in an LLC?",
-    a: "Yes — and most lenders prefer it for business-purpose compliance. LLC vesting is the standard. You'll sign a personal guaranty (full recourse). Max 4 owners in the entity; the guarantor must own ≥51%. Layered LLCs (LLC inside LLC) max 2 layers. Exception: New Jersey LLC is HIGH-RISK — some lenders won't do NJ LLC deals due to PPP ambiguity.",
-    src: "NJ N.J.S.A. 46:10B-2 · Greenstreet NJ LLC caveat",
-  },
-  {
-    q: "What rate can I expect?",
-    a: `As of ${AS_OF}: 30-yr PMMS 6.47% (Freddie Mac). DSCR best-rate tier (740+ FICO, ≤75% LTV, DSCR ≥1.0) runs 6.50–7.00%, ~50–125bps above conforming. Typical files 6.85–7.50%. Weaker files (low DSCR, STR, low FICO) 7.50–9.50%. ARM options start from ~5.50% but check reset cap structures carefully.`,
-    src: "Freddie Mac PMMS · wk of Jun 18, 2026 · Greenstreet rate-tier model",
-  },
-  // ── NEW Q's added in 2026-06-22 refresh — GEO-optimized, primary-sourced ──
-  {
+    group: "The basics",
     q: "Is a DSCR loan QM (Qualified Mortgage) or non-QM?",
     a: "DSCR loans are non-QM — they fall outside the safe-harbor QM rules under 12 CFR 1026.43(e)(2). That's exactly why they can use projected rent (no signed lease required) and skip borrower income verification. The trade-off: non-QM status means the lender bears more repurchase risk, which is why rates run 50–125bps above conforming.",
     src: "12 CFR 1026.43 · TILA / Reg Z",
   },
   {
+    group: "The basics",
+    q: "What rate can I expect?",
+    a: `Rates are indicative and change with market conditions. As of ${AS_OF}: DSCR best-rate tier (740+ FICO, ≤75% LTV, DSCR ≥1.0, PPP accepted) runs approximately 6.50–7.00% on 30-yr fixed, roughly 50–125bps above conforming. Typical files land 6.85–7.50%. Weaker files (sub-1.0 DSCR, STR, FICO <680) 7.50–9.50%. ARM options start lower but check reset cap structures carefully. Confirm current pricing with your Greenstreet rep.`,
+    src: "Freddie Mac PMMS · wk of Jun 18, 2026 · Greenstreet rate-tier model",
+  },
+  {
+    group: "The basics",
+    q: "How fast can I close a DSCR loan?",
+    a: "Faster than conventional. Greenstreet targets 14–21 days on clean files and 21–30 on complex ones. The process is streamlined because there's no income verification — just the appraisal (1007 rent schedule), property docs, and credit.",
+    src: "Lender-published turn times · Apr 2026 sweep",
+  },
+  // ── GROUP: Qualification ──────────────────────────────────────────────────────
+  {
+    group: "Qualification",
+    q: "What DSCR do I need to qualify?",
+    a: "Most lenders require DSCR ≥ 1.00. Some accept as low as 0.75 with compensating factors (strong FICO, more reserves). The sweet spot is 1.20+ where you get the best rates and only 3 months reserves. Sub-1.0 deals exist but lender options narrow significantly and reserves jump to 9–12 months.",
+    src: "Greenstreet lender matrix · Apr 2026 sweep",
+  },
+  {
+    group: "Qualification",
+    q: "What credit score do I need?",
+    a: "Greenstreet wants 660+ for the Core program; Flex goes to 640 with compensating factors. Higher FICO = lower rate — going from 660 to 740+ can save 0.75–1.50% and move you toward our Premier tier. ITIN borrowers and foreign nationals (no SSN) qualify on the Global program.",
+    src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
+  },
+  {
+    group: "Qualification",
+    q: "How much down payment do I need?",
+    a: "The standard minimum is 20% down (80% LTV). Greenstreet prices its best rates at 75% LTV (25% down). Strong files (740+ FICO, DSCR ≥ 1.0, SFR purchase) can access the Premier tier at that LTV. Lower down payment = higher rate via LTV pricing adjustments. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
+    src: "Greenstreet lender matrix · Apr 2026",
+  },
+  {
+    group: "Qualification",
+    q: "What reserves do I need?",
+    a: "Reserves = liquid assets you must hold after closing (in months of PITIA). At DSCR ≥ 1.25: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add months for: STR (+3), condos (+3), FICO <680 (+3), first-time investor (+3), loans >$1M (+6), foreign nationals (+6). These stack. Retirement accounts count at 70% if you're 59½+. Crypto counts as zero.",
+    src: "Greenstreet reserveEngine.ts · 5-overlay model",
+  },
+  {
+    group: "Qualification",
+    q: "Can I hold the property in an LLC?",
+    a: "Yes — and most lenders prefer it for business-purpose compliance. LLC vesting is the standard. You'll sign a personal guaranty (full recourse). Max 4 owners in the entity; the guarantor must own ≥51%. Layered LLCs (LLC inside LLC) max 2 layers. Exception: New Jersey LLC is HIGH-RISK — some lenders won't do NJ LLC deals due to PPP ambiguity under N.J.S.A. 46:10B-2.",
+    src: "NJ N.J.S.A. 46:10B-2 · Greenstreet NJ LLC caveat",
+  },
+  {
+    group: "Qualification",
+    q: "Can a foreign national or ITIN borrower get a DSCR loan?",
+    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Foreign nationals with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
+    src: "Greenstreet Global program matrix · FIRPTA IRC §897 · Q2 2026",
+  },
+  {
+    group: "Qualification",
+    q: "What is the deal-break rate?",
+    a: "The deal-break rate is the interest rate at which DSCR falls to exactly 1.00x — the lender's hard floor. Below 1.00x, the deal won't qualify. The headroom between your offered rate and the deal-break rate (in basis points) tells you how much rate shock the deal can absorb before it fails — useful for ARM reset modeling and refinance planning. Greenstreet's Deal Analyzer surfaces both numbers on every solve.",
+    src: "Greenstreet engine.ts · dealBreakRate + rateHeadroomBps",
+  },
+  // ── GROUP: Rental income & property ──────────────────────────────────────────
+  {
+    group: "Rental income & property",
+    q: "Do I need a signed lease to qualify?",
+    a: "No. A significant share of DSCR loans close without a signed lease. Lenders use Form 1007 market rent from the appraisal to qualify the deal. If you have a lease, the lender uses the lower of the lease rent and the 1007 rent. Vacant properties and new acquisitions are fine — the appraiser's market rent estimate is the qualifying figure.",
+    src: "Verus/S&P 2025 DSCR securitization data · Fannie Mae 1007",
+  },
+  {
+    group: "Rental income & property",
+    q: "Can I use a DSCR loan for a short-term rental (Airbnb)?",
+    a: "Yes, but STR income is qualified differently. Lenders use the lower of: (1) Form 1007 long-term rental appraisal, (2) AirDNA projected income × 70–80%, or (3) documented 12-month STR gross revenue history. If you lack 12 months of STR history, the 1007 long-term rent usually controls — which may be meaningfully lower than your STR projections. STR also adds +3 months to reserve requirements. Greenstreet pre-checks STR legality in all 50 states before program matching.",
+    src: "50-state STR matrix · Q2 2026 · Minut 2026 + state statutes",
+  },
+  {
+    group: "Rental income & property",
+    q: "What properties qualify for DSCR loans?",
+    a: "Eligible: SFR (attached and detached), 2–4 unit residential, warrantable and non-warrantable condos, condotels (with conditions), manufactured/modular, ADUs. Ineligible: assisted living/group homes, agricultural (>20 acres), co-ops, fractional/timeshares, mixed-use commercial, <500 sqft. Properties must be C4 condition or better.",
+    src: "Fannie Mae Property Eligibility Guide · Greenstreet underwriter notes",
+  },
+  {
+    group: "Rental income & property",
+    q: "What is a prepayment penalty (PPP) and should I take one?",
+    a: "A PPP is a fee for paying off the loan early (via sale or refinance), typically a declining schedule — 5/4/3/2/1% over 5 years or 3/2/1% over 3 years. Accepting a PPP usually saves 0.50–0.80% in rate vs the no-PPP option — that monthly savings compounds over a multi-year hold. The math generally favors accepting a PPP if you plan to hold 3+ years and aren't planning to sell or refi soon. Caution: some states restrict or ban PPPs on investment-property loans. Check the State Laws page before assuming a PPP is available in your target market.",
+    src: "Greenstreet statePppLaws.ts · 50-state matrix",
+  },
+  // ── GROUP: Refinance ─────────────────────────────────────────────────────────
+  {
+    group: "Refinance",
+    q: "Can I refinance a DSCR loan?",
+    a: "Yes. Both rate-term and cash-out refinances are available on investment properties with DSCR qualification. Rate-term refis replace the loan at new terms without extracting equity; cash-out refis increase the loan balance to pull equity. Both require the property to re-qualify on DSCR at the new rate and new loan amount.",
+    src: "Greenstreet refi program matrix · Q2 2026",
+  },
+  {
+    group: "Refinance",
+    q: "What is the seasoning requirement for a DSCR refinance?",
+    a: "Rate-term refi: typically 6 months from the original closing date (some lenders allow 3 months). Cash-out refi: typically 12 months of ownership — this is the standard institutional floor for investment property cash-out. Exception: delayed financing (if you purchased all-cash) may allow cash-out within 6 months, with the cash-out capped at acquisition costs.",
+    src: "Greenstreet refi program matrix · Fannie Mae B2-1.3-04",
+  },
+  {
+    group: "Refinance",
+    q: "What's the LTV limit on a cash-out DSCR refinance?",
+    a: "Most DSCR programs cap cash-out refis at 75% LTV. Some programs go to 70% on higher-balance loans, STR properties, or weaker FICO. Rate-term refis are generally allowed to 80% LTV. The DSCR must qualify at the new, higher loan balance — if rates have risen since your purchase, the higher payment from the new balance may compress DSCR below the qualifying floor.",
+    src: "Greenstreet refi program matrix · Q2 2026",
+  },
+  {
+    group: "Refinance",
+    q: "How do I calculate break-even on a refinance?",
+    a: "Break-even months = Total closing costs ÷ Monthly payment reduction. Example: $8,000 closing costs on a $300/month payment reduction = 26.7 months. If you sell or refi again before month 27, the refi cost money net. Important: if you have a PPP on the existing loan, add the full penalty to the numerator. A 3% PPP on a $400K loan is $12,000 — that adds 40 months to break-even on the same scenario, pushing it past 5.5 years. Run this calculation before paying the appraisal deposit.",
+    src: "Greenstreet refiTracker.ts · break-even model",
+  },
+  // ── GROUP: Compliance & regulatory ───────────────────────────────────────────
+  {
+    group: "Compliance & regulatory",
     q: "What changed in 2026 for DSCR loans?",
-    a: "Three regulatory shifts: (1) §1071 small-business data collection threshold raised from 100 to 1,000 originations/year, effective May 1, 2026. (2) HOEPA thresholds refreshed for 2026 ($27,592 loan amount / $1,380 P&F floor for higher-priced mortgage test). (3) MN HF 3437 effective Aug 1, 2026 makes business-purpose DSCR loans legal in Minnesota with full PPPs. None of these change the math — they change the paperwork.",
+    a: "Three regulatory shifts: (1) §1071 small-business data collection threshold raised to 1,000 originations/year, effective May 1, 2026. (2) HOEPA thresholds refreshed for 2026. (3) MN HF 3437 effective Aug 1, 2026 makes business-purpose DSCR loans legal in Minnesota with full PPPs. None of these change the DSCR math — they change the paperwork.",
     src: "FR 2026-08494 · 91 FR 23530 · HOEPA 12 CFR 1026.32(a) · MN HF 3437 (2026)",
   },
   {
+    group: "Compliance & regulatory",
     q: "How does OBBBA affect DSCR deal returns?",
-    a: "OBBBA makes 100% bonus depreciation permanent (DSCR-relevant because investors can shelter Year-1 taxable income) and raises §179 to $2.5M (relevant for cost-segregation studies on $5M+ deals). The QBI 23% deduction is also permanent. For a $400K deal, expect $12K–$20K of Year-1 depreciation shield depending on land/building split — Greenstreet's Tax Engine models this with OBBBA defaults.",
+    a: "OBBBA makes 100% bonus depreciation permanent (investors can shelter Year-1 taxable income via cost segregation) and raises §179 to $2.56M for 2026. The QBI deduction is raised to 23% and made permanent. For a $400K deal, expect roughly $12K–$20K of Year-1 depreciation shield depending on land/building split — actual outcome depends on your tax situation. Consult a CPA; Greenstreet's Tax Engine models this with OBBBA defaults.",
     src: "OBBBA 2025 · IRC §168(k) · IRC §179 · Greenstreet taxEngine.ts",
-  },
-  {
-    q: "What is the deal-break rate?",
-    a: "The deal-break rate is the interest rate at which the DSCR falls to exactly 1.00x — the lender's hard floor. Below 1.00x the deal won't qualify. The headroom between the offered rate and the deal-break rate (in basis points) is the rate shock the borrower can absorb before the loan fails. Greenstreet's Deal Analyzer surfaces both numbers on every solve.",
-    src: "Greenstreet engine · engine.ts · dealBreakRate + rateHeadroomBps",
   },
 ];
 
@@ -158,9 +221,20 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
         }}
       >
         <div style={{ maxWidth: 880, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
-          {FAQS.map((faq, i) => (
+          {FAQS.map((faq, i) => {
+            // Render a group heading before the first item in each group
+            const prevGroup = i > 0 ? FAQS[i - 1].group : null;
+            const showGroupHead = faq.group && faq.group !== prevGroup;
+            return (
+            <React.Fragment key={i}>
+              {showGroupHead && (
+                <div style={{ marginTop: i === 0 ? 0 : 20, marginBottom: 4, paddingLeft: 4 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: dc.rain }}>
+                    {faq.group}
+                  </span>
+                </div>
+              )}
             <div
-              key={i}
               style={{
                 background: dc.white,
                 borderRadius: 9,
@@ -259,10 +333,33 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 </div>
               </div>
             </div>
-          ))}
+            </React.Fragment>
+            );
+          })}
         </div>
 
-        {/* Freshness signal — added 2026-06-22 */}
+        {/* Qualifier CTA — wired to openQualify funnel */}
+        <div
+          className="gs-reveal"
+          style={{ maxWidth: 880, margin: "36px auto 0", borderRadius: 9, background: dc.dark, padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: 20 }}
+        >
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: dc.lemon, marginBottom: 8 }}>
+              Ready to run your deal?
+            </div>
+            <p style={{ color: "rgba(238,239,211,0.75)", fontSize: 15, margin: 0, lineHeight: 1.5, maxWidth: "44ch" }}>
+              Check whether your property qualifies and see your preliminary program match in minutes. No commitment required.
+            </p>
+          </div>
+          <button
+            onClick={() => (window as any).openQualify?.()}
+            style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "13px 26px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em", flexShrink: 0 }}
+          >
+            See if your deal qualifies →
+          </button>
+        </div>
+
+        {/* Freshness signal */}
         <div
           style={{
             maxWidth: 880,
@@ -342,27 +439,50 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               marginRight: "auto",
             }}
           >
-            Talk to a DSCR specialist directly. Most questions get answered the same business day — no pitch, no runaround.
+            Check whether your deal qualifies — or talk to a DSCR specialist directly. Most questions answered the same business day.
           </p>
-          <a
-            href="tel:+15550100000"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.lemon,
-              color: dc.dark,
-              fontWeight: 600,
-              fontSize: 16,
-              textDecoration: "none",
-              padding: "15px 32px",
-              borderRadius: 6,
-              fontFamily: dc.sans,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Call +1 (555) 010-0000
-          </a>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
+            <button
+              onClick={() => (window as any).openQualify?.()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 700,
+                fontSize: 16,
+                border: "none",
+                cursor: "pointer",
+                padding: "15px 32px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              See if your deal qualifies →
+            </button>
+            <a
+              href="tel:+15550100000"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: "transparent",
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: "none",
+                padding: "15px 32px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                border: `1px solid rgba(238,239,211,0.3)`,
+              }}
+            >
+              Call +1 (555) 010-0000
+            </a>
+          </div>
         </div>
       </section>
     </DcShell>

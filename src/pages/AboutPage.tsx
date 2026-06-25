@@ -47,6 +47,9 @@ const ABOUT_CSS = `
   /* CTA card lift */
   .cta-card { transition: transform .15s; }
   .cta-card:hover { transform: translateY(-4px); }
+  /* Team grid: 4-col desktop → 2-col mobile */
+  .ab-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+  @media (max-width: 640px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
 `;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -409,51 +412,69 @@ export default function AboutPage({
             </h2>
           </div>
 
-          <div
-            className="gs-reveal"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
-              gap: 22,
-            }}
-          >
-            {TEAM.map((m) => (
-              <div key={m.id}>
-                {/* Photo placeholder — solid fill, no blur/glow */}
-                <div
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    aspectRatio: "1",
-                    marginBottom: 14,
-                    borderRadius: 9,
-                    background: dc.rain,
-                    border: "1px solid rgba(238,239,211,0.10)",
-                  }}
-                />
-                <div
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    letterSpacing: "-0.02em",
-                    color: dc.cream,
-                  }}
-                >
-                  {m.name}
+          <div className="gs-reveal ab-team-grid">
+            {TEAM.map((m) => {
+              // Derive initials: first letter of each word, max 2
+              const initials = m.name
+                .split(" ")
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
+              return (
+                <div key={m.id}>
+                  {/* Monogram avatar — intentional branded element, no photo needed */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      aspectRatio: "1",
+                      marginBottom: 14,
+                      borderRadius: 9,
+                      background: dc.teal,
+                      border: "1px solid rgba(238,239,211,0.10)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: dc.sans,
+                        fontSize: "clamp(28px,3.5vw,42px)",
+                        fontWeight: 600,
+                        letterSpacing: "-0.03em",
+                        color: dc.lemon,
+                        lineHeight: 1,
+                        userSelect: "none",
+                      }}
+                    >
+                      {initials}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      letterSpacing: "-0.02em",
+                      color: dc.cream,
+                    }}
+                  >
+                    {m.name}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 500,
+                      color: "rgba(238,239,211,0.55)",
+                      marginTop: 2,
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {m.role}
+                  </div>
                 </div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "rgba(238,239,211,0.55)",
-                    marginTop: 2,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {m.role}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -594,17 +615,46 @@ export default function AboutPage({
               We're building a generational company in DSCR lending — and always
               looking for talent to propel the mission.
             </p>
-            {/* Team photo placeholder — solid lemon fill */}
+            {/* Branded wordmark panel — intentional, no unfinished placeholder */}
             <div
               style={{
-                display: "block",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 12,
                 width: "100%",
                 aspectRatio: "1.67",
                 borderRadius: 12,
-                background: dc.lemon,
+                background: dc.dark,
                 border: "1px solid rgba(0,55,56,0.10)",
               }}
-            />
+            >
+              <span
+                style={{
+                  fontFamily: dc.sans,
+                  fontSize: "clamp(28px,3.5vw,48px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.04em",
+                  color: dc.lemon,
+                  lineHeight: 1,
+                }}
+              >
+                Greenstreet
+              </span>
+              <span
+                style={{
+                  fontFamily: dc.sans,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase" as const,
+                  color: "rgba(238,239,211,0.35)",
+                }}
+              >
+                Austin, Texas · Est. 2026
+              </span>
+            </div>
           </div>
         </div>
       </section>

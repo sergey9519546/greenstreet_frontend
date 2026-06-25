@@ -5,6 +5,13 @@
  * Step 3: Personalized result (the value drop)
  * Step 4: Contact capture
  * Step 5: Confirmation
+ *
+ * PRESERVED: DSCR calc formula, Firestore leads submit + localStorage fallback,
+ * trigger pill + window.openQualify + one-time auto-open + localStorage gate.
+ *
+ * ADDED: step-enter animation, progress bar transition, result reveal (count-up),
+ * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
+ * focus rings, trust signals, mobile-responsive padding.
  */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { db } from "../firebase";
@@ -33,7 +40,7 @@ interface StepFourData {
   role: Role | null;
 }
 
-// ─── DSCR Formula ─────────────────────────────────────────────────────────────
+// ─── DSCR Formula (PRESERVED) ─────────────────────────────────────────────────
 function calcDSCR(value: number, rent: number, rate: number): number {
   const loan = value * 0.75;
   const r = rate / 100 / 12;
@@ -54,17 +61,42 @@ function dscrColor(dscr: number): string {
   return "#c25b4e";
 }
 
-function dscrVerdict(dscr: number): { text: string; color: string } {
+function dscrVerdict(dscr: number): {
+  tier: string;
+  headline: string;
+  detail: string;
+  color: string;
+} {
+  if (dscr >= 1.25)
+    return {
+      tier: "Strong",
+      headline: "This deal looks solid",
+      detail:
+        "Your DSCR clears our standard threshold. You're in a good position to move forward.",
+      color: swatch.emerald,
+    };
   if (dscr >= 1.0)
-    return { text: "You likely qualify ✓", color: swatch.emerald };
+    return {
+      tier: "Qualifying",
+      headline: "This deal qualifies",
+      detail:
+        "Your DSCR meets our minimum. A specialist can confirm terms and get you to closing.",
+      color: swatch.rainforest,
+    };
   if (dscr >= 0.85)
     return {
-      text: "You likely qualify — with the right structure",
-      color: "#b8b820",
+      tier: "Borderline",
+      headline: "This deal may work with the right structure",
+      detail:
+        "Your DSCR is just below standard threshold, but there are DSCR programs that accommodate this range. A specialist can explore options.",
+      color: "#b8a820",
     };
   return {
-    text: "Let's find a structure that works",
-    color: swatch.rainforest,
+    tier: "Below Threshold",
+    headline: "This deal needs restructuring",
+    detail:
+      "Your current numbers don't meet standard DSCR requirements, but there may be alternative structures worth discussing with a specialist.",
+    color: "#c25b4e",
   };
 }
 
@@ -107,10 +139,136 @@ interface QualifyModalProps {
   onClose: () => void;
 }
 
+// ─── Animation CSS injected once ─────────────────────────────────────────────
+const ANIMATION_CSS = `
+  @keyframes qm-step-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes qm-scale-in {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes qm-shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-5px); }
+    40%      { transform: translateX(5px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+  @keyframes qm-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes qm-checkmark-pop {
+    0%   { transform: scale(0.4); opacity: 0; }
+    70%  { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1);   opacity: 1; }
+  }
+
+  .qm-step-enter {
+    animation: qm-step-enter 220ms cubic-bezier(0.25,0.46,0.45,0.94) both;
+  }
+  .qm-result-reveal {
+    animation: qm-scale-in 380ms cubic-bezier(0.34,1.56,0.64,1) both;
+    animation-delay: 60ms;
+  }
+  .qm-checkmark-pop {
+    animation: qm-checkmark-pop 420ms cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .qm-shake {
+    animation: qm-shake 200ms ease both;
+  }
+  .qm-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0,55,56,0.25);
+    border-top-color: ${swatch.midnight};
+    border-radius: 50%;
+    animation: qm-spin 600ms linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  /* Pill hover states — unselected pill gets a tint on hover */
+  .qm-pill:not(.qm-pill-active):hover {
+    background: ${swatch.mint} !important;
+    border-color: ${swatch.rainforest} !important;
+  }
+  .qm-pill-active:hover {
+    opacity: 0.88;
+  }
+
+  /* Primary button hover/active */
+  .qm-btn-primary:not(:disabled):hover {
+    filter: brightness(1.06);
+  }
+  .qm-btn-primary:not(:disabled):active {
+    transform: translateY(1px);
+  }
+
+  /* Secondary button hover */
+  .qm-btn-secondary:hover {
+    background: ${swatch.mint} !important;
+  }
+
+  /* Input focus ring */
+  .qm-input:focus-visible {
+    outline: 2px solid ${swatch.emerald} !important;
+    outline-offset: 1px !important;
+    border-color: ${swatch.emerald} !important;
+  }
+  .qm-input:focus {
+    outline: 2px solid ${swatch.emerald} !important;
+    outline-offset: 1px !important;
+    border-color: ${swatch.emerald} !important;
+  }
+
+  /* Close button hover */
+  .qm-close-btn:hover {
+    background: ${swatch.mint} !important;
+    color: ${swatch.midnight} !important;
+  }
+
+  /* Reduced-motion: disable all animations */
+  @media (prefers-reduced-motion: reduce) {
+    .qm-step-enter,
+    .qm-result-reveal,
+    .qm-checkmark-pop,
+    .qm-shake,
+    .qm-spinner {
+      animation: none !important;
+    }
+    .qm-spinner {
+      opacity: 0.6;
+    }
+  }
+
+  /* Mobile: tighter card padding */
+  @media (max-width: 420px) {
+    .qm-card {
+      padding: 20px 18px !important;
+    }
+  }
+`;
+
+// Inject styles once into the document head
+let _stylesInjected = false;
+function ensureStyles() {
+  if (_stylesInjected || typeof document === "undefined") return;
+  _stylesInjected = true;
+  const el = document.createElement("style");
+  el.setAttribute("data-qm", "1");
+  el.textContent = ANIMATION_CSS;
+  document.head.appendChild(el);
+}
+
 // ─── Shared sub-components ────────────────────────────────────────────────────
-const TOTAL_STEPS = 5;
+const FUNNEL_STEPS = 4;
 
 function ProgressBar({ step }: { step: number }) {
+  const pct = Math.min(step, FUNNEL_STEPS) / FUNNEL_STEPS;
   return (
     <div
       style={{
@@ -118,13 +276,13 @@ function ProgressBar({ step }: { step: number }) {
         background: swatch.mint,
         borderRadius: 4,
         overflow: "hidden",
-        marginBottom: 24,
+        marginBottom: 8,
       }}
     >
       <div
         style={{
           height: "100%",
-          width: `${(step / TOTAL_STEPS) * 100}%`,
+          width: `${pct * 100}%`,
           background: swatch.lemon,
           borderRadius: 4,
           transition: "width 0.35s ease",
@@ -134,11 +292,30 @@ function ProgressBar({ step }: { step: number }) {
   );
 }
 
+function StepLabel({ step }: { step: number }) {
+  if (step >= 5) return null;
+  return (
+    <p
+      style={{
+        fontSize: 11,
+        fontWeight: font.semibold,
+        color: swatch.rainforest,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        margin: "0 0 20px",
+      }}
+    >
+      Step {step} of {FUNNEL_STEPS}
+    </p>
+  );
+}
+
 function CloseBtn({ onClose }: { onClose: () => void }) {
   return (
     <button
       onClick={onClose}
       aria-label="Close"
+      className="qm-close-btn"
       style={{
         position: "absolute",
         top: 16,
@@ -151,6 +328,7 @@ function CloseBtn({ onClose }: { onClose: () => void }) {
         lineHeight: 1,
         padding: "4px 8px",
         borderRadius: radius.sm,
+        transition: "background 0.15s, color 0.15s",
       }}
     >
       ✕
@@ -170,6 +348,12 @@ const inputStyle: React.CSSProperties = {
   fontFamily: font.family,
   outline: "none",
   marginTop: 4,
+  transition: "border-color 0.15s",
+};
+
+const inputErrorStyle: React.CSSProperties = {
+  ...inputStyle,
+  borderColor: "#c25b4e",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -181,17 +365,39 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: "0.02em",
 };
 
+const helperStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: swatch.rainforest,
+  marginTop: 4,
+  opacity: 0.8,
+};
+
+const errorMsgStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: "#c25b4e",
+  marginTop: 4,
+};
+
 function FieldGroup({
   label,
+  helper,
+  error,
   children,
 }: {
   label: string;
+  helper?: string;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={labelStyle}>{label}</label>
       {children}
+      {error ? (
+        <p style={errorMsgStyle}>{error}</p>
+      ) : helper ? (
+        <p style={helperStyle}>{helper}</p>
+      ) : null}
     </div>
   );
 }
@@ -209,6 +415,7 @@ function PillBtn({
     <button
       type="button"
       onClick={onClick}
+      className={active ? "qm-pill qm-pill-active" : "qm-pill"}
       style={{
         padding: "8px 16px",
         borderRadius: radius.sm,
@@ -219,7 +426,7 @@ function PillBtn({
         fontWeight: font.semibold,
         fontSize: 14,
         cursor: "pointer",
-        transition: "background 0.15s, border-color 0.15s, color 0.15s",
+        transition: "background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s",
       }}
     >
       {children}
@@ -227,8 +434,10 @@ function PillBtn({
   );
 }
 
-const btnPrimary: React.CSSProperties = {
-  display: "inline-block",
+const btnPrimaryBase: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
   padding: "12px 28px",
   borderRadius: radius.sm,
   background: swatch.lemon,
@@ -238,10 +447,21 @@ const btnPrimary: React.CSSProperties = {
   fontWeight: font.bold,
   fontSize: 15,
   cursor: "pointer",
+  transition: "filter 0.15s, transform 0.1s",
+};
+
+const btnPrimary: React.CSSProperties = { ...btnPrimaryBase };
+
+const btnPrimaryDisabled: React.CSSProperties = {
+  ...btnPrimaryBase,
+  opacity: 0.42,
+  cursor: "not-allowed",
 };
 
 const btnSecondary: React.CSSProperties = {
-  display: "inline-block",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
   padding: "12px 20px",
   borderRadius: radius.sm,
   background: "transparent",
@@ -251,9 +471,51 @@ const btnSecondary: React.CSSProperties = {
   fontWeight: font.semibold,
   fontSize: 14,
   cursor: "pointer",
+  transition: "background 0.15s",
 };
 
-// ─── Step 1 — Hook (live DSCR) ────────────────────────────────────────────────
+// ─── Lock/Trust glyph ─────────────────────────────────────────────────────────
+function TrustBar({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        fontSize: 12,
+        color: swatch.rainforest,
+        margin: "4px 0 24px",
+        padding: "9px 13px",
+        borderRadius: radius.sm,
+        background: swatch.mint,
+        lineHeight: 1.5,
+      }}
+    >
+      {/* Shield / lock SVG — 14px, no animation */}
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 14 14"
+        fill="none"
+        aria-hidden="true"
+        style={{ flexShrink: 0, opacity: 0.75 }}
+      >
+        <path
+          d="M7 1L2 3.2V7c0 2.95 2.18 5.56 5 6 2.82-.44 5-3.05 5-6V3.2L7 1z"
+          fill={swatch.rainforest}
+          opacity="0.55"
+        />
+        <path
+          d="M5.5 7a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z"
+          fill="#fff"
+        />
+      </svg>
+      <span>{text}</span>
+    </div>
+  );
+}
+
+// ─── Step 1 — Live DSCR Calculator ────────────────────────────────────────────
 function Step1({
   data,
   onChange,
@@ -267,17 +529,36 @@ function Step1({
 }) {
   const dscr = calcDSCR(data.propertyValue, data.rent, data.rate);
   const col = dscrColor(dscr);
-  const label =
+
+  // Track whether CTA was clicked while invalid (for shake)
+  const [shaking, setShaking] = useState(false);
+
+  const dscrLabel =
     dscr >= 1.25
       ? "Strong cash flow"
       : dscr >= 1.0
-      ? "Qualifying DSCR"
+      ? "Qualifies at standard terms"
       : dscr >= 0.85
-      ? "Near qualifying"
-      : "Below threshold";
+      ? "Near qualifying — options available"
+      : "Below standard threshold";
+
+  const isValid =
+    data.propertyValue >= 50000 && data.rent > 0 && data.rate > 0;
+
+  const handleNext = () => {
+    if (!isValid) {
+      setShaking(true);
+      return;
+    }
+    onNext();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleNext();
+  };
 
   return (
-    <div>
+    <div className="qm-step-enter" onKeyDown={handleKeyDown}>
       <h2
         style={{
           fontSize: 22,
@@ -287,7 +568,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        See if your deal qualifies
+        Check your deal in 60 seconds
       </h2>
       <p
         style={{
@@ -297,10 +578,13 @@ function Step1({
           marginTop: 0,
         }}
       >
-        60 seconds &middot; no credit pull &middot; no obligation
+        No credit pull &middot; no obligation &middot; instant estimate
       </p>
 
-      <FieldGroup label="Property value ($)">
+      <FieldGroup
+        label="Property value"
+        helper="The purchase price or current appraised value of the property."
+      >
         <input
           ref={firstFieldRef as React.RefObject<HTMLInputElement>}
           type="number"
@@ -308,20 +592,30 @@ function Step1({
           min={50000}
           step={5000}
           onChange={(e) => onChange({ propertyValue: Number(e.target.value) })}
+          className="qm-input"
           style={inputStyle}
         />
       </FieldGroup>
-      <FieldGroup label="Expected monthly rent ($)">
+
+      <FieldGroup
+        label="Expected monthly rent"
+        helper="The gross rent you expect the property to generate each month."
+      >
         <input
           type="number"
           value={data.rent}
           min={0}
           step={50}
           onChange={(e) => onChange({ rent: Number(e.target.value) })}
+          className="qm-input"
           style={inputStyle}
         />
       </FieldGroup>
-      <FieldGroup label="Note rate (%)">
+
+      <FieldGroup
+        label="Estimated interest rate (%)"
+        helper="Your best estimate of the note rate. You can refine this later."
+      >
         <input
           type="number"
           value={data.rate}
@@ -329,11 +623,12 @@ function Step1({
           max={20}
           step={0.125}
           onChange={(e) => onChange({ rate: Number(e.target.value) })}
+          className="qm-input"
           style={inputStyle}
         />
       </FieldGroup>
 
-      {/* Live DSCR readout */}
+      {/* Live DSCR readout — color transitions smoothly */}
       <div
         style={{
           background: swatch.mint,
@@ -356,7 +651,7 @@ function Step1({
               marginBottom: 2,
             }}
           >
-            Live DSCR
+            Your DSCR
           </div>
           <div
             style={{
@@ -365,6 +660,7 @@ function Step1({
               fontWeight: 700,
               color: col,
               lineHeight: 1,
+              transition: "color 0.2s ease",
             }}
           >
             {dscr.toFixed(2)}
@@ -376,21 +672,28 @@ function Step1({
             fontWeight: font.semibold,
             color: col,
             textAlign: "right",
-            maxWidth: 130,
+            maxWidth: 140,
+            transition: "color 0.2s ease",
           }}
         >
-          {label}
+          {dscrLabel}
         </div>
       </div>
 
-      <button style={btnPrimary} onClick={onNext}>
-        Next →
+      <button
+        className={`qm-btn-primary${shaking ? " qm-shake" : ""}`}
+        style={isValid ? btnPrimary : btnPrimaryDisabled}
+        disabled={!isValid}
+        onClick={handleNext}
+        onAnimationEnd={() => setShaking(false)}
+      >
+        Continue →
       </button>
     </div>
   );
 }
 
-// ─── Step 2 — Deal details ────────────────────────────────────────────────────
+// ─── Step 2 — Deal Details ────────────────────────────────────────────────────
 function Step2({
   data,
   onChange,
@@ -402,33 +705,59 @@ function Step2({
   onBack: () => void;
   onNext: () => void;
 }) {
+  const [attempted, setAttempted] = useState(false);
+  const [shaking, setShaking] = useState(false);
+
   const purposes: { val: Purpose; label: string }[] = [
     { val: "purchase", label: "Purchase" },
-    { val: "rate-term", label: "Rate-term refi" },
-    { val: "cash-out", label: "Cash-out" },
+    { val: "rate-term", label: "Rate & term refi" },
+    { val: "cash-out", label: "Cash-out refi" },
   ];
   const ficos: { val: FicoBand; label: string }[] = [
-    { val: "under-680", label: "Under 680" },
+    { val: "under-680", label: "Below 680" },
     { val: "680-719", label: "680–719" },
     { val: "720-759", label: "720–759" },
-    { val: "760-plus", label: "760+" },
+    { val: "760-plus", label: "760 or above" },
   ];
 
+  const isValid =
+    data.purpose !== null && data.state !== "" && data.ficoBand !== null;
+
+  const handleNext = () => {
+    setAttempted(true);
+    if (isValid) {
+      onNext();
+    } else {
+      setShaking(true);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleNext();
+  };
+
   return (
-    <div>
+    <div className="qm-step-enter" onKeyDown={handleKeyDown}>
       <h2
         style={{
           fontSize: 22,
           fontWeight: font.bold,
           color: swatch.midnight,
-          marginBottom: 20,
+          marginBottom: 6,
           marginTop: 0,
         }}
       >
-        A few more details
+        Tell us about the deal
       </h2>
+      <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
+        These details let us tailor your rate estimate to your specific scenario.
+      </p>
 
-      <FieldGroup label="Loan purpose">
+      <FieldGroup
+        label="Loan purpose"
+        helper="What type of transaction is this?"
+        error={attempted && !data.purpose ? "Please select a loan purpose." : undefined}
+      >
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
           {purposes.map((p) => (
             <PillBtn
@@ -442,13 +771,22 @@ function Step2({
         </div>
       </FieldGroup>
 
-      <FieldGroup label="Property state">
+      <FieldGroup
+        label="Property state"
+        helper="Some states have lender-specific overlays that affect available programs."
+        error={attempted && !data.state ? "Please select the property state." : undefined}
+      >
         <select
           value={data.state}
           onChange={(e) => onChange({ state: e.target.value })}
-          style={{ ...inputStyle, marginTop: 4 }}
+          className="qm-input"
+          style={
+            attempted && !data.state
+              ? { ...inputStyle, marginTop: 4, borderColor: "#c25b4e" }
+              : { ...inputStyle, marginTop: 4 }
+          }
         >
-          <option value="">Select state…</option>
+          <option value="">Select a state…</option>
           {US_STATES.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -457,7 +795,11 @@ function Step2({
         </select>
       </FieldGroup>
 
-      <FieldGroup label="Borrower FICO band">
+      <FieldGroup
+        label="Borrower credit score range"
+        helper="An estimate is fine. This affects your rate tier — we don't pull credit here."
+        error={attempted && !data.ficoBand ? "Please select a credit score range." : undefined}
+      >
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
           {ficos.map((f) => (
             <PillBtn
@@ -474,10 +816,19 @@ function Step2({
       <div
         style={{ display: "flex", gap: 12, marginTop: 28, alignItems: "center" }}
       >
-        <button style={btnSecondary} onClick={onBack}>
+        <button
+          className="qm-btn-secondary"
+          style={btnSecondary}
+          onClick={onBack}
+        >
           ← Back
         </button>
-        <button style={btnPrimary} onClick={onNext}>
+        <button
+          className={`qm-btn-primary${shaking ? " qm-shake" : ""}`}
+          style={isValid ? btnPrimary : btnPrimaryDisabled}
+          onClick={handleNext}
+          onAnimationEnd={() => setShaking(false)}
+        >
           See my result →
         </button>
       </div>
@@ -485,7 +836,35 @@ function Step2({
   );
 }
 
-// ─── Step 3 — Result ─────────────────────────────────────────────────────────
+// ─── Count-up hook for the DSCR reveal ───────────────────────────────────────
+function useCountUp(target: number, duration = 520): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      setValue(target);
+      return;
+    }
+    let startTime: number | null = null;
+    let raf: number;
+    const step = (ts: number) => {
+      if (startTime === null) startTime = ts;
+      const elapsed = ts - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(target * 100 * eased) / 100);
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return value;
+}
+
+// ─── Step 3 — Personalized Result ────────────────────────────────────────────
 function Step3({
   step1,
   step2,
@@ -502,8 +881,17 @@ function Step3({
   const verdict = dscrVerdict(dscr);
   const rate = estimateRate(dscr, step2.ficoBand, step2.purpose);
 
+  // Animated count-up for the big DSCR number
+  const displayDscr = useCountUp(dscr, 520);
+
+  const purposeLabel: Record<Purpose, string> = {
+    purchase: "Purchase",
+    "rate-term": "Rate & term refi",
+    "cash-out": "Cash-out refi",
+  };
+
   return (
-    <div>
+    <div className="qm-step-enter">
       <p
         style={{
           fontSize: 11,
@@ -511,11 +899,11 @@ function Step3({
           color: swatch.rainforest,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          marginBottom: 8,
+          marginBottom: 6,
           marginTop: 0,
         }}
       >
-        Your result
+        Your preliminary estimate
       </p>
       <h2
         style={{
@@ -526,51 +914,66 @@ function Step3({
           marginTop: 0,
         }}
       >
-        Here's how your deal stacks up
+        {verdict.headline}
       </h2>
 
-      {/* DSCR display */}
+      {/* DSCR + verdict — reveals with scale-in */}
       <div
+        className="qm-result-reveal"
         style={{
           background: swatch.mint,
           borderRadius: radius.sm,
           padding: "20px 24px",
-          marginBottom: 16,
+          marginBottom: 12,
         }}
       >
-        <div
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 8 }}>
+          <div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: font.semibold,
+                color: swatch.rainforest,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                marginBottom: 4,
+              }}
+            >
+              DSCR
+            </div>
+            <div
+              style={{
+                fontSize: 48,
+                fontFamily: font.mono,
+                fontWeight: 700,
+                color: col,
+                lineHeight: 1,
+              }}
+            >
+              {displayDscr.toFixed(2)}
+            </div>
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: font.bold,
+              color: verdict.color,
+              paddingBottom: 4,
+            }}
+          >
+            {verdict.tier}
+          </div>
+        </div>
+        <p
           style={{
-            fontSize: 11,
-            fontWeight: font.semibold,
-            color: swatch.rainforest,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            marginBottom: 4,
+            fontSize: 13,
+            color: swatch.midnight,
+            margin: 0,
+            lineHeight: 1.5,
           }}
         >
-          DSCR
-        </div>
-        <div
-          style={{
-            fontSize: 48,
-            fontFamily: font.mono,
-            fontWeight: 700,
-            color: col,
-            lineHeight: 1,
-            marginBottom: 8,
-          }}
-        >
-          {dscr.toFixed(2)}
-        </div>
-        <div
-          style={{
-            fontSize: 15,
-            fontWeight: font.semibold,
-            color: verdict.color,
-          }}
-        >
-          {verdict.text}
-        </div>
+          {verdict.detail}
+        </p>
       </div>
 
       {/* Rate estimate */}
@@ -580,7 +983,7 @@ function Step3({
           borderRadius: radius.sm,
           border: `1.5px solid ${swatch.mint}`,
           padding: "16px 20px",
-          marginBottom: 16,
+          marginBottom: 12,
         }}
       >
         <div
@@ -593,49 +996,62 @@ function Step3({
             marginBottom: 4,
           }}
         >
-          Estimated rate (indicative)
+          Indicative rate range
         </div>
         <div
           style={{
-            fontSize: 26,
+            fontSize: 28,
             fontFamily: font.mono,
             fontWeight: 700,
             color: swatch.midnight,
+            lineHeight: 1,
+            marginBottom: 4,
           }}
         >
           {rate}
         </div>
-        <div style={{ fontSize: 12, color: swatch.rainforest, marginTop: 4 }}>
-          Subject to underwriting · not a commitment to lend
-        </div>
+        <p style={{ fontSize: 12, color: swatch.rainforest, margin: 0 }}>
+          Based on {step2.ficoBand ? `credit score ${step2.ficoBand}` : "your credit range"},{" "}
+          {step2.purpose ? purposeLabel[step2.purpose].toLowerCase() : "your loan type"},{" "}
+          {step2.state || "your state"}.
+        </p>
       </div>
 
+      {/* Compliance + what happens next */}
       <div
         style={{
-          fontSize: 13,
+          fontSize: 12,
           color: swatch.rainforest,
           marginBottom: 24,
           padding: "10px 14px",
           background: swatch.mint,
           borderRadius: radius.sm,
+          lineHeight: 1.55,
         }}
       >
-        Matched to Greenstreet DSCR programs.
+        <strong style={{ display: "block", marginBottom: 3 }}>What happens next</strong>
+        Share your contact details and a Greenstreet specialist will review your
+        scenario and send you a detailed quote — typically within one business day.
+        <br />
+        <span style={{ opacity: 0.75, marginTop: 6, display: "block" }}>
+          Preliminary estimate based on the figures you entered. Not a commitment to lend
+          or a credit decision. Subject to underwriting review.
+        </span>
       </div>
 
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <button style={btnSecondary} onClick={onBack}>
+        <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>
           ← Back
         </button>
-        <button style={btnPrimary} onClick={onNext}>
-          Get my personalized quote →
+        <button className="qm-btn-primary" style={btnPrimary} onClick={onNext}>
+          Unlock my full quote →
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Step 4 — Contact capture ─────────────────────────────────────────────────
+// ─── Step 4 — Contact Capture ─────────────────────────────────────────────────
 function Step4({
   data,
   onChange,
@@ -649,15 +1065,36 @@ function Step4({
   onSubmit: () => void;
   submitting: boolean;
 }) {
-  const roles: { val: Role; label: string }[] = [
-    { val: "broker", label: "Broker" },
-    { val: "investor", label: "Investor" },
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [shaking, setShaking] = useState(false);
+
+  const roles: { val: Role; label: string; helper: string }[] = [
+    { val: "broker", label: "Mortgage broker", helper: "I submit deals on behalf of clients." },
+    { val: "investor", label: "Real-estate investor", helper: "I own or am acquiring the property." },
   ];
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim());
+  const nameValid = data.name.trim().length >= 2;
+  const isValid = nameValid && emailValid;
+
+  const markTouched = (field: string) =>
+    setTouched((prev) => ({ ...prev, [field]: true }));
+
+  const handleSubmit = () => {
+    setTouched({ name: true, email: true });
+    if (isValid && !submitting) {
+      onSubmit();
+    } else if (!isValid) {
+      setShaking(true);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !submitting) handleSubmit();
+  };
 
   return (
-    <div>
+    <div className="qm-step-enter" onKeyDown={handleKeyDown}>
       <h2
         style={{
           fontSize: 22,
@@ -670,48 +1107,64 @@ function Step4({
         Where should we send your quote?
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        A Greenstreet specialist will prepare your personalized quote.
+        A Greenstreet specialist will review your scenario and follow up within
+        one business day. Your information is only used to prepare your quote.
       </p>
 
-      <FieldGroup label="Full name">
+      <FieldGroup
+        label="Full name"
+        error={touched.name && !nameValid ? "Please enter your full name." : undefined}
+      >
         <input
           type="text"
           value={data.name}
           placeholder="Jane Smith"
           onChange={(e) => onChange({ name: e.target.value })}
-          style={inputStyle}
+          onBlur={() => markTouched("name")}
+          className="qm-input"
+          style={touched.name && !nameValid ? inputErrorStyle : inputStyle}
           autoComplete="name"
         />
       </FieldGroup>
 
-      <FieldGroup label="Work email *">
+      <FieldGroup
+        label="Work email"
+        helper={!touched.email || emailValid ? "We'll send your quote here." : undefined}
+        error={touched.email && !emailValid ? "Please enter a valid email address." : undefined}
+      >
         <input
           type="email"
           value={data.email}
           placeholder="jane@brokerage.com"
           onChange={(e) => onChange({ email: e.target.value })}
-          style={{
-            ...inputStyle,
-            borderColor: data.email && !emailValid ? "#c25b4e" : swatch.mint,
-          }}
+          onBlur={() => markTouched("email")}
+          className="qm-input"
+          style={touched.email && !emailValid ? inputErrorStyle : inputStyle}
           autoComplete="email"
           required
         />
       </FieldGroup>
 
-      <FieldGroup label="Phone (optional)">
+      <FieldGroup
+        label="Phone number (optional)"
+        helper="Prefer a call? Add your number and we'll reach out directly."
+      >
         <input
           type="tel"
           value={data.phone}
           placeholder="(555) 000-0000"
           onChange={(e) => onChange({ phone: e.target.value })}
+          className="qm-input"
           style={inputStyle}
           autoComplete="tel"
         />
       </FieldGroup>
 
-      <FieldGroup label="I am a">
-        <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+      <FieldGroup
+        label="I am a"
+        helper="Helps us tailor the right program for your situation."
+      >
+        <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
           {roles.map((r) => (
             <PillBtn
               key={r.val}
@@ -724,30 +1177,24 @@ function Step4({
         </div>
       </FieldGroup>
 
-      <p
-        style={{
-          fontSize: 12,
-          color: swatch.rainforest,
-          margin: "4px 0 24px",
-        }}
-      >
-        No credit pull. We'll only use this to prepare your quote.
-      </p>
+      {/* Trust bar with lock icon */}
+      <TrustBar text="No credit pull · no obligation · no spam. Your details are used only to prepare your quote." />
 
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <button style={btnSecondary} onClick={onBack}>
+        <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>
           ← Back
         </button>
         <button
-          style={{
-            ...btnPrimary,
-            opacity: emailValid && !submitting ? 1 : 0.45,
-            cursor: emailValid && !submitting ? "pointer" : "not-allowed",
-          }}
-          disabled={!emailValid || submitting}
-          onClick={onSubmit}
+          className={`qm-btn-primary${shaking ? " qm-shake" : ""}`}
+          style={
+            isValid && !submitting ? btnPrimary : btnPrimaryDisabled
+          }
+          disabled={!isValid || submitting}
+          onClick={handleSubmit}
+          onAnimationEnd={() => setShaking(false)}
         >
-          {submitting ? "Sending…" : "Get my quote →"}
+          {submitting && <span className="qm-spinner" aria-hidden="true" />}
+          {submitting ? "Sending…" : "Send my quote request →"}
         </button>
       </div>
     </div>
@@ -755,7 +1202,9 @@ function Step4({
 }
 
 // ─── Step 5 — Confirmation ────────────────────────────────────────────────────
-function Step5({ onClose }: { onClose: () => void }) {
+function Step5({ name, onClose }: { name: string; onClose: () => void }) {
+  const firstName = name.split(" ")[0] || "there";
+
   const handleBookTime = () => {
     onClose();
     window.history.pushState({}, "", "/rate-quiz");
@@ -763,8 +1212,9 @@ function Step5({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div style={{ textAlign: "center", padding: "12px 0 8px" }}>
+    <div className="qm-step-enter" style={{ textAlign: "center", padding: "12px 0 8px" }}>
       <div
+        className="qm-checkmark-pop"
         style={{
           width: 64,
           height: 64,
@@ -785,35 +1235,60 @@ function Step5({ onClose }: { onClose: () => void }) {
           fontSize: 24,
           fontWeight: font.bold,
           color: swatch.midnight,
-          marginBottom: 10,
+          marginBottom: 8,
           marginTop: 0,
         }}
       >
-        You're in ✓
+        Request received, {firstName}
       </h2>
-      <p style={{ fontSize: 15, color: swatch.rainforest, marginBottom: 28 }}>
-        A Greenstreet specialist will reach out within 1 business day.
+      <p
+        style={{
+          fontSize: 15,
+          color: swatch.rainforest,
+          marginBottom: 8,
+          lineHeight: 1.55,
+        }}
+      >
+        A Greenstreet specialist will review your scenario and be in touch
+        within one business day.
+      </p>
+      <p
+        style={{
+          fontSize: 13,
+          color: swatch.rainforest,
+          marginBottom: 28,
+          opacity: 0.75,
+          lineHeight: 1.5,
+        }}
+      >
+        This is not a loan approval or commitment to lend. Your quote will be
+        based on a full review of your scenario.
       </p>
 
       <div
-        style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: "center" }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          alignItems: "center",
+        }}
       >
+        <button className="qm-btn-primary" style={btnPrimary} onClick={handleBookTime}>
+          Schedule a call with a specialist →
+        </button>
         <button
-          onClick={handleBookTime}
+          onClick={onClose}
           style={{
             background: "none",
             border: "none",
             color: swatch.rainforest,
             textDecoration: "underline",
             cursor: "pointer",
-            fontSize: 14,
+            fontSize: 13,
             fontFamily: font.family,
           }}
         >
-          Prefer to talk now? Book a time →
-        </button>
-        <button style={btnPrimary} onClick={onClose}>
-          Done
+          I'll wait for the email — close
         </button>
       </div>
     </div>
@@ -844,6 +1319,11 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Inject animation CSS once
+  useEffect(() => {
+    ensureStyles();
+  }, []);
+
   // Lock body scroll
   useEffect(() => {
     if (open) {
@@ -856,14 +1336,14 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     };
   }, [open]);
 
-  // Autofocus first field
+  // Autofocus first field on step 1
   useEffect(() => {
     if (open && step === 1) {
       setTimeout(() => firstFieldRef.current?.focus(), 80);
     }
   }, [open, step]);
 
-  // Reset to step 1 when closed (so next open is fresh)
+  // Reset to step 1 when closed
   useEffect(() => {
     if (!open) {
       const t = setTimeout(() => setStep(1), 300);
@@ -909,7 +1389,8 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       state: step2.state,
       ficoBand: step2.ficoBand,
       dscr,
-      verdict: verdict.text,
+      verdict: verdict.headline,
+      verdictTier: verdict.tier,
       rateEstimate,
       page: typeof window !== "undefined" ? window.location.pathname : "/",
       createdAt: new Date().toISOString(),
@@ -919,7 +1400,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     try {
       await addDoc(collection(db, "leads"), payload);
     } catch (err) {
-      console.warn("[QualifyModal] Firestore write failed, falling back to localStorage:", err);
+      console.warn(
+        "[QualifyModal] Firestore write failed, falling back to localStorage:",
+        err
+      );
       try {
         const existing = JSON.parse(localStorage.getItem("gs_leads") || "[]");
         existing.push(payload);
@@ -939,7 +1423,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="See if you qualify"
+      aria-label="Check if your deal qualifies"
       onClick={handleScrimClick}
       style={{
         position: "fixed",
@@ -954,6 +1438,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     >
       <div
         ref={cardRef}
+        className="qm-card"
         style={{
           background: swatch.pistachio,
           borderRadius: radius.lg,
@@ -966,6 +1451,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         }}
       >
         <ProgressBar step={step} />
+        <StepLabel step={step} />
         <CloseBtn onClose={onClose} />
 
         {step === 1 && (
@@ -1001,7 +1487,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             submitting={submitting}
           />
         )}
-        {step === 5 && <Step5 onClose={onClose} />}
+        {step === 5 && <Step5 name={step4.name} onClose={onClose} />}
       </div>
     </div>
   );

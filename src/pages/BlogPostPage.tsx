@@ -198,27 +198,44 @@ export default function BlogPostPage({
 
             {/* Share badges — flat, no glass */}
             <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-              {["in", "𝕏"].map((label) => (
-                <span
-                  key={label}
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 6,
-                    background: "rgba(238,239,211,0.08)",
-                    border: "1px solid rgba(238,239,211,0.14)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "rgba(238,239,211,0.6)",
-                    cursor: "pointer",
-                  }}
-                >
-                  {label}
-                </span>
-              ))}
+              {(["in", "𝕏"] as const).map((label) => {
+                const shareUrl = encodeURIComponent(
+                  typeof window !== "undefined" ? window.location.href : ""
+                );
+                const shareTitle = encodeURIComponent(post.title);
+                const href =
+                  label === "in"
+                    ? `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`
+                    : `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`;
+                return (
+                  <span
+                    key={label}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => window.open(href, "_blank", "noopener")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        window.open(href, "_blank", "noopener");
+                    }}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 6,
+                      background: "rgba(238,239,211,0.08)",
+                      border: "1px solid rgba(238,239,211,0.14)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "rgba(238,239,211,0.6)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -227,7 +244,7 @@ export default function BlogPostPage({
       {/* ── LEAD IMAGE — full-bleed editorial panel, branded glyph ────────── */}
       <section
         style={{
-          background: dc.teal,
+          background: (post as any).bg ?? dc.teal,
           padding: 0,
         }}
       >
@@ -236,7 +253,7 @@ export default function BlogPostPage({
             style={{
               width: "100%",
               aspectRatio: "16/9",
-              background: dc.teal,
+              background: (post as any).bg ?? dc.teal,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -259,16 +276,16 @@ export default function BlogPostPage({
               The Greenstreet engine
             </Mono>
 
-            {/* Signature metric — deterministic output */}
+            {/* Post-specific glyph */}
             <Mono
               style={{
                 fontSize: "clamp(56px,9vw,112px)",
                 fontWeight: 700,
-                color: dc.cream,
+                color: (post as any).glyphColor ?? dc.cream,
                 lineHeight: 0.88,
               }}
             >
-              1.11x
+              {(post as any).glyph ?? "÷"}
             </Mono>
 
             <div
@@ -422,22 +439,39 @@ export default function BlogPostPage({
             Share this article
           </span>
           <div style={{ display: "flex", gap: 8 }}>
-            {["LinkedIn", "𝕏 / Twitter"].map((label) => (
-              <span
-                key={label}
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: dc.rain,
-                  letterSpacing: "-0.01em",
-                  cursor: "pointer",
-                  borderBottom: `1px solid ${dc.rain}`,
-                  paddingBottom: 1,
-                }}
-              >
-                {label}
-              </span>
-            ))}
+            {(["LinkedIn", "𝕏 / Twitter"] as const).map((label) => {
+              const shareUrl = encodeURIComponent(
+                typeof window !== "undefined" ? window.location.href : ""
+              );
+              const shareTitle = encodeURIComponent(post.title);
+              const href =
+                label === "LinkedIn"
+                  ? `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`
+                  : `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`;
+              return (
+                <span
+                  key={label}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => window.open(href, "_blank", "noopener")}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ")
+                      window.open(href, "_blank", "noopener");
+                  }}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: dc.rain,
+                    letterSpacing: "-0.01em",
+                    cursor: "pointer",
+                    borderBottom: `1px solid ${dc.rain}`,
+                    paddingBottom: 1,
+                  }}
+                >
+                  {label}
+                </span>
+              );
+            })}
           </div>
         </div>
       </section>
