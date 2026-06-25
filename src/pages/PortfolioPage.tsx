@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, useRevealOnView } from "../design/dc";
 import { analyzePortfolio } from "../engine/portfolio";
 import { buildEngineInputs } from "../engine/inputs";
 
@@ -175,6 +175,9 @@ export default function PortfolioPage({
   const cashStr   = (agg.totCash >= 0 ? "+" : "") + fmt(agg.totCash);
   const wRateStr  = agg.wRate.toFixed(2) + "%";
 
+  // Distribution + spread bars reveal on scroll-in (state-driven; never stuck at 0)
+  const [barsRef, barsShown] = useRevealOnView<HTMLDivElement>();
+
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
     const el = document.querySelector("#pf-tool");
@@ -201,12 +204,8 @@ export default function PortfolioPage({
         .dc-nav{border-bottom:${PF_NAV_BORDER} !important;background:rgba(238,239,211,0.92) !important;backdrop-filter:blur(12px);}
         footer{color:rgba(0,55,56,0.55) !important;}
         footer div[style]{color:${dc.dark} !important;}
-        @media (prefers-reduced-motion: no-preference){
-          @keyframes pfBarGrow{from{transform:scaleY(0);}to{transform:scaleY(1);}}
-          @keyframes pfBarWide{from{transform:scaleX(0);}to{transform:scaleX(1);}}
-          .pf-hbar{transform-origin:bottom;animation:pfBarGrow .55s cubic-bezier(.16,1,.3,1) both;}
-          .pf-gbar{transform-origin:left;animation:pfBarWide .6s cubic-bezier(.16,1,.3,1) both;}
-        }
+        .pf-hbar{transform-origin:bottom;}
+        .pf-gbar{transform-origin:left;}
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -450,6 +449,7 @@ export default function PortfolioPage({
 
           {/* ── Secondary signals ────────────────────────────────────────── */}
           <div
+            ref={barsRef}
             className="gs-reveal dc-band-2"
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 36 }}
           >
@@ -476,7 +476,8 @@ export default function PortfolioPage({
                           background: b.color,
                           opacity: b.count === 0 ? 0.18 : 1,
                           borderRadius: "3px 3px 0 0",
-                          animationDelay: `${0.12 + i * 0.08}s`,
+                          transform: barsShown ? "scaleY(1)" : "scaleY(0)",
+                          transition: `transform .55s cubic-bezier(.16,1,.3,1) ${0.12 + i * 0.08}s`,
                         }}
                       />
                     </div>
@@ -501,7 +502,7 @@ export default function PortfolioPage({
                     <div style={{ height: 5, background: "rgba(238,239,211,0.12)", borderRadius: 3, overflow: "hidden" }}>
                       <div
                         className="pf-gbar"
-                        style={{ height: "100%", width: `${Math.min(100, g.pct)}%`, background: barColor, transition: "width 0.3s", animationDelay: `${0.15 + i * 0.07}s` }}
+                        style={{ height: "100%", width: `${Math.min(100, g.pct)}%`, background: barColor, transform: barsShown ? "scaleX(1)" : "scaleX(0)", transition: `transform .6s cubic-bezier(.16,1,.3,1) ${0.15 + i * 0.07}s, width .3s` }}
                       />
                     </div>
                   </div>

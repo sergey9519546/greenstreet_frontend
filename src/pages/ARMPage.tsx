@@ -43,6 +43,9 @@ export default function ARMPage({
     window.scrollTo(0, 0);
   }, []);
 
+  // Payment-jump bars reveal on scroll-in (state-driven transition, never stuck)
+  const [jumpRef, jumpShown] = useRevealOnView<HTMLDivElement>();
+
   // Inputs
   const [armType, setArmType] = useState<ArmType>("5_6_ARM");
   const [loanAmount, setLoanAmount]     = useState(340000);
@@ -359,20 +362,19 @@ export default function ARMPage({
           {/* Payment jump — the real dollar shock, bars lurch up on view */}
           {result && (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, margin: "8px 0 36px" }}>
-              <style>{`@keyframes armGrow{from{transform:scaleY(0);}to{transform:scaleY(1);}}@media (prefers-reduced-motion:reduce){.ar-jumpbar{animation:none !important;}}`}</style>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)" }}>
                 Monthly P&amp;I at first reset
               </div>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 26, height: 150 }}>
+              <div ref={jumpRef} style={{ display: "flex", alignItems: "flex-end", gap: 26, height: 150 }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
                   <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.emerald }}>{fmt$(result.piInitial)}</Mono>
-                  <div className="ar-jumpbar" style={{ width: 64, height: Math.round(120 * (result.piInitial / Math.max(1, result.piAtWorstFirstReset))), background: dc.emerald, borderRadius: "8px 8px 0 0", transformOrigin: "bottom", animation: "armGrow .7s cubic-bezier(.16,.84,.44,1) both" }} />
+                  <div style={{ width: 64, height: Math.round(120 * (result.piInitial / Math.max(1, result.piAtWorstFirstReset))), background: dc.emerald, borderRadius: "8px 8px 0 0", transformOrigin: "bottom", transform: jumpShown ? "scaleY(1)" : "scaleY(0)", transition: "transform .7s cubic-bezier(.16,.84,.44,1)" }} />
                   <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)" }}>Fixed</div>
                 </div>
                 <div style={{ alignSelf: "center", color: "rgba(238,239,211,0.4)", fontSize: 26, paddingBottom: 34 }}>→</div>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
                   <Mono style={{ fontSize: 18, fontWeight: 700, color: shockColor(result.paymentShockPct) }}>{fmt$(result.piAtWorstFirstReset)}</Mono>
-                  <div className="ar-jumpbar" style={{ width: 64, height: 120, background: shockColor(result.paymentShockPct), borderRadius: "8px 8px 0 0", transformOrigin: "bottom", animation: "armGrow .7s cubic-bezier(.16,.84,.44,1) .25s both" }} />
+                  <div style={{ width: 64, height: 120, background: shockColor(result.paymentShockPct), borderRadius: "8px 8px 0 0", transformOrigin: "bottom", transform: jumpShown ? "scaleY(1)" : "scaleY(0)", transition: "transform .7s cubic-bezier(.16,.84,.44,1) .25s" }} />
                   <div style={{ fontSize: 12, fontWeight: 600, color: shockColor(result.paymentShockPct) }}>First reset · +{result.paymentShockPct.toFixed(1)}%</div>
                 </div>
               </div>
