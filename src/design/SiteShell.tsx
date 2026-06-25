@@ -16,21 +16,21 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
             <div className="nav-logo w-embed">
-              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: "28px", fontWeight: 600, letterSpacing: "-0.04em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 1, display: "inline-block" }}>Greenstreet Finance</span>
+              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: "22px", fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.04em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
             </div>
           </a>
           <div className="nav-links-contain">
             <div className="nav-links-wrap">
-              <a className="nav-link w-inline-block" href="/investorgo" onClick={go("portal")}>
+              <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")}>
                 <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>
-                  Investor<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
+                  Invest<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
                 </div>
               </a>
               <a className="nav-link w-inline-block" href="/products" onClick={go("products")}><div className="nav_links_text">Product</div></a>
               <a className="nav-link w-inline-block" href="/solutions" onClick={go("solutions")}><div className="nav_links_text">Who We Serve</div></a>
               <a className="nav-link w-inline-block" href="/blog" onClick={go("blog")}><div className="nav_links_text">Resources</div></a>
               <a className="nav-link w-inline-block" href="/about" onClick={go("about")}><div className="nav_links_text">About</div></a>
-              <a className="nav-link is-underline w-inline-block" href="/investorgo" onClick={go("portal")}><div>Login</div></a>
+              <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div>Login</div></a>
               {/* Solid, always-visible CTA (the Webflow .btn_main collapses to 0
                   width outside the home's scroll-reveal context). Dark fill +
                   pistachio text matches the home nav button. */}
@@ -52,12 +52,12 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
       </div>
       {menuOpen && (
         <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-          <a href="/investorgo" className="nav-link" onClick={go("portal")}><span>Investor</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
+          <a href="/investgo" className="nav-link" onClick={go("portal")}><span>Invest</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
           <a href="/products" className="nav-link" onClick={go("products")}>Product</a>
           <a href="/solutions" className="nav-link" onClick={go("solutions")}>Who We Serve</a>
           <a href="/blog" className="nav-link" onClick={go("blog")}>Resources</a>
           <a href="/about" className="nav-link" onClick={go("about")}>About</a>
-          <a href="/investorgo" className="nav-link" onClick={go("portal")}>Login</a>
+          <a href="/investgo" className="nav-link" onClick={go("portal")}>Login</a>
           <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={go("rate-quiz")}>Book a demo</a>
         </div>
       )}
@@ -75,7 +75,7 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
         <div className="footer_contain u-container">
           <a className="footer_logo_wrap w-inline-block" href="/" onClick={go("marketing")}>
             <div className="footer_logo w-embed">
-              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: "24px", fontWeight: 600, letterSpacing: "-0.04em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 1, display: "inline-block" }}>Greenstreet Finance</span>
+              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: "22px", fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.04em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
             </div>
           </a>
           <nav className="footer_layout u-grid-autofit">

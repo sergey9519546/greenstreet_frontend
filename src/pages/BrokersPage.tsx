@@ -129,11 +129,11 @@ export default function BrokersPage({
               For Brokers
             </div>
             <H1 style={{ margin: 0 }}>
-              Quote with
+              Submit once.
               <br />
-              confidence.
+              Place and fund
               <br />
-              Close faster.
+              in-house.
             </H1>
             <Lead
               style={{
@@ -142,13 +142,36 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Price, match and stress-test a DSCR deal in under a minute —
-              then walk into the lender call knowing the answer.
+              Price every DSCR file in under 60 seconds, match the right
+              Greenstreet program, and hand the lender a defensible package —
+              all before your first call.
             </Lead>
-            <Btn
-              label="Open the calculator"
-              onClick={() => onNavigate("dscr-calculator")}
-            />
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Btn
+                label="Price a deal"
+                onClick={() => onNavigate("dscr-calculator")}
+              />
+              <button
+                onClick={() => onNavigate("book-demo")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "transparent",
+                  color: "rgba(238,239,211,0.82)",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  border: "1px solid rgba(238,239,211,0.28)",
+                  cursor: "pointer",
+                  padding: "13px 22px",
+                  borderRadius: 6,
+                  fontFamily: dc.sans,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Book a walkthrough →
+              </button>
+            </div>
           </div>
 
           {/* Right column — Greenstreet DSCR programs panel */}
@@ -391,12 +414,111 @@ export default function BrokersPage({
         </div>
       </section>
 
+      {/* ── BROKER CTA STRIP ─────────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.dark,
+          color: dc.cream,
+          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
+        }}
+      >
+        <div
+          className="gs-reveal dc-band-2"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                marginBottom: 14,
+              }}
+            >
+              Wholesale · in-house underwriting
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.8vw,52px)",
+                fontWeight: 600,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                color: dc.cream,
+                margin: "0 0 16px",
+              }}
+            >
+              Ready to place your next file?
+            </h2>
+            <p
+              style={{
+                fontSize: "clamp(15px,1.3vw,18px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(238,239,211,0.6)",
+                maxWidth: "50ch",
+                margin: 0,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Book a 15-minute walkthrough — we'll show you exactly how to run a file through the
+              Greenstreet engine from pricing to submission.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+            <button
+              onClick={() => onNavigate("book-demo")}
+              style={{
+                background: dc.lemon,
+                color: dc.dark,
+                border: "none",
+                borderRadius: 6,
+                padding: "15px 28px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                textAlign: "left" as const,
+              }}
+            >
+              Book a demo →
+            </button>
+            <button
+              onClick={() => onNavigate("rate-quiz")}
+              style={{
+                background: "rgba(238,239,211,0.08)",
+                color: dc.cream,
+                border: "1px solid rgba(238,239,211,0.18)",
+                borderRadius: 6,
+                padding: "15px 28px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                textAlign: "left" as const,
+              }}
+            >
+              Quick rate quiz →
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* ── BACK PILL ────────────────────────────────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
-          padding: `0 ${dc.pad} clamp(72px,10vh,120px)`,
-          paddingTop: "clamp(8px,2vh,24px)",
+          padding: `clamp(48px,6vh,72px) ${dc.pad} clamp(32px,4vh,48px)`,
         }}
       >
         <div

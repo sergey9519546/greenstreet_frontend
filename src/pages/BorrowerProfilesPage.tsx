@@ -32,7 +32,7 @@ const PROFILES: Profile[] = [
     program: "DSCR 1-4 Standard",
     rate: "6.75–7.25%",
     specs: [
-      { k: "FICO", v: "620+" },
+      { k: "FICO", v: "660+" },
       { k: "LTV", v: "≤80%" },
       { k: "DSCR", v: "≥1.00x" },
     ],
@@ -86,8 +86,8 @@ const PROFILES: Profile[] = [
     program: "DSCR — STR",
     rate: "7.10–7.75%",
     specs: [
-      { k: "Income", v: "ADR×occ" },
-      { k: "Haircut", v: "~75%" },
+      { k: "Qualifying", v: "1007 rent floor" },
+      { k: "Haircut", v: "75% on history" },
       { k: "LTV", v: "≤75%" },
     ],
     view: "state-laws",
@@ -122,9 +122,9 @@ const PROFILES: Profile[] = [
     program: "DSCR Rate-Term / Cash-Out",
     rate: "6.50–7.25%",
     specs: [
-      { k: "Seasoning", v: "6 mo" },
-      { k: "Cash-out", v: "≤70%" },
-      { k: "Rate-term", v: "≤75%" },
+      { k: "Seasoning", v: "6 mo (R/T) · 12 mo (C/O)" },
+      { k: "Cash-out", v: "≤75% LTV" },
+      { k: "Rate-term", v: "≤80% LTV" },
     ],
     view: "dscr-calculator",
   },
@@ -304,23 +304,43 @@ function ProfileCard({
             </div>
           </div>
 
-          <button
-            onClick={() => onNavigate(p.view)}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              cursor: "pointer",
-              textAlign: "left" as const,
-              fontSize: 14,
-              fontWeight: 600,
-              color: dc.emerald,
-              letterSpacing: "-0.01em",
-              fontFamily: dc.sans,
-            }}
-          >
-            Price this scenario →
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <button
+              onClick={() => onNavigate(p.view)}
+              style={{
+                background: dc.lemon,
+                border: "none",
+                padding: "10px 18px",
+                cursor: "pointer",
+                textAlign: "left" as const,
+                fontSize: 13,
+                fontWeight: 700,
+                color: dc.dark,
+                letterSpacing: "-0.01em",
+                fontFamily: dc.sans,
+                borderRadius: 6,
+              }}
+            >
+              Price this scenario →
+            </button>
+            <button
+              onClick={() => (window as any).openQualify?.()}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                textAlign: "left" as const,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "rgba(238,239,211,0.55)",
+                letterSpacing: "-0.01em",
+                fontFamily: dc.sans,
+              }}
+            >
+              Get a preliminary estimate →
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -338,8 +358,8 @@ const DOCS = [
     note: "Self-employed rental income needs the 1007. Most lenders won't accept the lease alone.",
   },
   {
-    doc: "2 months bank statements (all pages)",
-    note: "Liquid reserves post-closing. Retirement accounts count at 70% if 59½+; crypto is $0.",
+    doc: "12 months bank statements (all pages)",
+    note: "Liquid reserves post-closing — standard DSCR requirement is 12 months of statements. Retirement accounts count at 70% if 59½+; crypto is $0.",
   },
   {
     doc: "Credit report (tri-merge)",
@@ -361,8 +381,8 @@ const MISTAKES = [
     fix: "Most lenders require entity vesting. Going individual adds 25–50bps and may disqualify you from business-purpose loans.",
   },
   {
-    mistake: "Pulling credit too early",
-    fix: "Rate-shop within a 14-day window so inquiries count as one pull for mortgage scoring.",
+    mistake: "Rate-shopping across multiple lenders over weeks",
+    fix: "Multiple mortgage inquiries within a 14-day window count as a single pull under FICO scoring. Submit all rate requests in that window — don't let comparisons stretch across months.",
   },
   {
     mistake: "Funding the down payment from a gift",
@@ -674,12 +694,12 @@ export default function BorrowerProfilesPage({
               letterSpacing: "-0.01em",
             }}
           >
-            No signup, no email, no pitch. Indicative rate band in under two
-            minutes.
+            Preliminary estimate — not a commitment to lend. No W-2s or tax
+            returns needed. Result in under two minutes.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             <button
-              onClick={() => onNavigate("dscr-calculator")}
+              onClick={() => (window as any).openQualify?.()}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -696,10 +716,10 @@ export default function BorrowerProfilesPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Run the DSCR Calculator →
+              See if your deal qualifies →
             </button>
             <button
-              onClick={() => onNavigate("lender-intel")}
+              onClick={() => onNavigate("dscr-calculator")}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -716,7 +736,7 @@ export default function BorrowerProfilesPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Browse lender programs
+              Run the DSCR Calculator
             </button>
           </div>
         </div>

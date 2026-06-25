@@ -22,6 +22,32 @@ footer div[style] { color: #003738 !important; }
 export const POSTS = [
   // ── DSCR EDUCATION ARTICLES (added 2026-06-25) ──────────────────────────────
   {
+    slug: "greenstreet-go-launch",
+    date: "June 25, 2026", tag: "Product",
+    title: "Greenstreet announces InvestGO, the unified DSCR loan platform",
+    summary: "InvestGO brings DSCR pricing, program fit, state-rule checks, stress testing, and borrower qualification into one workflow for brokers and investors.",
+    body: [
+      { p: "Greenstreet Finance is launching InvestGO: a unified operating layer for DSCR loan analysis. The goal is simple: let a broker or investor move from deal inputs to a defensible lending path without rebuilding the file across spreadsheets, portals, and disconnected calculators." },
+      { h: "Why InvestGO exists" },
+      { p: "DSCR lending looks simple until the file crosses real-world constraints. Rent has to cover PITIA. FICO and LTV change rate tiers. State prepayment rules can alter economics. Short-term rental income may qualify on a different figure than the owner expects. InvestGO puts those checks in one deterministic workflow." },
+      { h: "What the platform does" },
+      { list: [
+        "Runs Track 1 DSCR for lender qualification and Track 2 DSCR for investor survival.",
+        "Ranks Greenstreet programs and lender paths by fit instead of forcing manual portal checks.",
+        "Surfaces 50-state prepayment and usury flags before rate lock.",
+        "Adds stress testing, refi timing, ARM reset, returns, tax, and portfolio views around the same deal inputs.",
+      ]},
+      { h: "No black box in the numbers" },
+      { p: "The numeric path stays deterministic: the same inputs return the same outputs. AI can help explain the result, but it does not decide the DSCR, rate tier, state rule, or underwriting output." },
+      { quote: "InvestGO is built so every number can be traced back to the input, rule, and calculation that produced it." },
+      { h: "Who it is for" },
+      { p: "Mortgage brokers can pre-screen files faster. Investors can stress-test the acquisition before wiring earnest money. Partners can review the logic behind program fit, state rules, and rate-path assumptions in one place." },
+    ],
+    glyph: "GO", glyphColor: dc.lemon, bg: dc.dark,
+    author: "Greenstreet",
+    featured: false,
+  },
+  {
     slug: "what-is-dscr-how-it-works",
     date: "June 25, 2026", tag: "Lending",
     title: "What is DSCR? The complete guide to how the ratio works and why it matters",
@@ -29,7 +55,7 @@ export const POSTS = [
     body: [
       { p: "DSCR stands for Debt Service Coverage Ratio. It is the single number that determines whether a non-QM investment property loan qualifies. Unlike a conventional mortgage that weighs your W-2s and tax returns, a DSCR loan is underwritten on the property's ability to pay for itself — not yours." },
       { h: "The formula: rent ÷ PITIA" },
-      { p: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. That's it. If the property rents for $2,400/month and the full payment (principal + interest + taxes + insurance + HOA) is $2,000/month, the DSCR is 1.20x. The property generates 20% more income than it costs to carry." },
+      { p: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. That's it. Example: rent = $2,500/month. PITIA = $1,420 P&I + $330 taxes + $110 insurance + $60 HOA = $1,920/month. DSCR = $2,500 ÷ $1,920 = 1.30x. The property generates 30% more income than it costs to carry. A DSCR of exactly 1.0x means rent equals the payment — no surplus. Below 1.0x, the rent does not cover the payment." },
       { h: "What goes into PITIA" },
       { list: [
         "P — Principal reduction on the loan balance.",
@@ -51,6 +77,7 @@ export const POSTS = [
       { h: "Why DSCR ≠ cash flow" },
       { p: "DSCR uses gross rent, not net. It doesn't subtract vacancy, property management, repairs, or capital expenditures. A 1.15x DSCR property is not necessarily cash-flow-positive after accounting for those real operating costs. Run the net analysis separately — the DSCR gets you through underwriting, but your actual return depends on the full operating picture." },
       { quote: "DSCR is the lender's question: does the rent cover the payment? It's not the investor's question: does the property actually cash flow after expenses?" },
+      { p: "→ Estimate the DSCR on your property using Greenstreet's Deal Analyzer: open the DSCR Calculator from any page." },
     ],
     glyph: "÷", glyphColor: dc.lemon, bg: dc.dark,
     author: "Priya Rao",
@@ -422,7 +449,7 @@ export const POSTS = [
       { h: "Reserve overlay for STR" },
       { p: "STR adds 3 months to the baseline reserve requirement. At 1.20x DSCR on an STR, you need 6 months PITIA in reserves minimum (3 standard + 3 STR overlay). At sub-1.0 DSCR on an STR, you're looking at 12–15 months. Make sure the investor is holding these reserves before you take the application." },
       { h: "Which Greenstreet program applies" },
-      { p: "Greenstreet's Core program covers STR 1–4 unit with 12 months history. InvestorGO covers STR properties where 1007 long-term rent is used as the qualifying figure (no history required). The Premier tier is available on STR if DSCR ≥ 1.20x using documented history at 740+ FICO, ≤75% LTV. STR condotels and short-term rental condos have additional program restrictions — confirm property type eligibility before the appraisal is ordered." },
+      { p: "Greenstreet's Core program covers STR 1–4 unit with 12 months history. InvestGO covers STR properties where 1007 long-term rent is used as the qualifying figure (no history required). The Premier tier is available on STR if DSCR ≥ 1.20x using documented history at 740+ FICO, ≤75% LTV. STR condotels and short-term rental condos have additional program restrictions — confirm property type eligibility before the appraisal is ordered." },
       { h: "The math on a real STR deal" },
       { p: "Example: 3BR SFR in a beach market. AirDNA projected gross: $72,000/year ($6,000/month). 1007 long-term rent: $2,400/month. PITIA: $2,200/month." },
       { p: "Qualifying income hierarchy: (1) 1007 = $2,400 → DSCR 1.09x. (2) AirDNA × 75% = $4,500 → DSCR 2.05x. (3) Documented 12-mo history × 75% — only applies if history exists." },
@@ -520,7 +547,7 @@ export const POSTS = [
         "Prepayment penalty options and rate differential.",
         "Estimated close timeline.",
       ]},
-      { p: "Review the term sheet carefully. The rate on the term sheet is indicative — it locks only when you formally lock the rate after the appraisal returns. The fee schedule on the term sheet is binding only to the extent stated. Greenstreet uses the InvestorGO term sheet format for most files." },
+      { p: "Review the term sheet carefully. The rate on the term sheet is indicative — it locks only when you formally lock the rate after the appraisal returns. The fee schedule on the term sheet is binding only to the extent stated. Greenstreet uses the InvestGO term sheet format for most files." },
       { h: "Step 3: Formal application and appraisal order (Day 3–5)" },
       { p: "Once you accept the term sheet, you complete a formal loan application (1003 or equivalent) and pay the appraisal deposit. The appraisal — which includes the Form 1007 rent schedule — is ordered. This is the longest step: appraisals for investment properties typically take 10–21 business days depending on the market, appraiser availability, and property access." },
       { p: "Two important notes on the appraisal: (1) The Form 1007 rent schedule is not optional — it's part of the DSCR calculation. Make sure the appraisal engagement letter specifies the 1007. (2) If you're buying in a market with limited comparable properties (rural, beach, unusual property type), the appraiser may need extra time. Build this into your contract timeline if you're purchasing." },

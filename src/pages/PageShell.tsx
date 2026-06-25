@@ -154,22 +154,23 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
               <div className="nav-logo w-embed">
                 <span style={{
                   fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
-                  fontSize: "28px",
-                  fontWeight: 600,
+                  fontSize: "22px",
+                  fontWeight: 700,
+                  fontVariationSettings: '"wght" 700',
                   letterSpacing: "-0.04em",
                   color: "currentColor",
                   whiteSpace: "nowrap",
-                  lineHeight: 1,
+                  lineHeight: 0.98,
                   display: "inline-block"
-                }}>Greenstreet Finance</span>
+                }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
               </div>
             </a>
             
             <div className="nav-links-contain">
               <div className="nav-links-wrap">
-                <a className="nav-link w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link w-inline-block" href="/investgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>
-                    Investor<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
+                    Invest<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
                   </div>
                 </a>
                 <a className="nav-link w-inline-block" href="/products" onClick={(e) => { e.preventDefault(); onNavigate("products"); }}>
@@ -184,7 +185,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <a className="nav-link w-inline-block" href="/about" onClick={(e) => { e.preventDefault(); onNavigate("about"); }}>
                   <div className="nav_links_text">About</div>
                 </a>
-                <a className="nav-link is-underline w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div>Login</div>
                 </a>
                 <div className="nav-btn">
@@ -206,23 +207,23 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
             </div>
             
             {/* Burger toggle for mobile */}
-            <div className="burger-wrap" style={{ cursor: "pointer" }} onClick={() => setMenuOpen(!menuOpen)}>
-              <div className="burger-line top"></div>
-              <div className="burger-line middle"></div>
-              <div className="burger-line bottom"></div>
-            </div>
+            <button type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              <div className="burger-line top" aria-hidden="true"></div>
+              <div className="burger-line middle" aria-hidden="true"></div>
+              <div className="burger-line bottom" aria-hidden="true"></div>
+            </button>
           </div>
         </div>
 
         {/* Mobile dropdown menu rendering */}
         {menuOpen && (
-          <div className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>Investor</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
+          <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
+            <a href="/investgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>Invest</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
             <a href="/products" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("products"); setMenuOpen(false); }}>Product</a>
             <a href="/solutions" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("solutions"); setMenuOpen(false); }}>Who We Serve</a>
             <a href="/blog" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("blog"); setMenuOpen(false); }}>Resources</a>
             <a href="/about" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("about"); setMenuOpen(false); }}>About</a>
-            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
+            <a href="/investgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
             <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); setMenuOpen(false); }}>Book a demo</a>
           </div>
         )}
@@ -265,14 +266,15 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
               <div className="footer_logo w-embed">
                 <span style={{
                   fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
-                  fontSize: "24px",
-                  fontWeight: 600,
+                  fontSize: "22px",
+                  fontWeight: 700,
+                  fontVariationSettings: '"wght" 700',
                   letterSpacing: "-0.04em",
                   color: "currentColor",
                   whiteSpace: "nowrap",
-                  lineHeight: 1,
+                  lineHeight: 0.98,
                   display: "inline-block"
-                }}>Greenstreet Finance</span>
+                }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
               </div>
             </a>
             <nav className="footer_layout u-grid-autofit">

@@ -27,8 +27,8 @@ const STEPS = [
   },
   {
     icon: "🗺️",
-    title: "Catch the compliance traps early",
-    body: "50-state prepay and usury matrix is built in, not bolted on. OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437 — flagged before they cost you $.",
+    title: "Catch state-rule traps early",
+    body: "The 50-state prepay and usury matrix is built in, not bolted on. OH/PA thresholds, NJ LLC risk, TX APR triggers, and MN HF 3437 are flagged before they change the quote.",
   },
   {
     icon: "🧩",

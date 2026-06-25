@@ -73,7 +73,7 @@ export const dc = {
 // View → canonical path (kept in sync with resolve.ts ROUTE_MAP) so DcNav links
 // render real hrefs instead of dead "#" anchors.
 const VIEW_HREF: Record<string, string> = {
-  marketing: "/", portal: "/investorgo",
+  marketing: "/", portal: "/investgo",
   brokers: "/brokers", investors: "/investors", "borrower-profiles": "/borrower-profiles", "brokers-partner": "/partners",
   "dscr-calculator": "/dscr-calculator", "lender-intel": "/lender-intel", "state-laws": "/state-laws",
   "deal-analyzer": "/deal-analyzer", "decision-support": "/decision-support",

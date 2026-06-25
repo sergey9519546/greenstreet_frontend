@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -72,6 +72,10 @@ function resolve(code: string): StateEntry {
 const RAIN = dc.rain; // #006565 — State Laws' distinct colour identity
 
 export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
+  useEffect(() => {
+    document.title = "State Rules | Greenstreet Finance";
+  }, []);
+
   const [selected, setSelected] = useState("NJ");
   const [q, setQ] = useState("");
   const [hover, setHover] = useState<string | null>(null);
@@ -115,6 +119,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       <style>{`
         .sl-cell{aspect-ratio:1;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s, outline-color .12s;font-family:${dc.mono};border:none;outline:3px solid transparent;outline-offset:2px;}
         .sl-cell:hover{transform:scale(1.09);}
+        .sl-cell:focus-visible{outline-color:#d8d958;}
         .sl-input{width:100%;border:1px solid rgba(238,239,211,0.25);background:rgba(238,239,211,0.08);outline:none;color:#eeefd3;font-family:${dc.sans};font-size:15px;letter-spacing:-0.01em;border-radius:8px;padding:12px 14px;}
         .sl-input::placeholder{color:rgba(238,239,211,0.5);}
         .sl-input:focus-visible{outline:2px solid rgba(238,239,211,0.8);outline-offset:2px;}

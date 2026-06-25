@@ -13,6 +13,10 @@ export default function TaxEnginePage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  React.useEffect(() => {
+    document.title = "Tax Engine | Greenstreet Finance";
+  }, []);
+
   // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
   const [landPct, setLandPct] = useState(20);

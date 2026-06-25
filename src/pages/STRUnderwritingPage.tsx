@@ -7,9 +7,10 @@ import type { PropertyInputs } from "../engine/types";
 const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
 // ── DSCR verdict helpers ───────────────────────────────────────────────────
+// Uses dc tokens — no hardcoded hex outside the design system.
 function dscrColor(d: number): string {
-  if (d >= 1.25) return "#006565";
-  if (d >= 1.0) return "#9a7b00";
+  if (d >= 1.25) return dc.rain;   // RAINFOREST #006565
+  if (d >= 1.0) return dc.lemon;   // LEMON #d8d958
   return "#d32f2f";
 }
 function dscrLabel(d: number): string {
@@ -54,7 +55,7 @@ function Field({
         style={{
           display: "flex",
           alignItems: "center",
-          background: "#003a39",
+          background: dc.teal,
           borderRadius: 7,
           padding: "0 12px",
         }}
@@ -370,7 +371,7 @@ export default function STRUnderwritingPage({
 
   const uwMonthly = result ? result.underwriting.bestQualifyingRent : 0;
 
-  const TEAL = "#004041";
+  const TEAL = dc.teal;
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -459,7 +460,7 @@ export default function STRUnderwritingPage({
           {/* Right — live metric preview */}
           <div
             style={{
-              background: "linear-gradient(160deg,#00302f,#002423)",
+              background: dc.dark,
               borderRadius: 16,
               padding: 24,
               border: "1px solid rgba(238,239,211,0.1)",
@@ -491,7 +492,7 @@ export default function STRUnderwritingPage({
       <section
         id="str-tool"
         style={{
-          background: "#003a39",
+          background: dc.teal,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
           borderTop: "1px solid rgba(238,239,211,0.07)",
@@ -541,7 +542,7 @@ export default function STRUnderwritingPage({
             {/* ── INPUTS ─────────────────────────────────────────────── */}
             <div
               style={{
-                background: "#002a29",
+                background: dc.dark,
                 borderRadius: 14,
                 padding: 28,
                 border: "1px solid rgba(238,239,211,0.08)",
@@ -579,7 +580,7 @@ export default function STRUnderwritingPage({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    background: "#003a39",
+                    background: dc.teal,
                     borderRadius: 7,
                     padding: "0 12px",
                   }}
@@ -616,7 +617,7 @@ export default function STRUnderwritingPage({
               {!result ? (
                 <div
                   style={{
-                    background: "#002a29",
+                    background: dc.dark,
                     borderRadius: 14,
                     padding: 40,
                     textAlign: "center",
@@ -639,7 +640,7 @@ export default function STRUnderwritingPage({
                       border: "1px solid rgba(238,239,211,0.08)",
                     }}
                   >
-                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                    <div style={{ background: dc.dark, padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
@@ -655,7 +656,7 @@ export default function STRUnderwritingPage({
                         gross annual
                       </div>
                     </div>
-                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                    <div style={{ background: dc.dark, padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
@@ -671,7 +672,7 @@ export default function STRUnderwritingPage({
                         underwritten /mo
                       </div>
                     </div>
-                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                    <div style={{ background: dc.dark, padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
@@ -751,7 +752,7 @@ export default function STRUnderwritingPage({
                               fontSize: "clamp(22px,2.8vw,36px)",
                               fontWeight: 600,
                               letterSpacing: "-0.03em",
-                              color: dscrColor(world.dscr) === "#006565" ? dc.emerald : dscrColor(world.dscr) === "#9a7b00" ? dc.lemon : "#e06363",
+                              color: world.dscr >= 1.25 ? dc.emerald : world.dscr >= 1.0 ? dc.lemon : "#e06363",
                             }}
                           >
                             {world.dscr.toFixed(2)}x
@@ -789,7 +790,7 @@ export default function STRUnderwritingPage({
                   {result.seasonality?.months && (
                     <div
                       style={{
-                        background: "#002a29",
+                        background: dc.dark,
                         borderRadius: 14,
                         padding: 22,
                         border: "1px solid rgba(238,239,211,0.08)",
@@ -967,6 +968,52 @@ export default function STRUnderwritingPage({
                   </div>
                 </>
               )}
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Contact Greenstreet at +1 (555) 010-0000.
+          </p>
+        </div>
+      </section>
+
+      {/* ── FUNNEL CTA ── */}
+      <section
+        className="gs-reveal"
+        style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="dc-split"
+            style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
+                STR qualifies?
+              </div>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+                Get your STR rate from Greenstreet.
+              </h2>
+              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
+                We underwrite short-term rentals using the same World 1 / 2 / 3 model this tool runs. Submit once — we handle placement.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+              <a
+                href="/rate-quiz"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
+              >
+                Get my rate →
+              </a>
+              <a
+                href="/lender-intel"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
+              >
+                Browse STR programs
+              </a>
             </div>
           </div>
         </div>

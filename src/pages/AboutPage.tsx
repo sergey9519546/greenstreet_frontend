@@ -105,7 +105,7 @@ export default function AboutPage({
 
           {/* H1 */}
           <H1 style={{ margin: "0 0 28px", maxWidth: "24ch" }}>
-            Institutional math in support of every DSCR deal.
+            The DSCR underwriting platform brokers and investors trust.
           </H1>
 
           {/* Subtitle */}
@@ -116,9 +116,9 @@ export default function AboutPage({
               margin: "0 0 36px",
             }}
           >
-            Greenstreet was founded by a broker and a quant who set out to build
-            DSCR software so good that pricing a rental loan any other way would
-            feel like negligence.
+            Founded by a broker and a quant who watched good deals die at the
+            lender. We built the underwriting engine we wished existed:
+            deterministic, provenance-tracked, defensible on every line.
           </Lead>
 
           {/* Hero meta */}
@@ -157,6 +157,50 @@ export default function AboutPage({
                 Austin, Texas
               </div>
             </div>
+          </div>
+
+          {/* Hero CTA row */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
+            <button
+              onClick={() => onNavigate("dscr-calculator")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.dark,
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 15,
+                border: "none",
+                cursor: "pointer",
+                padding: "13px 26px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Try the DSCR Calculator →
+            </button>
+            <button
+              onClick={() => onNavigate("book-demo")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "transparent",
+                color: "rgba(0,55,56,0.75)",
+                fontWeight: 600,
+                fontSize: 15,
+                border: "1px solid rgba(0,55,56,0.25)",
+                cursor: "pointer",
+                padding: "13px 22px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Book a demo
+            </button>
           </div>
         </div>
       </section>
@@ -836,7 +880,7 @@ export default function AboutPage({
                 alignSelf: "flex-start",
               }}
             >
-              +1 (332) 455-1462 →
+              +1 (555) 010-0000 →
             </span>
           </div>
         </div>

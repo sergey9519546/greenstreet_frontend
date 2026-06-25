@@ -36,7 +36,7 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/": "marketing",
 
   // Portal
-  "/investorgo": "portal",
+  "/investgo": "portal",
 
   // Audience pages
   "/brokers": "brokers",

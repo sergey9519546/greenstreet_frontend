@@ -75,8 +75,8 @@ const SEGMENTS: Segment[] = [
   },
   {
     tag: "Lenders & Partners",
-    title: "Provenance you can defend at exam",
-    desc: "Every rule traces to a citation. Hand a regulator the matrix, the state rule and the IC memo as collateral.",
+    title: "Program logic partners can defend",
+    desc: "Every rule traces to a cited source. Share the program fit, state rule, and investment memo logic without asking partners to reverse-engineer the file.",
     cta: "See the lender dashboard",
     view: "lender-intel",
     panelBg: dc.lemon,
@@ -85,9 +85,9 @@ const SEGMENTS: Segment[] = [
     gridline: "rgba(0,55,56,0.12)",
     statBg: "#e3e463",
     stats: [
-      { v: "17a-4", k: "WORM compliant" },
+      { v: "50", k: "state rules" },
       { v: "100%", k: "cited rules" },
-      { v: "IC", k: "memo output" },
+      { v: "Memo", k: "output" },
       { v: "0", k: "LLM in math" },
     ],
   },
@@ -409,17 +409,19 @@ export default function SolutionsPage({
               Who we serve
             </div>
             <H1 style={{ margin: 0, maxWidth: "15ch" }}>
-              Built for everyone in the deal
+              Pick your seat at the table
             </H1>
           </div>
           <Lead
             style={{
               color: "rgba(238,239,211,0.72)",
-              maxWidth: "40ch",
+              maxWidth: "44ch",
               margin: 0,
             }}
           >
-            Brokers, investors, funds and lenders all work off the same provenance-tracked math.
+            Broker placing a file. Investor underwriting a portfolio. Fund
+            managing a blanket line. Each audience gets its own workflow —
+            all running off the same provenance-tracked math.
           </Lead>
         </div>
       </section>
@@ -461,7 +463,7 @@ export default function SolutionsPage({
         </div>
       </section>
 
-      {/* ── EXPLORE ALL TOOLS — pill button, cream background, per mockup ──── */}
+      {/* ── EXPLORE ALL TOOLS — two pills: home + products deep-link ──── */}
       <section
         style={{
           background: dc.cream,
@@ -475,6 +477,8 @@ export default function SolutionsPage({
             margin: "0 auto",
             display: "flex",
             justifyContent: "center",
+            gap: 16,
+            flexWrap: "wrap",
           }}
         >
           <button
@@ -502,6 +506,32 @@ export default function SolutionsPage({
               Explore all tools
             </span>
             <span style={{ fontSize: 18, color: dc.rain }}>→</span>
+          </button>
+          <button
+            onClick={() => onNavigate("products")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              background: dc.dark,
+              border: "none",
+              borderRadius: 999,
+              padding: "15px 30px",
+              cursor: "pointer",
+              fontFamily: dc.sans,
+            }}
+          >
+            <span
+              style={{
+                fontSize: "clamp(16px,1.4vw,19px)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: dc.cream,
+              }}
+            >
+              See the full product catalog
+            </span>
+            <span style={{ fontSize: 18, color: dc.lemon }}>→</span>
           </button>
         </div>
       </section>

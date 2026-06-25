@@ -81,7 +81,7 @@ function navigateTo(view: PageView) {
 function viewToPath(view: PageView): string {
   switch (view) {
     case "marketing":         return "/";
-    case "portal":            return "/investorgo";
+    case "portal":            return "/investgo";
     case "dscr-calculator":   return "/dscr-calculator";
     case "lender-intel":      return "/lender-intel";
     case "state-laws":        return "/state-laws";

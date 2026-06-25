@@ -13,10 +13,10 @@
  * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
  * focus rings, trust signals, mobile-responsive padding.
  */
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { db } from "../firebase";
-import { collection, addDoc } from "firebase/firestore";
+import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
+import { quickDscrEstimate } from "../engine";
+import type { QuickDscrTier } from "../engine";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Purpose = "purchase" | "rate-term" | "cash-out";
@@ -40,19 +40,9 @@ interface StepFourData {
   role: Role | null;
 }
 
-// ─── DSCR Formula (PRESERVED) ─────────────────────────────────────────────────
-function calcDSCR(value: number, rent: number, rate: number): number {
-  const loan = value * 0.75;
-  const r = rate / 100 / 12;
-  const pi =
-    r > 0
-      ? (loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1)
-      : loan / 360;
-  const taxesMo = (value * 0.012) / 12;
-  const insMo = (value * 0.0035) / 12;
-  const pitia = pi + taxesMo + insMo;
-  return pitia > 0 ? Math.round((rent / pitia) * 100) / 100 : 0;
-}
+// ─── Engine-backed DSCR helpers ───────────────────────────────────────────────
+// The modal delegates all math to quickDscrEstimate (uses 0.5% ins, 1.2% tax,
+// 75% LTV, 360-mo term — matches the rest of the product).
 
 function dscrColor(dscr: number): string {
   if (dscr >= 1.25) return swatch.emerald;
@@ -61,43 +51,73 @@ function dscrColor(dscr: number): string {
   return "#c25b4e";
 }
 
-function dscrVerdict(dscr: number): {
+function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
   tier: string;
   headline: string;
   detail: string;
+  purposeNote: string;
+  nextStep: string;
   color: string;
 } {
-  if (dscr >= 1.25)
-    return {
-      tier: "Strong",
-      headline: "This deal looks solid",
-      detail:
-        "Your DSCR clears our standard threshold. You're in a good position to move forward.",
-      color: swatch.emerald,
-    };
-  if (dscr >= 1.0)
-    return {
-      tier: "Qualifying",
-      headline: "This deal qualifies",
-      detail:
-        "Your DSCR meets our minimum. A specialist can confirm terms and get you to closing.",
-      color: swatch.rainforest,
-    };
-  if (dscr >= 0.85)
-    return {
-      tier: "Borderline",
-      headline: "This deal may work with the right structure",
-      detail:
-        "Your DSCR is just below standard threshold, but there are DSCR programs that accommodate this range. A specialist can explore options.",
-      color: "#b8a820",
-    };
-  return {
-    tier: "Below Threshold",
-    headline: "This deal needs restructuring",
-    detail:
-      "Your current numbers don't meet standard DSCR requirements, but there may be alternative structures worth discussing with a specialist.",
-    color: "#c25b4e",
+  const purposeContext: Record<Purpose, { strong: string; borderline: string; low: string }> = {
+    purchase: {
+      strong: "For a purchase at this DSCR, you're in a strong position to move forward.",
+      borderline: "Purchases at this DSCR can close — a specialist will confirm the program and structure.",
+      low: "Some purchase programs allow sub-1.0 DSCR with compensating factors like reserves or lower LTV.",
+    },
+    "rate-term": {
+      strong: "Rate & term refinances at this DSCR typically qualify at standard pricing.",
+      borderline: "This DSCR meets the floor for a rate & term refi. A specialist can confirm the best available term.",
+      low: "At this DSCR level, a rate & term refi may require compensating factors. A specialist can review your full picture.",
+    },
+    "cash-out": {
+      strong: "Cash-out refinances at this DSCR are generally well-supported — your cushion helps.",
+      borderline: "Cash-out refinances at this DSCR are workable. LTV and FICO will affect final approval.",
+      low: "Cash-out refinances require more cushion. A specialist can look at reducing the cash-out amount or LTV to hit threshold.",
+    },
   };
+
+  const ctx = purpose ? purposeContext[purpose] : null;
+
+  switch (tier) {
+    case "LIKELY_QUALIFIES":
+      return {
+        tier: "Strong",
+        headline: "This deal looks solid",
+        detail: "Your DSCR clears our standard threshold. You're in a good position to move forward.",
+        purposeNote: ctx?.strong ?? "",
+        nextStep: "Share your contact details and a Greenstreet specialist will send you a full scenario review — typically within one business day.",
+        color: swatch.emerald,
+      };
+    case "BORDERLINE":
+      return {
+        tier: "Qualifies",
+        headline: "This deal meets the standard floor",
+        detail: "Your DSCR is at or above the 1.0x minimum. A specialist can confirm terms and get you to closing.",
+        purposeNote: ctx?.borderline ?? "",
+        nextStep: "A Greenstreet specialist can confirm which programs fit and lock you into terms.",
+        color: swatch.rainforest,
+      };
+    case "SPECIALIST_REQUIRED":
+      return {
+        tier: "Borderline",
+        headline: "This deal may work with the right structure",
+        detail: "Your DSCR is just below the standard 1.0x floor, but there are programs that accommodate this range — especially with strong credit or reserves.",
+        purposeNote: ctx?.low ?? "A Greenstreet specialist can explore sub-1.0 programs and structuring options — this is not a dead end.",
+        nextStep: "A Greenstreet specialist can explore sub-1.0 programs and structuring options. This is not a dead end.",
+        color: "#b8a820",
+      };
+    case "UNLIKELY":
+    default:
+      return {
+        tier: "Below Threshold",
+        headline: "This deal needs restructuring",
+        detail: "Your current numbers are below standard DSCR floors, but there may be paths forward — lower LTV, higher rent, or a different structure.",
+        purposeNote: ctx?.low ?? "A specialist can assess whether a restructured deal changes the picture.",
+        nextStep: "A Greenstreet specialist can walk through what adjustments would change the outcome. No commitment required.",
+        color: "#c25b4e",
+      };
+  }
 }
 
 function estimateRate(
@@ -515,37 +535,51 @@ function TrustBar({ text }: { text: string }) {
   );
 }
 
-// ─── Step 1 — Live DSCR Calculator ────────────────────────────────────────────
+// ─── Step 1 — Loan Purpose + Live DSCR Calculator ─────────────────────────────
 function Step1({
   data,
   onChange,
   onNext,
   firstFieldRef,
+  headingId,
+  step2,
+  onStep2Change,
 }: {
   data: StepOneData;
   onChange: (d: Partial<StepOneData>) => void;
   onNext: () => void;
   firstFieldRef: React.RefObject<HTMLInputElement | null>;
+  headingId: string;
+  step2: StepTwoData;
+  onStep2Change: (d: Partial<StepTwoData>) => void;
 }) {
-  const dscr = calcDSCR(data.propertyValue, data.rent, data.rate);
+  const uid = useId();
+  const idPropVal = `${uid}-propval`;
+  const idRent    = `${uid}-rent`;
+  const idRate    = `${uid}-rate`;
+
+  // Use engine for all DSCR math (0.5% ins, 1.2% tax, 75% LTV, 360mo)
+  const estimate = quickDscrEstimate(data.propertyValue, data.rent, data.rate);
+  const dscr = estimate.dscr;
   const col = dscrColor(dscr);
 
-  // Track whether CTA was clicked while invalid (for shake)
   const [shaking, setShaking] = useState(false);
+  const [attempted, setAttempted] = useState(false);
 
-  const dscrLabel =
-    dscr >= 1.25
-      ? "Strong cash flow"
-      : dscr >= 1.0
-      ? "Qualifies at standard terms"
-      : dscr >= 0.85
-      ? "Near qualifying — options available"
-      : "Below standard threshold";
+  const purposes: { val: Purpose; label: string }[] = [
+    { val: "purchase", label: "Purchase" },
+    { val: "rate-term", label: "Rate & term refi" },
+    { val: "cash-out", label: "Cash-out refi" },
+  ];
 
   const isValid =
-    data.propertyValue >= 50000 && data.rent > 0 && data.rate > 0;
+    step2.purpose !== null &&
+    data.propertyValue >= 50000 &&
+    data.rent > 0 &&
+    data.rate > 0;
 
   const handleNext = () => {
+    setAttempted(true);
     if (!isValid) {
       setShaking(true);
       return;
@@ -560,6 +594,7 @@ function Step1({
   return (
     <div className="qm-step-enter" onKeyDown={handleKeyDown}>
       <h2
+        id={headingId}
         style={{
           fontSize: 22,
           fontWeight: font.bold,
@@ -581,11 +616,35 @@ function Step1({
         No credit pull &middot; no obligation &middot; instant estimate
       </p>
 
+      {/* Loan purpose — first question, sets context for all results */}
       <FieldGroup
-        label="Property value"
-        helper="The purchase price or current appraised value of the property."
+        label="Loan purpose"
+        helper="Pricing and program availability differ by transaction type. Pick the one that fits."
+        error={attempted && !step2.purpose ? "Please select a loan purpose to continue." : undefined}
       >
+        <div
+          role="group"
+          aria-label="Loan purpose"
+          style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}
+        >
+          {purposes.map((p) => (
+            <PillBtn
+              key={p.val}
+              active={step2.purpose === p.val}
+              onClick={() => onStep2Change({ purpose: p.val })}
+            >
+              {p.label}
+            </PillBtn>
+          ))}
+        </div>
+      </FieldGroup>
+
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={idPropVal} style={labelStyle}>
+          Property value
+        </label>
         <input
+          id={idPropVal}
           ref={firstFieldRef as React.RefObject<HTMLInputElement>}
           type="number"
           value={data.propertyValue}
@@ -595,13 +654,19 @@ function Step1({
           className="qm-input"
           style={inputStyle}
         />
-      </FieldGroup>
+        <p style={helperStyle}>
+          {step2.purpose === "purchase"
+            ? "The expected purchase price of the property."
+            : "The current appraised or market value of the property."}
+        </p>
+      </div>
 
-      <FieldGroup
-        label="Expected monthly rent"
-        helper="The gross rent you expect the property to generate each month."
-      >
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={idRent} style={labelStyle}>
+          Expected monthly rent
+        </label>
         <input
+          id={idRent}
           type="number"
           value={data.rent}
           min={0}
@@ -610,13 +675,15 @@ function Step1({
           className="qm-input"
           style={inputStyle}
         />
-      </FieldGroup>
+        <p style={helperStyle}>Gross rent you expect the property to generate each month. An estimate is fine — lenders use this to compute your DSCR.</p>
+      </div>
 
-      <FieldGroup
-        label="Estimated interest rate (%)"
-        helper="Your best estimate of the note rate. You can refine this later."
-      >
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={idRate} style={labelStyle}>
+          Estimated interest rate (%)
+        </label>
         <input
+          id={idRate}
           type="number"
           value={data.rate}
           min={2}
@@ -626,10 +693,13 @@ function Step1({
           className="qm-input"
           style={inputStyle}
         />
-      </FieldGroup>
+        <p style={helperStyle}>Your best guess at the note rate. We use this to compute the payment — you can refine it with a specialist later.</p>
+      </div>
 
       {/* Live DSCR readout — color transitions smoothly */}
       <div
+        aria-live="polite"
+        aria-atomic="true"
         style={{
           background: swatch.mint,
           borderRadius: radius.sm,
@@ -676,7 +746,7 @@ function Step1({
             transition: "color 0.2s ease",
           }}
         >
-          {dscrLabel}
+          {estimate.label}
         </div>
       </div>
 
@@ -693,26 +763,25 @@ function Step1({
   );
 }
 
-// ─── Step 2 — Deal Details ────────────────────────────────────────────────────
+// ─── Step 2 — Deal Details (state + credit) ───────────────────────────────────
 function Step2({
   data,
   onChange,
   onBack,
   onNext,
+  headingId,
 }: {
   data: StepTwoData;
   onChange: (d: Partial<StepTwoData>) => void;
   onBack: () => void;
   onNext: () => void;
+  headingId: string;
 }) {
+  const uid = useId();
+  const idState = `${uid}-state`;
   const [attempted, setAttempted] = useState(false);
   const [shaking, setShaking] = useState(false);
 
-  const purposes: { val: Purpose; label: string }[] = [
-    { val: "purchase", label: "Purchase" },
-    { val: "rate-term", label: "Rate & term refi" },
-    { val: "cash-out", label: "Cash-out refi" },
-  ];
   const ficos: { val: FicoBand; label: string }[] = [
     { val: "under-680", label: "Below 680" },
     { val: "680-719", label: "680–719" },
@@ -720,8 +789,13 @@ function Step2({
     { val: "760-plus", label: "760 or above" },
   ];
 
-  const isValid =
-    data.purpose !== null && data.state !== "" && data.ficoBand !== null;
+  const purposeLabel: Record<Purpose, string> = {
+    purchase: "purchase",
+    "rate-term": "rate & term refinance",
+    "cash-out": "cash-out refinance",
+  };
+
+  const isValid = data.state !== "" && data.ficoBand !== null;
 
   const handleNext = () => {
     setAttempted(true);
@@ -739,6 +813,7 @@ function Step2({
   return (
     <div className="qm-step-enter" onKeyDown={handleKeyDown}>
       <h2
+        id={headingId}
         style={{
           fontSize: 22,
           fontWeight: font.bold,
@@ -747,36 +822,20 @@ function Step2({
           marginTop: 0,
         }}
       >
-        Tell us about the deal
+        Two more details
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        These details let us tailor your rate estimate to your specific scenario.
+        {data.purpose
+          ? `Your ${purposeLabel[data.purpose]} — these two fields let us tailor your rate estimate.`
+          : "These details let us tailor your rate estimate to your specific scenario."}
       </p>
 
-      <FieldGroup
-        label="Loan purpose"
-        helper="What type of transaction is this?"
-        error={attempted && !data.purpose ? "Please select a loan purpose." : undefined}
-      >
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
-          {purposes.map((p) => (
-            <PillBtn
-              key={p.val}
-              active={data.purpose === p.val}
-              onClick={() => onChange({ purpose: p.val })}
-            >
-              {p.label}
-            </PillBtn>
-          ))}
-        </div>
-      </FieldGroup>
-
-      <FieldGroup
-        label="Property state"
-        helper="Some states have lender-specific overlays that affect available programs."
-        error={attempted && !data.state ? "Please select the property state." : undefined}
-      >
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={idState} style={labelStyle}>
+          Property state
+        </label>
         <select
+          id={idState}
           value={data.state}
           onChange={(e) => onChange({ state: e.target.value })}
           className="qm-input"
@@ -793,14 +852,23 @@ function Step2({
             </option>
           ))}
         </select>
-      </FieldGroup>
+        {attempted && !data.state ? (
+          <p style={errorMsgStyle}>Please select the property state.</p>
+        ) : (
+          <p style={helperStyle}>Some states have lender-specific overlays that affect available programs.</p>
+        )}
+      </div>
 
       <FieldGroup
         label="Borrower credit score range"
-        helper="An estimate is fine. This affects your rate tier — we don't pull credit here."
+        helper="An estimate is fine — we don't pull your credit here. This affects your rate tier."
         error={attempted && !data.ficoBand ? "Please select a credit score range." : undefined}
       >
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+        <div
+          role="group"
+          aria-label="Borrower credit score range"
+          style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}
+        >
           {ficos.map((f) => (
             <PillBtn
               key={f.val}
@@ -870,15 +938,18 @@ function Step3({
   step2,
   onBack,
   onNext,
+  headingId,
 }: {
   step1: StepOneData;
   step2: StepTwoData;
   onBack: () => void;
   onNext: () => void;
+  headingId: string;
 }) {
-  const dscr = calcDSCR(step1.propertyValue, step1.rent, step1.rate);
+  const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
+  const dscr = estimate.dscr;
   const col = dscrColor(dscr);
-  const verdict = dscrVerdict(dscr);
+  const verdict = dscrVerdict(estimate.tier, step2.purpose);
   const rate = estimateRate(dscr, step2.ficoBand, step2.purpose);
 
   // Animated count-up for the big DSCR number
@@ -889,6 +960,9 @@ function Step3({
     "rate-term": "Rate & term refi",
     "cash-out": "Cash-out refi",
   };
+
+  const isBorderlineOrLow =
+    estimate.tier === "SPECIALIST_REQUIRED" || estimate.tier === "UNLIKELY";
 
   return (
     <div className="qm-step-enter">
@@ -903,9 +977,10 @@ function Step3({
           marginTop: 0,
         }}
       >
-        Your preliminary estimate
+        Preliminary estimate
       </p>
       <h2
+        id={headingId}
         style={{
           fontSize: 22,
           fontWeight: font.bold,
@@ -927,7 +1002,7 @@ function Step3({
           marginBottom: 12,
         }}
       >
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 10 }}>
           <div>
             <div
               style={{
@@ -939,7 +1014,7 @@ function Step3({
                 marginBottom: 4,
               }}
             >
-              DSCR
+              Your DSCR
             </div>
             <div
               style={{
@@ -948,9 +1023,10 @@ function Step3({
                 fontWeight: 700,
                 color: col,
                 lineHeight: 1,
+                transition: "color 0.25s ease",
               }}
             >
-              {displayDscr.toFixed(2)}
+              {displayDscr.toFixed(2)}x
             </div>
           </div>
           <div
@@ -958,22 +1034,41 @@ function Step3({
               fontSize: 13,
               fontWeight: font.bold,
               color: verdict.color,
-              paddingBottom: 4,
+              paddingBottom: 6,
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
             }}
           >
             {verdict.tier}
           </div>
         </div>
+
+        {/* What DSCR means for this investor */}
         <p
           style={{
             fontSize: 13,
             color: swatch.midnight,
-            margin: 0,
+            margin: "0 0 8px",
             lineHeight: 1.5,
           }}
         >
           {verdict.detail}
         </p>
+
+        {/* Purpose-tailored sentence */}
+        {verdict.purposeNote && (
+          <p
+            style={{
+              fontSize: 13,
+              color: swatch.rainforest,
+              margin: 0,
+              lineHeight: 1.5,
+              fontStyle: "italic",
+            }}
+          >
+            {verdict.purposeNote}
+          </p>
+        )}
       </div>
 
       {/* Rate estimate */}
@@ -1017,25 +1112,29 @@ function Step3({
         </p>
       </div>
 
-      {/* Compliance + what happens next */}
+      {/* What happens next — the single clear next step */}
       <div
         style={{
           fontSize: 12,
           color: swatch.rainforest,
           marginBottom: 24,
-          padding: "10px 14px",
-          background: swatch.mint,
+          padding: "12px 16px",
+          background: isBorderlineOrLow
+            ? "rgba(184,168,32,0.08)"
+            : swatch.mint,
           borderRadius: radius.sm,
           lineHeight: 1.55,
+          borderLeft: isBorderlineOrLow
+            ? "3px solid #b8a820"
+            : `3px solid ${swatch.emerald}`,
         }}
       >
-        <strong style={{ display: "block", marginBottom: 3 }}>What happens next</strong>
-        Share your contact details and a Greenstreet specialist will review your
-        scenario and send you a detailed quote — typically within one business day.
-        <br />
-        <span style={{ opacity: 0.75, marginTop: 6, display: "block" }}>
-          Preliminary estimate based on the figures you entered. Not a commitment to lend
-          or a credit decision. Subject to underwriting review.
+        <strong style={{ display: "block", marginBottom: 4, color: swatch.midnight }}>
+          {isBorderlineOrLow ? "Your next step" : "What happens next"}
+        </strong>
+        {verdict.nextStep}
+        <span style={{ opacity: 0.7, marginTop: 8, display: "block", fontSize: 11 }}>
+          Preliminary estimate — not a commitment to lend or a credit decision. Subject to full underwriting review.
         </span>
       </div>
 
@@ -1044,7 +1143,7 @@ function Step3({
           ← Back
         </button>
         <button className="qm-btn-primary" style={btnPrimary} onClick={onNext}>
-          Unlock my full quote →
+          Talk to a specialist →
         </button>
       </div>
     </div>
@@ -1058,13 +1157,19 @@ function Step4({
   onBack,
   onSubmit,
   submitting,
+  headingId,
 }: {
   data: StepFourData;
   onChange: (d: Partial<StepFourData>) => void;
   onBack: () => void;
   onSubmit: () => void;
   submitting: boolean;
+  headingId: string;
 }) {
+  const uid = useId();
+  const idName  = `${uid}-name`;
+  const idEmail = `${uid}-email`;
+  const idPhone = `${uid}-phone`;
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [shaking, setShaking] = useState(false);
 
@@ -1096,6 +1201,7 @@ function Step4({
   return (
     <div className="qm-step-enter" onKeyDown={handleKeyDown}>
       <h2
+        id={headingId}
         style={{
           fontSize: 22,
           fontWeight: font.bold,
@@ -1111,11 +1217,10 @@ function Step4({
         one business day. Your information is only used to prepare your quote.
       </p>
 
-      <FieldGroup
-        label="Full name"
-        error={touched.name && !nameValid ? "Please enter your full name." : undefined}
-      >
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={idName} style={labelStyle}>Full name</label>
         <input
+          id={idName}
           type="text"
           value={data.name}
           placeholder="Jane Smith"
@@ -1125,14 +1230,15 @@ function Step4({
           style={touched.name && !nameValid ? inputErrorStyle : inputStyle}
           autoComplete="name"
         />
-      </FieldGroup>
+        {touched.name && !nameValid && (
+          <p style={errorMsgStyle}>Please enter your full name.</p>
+        )}
+      </div>
 
-      <FieldGroup
-        label="Work email"
-        helper={!touched.email || emailValid ? "We'll send your quote here." : undefined}
-        error={touched.email && !emailValid ? "Please enter a valid email address." : undefined}
-      >
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={idEmail} style={labelStyle}>Work email</label>
         <input
+          id={idEmail}
           type="email"
           value={data.email}
           placeholder="jane@brokerage.com"
@@ -1143,13 +1249,17 @@ function Step4({
           autoComplete="email"
           required
         />
-      </FieldGroup>
+        {touched.email && !emailValid ? (
+          <p style={errorMsgStyle}>Please enter a valid email address.</p>
+        ) : (
+          <p style={helperStyle}>We'll send your quote here.</p>
+        )}
+      </div>
 
-      <FieldGroup
-        label="Phone number (optional)"
-        helper="Prefer a call? Add your number and we'll reach out directly."
-      >
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={idPhone} style={labelStyle}>Phone number (optional)</label>
         <input
+          id={idPhone}
           type="tel"
           value={data.phone}
           placeholder="(555) 000-0000"
@@ -1158,13 +1268,18 @@ function Step4({
           style={inputStyle}
           autoComplete="tel"
         />
-      </FieldGroup>
+        <p style={helperStyle}>Prefer a call? Add your number and we'll reach out directly.</p>
+      </div>
 
       <FieldGroup
         label="I am a"
         helper="Helps us tailor the right program for your situation."
       >
-        <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+        <div
+          role="group"
+          aria-label="I am a"
+          style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}
+        >
           {roles.map((r) => (
             <PillBtn
               key={r.val}
@@ -1202,7 +1317,7 @@ function Step4({
 }
 
 // ─── Step 5 — Confirmation ────────────────────────────────────────────────────
-function Step5({ name, onClose }: { name: string; onClose: () => void }) {
+function Step5({ name, onClose, headingId }: { name: string; onClose: () => void; headingId: string }) {
   const firstName = name.split(" ")[0] || "there";
 
   const handleBookTime = () => {
@@ -1231,6 +1346,7 @@ function Step5({ name, onClose }: { name: string; onClose: () => void }) {
         ✓
       </div>
       <h2
+        id={headingId}
         style={{
           fontSize: 24,
           fontWeight: font.bold,
@@ -1295,6 +1411,10 @@ function Step5({ name, onClose }: { name: string; onClose: () => void }) {
   );
 }
 
+// ─── Focusable elements selector (for focus trap) ─────────────────────────────
+const FOCUSABLE =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   const [step, setStep] = useState(1);
@@ -1318,11 +1438,31 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  // For returning focus on close
+  const triggerRef = useRef<Element | null>(null);
+
+  // Unique id for the visible heading (aria-labelledby)
+  const headingId = useId();
 
   // Inject animation CSS once
   useEffect(() => {
     ensureStyles();
   }, []);
+
+  // Capture the focused element before opening, so we can restore it on close
+  useEffect(() => {
+    if (open) {
+      triggerRef.current = document.activeElement;
+    } else {
+      // Return focus to the trigger element when the modal closes
+      const el = triggerRef.current;
+      if (el && typeof (el as HTMLElement).focus === "function") {
+        // Small delay lets the modal finish unmounting first
+        setTimeout(() => (el as HTMLElement).focus(), 30);
+      }
+      triggerRef.current = null;
+    }
+  }, [open]);
 
   // Lock body scroll
   useEffect(() => {
@@ -1336,12 +1476,22 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     };
   }, [open]);
 
-  // Autofocus first field on step 1
+  // Autofocus first field on step 1 (or heading on other steps)
   useEffect(() => {
-    if (open && step === 1) {
+    if (!open) return;
+    if (step === 1) {
       setTimeout(() => firstFieldRef.current?.focus(), 80);
+    } else {
+      // Focus the heading so screen readers announce the new step
+      setTimeout(() => {
+        const heading = cardRef.current?.querySelector<HTMLElement>(`#${CSS.escape(headingId)}`);
+        if (heading) {
+          heading.setAttribute("tabindex", "-1");
+          heading.focus();
+        }
+      }, 80);
     }
-  }, [open, step]);
+  }, [open, step, headingId]);
 
   // Reset to step 1 when closed
   useEffect(() => {
@@ -1351,11 +1501,33 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     }
   }, [open]);
 
-  // Esc to close
+  // Esc to close + Tab focus trap
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && cardRef.current) {
+        const focusable = Array.from(
+          cardRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
+        ).filter((el) => el.offsetParent !== null); // skip hidden
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -1373,9 +1545,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    const dscr = calcDSCR(step1.propertyValue, step1.rent, step1.rate);
-    const verdict = dscrVerdict(dscr);
-    const rateEstimate = estimateRate(dscr, step2.ficoBand, step2.purpose);
+    // Use engine math for the persisted payload (matches the displayed result)
+    const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
+    const verdict = dscrVerdict(estimate.tier);
+    const rateEstimate = estimateRate(estimate.dscr, step2.ficoBand, step2.purpose);
 
     const payload = {
       name: step4.name,
@@ -1388,7 +1561,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       purpose: step2.purpose,
       state: step2.state,
       ficoBand: step2.ficoBand,
-      dscr,
+      dscr: estimate.dscr,
       verdict: verdict.headline,
       verdictTier: verdict.tier,
       rateEstimate,
@@ -1398,6 +1571,13 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     };
 
     try {
+      // Firebase is imported lazily so its ~524 kB client SDK is NOT pulled into
+      // the initial bundle (QualifyModal mounts globally on the home page). It
+      // loads only when a visitor actually submits a lead.
+      const [{ db }, { collection, addDoc }] = await Promise.all([
+        import("../firebase"),
+        import("firebase/firestore"),
+      ]);
       await addDoc(collection(db, "leads"), payload);
     } catch (err) {
       console.warn(
@@ -1423,7 +1603,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Check if your deal qualifies"
+      aria-labelledby={headingId}
       onClick={handleScrimClick}
       style={{
         position: "fixed",
@@ -1460,6 +1640,9 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             onChange={(d) => setStep1((p) => ({ ...p, ...d }))}
             onNext={() => setStep(2)}
             firstFieldRef={firstFieldRef}
+            headingId={headingId}
+            step2={step2}
+            onStep2Change={(d) => setStep2((p) => ({ ...p, ...d }))}
           />
         )}
         {step === 2 && (
@@ -1468,6 +1651,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             onChange={(d) => setStep2((p) => ({ ...p, ...d }))}
             onBack={() => setStep(1)}
             onNext={() => setStep(3)}
+            headingId={headingId}
           />
         )}
         {step === 3 && (
@@ -1476,6 +1660,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             step2={step2}
             onBack={() => setStep(2)}
             onNext={() => setStep(4)}
+            headingId={headingId}
           />
         )}
         {step === 4 && (
@@ -1485,9 +1670,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             onBack={() => setStep(3)}
             onSubmit={handleSubmit}
             submitting={submitting}
+            headingId={headingId}
           />
         )}
-        {step === 5 && <Step5 name={step4.name} onClose={onClose} />}
+        {step === 5 && <Step5 name={step4.name} onClose={onClose} headingId={headingId} />}
       </div>
     </div>
   );

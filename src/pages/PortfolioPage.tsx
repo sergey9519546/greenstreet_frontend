@@ -321,7 +321,7 @@ export default function PortfolioPage({
       {/* ── TOOL ─────────────────────────────────────────────────────────── */}
       <section
         id="pf-tool"
-        style={{ background: "#003a39", color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
+        style={{ background: dc.teal, color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
 
@@ -350,7 +350,7 @@ export default function PortfolioPage({
               { label: "Monthly Cash Flow",  val: cashStr,   color: cashColor },
               { label: "Weighted Rate",      val: wRateStr,  color: dc.cream },
             ].map(({ label, val, color }) => (
-              <div key={label} style={{ background: "#002a29", padding: 26 }}>
+              <div key={label} style={{ background: dc.dark, padding: 26 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{label}</div>
                 <Mono style={{ display: "block", fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color, lineHeight: 1 }}>{val}</Mono>
               </div>
@@ -358,7 +358,7 @@ export default function PortfolioPage({
           </div>
 
           {/* Inline-editable property table */}
-          <div className="gs-reveal" style={{ background: "#002a29", borderRadius: 14, overflow: "hidden", marginBottom: 16, border: "1px solid rgba(238,239,211,0.08)" }}>
+          <div className="gs-reveal" style={{ background: dc.dark, borderRadius: 14, overflow: "hidden", marginBottom: 16, border: "1px solid rgba(238,239,211,0.08)" }}>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
                 <thead>
@@ -526,6 +526,51 @@ export default function PortfolioPage({
               })}
             </div>
           )}
+          {/* Disclaimer */}
+          <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+            Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Contact Greenstreet at +1 (555) 010-0000.
+          </p>
+        </div>
+      </section>
+
+      {/* ── FUNNEL CTA ── */}
+      <section
+        className="gs-reveal"
+        style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="dc-split"
+            style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
+                Ready to finance your portfolio?
+              </div>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+                Present this blended view to a lender.
+              </h2>
+              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
+                Greenstreet works blanket and multi-property files. One application covers your entire portfolio — no re-keying across properties.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+              <a
+                href="/rate-quiz"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
+              >
+                Get my rate →
+              </a>
+              <a
+                href="/lender-intel"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
+              >
+                Browse programs
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </DcShell>

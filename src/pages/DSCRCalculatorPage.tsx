@@ -167,8 +167,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <a href="#gs-calc" onClick={scrollToCalc} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 30px', borderRadius: 6 }}>
                 Open the calculator ↓
               </a>
-              <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: 6, border: '1px solid rgba(238,239,211,0.28)' }}>
-                See lenders
+              <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: 6, border: '1px solid rgba(238,239,211,0.28)' }}>
+                Find my program →
               </a>
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
@@ -319,7 +319,40 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: zoneColor, display: 'inline-block' }}></span>
                       <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: zoneColor }}>{verdictLabel}</span>
                     </div>
-                    <p style={{ fontSize: 'clamp(15px,1.3vw,17px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: '0 0 22px' }}>{verdictText}</p>
+                    <p style={{ fontSize: 'clamp(15px,1.3vw,17px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: '0 0 16px' }}>{verdictText}</p>
+
+                    {/* Next step CTA — single constructive action per result */}
+                    <div style={{ background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.12)', borderRadius: 8, padding: '14px 18px', marginBottom: 20 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 6 }}>
+                        {dscr >= 1.0 ? 'Ready to move forward?' : 'Want to explore your options?'}
+                      </div>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.65)', margin: '0 0 12px', lineHeight: 1.5 }}>
+                        {dscr >= 1.20
+                          ? 'Your DSCR is strong. Check which programs you qualify for and get a rate quote.'
+                          : dscr >= 1.0
+                          ? 'Your DSCR meets the floor. A specialist can confirm program fit and lock your rate.'
+                          : 'A Greenstreet specialist can look at sub-1.0 programs and structuring options — this is not a dead end.'}
+                      </p>
+                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <a
+                          href="/rate-quiz"
+                          onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: 6 }}
+                        >
+                          Find my program →
+                        </a>
+                        <button
+                          onClick={() => (window as any).openQualify?.()}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1px solid rgba(238,239,211,0.25)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 13, fontFamily: font.family, padding: '10px 16px', borderRadius: 6, cursor: 'pointer' }}
+                        >
+                          Check if I qualify →
+                        </button>
+                      </div>
+                      <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.38)', margin: '10px 0 0', lineHeight: 1.4 }}>
+                        Preliminary estimate — not a commitment to lend. Subject to full underwriting review.
+                      </p>
+                    </div>
+
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.4)', marginBottom: 12 }}>What moves the needle</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                       {sens.map((x, i) => (
@@ -376,9 +409,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         <Mono style={{ fontSize: 14, fontWeight: 700, color: LEMON }}>{lr.rate}</Mono>
                       </div>
                     ))}
-                    <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none', marginTop: 14 }}>
-                      See all 19 programs →
-                    </a>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
+                      <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
+                        See all 19 programs →
+                      </a>
+                      <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: LEMON, textDecoration: 'none', opacity: 0.85 }}>
+                        Which program fits me? →
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>

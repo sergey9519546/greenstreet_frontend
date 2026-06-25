@@ -6,19 +6,21 @@ const AS_OF = "Jun 25, 2026";
 // Source attribution per answer — refreshed 2026-06-25.
 // Each `src` is the primary source a curious reader (or AI search engine) can verify.
 // Groups: Basics, Qualification, Income & Property, Refinance, Compliance & Regulatory
-const FAQS: { q: string; a: string; src: string; group?: string }[] = [
+const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: string; action: "calculator" | "qualify" | "state-laws" | "lender-intel" } }[] = [
   // ── GROUP: The basics ─────────────────────────────────────────────────────────
   {
     group: "The basics",
     q: "What is a DSCR loan?",
     a: "A DSCR (Debt Service Coverage Ratio) loan qualifies based on rental income, not your personal income or tax returns. The lender divides the property's gross monthly rent by its total monthly payment (PITIA: principal, interest, taxes, insurance, and HOA). A DSCR ≥ 1.0 means rent covers the payment. No W-2s, no pay stubs, no employment history required.",
     src: "12 CFR 1026.43 · TILA / Reg Z QM rules",
+    cta: { label: "Estimate your DSCR →", action: "calculator" },
   },
   {
     group: "The basics",
     q: "How is DSCR calculated? Walk me through the formula.",
-    a: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. Example: a property rents for $2,400/month. PITIA = $1,450 P&I + $350 taxes + $140 insurance + $60 HOA = $2,000. DSCR = $2,400 ÷ $2,000 = 1.20x. The property generates 20% more than it costs. Lenders use the lower of the signed lease rent or the Form 1007 appraiser market-rent estimate — not the listing description or Zillow estimate.",
+    a: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. Worked example: rent = $2,500/month. PITIA = $1,420 P&I + $330 taxes + $110 insurance + $60 HOA = $1,920. DSCR = $2,500 ÷ $1,920 = 1.30x — the property generates 30% more income than it costs to carry. A ≥1.0x result means rent covers the full payment; <1.0x means it doesn't. Lenders use the lower of the signed lease rent or the Form 1007 appraiser market-rent estimate — not the listing description or Zillow estimate.",
     src: "Fannie Mae 1007 form · Greenstreet engine.ts DSCR calc",
+    cta: { label: "Run the numbers on your deal →", action: "calculator" },
   },
   {
     group: "The basics",
@@ -50,6 +52,7 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
     q: "What DSCR do I need to qualify?",
     a: "Most lenders require DSCR ≥ 1.00. Some accept as low as 0.75 with compensating factors (strong FICO, more reserves). The sweet spot is 1.20+ where you get the best rates and only 3 months reserves. Sub-1.0 deals exist but lender options narrow significantly and reserves jump to 9–12 months.",
     src: "Greenstreet lender matrix · Apr 2026 sweep",
+    cta: { label: "Check your deal's DSCR →", action: "calculator" },
   },
   {
     group: "Qualification",
@@ -80,6 +83,7 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
     q: "Can a foreign national or ITIN borrower get a DSCR loan?",
     a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Foreign nationals with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
     src: "Greenstreet Global program matrix · FIRPTA IRC §897 · Q2 2026",
+    cta: { label: "See if your file qualifies →", action: "qualify" },
   },
   {
     group: "Qualification",
@@ -92,6 +96,7 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
     q: "How can I improve my DSCR before applying?",
     a: "Four levers: (1) Buy down the rate: each 0.25% rate reduction saves ~$15–17/month per $100K of loan. On a $400K loan, buying down 0.50% saves ~$130/month in P&I. Points cost roughly 1% of loan per 0.25% of rate reduction. (2) Switch to interest-only (IO): IO eliminates the principal component, saving roughly $250–350/month on a $400K loan at current rates. Requires 720+ FICO, ≤75% LTV on most programs. (3) Raise the qualifying rent: provide the appraiser with comparable rental data before the inspection; sign a market-rate lease before closing (if vacant); or use documented 12-month STR history if the property is STR-eligible. (4) Increase the down payment: going from 80% to 75% LTV on a $400K deal reduces P&I by ~$85/month AND unlocks the better LTV rate tier, saving an additional 0.25–0.50%. Levers 2 and 4 combined can often take a 0.92x DSCR to 1.10x+ without touching the rent.",
     src: "Greenstreet engine.ts IO model · LTV pricing matrix · Q2 2026",
+    cta: { label: "Model the impact on your deal →", action: "calculator" },
   },
   {
     group: "Qualification",
@@ -135,6 +140,7 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
     q: "What is a prepayment penalty (PPP) and should I take one?",
     a: "A PPP is a fee for paying off the loan early (via sale or refinance), typically a declining schedule — 5/4/3/2/1% over 5 years or 3/2/1% over 3 years. Accepting a PPP usually saves 0.50–0.80% in rate vs the no-PPP option — that monthly savings compounds over a multi-year hold. The math generally favors accepting a PPP if you plan to hold 3+ years and aren't planning to sell or refi soon. Caution: some states restrict or ban PPPs on investment-property loans. Check the State Laws page before assuming a PPP is available in your target market.",
     src: "Greenstreet statePppLaws.ts · 50-state matrix",
+    cta: { label: "Check PPP rules in your state →", action: "state-laws" },
   },
   // ── GROUP: Refinance ─────────────────────────────────────────────────────────
   {
@@ -160,6 +166,7 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
     q: "How do I calculate break-even on a refinance?",
     a: "Break-even months = Total closing costs ÷ Monthly payment reduction. Example: $8,000 closing costs on a $300/month payment reduction = 26.7 months. If you sell or refi again before month 27, the refi cost money net. Important: if you have a PPP on the existing loan, add the full penalty to the numerator. A 3% PPP on a $400K loan is $12,000 — that adds 40 months to break-even on the same scenario, pushing it past 5.5 years. Run this calculation before paying the appraisal deposit.",
     src: "Greenstreet refiTracker.ts · break-even model",
+    cta: { label: "See if a refi pencils on your deal →", action: "calculator" },
   },
   // ── GROUP: Compliance & regulatory ───────────────────────────────────────────
   {
@@ -176,8 +183,19 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
   },
 ];
 
+// Resolve a CTA action to the correct navigation target
+function useFaqCtaHandler(onNavigate: (v: string) => void) {
+  return (action: "calculator" | "qualify" | "state-laws" | "lender-intel") => {
+    if (action === "qualify") { (window as any).openQualify?.(); return; }
+    if (action === "calculator") { onNavigate("dscr-calculator"); return; }
+    if (action === "state-laws") { onNavigate("state-laws"); return; }
+    if (action === "lender-intel") { onNavigate("lender-intel"); return; }
+  };
+}
+
 export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   const [open, setOpen] = useState<number | null>(0);
+  const handleCtaAction = useFaqCtaHandler(onNavigate);
 
   useEffect(() => {
     document.title = "DSCR Loan FAQ | Greenstreet Finance";
@@ -336,6 +354,29 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                   >
                     {faq.a}
                   </p>
+                  {faq.cta && (
+                    <button
+                      onClick={() => handleCtaAction(faq.cta!.action)}
+                      style={{
+                        marginTop: 14,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: dc.dark,
+                        color: dc.cream,
+                        fontWeight: 600,
+                        fontSize: 13,
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "9px 18px",
+                        borderRadius: 6,
+                        fontFamily: dc.sans,
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {faq.cta.label}
+                    </button>
+                  )}
                   {/* Source attribution — added in 2026-06-22 refresh for GEO + E-E-A-T */}
                   <div
                     style={{

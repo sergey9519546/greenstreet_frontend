@@ -589,7 +589,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
               <a
-                href="#"
+                href="/rate-quiz"
                 onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
                 style={{
                   display: "inline-flex",
@@ -609,7 +609,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 Get my rate →
               </a>
               <a
-                href="#"
+                href="/deal-analyzer"
                 onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }}
                 style={{
                   display: "inline-flex",

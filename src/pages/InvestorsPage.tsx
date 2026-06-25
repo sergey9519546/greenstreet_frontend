@@ -210,8 +210,10 @@ export default function InvestorsPage({
                 margin: "0 0 36px",
               }}
             >
-              After-tax IRR, Monte Carlo rate paths, and a 120-cell stress
-              matrix — the analysis a fund desk runs, on every one of your deals.
+              For individual investors and private funds: after-tax IRR, Monte
+              Carlo rate paths, and a 120-cell stress matrix — the analysis a
+              fund desk runs, on every one of your deals. No signup, no
+              spreadsheet round-trip.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <PrimaryBtn onClick={() => onNavigate("returns")}>
@@ -522,7 +524,7 @@ export default function InvestorsPage({
                 maxWidth: "22ch",
               }}
             >
-              Institutional analysis, no fund required.
+              Three tools every serious DSCR investor runs before they sign.
             </h2>
           </div>
 
@@ -909,13 +911,29 @@ export default function InvestorsPage({
                 lineHeight: 1.55,
                 color: "rgba(0,55,56,0.6)",
                 maxWidth: "52ch",
-                margin: 0,
+                margin: "0 0 18px",
                 letterSpacing: "-0.01em",
               }}
             >
               Every tool is free. No email required. Open a deal and see what the
               math says.
             </p>
+            <button
+              onClick={() => onNavigate("solutions")}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 600,
+                color: dc.rain,
+                letterSpacing: "-0.01em",
+                fontFamily: dc.sans,
+              }}
+            >
+              See who else uses Greenstreet →
+            </button>
           </div>
           <div
             style={{

@@ -495,7 +495,7 @@ export default function BlogPostPage({
               color: dc.cream,
             }}
           >
-            See the deterministic engine for yourself.
+            Ready to run your deal?
           </h2>
           <p
             style={{
@@ -506,26 +506,49 @@ export default function BlogPostPage({
               letterSpacing: "-0.02em",
             }}
           >
-            Price a real DSCR deal in under a minute — every figure traceable.
+            Price a DSCR deal in under a minute, or get a preliminary program
+            match — no commitment required.
           </p>
-          <a
-            href="/dscr-calculator"
-            onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: dc.lemon,
-              color: dc.dark,
-              fontWeight: 600,
-              fontSize: 16,
-              textDecoration: "none",
-              padding: "16px 32px",
-              borderRadius: 6,
-            }}
-          >
-            Open the calculator →
-          </a>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
+            <a
+              href="/dscr-calculator"
+              onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: "none",
+                padding: "15px 30px",
+                borderRadius: 6,
+              }}
+            >
+              Open the calculator →
+            </a>
+            <button
+              onClick={() => (window as any).openQualify?.()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "transparent",
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 16,
+                border: "1px solid rgba(238,239,211,0.3)",
+                cursor: "pointer",
+                padding: "15px 28px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              See if your deal qualifies
+            </button>
+          </div>
         </div>
       </section>
 

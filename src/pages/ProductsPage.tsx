@@ -410,7 +410,7 @@ export default function ProductsPage({
                 marginBottom: 18,
               }}
             >
-              Product
+              11 tools · one engine
             </div>
             <H1 style={{ margin: 0 }}>
               The DSCR Engine
@@ -421,12 +421,14 @@ export default function ProductsPage({
           <Lead
             style={{
               color: "rgba(238,239,211,0.72)",
-              maxWidth: "38ch",
+              maxWidth: "40ch",
               margin: 0,
             }}
           >
-            Deterministic underwriting and thoughtful automation to price every
-            rental loan with confidence.
+            Every tool Greenstreet ships runs off the same deterministic core:
+            versioned math, statutory citations, no LLM guesses in the numbers.
+            Brokers use three tools. Investors use five. Funds use all eleven.
+            Start anywhere below.
           </Lead>
         </div>
       </section>
@@ -458,11 +460,115 @@ export default function ProductsPage({
         </div>
       </section>
 
-      {/* ── BACK TO ALL TOOLS — matches mockup footer link ── */}
+      {/* ── CLOSING CTA — demo + solutions cross-link ── */}
+      <section
+        style={{
+          background: dc.dark,
+          color: dc.cream,
+          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
+        }}
+      >
+        <div
+          className="gs-reveal dc-band-2"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.8vw,52px)",
+                fontWeight: 600,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                color: dc.cream,
+                margin: "0 0 16px",
+              }}
+            >
+              Not sure which tool to start with?
+            </h2>
+            <p
+              style={{
+                fontSize: "clamp(15px,1.3vw,18px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(238,239,211,0.6)",
+                maxWidth: "48ch",
+                margin: "0 0 18px",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              See which tools fit your role — broker, investor, or fund — or book
+              a 15-minute walkthrough and we'll show you the workflow live.
+            </p>
+            <button
+              onClick={() => onNavigate("solutions")}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 600,
+                color: dc.lemon,
+                letterSpacing: "-0.01em",
+                fontFamily: dc.sans,
+              }}
+            >
+              See tools by audience →
+            </button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+            <button
+              onClick={() => onNavigate("book-demo")}
+              style={{
+                background: dc.lemon,
+                color: dc.dark,
+                border: "none",
+                borderRadius: 6,
+                padding: "15px 28px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                textAlign: "left" as const,
+              }}
+            >
+              Book a demo →
+            </button>
+            <button
+              onClick={() => onNavigate("dscr-calculator")}
+              style={{
+                background: "rgba(238,239,211,0.08)",
+                color: dc.cream,
+                border: "1px solid rgba(238,239,211,0.18)",
+                borderRadius: 6,
+                padding: "15px 28px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                textAlign: "left" as const,
+              }}
+            >
+              DSCR Calculator →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BACK PILL ── */}
       <section
         style={{
           background: dc.cream,
-          padding: `clamp(32px, 4vw, 56px) ${dc.pad} clamp(72px, 10vh, 120px)`,
+          padding: `clamp(48px,6vh,72px) ${dc.pad} clamp(72px,10vh,120px)`,
         }}
       >
         <div
@@ -489,7 +595,7 @@ export default function ProductsPage({
           >
             <span
               style={{
-                fontSize: "clamp(16px, 1.4vw, 19px)",
+                fontSize: "clamp(16px,1.4vw,19px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 color: dc.dark,

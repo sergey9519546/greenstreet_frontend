@@ -116,6 +116,10 @@ export default function ReturnsPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  React.useEffect(() => {
+    document.title = "Returns & IRR | Greenstreet Finance";
+  }, []);
+
   // Inputs matching the mockup defaults
   const [purchasePrice, setPurchasePrice] = useState(425000);
   const [ltv, setLtv] = useState(75);
@@ -726,6 +730,51 @@ export default function ReturnsPage({
                   </table>
                 </div>
               </div>
+            </div>
+          </div>
+          {/* Disclaimer */}
+          <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+            Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Contact Greenstreet at +1 (555) 010-0000.
+          </p>
+        </div>
+      </section>
+
+      {/* ── FUNNEL CTA ── */}
+      <section
+        className="gs-reveal"
+        style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}` }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="dc-split"
+            style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
+                Ready to move forward?
+              </div>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+                Lock the numbers in. Get your rate.
+              </h2>
+              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
+                Submit once. Greenstreet places your file in the best-fit program and funds it — no re-keying the same numbers five times.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+              <a
+                href="/rate-quiz"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
+              >
+                Get my rate →
+              </a>
+              <a
+                href="/deal-analyzer"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
+              >
+                Full deal analyzer
+              </a>
             </div>
           </div>
         </div>

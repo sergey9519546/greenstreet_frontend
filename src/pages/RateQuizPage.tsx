@@ -566,10 +566,50 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   ))}
                 </div>
 
+                {/* What this means — plain-language explanation */}
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    lineHeight: 1.55,
+                    color: "rgba(238,239,211,0.6)",
+                    margin: "0 0 10px",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {result.tier === "BEST"
+                    ? "Your profile is well-positioned. This program tier carries the lowest rate bands and widest lender selection."
+                    : result.tier === "GOOD"
+                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match for your deal."
+                    : "This program has tighter requirements — reserves, lower LTV, or stronger credit can help qualify. A specialist can structure the deal."}
+                </p>
+
+                {/* Single clear next step */}
+                <div
+                  style={{
+                    background: "rgba(238,239,211,0.07)",
+                    border: "1px solid rgba(238,239,211,0.15)",
+                    borderRadius: 8,
+                    padding: "16px 20px",
+                    marginBottom: 24,
+                    fontSize: 13,
+                    color: "rgba(238,239,211,0.65)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  <strong style={{ color: dc.lemon, display: "block", marginBottom: 4 }}>
+                    Your next step
+                  </strong>
+                  Run your exact numbers in the DSCR Calculator, then speak with a Greenstreet specialist to confirm your program and get a full scenario review.
+                  <span style={{ display: "block", marginTop: 8, opacity: 0.65, fontSize: 12 }}>
+                    Indicative rate bands only — not a commitment to lend. Final terms subject to full underwriting review.
+                  </span>
+                </div>
+
                 {/* CTAs */}
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <a
-                    href="#"
+                    href="/dscr-calculator"
                     onClick={(e) => {
                       e.preventDefault();
                       onNavigate?.("dscr-calculator");
@@ -587,21 +627,41 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                       borderRadius: 6,
                     }}
                   >
-                    Price it exactly →
+                    Run the numbers →
                   </a>
                   <button
-                    onClick={restart}
+                    onClick={() => (window as any).openQualify?.()}
                     style={{
-                      background: "none",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      background: "transparent",
                       border: "1px solid rgba(238,239,211,0.3)",
                       color: dc.cream,
                       fontFamily: dc.sans,
                       fontWeight: 600,
                       fontSize: 16,
-                      letterSpacing: "-0.01em",
                       padding: "15px 24px",
                       borderRadius: 6,
                       cursor: "pointer",
+                    }}
+                  >
+                    Check if I qualify →
+                  </button>
+                  <button
+                    onClick={restart}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "rgba(238,239,211,0.45)",
+                      fontFamily: dc.sans,
+                      fontWeight: 500,
+                      fontSize: 14,
+                      letterSpacing: "-0.01em",
+                      padding: "15px 0",
+                      borderRadius: 6,
+                      cursor: "pointer",
+                      textDecoration: "underline",
                     }}
                   >
                     Retake quiz

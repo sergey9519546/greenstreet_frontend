@@ -3,7 +3,7 @@ Allow: /
 
 # Block internal app routes from being indexed
 Disallow: /api/
-Disallow: /investorgo
+Disallow: /investgo
 Disallow: /dashboard
 Disallow: /broker-portal
 
