@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
+import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 
 interface Props {
   onBack?: () => void;
@@ -141,9 +142,12 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         .li-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.38);}
         /* Toggle buttons — 44px min touch target */
         .li-toggle{min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
+        @media(max-width:991px){.li-hero-grid{grid-template-columns:1fr !important;} .li-tool-grid{grid-template-columns:1fr !important;}}
+        @media(max-width:767px){.li-summary-row{grid-template-columns:1fr 1fr !important;}}
+        @media(max-width:479px){.li-summary-row{grid-template-columns:1fr !important;}}
       `}</style>
 
-      {/* ── HERO — dark-teal, single-column, mockup-faithful ── */}
+      {/* ── HERO — dark-teal, two-col: copy left / live deal summary right ── */}
       <section
         style={{
           background: dc.teal,
@@ -152,62 +156,89 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
           overflow: "hidden",
         }}
       >
-        <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          {/* Eyebrow */}
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "rgba(238,239,211,0.5)",
-              marginBottom: 20,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Product / Lender Intelligence
-          </div>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div id="gs-hero-content" className="li-hero-grid" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
+            {/* Left: copy + chips */}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginBottom: 20, letterSpacing: "-0.01em" }}>
+                Product / Lender Intelligence
+              </div>
+              <H1 style={{ margin: "0 0 24px", maxWidth: "15ch" }}>
+                Which programs fit your deal?
+              </H1>
+              <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "52ch", margin: "0 0 16px" }}>
+                Enter your FICO score, LTV (how the loan amount compares to the property value — lower means more equity and better terms), DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger), and loan amount. Every Greenstreet program is scored against your numbers instantly — green cards fit, red cards don't and show you why.
+              </Lead>
+              <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 28px", lineHeight: 1.5 }}>
+                How to use: adjust the deal box on the left. Cards re-rank live. Match count updates at the top. Aim for at least one FITS card before submitting.
+              </p>
+              {/* Program name chips */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxWidth: 600 }}>
+                {scored.map((p) => (
+                  <span
+                    key={p.id}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      background: p.fits ? "rgba(238,239,211,0.15)" : "rgba(238,239,211,0.06)",
+                      border: `1px solid ${p.fits ? "rgba(238,239,211,0.3)" : "rgba(238,239,211,0.12)"}`,
+                      borderRadius: radius.sm,
+                      padding: "7px 12px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: p.fits ? dc.cream : "rgba(238,239,211,0.5)",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {p.name}
+                  </span>
+                ))}
+              </div>
+            </div>
 
-          {/* H1 */}
-          <H1 style={{ margin: "0 0 24px", maxWidth: "15ch" }}>
-            Which programs fit your deal?
-          </H1>
+            {/* Right: live deal summary card with DscrGauge + match count */}
+            <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 16, border: "1px solid rgba(238,239,211,0.12)", padding: "clamp(20px,2.4vw,32px)" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 16 }}>Live deal summary</div>
 
-          {/* Sub */}
-          <Lead
-            style={{
-              color: "rgba(238,239,211,0.7)",
-              maxWidth: "52ch",
-              margin: "0 0 16px",
-            }}
-          >
-            Enter your FICO score, LTV (how the loan amount compares to the property value — lower means more equity and better terms), DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger), and loan amount. Every Greenstreet program is scored against your numbers instantly — green cards fit, red cards don't and show you why.
-          </Lead>
-          <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 36px", lineHeight: 1.5 }}>
-            How to use: adjust the deal box on the left. Cards re-rank live. Match count updates at the top. Aim for at least one FITS card before submitting.
-          </p>
+              {/* DscrGauge centered */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+                <DscrGauge value={dscr} size={160} />
+              </div>
 
-          {/* Program name chips — the hero's live "19 chips" identity */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, maxWidth: 920 }}>
-            {scored.map((p) => (
-              <span
-                key={p.id}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  background: p.fits
-                    ? "rgba(238,239,211,0.15)"
-                    : "rgba(238,239,211,0.06)",
-                  border: `1px solid ${p.fits ? "rgba(238,239,211,0.3)" : "rgba(238,239,211,0.12)"}`,
-                  borderRadius: radius.sm,
-                  padding: "8px 14px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: p.fits ? dc.cream : "rgba(238,239,211,0.55)",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                {p.name}
-              </span>
-            ))}
+              {/* Risk level */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+                <RiskFlame level={riskFromDscr(dscr)} size={18} />
+                <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dscrColor(dscr) }}>
+                  {dscr >= 1.25 ? "strong" : dscr >= 1.0 ? "qualifies" : dscr >= 0.75 ? "sub-1.0 only" : "below floor"}
+                </span>
+              </div>
+
+              {/* Key deal metrics strip */}
+              <div className="li-summary-row" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 16 }}>
+                {[
+                  { label: "FICO",    val: String(fico),              note: fico >= 740 ? "best pricing" : fico >= 680 ? "standard" : "limited" },
+                  { label: "LTV",     val: ltv + "%",                  note: ltv <= 75 ? "within limits" : "elevated" },
+                  { label: "DSCR",    val: dscr.toFixed(2) + "x",     note: "" },
+                ].map((m) => (
+                  <div key={m.label} style={{ background: "rgba(238,239,211,0.07)", borderRadius: radius.sm, padding: "10px 8px", textAlign: "center" }}>
+                    <Mono style={{ display: "block", fontSize: 18, fontWeight: 700, color: dc.cream, lineHeight: 1 }}>{m.val}</Mono>
+                    <div style={{ fontSize: 10, color: "rgba(238,239,211,0.45)", marginTop: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{m.label}</div>
+                    {m.note && <div style={{ fontSize: 10, color: "rgba(238,239,211,0.35)", marginTop: 1 }}>{m.note}</div>}
+                  </div>
+                ))}
+              </div>
+
+              {/* Match count headline */}
+              <div style={{ background: matchCount > 0 ? "rgba(77,189,151,0.12)" : "rgba(255,107,107,0.1)", border: `1px solid ${matchCount > 0 ? dc.emerald : "#ff6b6b"}`, borderRadius: radius.sm, padding: "12px 16px", textAlign: "center" }}>
+                <Mono style={{ fontSize: 32, fontWeight: 700, color: matchCount > 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>{matchCount}</Mono>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>
+                  of {total} programs fit this deal
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", marginTop: 4, lineHeight: 1.4 }}>
+                  {matchCount === 0 ? "Raise FICO, lower LTV, or increase DSCR below." : "Scroll down to see ranked programs."}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -241,7 +272,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
           </div>
 
           <div
-            className="gs-reveal dc-split"
+            className="gs-reveal dc-split li-tool-grid"
             style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 36, alignItems: "start" }}
           >
             {/* ── DEAL BOX INPUTS ── */}

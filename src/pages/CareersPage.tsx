@@ -396,6 +396,109 @@ export default function CareersPage({
         </div>
       </section>
 
+      {/* ── CLOSING CTA — lemon primary, direct to open roles ── */}
+      <section
+        style={{
+          background: dc.dark,
+          color: dc.cream,
+          padding: "clamp(56px,7vw,88px) clamp(1.5rem,4vw,3rem)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "clamp(24px,4vw,56px)",
+            flexWrap: "wrap" as const,
+          }}
+        >
+          <div style={{ flex: "1 1 320px" }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                marginBottom: 14,
+              }}
+            >
+              We're hiring
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.6vw,50px)",
+                fontWeight: 600,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                color: dc.cream,
+                margin: "0 0 14px",
+              }}
+            >
+              Build the infrastructure
+              <br />
+              DSCR lending is missing.
+            </h2>
+            <p
+              style={{
+                fontSize: "clamp(14px,1.2vw,17px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(238,239,211,0.6)",
+                margin: 0,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Remote-first. Equity upside. Ship on day two.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: "0 0 auto" }}>
+            <a
+              href="mailto:careers@greenstreetfinance.com"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 700,
+                fontSize: 15,
+                textDecoration: "none",
+                padding: "15px 30px",
+                borderRadius: dc.r.md,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Email your application →
+            </a>
+            <button
+              onClick={() => onNavigate("about")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "transparent",
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 15,
+                border: `1.5px solid ${dc.faded}`,
+                cursor: "pointer",
+                padding: "15px 30px",
+                borderRadius: dc.r.md,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Learn about the team
+            </button>
+          </div>
+        </div>
+      </section>
+
     </DcShell>
   );
 }

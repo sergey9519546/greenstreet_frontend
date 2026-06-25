@@ -239,7 +239,7 @@ export const POSTS = [
       { p: "Foreign nationals with U.S. real property income are subject to FIRPTA (Foreign Investment in Real Property Tax Act) withholding on sale. DSCR loan qualification does not depend on U.S. tax status, but the borrower should work with a CPA familiar with cross-border real estate tax before closing — the tax implications on exit can be significant." },
       { quote: "DSCR is one of the most accessible U.S. lending products for foreign investors, because the loan doesn't depend on where you earned your money — only on what the property earns." },
     ],
-    glyph: "🌐", glyphColor: dc.lemon, bg: dc.dark,
+    glyph: "FN", glyphColor: dc.lemon, bg: dc.dark,
     author: "Marcus Chen",
     featured: false,
   },

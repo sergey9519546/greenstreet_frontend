@@ -355,10 +355,10 @@ function FeatureRow({
 
 function SpecialToolCard({
   tool,
-  onOpen,
+  onNavigate,
 }: {
   tool: (typeof SPECIAL_TOOLS)[number];
-  onOpen: (href: string) => void;
+  onNavigate: (v: string) => void;
 }) {
   return (
     <article
@@ -392,14 +392,14 @@ function SpecialToolCard({
         </p>
       </div>
       <button
-        onClick={() => onOpen(tool.href)}
+        onClick={() => onNavigate("portal")}
         style={{
           marginTop: 30,
           justifySelf: "start",
           background: dc.lemon,
           color: dc.dark,
           border: "none",
-          borderRadius: 6,
+          borderRadius: dc.r.md,
           padding: "13px 20px",
           fontFamily: dc.sans,
           fontWeight: 650,
@@ -424,14 +424,6 @@ export default function ProductsPage({
     document.title = "Products | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
-
-  // Keep product rows visible from first paint. Route-level reveal animations
-  // caused the correct layout to drop/fade after React mounted.
-  const openPath = (href: string) => {
-    window.history.pushState({}, "", href);
-    window.dispatchEvent(new PopStateEvent("popstate"));
-    window.scrollTo({ top: 0 });
-  };
 
   return (
     <DcShell
@@ -596,7 +588,7 @@ export default function ProductsPage({
             className="pr-special-grid"
           >
             {SPECIAL_TOOLS.map((tool) => (
-              <SpecialToolCard key={tool.href} tool={tool} onOpen={openPath} />
+              <SpecialToolCard key={tool.href} tool={tool} onNavigate={onNavigate} />
             ))}
           </div>
         </div>
@@ -668,12 +660,12 @@ export default function ProductsPage({
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
             <button
-              onClick={() => onNavigate("book-demo")}
+              onClick={() => onNavigate("rate-quiz")}
               style={{
                 background: dc.lemon,
                 color: dc.dark,
                 border: "none",
-                borderRadius: 6,
+                borderRadius: dc.r.md,
                 padding: "15px 28px",
                 fontSize: 15,
                 fontWeight: 600,
@@ -683,15 +675,15 @@ export default function ProductsPage({
                 textAlign: "left" as const,
               }}
             >
-              Book a demo →
+              See my rate in 5 questions →
             </button>
             <button
               onClick={() => onNavigate("dscr-calculator")}
               style={{
-                background: "rgba(238,239,211,0.08)",
+                background: "transparent",
                 color: dc.cream,
-                border: "1px solid rgba(238,239,211,0.18)",
-                borderRadius: 6,
+                border: `1.5px solid ${dc.faded}`,
+                borderRadius: dc.r.md,
                 padding: "15px 28px",
                 fontSize: 15,
                 fontWeight: 600,

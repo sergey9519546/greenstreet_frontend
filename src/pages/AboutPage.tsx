@@ -197,7 +197,7 @@ export default function AboutPage({
               Check my deal's DSCR →
             </button>
             <button
-              onClick={() => onNavigate("book-demo")}
+              onClick={() => onNavigate("rate-quiz")}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -793,7 +793,7 @@ export default function AboutPage({
         >
           {/* Card 1: Demo */}
           <button
-            onClick={() => onNavigate("book-demo")}
+            onClick={() => onNavigate("rate-quiz")}
             className="cta-card"
             style={{
               display: "flex",

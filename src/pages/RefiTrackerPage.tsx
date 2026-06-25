@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { gsap } from "gsap";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
+import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzeRefi } from "../engine/refiTracker";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 
@@ -27,12 +27,12 @@ export default function RefiTrackerPage({
     window.scrollTo(0, 0);
   }, []);
 
-  // Ref to the SVG lines for draw animation
+  // Refs for the SVG chart lines — draw-on driven by IntersectionObserver, not page-load GSAP
   const costLineRef = useRef<SVGPathElement>(null);
   const saveLineRef = useRef<SVGPathElement>(null);
   const dotRef = useRef<SVGCircleElement>(null);
   const lblRef = useRef<SVGTextElement>(null);
-  const animatedOnce = useRef(false);
+  const [chartRef, chartVisible] = useRevealOnView<HTMLDivElement>();
 
   // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
@@ -165,39 +165,42 @@ export default function RefiTrackerPage({
     ? "M 0,178 L 420,150" // savings never reach the cost line — no payoff yet
     : `M 0,${BASE_Y} L ${Math.round(saveEndX)},${Math.round(saveEndY)}`;
 
-  // ── Animate SVG lines on mount (draw-on effect, matches mockup rf-line anim) ──
+  // ── Draw-on chart lines via IntersectionObserver (never page-load GSAP) ──
+  // chartVisible flips true once the chart div enters the viewport (useRevealOnView).
+  // CSS transitions on strokeDashoffset handle the draw effect — reduced-motion safe.
   useEffect(() => {
-    if (animatedOnce.current) return;
-    const reduce =
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-
+    if (!chartVisible) return;
     const cost = costLineRef.current;
     const save = saveLineRef.current;
     const dot = dotRef.current;
     const lbl = lblRef.current;
     if (!cost || !save) return;
 
-    animatedOnce.current = true;
-
-    // Cost line: fixed length 420
     const costLen = 420;
     const saveLen = save.getTotalLength ? save.getTotalLength() : 420;
 
-    // Set initial dash state — cost keeps its 6,4 dashes but offset hides it
-    gsap.set(cost, { strokeDasharray: "6,4", strokeDashoffset: costLen });
-    gsap.set(save, { strokeDasharray: saveLen, strokeDashoffset: saveLen });
-    if (dot) gsap.set(dot, { opacity: 0 });
-    if (lbl) gsap.set(lbl, { opacity: 0 });
+    // Start hidden, then let CSS transition draw them in
+    cost.style.strokeDasharray = "6,4";
+    cost.style.strokeDashoffset = String(costLen);
+    save.style.strokeDasharray = String(saveLen);
+    save.style.strokeDashoffset = String(saveLen);
+    if (dot) { dot.style.opacity = "0"; }
+    if (lbl) { lbl.style.opacity = "0"; }
 
-    gsap.to(cost, { strokeDashoffset: 0, duration: 1.3, delay: 0.5, ease: "power2.inOut" });
-    gsap.to(save, { strokeDashoffset: 0, duration: 1.3, delay: 0.7, ease: "power2.inOut" });
-    if (dot && lbl && showDot) {
-      gsap.to([dot, lbl], { opacity: 1, duration: 0.5, delay: 1.7 });
-    }
-  }, []); // run once on mount
+    // rAF ensures the "hidden" state is painted before transition begins
+    requestAnimationFrame(() => {
+      cost.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.1s";
+      cost.style.strokeDashoffset = "0";
+      save.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.3s";
+      save.style.strokeDashoffset = "0";
+      if (dot && lbl && showDot) {
+        dot.style.transition = "opacity 0.5s ease 1.3s";
+        lbl.style.transition = "opacity 0.5s ease 1.3s";
+        dot.style.opacity = "1";
+        lbl.style.opacity = "1";
+      }
+    });
+  }, [chartVisible, showDot]);
 
   // Input field definitions
   const loanFields: Array<{
@@ -352,6 +355,7 @@ export default function RefiTrackerPage({
 
           {/* Right — break-even crossing-lines chart (THE signature visual) */}
           <div
+            ref={chartRef}
             style={{
               background: dc.dark,
               borderRadius: dc.r.lg,
@@ -685,12 +689,14 @@ export default function RefiTrackerPage({
                       sub: "Rent ÷ PITIA today. Above 1.0 = property covers its costs.",
                       val: result.currentDSCR.toFixed(2) + "x",
                       color: dc.cream,
+                      flame: riskFromDscr(result.currentDSCR),
                     },
                     {
                       label: "DSCR after refi",
                       sub: result.refiDSCR >= 1.0 ? "Still qualifies after the new payment." : "Caution — rent may not cover the new payment.",
                       val: result.refiDSCR.toFixed(2) + "x",
                       color: result.refiDSCR >= 1.0 ? dc.emerald : "#ff6b6b",
+                      flame: riskFromDscr(result.refiDSCR),
                     },
                     {
                       label: "Monthly savings",
@@ -732,9 +738,12 @@ export default function RefiTrackerPage({
                         fontSize: 14,
                       }}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span style={{ color: "rgba(238,239,211,0.65)" }}>{r.label}</span>
-                        <Mono style={{ color: r.color, fontWeight: 700 }}>{r.val}</Mono>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          {"flame" in r && r.flame !== undefined && <RiskFlame level={r.flame} size={16} />}
+                          <Mono style={{ color: r.color, fontWeight: 700 }}>{r.val}</Mono>
+                        </span>
                       </div>
                       {"sub" in r && r.sub && (
                         <div style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>

@@ -205,7 +205,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
   return (
     <DcShell
       onNavigate={onNavigate}
-      accent="#004041"
+      accent={dc.teal}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "Lender Intel", view: "lender-intel" },

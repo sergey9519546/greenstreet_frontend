@@ -102,7 +102,7 @@ function PrimaryBtn({
         border: "none",
         cursor: "pointer",
         padding: "15px 30px",
-        borderRadius: 6,
+        borderRadius: dc.r.md,
         fontFamily: dc.sans,
         letterSpacing: "-0.01em",
       }}
@@ -130,10 +130,10 @@ function GhostBtn({
         color: dc.cream,
         fontWeight: 600,
         fontSize: 16,
-        border: "1px solid rgba(238,239,211,0.3)",
+        border: `1.5px solid ${dc.faded}`,
         cursor: "pointer",
         padding: "15px 26px",
-        borderRadius: 6,
+        borderRadius: dc.r.md,
         fontFamily: dc.sans,
         letterSpacing: "-0.01em",
       }}

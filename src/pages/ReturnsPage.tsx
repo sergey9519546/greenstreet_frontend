@@ -1,18 +1,19 @@
 import React, { useState, useRef, useCallback } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import { computeReturns } from "../engine/returnsEngine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
+import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+// ─── helpers ──────────────────────────────────────────────────────────────────
+const RED    = "#ff6b6b";
+const ORANGE = "#f97316";
 
 function fmt$(n: number) {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
-// Inline IRR bisection matching the mockup's calcIRR logic.
-// Used only for the sensitivity matrix rows/cols that the real engine matrix
-// doesn't expose (it uses its own HOLD_PERIODS / RENT_GROWTH_SCENARIOS).
-// We replicate the same cash-flow model as the engine for consistency.
+// Inline IRR bisection — matches engine cash-flow model (OPEX 15%, mgmt+maint+turnover).
+// Used for the headline and sensitivity matrix so every user-editable input is honored.
 function calcIRR(opts: {
   purchasePrice: number;
   ltv: number;
@@ -27,29 +28,14 @@ function calcIRR(opts: {
   vacancy: number;
   prepayAtExit: number;
 }): number {
-  const {
-    purchasePrice,
-    ltv,
-    rate,
-    monthlyRent,
-    annualTaxes,
-    annualInsurance,
-    hoa,
-    holdYears,
-    exitCapRate,
-    rentGrowth,
-    vacancy,
-    prepayAtExit,
-  } = opts;
-
-  const loan = purchasePrice * (ltv / 100);
+  const { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit } = opts;
+  const loan    = purchasePrice * (ltv / 100);
   const cashInv = purchasePrice - loan;
-  const r = rate / 100 / 12;
-  const n = 360;
-  const piMo =
-    r === 0
-      ? loan / n
-      : (loan * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  const r       = rate / 100 / 12;
+  const n       = 360;
+  const piMo    = r === 0
+    ? loan / n
+    : (loan * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 
   const remBal = (elapsed: number) => {
     if (elapsed >= n) return 0;
@@ -59,15 +45,13 @@ function calcIRR(opts: {
     return Math.max(0, (loan * (f - e)) / (f - 1));
   };
 
+  const OPEX_PCT = 15;
   const hold = Math.max(1, Math.min(15, holdYears));
   const cfs: number[] = [-cashInv];
 
-  // NOI must match returnsEngine: mgmt 8% + maint 5% + turnover 2% of GROSS rent
-  // (before vacancy). Omitting these overstates IRR — dangerous for a lending tool.
-  const OPEX_PCT = 15;
   const noiForYear = (yrOffset: number) => {
     const gross = monthlyRent * 12 * Math.pow(1 + rentGrowth / 100, yrOffset);
-    const egi = gross * (1 - vacancy / 100);
+    const egi   = gross * (1 - vacancy / 100);
     return egi - annualTaxes - annualInsurance - hoa * 12 - gross * (OPEX_PCT / 100);
   };
 
@@ -75,675 +59,501 @@ function calcIRR(opts: {
     const noi = noiForYear(yr - 1);
     let cf = noi - piMo * 12;
     if (yr === hold) {
-      const stabNOI = noiForYear(yr); // next-year stabilized NOI capitalizes the exit
-      const exit = stabNOI / (exitCapRate / 100);
-      const bal = remBal(hold * 12);
+      const stabNOI = noiForYear(yr);
+      const exit    = stabNOI / (exitCapRate / 100);
+      const bal     = remBal(hold * 12);
       cf += exit - exit * 0.06 - bal - loan * (prepayAtExit / 100);
     }
     cfs.push(cf);
   }
 
-  const f = (rate_: number) =>
-    cfs.reduce((s, c, i) => s + c / Math.pow(1 + rate_, i), 0);
-
-  let lo = -0.9,
-    hi = 5;
+  const f = (rate_: number) => cfs.reduce((s, c, i) => s + c / Math.pow(1 + rate_, i), 0);
+  let lo = -0.9, hi = 5;
   const flo = f(lo);
-  // No sign change ⇒ no real IRR root. Return NaN (rendered as "—"), NOT 0 —
-  // a literal 0.0% reads as a real result next to the -66%/-47% neighbors.
-  if (flo * f(hi) > 0) return NaN;
+  if (flo * f(hi) > 0) return NaN; // no sign change ⇒ no real IRR root
   let curFlo = flo;
   for (let i = 0; i < 100; i++) {
     const m = (lo + hi) / 2;
     const fm = f(m);
     if (Math.abs(fm) < 1) return m;
-    if (curFlo * fm < 0) {
-      hi = m;
-    } else {
-      lo = m;
-      curFlo = fm;
-    }
+    if (curFlo * fm < 0) { hi = m; }
+    else { lo = m; curFlo = fm; }
   }
   return (lo + hi) / 2;
 }
 
-// ─── component ──────────────────────────────────────────────────────────────
+// ─── slider field ─────────────────────────────────────────────────────────────
+interface SliderFieldProps {
+  label: string;
+  hint?: string;
+  value: number;
+  set: (v: number) => void;
+  min: number;
+  max: number;
+  step: number;
+  prefix?: string;
+  suffix?: string;
+  fmt?: (v: number) => string;
+}
+function SliderField({ label, hint, value, set, min, max, step, prefix = "", suffix = "", fmt }: SliderFieldProps) {
+  const display = fmt ? fmt(value) : value.toString();
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)" }}>
+          {label}
+        </span>
+        <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.dark }}>
+          {prefix}{display}{suffix}
+        </Mono>
+      </div>
+      <input className="gs-range" type="range" min={min} max={max} step={step} value={value} onChange={(e) => set(+e.target.value)} />
+      {hint && (
+        <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 4, lineHeight: 1.4 }}>
+          {hint}
+        </span>
+      )}
+    </div>
+  );
+}
 
-export default function ReturnsPage({
-  onBack,
-  onNavigate,
-}: {
-  onBack: () => void;
-  onNavigate: (v: any) => void;
+// ─── collapsible disclosure ───────────────────────────────────────────────────
+function Disclosure({ label, children, defaultOpen = false }: { label: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderRadius: dc.r.sm, border: "1px solid rgba(0,55,56,0.12)", overflow: "hidden" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "13px 18px", background: "rgba(0,55,56,0.04)", border: "none", cursor: "pointer",
+          fontFamily: dc.sans, fontSize: 12, fontWeight: 600, color: dc.rain,
+          letterSpacing: "0.04em", textTransform: "uppercase",
+        }}
+      >
+        {label}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s ease", flexShrink: 0 }}>
+          <path d="M4 6l4 4 4-4" stroke={dc.rain} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div style={{ padding: "16px 18px 18px", borderTop: "1px solid rgba(0,55,56,0.08)" }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── StepCard ────────────────────────────────────────────────────────────────
+function StepCard({ num, numColor, bg, heading, headingColor, body, bodyColor }: {
+  num: string; numColor: string; bg: string;
+  heading: string; headingColor?: string; body: string; bodyColor: string;
 }) {
-  React.useEffect(() => {
-    document.title = "Returns & IRR | Greenstreet Finance";
-  }, []);
+  return (
+    <div style={{ background: bg, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
+      <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: numColor, marginBottom: 14, lineHeight: 1, display: "block" }}>{num}</Mono>
+      <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: headingColor }}>{heading}</h3>
+      <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: bodyColor, margin: 0, letterSpacing: "-0.01em" }}>{body}</p>
+    </div>
+  );
+}
 
-  // Inputs matching the mockup defaults
-  const [purchasePrice, setPurchasePrice] = useState(425000);
-  const [ltv, setLtv] = useState(75);
-  const [rate, setRate] = useState(7.0);
-  const [monthlyRent, setMonthlyRent] = useState(3000);
-  const [annualTaxes, setAnnualTaxes] = useState(5000);
+// ─── IRR bar (interaction-driven CSS transition only) ─────────────────────────
+// Starts at 0, transitions to heightPct after first paint.
+// The transition is driven by state/prop change, NOT gsap.from() — compliant.
+function IrrBar({ heightPct, gradient, label, valLabel, valColor, flex = 1 }: {
+  heightPct: string; gradient: string; label: string; valLabel: string; valColor: string; flex?: number;
+}) {
+  const ref  = useRef<HTMLDivElement>(null);
+  const prev = useRef<string>("0%");
+  React.useLayoutEffect(() => {
+    if (!ref.current) return;
+    const cur = heightPct;
+    if (cur === prev.current) return;
+    prev.current = cur;
+    ref.current.style.height = cur;
+  }, [heightPct]);
+
+  return (
+    <div ref={ref} style={{
+      flex, background: gradient, borderRadius: "6px 6px 0 0",
+      height: "0%", transition: "height 0.7s cubic-bezier(0.16,1,0.3,1)",
+      display: "flex", flexDirection: "column", justifyContent: "flex-end",
+      alignItems: "center", paddingBottom: 8, position: "relative",
+    }}>
+      <div style={{ position: "absolute", top: 0, left: "50%", transform: "translate(-50%, -120%)", fontSize: 11, fontWeight: 700, color: valColor, whiteSpace: "nowrap", paddingBottom: 6 }}>
+        {valLabel}
+      </div>
+      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.5)", textAlign: "center", fontWeight: 500 }}>{label}</div>
+    </div>
+  );
+}
+
+// ─── sensitivity cell heat color ─────────────────────────────────────────────
+function cellStyle(r: number): React.CSSProperties {
+  const color = r >= 14 ? dc.rain : r >= 10 ? "#018582" : r >= 6 ? "#9a7b00" : RED;
+  const bg    = r >= 14 ? "rgba(0,101,101,0.1)" : r >= 10 ? "rgba(1,133,130,0.06)" : "transparent";
+  return { padding: "8px 10px", textAlign: "right", fontSize: 12, fontWeight: 700, color, background: bg, borderRadius: 4 };
+}
+
+// ─── main component ───────────────────────────────────────────────────────────
+export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
+  React.useEffect(() => { document.title = "Returns & IRR | Greenstreet Finance"; }, []);
+
+  // ── inputs ────────────────────────────────────────────────────────────────
+  const [purchasePrice,   setPurchasePrice]   = useState(425000);
+  const [ltv,             setLtv]             = useState(75);
+  const [rate,            setRate]            = useState(7.0);
+  const [monthlyRent,     setMonthlyRent]     = useState(3000);
+  const [annualTaxes,     setAnnualTaxes]     = useState(5000);
   const [annualInsurance, setAnnualInsurance] = useState(2000);
-  const [hoa, setHoa] = useState(0);
-  const [holdYears, setHoldYears] = useState(5);
-  const [exitCapRate, setExitCapRate] = useState(6.5);
-  const [rentGrowth, setRentGrowth] = useState(3);
-  const [vacancy, setVacancy] = useState(8);
-  const [prepayAtExit, setPrepayAtExit] = useState(2);
+  const [hoa,             setHoa]             = useState(0);
+  const [holdYears,       setHoldYears]       = useState(5);
+  const [exitCapRate,     setExitCapRate]      = useState(6.5);
+  const [rentGrowth,      setRentGrowth]      = useState(3);
+  const [vacancy,         setVacancy]         = useState(8);
+  const [prepayAtExit,    setPrepayAtExit]    = useState(2);
 
-  // Scroll to tool
+  // cause→effect highlight
+  const [lastChanged, setLastChanged] = useState<string | null>(null);
+  const hlTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touch = useCallback((field: string, setter: (v: number) => void) => (v: number) => {
+    setter(v);
+    setLastChanged(field);
+    if (hlTimer.current) clearTimeout(hlTimer.current);
+    hlTimer.current = setTimeout(() => setLastChanged(null), 1600);
+  }, []);
+  const hl = (field: string): React.CSSProperties =>
+    lastChanged === field
+      ? { outline: `2px solid ${dc.lemon}`, outlineOffset: 2, borderRadius: 6 }
+      : {};
+
+  // ── scroll ────────────────────────────────────────────────────────────────
   const scrollToTool = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     const el = document.querySelector("#rt-tool");
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
   }, []);
 
-  // ── Real engine call ──────────────────────────────────────────────────────
+  // ── engine ────────────────────────────────────────────────────────────────
   const engineResult = React.useMemo(() => {
     try {
       const property: PropertyInputs = {
-        purchasePrice,
-        leaseRent: monthlyRent,
-        marketRent: monthlyRent,
-        strProjectedRent: 0,
-        strDocumentedRent: 0,
-        hoa,
-        annualTaxes,
-        annualInsurance,
-        floodInsurance: 0,
-        propertyType: "SFR",
-        state: "TX",
-        unitCount: 1,
-        sqft: 1500,
-        yearBuilt: 2000,
-        isCondotel: false,
-        isNonWarrantable: false,
-        isRural: false,
-        isDecliningMarket: false,
-        hoaSTRPolicy: "UNKNOWN",
+        purchasePrice, leaseRent: monthlyRent, marketRent: monthlyRent,
+        strProjectedRent: 0, strDocumentedRent: 0, hoa,
+        annualTaxes, annualInsurance, floodInsurance: 0,
+        propertyType: "SFR", state: "TX", unitCount: 1, sqft: 1500, yearBuilt: 2000,
+        isCondotel: false, isNonWarrantable: false, isRural: false, isDecliningMarket: false, hoaSTRPolicy: "UNKNOWN",
       };
       const loan: LoanStructure = {
-        ltv,
-        term: "30_YR",
-        ioPeriod: "NONE",
-        armType: "FIXED",
-        prepayPreference: "321",
-        purpose: "PURCHASE",
-        expectedHoldYears: holdYears,
-        points: 0,
-        lenderFees: 0,
-        brokerFees: 0,
-        rateLockCost: 0,
+        ltv, term: "30_YR", ioPeriod: "NONE", armType: "FIXED", prepayPreference: "321",
+        purpose: "PURCHASE", expectedHoldYears: holdYears, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0,
       };
       const penalty = (prepayAtExit / 100) * (purchasePrice * (1 - ltv / 100));
       return computeReturns(property, loan, monthlyRent, "LTR", rate, penalty);
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }, [purchasePrice, ltv, monthlyRent, rate, holdYears, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa, prepayAtExit]);
 
-  // ── Derived display values wired to real engine ──────────────────────────
-  const irrOpts = {
-    purchasePrice,
-    ltv,
-    rate,
-    monthlyRent,
-    annualTaxes,
-    annualInsurance,
-    hoa,
-    holdYears,
-    exitCapRate,
-    rentGrowth,
-    vacancy,
-    prepayAtExit,
-  };
+  // ── derived ───────────────────────────────────────────────────────────────
+  const irrOpts = { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit };
 
-  // IRR via the inline model so the headline honors *every* input the user can
-  // edit — exit cap, rent growth, vacancy, prepay — exactly like the sensitivity
-  // matrix below. computeReturns uses fixed internal exit assumptions, so the
-  // engine IRR would ignore those three fields and the headline would go stale.
   const levIRR = calcIRR(irrOpts) * 100;
   const unlIRR = calcIRR({ ...irrOpts, ltv: 0 }) * 100;
 
   const cashInv = purchasePrice * (1 - ltv / 100);
-  const em = engineResult !== null ? engineResult.equityMultiple : 1;
+  const em      = engineResult !== null ? engineResult.equityMultiple : 1;
 
-  const irrColor =
-    levIRR >= 12 ? dc.emerald : levIRR >= 8 ? dc.lemon : "#ff6b6b";
-  const verdictLabel =
-    levIRR >= 12 ? "STRONG DEAL" : levIRR >= 8 ? "WORKABLE" : "WEAK";
+  const pct  = (v: number) => (Number.isFinite(v) ? v.toFixed(1) + "%" : "—");
+  const irrStr     = pct(levIRR);
+  const emStr      = em.toFixed(2) + "x";
+  const irrColor   = levIRR >= 12 ? dc.emerald : levIRR >= 8 ? dc.lemon : RED;
 
-  // "—" when there's no real IRR (NaN) instead of a misleading number.
-  const pct = (v: number) => (Number.isFinite(v) ? v.toFixed(1) + "%" : "—");
-  const irrStr = pct(levIRR);
-  const emStr = em.toFixed(2) + "x";
+  // verdict
+  const verdictLabel = levIRR >= 12 ? "STRONG DEAL" : levIRR >= 8 ? "WORKABLE" : Number.isFinite(levIRR) ? "WEAK" : "—";
+  const verdictText  = levIRR >= 12
+    ? "IRR above 12% — this deal is working hard relative to the risk. The rent is well above debt service."
+    : levIRR >= 8
+    ? "IRR between 8–12% — acceptable, but look for ways to reduce the purchase price, increase rent, or tighten vacancy."
+    : Number.isFinite(levIRR)
+    ? "IRR below 8% — the deal may not reward the risk. Try a lower price, higher rent, or a shorter prepay structure."
+    : "Adjust inputs to compute your IRR.";
 
-  // Hero bars scale to the real computed returns (20% IRR ≈ full bar), so the
-  // heights are honest and animate live as inputs change.
+  // engine returns (already %)
+  const entryCapRate = engineResult !== null ? engineResult.entryCapRate       : 0;
+  const yoc          = engineResult !== null ? engineResult.yieldOnCost        : 0;
+  const debtYield    = engineResult !== null ? engineResult.debtYield          : 0;
+  const coc          = engineResult !== null ? engineResult.year1CashOnCash    : 0;
+
+  // DSCR for the gauge (NOI / annual debt service)
+  const annualNOI  = entryCapRate > 0 ? purchasePrice * (entryCapRate / 100) : 0;
+  const r_         = rate / 100 / 12;
+  const loan_      = purchasePrice * (ltv / 100);
+  const piMoCalc   = r_ === 0 ? loan_ / 360 : (loan_ * r_ * Math.pow(1 + r_, 360)) / (Math.pow(1 + r_, 360) - 1);
+  const annualPITIA = piMoCalc * 12;
+  const dscrValue   = annualPITIA > 0 ? annualNOI / annualPITIA : 1.5;
+  const dscrRisk    = riskFromDscr(dscrValue);
+
+  // hero bar heights
   const barH = (v: number) => (Number.isFinite(v) ? `${Math.max(6, Math.min(72, (v / 20) * 72))}%` : "6%");
 
-  // Returns stack — engine already returns these as percentages (see returnsEngine
-  // lines 156-159: `x * 10000 / 100`), so do NOT scale again.
-  const entryCapRate = engineResult !== null ? engineResult.entryCapRate : 0;
-  const yoc = engineResult !== null ? engineResult.yieldOnCost : 0;
-  const debtYield = engineResult !== null ? engineResult.debtYield : 0;
-  const coc = engineResult !== null ? engineResult.year1CashOnCash : 0;
-
-  const stack = [
-    { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", color: dc.cream, hint: "Yearly net income ÷ purchase price" },
-    { label: "Yield on Cost", val: yoc.toFixed(2) + "%", color: dc.cream, hint: "Net income ÷ total cost basis" },
-    { label: "Debt Yield", val: debtYield.toFixed(2) + "%", color: dc.cream, hint: "Net income ÷ loan amount" },
-    { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Year 1 cash flow ÷ cash invested (yearly cash flow as a percent of the cash you put in)" },
-    { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream, hint: "IRR if you paid all cash — no loan" },
-    { label: "Equity Multiple", val: emStr, color: dc.emerald, hint: "Total cash returned ÷ cash invested" },
-  ];
-
-  // Sensitivity matrix — 5 hold × 4 rent-growth cells, inline bisection for grid
-  const holds = [3, 5, 7, 10, 12];
+  // sensitivity grid
+  const holds   = [3, 5, 7, 10, 12];
   const growths = [1, 2, 3, 4];
 
-  // Input fields definition
-  const fields: Array<{
-    label: string;
-    key: keyof typeof irrOpts;
-    step: number;
-    prefix?: string;
-    suffix?: string;
-    value: number;
-    set: (v: number) => void;
-  }> = [
-    { label: "Purchase Price", key: "purchasePrice", step: 5000, prefix: "$", value: purchasePrice, set: setPurchasePrice },
-    { label: "LTV", key: "ltv", step: 1, suffix: "%", value: ltv, set: setLtv },
-    { label: "Note Rate", key: "rate", step: 0.125, suffix: "%", value: rate, set: setRate },
-    { label: "Monthly Rent", key: "monthlyRent", step: 100, prefix: "$", value: monthlyRent, set: setMonthlyRent },
-    { label: "Annual Taxes", key: "annualTaxes", step: 250, prefix: "$", value: annualTaxes, set: setAnnualTaxes },
-    { label: "Annual Insurance", key: "annualInsurance", step: 100, prefix: "$", value: annualInsurance, set: setAnnualInsurance },
-    { label: "Hold Years", key: "holdYears", step: 1, value: holdYears, set: setHoldYears },
-    { label: "Exit Cap Rate", key: "exitCapRate", step: 0.25, suffix: "%", value: exitCapRate, set: setExitCapRate },
-    { label: "Rent Growth", key: "rentGrowth", step: 0.5, suffix: "%", value: rentGrowth, set: setRentGrowth },
-    { label: "Vacancy", key: "vacancy", step: 1, suffix: "%", value: vacancy, set: setVacancy },
-  ];
+  const [gaugeRef, gaugeShown] = useRevealOnView<HTMLDivElement>();
 
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      accent={dc.dark}
-      navLinks={[
-        { label: "DSCR", view: "dscr-calculator" },
-        { label: "Tax Engine", view: "tax-engine" },
-      ]}
+    <DcShell onNavigate={onNavigate} accent={dc.dark}
+      navLinks={[{ label: "DSCR", view: "dscr-calculator" }, { label: "Monte Carlo", view: "monte-carlo" }]}
       cta={{ label: "Compute IRR →", onClick: scrollToTool }}
     >
-      {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section
-        style={{
-          position: "relative",
-          background: dc.dark,
-          color: dc.cream,
-          overflow: "hidden",
-          minHeight: "clamp(480px,60vh,760px)",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      {/* ── HERO ──────────────────────────────────────────────────────── */}
+      <section style={{
+        position: "relative", background: dc.dark, color: dc.cream,
+        overflow: "hidden", minHeight: "clamp(480px,60vh,760px)",
+        display: "flex", alignItems: "center",
+      }}>
         <div className="gs-dot-grid" />
-        <div
-          className="dc-hero"
-          style={{
-            position: "relative",
-            width: "100%",
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            padding: `clamp(48px,7vh,88px) ${dc.pad}`,
-            display: "grid",
-            gridTemplateColumns: "1.1fr 0.9fr",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "center",
-          }}
-        >
-          {/* Left: hero copy */}
+        <div className="dc-hero" style={{
+          position: "relative", width: "100%", maxWidth: dc.maxW,
+          margin: "0 auto", padding: `clamp(48px,7vh,88px) ${dc.pad}`,
+          display: "grid", gridTemplateColumns: "1.1fr 0.9fr",
+          gap: "clamp(32px,5vw,72px)", alignItems: "center",
+        }}>
+          {/* left */}
           <div id="gs-hero-content">
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: dc.lemon,
-                marginBottom: 22,
-              }}
-            >
-              Returns &amp; IRR &middot; levered + unlevered
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 22 }}>
+              Returns &amp; IRR · levered + unlevered
             </div>
-            <H1 style={{ margin: "0 0 28px" }}>
+            <H1 style={{ margin: "0 0 22px" }}>
               What will this investment actually earn?
             </H1>
-            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 20px" }}>
-              Cash-on-cash return (yearly cash flow as a percent of the cash you put in), levered IRR, unlevered IRR, and equity multiple — from day one through the exit. Plus a sensitivity table that shows how those numbers change under different hold periods and rent-growth assumptions.
-            </Lead>
-            <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
-              How to use: fill in deal inputs on the left. The big IRR number updates live. Check the sensitivity table to see if the deal still works if rent growth is slower or you sell earlier than planned.
-            </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <Btn label="Run the returns engine ↓" href="#rt-tool" onClick={scrollToTool} />
-            </div>
-          </div>
-
-          {/* Right: animated bar chart */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "center",
-              gap: "clamp(8px,2vw,20px)",
-              height: "clamp(160px,22vh,240px)",
-            }}
-          >
-            <HeroBar
-              heightPct={barH(coc)}
-              gradient="linear-gradient(180deg,#4dbd97,#006565)"
-              label="CoC"
-              valLabel={coc.toFixed(1) + "%"}
-              valColor={dc.emerald}
-            />
-            <HeroBar
-              heightPct={barH(unlIRR)}
-              gradient="linear-gradient(180deg,#4dbd97,#006565)"
-              label="Unlev."
-              valLabel={unlIRR.toFixed(1) + "%"}
-              valColor={dc.emerald}
-            />
-            <HeroBar
-              heightPct={barH(levIRR)}
-              gradient={`linear-gradient(180deg,${dc.lemon},#a8a838)`}
-              label="Lev. IRR"
-              valLabel={irrStr}
-              valColor={dc.lemon}
-              flex={1.3}
-            />
-          </div>
-        </div>
-      </section>
-
-
-      {/* ── 3-STEP BAND ─────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            className="gs-reveal dc-band-3"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
-              gap: 1,
-              background: "rgba(0,55,56,0.12)",
-              borderRadius: 9,
-              overflow: "hidden",
-            }}
-          >
-            <StepCard
-              num="01"
-              numColor={dc.lemon}
-              bg={dc.cream}
-              heading="Enter your deal"
-              body="Purchase price, down payment (LTV), rate, rent, hold years, exit cap rate (yearly net income as a percent of the property value at sale), rent growth, and vacancy."
-              bodyColor="rgba(0,55,56,0.6)"
-            />
-            <StepCard
-              num="02"
-              numColor={dc.emerald}
-              bg={dc.dark}
-              headingColor={dc.cream}
-              heading="IRR computed"
-              body="The engine builds a year-by-year cash-flow model — rents in, mortgage out, equity at exit — and solves for the annualized return (IRR) on your invested cash and on the total property."
-              bodyColor="rgba(238,239,211,0.65)"
-            />
-            <StepCard
-              num="03"
-              numColor="rgba(0,55,56,0.5)"
-              bg={dc.lemon}
-              heading="Test your assumptions"
-              body="The 5×4 sensitivity table shows your levered IRR across five hold periods and four rent-growth rates. Green cells (≥14%) are strong; red cells need attention."
-              bodyColor="rgba(0,55,56,0.65)"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ── TOOL ────────────────────────────────────────────────────── */}
-      <section
-        id="rt-tool"
-        style={{
-          background: dc.cream,
-          padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          {/* Section header */}
-          <div className="gs-reveal" style={{ marginBottom: 48 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-                color: dc.rain,
-                marginBottom: 12,
-              }}
-            >
-              Live returns engine
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(30px,3.8vw,52px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.0,
-                margin: "0 0 10px",
-              }}
-            >
-              Levered IRR{" "}
-              <span style={{ color: irrColor }}>{irrStr}</span>{" "}
-              &middot; {emStr} equity multiple
-            </h2>
-            <p style={{ fontSize: 15, color: "rgba(0,55,56,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
-              {levIRR >= 12
-                ? "Strong deal — IRR above 12% means your cash is working hard relative to the risk."
-                : levIRR >= 8
-                ? "Workable deal — IRR between 8% and 12% is acceptable; look for ways to improve rent, reduce vacancy, or negotiate the price."
-                : Number.isFinite(levIRR)
-                ? "Weak deal — IRR below 8% means this deal may not reward the risk. Try raising rent assumptions, reducing the purchase price, or increasing hold years."
-                : "Adjust inputs to see your IRR."}
-            </p>
-          </div>
-
-          {/* Grid: inputs | results */}
-          <div
-            className="gs-reveal dc-split"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "360px 1fr",
-              gap: 36,
-              alignItems: "start",
-            }}
-          >
-            {/* ── Inputs panel ── */}
-            <div
-              style={{
-                background: dc.white,
-                borderRadius: dc.r.md,
-                padding: 28,
-                border: "1px solid rgba(0,55,56,0.1)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                  color: dc.rain,
-                  marginBottom: 6,
-                }}
-              >
-                Deal inputs
+            {/* headline IRR badge — visible in hero */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 16, background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: dc.r.md, padding: "18px 24px", marginBottom: 24 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Levered IRR</div>
+                <Mono style={{ fontSize: "clamp(40px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.95, display: "block" }}>
+                  {irrStr}
+                </Mono>
               </div>
-              <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 16px", lineHeight: 1.5 }}>
-                Estimates are fine — all fields update the IRR live.
-              </p>
-              {fields.map((f) => (
-                <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
-                  <span
-                    style={{
-                      display: "block",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                      color: "rgba(0,55,56,0.5)",
-                      marginBottom: 6,
-                    }}
-                  >
-                    {f.label}
-                  </span>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      background: dc.cream,
-                      borderRadius: 6,
-                      padding: "0 11px",
-                    }}
-                  >
-                    {f.prefix && (
-                      <span style={{ color: "rgba(0,55,56,0.4)" }}>{f.prefix}</span>
-                    )}
-                    <input
-                      className="gs-num"
-                      type="number"
-                      step={f.step}
-                      value={f.value}
-                      onChange={(e) => f.set(+e.target.value)}
-                      style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
-                    />
-                    {f.suffix && (
-                      <span style={{ color: "rgba(0,55,56,0.4)" }}>{f.suffix}</span>
-                    )}
-                  </div>
-                </label>
+              <div style={{ width: 1, height: 48, background: "rgba(238,239,211,0.15)" }} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Verdict</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.06em", color: irrColor }}>{verdictLabel}</span>
+                  <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={18} />
+                </div>
+              </div>
+            </div>
+            <Lead style={{ color: "rgba(238,239,211,0.65)", maxWidth: "46ch", margin: "0 0 20px" }}>
+              Cash-on-cash return (yearly cash flow as a % of the cash you put in), IRR (the annualized return on your equity, accounting for the full exit), and equity multiple — from day one through the sale.
+            </Lead>
+            <p style={{ color: "rgba(238,239,211,0.45)", fontSize: 13, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+              Tip: adjust inputs on the left. The IRR updates live. Then check the sensitivity table to see if the deal still works under slower rent growth or an earlier exit.
+            </p>
+            <Btn label="Run the returns engine ↓" href="#rt-tool" onClick={scrollToTool} />
+          </div>
+
+          {/* right — live bar chart */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: "clamp(8px,2vw,20px)", height: "clamp(160px,22vh,240px)" }}>
+              <IrrBar heightPct={barH(coc)}    gradient="linear-gradient(180deg,#4dbd97,#006565)" label="CoC"      valLabel={coc.toFixed(1) + "%"}    valColor={dc.emerald} />
+              <IrrBar heightPct={barH(unlIRR)} gradient="linear-gradient(180deg,#4dbd97,#006565)" label="Unlev."   valLabel={pct(unlIRR)}              valColor={dc.emerald} />
+              <IrrBar heightPct={barH(levIRR)} gradient={`linear-gradient(180deg,${dc.lemon},#a8a838)`} label="Lev. IRR" valLabel={irrStr} valColor={dc.lemon} flex={1.3} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 4 }}>
+              {[{ l: "CoC", h: "Cash-on-cash: yr 1 cash flow ÷ cash invested" }, { l: "Unlev.", h: "IRR with no debt (all-cash)" }, { l: "Lev. IRR", h: "Annualized return on your down payment" }].map((item) => (
+                <div key={item.l} style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.35)", lineHeight: 1.3, maxWidth: 72 }}>{item.h}</div>
+                </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* ── Results column ── */}
+      {/* ── 3-STEP BAND ───────────────────────────────────────────────── */}
+      <section style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="dc-band-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}>
+            <StepCard num="01" numColor={dc.lemon}               bg={dc.cream} heading="Enter your deal"      body="Purchase price, LTV (down payment as a % of price), rate, rent, hold years, exit cap rate (the expected income yield when you sell), rent growth, and vacancy." bodyColor="rgba(0,55,56,0.6)" />
+            <StepCard num="02" numColor={dc.emerald}             bg={dc.dark}  heading="IRR computed"         headingColor={dc.cream} body="The engine builds a year-by-year cash-flow model: rents in, mortgage out, equity at exit. It then solves for the annualized return (IRR) on your invested cash." bodyColor="rgba(238,239,211,0.65)" />
+            <StepCard num="03" numColor="rgba(0,55,56,0.5)"      bg={dc.lemon} heading="Test your assumptions" body="The 5×4 sensitivity table shows IRR across five hold periods and four rent-growth rates. Green (≥14%) = strong. Red = deal needs work. Use it to find the edges of the deal." bodyColor="rgba(0,55,56,0.65)" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── TOOL ──────────────────────────────────────────────────────── */}
+      <section id="rt-tool" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+
+          {/* section header + live verdict */}
+          <div style={{ marginBottom: 40 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
+              Live returns engine
+            </div>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 12px" }}>
+              Levered IRR <span style={{ color: irrColor }}>{irrStr}</span> · {emStr} equity multiple
+            </h2>
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 14,
+              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : "rgba(255,107,107,0.08)",
+              border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(255,107,107,0.2)"}`,
+              borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 660,
+            }}>
+              <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={20} />
+              <p style={{ fontSize: 14, fontWeight: 500, color: dc.dark, margin: 0, lineHeight: 1.5 }}>
+                {verdictText}
+              </p>
+            </div>
+          </div>
+
+          {/* grid: inputs | results */}
+          <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 32, alignItems: "start" }}>
+
+            {/* ── INPUTS ─────────────────────────────────────────────── */}
+            <div style={{ background: dc.white, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(0,55,56,0.1)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 6 }}>
+                Deal inputs
+              </div>
+              <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 18px", lineHeight: 1.5 }}>
+                Drag any slider — the IRR and sensitivity table update instantly.
+              </p>
+
+              {/* Primary deal inputs */}
+              <div style={hl("purchasePrice")}>
+                <SliderField label="Purchase Price" hint="Total acquisition cost." value={purchasePrice} set={touch("purchasePrice", setPurchasePrice)} min={50000} max={3000000} step={5000} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+              </div>
+              <div style={hl("ltv")}>
+                <SliderField label="LTV (Loan-to-Value)" hint="Your down payment = 100% − LTV. Example: 75% LTV means 25% down." value={ltv} set={touch("ltv", setLtv)} min={50} max={80} step={1} suffix="%" fmt={(v) => v.toFixed(0)} />
+              </div>
+              <div style={hl("rate")}>
+                <SliderField label="Note Rate" hint="Your fixed mortgage rate." value={rate} set={touch("rate", setRate)} min={3} max={14} step={0.125} suffix="%" fmt={(v) => v.toFixed(3)} />
+              </div>
+              <div style={hl("monthlyRent")}>
+                <SliderField label="Monthly Rent" hint="Gross scheduled rent before vacancy." value={monthlyRent} set={touch("monthlyRent", setMonthlyRent)} min={500} max={15000} step={50} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+              </div>
+
+              <div style={{ borderTop: "1px solid rgba(0,55,56,0.08)", margin: "18px 0" }} />
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.4)", marginBottom: 14 }}>
+                Hold &amp; exit
+              </div>
+              <div style={hl("holdYears")}>
+                <SliderField label="Hold Years" hint="Your planned hold — the IRR is highly sensitive to this." value={holdYears} set={touch("holdYears", setHoldYears)} min={1} max={15} step={1} suffix="yr" fmt={(v) => v.toString()} />
+              </div>
+              <div style={hl("exitCapRate")}>
+                <SliderField label="Exit Cap Rate" hint="The expected cap rate when you sell — higher cap rate = lower exit value. Conservative: assume 0.5–1% above your entry cap." value={exitCapRate} set={touch("exitCapRate", setExitCapRate)} min={3} max={12} step={0.25} suffix="%" fmt={(v) => v.toFixed(2)} />
+              </div>
+              <div style={hl("rentGrowth")}>
+                <SliderField label="Rent Growth /yr" hint="Annual rent increase assumption. 2–3% is typical; stress-test with 1%." value={rentGrowth} set={touch("rentGrowth", setRentGrowth)} min={0} max={8} step={0.5} suffix="%" fmt={(v) => v.toFixed(1)} />
+              </div>
+              <div style={hl("vacancy")}>
+                <SliderField label="Vacancy %" hint="Fraction of the year the unit is vacant. 5–10% is typical." value={vacancy} set={touch("vacancy", setVacancy)} min={0} max={30} step={1} suffix="%" fmt={(v) => v.toFixed(0)} />
+              </div>
+
+              <Disclosure label="Operating costs + prepay">
+                <div style={{ paddingTop: 4 }}>
+                  <SliderField label="Annual Taxes" value={annualTaxes} set={setAnnualTaxes} min={0} max={30000} step={250} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+                  <SliderField label="Annual Insurance" value={annualInsurance} set={setAnnualInsurance} min={0} max={15000} step={100} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+                  <SliderField label="HOA /mo" value={hoa} set={setHoa} min={0} max={1500} step={25} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+                  <SliderField label="Prepay penalty at exit %" hint="Applied to the remaining loan balance." value={prepayAtExit} set={setPrepayAtExit} min={0} max={5} step={0.5} suffix="%" fmt={(v) => v.toFixed(1)} />
+                </div>
+              </Disclosure>
+            </div>
+
+            {/* ── RESULTS ────────────────────────────────────────────── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+
               {/* Big IRR card */}
-              <div
-                style={{
-                  background: dc.dark,
-                  borderRadius: dc.r.md,
-                  padding: "clamp(28px,3.5vw,44px)",
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr",
-                  gap: 24,
-                  alignItems: "center",
-                }}
-              >
+              <div style={{
+                background: dc.dark, borderRadius: dc.r.md, padding: "clamp(24px,3vw,40px)",
+                display: "grid", gridTemplateColumns: "auto 1fr", gap: 24, alignItems: "center",
+              }}>
                 <div style={{ textAlign: "center" }}>
-                  <Mono
-                    style={{
-                      fontSize: "clamp(64px,8vw,108px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.04em",
-                      color: irrColor,
-                      lineHeight: 0.9,
-                      display: "block",
-                    }}
-                  >
+                  <Mono style={{ fontSize: "clamp(64px,8vw,108px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.9, display: "block" }}>
                     {irrStr}
                   </Mono>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      color: irrColor,
-                      marginTop: 10,
-                    }}
-                  >
-                    {verdictLabel}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: irrColor }}>
+                      {verdictLabel}
+                    </span>
+                    <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={16} />
                   </div>
                 </div>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 14,
-                  }}
-                >
-                  {stack.map((r) => (
-                    <div
-                      key={r.label}
-                      style={{
-                        background: "rgba(238,239,211,0.05)",
-                        borderRadius: 8,
-                        padding: 14,
-                      }}
-                    >
-                      <Mono
-                        style={{
-                          fontSize: "clamp(17px,1.8vw,22px)",
-                          fontWeight: 600,
-                          letterSpacing: "-0.02em",
-                          color: r.color,
-                          display: "block",
-                        }}
-                      >
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {[
+                    { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Year 1 cash flow ÷ cash invested. Good: ≥8%" },
+                    { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream, hint: "IRR if you paid all cash — no loan" },
+                    { label: "Equity Multiple", val: emStr, color: dc.emerald, hint: "Total cash returned ÷ cash invested" },
+                    { label: "Cash Invested", val: fmt$(cashInv), color: dc.cream, hint: "Down payment only" },
+                    { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", color: dc.cream, hint: "Net operating income ÷ purchase price" },
+                    { label: "Debt Yield", val: debtYield.toFixed(2) + "%", color: dc.cream, hint: "Net income ÷ loan amount (lender metric)" },
+                  ].map((r) => (
+                    <div key={r.label} style={{ background: "rgba(238,239,211,0.05)", borderRadius: dc.r.sm, padding: 13 }}>
+                      <Mono style={{ fontSize: "clamp(16px,1.8vw,22px)", fontWeight: 600, letterSpacing: "-0.02em", color: r.color, display: "block" }}>
                         {r.val}
                       </Mono>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: "rgba(238,239,211,0.55)",
-                          marginTop: 4,
-                          letterSpacing: "-0.01em",
-                        }}
-                      >
-                        {r.label}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "rgba(238,239,211,0.3)",
-                          marginTop: 3,
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {r.hint}
-                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 3 }}>{r.label}</div>
+                      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.3)", marginTop: 2, lineHeight: 1.3 }}>{r.hint}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Sensitivity matrix */}
-              <div
-                style={{
-                  background: dc.white,
-                  borderRadius: dc.r.md,
-                  padding: 24,
-                  border: "1px solid rgba(0,55,56,0.1)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: dc.rain,
-                    marginBottom: 6,
-                  }}
-                >
-                  Sensitivity table — Levered IRR under different scenarios
+              {/* DSCR gauge — shows debt coverage quality */}
+              <div ref={gaugeRef} style={{
+                background: "#fff", borderRadius: dc.r.md, padding: "22px 24px",
+                border: "1px solid rgba(0,55,56,0.1)",
+                display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "center",
+                opacity: gaugeShown ? 1 : 0, transform: gaugeShown ? "none" : "translateY(8px)",
+                transition: "opacity 0.4s ease, transform 0.4s ease",
+              }}>
+                <DscrGauge value={Math.max(0.5, Math.min(2.0, dscrValue))} size={120} />
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain }}>
+                      DSCR at entry
+                    </div>
+                    <RiskFlame level={dscrRisk} size={15} />
+                  </div>
+                  <p style={{ fontSize: 13, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.5 }}>
+                    DSCR (debt-service coverage ratio) measures whether the property's net income covers the full loan payment. <strong>{dscrValue.toFixed(2)}x</strong> means the income is {dscrValue >= 1 ? `${((dscrValue - 1) * 100).toFixed(0)}% above the break-even point` : `${((1 - dscrValue) * 100).toFixed(0)}% short of covering costs`}.
+                    {dscrValue >= 1.25 ? " Most lenders are comfortable here." : dscrValue >= 1.0 ? " Most lenders require ≥1.25; consider increasing rent or reducing the loan." : " Below lender minimums — deal will likely not qualify as-is."}
+                  </p>
                 </div>
-                <p
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: "rgba(0,55,56,0.55)",
-                    marginBottom: 14,
-                    margin: "0 0 14px",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Each cell shows your levered IRR if you hold for that many years (rows) with that annual rent-growth rate (columns). Teal = strong (&ge;14%); amber = acceptable; red = underperforming. Your current inputs are your base case — the table stress-tests them.
+              </div>
+
+              {/* Sensitivity matrix */}
+              <div style={{ background: dc.white, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(0,55,56,0.1)" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 4 }}>
+                  Sensitivity table — Levered IRR
+                </div>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                  How your IRR changes under different hold periods (rows) and rent-growth rates (columns). Teal cells (≥14%) are strong; amber is acceptable; red needs work. Your current inputs are the base case.
                 </p>
                 <div style={{ overflowX: "auto" }}>
-                  <table
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      minWidth: 380,
-                      fontFamily: dc.mono,
-                    }}
-                  >
+                  <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380, fontFamily: dc.mono }}>
                     <thead>
                       <tr>
-                        <th
-                          style={{
-                            padding: "5px 8px",
-                            fontSize: 10,
-                            color: "rgba(0,55,56,0.45)",
-                            textAlign: "left",
-                            fontWeight: 500,
-                          }}
-                        >
-                          Hold
-                        </th>
+                        <th style={{ padding: "5px 10px", fontSize: 10, color: "rgba(0,55,56,0.45)", textAlign: "left", fontWeight: 500 }}>Hold</th>
                         {growths.map((gr) => (
-                          <th
-                            key={gr}
-                            style={{
-                              padding: "5px 8px",
-                              fontSize: 10,
-                              color: "rgba(0,55,56,0.45)",
-                              textAlign: "right",
-                              fontWeight: 500,
-                            }}
-                          >
-                            +{gr}%
+                          <th key={gr} style={{ padding: "5px 10px", fontSize: 10, color: "rgba(0,55,56,0.45)", textAlign: "right", fontWeight: 500 }}>
+                            +{gr}% rent growth
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {holds.map((h) => (
-                        <tr key={h}>
-                          <td
-                            style={{
-                              padding: "7px 8px",
-                              fontSize: 12,
-                              color: dc.dark,
-                              fontWeight: 600,
-                            }}
-                          >
-                            {h}yr
+                        <tr key={h} style={{ borderTop: "1px solid rgba(0,55,56,0.06)" }}>
+                          <td style={{ padding: "8px 10px", fontSize: 12, color: dc.dark, fontWeight: 600 }}>
+                            {h}yr{h === holdYears ? <span style={{ color: dc.lemon, marginLeft: 4, fontSize: 10 }}>← you</span> : ""}
                           </td>
                           {growths.map((gr) => {
-                            const r =
-                              calcIRR({ ...irrOpts, holdYears: h, rentGrowth: gr }) * 100;
-                            const cellColor =
-                              r >= 14
-                                ? dc.rain
-                                : r >= 10
-                                ? "#018582"
-                                : r >= 6
-                                ? "#9a7b00"
-                                : "#ff6b6b";
-                            const cellBg =
-                              r >= 14 ? "rgba(0,101,101,0.1)" : "transparent";
+                            const r = calcIRR({ ...irrOpts, holdYears: h, rentGrowth: gr }) * 100;
                             return (
-                              <td
-                                key={gr}
-                                style={{
-                                  padding: "7px 8px",
-                                  textAlign: "right",
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  color: cellColor,
-                                  background: cellBg,
-                                  borderRadius: 4,
-                                }}
-                              >
+                              <td key={gr} style={cellStyle(r)}>
                                 {Number.isFinite(r) ? r.toFixed(1) + "%" : "—"}
                               </td>
                             );
@@ -753,26 +563,57 @@ export default function ReturnsPage({
                     </tbody>
                   </table>
                 </div>
+                <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+                  {[
+                    { color: "rgba(0,101,101,0.1)", border: dc.rain, label: "≥14% — strong" },
+                    { color: "rgba(1,133,130,0.06)", border: "#018582", label: "10–14% — acceptable" },
+                    { color: "transparent", border: "#9a7b00", label: "6–10% — marginal" },
+                    { color: "transparent", border: RED, label: "<6% — weak" },
+                  ].map((l) => (
+                    <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ width: 12, height: 12, background: l.color, border: `1.5px solid ${l.border}`, borderRadius: 2 }} />
+                      <span style={{ fontSize: 11, color: "rgba(0,55,56,0.55)", fontWeight: 500 }}>{l.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              {/* Yield stack — progressive disclosure */}
+              <Disclosure label="Full return stack — cap rate, yield on cost, debt yield">
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {[
+                    { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", hint: "NOI ÷ purchase price. Good: ≥5% for most markets." },
+                    { label: "Yield on Cost", val: yoc.toFixed(2) + "%", hint: "NOI ÷ total cost basis (including closing costs). Reflects true all-in yield." },
+                    { label: "Debt Yield", val: debtYield.toFixed(2) + "%", hint: "NOI ÷ loan amount. Lenders typically require ≥8–10%." },
+                    { label: "Cash-on-Cash (year 1)", val: coc.toFixed(1) + "%", hint: "After-debt cash flow ÷ cash invested. ≥8% = strong starting yield." },
+                    { label: "Unlevered IRR", val: pct(unlIRR), hint: "IRR assuming no debt. Baseline return on the asset itself." },
+                    { label: "Levered IRR", val: irrStr, hint: "Annualized return on your equity. ≥12% = strong on DSCR rentals." },
+                    { label: "Equity Multiple", val: emStr, hint: "Total proceeds ÷ cash invested. 1.5× over 5yr ≈ 8.4% IRR." },
+                  ].map((row) => (
+                    <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.07)", gap: 12 }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: dc.dark }}>{row.label}</div>
+                        <div style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", marginTop: 2, lineHeight: 1.4 }}>{row.hint}</div>
+                      </div>
+                      <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.rain, whiteSpace: "nowrap" }}>{row.val}</Mono>
+                    </div>
+                  ))}
+                </div>
+              </Disclosure>
+
+              {/* Disclaimer */}
+              <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
+                Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Contact Greenstreet at +1 (555) 010-0000.
+              </p>
             </div>
           </div>
-          {/* Disclaimer */}
-          <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Contact Greenstreet at +1 (555) 010-0000.
-          </p>
         </div>
       </section>
 
-      {/* ── FUNNEL CTA ── */}
-      <section
-        className="gs-reveal"
-        style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}` }}
-      >
+      {/* ── FUNNEL CTA ────────────────────────────────────────────────── */}
+      <section style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            className="dc-split"
-            style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}
-          >
+          <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                 Ready to move forward?
@@ -780,7 +621,7 @@ export default function ReturnsPage({
               <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
                 Lock the numbers in. Get your rate.
               </h2>
-              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
+              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
                 Submit once. Greenstreet places your file in the best-fit program and funds it — no re-keying the same numbers five times.
               </p>
             </div>
@@ -804,146 +645,5 @@ export default function ReturnsPage({
         </div>
       </section>
     </DcShell>
-  );
-}
-
-// ─── sub-components ──────────────────────────────────────────────────────────
-
-function HeroBar({
-  heightPct,
-  gradient,
-  label,
-  valLabel,
-  valColor,
-  flex = 1,
-}: {
-  heightPct: string;
-  gradient: string;
-  label: string;
-  valLabel: string;
-  valColor: string;
-  flex?: number;
-}) {
-  // Animate on mount via a simple CSS transition driven by a ref toggle
-  const ref = useRef<HTMLDivElement>(null);
-  React.useEffect(() => {
-    if (!ref.current) return;
-    // Let the browser paint at 0 first, then transition to target height
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (ref.current) ref.current.style.height = heightPct;
-      });
-    });
-  }, [heightPct]);
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        flex,
-        background: gradient,
-        borderRadius: "6px 6px 0 0",
-        height: 0,
-        transition: "height 1.1s cubic-bezier(0.16,1,0.3,1)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-end",
-        alignItems: "center",
-        paddingBottom: 8,
-        position: "relative",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translate(-50%, -100%)",
-          fontSize: 11,
-          fontWeight: 700,
-          color: valColor,
-          marginBottom: 6,
-          whiteSpace: "nowrap",
-          paddingBottom: 6,
-        }}
-      >
-        {valLabel}
-      </div>
-      <div
-        style={{
-          fontSize: 10,
-          color: "rgba(238,239,211,0.5)",
-          textAlign: "center",
-          fontWeight: 500,
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
-
-function StepCard({
-  num,
-  numColor,
-  bg,
-  heading,
-  headingColor,
-  body,
-  bodyColor,
-}: {
-  num: string;
-  numColor: string;
-  bg: string;
-  heading: string;
-  headingColor?: string;
-  body: string;
-  bodyColor: string;
-}) {
-  return (
-    <div
-      style={{
-        background: bg,
-        padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)",
-      }}
-    >
-      <Mono
-        style={{
-          fontSize: "clamp(32px,4vw,52px)",
-          fontWeight: 600,
-          letterSpacing: "-0.03em",
-          color: numColor,
-          marginBottom: 14,
-          lineHeight: 1,
-          display: "block",
-        }}
-      >
-        {num}
-      </Mono>
-      <h3
-        style={{
-          fontSize: "clamp(20px,2.2vw,28px)",
-          fontWeight: 600,
-          letterSpacing: "-0.025em",
-          margin: "0 0 10px",
-          lineHeight: 1.1,
-          color: headingColor,
-        }}
-      >
-        {heading}
-      </h3>
-      <p
-        style={{
-          fontSize: "clamp(15px,1.2vw,17px)",
-          fontWeight: 500,
-          lineHeight: 1.55,
-          color: bodyColor,
-          margin: 0,
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {body}
-      </p>
-    </div>
   );
 }

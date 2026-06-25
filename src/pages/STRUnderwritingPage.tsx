@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { radius } from "../theme";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
 import type { PropertyInputs } from "../engine/types";
+import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 
 // ── number formatting ──────────────────────────────────────────────────────
 const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
@@ -66,15 +68,7 @@ function Field({
           {hint}
         </span>
       )}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          background: dc.teal,
-          borderRadius: 7,
-          padding: "0 12px",
-        }}
-      >
+      <div className="str-field">
         {prefix && (
           <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{prefix}</span>
         )}
@@ -412,6 +406,12 @@ export default function STRUnderwritingPage({
       <style>{`
         .str-num::-webkit-outer-spin-button,.str-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .str-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        .str-field{display:flex;align-items:center;background:${dc.teal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 12px;transition:border-color .15s;}
+        .str-field:focus-within{border-color:${dc.lemon};outline:2px solid ${dc.lemon};outline-offset:1px;}
+        .str-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.36);}
+        @media(max-width:991px){.str-hero-grid{grid-template-columns:1fr !important;} .str-tool-grid{grid-template-columns:1fr !important;} .str-3col{grid-template-columns:1fr 1fr !important;}}
+        @media(max-width:767px){.str-3col{grid-template-columns:1fr !important;}}
+        @media(max-width:479px){.str-worlds{grid-template-columns:1fr !important;}}
       `}</style>
 
       {/* ══ HERO — dark bg matches mockup, 2-col: copy left, stats right ══ */}
@@ -427,7 +427,7 @@ export default function STRUnderwritingPage({
       >
         <div className="gs-dot-grid" />
         <div
-          className="dc-hero"
+          className="dc-hero str-hero-grid"
           style={{
             position: "relative",
             maxWidth: dc.maxW,
@@ -606,15 +606,7 @@ export default function STRUnderwritingPage({
                 >
                   State
                 </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.teal,
-                    borderRadius: 7,
-                    padding: "0 12px",
-                  }}
-                >
+                <div className="str-field">
                   <input
                     className="str-num"
                     type="text"

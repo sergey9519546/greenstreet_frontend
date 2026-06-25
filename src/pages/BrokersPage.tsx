@@ -153,7 +153,7 @@ export default function BrokersPage({
                 onClick={() => onNavigate("dscr-calculator")}
               />
               <button
-                onClick={() => onNavigate("book-demo")}
+                onClick={() => onNavigate("rate-quiz")}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -171,7 +171,7 @@ export default function BrokersPage({
                   minHeight: 44,
                 }}
               >
-                See a 15-min walkthrough →
+                See my rate in 5 questions →
               </button>
             </div>
           </div>
@@ -492,7 +492,7 @@ export default function BrokersPage({
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
             {/* ONE dominant lemon primary CTA per contract */}
             <button
-              onClick={() => onNavigate("book-demo")}
+              onClick={() => onNavigate("rate-quiz")}
               style={{
                 background: dc.lemon,
                 color: dc.dark,
@@ -508,7 +508,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              Book a walkthrough →
+              See my rate in 5 questions →
             </button>
             {/* Secondary: transparent + FADED border, per contract */}
             <button

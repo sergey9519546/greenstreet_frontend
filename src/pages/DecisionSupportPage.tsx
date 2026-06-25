@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { swatch, radius } from "../theme";
+import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
@@ -265,10 +266,11 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       <style>{`
         .ds-in::-webkit-outer-spin-button,.ds-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .ds-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
-        /* Unified input wrapper — 1.5px border, focus ring 2px lemon */
         .ds-field{display:flex;align-items:center;background:${swatch.darkTeal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 13px;transition:border-color .15s;}
         .ds-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;}
         .ds-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.38);}
+        @media(max-width:991px){.ds-tool-grid{grid-template-columns:1fr !important;} .dc-hero{grid-template-columns:1fr !important;} .ds-verdict-inner{grid-template-columns:1fr !important;} .ds-bottom-2{grid-template-columns:1fr !important;} }
+        @media(max-width:767px){.ds-band-2{grid-template-columns:1fr !important;}}
       `}</style>
 
       {/* ── HERO — dark, 2-col: copy left / gauge right (mockup signature) ── */}
@@ -359,7 +361,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
           {/* Tool grid: inputs + results */}
           <div
-            className="gs-reveal dc-split"
+            className="gs-reveal dc-split ds-tool-grid"
             style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 36, alignItems: "start" }}
           >
             {/* ── INPUTS ── */}
@@ -412,7 +414,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-                {/* VERDICT CARD — gauge + chip (matches mockup readout panel layout) */}
+                {/* VERDICT CARD — headline + gauge + BalanceScale + copy */}
                 <div
                   className="gs-reveal"
                   style={{
@@ -420,34 +422,20 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     borderRadius: radius.lg,
                     padding: "clamp(28px,3vw,40px)",
                     border: "1px solid rgba(238,239,211,0.1)",
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr",
-                    gap: "clamp(28px,4vw,52px)",
-                    alignItems: "center",
                   }}
                 >
-                  <div style={{ width: "clamp(200px,22vw,270px)" }}>
-                    <VerdictGauge composite={result.composite} />
-                  </div>
-                  <div>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: result.verdict.verdict === "PROCEED" ? "rgba(77,189,151,0.12)" : result.verdict.verdict === "RESTRUCTURE" ? "rgba(216,217,88,0.12)" : "rgba(224,99,99,0.12)", border: `1px solid ${verdictColor(result.verdict.verdict)}`, borderRadius: 100, padding: "6px 14px", marginBottom: 16 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: verdictColor(result.verdict.verdict), display: "inline-block" }} />
-                      <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor(result.verdict.verdict) }}>IC verdict</span>
+                  {/* Headline answer — verdict first */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: result.verdict.verdict === "PROCEED" ? "rgba(77,189,151,0.12)" : result.verdict.verdict === "RESTRUCTURE" ? "rgba(216,217,88,0.12)" : "rgba(224,99,99,0.12)", border: `1px solid ${verdictColor(result.verdict.verdict)}`, borderRadius: 100, padding: "6px 14px" }}>
+                        <span style={{ width: 8, height: 8, borderRadius: "50%", background: verdictColor(result.verdict.verdict), display: "inline-block" }} />
+                        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor(result.verdict.verdict) }}>IC verdict</span>
+                      </div>
                     </div>
-                    <Mono
-                      style={{
-                        display: "block",
-                        fontSize: "clamp(38px,4.4vw,58px)",
-                        fontWeight: 600,
-                        letterSpacing: "-0.035em",
-                        color: verdictColor(result.verdict.verdict),
-                        lineHeight: 1,
-                        marginBottom: 14,
-                      }}
-                    >
+                    <Mono style={{ display: "block", fontSize: "clamp(42px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.035em", color: verdictColor(result.verdict.verdict), lineHeight: 1, marginBottom: 12 }}>
                       {result.verdict.verdict}
                     </Mono>
-                    <p style={{ fontSize: "clamp(15px,1.3vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.72)", margin: 0 }}>
+                    <p style={{ fontSize: "clamp(14px,1.2vw,16px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.72)", margin: 0 }}>
                       {result.verdict.verdict === "PROCEED"
                         ? "This deal clears all primary underwriting signals. The rent covers the payment, leverage is within program limits, and at least one Greenstreet program fits. You can move to term sheet."
                         : result.verdict.verdict === "RESTRUCTURE"
@@ -455,10 +443,59 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         : "This deal fails one or more hard gates. Most lenders will decline as structured. The IC memo and kill-criterion checklist below tell you specifically what needs to change."}
                     </p>
                   </div>
+
+                  {/* Artifact strip: VerdictGauge + DscrGauge + BalanceScale */}
+                  <div className="ds-verdict-inner" style={{ display: "grid", gridTemplateColumns: "auto 1fr 1fr", gap: "clamp(16px,2.5vw,32px)", alignItems: "center", padding: "20px 0", borderTop: "1px solid rgba(238,239,211,0.1)", borderBottom: "1px solid rgba(238,239,211,0.1)", marginBottom: 20 }}>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 8, textAlign: "center" }}>Decision gauge</div>
+                      <VerdictGauge composite={result.composite} />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>DSCR</div>
+                      <DscrGauge value={result.deal.dscr} size={140} />
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <RiskFlame level={riskFromDscr(result.deal.dscr)} size={16} />
+                        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", fontWeight: 500 }}>
+                          {result.deal.dscr >= 1.25 ? "strong cushion" : result.deal.dscr >= 1.0 ? "qualifies" : "sub-1.0"}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Rent vs PITIA</div>
+                      <BalanceScale rent={monthlyRent} payment={result.deal.monthlyPITIA.total} size={170} />
+                      <div style={{ display: "flex", justifyContent: "space-between", width: "90%" }}>
+                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.4)" }}>${Math.round(monthlyRent).toLocaleString()} rent</span>
+                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.4)" }}>${Math.round(result.deal.monthlyPITIA.total).toLocaleString()} PITIA</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Next-step CTA block */}
+                  <div style={{ background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.sm, padding: "14px 18px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
+                      {result.verdict.verdict === "PROCEED" ? "Ready to move forward?" : result.verdict.verdict === "RESTRUCTURE" ? "Want help restructuring?" : "Need guidance on next steps?"}
+                    </div>
+                    <p style={{ fontSize: 13, color: "rgba(238,239,211,0.65)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                      {result.verdict.verdict === "PROCEED"
+                        ? "Your deal clears underwriting checks. Get a formal rate quote and term sheet from Greenstreet."
+                        : result.verdict.verdict === "RESTRUCTURE"
+                        ? "A Greenstreet specialist can walk through the IC memo items with you and identify the fastest path to a clean file."
+                        : "Greenstreet can review what's blocking the deal and explore alternative structures — including sub-1.0 programs or global DSCR options."}
+                    </p>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 13, textDecoration: "none", padding: "10px 18px", borderRadius: radius.sm, minHeight: 44 }}>
+                        Get my rate →
+                      </a>
+                      <a href="/deal-analyzer" onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1.5px solid rgba(238,239,211,0.28)", color: "rgba(238,239,211,0.8)", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "10px 16px", borderRadius: radius.sm, minHeight: 44 }}>
+                        Full deal analyzer →
+                      </a>
+                    </div>
+                    <p style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", margin: "10px 0 0" }}>Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.</p>
+                  </div>
                 </div>
 
                 {/* COMPOSITE BREAKDOWN + IC MEMO — side by side (matches mockup 2-col bottom) */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+                <div className="ds-bottom-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
                   {/* Composite factors */}
                   <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.1)" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
@@ -529,7 +566,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
                 {/* GRADE + ACQ SCORE */}
                 <div
-                  className="gs-reveal dc-band-2"
+                  className="gs-reveal ds-band-2"
                   style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.1)" }}
                 >
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>

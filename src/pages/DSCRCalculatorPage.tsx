@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { DcShell, dc, H1, H2, H3, Lead, Btn, HeroProof, Mono } from "../design/dc";
-import { PISTACHIO, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius } from "../theme";
+import { PISTACHIO, MIDNIGHT, LEMON, FADED, font, swatch, radius } from "../theme";
+import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 
 interface Props {
   onBack?: () => void;
@@ -13,14 +14,10 @@ const pf = (r: number) => {
   return (m * Math.pow(1 + m, 360)) / (Math.pow(1 + m, 360) - 1);
 };
 
-const fmt = (n: number) => {
-  return '$' + Math.round(n).toLocaleString('en-US');
-};
+const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
 
-// Dark panel colours — closest token aliases to the design spec.
-// PANEL ≈ dc.teal (#004041), CARD ≈ dc.dark (#003738). Using dc tokens throughout.
-const PANEL = swatch.darkTeal;   // #004041
-const CARD  = swatch.midnight;   // #003738
+const PANEL = swatch.darkTeal;
+const CARD  = swatch.midnight;
 
 export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   useEffect(() => {
@@ -58,27 +55,29 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   let zoneColor    = '#e06363';
   let zoneChipBg   = 'rgba(224,99,99,0.12)';
   let verdictText  = 'Most lenders require DSCR ≥ 0.75. Restructure the deal or decline.';
+  let verdictHeadline = 'Rent doesn\'t cover the payment — restructure or decline.';
 
   if (dscr >= 1.20) {
     verdictLabel = 'GREEN DEAL';
     zoneColor    = '#4dbd97';
     zoneChipBg   = 'rgba(77,189,151,0.12)';
     verdictText  = 'Strong cushion. Qualifies with most DSCR lenders at standard pricing.';
+    verdictHeadline = 'Strong coverage — qualifies at standard pricing.';
   } else if (dscr >= 1.00) {
     verdictLabel = 'QUALIFIES';
     zoneColor    = '#d8d958';
     zoneChipBg   = 'rgba(216,217,88,0.12)';
     verdictText  = 'Meets the 1.00 floor. Verify lender minimums and compensating factors.';
+    verdictHeadline = 'Meets the qualifying floor — check program minimums.';
   } else if (dscr >= 0.75) {
     verdictLabel = 'SUB-1.0';
     zoneColor    = '#e6b84d';
     zoneChipBg   = 'rgba(230,184,77,0.12)';
     verdictText  = 'Some lenders accept 0.75+ with strong FICO, reserves, or a lower LTV.';
+    verdictHeadline = 'Below 1.0 — sub-1.0 programs may still apply.';
   }
 
-  // ── Gauge needle — map 0.50x..1.50x → -135°..+135° ────────────────────────
-  const needlePct = Math.max(0, Math.min(1, (dscr - 0.5) / 1.0));
-  const needleDeg = (-135 + needlePct * 270).toFixed(1);
+  const riskLevel = riskFromDscr(dscr);
 
   // ── Sensitivity ─────────────────────────────────────────────────────────────
   const dscrWith = (o: { price?: number; down?: number; rent?: number; rate?: number; tax?: number; ins?: number }) => {
@@ -102,10 +101,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     { label: 'P&I monthly',   val: fmt(pAndI),      color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, pAndI / pitia * 100).toFixed(0) + '%',          barColor: '#4dbd97' },
     { label: 'Taxes /mo',     val: fmt(tax / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (tax / 12) / pitia * 100).toFixed(0) + '%',     barColor: '#9ab87b' },
     { label: 'Insurance /mo', val: fmt(ins / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (ins / 12) / pitia * 100).toFixed(0) + '%',     barColor: '#9ab87b' },
-    { label: 'Total PITIA',   val: fmt(pitia),      color: '#eeefd3',               weight: 700, pct: '100%',                                                          barColor: zoneColor },
+    { label: 'Total PITIA',   val: fmt(pitia),      color: '#eeefd3',               weight: 700, pct: '100%',                                                         barColor: zoneColor },
   ];
 
-  // ── Lender rows (match mockup names) ────────────────────────────────────────
+  // ── Lender rows ──────────────────────────────────────────────────────────────
   const lenderRows = [
     { name: 'Best tier',        rate: Math.max(4, rate - 0.875).toFixed(3) + '%' },
     { name: 'Standard',         rate: Math.max(4, rate - 0.50).toFixed(3) + '%' },
@@ -136,7 +135,6 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
       <style>{`
         .gs-num::-webkit-outer-spin-button, .gs-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .gs-num { width: 100%; border: none; background: none; outline: none; font-family: ${font.family}; color: ${PISTACHIO}; letter-spacing: -0.02em; }
-        /* Unified dark-panel input: 1.5px FADED border, focus ring 2px lemon */
         .calc-field { display:flex; align-items:center; border: 1.5px solid rgba(238,239,211,0.2); border-radius: ${radius.sm}; padding: 0 13px; background: ${PANEL}; transition: border-color .15s; }
         .calc-field:focus-within { border-color: ${LEMON}; outline: 2px solid ${LEMON}; outline-offset: 1px; border-radius: ${radius.sm}; }
         .calc-field:hover:not(:focus-within) { border-color: rgba(238,239,211,0.4); }
@@ -146,12 +144,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         .gsr::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: ${LEMON}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; }
         .gsr:focus-visible { outline: 2px solid ${LEMON}; outline-offset: 4px; }
         .gs-dot-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 34px 34px; pointer-events: none; }
-        .g-needle { transition: transform .75s cubic-bezier(.34,1.42,.5,1); }
         @keyframes gsBar { from { width: 0; } }
         .gs-bar { animation: gsBar .8s ease-out both; }
         @media (max-width: 991px) { #gs-hero-inner { grid-template-columns: 1fr !important; gap: 40px !important; } .dc-band-3, .dc-split { grid-template-columns: 1fr !important; } .calc-panel { grid-template-columns: 1fr !important; } .bottom-trio { grid-template-columns: 1fr !important; } }
         @media (max-width: 767px) { .bottom-trio { grid-template-columns: 1fr !important; } }
-        @media (prefers-reduced-motion: reduce) { * { animation: none !important; } .g-needle { transition: none !important; } }
+        @media (max-width: 479px) { .dscr-verdict-inner { grid-template-columns: 1fr !important; } }
+        @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
       `}</style>
 
       {/* ── HERO — dark bg, dot grid ── */}
@@ -159,7 +157,6 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         <div className="gs-dot-grid"></div>
         <div id="gs-hero-inner" className="dc-hero" style={{ position: 'relative', width: '100%', maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.08fr 0.92fr', gap: 'clamp(32px,5vw,72px)', alignItems: 'center' }}>
           <div id="gs-hero-content">
-            {/* eyebrow pill */}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: LEMON, padding: '7px 14px', borderRadius: 100, marginBottom: 24 }}>
               DSCR Engine · Deterministic core
             </div>
@@ -178,8 +175,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               </a>
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}><span data-count="19">0</span></Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>verified lenders</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}><span data-count="50">0</span></Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>state rule sets</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>19</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>verified lenders</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>state rule sets</div></div>
               <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>to a priced deal</div></div>
             </div>
           </div>
@@ -225,7 +222,6 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 12 }}>Live deal desk</div>
               <H2 style={{ fontSize: 'clamp(30px,3.8vw,54px)', letterSpacing: '-0.04em', lineHeight: 1.0, maxWidth: '18ch', color: PISTACHIO }}>Price the deal in real time.</H2>
             </div>
-            {/* Pill tabs — dark pill bg matching mockup */}
             <div style={{ display: 'inline-flex', gap: 4, background: CARD, padding: 5, borderRadius: radius.sm }}>
               <button onClick={() => setTab('dscr')} style={{ padding: '11px 22px', background: tab === 'dscr' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'dscr' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
                 DSCR Gauge
@@ -247,7 +243,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 <div style={{ display: 'grid', gap: 24 }}>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Down payment — sets your LTV</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Down payment — sets your LTV (loan ÷ value)</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{down}% · {fmt(price * down / 100)}</Mono>
                     </div>
                     <input className="gsr" type="range" step="5" min="20" max="50" value={down} onChange={e => setDown(+e.target.value)} style={{ width: '100%' }} />
@@ -297,79 +293,83 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               {/* GAUGE + VERDICT + BREAKDOWN */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
-                {/* Big gauge card */}
-                <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(28px,3vw,40px)', border: '1px solid rgba(238,239,211,0.1)', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 'clamp(28px,4vw,52px)', alignItems: 'center' }}>
-                  {/* SVG gauge */}
-                  <div style={{ position: 'relative', width: 'clamp(240px,26vw,320px)', aspectRatio: '1' }}>
-                    {/* Arc */}
-                    <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'conic-gradient(from 225deg,#e06363 0deg 67.5deg,#e6b84d 67.5deg 135deg,#d8d958 135deg 189deg,#4dbd97 189deg 270deg,rgba(238,239,211,0.07) 270deg 360deg)', WebkitMask: 'radial-gradient(circle,transparent 0 60%,#000 61% 100%)', mask: 'radial-gradient(circle,transparent 0 60%,#000 61% 100%)' }}></div>
-                    {/* Inner dashed ring */}
-                    <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', border: '1px dashed rgba(238,239,211,0.12)' }}></div>
-                    {/* Needle */}
-                    <div className="g-needle" style={{ position: 'absolute', left: '50%', bottom: '50%', width: 5, height: '39%', borderRadius: 5, background: 'linear-gradient(#eeefd3,#d8d958)', transformOrigin: '50% 100%', transform: `translateX(-50%) rotate(${needleDeg}deg)`, zIndex: 3 }}>
-                      <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', width: 16, height: 16, borderRadius: '50%', background: zoneColor }}></div>
-                    </div>
-                    {/* Center mask */}
-                    <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '58%', height: '58%', borderRadius: '50%', background: `radial-gradient(circle,${CARD} 50%,rgba(0,55,56,0) 82%)`, zIndex: 4, pointerEvents: 'none' }}></div>
-                    {/* Center readout */}
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingBottom: '7%', pointerEvents: 'none', zIndex: 5 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.42)', marginBottom: 2 }}>DSCR</div>
-                      <span id="gs-dscr-big"><Mono style={{ fontSize: 'clamp(32px,3.8vw,46px)', fontWeight: 600, color: zoneColor, lineHeight: 0.9, textShadow: '0 2px 14px rgba(0,36,35,0.9)' }}>{dscr.toFixed(2)}x</Mono></span>
-                    </div>
-                    <Mono style={{ position: 'absolute', bottom: '10%', left: '4%', fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.55)' }}>0.50</Mono>
-                    <Mono style={{ position: 'absolute', bottom: '10%', right: '4%', fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.55)' }}>1.50</Mono>
-                  </div>
-
-                  {/* Verdict + sensitivity */}
-                  <div>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: zoneChipBg, border: `1px solid ${zoneColor}`, borderRadius: 100, padding: '6px 14px', marginBottom: 16 }}>
+                {/* Big verdict card — DscrGauge + BalanceScale + verdict copy */}
+                <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(28px,3vw,40px)', border: '1px solid rgba(238,239,211,0.1)' }}>
+                  {/* Headline answer first */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: zoneChipBg, border: `1px solid ${zoneColor}`, borderRadius: 100, padding: '6px 14px', marginBottom: 12 }}>
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: zoneColor, display: 'inline-block' }}></span>
                       <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: zoneColor }}>{verdictLabel}</span>
                     </div>
-                    <p style={{ fontSize: 'clamp(15px,1.3vw,17px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: '0 0 16px' }}>{verdictText}</p>
-
-                    {/* Next step CTA — single constructive action per result */}
-                    <div style={{ background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', borderRadius: radius.sm, padding: '14px 18px', marginBottom: 20 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 6 }}>
-                        {dscr >= 1.0 ? 'Ready to move forward?' : 'Want to explore your options?'}
-                      </div>
-                      <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.65)', margin: '0 0 12px', lineHeight: 1.5 }}>
-                        {dscr >= 1.20
-                          ? 'Your DSCR is strong. Check which programs you qualify for and get a rate quote.'
-                          : dscr >= 1.0
-                          ? 'Your DSCR meets the floor. A specialist can confirm program fit and lock your rate.'
-                          : 'A Greenstreet specialist can look at sub-1.0 programs and structuring options — this is not a dead end.'}
-                      </p>
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <a
-                          href="/rate-quiz"
-                          onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: radius.sm, minHeight: 44 }}
-                        >
-                          Find my program →
-                        </a>
-                        <button
-                          onClick={() => (window as any).openQualify?.()}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.28)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 13, fontFamily: font.family, padding: '10px 16px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}
-                        >
-                          Check if I qualify →
-                        </button>
-                      </div>
-                      <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.38)', margin: '10px 0 0', lineHeight: 1.4 }}>
-                        Preliminary estimate — not a commitment to lend. Subject to full underwriting review.
-                      </p>
+                    <div style={{ fontSize: 'clamp(18px,1.8vw,22px)', fontWeight: 600, color: zoneColor, letterSpacing: '-0.02em', marginBottom: 6, lineHeight: 1.2 }}>
+                      {verdictHeadline}
                     </div>
+                    <p style={{ fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: 0 }}>{verdictText}</p>
+                  </div>
 
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.4)', marginBottom: 6 }}>What moves the needle</div>
-                    <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.38)', marginBottom: 12, lineHeight: 1.4 }}>Each card shows how much your DSCR would change with that adjustment — green means improvement, red means it gets worse.</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-                      {sens.map((x, i) => (
-                        <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '13px 14px', border: '1px solid rgba(238,239,211,0.1)' }}>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.55)', marginBottom: 5, lineHeight: 1.25 }}>{x.label}</div>
-                          <Mono style={{ fontSize: 18, fontWeight: 700, color: x.color }}>{x.delta}</Mono>
-                        </div>
-                      ))}
+                  {/* Artifacts row: DscrGauge + BalanceScale side by side */}
+                  <div className="dscr-verdict-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(16px,3vw,36px)', alignItems: 'center', marginBottom: 20 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                      <DscrGauge value={dscr} size={180} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <RiskFlame level={riskLevel} size={20} />
+                        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.45)' }}>
+                          {riskLevel === 'none' ? 'comfortable cushion' : riskLevel === 'low' ? 'low risk' : riskLevel === 'med' ? 'watch closely' : 'high risk'}
+                        </span>
+                      </div>
                     </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.4)', marginBottom: 4 }}>Rent vs PITIA</div>
+                      <BalanceScale rent={rent} payment={pitia} size={200} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '90%' }}>
+                        <span style={{ fontSize: 11, color: 'rgba(238,239,211,0.5)' }}>{fmt(rent)} rent</span>
+                        <span style={{ fontSize: 11, color: 'rgba(238,239,211,0.5)' }}>{fmt(pitia)} PITIA</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Next step CTA */}
+                  <div style={{ background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', borderRadius: radius.sm, padding: '14px 18px', marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 6 }}>
+                      {dscr >= 1.0 ? 'Ready to move forward?' : 'Want to explore your options?'}
+                    </div>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.65)', margin: '0 0 12px', lineHeight: 1.5 }}>
+                      {dscr >= 1.20
+                        ? 'Your DSCR is strong. Check which programs you qualify for and get a rate quote.'
+                        : dscr >= 1.0
+                        ? 'Your DSCR meets the floor. A specialist can confirm program fit and lock your rate.'
+                        : 'A Greenstreet specialist can look at sub-1.0 programs and structuring options — this is not a dead end.'}
+                    </p>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <a
+                        href="/rate-quiz"
+                        onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: radius.sm, minHeight: 44 }}
+                      >
+                        Find my program →
+                      </a>
+                      <button
+                        onClick={() => (window as any).openQualify?.()}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.28)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 13, fontFamily: font.family, padding: '10px 16px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}
+                      >
+                        Check if I qualify →
+                      </button>
+                    </div>
+                    <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.38)', margin: '10px 0 0', lineHeight: 1.4 }}>
+                      Preliminary estimate — not a commitment to lend. Subject to full underwriting review.
+                    </p>
+                  </div>
+
+                  {/* Sensitivity — what moves the needle */}
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.4)', marginBottom: 6 }}>What moves the needle</div>
+                  <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.38)', marginBottom: 12, lineHeight: 1.4 }}>Each card shows how much your DSCR would change with that adjustment — green means improvement, red means it gets worse.</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                    {sens.map((x, i) => (
+                      <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '13px 14px', border: '1px solid rgba(238,239,211,0.1)' }}>
+                        <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.55)', marginBottom: 5, lineHeight: 1.25 }}>{x.label}</div>
+                        <Mono style={{ fontSize: 18, fontWeight: 700, color: x.color }}>{x.delta}</Mono>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -398,20 +398,24 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: cashFlow >= 0 ? '#4dbd97' : '#e88a8a' }}>{(cashFlow >= 0 ? '+' : '') + fmt(cashFlow)}</Mono>
                       <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>monthly cash flow</div>
+                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>{cashFlow >= 0 ? 'Rent exceeds PITIA' : 'Rent falls short of PITIA'}</div>
                     </div>
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: LEMON }}>{capRate.toFixed(2)}%</Mono>
                       <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>cap rate</div>
+                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>6%+ is generally healthy</div>
                     </div>
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: '#4dbd97' }}>{100 - down}%</Mono>
-                      <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>LTV — loan ÷ value (lower = better)</div>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>LTV — loan ÷ value</div>
+                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>lower is better; 75% is standard</div>
                     </div>
                   </div>
 
                   {/* Lender matches */}
                   <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.1)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 14 }}>Matched programs</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>Matched programs</div>
+                    <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.4)', marginBottom: 10, lineHeight: 1.4 }}>Indicative rate offsets from today's note rate. Best-tier pricing requires DSCR ≥ 1.25 and FICO ≥ 740.</p>
                     {lenderRows.map((lr, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid rgba(238,239,211,0.07)' }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: '#eeefd3', lineHeight: 1.2 }}>{lr.name}</span>
@@ -437,7 +441,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.1)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Work backwards from rent</div>
-                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.45)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR. We'll calculate the maximum price you can pay and still hit that ratio.</p>
+                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.45)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR (the ratio you want to hit — 1.25x is a strong approval threshold). We'll calculate the maximum price you can pay and still hit that ratio.</p>
                 <div style={{ display: 'grid', gap: 22 }}>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Monthly rent</span>
@@ -459,14 +463,24 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{target.toFixed(2)}x</Mono>
                     </div>
                     <input className="gsr" type="range" step="0.05" min="0.75" max="1.50" value={target} onChange={e => setTarget(+e.target.value)} style={{ width: '100%' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 4 }}><span>0.75x</span><span>1.50x</span></div>
                   </div>
                 </div>
               </div>
               <div>
-                <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', textAlign: 'center', marginBottom: 20, border: '1px solid rgba(238,239,211,0.1)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 16 }}>Max purchase price</div>
-                  <Mono style={{ fontSize: 'clamp(56px,8.5vw,116px)', fontWeight: 600, color: PISTACHIO, lineHeight: 0.93, display: 'block' }}>{fmt(maxPrice)}</Mono>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.55)', marginTop: 18 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
+                {/* Headline answer: DscrGauge for target */}
+                <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', marginBottom: 20, border: '1px solid rgba(238,239,211,0.1)' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {target.toFixed(2)}x DSCR</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
+                    <div>
+                      <Mono style={{ fontSize: 'clamp(42px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 0.95, display: 'block' }}>{fmt(maxPrice)}</Mono>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.55)', marginTop: 14 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
+                      <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.45)', margin: '10px 0 0', lineHeight: 1.5 }}>
+                        Pay more than this and the rent won't cover the full monthly payment at the target ratio. Use this as your bid ceiling.
+                      </p>
+                    </div>
+                    <DscrGauge value={target} size={140} />
+                  </div>
                 </div>
                 <div style={{ background: CARD, borderRadius: radius.lg, padding: '24px 28px', border: '1px solid rgba(238,239,211,0.1)' }}>
                   {mRows.map((r, i) => (
@@ -475,6 +489,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <Mono style={{ fontWeight: 700, color: PISTACHIO }}>{r.val}</Mono>
                     </div>
                   ))}
+                  <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.38)', marginTop: 14, lineHeight: 1.4 }}>
+                    Preliminary estimate — not a commitment to lend. Subject to full underwriting, appraisal and credit approval.
+                  </p>
                 </div>
               </div>
             </div>
