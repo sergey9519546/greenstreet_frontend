@@ -218,26 +218,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         </div>
       </section>
 
-      {/* ── EXPLAINER — HyperFrames Lender Intel loop ── */}
-      <section style={{ background: "#004041", padding: "0 clamp(1.5rem,4vw,3rem) clamp(40px,5vw,64px)" }}>
-        <div className="gs-reveal" style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <video
-            src="/video/lender-explainer.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            style={{
-              width: "100%",
-              display: "block",
-              borderRadius: 16,
-              aspectRatio: "16 / 9",
-              objectFit: "cover",
-              background: "#004041",
-            }}
-          />
-        </div>
-      </section>
+      
 
       {/* ── TOOL ── */}
       <section

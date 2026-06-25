@@ -31,21 +31,16 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               <a className="nav-link w-inline-block" href="/blog" onClick={go("blog")}><div className="nav_links_text">Resources</div></a>
               <a className="nav-link w-inline-block" href="/about" onClick={go("about")}><div className="nav_links_text">About</div></a>
               <a className="nav-link is-underline w-inline-block" href="/investorgo" onClick={go("portal")}><div>Login</div></a>
-              <div className="nav-btn">
-                <div className="btn_main_wrap" data-wf--btn-main--style="secondary">
-                  <a className="g_clickable_link w-inline-block" href="/rate-quiz" onClick={go("rate-quiz")}>
-                    <span className="g_clickable_text u-sr-only">Book a demo</span>
-                  </a>
-                  <div aria-hidden="true" className="btn_main_text" onClick={() => onNavigate?.("rate-quiz")}>Book a demo</div>
-                  <div className="btn-arrow-wrap">
-                    <div className="btn_main_icon w-embed">
-                      <svg fill="none" height="100%" viewBox="0 0 24 25" width="100%" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Solid, always-visible CTA (the Webflow .btn_main collapses to 0
+                  width outside the home's scroll-reveal context). Dark fill +
+                  pistachio text matches the home nav button. */}
+              <a className="nav-btn" href="/rate-quiz" onClick={go("rate-quiz")}
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: MIDNIGHT, color: PISTACHIO, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "12px 22px", borderRadius: 8, whiteSpace: "nowrap" }}>
+                Book a demo
+                <svg fill="none" height="16" viewBox="0 0 24 25" width="16" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path>
+                </svg>
+              </a>
             </div>
           </div>
           <div className="burger-wrap" style={{ cursor: "pointer" }} onClick={() => setMenuOpen(!menuOpen)}>

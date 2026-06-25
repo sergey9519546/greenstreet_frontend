@@ -315,19 +315,7 @@ export default function TaxEnginePage({
         </div>
       </section>
 
-      {/* ── EXPLAINER — rendered HyperFrames loop ── */}
-      <section style={{ background: dc.lemon, padding: `clamp(40px,5vw,64px) ${dc.pad}` }}>
-        <div className="gs-reveal" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <video
-            src="/video/tax-explainer.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            style={{ width: "100%", display: "block", borderRadius: 16, border: "1px solid rgba(0,55,56,0.18)", aspectRatio: "16 / 9", objectFit: "cover" }}
-          />
-        </div>
-      </section>
+      
 
       {/* ── TOOL ── */}
       <section
