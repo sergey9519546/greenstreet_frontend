@@ -96,7 +96,9 @@ button, input, select, textarea { font: inherit; }
 #root .page_wrap h4,
 #root .u-text-style-h4 {
   font-family: var(--font-display) !important;
-  font-size: 1.5rem !important; /* 24px */
+  /* Webflow .u-text-style-h4 is fluid, not 24px: 18.08px@1280 / 18.336px@1536
+     (measured on the home). Match its curve exactly. */
+  font-size: clamp(1rem, 1.05rem + 0.1vw, 1.25rem) !important;
   line-height: 1.2 !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
@@ -113,7 +115,9 @@ button, input, select, textarea { font: inherit; }
 
 #root .u-text-style-large,
 #root .u-text-style-large-medium {
-  font-size: 1.25rem !important; /* 20px */
+  /* Webflow .u-text-style-large is fluid, not 20px: 18.08px@1280 / 18.336px@1536
+     (measured on the home). Match its curve exactly. */
+  font-size: clamp(1rem, 1.05rem + 0.1vw, 1.25rem) !important;
   line-height: 1.2 !important;
   font-weight: 500 !important;
   letter-spacing: -0.02em !important;
