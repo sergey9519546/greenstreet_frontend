@@ -15,29 +15,69 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
-import { quickDscrEstimate } from "../engine";
-import type { QuickDscrTier } from "../engine";
+import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange } from "../engine";
+import type {
+  QuickDscrTier,
+  QualifyPropertyType as PropertyType,
+  BorrowerType,
+  EngineFicoBand,
+  QualifyInput,
+} from "../engine";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Purpose = "purchase" | "rate-term" | "cash-out";
 type FicoBand = "under-680" | "680-719" | "720-759" | "760-plus";
 type Role = "broker" | "investor";
+type Experience = "0" | "1-3" | "4-9" | "10-plus";
+type Timeline = "exploring" | "under-30" | "30-90" | "refi-soon";
 
 interface StepOneData {
   propertyValue: number;
+  loanAmount: number;
   rent: number;
   rate: number;
+  propertyType: PropertyType | null;
+  investmentConfirmed: boolean;
 }
 interface StepTwoData {
   purpose: Purpose | null;
   state: string;
   ficoBand: FicoBand | null;
+  borrowerType: BorrowerType | null;
+  experience: Experience | null;
 }
 interface StepFourData {
   name: string;
   email: string;
   phone: string;
   role: Role | null;
+  timeline: Timeline | null;
+  contactConsent: boolean;
+  smsConsent: boolean;
+}
+
+// Modal credit bands → engine credit bands (engine separates <660; the modal's
+// lowest band is "under-680", mapped to the entry tier).
+const FICO_TO_ENGINE: Record<FicoBand, EngineFicoBand> = {
+  "under-680": "660-679",
+  "680-719": "680-719",
+  "720-759": "720-759",
+  "760-plus": "760-plus",
+};
+
+// Build a QualifyInput from modal state (used by the result screen + payload).
+function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
+  return {
+    propertyType: s1.propertyType ?? "sfr",
+    purpose: s2.purpose ?? "purchase",
+    state: s2.state,
+    value: s1.propertyValue,
+    loanAmount: s1.loanAmount > 0 ? s1.loanAmount : s1.propertyValue * 0.75,
+    rent: s1.rent,
+    ficoBand: s2.ficoBand ? FICO_TO_ENGINE[s2.ficoBand] : "680-719",
+    borrowerType: s2.borrowerType ?? undefined,
+    investmentConfirmed: s1.investmentConfirmed,
+  };
 }
 
 // ─── Engine-backed DSCR helpers ───────────────────────────────────────────────
@@ -572,11 +612,26 @@ function Step1({
     { val: "cash-out", label: "Cash-out refi" },
   ];
 
+  const propertyTypes: { val: PropertyType; label: string }[] = [
+    { val: "sfr", label: "Single-family" },
+    { val: "2-4-unit", label: "2–4 unit" },
+    { val: "condo", label: "Condo" },
+    { val: "townhouse", label: "Townhouse" },
+    { val: "5-8-unit", label: "5–8 unit" },
+    { val: "short-term-rental", label: "Short-term rental" },
+  ];
+
+  const ltv = data.propertyValue > 0 ? data.loanAmount / data.propertyValue : 0;
+
   const isValid =
     step2.purpose !== null &&
+    data.propertyType !== null &&
     data.propertyValue >= 50000 &&
+    data.loanAmount > 0 &&
+    data.loanAmount < data.propertyValue &&
     data.rent > 0 &&
-    data.rate > 0;
+    data.rate > 0 &&
+    data.investmentConfirmed;
 
   const handleNext = () => {
     setAttempted(true);
@@ -639,9 +694,23 @@ function Step1({
         </div>
       </FieldGroup>
 
+      <FieldGroup
+        label="Property type"
+        helper="DSCR programs cover 1–4 unit rentals, condos, and townhouses. Larger or short-term properties get a specialist review."
+        error={attempted && !data.propertyType ? "Please select a property type." : undefined}
+      >
+        <div role="group" aria-label="Property type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+          {propertyTypes.map((t) => (
+            <PillBtn key={t.val} active={data.propertyType === t.val} onClick={() => onChange({ propertyType: t.val })}>
+              {t.label}
+            </PillBtn>
+          ))}
+        </div>
+      </FieldGroup>
+
       <div style={{ marginBottom: 16 }}>
         <label htmlFor={idPropVal} style={labelStyle}>
-          Property value
+          {step2.purpose === "purchase" ? "Purchase price" : "Estimated property value"}
         </label>
         <input
           id={idPropVal}
@@ -659,6 +728,37 @@ function Step1({
             ? "The expected purchase price of the property."
             : "The current appraised or market value of the property."}
         </p>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <label htmlFor={`${uid}-loan`} style={labelStyle}>
+          Desired loan amount
+        </label>
+        <input
+          id={`${uid}-loan`}
+          type="number"
+          value={data.loanAmount}
+          min={0}
+          step={5000}
+          onChange={(e) => onChange({ loanAmount: Number(e.target.value) })}
+          className="qm-input"
+          style={
+            attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0
+              ? inputErrorStyle
+              : inputStyle
+          }
+        />
+        {attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0 ? (
+          <p style={errorMsgStyle}>Loan amount can't equal or exceed the property value.</p>
+        ) : (
+          <p style={helperStyle}>
+            Loan-to-value (LTV):{" "}
+            <strong style={{ color: ltv > 0.8 ? "#c25b4e" : swatch.midnight, fontFamily: font.mono }}>
+              {data.propertyValue > 0 ? `${(ltv * 100).toFixed(0)}%` : "—"}
+            </strong>
+            . Most DSCR programs cap around 75–80%.
+          </p>
+        )}
       </div>
 
       <div style={{ marginBottom: 16 }}>
@@ -695,6 +795,33 @@ function Step1({
         />
         <p style={helperStyle}>Your best guess at the note rate. We use this to compute the payment — you can refine it with a specialist later.</p>
       </div>
+
+      {/* Occupancy gate — DSCR is business-purpose, non-owner-occupied only */}
+      <label
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 10,
+          marginBottom: 18,
+          cursor: "pointer",
+          fontSize: 13,
+          color: swatch.midnight,
+          lineHeight: 1.45,
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={data.investmentConfirmed}
+          onChange={(e) => onChange({ investmentConfirmed: e.target.checked })}
+          style={{ marginTop: 2, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
+        />
+        <span>
+          This is an investment (non-owner-occupied) property.
+          <span style={{ display: "block", fontSize: 12, color: swatch.rainforest, opacity: 0.85 }}>
+            DSCR loans are business-purpose only. Uncheck if you'll live there and we'll point you elsewhere.
+          </span>
+        </span>
+      </label>
 
       {/* Live DSCR readout — color transitions smoothly */}
       <div
@@ -795,7 +922,22 @@ function Step2({
     "cash-out": "cash-out refinance",
   };
 
-  const isValid = data.state !== "" && data.ficoBand !== null;
+  const borrowerTypes: { val: BorrowerType; label: string }[] = [
+    { val: "individual", label: "In my own name" },
+    { val: "entity", label: "LLC / entity" },
+  ];
+  const experiences: { val: Experience; label: string }[] = [
+    { val: "0", label: "First one" },
+    { val: "1-3", label: "1–3" },
+    { val: "4-9", label: "4–9" },
+    { val: "10-plus", label: "10+" },
+  ];
+
+  const isValid =
+    data.state !== "" &&
+    data.ficoBand !== null &&
+    data.borrowerType !== null &&
+    data.experience !== null;
 
   const handleNext = () => {
     setAttempted(true);
@@ -881,6 +1023,34 @@ function Step2({
         </div>
       </FieldGroup>
 
+      <FieldGroup
+        label="How will you hold title?"
+        helper="Many DSCR loans close in an LLC. Either works — some states require an entity."
+        error={attempted && !data.borrowerType ? "Please choose how you'll borrow." : undefined}
+      >
+        <div role="group" aria-label="Borrower type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+          {borrowerTypes.map((b) => (
+            <PillBtn key={b.val} active={data.borrowerType === b.val} onClick={() => onChange({ borrowerType: b.val })}>
+              {b.label}
+            </PillBtn>
+          ))}
+        </div>
+      </FieldGroup>
+
+      <FieldGroup
+        label="How many rental units do you own now?"
+        helper="Experience can open better programs — there's no wrong answer."
+        error={attempted && !data.experience ? "Please pick a range." : undefined}
+      >
+        <div role="group" aria-label="Investor experience" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+          {experiences.map((x) => (
+            <PillBtn key={x.val} active={data.experience === x.val} onClick={() => onChange({ experience: x.val })}>
+              {x.label}
+            </PillBtn>
+          ))}
+        </div>
+      </FieldGroup>
+
       <div
         style={{ display: "flex", gap: 12, marginTop: 28, alignItems: "center" }}
       >
@@ -951,6 +1121,8 @@ function Step3({
   const col = dscrColor(dscr);
   const verdict = dscrVerdict(estimate.tier, step2.purpose);
   const rate = estimateRate(dscr, step2.ficoBand, step2.purpose);
+  const q = qualify(buildQualifyInput(step1, step2));
+  const topLever = q.levers[0];
 
   // Animated count-up for the big DSCR number
   const displayDscr = useCountUp(dscr, 520);
@@ -1112,6 +1284,50 @@ function Step3({
         </p>
       </div>
 
+      {/* Deal metrics — LTV / PITIA / P&I, from the qualify() engine */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {[
+          { k: "LTV", v: `${(q.ltv * 100).toFixed(0)}%` },
+          { k: "Est. PITIA", v: fmtUsd(q.pitia) + "/mo" },
+          { k: "Est. P&I", v: fmtUsd(q.piMonthly) + "/mo" },
+        ].map((m) => (
+          <div
+            key={m.k}
+            style={{
+              flex: 1,
+              background: "#fff",
+              border: `1.5px solid ${swatch.mint}`,
+              borderRadius: radius.sm,
+              padding: "10px 12px",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 10, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 3 }}>
+              {m.k}
+            </div>
+            <div style={{ fontSize: 16, fontFamily: font.mono, fontWeight: 700, color: swatch.midnight }}>{m.v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Top improvement lever — only when there's a concrete one */}
+      {topLever && (
+        <div
+          style={{
+            background: "rgba(77,189,151,0.10)",
+            border: `1.5px solid ${swatch.emerald}`,
+            borderRadius: radius.sm,
+            padding: "12px 16px",
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>
+            Biggest lever — {topLever.label}
+          </div>
+          <p style={{ fontSize: 13, color: swatch.midnight, margin: 0, lineHeight: 1.5 }}>{topLever.detail}</p>
+        </div>
+      )}
+
       {/* What happens next — the single clear next step */}
       <div
         style={{
@@ -1177,16 +1393,22 @@ function Step4({
     { val: "broker", label: "Mortgage broker", helper: "I submit deals on behalf of clients." },
     { val: "investor", label: "Real-estate investor", helper: "I own or am acquiring the property." },
   ];
+  const timelines: { val: Timeline; label: string }[] = [
+    { val: "exploring", label: "Just exploring" },
+    { val: "under-30", label: "Within 30 days" },
+    { val: "30-90", label: "30–90 days" },
+    { val: "refi-soon", label: "Refi soon" },
+  ];
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim());
   const nameValid = data.name.trim().length >= 2;
-  const isValid = nameValid && emailValid;
+  const isValid = nameValid && emailValid && data.contactConsent && data.timeline !== null;
 
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
 
   const handleSubmit = () => {
-    setTouched({ name: true, email: true });
+    setTouched({ name: true, email: true, submit: true });
     if (isValid && !submitting) {
       onSubmit();
     } else if (!isValid) {
@@ -1272,6 +1494,19 @@ function Step4({
       </div>
 
       <FieldGroup
+        label="When are you looking to close?"
+        error={touched.submit && !data.timeline ? "Please pick a timeline." : undefined}
+      >
+        <div role="group" aria-label="Timeline" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+          {timelines.map((t) => (
+            <PillBtn key={t.val} active={data.timeline === t.val} onClick={() => onChange({ timeline: t.val })}>
+              {t.label}
+            </PillBtn>
+          ))}
+        </div>
+      </FieldGroup>
+
+      <FieldGroup
         label="I am a"
         helper="Helps us tailor the right program for your situation."
       >
@@ -1294,6 +1529,37 @@ function Step4({
 
       {/* Trust bar with lock icon */}
       <TrustBar text="No credit pull · no obligation · no spam. Your details are used only to prepare your quote." />
+
+      {/* Consent — contact required, SMS optional (TCPA-safe, not pre-checked) */}
+      <label
+        style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10, cursor: "pointer", fontSize: 12, color: swatch.midnight, lineHeight: 1.5 }}
+      >
+        <input
+          type="checkbox"
+          checked={data.contactConsent}
+          onChange={(e) => onChange({ contactConsent: e.target.checked })}
+          style={{ marginTop: 1, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
+        />
+        <span>
+          I agree to be contacted by Greenstreet Finance about my inquiry and accept the{" "}
+          <a href="/privacy-policy" target="_blank" rel="noopener" style={{ color: swatch.rainforest }}>Privacy Policy</a> and{" "}
+          <a href="/terms-of-service" target="_blank" rel="noopener" style={{ color: swatch.rainforest }}>Terms</a>.
+        </span>
+      </label>
+      {touched.submit && !data.contactConsent && (
+        <p style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so we can send your result.</p>
+      )}
+      <label
+        style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20, cursor: "pointer", fontSize: 12, color: swatch.rainforest, lineHeight: 1.5 }}
+      >
+        <input
+          type="checkbox"
+          checked={data.smsConsent}
+          onChange={(e) => onChange({ smsConsent: e.target.checked })}
+          style={{ marginTop: 1, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
+        />
+        <span>Text me updates about my deal (optional). Msg &amp; data rates may apply; reply STOP to opt out.</span>
+      </label>
 
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>
@@ -1420,19 +1686,27 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   const [step, setStep] = useState(1);
   const [step1, setStep1] = useState<StepOneData>({
     propertyValue: 425000,
+    loanAmount: 318750,
     rent: 3000,
     rate: 7,
+    propertyType: null,
+    investmentConfirmed: true,
   });
   const [step2, setStep2] = useState<StepTwoData>({
     purpose: null,
     state: "",
     ficoBand: null,
+    borrowerType: null,
+    experience: null,
   });
   const [step4, setStep4] = useState<StepFourData>({
     name: "",
     email: "",
     phone: "",
     role: null,
+    timeline: null,
+    contactConsent: false,
+    smsConsent: false,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -1549,22 +1823,48 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
     const verdict = dscrVerdict(estimate.tier);
     const rateEstimate = estimateRate(estimate.dscr, step2.ficoBand, step2.purpose);
+    const q = qualify(buildQualifyInput(step1, step2));
 
     const payload = {
       name: step4.name,
       email: step4.email,
       phone: step4.phone,
       role: step4.role,
+      timeline: step4.timeline,
+      // deal
+      propertyType: step1.propertyType,
       propertyValue: step1.propertyValue,
+      loanAmount: step1.loanAmount,
       rent: step1.rent,
       rate: step1.rate,
       purpose: step2.purpose,
       state: step2.state,
       ficoBand: step2.ficoBand,
+      borrowerType: step2.borrowerType,
+      experience: step2.experience,
+      investmentConfirmed: step1.investmentConfirmed,
+      // engine result snapshot (frozen at submit — audit trail)
       dscr: estimate.dscr,
       verdict: verdict.headline,
       verdictTier: verdict.tier,
       rateEstimate,
+      qualify: {
+        ltv: q.ltv,
+        pitia: q.pitia,
+        piMonthly: q.piMonthly,
+        dscr: q.dscr,
+        outcome: q.outcome,
+        reasons: q.reasons,
+        rateRange: fmtRateRange(q.rateLow, q.rateHigh),
+        needsHumanReview: q.needsHumanReview,
+      },
+      // consent record (TCPA/ECOA audit)
+      consent: {
+        contact: step4.contactConsent,
+        sms: step4.smsConsent,
+        timestamp: new Date().toISOString(),
+        policyVersion: "2026-06",
+      },
       page: typeof window !== "undefined" ? window.location.pathname : "/",
       createdAt: new Date().toISOString(),
       // TODO: production lead endpoint / CRM

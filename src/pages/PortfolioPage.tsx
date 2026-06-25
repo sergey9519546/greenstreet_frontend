@@ -288,7 +288,7 @@ export default function PortfolioPage({
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div
             className="gs-reveal dc-band-3"
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", background: "rgba(0,55,56,0.12)", borderRadius: dc.r.md, overflow: "hidden" }}
           >
             {/* 01 */}
             <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
@@ -358,7 +358,7 @@ export default function PortfolioPage({
           </div>
 
           {/* Inline-editable property table */}
-          <div className="gs-reveal" style={{ background: dc.dark, borderRadius: 14, overflow: "hidden", marginBottom: 16, border: "1px solid rgba(238,239,211,0.08)" }}>
+          <div className="gs-reveal" style={{ background: dc.dark, borderRadius: dc.r.lg, overflow: "hidden", marginBottom: 16, border: "1px solid rgba(238,239,211,0.08)" }}>
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
                 <thead>
@@ -446,7 +446,7 @@ export default function PortfolioPage({
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 36 }}
           >
             {/* DSCR buckets */}
-            <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+            <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>DSCR distribution</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, alignItems: "end" }}>
                 {[
@@ -481,7 +481,7 @@ export default function PortfolioPage({
             </div>
 
             {/* Concentration */}
-            <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+            <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Geographic spread</div>
               {geoConc.slice(0, 5).map((g, i) => {
                 const barColor = g.pct > 50 ? RED : g.pct > 30 ? dc.lemon : dc.emerald;

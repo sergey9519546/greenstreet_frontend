@@ -136,7 +136,7 @@ const FLIP_CSS = `
 .bp-flip { perspective: 1200px; cursor: pointer; }
 .bp-inner { position: relative; transition: transform .55s cubic-bezier(.2,.7,.2,1); transform-style: preserve-3d; }
 .bp-flip:hover .bp-inner, .bp-flip:focus-within .bp-inner { transform: rotateY(180deg); }
-.bp-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 8px; overflow: hidden; }
+.bp-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 12px; overflow: hidden; }
 .bp-back { transform: rotateY(180deg); }
 @media (prefers-reduced-motion: reduce) {
   .bp-inner { transition: none !important; }
@@ -144,6 +144,7 @@ const FLIP_CSS = `
 }
 @media (max-width: 900px) {
   .bp-grid { grid-template-columns: 1fr !important; }
+  .bp-flip { height: 380px !important; }
 }
 `;
 
@@ -157,7 +158,7 @@ function ProfileCard({
   return (
     <div
       className="bp-flip gs-reveal"
-      style={{ height: 360 }}
+      style={{ height: "clamp(360px,28vw,420px)" }}
       tabIndex={0}
       role="article"
       aria-label={p.name}
@@ -168,8 +169,8 @@ function ProfileCard({
           className="bp-face"
           style={{
             background: p.bg,
-            border: `1px solid rgba(0,55,56,0.10)`,
-            padding: 32,
+            border: `1px solid ${dc.faded}`,
+            padding: "clamp(24px,2.4vw,32px)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -523,33 +524,47 @@ export default function BorrowerProfilesPage({
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: 16,
+              gap: 12,
             }}
           >
             {DOCS.map((d) => (
               <div
                 key={d.doc}
                 style={{
-                  padding: "14px 0",
-                  borderBottom: "1px solid rgba(0,55,56,0.12)",
+                  padding: "clamp(16px,2vw,22px) clamp(16px,2vw,20px)",
+                  background: dc.cream,
+                  borderRadius: 8,
+                  border: `1px solid ${dc.faded}`,
                 }}
               >
                 <div
                   style={{
-                    color: dc.dark,
-                    fontWeight: 700,
-                    fontSize: 14,
-                    letterSpacing: "-0.01em",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 8,
+                    marginBottom: 6,
                   }}
                 >
-                  {d.doc}
+                  <span style={{ color: dc.rain, fontWeight: 700, flexShrink: 0, fontSize: 13 }}>✓</span>
+                  <div
+                    style={{
+                      color: dc.dark,
+                      fontWeight: 700,
+                      fontSize: 14,
+                      letterSpacing: "-0.01em",
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {d.doc}
+                  </div>
                 </div>
                 <div
                   style={{
                     color: "rgba(0,55,56,0.6)",
                     fontSize: 12,
                     marginTop: 4,
-                    lineHeight: 1.5,
+                    lineHeight: 1.55,
+                    paddingLeft: 21,
                   }}
                 >
                   {d.note}
@@ -597,40 +612,45 @@ export default function BorrowerProfilesPage({
           <div
             className="gs-reveal"
             style={{
-              background: dc.white,
-              borderRadius: 9,
-              border: "1px solid rgba(0,55,56,0.08)",
-              padding: "4px 28px 8px",
+              background: dc.mintBg,
+              borderRadius: 12,
+              border: `1px solid ${dc.faded}`,
+              padding: "8px clamp(20px,2.4vw,28px) 12px",
             }}
           >
             {MISTAKES.map((m, i) => (
               <div
                 key={i}
                 style={{
-                  padding: "16px 0",
+                  padding: "18px 0",
                   borderBottom:
                     i < MISTAKES.length - 1
-                      ? "1px solid rgba(0,55,56,0.08)"
+                      ? `1px solid ${dc.faded}`
                       : "none",
                 }}
               >
                 <div
                   style={{
-                    color: "#c0392b",
-                    fontWeight: 600,
+                    color: dc.dark,
+                    fontWeight: 700,
                     fontSize: 14,
-                    marginBottom: 6,
-                    letterSpacing: "-0.01em",
+                    marginBottom: 7,
+                    letterSpacing: "-0.015em",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 8,
                   }}
                 >
-                  ✗ {m.mistake}
+                  {/* Error mark — on-token dark ink, no hardcoded red */}
+                  <span style={{ color: dc.rain, fontWeight: 800, flexShrink: 0 }}>✗</span>
+                  {m.mistake}
                 </div>
                 <p
                   style={{
                     color: "rgba(0,55,56,0.65)",
                     fontSize: 13,
-                    margin: 0,
-                    lineHeight: 1.55,
+                    margin: "0 0 0 22px",
+                    lineHeight: 1.6,
                   }}
                 >
                   <strong style={{ color: dc.rain }}>Fix: </strong>

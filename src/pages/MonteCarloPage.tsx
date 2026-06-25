@@ -3,10 +3,10 @@ import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 
-// ─── colour helpers (no local colour constants — everything via dc.*) ───────
-const RED = "#ff6b6b";
-const YELLOW = "#9a7b00"; // dark-gold legible on cream bg
-const YELLOW_DARK = "#d8d958"; // lemon on dark bg labels
+// ─── colour helpers (use dc tokens, no local constants) ───────
+const RED = "#ff6b6b";  // risk tier color (intentional, not from design system)
+const YELLOW = "#9a7b00";  // dark-gold on cream (intentional risk indicator)
+const YELLOW_DARK = dc.lemon;  // #d8d958 — lemon on dark bg labels
 
 // ─── types ─────────────────────────────────────────────────────────────────
 function pColor(p: number, warnAt: number, errorAt: number): string {
@@ -167,7 +167,7 @@ export default function MonteCarloPage({
           {/* right col — animated preview card */}
           <div style={{ position: "relative" }}>
             <div style={{
-              background: "#003738", borderRadius: 16, padding: 22,
+              background: dc.dark, borderRadius: dc.r.lg, padding: 22,
             }}>
               <div style={{
                 fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
@@ -286,7 +286,7 @@ export default function MonteCarloPage({
 
             {/* ── INPUT PANEL ──────────────────────────────────────────── */}
             <div style={{
-              background: "#fff", borderRadius: 9, padding: 28,
+              background: "#fff", borderRadius: dc.r.md, padding: 28,
               border: "1px solid rgba(0,55,56,0.1)",
             }}>
               <div style={{

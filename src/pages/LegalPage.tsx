@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, H1, H2, Lead } from "../design/dc";
-import { MINT_BG, PISTACHIO, MIDNIGHT } from "../theme";
+import { MINT_BG, PISTACHIO, MIDNIGHT, radius } from "../theme";
 
 // ─── Content data — three path-driven documents ────────────────────────────
 
@@ -236,8 +236,8 @@ function DocSwitcher({ current }: { current: LegalDoc }) {
             }}
             style={{
               padding: "9px 18px",
-              borderRadius: 6,
-              border: `1px solid ${isActive ? MIDNIGHT : "rgba(0,55,56,0.22)"}`,
+              borderRadius: radius.sm,
+              border: `1.5px solid ${isActive ? MIDNIGHT : `${dc.dark}30`}`,
               background: isActive ? MIDNIGHT : "transparent",
               color: isActive ? MINT_BG : MIDNIGHT,
               fontSize: 13,
@@ -384,7 +384,7 @@ export default function LegalPage({
           <div
             style={{
               background: "#fff",
-              borderRadius: 9,
+              borderRadius: radius.md,
               padding: "clamp(32px,4vw,56px)",
             }}
           >
@@ -425,11 +425,11 @@ export default function LegalPage({
             {/* Contact footer line */}
             <div
               style={{
-                borderTop: "1px solid rgba(0,55,56,0.12)",
+                borderTop: `1px solid ${dc.dark}20`,
                 paddingTop: 24,
                 fontSize: 14,
                 fontWeight: 500,
-                color: "rgba(0,55,56,0.50)",
+                color: `${dc.dark}80`,
                 letterSpacing: "-0.01em",
               }}
             >

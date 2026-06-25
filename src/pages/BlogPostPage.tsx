@@ -218,17 +218,17 @@ export default function BlogPostPage({
                         window.open(href, "_blank", "noopener");
                     }}
                     style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 6,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 8,
                       background: "rgba(238,239,211,0.08)",
-                      border: "1px solid rgba(238,239,211,0.14)",
+                      border: "1px solid rgba(238,239,211,0.18)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontSize: 12,
                       fontWeight: 700,
-                      color: "rgba(238,239,211,0.6)",
+                      color: "rgba(238,239,211,0.65)",
                       cursor: "pointer",
                     }}
                   >
@@ -323,7 +323,7 @@ export default function BlogPostPage({
         >
           <div
             style={{
-              maxWidth: 980,
+              maxWidth: 820,
               margin: "0 auto",
               display: "flex",
               alignItems: "center",
@@ -349,7 +349,7 @@ export default function BlogPostPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              DSCR at 1.11× — the threshold where both coverage and cash flow hold under a 10% vacancy shock.
+              {post.tag} · {post.date} · Greenstreet Finance
             </span>
           </div>
         </div>
@@ -584,19 +584,20 @@ export default function BlogPostPage({
                 onClick={(e) => { e.preventDefault(); (window.history.pushState({},'',`/blog/${r.slug}`),window.dispatchEvent(new PopStateEvent('popstate'))); }}
                 className="bp-card"
                 style={{
-                  background: "#fff",
-                  borderRadius: 9,
-                  border: "1px solid rgba(0,55,56,0.08)",
+                  background: dc.mintBg,
+                  borderRadius: 12,
+                  border: `1px solid ${dc.faded}`,
                   overflow: "hidden",
                   textDecoration: "none",
                   display: "flex",
                   flexDirection: "column",
                 }}
               >
-                {/* Card thumbnail — solid fill, no blur */}
+                {/* Card thumbnail — solid fill, aspect-ratio locked, no blur */}
                 <div
                   style={{
-                    height: 150,
+                    aspectRatio: "16/7",
+                    minHeight: 110,
                     background: r.bg,
                     display: "flex",
                     alignItems: "center",
@@ -605,7 +606,7 @@ export default function BlogPostPage({
                 >
                   <Mono
                     style={{
-                      fontSize: 30,
+                      fontSize: "clamp(24px,3vw,36px)",
                       fontWeight: 600,
                       color: r.glyphColor,
                       letterSpacing: "-0.03em",
@@ -614,24 +615,25 @@ export default function BlogPostPage({
                     {r.glyph}
                   </Mono>
                 </div>
-                <div style={{ padding: 24 }}>
+                <div style={{ padding: "clamp(18px,2vw,24px)" }}>
                   <div
                     style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      letterSpacing: "0.03em",
-                      textTransform: "uppercase" as const,
-                      color: dc.rain,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
                       marginBottom: 10,
                     }}
                   >
-                    {r.tag} · {r.date}
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
+                      {r.tag}
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.45)" }}>{r.date}</span>
                   </div>
                   <div
                     style={{
-                      fontSize: 18,
+                      fontSize: "clamp(15px,1.4vw,18px)",
                       fontWeight: 600,
-                      letterSpacing: "-0.02em",
+                      letterSpacing: "-0.025em",
                       lineHeight: 1.2,
                       color: dc.dark,
                     }}

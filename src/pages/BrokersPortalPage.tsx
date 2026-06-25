@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
+import { radius } from "../theme";
 
 // ── Workspace feature tiles — ported from "Everything a producing broker needs." ──
 const BENEFITS = [
@@ -180,12 +181,12 @@ export default function BrokersPortalPage({
             </div>
           </div>
 
-          {/* Right: Sign-in card — solid fill, flat 1px border, no blur */}
+          {/* Right: Sign-in card — solid fill, flat 1.5px faded border, no blur */}
           <div
             style={{
               background: dc.teal,
-              border: "1px solid rgba(238,239,211,0.14)",
-              borderRadius: 9,
+              border: `1.5px solid ${dc.dark}30`,
+              borderRadius: radius.md,
               padding: "clamp(28px,3vw,40px)",
             }}
           >
@@ -231,7 +232,7 @@ export default function BrokersPortalPage({
                   fontSize: 15,
                   cursor: "pointer",
                   padding: 14,
-                  borderRadius: 6,
+                  borderRadius: radius.sm,
                   marginTop: 4,
                   fontFamily: dc.sans,
                   letterSpacing: "-0.01em",
@@ -300,8 +301,8 @@ export default function BrokersPortalPage({
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
               gap: 1,
-              background: "rgba(0,55,56,0.12)",
-              borderRadius: 9,
+              background: `${dc.dark}20`,
+              borderRadius: radius.md,
               overflow: "hidden",
             }}
           >
@@ -390,8 +391,8 @@ export default function BrokersPortalPage({
             className="gs-reveal"
             style={{
               background: dc.white,
-              border: "1px solid rgba(0,55,56,0.08)",
-              borderRadius: 9,
+              border: `1px solid ${dc.dark}15`,
+              borderRadius: radius.md,
               padding: "4px 28px 8px",
             }}
           >
@@ -402,7 +403,7 @@ export default function BrokersPortalPage({
                   padding: "20px 0",
                   borderBottom:
                     i < TESTIMONIALS.length - 1
-                      ? "1px solid rgba(0,55,56,0.08)"
+                      ? `1px solid ${dc.dark}15`
                       : "none",
                 }}
               >
@@ -526,7 +527,7 @@ export default function BrokersPortalPage({
                 fontSize: 16,
                 cursor: "pointer",
                 padding: "15px 32px",
-                borderRadius: 6,
+                borderRadius: radius.sm,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
               }}
@@ -541,12 +542,12 @@ export default function BrokersPortalPage({
                 gap: 9,
                 background: "transparent",
                 color: dc.cream,
-                border: "1px solid rgba(238,239,211,0.3)",
+                border: `1.5px solid ${dc.dark}50`,
                 fontWeight: 600,
                 fontSize: 16,
                 cursor: "pointer",
                 padding: "15px 32px",
-                borderRadius: 6,
+                borderRadius: radius.sm,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
               }}

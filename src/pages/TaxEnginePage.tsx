@@ -161,19 +161,6 @@ export default function TaxEnginePage({
             pointerEvents: "none",
           }}
         />
-        {/* ambient radial glow */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-20%",
-            right: "-8%",
-            width: "55%",
-            aspectRatio: "1",
-            borderRadius: "50%",
-            background: "radial-gradient(circle,rgba(0,55,56,0.08),transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
         <div
           className="dc-hero"
           style={{

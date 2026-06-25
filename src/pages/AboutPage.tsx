@@ -35,10 +35,10 @@ const ABOUT_CSS = `
   /* Lemon nav: swap all text to dark ink */
   .dc-nav a { color: rgba(0,55,56,0.72) !important; }
   .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
-  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,1) !important;  }
+  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,1) !important; }
   /* Lemon footer: dark wordmark */
   footer { color: rgba(0,55,56,0.55) !important; }
-  footer div[style] { color: #003738 !important; }
+  footer .gs-footer-word { color: #003738 !important; }
   /* Job-row hover */
   .ab-job { transition: transform .14s, background .15s; }
   .ab-job:hover { transform: translateX(6px); background: #003738 !important; }
@@ -50,6 +50,18 @@ const ABOUT_CSS = `
   /* Team grid: 4-col desktop → 2-col mobile */
   .ab-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
   @media (max-width: 640px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
+  /* Investor logo grid: 3-col desktop → 2-col mobile */
+  .ab-inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 640px) { .ab-inv-grid { grid-template-columns: repeat(2, 1fr); } }
+  /* Values, Jobs, CTA 2-col grids → single col on mobile */
+  .ab-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ab-jobs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px,5vw,72px); align-items: start; }
+  .ab-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) {
+    .ab-2col { grid-template-columns: 1fr !important; }
+    .ab-jobs-grid { grid-template-columns: 1fr !important; }
+    .ab-cta-grid { grid-template-columns: 1fr !important; }
+  }
 `;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -366,21 +378,15 @@ export default function AboutPage({
             </h2>
           </div>
 
-          <div
-            className="gs-reveal dc-band-2"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 20,
-            }}
-          >
+          <div className="gs-reveal ab-2col">
             {VALUES.map((v, i) => (
               <div
                 key={i}
+                className="ix-card"
                 style={{
                   background: dc.cream,
-                  borderRadius: 9,
-                  border: "1px solid rgba(0,55,56,0.10)",
+                  borderRadius: dc.r.md,
+                  border: `1px solid ${dc.faded}`,
                   padding: "clamp(24px,3vw,36px)",
                 }}
               >
@@ -452,7 +458,7 @@ export default function AboutPage({
                 maxWidth: "18ch",
               }}
             >
-              World-class people. An even better team.
+              The people behind the engine.
             </h2>
           </div>
 
@@ -531,14 +537,10 @@ export default function AboutPage({
         }}
       >
         <div
-          className="gs-reveal dc-band-2"
+          className="gs-reveal ab-jobs-grid"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "start",
           }}
         >
           {/* Left: job list */}
@@ -731,15 +733,9 @@ export default function AboutPage({
               margin: "0 0 40px",
             }}
           >
-            Backed by top investors.
+            Backed by the right investors.
           </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 16,
-            }}
-          >
+          <div className="ab-inv-grid">
             {[
               "Cedar Ventures",
               "Mistral Capital",
@@ -755,7 +751,8 @@ export default function AboutPage({
                   alignItems: "center",
                   justifyContent: "center",
                   background: dc.cream,
-                  borderRadius: 9,
+                  borderRadius: dc.r.md,
+                  border: `1px solid ${dc.faded}`,
                   padding: "38px 24px",
                 }}
               >
@@ -783,13 +780,10 @@ export default function AboutPage({
         }}
       >
         <div
-          className="gs-reveal dc-band-2"
+          className="gs-reveal ab-cta-grid"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 20,
           }}
         >
           {/* Card 1: Demo */}
@@ -803,7 +797,7 @@ export default function AboutPage({
               gap: 40,
               background: dc.dark,
               color: dc.cream,
-              borderRadius: 12,
+              borderRadius: dc.r.lg,
               padding: "clamp(32px,4vw,52px)",
               border: "none",
               cursor: "pointer",
@@ -841,8 +835,9 @@ export default function AboutPage({
             </span>
           </button>
 
-          {/* Card 2: Contact */}
-          <div
+          {/* Card 2: Contact — anchor makes the phone number a real tap target */}
+          <a
+            href="tel:+15550100000"
             className="cta-card"
             style={{
               display: "flex",
@@ -851,9 +846,11 @@ export default function AboutPage({
               gap: 40,
               background: dc.rain,
               color: dc.cream,
-              borderRadius: 12,
+              borderRadius: dc.r.lg,
               padding: "clamp(32px,4vw,52px)",
               minHeight: 240,
+              textDecoration: "none",
+              cursor: "pointer",
             }}
           >
             <div
@@ -873,16 +870,16 @@ export default function AboutPage({
                 alignItems: "center",
                 gap: 8,
                 color: dc.lemon,
-                fontWeight: 600,
-                fontSize: 18,
+                fontWeight: 700,
+                fontSize: "clamp(22px,2.6vw,32px)",
                 fontFamily: dc.mono,
-                letterSpacing: "-0.02em",
+                letterSpacing: "-0.03em",
                 alignSelf: "flex-start",
               }}
             >
               +1 (555) 010-0000 →
             </span>
-          </div>
+          </a>
         </div>
       </section>
     </DcShell>

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { swatch, radius } from "../theme";
 
 interface Props {
   onBack?: () => void;
@@ -205,12 +206,13 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
 
   const result = done ? deriveResult(answers) : null;
 
+  // WEAK tier uses orange-risk color (#f97316 per design contract for high-risk)
   const tierColor =
     result?.tier === "BEST"
       ? dc.emerald
       : result?.tier === "GOOD"
       ? dc.lemon
-      : "#a78bfa";
+      : "#f97316";
 
   const scrollToQuiz = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -232,11 +234,13 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
       cta={{ label: "Take the quiz →", onClick: scrollToQuiz }}
       accent={RQ_ACCENT}
     >
-      {/* Extra CSS — option hover only; no glass/float/blur */}
+      {/* Extra CSS — option hover/focus; no glass/float/blur */}
       <style>{`
         .rq-opt{cursor:pointer;transition:transform .12s,background .15s,border-color .15s;}
-        .rq-opt:hover{transform:translateY(-2px);border-color:${dc.rain} !important;}
-        .rq-opt:focus-visible{outline:2px solid ${dc.rain};outline-offset:2px;border-radius:8px;}
+        .rq-opt:hover{transform:translateY(-2px);border-color:${swatch.lemon} !important;background:${swatch.mint} !important;}
+        .rq-opt:focus-visible{outline:2px solid ${swatch.lemon};outline-offset:2px;border-radius:${radius.sm};}
+        /* Back button — ensure 44px touch target */
+        .rq-back{min-height:44px;display:inline-flex;align-items:center;padding:0 4px;}
         /* Nav is pistachio — override text colour to dark ink */
         .dc-nav a,.dc-nav button{color:rgba(0,55,56,0.72) !important;}
         .dc-nav a.dc-cta{color:${dc.cream} !important;background:${dc.dark} !important;}
@@ -314,10 +318,10 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   borderRadius: 3,
                   background:
                     i < step
-                      ? "#4dbd97"
+                      ? swatch.emerald
                       : i === step && inQuiz
-                      ? "#006565"
-                      : "rgba(0,55,56,0.12)",
+                      ? swatch.rainforest
+                      : swatch.midnightFaded,
                   transition: "background .3s",
                 }}
               />
@@ -331,9 +335,10 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
               <div
                 id="rq-card"
                 style={{
-                  background: "#fff",
-                  borderRadius: 9,
+                  background: swatch.white,
+                  borderRadius: radius.md,
                   padding: "clamp(32px,4vw,56px)",
+                  border: `1px solid ${swatch.midnightFaded}`,
                 }}
               >
                 <div
@@ -430,12 +435,13 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   ))}
                 </div>
 
-                {/* Back button */}
+                {/* Back button — 44px touch target */}
                 {step > 0 && (
                   <button
                     onClick={back}
+                    className="rq-back"
                     style={{
-                      marginTop: 28,
+                      marginTop: 20,
                       background: "none",
                       border: "none",
                       color: "rgba(0,55,56,0.55)",
@@ -444,7 +450,6 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                       fontSize: 14,
                       letterSpacing: "-0.01em",
                       cursor: "pointer",
-                      padding: 0,
                     }}
                   >
                     ← Back
@@ -459,9 +464,10 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                 id="rq-result"
                 style={{
                   background: dc.dark,
-                  borderRadius: 9,
+                  borderRadius: radius.lg,
                   padding: "clamp(36px,4.5vw,60px)",
                   color: dc.cream,
+                  border: "1px solid rgba(238,239,211,0.1)",
                 }}
               >
                 {/* "Your match" label */}
@@ -537,7 +543,7 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                   {result.resultStats.map((r, i) => (
                     <div
                       key={i}
-                      style={{ background: "#004041", padding: "20px 22px" }}
+                      style={{ background: dc.teal, padding: "20px 22px" }}
                     >
                       <div
                         style={{
@@ -624,7 +630,8 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                       fontSize: 16,
                       textDecoration: "none",
                       padding: "15px 28px",
-                      borderRadius: 6,
+                      borderRadius: radius.sm,
+                      minHeight: 44,
                     }}
                   >
                     Run the numbers →
@@ -636,14 +643,15 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                       alignItems: "center",
                       gap: 8,
                       background: "transparent",
-                      border: "1px solid rgba(238,239,211,0.3)",
+                      border: `1.5px solid ${swatch.midnightFaded}`,
                       color: dc.cream,
                       fontFamily: dc.sans,
                       fontWeight: 600,
                       fontSize: 16,
                       padding: "15px 24px",
-                      borderRadius: 6,
+                      borderRadius: radius.sm,
                       cursor: "pointer",
+                      minHeight: 44,
                     }}
                   >
                     Check if I qualify →

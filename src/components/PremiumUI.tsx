@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { swatch, themes, ThemeName } from "../theme";
+import { swatch, themes, ThemeName, radius } from "../theme";
 
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -53,10 +53,10 @@ export function AnimatedCard({
       style={{
         background: theme.card,
         color: theme.cardText,
-        border: `1px solid ${theme.border}`,
-        borderRadius: "12px",
+        border: `1.5px solid ${theme.border}`,
+        borderRadius: radius.md,
         padding: "24px",
-        boxShadow: "0 4px 12px rgba(0, 55, 56, 0.03)",
+        boxShadow: "none",
         transition: "border-color 0.25s, background-color 0.25s",
         ...style,
       }}
@@ -154,8 +154,8 @@ export function AnimatedButton({
         padding: "12px 24px",
         backgroundColor: defaultBg,
         color: defaultText,
-        border: `1px solid ${defaultBorder}`,
-        borderRadius: "8px",
+        border: `1.5px solid ${defaultBorder}`,
+        borderRadius: radius.sm,
         fontWeight: 700,
         fontSize: "15px",
         fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
@@ -282,9 +282,9 @@ export function PremiumInput({
           display: "flex",
           alignItems: "center",
           background: "#ffffff",
-          border: `1px solid ${focused ? swatch.rainforest : "rgba(0, 55, 56, 0.18)"}`,
+          border: `1.5px solid ${focused ? swatch.rainforest : `${swatch.midnight}30`}`,
           boxShadow: focused ? `0 0 0 2px ${swatch.mint}` : "none",
-          borderRadius: "8px",
+          borderRadius: radius.sm,
           padding: prefixSymbol || suffixSymbol ? "0 12px" : "0",
           transition: "all 0.2s ease",
           height: "46px",
@@ -364,7 +364,7 @@ export function PremiumSlider({
           width: "100%",
           accentColor: swatch.rainforest,
           height: "6px",
-          borderRadius: "3px",
+          borderRadius: radius.sm,
           outline: "none",
           cursor: "pointer",
         }}

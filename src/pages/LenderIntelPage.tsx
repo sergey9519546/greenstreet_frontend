@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { swatch, radius } from "../theme";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 
 interface Props {
@@ -131,10 +132,15 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
       ]}
       cta={{ label: "Match my deal →", onClick: scrollToTool }}
     >
-      {/* Tiny CSS: input spinner hide only */}
+      {/* CSS: input spinner hide; unified dark-panel input style + focus ring */}
       <style>{`
         .li-in::-webkit-outer-spin-button,.li-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .li-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        .li-field{display:flex;align-items:center;background:${swatch.midnight};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 13px;transition:border-color .15s;}
+        .li-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;}
+        .li-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.38);}
+        /* Toggle buttons — 44px min touch target */
+        .li-toggle{min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
       `}</style>
 
       {/* ── HERO — dark-teal, single-column, mockup-faithful ── */}
@@ -190,7 +196,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                     ? "rgba(238,239,211,0.15)"
                     : "rgba(238,239,211,0.06)",
                   border: `1px solid ${p.fits ? "rgba(238,239,211,0.3)" : "rgba(238,239,211,0.12)"}`,
-                  borderRadius: 6,
+                  borderRadius: radius.sm,
                   padding: "8px 14px",
                   fontSize: 13,
                   fontWeight: 600,
@@ -234,11 +240,11 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             <div
               style={{
                 background: dc.teal,
-                borderRadius: 9,
-                padding: 30,
+                borderRadius: radius.md,
+                padding: "clamp(20px,2.4vw,28px)",
                 position: "sticky",
                 top: 96,
-                border: "1px solid rgba(238,239,211,0.08)",
+                border: "1px solid rgba(238,239,211,0.1)",
               }}
             >
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 20 }}>
@@ -250,7 +256,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   FICO Score
                 </span>
-                <div style={{ display: "flex", alignItems: "center", background: dc.dark, borderRadius: 6, padding: "0 13px" }}>
+                <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
                     type="number"
@@ -267,7 +273,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   LTV Needed
                 </span>
-                <div style={{ display: "flex", alignItems: "center", background: dc.dark, borderRadius: 6, padding: "0 13px" }}>
+                <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
                     type="number"
@@ -287,7 +293,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   Deal DSCR
                 </span>
-                <div style={{ display: "flex", alignItems: "center", background: dc.dark, borderRadius: 6, padding: "0 13px" }}>
+                <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
                     type="number"
@@ -307,7 +313,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   Loan Amount
                 </span>
-                <div style={{ display: "flex", alignItems: "center", background: dc.dark, borderRadius: 6, padding: "0 13px" }}>
+                <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 14 }}>$</span>
                   <input
                     className="li-in"
@@ -321,41 +327,35 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 </div>
               </label>
 
-              {/* State */}
-              <div style={{ marginBottom: 16, fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", lineHeight: 1.5 }}>
-                State:{" "}
-                <input
-                  className="li-in"
-                  type="text"
-                  maxLength={2}
-                  value={stateCode}
-                  onChange={(e) => setStateCode((e.target.value || "").toUpperCase().slice(0, 2))}
-                  style={{
-                    width: 42,
-                    display: "inline-block",
-                    textTransform: "uppercase",
-                    fontWeight: 700,
-                    background: dc.dark,
-                    borderRadius: 5,
-                    padding: "4px 6px",
-                    textAlign: "center",
-                    fontSize: 14,
-                    color: dc.cream,
-                  }}
-                />
-              </div>
+              {/* State — proper label field, consistent with other inputs */}
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  State (2-letter)
+                </span>
+                <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
+                  <input
+                    className="li-in"
+                    type="text"
+                    maxLength={2}
+                    value={stateCode}
+                    onChange={(e) => setStateCode((e.target.value || "").toUpperCase().slice(0, 2))}
+                    style={{ padding: "12px 7px", fontSize: 16, fontWeight: 700, textTransform: "uppercase", width: "100%" }}
+                  />
+                </div>
+              </label>
 
               {/* Property type toggles */}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <button
                   onClick={() => setNeedsSTR(!needsSTR)}
+                  className="li-toggle"
                   style={{
-                    padding: "8px 14px",
-                    borderRadius: 6,
-                    border: `1px solid ${needsSTR ? dc.lemon : "rgba(238,239,211,0.2)"}`,
+                    padding: "8px 16px",
+                    borderRadius: radius.sm,
+                    border: `1.5px solid ${needsSTR ? dc.lemon : swatch.midnightFaded}`,
                     background: needsSTR ? dc.lemon : "transparent",
                     color: needsSTR ? dc.dark : "rgba(238,239,211,0.7)",
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 600,
                     cursor: "pointer",
                     fontFamily: dc.sans,
@@ -366,13 +366,14 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 </button>
                 <button
                   onClick={() => setNeedsMF(!needsMF)}
+                  className="li-toggle"
                   style={{
-                    padding: "8px 14px",
-                    borderRadius: 6,
-                    border: `1px solid ${needsMF ? dc.emerald : "rgba(238,239,211,0.2)"}`,
+                    padding: "8px 16px",
+                    borderRadius: radius.sm,
+                    border: `1.5px solid ${needsMF ? dc.emerald : swatch.midnightFaded}`,
                     background: needsMF ? dc.emerald : "transparent",
                     color: needsMF ? dc.dark : "rgba(238,239,211,0.7)",
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: 600,
                     cursor: "pointer",
                     fontFamily: dc.sans,
@@ -389,12 +390,12 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   style={{
                     marginTop: 16,
                     padding: "10px 13px",
-                    background: "rgba(176,69,69,0.15)",
-                    borderRadius: 6,
-                    border: "1px solid rgba(176,69,69,0.3)",
+                    background: "rgba(255,107,107,0.1)",
+                    borderRadius: radius.sm,
+                    border: "1px solid rgba(255,107,107,0.3)",
                     fontSize: 12,
                     fontWeight: 500,
-                    color: "#f5a0a0",
+                    color: "#ff6b6b",
                     lineHeight: 1.5,
                   }}
                 >
@@ -406,7 +407,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             {/* ── PROGRAM LIST ── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {scored.map((p, i) => {
-                const statusColor = p.fits ? dc.rain : p.passed >= 3 ? "#9a7b00" : "#b04545";
+                const statusColor = p.fits ? dc.rain : p.passed >= 3 ? swatch.lemon : "#ff6b6b";
                 const statusLabel = p.fits ? "FITS" : p.passed >= 3 ? `${4 - p.passed} miss` : "NO FIT";
                 const cardBg = p.fits ? dc.white : "rgba(0,55,56,0.03)";
                 const cardBorder = p.fits ? "rgba(0,101,101,0.18)" : "rgba(0,55,56,0.1)";
@@ -421,8 +422,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                       alignItems: "center",
                       background: cardBg,
                       border: `1px solid ${cardBorder}`,
-                      borderRadius: 9,
-                      padding: "20px 24px",
+                      borderRadius: radius.md,
+                      padding: "clamp(16px,2vw,24px) 24px",
                     }}
                   >
                     {/* Rank */}
@@ -450,8 +451,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                             letterSpacing: "0.05em",
                             textTransform: "uppercase",
                             color: statusColor,
-                            background: p.fits ? "rgba(0,101,101,0.1)" : "rgba(0,55,56,0.06)",
-                            borderRadius: 5,
+                            background: p.fits ? "rgba(0,101,101,0.1)" : p.passed >= 3 ? "rgba(216,217,88,0.12)" : "rgba(255,107,107,0.1)",
+                            borderRadius: radius.sm,
                             padding: "3px 9px",
                           }}
                         >
@@ -478,8 +479,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                               fontSize: 11,
                               fontWeight: 600,
                               fontFamily: dc.mono,
-                              color: c.ok ? dc.rain : "#b04545",
-                              background: c.ok ? "rgba(0,101,101,0.08)" : "rgba(176,69,69,0.08)",
+                              color: c.ok ? dc.rain : "#ff6b6b",
+                              background: c.ok ? "rgba(0,101,101,0.08)" : "rgba(255,107,107,0.1)",
                               borderRadius: 5,
                               padding: "4px 8px",
                               letterSpacing: "-0.01em",
@@ -490,7 +491,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                         ))}
                         {/* Specialty flags */}
                         {p.noRatio && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: "#9a7b00", background: "rgba(154,123,0,0.08)", borderRadius: 5, padding: "4px 8px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: swatch.lemon, background: "rgba(216,217,88,0.12)", borderRadius: radius.sm, padding: "4px 8px" }}>
                             ★ no-ratio
                           </span>
                         )}
@@ -505,7 +506,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           </span>
                         )}
                         {p.foreignNational && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: "rgba(0,55,56,0.5)", background: "rgba(0,55,56,0.06)", borderRadius: 5, padding: "4px 8px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: "rgba(0,55,56,0.5)", background: swatch.midnightFaded + "22", borderRadius: radius.sm, padding: "4px 8px" }}>
                             ★ FN
                           </span>
                         )}
@@ -602,8 +603,9 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   fontSize: 15,
                   textDecoration: "none",
                   padding: "14px 28px",
-                  borderRadius: 6,
+                  borderRadius: radius.sm,
                   whiteSpace: "nowrap",
+                  minHeight: 44,
                 }}
               >
                 Get my rate →
@@ -622,9 +624,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   fontSize: 15,
                   textDecoration: "none",
                   padding: "14px 28px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(238,239,211,0.25)",
+                  borderRadius: radius.sm,
+                  border: `1.5px solid ${swatch.midnightFaded}`,
                   whiteSpace: "nowrap",
+                  minHeight: 44,
                 }}
               >
                 Full deal analyzer

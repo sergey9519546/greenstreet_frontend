@@ -529,7 +529,7 @@ function StudyDetail({
             gridTemplateColumns: `repeat(${s.metrics.length}, 1fr)`,
             gap: 1,
             background: "rgba(0,55,56,0.08)",
-            borderRadius: 9,
+            borderRadius: 12,
             overflow: "hidden",
             border: "1px solid rgba(0,55,56,0.1)",
           }}
@@ -628,10 +628,10 @@ function StudyDetail({
             className="gs-reveal"
             style={{
               borderLeft: `3px solid ${dc.lemon}`,
-              padding: "16px 24px",
+              padding: "18px 28px",
               margin: "40px 0",
-              background: "rgba(0,55,56,0.04)",
-              borderRadius: "0 6px 6px 0",
+              background: dc.mintBg,
+              borderRadius: "0 8px 8px 0",
             }}
           >
             <p
@@ -663,10 +663,10 @@ function StudyDetail({
             className="gs-reveal"
             style={{
               background: dc.dark,
-              borderRadius: 9,
+              borderRadius: 12,
               padding: "clamp(28px,3.5vw,44px)",
               marginTop: 48,
-              border: "1px solid rgba(238,239,211,0.1)",
+              border: "1px solid rgba(238,239,211,0.12)",
             }}
           >
             <div
@@ -1099,12 +1099,13 @@ export default function CaseStudiesPage({
               display: "inline-flex",
               alignItems: "center",
               gap: 9,
-              background: dc.teal,
-              borderRadius: 999,
-              padding: "15px 30px",
+              background: dc.lemon,
+              borderRadius: 8,
+              padding: "15px 32px",
               border: "none",
               cursor: "pointer",
               fontFamily: dc.sans,
+              minHeight: 52,
             }}
           >
             <span
@@ -1112,12 +1113,12 @@ export default function CaseStudiesPage({
                 fontSize: "clamp(15px,1.4vw,18px)",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
-                color: dc.cream,
+                color: dc.dark,
               }}
             >
-              Back to all tools
+              Run your own deal
             </span>
-            <span style={{ fontSize: 18, color: dc.lemon }}>→</span>
+            <span style={{ fontSize: 18, color: dc.dark }}>→</span>
           </button>
         </div>
       </section>

@@ -350,8 +350,8 @@ export default function RefiTrackerPage({
           {/* Right — break-even crossing-lines chart (THE signature visual) */}
           <div
             style={{
-              background: "linear-gradient(160deg,#00302f,#002423)",
-              borderRadius: 16,
+              background: dc.dark,
+              borderRadius: dc.r.lg,
               padding: 26,
               border: "1px solid rgba(238,239,211,0.1)",
             }}

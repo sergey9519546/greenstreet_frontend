@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { swatch, radius } from "../theme";
 import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
@@ -13,9 +14,9 @@ function verdictColor(v: string): string {
   return "#ff6b6b";
 }
 function verdictBg(v: string): string {
-  if (v === "PROCEED") return "#4dbd97";
-  if (v === "RESTRUCTURE") return "#d8d958";
-  return "#3a1414";
+  if (v === "PROCEED") return swatch.emerald;
+  if (v === "RESTRUCTURE") return swatch.lemon;
+  return swatch.midnight; // NO-GO — use midnight, not off-token dark red
 }
 function verdictInk(v: string): string {
   if (v === "PROCEED") return dc.dark;
@@ -260,10 +261,14 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       ]}
       cta={{ label: "Get the verdict →", onClick: scrollToTool }}
     >
-      {/* Extra CSS: hide number spinners */}
+      {/* Extra CSS: hide number spinners; unified dark-panel input style */}
       <style>{`
         .ds-in::-webkit-outer-spin-button,.ds-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .ds-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        /* Unified input wrapper — 1.5px border, focus ring 2px lemon */
+        .ds-field{display:flex;align-items:center;background:${swatch.darkTeal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 13px;transition:border-color .15s;}
+        .ds-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;}
+        .ds-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.38);}
       `}</style>
 
       {/* ── HERO — dark, 2-col: copy left / gauge right (mockup signature) ── */}
@@ -330,10 +335,10 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         </div>
       </section>
 
-      {/* ── TOOL — dark teal, matches mockup #003a39 ── */}
+      {/* ── TOOL — dark teal ── */}
       <section
         id="ds-tool"
-        style={{ background: "#003a39", color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
+        style={{ background: dc.teal, color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.08)" }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           {/* Section header */}
@@ -356,7 +361,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 36, alignItems: "start" }}
           >
             {/* ── INPUTS ── */}
-            <div style={{ background: "#002a29", borderRadius: 14, padding: 30, border: "1px solid rgba(238,239,211,0.08)" }}>
+            <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 30, border: "1px solid rgba(238,239,211,0.1)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 22 }}>
                 Deal &amp; borrower
               </div>
@@ -375,7 +380,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 5, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                     {f.label}
                   </span>
-                  <div style={{ display: "flex", alignItems: "center", background: dc.teal, borderRadius: 6, padding: "0 13px" }}>
+                  <div className="ds-field" style={{ display: "flex", alignItems: "center" }}>
                     {f.prefix && <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.prefix}</span>}
                     <input
                       className="ds-in"
@@ -393,7 +398,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
             {/* ── RESULTS ── */}
             {!result ? (
-              <div style={{ background: "#002a29", borderRadius: 14, padding: 40, border: "1px solid rgba(238,239,211,0.08)", textAlign: "center" }}>
+              <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 40, border: "1px solid rgba(238,239,211,0.1)", textAlign: "center" }}>
                 <p style={{ color: "#e06363", fontWeight: 600 }}>Engine returned no result — check inputs.</p>
               </div>
             ) : (
@@ -401,11 +406,12 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
                 {/* VERDICT CARD — gauge + chip (matches mockup readout panel layout) */}
                 <div
+                  className="gs-reveal"
                   style={{
-                    background: "linear-gradient(160deg,#00302f,#002423)",
-                    borderRadius: 14,
+                    background: dc.dark,
+                    borderRadius: radius.lg,
                     padding: "clamp(28px,3vw,40px)",
-                    border: "1px solid rgba(238,239,211,0.08)",
+                    border: "1px solid rgba(238,239,211,0.1)",
                     display: "grid",
                     gridTemplateColumns: "auto 1fr",
                     gap: "clamp(28px,4vw,52px)",
@@ -446,7 +452,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 {/* COMPOSITE BREAKDOWN + IC MEMO — side by side (matches mockup 2-col bottom) */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
                   {/* Composite factors */}
-                  <div style={{ background: "#002a29", borderRadius: 14, padding: 26, border: "1px solid rgba(238,239,211,0.08)" }}>
+                  <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.1)" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 18 }}>
                       Composite breakdown (weighted)
                     </div>
@@ -465,7 +471,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   </div>
 
                   {/* IC MEMO */}
-                  <div style={{ background: "#002a29", borderRadius: 14, padding: 26, border: "1px solid rgba(238,239,211,0.08)" }}>
+                  <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.1)" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                       IC memo — key reasons
                     </div>
@@ -480,7 +486,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
                 {/* KILL CRITERIA (when flagged) */}
                 {result.kill.criteria.length > 0 && (
-                  <div className="gs-reveal" style={{ background: "#002a29", borderRadius: 14, padding: 28, border: "1px solid rgba(238,239,211,0.08)" }}>
+                  <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.lg, padding: 28, border: "1px solid rgba(238,239,211,0.1)" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                       Kill-criterion checklist — {result.kill.criteria.length} flagged
                     </div>
@@ -507,15 +513,15 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 {/* GRADE + ACQ SCORE */}
                 <div
                   className="gs-reveal dc-band-2"
-                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: 14, overflow: "hidden", border: "1px solid rgba(238,239,211,0.08)" }}
+                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.1)" }}
                 >
-                  <div style={{ background: "#002a29", padding: "28px 24px", textAlign: "center" }}>
+                  <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 8 }}>Return grade</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade) === dc.rain ? dc.emerald : gradeColor(result.grade), lineHeight: 1 }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade), lineHeight: 1 }}>
                       {result.grade}
                     </Mono>
                   </div>
-                  <div style={{ background: "#002a29", padding: "28px 24px", textAlign: "center" }}>
+                  <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 8 }}>Acquisition score</div>
                     <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? "#e6b84d" : "#e06363", lineHeight: 1 }}>
                       {Math.round(result.acq.score)}
@@ -525,10 +531,10 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 </div>
 
                 {/* ENGINE FOOTNOTE */}
-                <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: 9, border: "1px solid rgba(238,239,211,0.08)", fontSize: 12, color: "rgba(238,239,211,0.55)", lineHeight: 1.6 }}>
-                  <strong style={{ color: dc.emerald }}>Engine:</strong>{" "}
-                  src/engine/decisionSupport.ts → computeVerdict + computeDealKillCheck + computeReturnGrade.
-                  PROCEED requires: T1 ≥ lender min + 5 bps cushion, T2 ≥ 1.0, Grade ≥ B, cushion ≥ 50 bps, no blockers, ≥1 eligible program.
+                <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)", fontSize: 12, color: "rgba(238,239,211,0.55)", lineHeight: 1.6 }}>
+                  <strong style={{ color: dc.emerald }}>How verdicts work: </strong>
+                  PROCEED requires Track 1 DSCR above the lender minimum plus a 5 bps cushion, Track 2 ≥ 1.0x, return grade ≥ B, ≥ 50 bps rate headroom, no blockers, and at least one eligible program.{" "}
+                  Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting.
                 </div>
               </div>
             )}

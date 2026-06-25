@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead } from "../design/dc";
+import { radius } from "../theme";
 
 // ── Open roles (all original descriptions preserved) ─────────────────────────
 interface Role {
@@ -85,8 +86,8 @@ function RoleRow({ role, isOpen, onToggle }: { role: Role; isOpen: boolean; onTo
       className="cr-job"
       style={{
         background: isOpen ? dc.dark : dc.white,
-        borderRadius: 9,
-        border: `1px solid ${isOpen ? "rgba(238,239,211,0.16)" : "rgba(0,55,56,0.10)"}`,
+        borderRadius: radius.md,
+        border: `1.5px solid ${isOpen ? `${dc.dark}40` : `${dc.dark}20`}`,
         overflow: "hidden",
         transition: "background 0.15s, border-color 0.15s",
       }}
@@ -180,7 +181,7 @@ function RoleRow({ role, isOpen, onToggle }: { role: Role; isOpen: boolean; onTo
               fontSize: 14,
               textDecoration: "none",
               padding: "11px 22px",
-              borderRadius: 6,
+              borderRadius: radius.sm,
               letterSpacing: "-0.01em",
               fontFamily: dc.sans,
             }}
@@ -339,8 +340,8 @@ export default function CareersPage({
               display: "grid",
               gridTemplateColumns: "repeat(3,1fr)",
               gap: "1px",
-              background: "rgba(238,239,211,0.12)",
-              borderRadius: 9,
+              background: `${dc.dark}20`,
+              borderRadius: radius.md,
               overflow: "hidden",
             }}
           >

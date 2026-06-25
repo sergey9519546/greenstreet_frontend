@@ -12,10 +12,9 @@ const BL_CSS = `
 /* Light-nav override: links + wordmark use dark ink on pistachio bg */
 .dc-nav a { color: rgba(0,55,56,0.72) !important; }
 .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
-.dc-nav { border-bottom: ${BL_NAV_BORDER} !important; background: rgba(238,239,211,1) !important;  }
+.dc-nav { border-bottom: ${BL_NAV_BORDER} !important; background: rgba(238,239,211,1) !important; }
 /* footer ink on pistachio footer */
 footer { color: rgba(0,55,56,0.55) !important; }
-footer div[style] { color: #003738 !important; }
 `;
 
 // ── Post data (all existing posts preserved) ──────────────────────────────────
@@ -636,26 +635,26 @@ function ArticleBody({ blocks }: { blocks: { p?: string; h?: string; quote?: str
     <>
       {blocks.map((b, i) => {
         if (b.h) return (
-          <h2 key={i} style={{ color: dc.rain, fontSize: "22px", fontWeight: 700, margin: "32px 0 12px", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+          <h2 key={i} style={{ color: dc.dark, fontSize: "clamp(20px,2vw,26px)", fontWeight: 600, margin: "36px 0 14px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>
             {b.h}
           </h2>
         );
         if (b.quote) return (
-          <blockquote key={i} style={{ borderLeft: `3px solid ${dc.lemon}`, padding: "10px 22px", margin: "28px 0", color: dc.dark, fontSize: "20px", fontStyle: "italic", lineHeight: 1.4, fontWeight: 500 }}>
+          <blockquote key={i} style={{ borderLeft: `3px solid ${dc.lemon}`, padding: "14px 24px", margin: "32px 0", color: dc.dark, fontSize: "clamp(18px,1.6vw,22px)", lineHeight: 1.35, fontWeight: 600, letterSpacing: "-0.02em" }}>
             {b.quote}
           </blockquote>
         );
         if (b.list) return (
-          <ul key={i} style={{ margin: "0 0 20px", padding: 0, listStyle: "none" }}>
+          <ul key={i} style={{ margin: "0 0 22px", padding: 0, listStyle: "none" }}>
             {b.list.map((li, j) => (
-              <li key={j} style={{ color: "#3f5252", fontSize: "16px", lineHeight: 1.6, marginBottom: "12px", paddingLeft: "26px", position: "relative" }}>
-                <span style={{ position: "absolute", left: 0, color: dc.rain, fontWeight: 800 }}>→</span>
+              <li key={j} style={{ color: "rgba(0,55,56,0.75)", fontSize: "clamp(15px,1.25vw,17px)", lineHeight: 1.65, marginBottom: "14px", paddingLeft: "26px", position: "relative" }}>
+                <span style={{ position: "absolute", left: 0, color: dc.rain, fontWeight: 700 }}>→</span>
                 {li}
               </li>
             ))}
           </ul>
         );
-        return <p key={i} style={{ color: "#3f5252", fontSize: "17px", lineHeight: 1.75, marginBottom: "18px" }}>{b.p}</p>;
+        return <p key={i} style={{ color: "rgba(0,55,56,0.75)", fontSize: "clamp(16px,1.35vw,18px)", lineHeight: 1.75, marginBottom: "20px", fontWeight: 500 }}>{b.p}</p>;
       })}
     </>
   );
@@ -711,24 +710,24 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
           {/* CTA card — qualifier + deal analyzer */}
           <div
             className="gs-reveal"
-            style={{ marginTop: 44, borderRadius: 9, border: `1px solid ${dc.rain}`, background: "rgba(0,101,101,0.07)", padding: "28px 32px" }}
+            style={{ marginTop: 48, borderRadius: 12, border: `1px solid rgba(0,55,56,0.12)`, background: dc.mintBg, padding: "clamp(24px,3vw,36px) clamp(24px,3vw,40px)" }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 12 }}>
               Ready to run a real deal?
             </div>
-            <p style={{ color: "#4a5d5d", fontSize: 15, marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ color: "rgba(0,55,56,0.72)", fontSize: 15, marginBottom: 22, lineHeight: 1.6, fontWeight: 500 }}>
               Model DSCR, break-even rate, and your program match — or check whether your deal qualifies right now.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
               <button
                 onClick={() => onNavigate("dscr-calculator")}
-                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "11px 22px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
               >
                 Open the Deal Analyzer →
               </button>
               <button
                 onClick={() => (window as any).openQualify?.()}
-                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "11px 22px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
               >
                 See if your deal qualifies →
               </button>
@@ -745,9 +744,9 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
                 <button
                   key={r.slug}
                   onClick={() => (window.history.pushState({},'',`/blog/${r.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
-                  style={{ background: dc.white, borderRadius: 8, border: `1px solid rgba(0,55,56,0.10)`, padding: "20px 22px", textAlign: "left" as const, cursor: "pointer", fontFamily: dc.sans }}
+                  style={{ background: dc.mintBg, borderRadius: 8, border: `1px solid rgba(0,55,56,0.10)`, padding: "20px 22px", textAlign: "left" as const, cursor: "pointer", fontFamily: dc.sans }}
                 >
-                  <div style={{ color: "#647474", fontSize: 12, marginBottom: 6 }}>{r.date}</div>
+                  <div style={{ color: dc.rain, fontSize: 12, fontWeight: 500, marginBottom: 6 }}>{r.date}</div>
                   <div style={{ color: dc.dark, fontWeight: 700, fontSize: 15, lineHeight: 1.3, letterSpacing: "-0.01em" }}>{r.title}</div>
                 </button>
               ))}
@@ -808,7 +807,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             maxWidth: dc.maxW,
             margin: "0 auto",
             background: dc.dark,
-            borderRadius: 9,
+            borderRadius: 12,
             overflow: "hidden",
             border: "none",
             cursor: "pointer",
@@ -854,15 +853,16 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
               onClick={() => setTag(t)}
               style={{
                 padding: "8px 16px",
-                borderRadius: 20,
-                border: `1px solid ${tag === t ? dc.rain : "rgba(0,55,56,0.22)"}`,
-                background: tag === t ? "rgba(0,101,101,0.10)" : "transparent",
-                color: tag === t ? dc.rain : "#4a5d5d",
+                borderRadius: 999,
+                border: `1.5px solid ${tag === t ? dc.rain : dc.faded}`,
+                background: tag === t ? dc.mintBg : "transparent",
+                color: tag === t ? dc.rain : dc.dark,
                 cursor: "pointer",
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
+                minHeight: 36,
               }}
             >
               {t}
@@ -881,10 +881,10 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
                 className="bl-card"
                 onClick={() => (window.history.pushState({},'',`/blog/${p.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
                 style={{
-                  background: dc.white,
-                  borderRadius: 9,
+                  background: dc.mintBg,
+                  borderRadius: 12,
                   overflow: "hidden",
-                  border: "1px solid rgba(0,55,56,0.08)",
+                  border: `1px solid ${dc.faded}`,
                   textAlign: "left" as const,
                   cursor: "pointer",
                   display: "flex",
@@ -893,25 +893,36 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
                   padding: 0,
                 }}
               >
-                {/* Glyph header — solid fill */}
-                <div style={{ height: 160, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Mono style={{ fontSize: 34, fontWeight: 600, color: p.glyphColor, letterSpacing: "-0.03em" }}>
+                {/* Glyph header — solid fill, aspect-ratio locked */}
+                <div style={{ aspectRatio: "16/7", minHeight: 120, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Mono style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 600, color: p.glyphColor, letterSpacing: "-0.03em" }}>
                     {p.glyph}
                   </Mono>
                 </div>
-                <div style={{ padding: 26, display: "flex", flexDirection: "column", flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 10 }}>
-                    {p.tag} · {p.date}
+                <div style={{ padding: "clamp(20px,2.4vw,28px)", display: "flex", flexDirection: "column", flex: 1 }}>
+                  {/* Tag pill + date on same row */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
+                      {p.tag}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.45)", letterSpacing: "-0.01em" }}>{p.date}</span>
                   </div>
-                  <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.2, color: dc.dark, marginBottom: 10 }}>
+                  <div style={{ fontSize: "clamp(16px,1.5vw,20px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.2, color: dc.dark, marginBottom: 10 }}>
                     {p.title}
                   </div>
-                  <p style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "rgba(0,55,56,0.6)", margin: "0 0 18px", letterSpacing: "-0.01em", flex: 1 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.58)", margin: "0 0 18px", letterSpacing: "-0.01em", flex: 1 }}>
                     {p.summary}
                   </p>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: dc.rain, letterSpacing: "-0.01em" }}>
-                    {p.author} →
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ width: 28, height: 28, borderRadius: "50%", background: dc.rain, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: dc.cream, letterSpacing: "-0.01em" }}>
+                        {p.author === "Greenstreet" ? "GS" : p.author.split(" ").map((n: string) => n[0]).join("")}
+                      </span>
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: dc.rain, letterSpacing: "-0.01em" }}>
+                      {p.author} →
+                    </span>
+                  </div>
                 </div>
               </button>
             ))}

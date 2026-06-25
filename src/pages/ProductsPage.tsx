@@ -3,7 +3,9 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
-gsap.registerPlugin(ScrollTrigger);
+// ScrollTrigger is already registered in dc.tsx — calling it again here is a
+// no-op for GSAP but avoids the "Plugin already registered" warning in strict mode.
+// We keep the import for the per-row scrollTrigger config below.
 
 // ── Tool definitions — alternating 2-col feature rows ────────────────────────
 // Panel colour sets rotate across the 11 tools so adjacent rows never share the
@@ -197,13 +199,14 @@ function FeatureRow({
           <div
             style={{
               display: "inline-block",
-              padding: "3px 10px",
-              background: "rgba(216,217,88,0.18)",
-              color: "#6b5400",
-              borderRadius: 20,
+              padding: "4px 11px",
+              background: dc.lemon,
+              color: dc.dark,
+              borderRadius: dc.r.pill,
               fontSize: 11,
               fontWeight: 700,
-              letterSpacing: "0.03em",
+              letterSpacing: "0.04em",
+              textTransform: "uppercase" as const,
               marginBottom: 14,
             }}
           >
@@ -240,16 +243,17 @@ function FeatureRow({
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            background: dc.dark,
-            color: dc.mintBg,
-            fontWeight: 600,
+            background: dc.lemon,
+            color: dc.dark,
+            fontWeight: 700,
             fontSize: 15,
             border: "none",
             cursor: "pointer",
-            padding: "13px 26px",
-            borderRadius: 6,
+            padding: "14px 26px",
+            borderRadius: dc.r.md,
             fontFamily: dc.sans,
             letterSpacing: "-0.01em",
+            minHeight: 44,
           }}
         >
           {tool.cta} →
@@ -261,9 +265,10 @@ function FeatureRow({
         <div
           style={{
             position: "relative",
-            borderRadius: 12,
+            borderRadius: dc.r.lg,
             overflow: "hidden",
             background: tool.panelBg,
+            border: `1px solid ${dc.faded}`,
             padding: "clamp(18px, 2vw, 28px)",
             aspectRatio: "1.5",
             display: "flex",

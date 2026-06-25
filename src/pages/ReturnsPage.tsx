@@ -468,7 +468,7 @@ export default function ReturnsPage({
             <div
               style={{
                 background: dc.white,
-                borderRadius: 9,
+                borderRadius: dc.r.md,
                 padding: 28,
                 border: "1px solid rgba(0,55,56,0.1)",
               }}
@@ -534,7 +534,7 @@ export default function ReturnsPage({
               <div
                 style={{
                   background: dc.dark,
-                  borderRadius: 12,
+                  borderRadius: dc.r.md,
                   padding: "clamp(28px,3.5vw,44px)",
                   display: "grid",
                   gridTemplateColumns: "auto 1fr",
@@ -615,7 +615,7 @@ export default function ReturnsPage({
               <div
                 style={{
                   background: dc.white,
-                  borderRadius: 9,
+                  borderRadius: dc.r.md,
                   padding: 24,
                   border: "1px solid rgba(0,55,56,0.1)",
                 }}

@@ -22,6 +22,29 @@ export {
 } from './engine';
 export type { QuickDscrTier, QuickDscrEstimate } from './engine';
 
+// --- Preliminary qualification engine (LTV/PITIA/DSCR/outcome/levers) ---
+export {
+  qualify,
+  amortize,
+  loanForPayment,
+  QUALIFY_POLICY,
+  OUTCOME_META,
+  fmtUsd,
+  fmtPct,
+  fmtRateRange,
+} from './qualify';
+export type {
+  QualifyInput,
+  QualifyResult,
+  Lever,
+  Outcome,
+  DscrBand,
+  PropertyType as QualifyPropertyType,
+  BorrowerType,
+  FicoBand as EngineFicoBand,
+  Purpose as EnginePurpose,
+} from './qualify';
+
 // --- Lender matching (real 19-lender provenance DB) ---
 export {
   LENDERS,

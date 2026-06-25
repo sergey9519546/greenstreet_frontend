@@ -65,7 +65,8 @@ const SEGMENTS: Segment[] = [
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.60)",
     gridline: "rgba(238,239,211,0.14)",
-    statBg: "#005152",
+    // darkTeal is the closest on-token surface darker than rainforest
+    statBg: dc.teal,
     stats: [
       { v: "$25M", k: "blanket lines" },
       { v: "1.49×", k: "blended DSCR" },
@@ -83,7 +84,8 @@ const SEGMENTS: Segment[] = [
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.60)",
     gridline: "rgba(0,55,56,0.12)",
-    statBg: "#e3e463",
+    // mint is the closest on-token light surface for lemon panel stat cells
+    statBg: dc.mintBg,
     stats: [
       { v: "50", k: "state rules" },
       { v: "100%", k: "cited rules" },
@@ -235,16 +237,17 @@ function SegmentRow({
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            background: dc.dark,
-            color: dc.cream,
-            fontWeight: 600,
+            background: dc.lemon,
+            color: dc.dark,
+            fontWeight: 700,
             fontSize: 15,
             border: "none",
             cursor: "pointer",
-            padding: "13px 26px",
-            borderRadius: 6,
+            padding: "14px 26px",
+            borderRadius: dc.r.md,
             fontFamily: dc.sans,
             letterSpacing: "-0.01em",
+            minHeight: 44,
           }}
         >
           {seg.cta} →
@@ -259,84 +262,6 @@ function SegmentRow({
   );
 }
 
-// ── "Just want a rate?" — intentionally informal closing card ─────────────────
-// Wired directly to rate-quiz. Kept as written in the mockup data.
-function RateQuizCard({ onNavigate }: { onNavigate: (v: string) => void }) {
-  return (
-    <div
-      className="gs-reveal"
-      style={{
-        background: dc.lemon,
-        border: "1px solid rgba(0,55,56,0.12)",
-        borderRadius: 9,
-        padding: "clamp(28px,3.5vw,44px)",
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: 16,
-        alignItems: "flex-start",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase" as const,
-          color: dc.rain,
-        }}
-      >
-        Rate quiz
-      </div>
-      <h2
-        style={{
-          fontSize: "clamp(24px,2.8vw,38px)",
-          fontWeight: 600,
-          letterSpacing: "-0.035em",
-          lineHeight: 1.05,
-          margin: 0,
-          color: dc.dark,
-        }}
-      >
-        Just want a rate?
-      </h2>
-      <p
-        style={{
-          fontSize: "clamp(16px,1.3vw,19px)",
-          fontWeight: 500,
-          lineHeight: 1.5,
-          color: "rgba(0,55,56,0.7)",
-          margin: 0,
-          letterSpacing: "-0.01em",
-          maxWidth: "52ch",
-        }}
-      >
-        Five questions. A real rate tier and your matched Greenstreet program. No email, no credit
-        pull, no pitch.
-      </p>
-      <button
-        onClick={() => onNavigate("rate-quiz")}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          background: dc.dark,
-          color: dc.cream,
-          fontWeight: 600,
-          fontSize: 15,
-          border: "none",
-          cursor: "pointer",
-          padding: "13px 26px",
-          borderRadius: 6,
-          fontFamily: dc.sans,
-          letterSpacing: "-0.01em",
-          marginTop: 4,
-        }}
-      >
-        Take the rate quiz →
-      </button>
-    </div>
-  );
-}
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 // accent = dc.dark: midnight nav + footer, cream body — Solutions' own identity.
@@ -451,88 +376,158 @@ export default function SolutionsPage({
         </div>
       </section>
 
-      {/* ── "Just want a rate?" — informal closing card, routes to rate-quiz ── */}
+      {/* ── RATE QUIZ + CLOSE — dark band breaks the cream sequence ─────────── */}
+      {/* Collapses the two orphan cream sections into a single intentional band */}
       <section
         style={{
-          background: dc.cream,
-          padding: `0 ${dc.pad} clamp(56px,8vw,96px)`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <RateQuizCard onNavigate={onNavigate} />
-        </div>
-      </section>
-
-      {/* ── EXPLORE ALL TOOLS — two pills: home + products deep-link ──── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(32px,4vw,56px) ${dc.pad} clamp(72px,10vh,120px)`,
+          background: dc.dark,
+          color: dc.cream,
+          padding: `clamp(64px,8vw,112px) ${dc.pad}`,
         }}
       >
         <div
-          className="gs-reveal"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "flex",
-            justifyContent: "center",
-            gap: 16,
-            flexWrap: "wrap",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "clamp(40px,6vw,96px)",
+            alignItems: "center",
           }}
         >
-          <button
-            onClick={() => onNavigate("marketing")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.mintBg,
-              border: "none",
-              borderRadius: 999,
-              padding: "15px 30px",
-              cursor: "pointer",
-              fontFamily: dc.sans,
-            }}
-          >
-            <span
+          {/* Left: rate quiz card */}
+          <div className="gs-reveal">
+            <div
               style={{
-                fontSize: "clamp(16px,1.4vw,19px)",
+                fontSize: 12,
                 fontWeight: 600,
-                letterSpacing: "-0.02em",
-                color: dc.dark,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                marginBottom: 16,
               }}
             >
-              Explore all tools
-            </span>
-            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
-          </button>
-          <button
-            onClick={() => onNavigate("products")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.dark,
-              border: "none",
-              borderRadius: 999,
-              padding: "15px 30px",
-              cursor: "pointer",
-              fontFamily: dc.sans,
-            }}
-          >
-            <span
+              Rate quiz
+            </div>
+            <h2
               style={{
-                fontSize: "clamp(16px,1.4vw,19px)",
+                fontSize: "clamp(28px,3.4vw,46px)",
                 fontWeight: 600,
-                letterSpacing: "-0.02em",
+                letterSpacing: "-0.035em",
+                lineHeight: 1.05,
+                margin: "0 0 20px",
                 color: dc.cream,
               }}
             >
-              See the full product catalog
-            </span>
-            <span style={{ fontSize: 18, color: dc.lemon }}>→</span>
-          </button>
+              Just want a rate?
+            </h2>
+            <p
+              style={{
+                fontSize: "clamp(16px,1.3vw,19px)",
+                fontWeight: 500,
+                lineHeight: 1.5,
+                color: "rgba(238,239,211,0.65)",
+                margin: "0 0 28px",
+                letterSpacing: "-0.01em",
+                maxWidth: "42ch",
+              }}
+            >
+              Five questions. A real rate tier and your matched Greenstreet program.
+              No email, no credit pull, no pitch.
+            </p>
+            {/* ONE dominant lemon primary per contract */}
+            <button
+              onClick={() => onNavigate("rate-quiz")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 700,
+                fontSize: 15,
+                border: "none",
+                cursor: "pointer",
+                padding: "16px 28px",
+                borderRadius: dc.r.md,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                minHeight: 44,
+              }}
+            >
+              Take the rate quiz →
+            </button>
+          </div>
+
+          {/* Right: explore nav */}
+          <div className="gs-reveal" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase" as const,
+                color: "rgba(238,239,211,0.45)",
+                marginBottom: 4,
+              }}
+            >
+              Explore further
+            </div>
+            <button
+              onClick={() => onNavigate("marketing")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: "transparent",
+                border: `1.5px solid ${dc.faded}`,
+                borderRadius: dc.r.pill,
+                padding: "14px 26px",
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                minHeight: 44,
+                alignSelf: "flex-start",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  color: dc.cream,
+                }}
+              >
+                Explore all tools →
+              </span>
+            </button>
+            <button
+              onClick={() => onNavigate("products")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                background: "transparent",
+                border: `1.5px solid ${dc.faded}`,
+                borderRadius: dc.r.pill,
+                padding: "14px 26px",
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                minHeight: 44,
+                alignSelf: "flex-start",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  color: dc.cream,
+                }}
+              >
+                Full product catalog →
+              </span>
+            </button>
+          </div>
         </div>
       </section>
     </DcShell>

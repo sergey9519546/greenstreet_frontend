@@ -9,8 +9,8 @@ import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/ty
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // ── Mint accent — the Stress Matrix colour identity ──────────────────────────
-const MINT = "#e8e9bf";
-const DARK_INK = "#003738";
+const MINT = dc.mintBg;  // #e8e9bf
+const DARK_INK = dc.dark;  // #003738
 
 // ── Risk zone display config ─────────────────────────────────────────────────
 const ZONE_COLORS: Record<StressRiskZone, { bg: string; ink: string }> = {
@@ -256,19 +256,6 @@ export default function StressMatrixPage({
             pointerEvents: "none",
           }}
         />
-        {/* Radial accent blob */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-15%",
-            right: "-5%",
-            width: "50%",
-            aspectRatio: "1",
-            borderRadius: "50%",
-            background: "radial-gradient(circle,rgba(0,101,101,0.09),transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
         <div
           className="dc-hero"
           style={{
@@ -322,7 +309,7 @@ export default function StressMatrixPage({
                 gridTemplateColumns: "repeat(10, 1fr)",
                 gap: 5,
                 background: DARK_INK,
-                borderRadius: 14,
+                borderRadius: dc.r.lg,
                 padding: 14,
               }}
             >
@@ -415,7 +402,7 @@ export default function StressMatrixPage({
             <div
               style={{
                 background: dc.teal,
-                borderRadius: 9,
+                borderRadius: dc.r.md,
                 padding: 26,
                 position: "sticky",
                 top: 96,

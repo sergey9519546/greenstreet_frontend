@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import type { DSCRResult, BreakevenResult, StructureOption, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
 import type { AuditLog } from "../engine/types";
+import { swatch, radius } from "../theme";
 import RefiTrackerPage from "../pages/RefiTrackerPage";
 import ARMPage from "../pages/ARMPage";
 import MonteCarloPage from "../pages/MonteCarloPage";
@@ -356,17 +357,17 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                 style={{
                   padding: "11px 12px",
                   fontWeight: active ? 600 : 500,
-                  color: active ? "#eeefd3" : "rgba(238,239,211,0.72)",
-                  background: active ? "rgba(238,239,211,0.1)" : "transparent",
+                  color: active ? swatch.pistachio : `${swatch.pistachio}b8`,
+                  background: active ? `${swatch.pistachio}18` : "transparent",
                 }}>
                 <span className="font-mono w-[18px] text-center shrink-0"
-                  style={{ color: active ? "#d8d958" : "#4dbd97", fontSize: "14px" }}>
+                  style={{ color: active ? swatch.lemon : swatch.emerald, fontSize: "14px" }}>
                   {icon}
                 </span>
                 <span className="flex-1">{label}</span>
                 {count !== undefined && count > 0 && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                    style={{ background: "rgba(77,189,151,0.15)", color: "#4dbd97" }}>
+                    style={{ background: `${swatch.emerald}28`, color: swatch.emerald }}>
                     {count}
                   </span>
                 )}
@@ -387,10 +388,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                 style={{
                   padding: "10px 12px",
                   fontWeight: 500,
-                  color: active ? "#eeefd3" : "rgba(238,239,211,0.72)",
-                  background: active ? "rgba(238,239,211,0.1)" : "transparent",
+                  color: active ? swatch.pistachio : `${swatch.pistachio}b8`,
+                  background: active ? `${swatch.pistachio}18` : "transparent",
                 }}>
-                <span className="font-mono w-[18px] text-center shrink-0" style={{ color: "#4dbd97", fontSize: "14px" }}>
+                <span className="font-mono w-[18px] text-center shrink-0" style={{ color: swatch.emerald, fontSize: "14px" }}>
                   {icon}
                 </span>
                 {label}
@@ -401,9 +402,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
         {/* User chip */}
         <div className="mt-auto flex items-center gap-2.5 px-3 pt-3"
-          style={{ borderTop: "1px solid rgba(238,239,211,0.1)" }}>
+          style={{ borderTop: `1px solid ${swatch.pistachio}1a` }}>
           <span className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold shrink-0"
-            style={{ background: "#4dbd97", color: "#003738" }}>
+            style={{ background: swatch.emerald, color: swatch.midnight }}>
             {brokerInitials}
           </span>
           <div className="overflow-hidden">
@@ -422,21 +423,21 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         {/* Sticky header — solid, no blur */}
         <header className="sticky top-0 z-10 flex items-center justify-between"
           style={{
-            background: "#eeefd3",
-            borderBottom: "1px solid rgba(0,55,56,0.1)",
+            background: swatch.pistachio,
+            borderBottom: `1px solid ${swatch.midnight}20`,
             padding: "20px clamp(20px,3vw,40px)",
           }}>
           <div>
-            <div className="text-[12px] font-semibold uppercase tracking-[0.04em]" style={{ color: "#006565" }}>
+            <div className="text-[12px] font-semibold uppercase tracking-[0.04em]" style={{ color: swatch.rainforest }}>
               Workspace
             </div>
-            <div className="font-semibold mt-0.5" style={{ fontSize: "clamp(20px,2vw,26px)", letterSpacing: "-0.03em", color: "#003738" }}>
+            <div className="font-semibold mt-0.5" style={{ fontSize: "clamp(20px,2vw,26px)", letterSpacing: "-0.03em", color: swatch.midnight }}>
               {viewTitle[activeTab] ?? "Dashboard"}
             </div>
           </div>
           <button onClick={() => setActiveTab("analyze")}
             className="inline-flex items-center gap-1.5 font-semibold text-sm transition"
-            style={{ background: "#003738", color: "#e8e9bf", padding: "11px 20px", borderRadius: "6px" }}>
+            style={{ background: swatch.midnight, color: swatch.mint, padding: "11px 20px", borderRadius: radius.sm }}>
             + New deal
           </button>
         </header>
@@ -458,8 +459,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     { label: "Pipeline volume", value: "$2.0M", color: "#003738", delta: "+$0.4M MTD",          deltaColor: "#006565" },
                     { label: "Flagged states",  value: "2",    color: "#b04545", delta: "NJ · OH need review", deltaColor: "#9a7b00" },
                   ] as const).map(({ label, value, color, delta, deltaColor }) => (
-                    <div key={label} className="bg-white rounded-lg p-6" style={{ border: "1px solid rgba(0,55,56,0.08)" }}>
-                      <div className="text-[12px] font-semibold uppercase tracking-[0.03em] mb-2.5" style={{ color: "rgba(0,55,56,0.5)" }}>{label}</div>
+                    <div key={label} className="bg-white rounded-lg p-6" style={{ border: `1px solid ${swatch.midnight}15` }}>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.03em] mb-2.5" style={{ color: `${swatch.midnight}80` }}>{label}</div>
                       <div className="font-semibold font-mono" style={{ fontSize: "clamp(26px,2.6vw,36px)", letterSpacing: "-0.03em", color }}>{value}</div>
                       <div className="text-[13px] font-medium mt-1.5" style={{ color: deltaColor }}>{delta}</div>
                     </div>
@@ -470,7 +471,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                 <div className="grid gap-5" style={{ gridTemplateColumns: "1.55fr 1fr" }}>
 
                   {/* Pipeline table */}
-                  <div className="bg-white rounded-lg p-7" style={{ border: "1px solid rgba(0,55,56,0.08)" }}>
+                  <div className="bg-white rounded-lg p-7" style={{ border: `1px solid ${swatch.midnight}15` }}>
                     <div className="text-[17px] font-semibold mb-5" style={{ letterSpacing: "-0.02em" }}>Active pipeline</div>
                     <div>
                       {demoPipeline.map((d) => {
@@ -484,16 +485,16 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             style={{
                               gridTemplateColumns: "1fr auto auto auto",
                               padding: "15px 12px",
-                              borderBottom: "1px solid rgba(0,55,56,0.07)",
-                              borderRadius: "6px",
+                              borderBottom: `1px solid ${swatch.midnight}15`,
+                              borderRadius: radius.sm,
                             }}
-                            onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,55,56,0.03)")}
+                            onMouseEnter={e => (e.currentTarget.style.background = `${swatch.midnight}10`)}
                             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                             {/* Property */}
                             <div>
-                              <div className="text-[14px] font-semibold mb-0.5" style={{ color: "#003738" }}>{d.prop}</div>
+                              <div className="text-[14px] font-semibold mb-0.5" style={{ color: swatch.midnight }}>{d.prop}</div>
                               <div className="flex gap-2 items-center">
-                                <span className="text-[12px] font-medium" style={{ color: "rgba(0,55,56,0.5)" }}>
+                                <span className="text-[12px] font-medium" style={{ color: `${swatch.midnight}80` }}>
                                   {d.type} · ${Math.round(d.amt).toLocaleString()}
                                 </span>
                                 {d.risk === 2 && (
@@ -534,8 +535,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* Right column */}
                   <div className="flex flex-col gap-5">
                     {/* Compliance status */}
-                    <div className="rounded-lg p-6" style={{ background: "#003738", color: "#eeefd3", border: "1px solid rgba(0,55,56,0.2)" }}>
-                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: "#d8d958" }}>
+                    <div className="rounded-lg p-6" style={{ background: swatch.midnight, color: swatch.pistachio, border: `1px solid ${swatch.midnight}30` }}>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: swatch.lemon }}>
                         Compliance status
                       </div>
                       {([
@@ -545,8 +546,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         { label: "Exam export",         status: "Ready",   statusColor: "#003738", statusBg: "#4dbd97" },
                       ] as const).map(({ label, status, statusColor, statusBg }) => (
                         <div key={label} className="flex items-center justify-between py-2.5"
-                          style={{ borderBottom: "1px solid rgba(238,239,211,0.1)" }}>
-                          <span className="text-[14px] font-medium" style={{ color: "rgba(238,239,211,0.8)" }}>{label}</span>
+                          style={{ borderBottom: `1px solid ${swatch.pistachio}1a` }}>
+                          <span className="text-[14px] font-medium" style={{ color: `${swatch.pistachio}cc` }}>{label}</span>
                           <span className="text-[12px] font-semibold tracking-[0.02em] rounded px-2.5 py-1"
                             style={{ color: statusColor, background: statusBg }}>
                             {status}
@@ -556,8 +557,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     </div>
 
                     {/* State-rule alerts */}
-                    <div className="rounded-lg p-6" style={{ background: "#e8e9bf", border: "1px solid rgba(0,55,56,0.1)" }}>
-                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: "#006565" }}>
+                    <div className="rounded-lg p-6" style={{ background: swatch.mint, border: `1px solid ${swatch.midnight}15` }}>
+                      <div className="text-[12px] font-semibold uppercase tracking-[0.04em] mb-3.5" style={{ color: swatch.rainforest }}>
                         State-rule alerts
                       </div>
                       {([
@@ -565,9 +566,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         { mark: "~", markColor: "#9a7b00", text: "19 Pine (OH): threshold-based PPP — confirm loan clears the $116,356 exemption." },
                         { mark: "~", markColor: "#9a7b00", text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
                       ] as const).map(({ mark, markColor, text }) => (
-                        <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: "1px solid rgba(0,55,56,0.1)" }}>
+                        <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: `1px solid ${swatch.midnight}15` }}>
                           <span className="font-bold shrink-0" style={{ color: markColor }}>{mark}</span>
-                          <span className="text-[13px] font-medium leading-relaxed" style={{ color: "rgba(0,55,56,0.72)" }}>{text}</span>
+                          <span className="text-[13px] font-medium leading-relaxed" style={{ color: `${swatch.midnight}b8` }}>{text}</span>
                         </div>
                       ))}
                     </div>

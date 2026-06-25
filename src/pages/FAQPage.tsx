@@ -215,8 +215,8 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
     >
       {/* Accordion transition CSS only — no glassmorphism, no blur, no float */}
       <style>{`
-        .faq-answer{overflow:hidden;transition:max-height .28s ease,opacity .22s ease;}
-        .faq-answer-open{max-height:900px;opacity:1;}
+        .faq-answer{overflow:hidden;transition:max-height .32s ease,opacity .24s ease;}
+        .faq-answer-open{max-height:1200px;opacity:1;}
         .faq-answer-closed{max-height:0;opacity:0;}
         .faq-btn:hover{background:${dc.mintBg} !important;}
       `}</style>
@@ -278,10 +278,10 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               )}
             <div
               style={{
-                background: dc.white,
-                borderRadius: 9,
+                background: dc.cream,
+                borderRadius: 12,
                 overflow: "hidden",
-                border: `1px solid ${open === i ? dc.rain : "rgba(0,55,56,0.10)"}`,
+                border: `1px solid ${open === i ? dc.rain : dc.faded}`,
                 transition: "border-color .15s",
               }}
             >
@@ -292,7 +292,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 style={{
                   width: "100%",
                   textAlign: "left",
-                  background: open === i ? dc.mintBg : dc.white,
+                  background: open === i ? dc.mintBg : dc.cream,
                   border: "none",
                   display: "flex",
                   alignItems: "center",
@@ -387,7 +387,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                   >
                     <Mono
                       style={{
-                        fontSize: 11,
+                        fontSize: 12,
                         color: dc.rain,
                         letterSpacing: "0.01em",
                       }}
@@ -406,7 +406,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
         {/* Qualifier CTA — wired to openQualify funnel */}
         <div
           className="gs-reveal"
-          style={{ maxWidth: 880, margin: "36px auto 0", borderRadius: 9, background: dc.dark, padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: 20 }}
+          style={{ maxWidth: 880, margin: "36px auto 0", borderRadius: 12, background: dc.dark, padding: "clamp(24px,3vw,36px) clamp(24px,3vw,40px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: 20 }}
         >
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: dc.lemon, marginBottom: 8 }}>
@@ -429,10 +429,10 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
           style={{
             maxWidth: 880,
             margin: "32px auto 0",
-            padding: "16px 20px",
-            background: "rgba(216,217,88,0.12)",
-            borderRadius: 10,
-            border: "1px solid rgba(216,217,88,0.3)",
+            padding: "14px 20px",
+            background: dc.mintBg,
+            borderRadius: 8,
+            border: `1px solid ${dc.faded}`,
             display: "flex",
             alignItems: "center",
             gap: 12,

@@ -161,12 +161,13 @@ export default function BrokersPage({
                   color: "rgba(238,239,211,0.82)",
                   fontWeight: 600,
                   fontSize: 15,
-                  border: "1px solid rgba(238,239,211,0.28)",
+                  border: `1.5px solid ${dc.faded}`,
                   cursor: "pointer",
                   padding: "13px 22px",
-                  borderRadius: 6,
+                  borderRadius: dc.r.md,
                   fontFamily: dc.sans,
                   letterSpacing: "-0.01em",
+                  minHeight: 44,
                 }}
               >
                 Book a walkthrough →
@@ -474,31 +475,34 @@ export default function BrokersPage({
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+            {/* ONE dominant lemon primary CTA per contract */}
             <button
               onClick={() => onNavigate("book-demo")}
               style={{
                 background: dc.lemon,
                 color: dc.dark,
                 border: "none",
-                borderRadius: 6,
-                padding: "15px 28px",
+                borderRadius: dc.r.md,
+                padding: "16px 28px",
                 fontSize: 15,
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: "pointer",
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
                 textAlign: "left" as const,
+                minHeight: 44,
               }}
             >
               Book a demo →
             </button>
+            {/* Secondary: transparent + FADED border, per contract */}
             <button
               onClick={() => onNavigate("rate-quiz")}
               style={{
-                background: "rgba(238,239,211,0.08)",
+                background: "transparent",
                 color: dc.cream,
-                border: "1px solid rgba(238,239,211,0.18)",
-                borderRadius: 6,
+                border: `1.5px solid ${dc.faded}`,
+                borderRadius: dc.r.md,
                 padding: "15px 28px",
                 fontSize: 15,
                 fontWeight: 600,
@@ -506,6 +510,7 @@ export default function BrokersPage({
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
                 textAlign: "left" as const,
+                minHeight: 44,
               }}
             >
               Quick rate quiz →
@@ -514,11 +519,11 @@ export default function BrokersPage({
         </div>
       </section>
 
-      {/* ── BACK PILL ────────────────────────────────────────────────────────── */}
+      {/* ── CLOSE BAND: freshness + back nav — mintBg breaks the cream/dark rhythm ── */}
       <section
         style={{
-          background: dc.cream,
-          padding: `clamp(48px,6vh,72px) ${dc.pad} clamp(32px,4vh,48px)`,
+          background: dc.mintBg,
+          padding: `clamp(40px,5vw,64px) ${dc.pad}`,
         }}
       >
         <div
@@ -526,56 +531,19 @@ export default function BrokersPage({
             maxWidth: dc.maxW,
             margin: "0 auto",
             display: "flex",
-            justifyContent: "center",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 24,
           }}
         >
-          <button
-            onClick={() => onBack()}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.mintBg,
-              border: "none",
-              borderRadius: 999,
-              padding: "15px 30px",
-              cursor: "pointer",
-              fontFamily: dc.sans,
-            }}
-          >
-            <span
-              style={{
-                fontSize: "clamp(16px,1.4vw,19px)",
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                color: dc.dark,
-              }}
-            >
-              Back to all tools
-            </span>
-            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
-          </button>
-        </div>
-      </section>
-
-      {/* ── FRESHNESS SIGNAL ─────────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `0 ${dc.pad} clamp(36px,4vh,48px)`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          {/* Freshness signal — intentional trust element, not decorative */}
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 12,
               flexWrap: "wrap",
-              padding: "14px 18px",
-              background: "rgba(216,217,88,0.12)",
-              borderRadius: 10,
-              border: "1px solid rgba(216,217,88,0.3)",
             }}
           >
             <span
@@ -584,21 +552,46 @@ export default function BrokersPage({
                 fontWeight: 700,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase" as const,
-                padding: "4px 10px",
-                borderRadius: 999,
+                padding: "5px 11px",
+                borderRadius: dc.r.pill,
                 background: dc.lemon,
                 color: dc.dark,
               }}
             >
               Reviewed
             </span>
-            <span
-              style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}
-            >
-              Page refreshed {AS_OF} · program lineup + fees reviewed · next
-              review Jul 22, 2026
+            <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
+              Page refreshed {AS_OF} · program lineup + fees reviewed · next review Jul 22, 2026
             </span>
           </div>
+
+          {/* Back nav */}
+          <button
+            onClick={() => onBack()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              background: "transparent",
+              border: `1.5px solid ${dc.faded}`,
+              borderRadius: dc.r.pill,
+              padding: "13px 24px",
+              cursor: "pointer",
+              fontFamily: dc.sans,
+              minHeight: 44,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: dc.dark,
+              }}
+            >
+              ← All tools
+            </span>
+          </button>
         </div>
       </section>
     </DcShell>

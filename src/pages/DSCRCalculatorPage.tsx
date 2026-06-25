@@ -17,9 +17,10 @@ const fmt = (n: number) => {
   return '$' + Math.round(n).toLocaleString('en-US');
 };
 
-// Dark panel background matching the mockup instrument panel (#003a39)
-const PANEL = '#003a39';
-const CARD  = '#002a29';
+// Dark panel colours — closest token aliases to the design spec.
+// PANEL ≈ dc.teal (#004041), CARD ≈ dc.dark (#003738). Using dc tokens throughout.
+const PANEL = swatch.darkTeal;   // #004041
+const CARD  = swatch.midnight;   // #003738
 
 export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   useEffect(() => {
@@ -134,23 +135,28 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     <DcShell onNavigate={onNavigate}>
       <style>{`
         .gs-num::-webkit-outer-spin-button, .gs-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .gs-num { width: 100%; border: none; background: none; outline: none; font-family: ${font.family}; color: #eeefd3; letter-spacing: -0.02em; }
+        .gs-num { width: 100%; border: none; background: none; outline: none; font-family: ${font.family}; color: ${PISTACHIO}; letter-spacing: -0.02em; }
+        /* Unified dark-panel input: 1.5px FADED border, focus ring 2px lemon */
+        .calc-field { display:flex; align-items:center; border: 1.5px solid rgba(238,239,211,0.2); border-radius: ${radius.sm}; padding: 0 13px; background: ${PANEL}; transition: border-color .15s; }
+        .calc-field:focus-within { border-color: ${LEMON}; outline: 2px solid ${LEMON}; outline-offset: 1px; border-radius: ${radius.sm}; }
+        .calc-field:hover:not(:focus-within) { border-color: rgba(238,239,211,0.4); }
         .gsr { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: rgba(238,239,211,0.16); outline: none; cursor: pointer; }
-        .gsr::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #d8d958; border: 3px solid #002423; cursor: pointer; transition: transform .15s; }
+        .gsr::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: ${LEMON}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; transition: transform .15s; }
         .gsr::-webkit-slider-thumb:hover { transform: scale(1.16); }
-        .gsr::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #d8d958; border: 3px solid #002423; cursor: pointer; }
+        .gsr::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: ${LEMON}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; }
+        .gsr:focus-visible { outline: 2px solid ${LEMON}; outline-offset: 4px; }
         .gs-dot-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 34px 34px; pointer-events: none; }
         .g-needle { transition: transform .75s cubic-bezier(.34,1.42,.5,1); }
         @keyframes gsBar { from { width: 0; } }
         .gs-bar { animation: gsBar .8s ease-out both; }
         @media (max-width: 900px) { #gs-hero-inner { grid-template-columns: 1fr !important; gap: 40px !important; } .dc-band-3, .dc-split { grid-template-columns: 1fr !important; } .calc-panel { grid-template-columns: 1fr !important; } .bottom-trio { grid-template-columns: 1fr !important; } }
+        @media (max-width: 600px) { .bottom-trio { grid-template-columns: 1fr !important; } }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; } .g-needle { transition: none !important; } }
       `}</style>
 
       {/* ── HERO — dark bg, dot grid ── */}
       <section id="gs-hero" style={{ position: 'relative', background: MIDNIGHT, color: PISTACHIO, overflow: 'hidden', padding: 'clamp(48px,7vh,92px) clamp(1.5rem,4vw,3rem) clamp(40px,6vh,72px)' }}>
         <div className="gs-dot-grid"></div>
-        <div style={{ position: 'absolute', top: '-18%', right: '-6%', width: '52%', aspectRatio: '1', borderRadius: '50%', background: 'radial-gradient(circle,rgba(77,189,151,0.14),transparent 70%)', pointerEvents: 'none' }}></div>
         <div id="gs-hero-inner" className="dc-hero" style={{ position: 'relative', width: '100%', maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.08fr 0.92fr', gap: 'clamp(32px,5vw,72px)', alignItems: 'center' }}>
           <div id="gs-hero-content">
             {/* eyebrow pill */}
@@ -164,10 +170,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               The exact math lenders qualify against — price, rent, rate, taxes — to a live DSCR and PITIA breakdown. No black box.
             </Lead>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 44 }}>
-              <a href="#gs-calc" onClick={scrollToCalc} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 30px', borderRadius: 6 }}>
+              <a href="#gs-calc" onClick={scrollToCalc} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 30px', borderRadius: radius.sm, minHeight: 44 }}>
                 Open the calculator ↓
               </a>
-              <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: 6, border: '1px solid rgba(238,239,211,0.28)' }}>
+              <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: radius.sm, border: '1.5px solid rgba(238,239,211,0.28)', minHeight: 44 }}>
                 Find my program →
               </a>
             </div>
@@ -189,7 +195,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
       {/* ── 3-STEP EXPLAINER BAND ── */}
       <section id="gs-steps" style={{ background: PISTACHIO, padding: 'clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem)' }}>
         <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
-          <div className="gs-reveal dc-band-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: `${FADED}33`, borderRadius: 9, overflow: 'hidden' }}>
+          <div className="gs-reveal dc-band-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: `${MIDNIGHT}33`, borderRadius: 9, overflow: 'hidden' }}>
             <div style={{ background: PISTACHIO, padding: 'clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)' }}>
               <Mono style={{ fontSize: 'clamp(32px,4vw,52px)', fontWeight: 600, color: LEMON, marginBottom: 14, lineHeight: 1 }}>01</Mono>
               <H3 style={{ marginBottom: 10, lineHeight: 1.1 }}>Enter</H3>
@@ -220,11 +226,11 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <H2 style={{ fontSize: 'clamp(30px,3.8vw,54px)', letterSpacing: '-0.04em', lineHeight: 1.0, maxWidth: '18ch', color: PISTACHIO }}>Price the deal in real time.</H2>
             </div>
             {/* Pill tabs — dark pill bg matching mockup */}
-            <div style={{ display: 'inline-flex', gap: 4, background: '#002423', padding: 5, borderRadius: 8 }}>
-              <button onClick={() => setTab('dscr')} style={{ padding: '11px 22px', background: tab === 'dscr' ? LEMON : 'transparent', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'dscr' ? '#002423' : 'rgba(238,239,211,0.6)', transition: 'all .2s' }}>
+            <div style={{ display: 'inline-flex', gap: 4, background: CARD, padding: 5, borderRadius: radius.sm }}>
+              <button onClick={() => setTab('dscr')} style={{ padding: '11px 22px', background: tab === 'dscr' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'dscr' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
                 DSCR Gauge
               </button>
-              <button onClick={() => setTab('maxprice')} style={{ padding: '11px 22px', background: tab === 'maxprice' ? LEMON : 'transparent', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'maxprice' ? '#002423' : 'rgba(238,239,211,0.6)', transition: 'all .2s' }}>
+              <button onClick={() => setTab('maxprice')} style={{ padding: '11px 22px', background: tab === 'maxprice' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'maxprice' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
                 Max Purchase
               </button>
             </div>
@@ -235,7 +241,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
 
               {/* INPUT RAIL */}
-              <div style={{ background: CARD, borderRadius: 14, padding: 30, border: '1px solid rgba(238,239,211,0.08)' }}>
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.1)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 24 }}>Property inputs</div>
                 <div style={{ display: 'grid', gap: 24 }}>
                   <div>
@@ -256,14 +262,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   </div>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Purchase price</span>
-                    <div style={{ display: 'flex', alignItems: 'center', background: PANEL, borderRadius: 7, padding: '0 13px' }}>
+                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
                       <input className="gs-num" type="number" step="5000" value={price} onChange={e => setPrice(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Monthly rent</span>
-                    <div style={{ display: 'flex', alignItems: 'center', background: PANEL, borderRadius: 7, padding: '0 13px' }}>
+                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
                       <input className="gs-num" type="number" step="100" value={rent} onChange={e => setRent(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
@@ -271,14 +277,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Taxes /yr</span>
-                      <div style={{ display: 'flex', alignItems: 'center', background: PANEL, borderRadius: 7, padding: '0 10px' }}>
+                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
                         <input className="gs-num" type="number" step="250" value={tax} onChange={e => setTax(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Ins. /yr</span>
-                      <div style={{ display: 'flex', alignItems: 'center', background: PANEL, borderRadius: 7, padding: '0 10px' }}>
+                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
                         <input className="gs-num" type="number" step="100" value={ins} onChange={e => setIns(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
@@ -291,7 +297,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
                 {/* Big gauge card */}
-                <div style={{ background: 'linear-gradient(160deg,#00302f,#002423)', borderRadius: 14, padding: 'clamp(28px,3vw,40px)', border: '1px solid rgba(238,239,211,0.08)', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 'clamp(28px,4vw,52px)', alignItems: 'center' }}>
+                <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(28px,3vw,40px)', border: '1px solid rgba(238,239,211,0.1)', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 'clamp(28px,4vw,52px)', alignItems: 'center' }}>
                   {/* SVG gauge */}
                   <div style={{ position: 'relative', width: 'clamp(240px,26vw,320px)', aspectRatio: '1' }}>
                     {/* Arc */}
@@ -300,10 +306,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', border: '1px dashed rgba(238,239,211,0.12)' }}></div>
                     {/* Needle */}
                     <div className="g-needle" style={{ position: 'absolute', left: '50%', bottom: '50%', width: 5, height: '39%', borderRadius: 5, background: 'linear-gradient(#eeefd3,#d8d958)', transformOrigin: '50% 100%', transform: `translateX(-50%) rotate(${needleDeg}deg)`, zIndex: 3 }}>
-                      <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', width: 16, height: 16, borderRadius: '50%', background: zoneColor, boxShadow: `0 0 18px ${zoneColor}` }}></div>
+                      <div style={{ position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)', width: 16, height: 16, borderRadius: '50%', background: zoneColor }}></div>
                     </div>
                     {/* Center mask */}
-                    <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '58%', height: '58%', borderRadius: '50%', background: 'radial-gradient(circle,#002423 50%,rgba(0,36,35,0) 82%)', zIndex: 4, pointerEvents: 'none' }}></div>
+                    <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '58%', height: '58%', borderRadius: '50%', background: `radial-gradient(circle,${CARD} 50%,rgba(0,55,56,0) 82%)`, zIndex: 4, pointerEvents: 'none' }}></div>
                     {/* Center readout */}
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingBottom: '7%', pointerEvents: 'none', zIndex: 5 }}>
                       <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.42)', marginBottom: 2 }}>DSCR</div>
@@ -322,7 +328,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <p style={{ fontSize: 'clamp(15px,1.3vw,17px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: '0 0 16px' }}>{verdictText}</p>
 
                     {/* Next step CTA — single constructive action per result */}
-                    <div style={{ background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.12)', borderRadius: 8, padding: '14px 18px', marginBottom: 20 }}>
+                    <div style={{ background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', borderRadius: radius.sm, padding: '14px 18px', marginBottom: 20 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 6 }}>
                         {dscr >= 1.0 ? 'Ready to move forward?' : 'Want to explore your options?'}
                       </div>
@@ -337,13 +343,13 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         <a
                           href="/rate-quiz"
                           onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: 6 }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: radius.sm, minHeight: 44 }}
                         >
                           Find my program →
                         </a>
                         <button
                           onClick={() => (window as any).openQualify?.()}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1px solid rgba(238,239,211,0.25)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 13, fontFamily: font.family, padding: '10px 16px', borderRadius: 6, cursor: 'pointer' }}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.28)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 13, fontFamily: font.family, padding: '10px 16px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}
                         >
                           Check if I qualify →
                         </button>
@@ -356,7 +362,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.4)', marginBottom: 12 }}>What moves the needle</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                       {sens.map((x, i) => (
-                        <div key={i} style={{ background: '#002423', borderRadius: 9, padding: '13px 14px' }}>
+                        <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '13px 14px', border: '1px solid rgba(238,239,211,0.1)' }}>
                           <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.55)', marginBottom: 5, lineHeight: 1.25 }}>{x.label}</div>
                           <Mono style={{ fontSize: 18, fontWeight: 700, color: x.color }}>{x.delta}</Mono>
                         </div>
@@ -369,7 +375,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 <div className="bottom-trio" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.9fr 1fr', gap: 24, alignItems: 'start' }}>
 
                   {/* PITIA breakdown */}
-                  <div style={{ background: CARD, borderRadius: 14, padding: 24, border: '1px solid rgba(238,239,211,0.08)' }}>
+                  <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.1)' }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 16 }}>PITIA breakdown</div>
                     {rows.map((r, i) => (
                       <div key={i} style={{ marginBottom: 12 }}>
@@ -385,7 +391,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   </div>
 
                   {/* Metrics stack */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'rgba(238,239,211,0.08)', borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(238,239,211,0.08)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'rgba(238,239,211,0.1)', borderRadius: radius.lg, overflow: 'hidden', border: '1px solid rgba(238,239,211,0.1)' }}>
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: cashFlow >= 0 ? '#4dbd97' : '#e88a8a' }}>{(cashFlow >= 0 ? '+' : '') + fmt(cashFlow)}</Mono>
                       <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>monthly cash flow</div>
@@ -401,7 +407,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   </div>
 
                   {/* Lender matches */}
-                  <div style={{ background: CARD, borderRadius: 14, padding: 24, border: '1px solid rgba(238,239,211,0.08)' }}>
+                  <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.1)' }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 14 }}>Matched programs</div>
                     {lenderRows.map((lr, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid rgba(238,239,211,0.07)' }}>
@@ -426,12 +432,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
           {/* ── MAX PURCHASE TAB ── */}
           {tab === 'maxprice' && (
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
-              <div style={{ background: CARD, borderRadius: 14, padding: 30, border: '1px solid rgba(238,239,211,0.08)' }}>
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.1)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 22 }}>Target parameters</div>
                 <div style={{ display: 'grid', gap: 22 }}>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Monthly rent</span>
-                    <div style={{ display: 'flex', alignItems: 'center', background: PANEL, borderRadius: 7, padding: '0 12px' }}>
+                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
                       <input className="gs-num" type="number" step="100" value={mRent} onChange={e => setMRent(+e.target.value)} style={{ padding: '12px 6px', fontSize: 16, fontWeight: 600 }} />
                     </div>
@@ -453,12 +459,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 </div>
               </div>
               <div>
-                <div style={{ background: 'linear-gradient(160deg,#00302f,#002423)', borderRadius: 14, padding: 'clamp(32px,4vw,52px)', textAlign: 'center', marginBottom: 20, border: '1px solid rgba(238,239,211,0.08)' }}>
+                <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', textAlign: 'center', marginBottom: 20, border: '1px solid rgba(238,239,211,0.1)' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 16 }}>Max purchase price</div>
                   <Mono style={{ fontSize: 'clamp(56px,8.5vw,116px)', fontWeight: 600, color: PISTACHIO, lineHeight: 0.93, display: 'block' }}>{fmt(maxPrice)}</Mono>
                   <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.55)', marginTop: 18 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
                 </div>
-                <div style={{ background: CARD, borderRadius: 14, padding: '24px 28px', border: '1px solid rgba(238,239,211,0.08)' }}>
+                <div style={{ background: CARD, borderRadius: radius.lg, padding: '24px 28px', border: '1px solid rgba(238,239,211,0.1)' }}>
                   {mRows.map((r, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid rgba(238,239,211,0.07)', fontSize: 14 }}>
                       <span style={{ color: 'rgba(238,239,211,0.6)', fontWeight: 500 }}>{r.label}</span>

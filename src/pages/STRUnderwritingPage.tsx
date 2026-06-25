@@ -543,7 +543,7 @@ export default function STRUnderwritingPage({
             <div
               style={{
                 background: dc.dark,
-                borderRadius: 14,
+                borderRadius: dc.r.lg,
                 padding: 28,
                 border: "1px solid rgba(238,239,211,0.08)",
               }}
@@ -791,7 +791,7 @@ export default function STRUnderwritingPage({
                     <div
                       style={{
                         background: dc.dark,
-                        borderRadius: 14,
+                        borderRadius: dc.r.lg,
                         padding: 22,
                         border: "1px solid rgba(238,239,211,0.08)",
                       }}
@@ -947,7 +947,7 @@ export default function STRUnderwritingPage({
                     style={{
                       padding: "14px 18px",
                       background: "rgba(238,239,211,0.05)",
-                      borderRadius: 9,
+                      borderRadius: dc.r.md,
                       border: "1px solid rgba(238,239,211,0.08)",
                       fontSize: 12,
                       color: "rgba(238,239,211,0.5)",

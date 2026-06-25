@@ -493,10 +493,10 @@ export default function InvestorsPage({
         </div>
       </section>
 
-      {/* ── VALUE CARDS ── 3-up grid, cream bg ───────────────────────────────── */}
+      {/* ── VALUE CARDS ── 3-up grid, mintBg breaks the cream→dark→cream rhythm ── */}
       <section
         style={{
-          background: dc.cream,
+          background: dc.mintBg,
           padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(48px,6vw,72px)`,
         }}
       >
@@ -539,11 +539,11 @@ export default function InvestorsPage({
             {VALUE_CARDS.map((c) => (
               <div
                 key={c.headline}
-                className="gs-reveal"
+                className="gs-reveal ix-card"
                 style={{
                   background: c.bg,
-                  border: "1px solid rgba(0,55,56,0.10)",
-                  borderRadius: 10,
+                  border: `1px solid ${dc.faded}`,
+                  borderRadius: dc.r.md,
                   padding: "clamp(24px,3vw,36px)",
                   display: "flex",
                   flexDirection: "column",
@@ -716,15 +716,15 @@ export default function InvestorsPage({
 
                 {/* Content block */}
                 <div style={{ paddingTop: 6 }}>
-                  {/* Myth label */}
+                  {/* Myth label — use contract banned-tier color for negative signal */}
                   <div
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 8,
-                      background: "rgba(220,40,40,0.14)",
-                      border: "1px solid rgba(220,40,40,0.28)",
-                      borderRadius: 4,
+                      background: "rgba(255,107,107,0.14)",
+                      border: "1px solid rgba(255,107,107,0.28)",
+                      borderRadius: dc.r.sm,
                       padding: "4px 10px",
                       marginBottom: 14,
                     }}
@@ -735,7 +735,7 @@ export default function InvestorsPage({
                         fontWeight: 700,
                         letterSpacing: "0.04em",
                         textTransform: "uppercase" as const,
-                        color: "#f87171",
+                        color: "#ff6b6b",
                       }}
                     >
                       Myth
@@ -814,60 +814,97 @@ export default function InvestorsPage({
         </div>
       </section>
 
-      {/* ── BACK PILL ── matches mockup ─────────────────────────────────────── */}
+      {/* ── CTA STRIP — dark band, one lemon primary, two secondary links ─────── */}
+      {/* Band is dark to break the preceding cream sequence (value cards + myths were
+          cream → dark → now this is dark again, but myths ended on dark so we need
+          a cream band before this. Insert cream spacer then dark CTA. */}
       <section
         style={{
           background: dc.cream,
-          padding: `0 ${dc.pad} clamp(72px,10vh,120px)`,
-          paddingTop: "clamp(8px,2vh,24px)",
+          padding: `clamp(48px,5vw,72px) ${dc.pad} clamp(32px,4vw,56px)`,
         }}
       >
         <div
+          className="gs-reveal"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
             display: "flex",
-            justifyContent: "center",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 24,
           }}
         >
+          <p
+            style={{
+              fontSize: "clamp(15px,1.2vw,17px)",
+              fontWeight: 500,
+              color: "rgba(0,55,56,0.6)",
+              margin: 0,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            No signup required. Every tool is free. Open a deal and see what the math says.{" "}
+            <button
+              onClick={() => onNavigate("solutions")}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                fontSize: "inherit",
+                fontWeight: 600,
+                color: dc.rain,
+                letterSpacing: "-0.01em",
+                fontFamily: dc.sans,
+                textDecoration: "underline",
+                textUnderlineOffset: 3,
+              }}
+            >
+              See who else uses Greenstreet →
+            </button>
+          </p>
           <button
             onClick={() => onBack()}
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 9,
-              background: dc.mintBg,
-              border: "none",
-              borderRadius: 999,
-              padding: "15px 30px",
+              background: "transparent",
+              border: `1.5px solid ${dc.faded}`,
+              borderRadius: dc.r.pill,
+              padding: "13px 24px",
               cursor: "pointer",
               fontFamily: dc.sans,
+              minHeight: 44,
+              whiteSpace: "nowrap" as const,
             }}
           >
             <span
               style={{
-                fontSize: "clamp(16px,1.4vw,19px)",
+                fontSize: 15,
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
                 color: dc.dark,
               }}
             >
-              Back to all tools
+              ← All tools
             </span>
-            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
           </button>
         </div>
       </section>
 
-      {/* ── CTA STRIP ─────────────────────────────────────────────────────────── */}
+      {/* ── CLOSING CTA STRIP — dark band so the page ends with intent ─────── */}
       <section
         style={{
-          background: dc.cream,
+          background: dc.dark,
+          color: dc.cream,
           padding: `clamp(56px,7vw,88px) ${dc.pad}`,
         }}
       >
         <div
-          className="gs-reveal"
+          className="gs-reveal dc-band-2"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
@@ -884,7 +921,7 @@ export default function InvestorsPage({
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase" as const,
-                color: dc.rain,
+                color: dc.lemon,
                 marginBottom: 14,
               }}
             >
@@ -896,7 +933,7 @@ export default function InvestorsPage({
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
-                color: dc.dark,
+                color: dc.cream,
                 margin: "0 0 16px",
               }}
             >
@@ -909,31 +946,15 @@ export default function InvestorsPage({
                 fontSize: "clamp(15px,1.3vw,18px)",
                 fontWeight: 500,
                 lineHeight: 1.55,
-                color: "rgba(0,55,56,0.6)",
+                color: "rgba(238,239,211,0.6)",
                 maxWidth: "52ch",
-                margin: "0 0 18px",
+                margin: 0,
                 letterSpacing: "-0.01em",
               }}
             >
-              Every tool is free. No email required. Open a deal and see what the
-              math says.
+              Run the DSCR Calculator, Tax Engine, and Returns model on your next deal — all free,
+              no credit pull, no email required.
             </p>
-            <button
-              onClick={() => onNavigate("solutions")}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                fontSize: 14,
-                fontWeight: 600,
-                color: dc.rain,
-                letterSpacing: "-0.01em",
-                fontFamily: dc.sans,
-              }}
-            >
-              See who else uses Greenstreet →
-            </button>
           </div>
           <div
             style={{
@@ -943,31 +964,34 @@ export default function InvestorsPage({
               minWidth: 220,
             }}
           >
+            {/* ONE dominant lemon primary per contract */}
             <button
               onClick={() => onNavigate("dscr-calculator")}
               style={{
-                background: dc.dark,
-                color: dc.cream,
+                background: dc.lemon,
+                color: dc.dark,
                 border: "none",
-                borderRadius: 6,
-                padding: "15px 28px",
+                borderRadius: dc.r.md,
+                padding: "16px 28px",
                 fontSize: 15,
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: "pointer",
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
                 textAlign: "left" as const,
+                minHeight: 44,
               }}
             >
               DSCR Calculator →
             </button>
+            {/* Secondary CTAs: transparent + FADED border per contract */}
             <button
               onClick={() => onNavigate("tax-engine")}
               style={{
-                background: dc.mintBg,
-                color: dc.dark,
-                border: "1px solid rgba(0,55,56,0.12)",
-                borderRadius: 6,
+                background: "transparent",
+                color: dc.cream,
+                border: `1.5px solid ${dc.faded}`,
+                borderRadius: dc.r.md,
                 padding: "15px 28px",
                 fontSize: 15,
                 fontWeight: 600,
@@ -975,6 +999,7 @@ export default function InvestorsPage({
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
                 textAlign: "left" as const,
+                minHeight: 44,
               }}
             >
               Tax Engine →
@@ -982,10 +1007,10 @@ export default function InvestorsPage({
             <button
               onClick={() => onNavigate("returns")}
               style={{
-                background: dc.mintBg,
-                color: dc.dark,
-                border: "1px solid rgba(0,55,56,0.12)",
-                borderRadius: 6,
+                background: "transparent",
+                color: dc.cream,
+                border: `1.5px solid ${dc.faded}`,
+                borderRadius: dc.r.md,
                 padding: "15px 28px",
                 fontSize: 15,
                 fontWeight: 600,
@@ -993,6 +1018,7 @@ export default function InvestorsPage({
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
                 textAlign: "left" as const,
+                minHeight: 44,
               }}
             >
               Returns &amp; IRR →

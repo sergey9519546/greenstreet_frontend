@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
+import { swatch, radius } from "../theme";
 
 interface Props {
   onBack?: () => void;
@@ -10,8 +11,8 @@ const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
 // Deal Analyzer uses a pistachio/cream nav — distinct from the midnight default
 // used by the DSCR Calculator and the rainforest used by State Laws.
-const DA_ACCENT = "#eeefd3"; // pistachio cream (matches mockup body + nav)
-const DA_NAV_BORDER = "1px solid rgba(0,55,56,0.15)";
+const DA_ACCENT = swatch.pistachio; // #eeefd3
+const DA_NAV_BORDER = `1px solid ${swatch.midnightFaded}`;
 
 export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   useEffect(() => {
@@ -151,16 +152,20 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       ]}
       cta={{ label: "Analyze a deal →", onClick: scrollToTool }}
     >
-      {/* Extra CSS: hide spinners; override nav link ink for light nav */}
+      {/* Extra CSS: hide spinners; unified input style; nav ink overrides for light identity */}
       <style>{`
         .da-num::-webkit-outer-spin-button,.da-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .da-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.dark};letter-spacing:-0.02em;}
+        /* Unified input wrapper — 1.5px FADED border, focus ring 2px lemon, hover mint */
+        .da-field{display:flex;align-items:center;background:${swatch.pistachio};border:1.5px solid ${swatch.midnightFaded};border-radius:${radius.sm};padding:0 12px;transition:border-color .15s;}
+        .da-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;border-radius:${radius.sm};}
+        .da-field:hover:not(:focus-within){border-color:rgba(0,55,56,0.35);}
         /* Light-nav override: links + wordmark use dark ink on pistachio bg */
         .dc-nav a{color:rgba(0,55,56,0.72) !important;}
         .dc-nav a[style*="background"]{color:${dc.cream} !important;}
         .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
         /* nav border */
-        .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:rgba(238,239,211,1) !important;}
+        .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:${swatch.pistachio} !important;}
         /* footer ink on pistachio footer */
         footer{color:rgba(0,55,56,0.55) !important;}
         footer div[style]{color:${dc.dark} !important;}
@@ -556,10 +561,10 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             {/* ── INPUTS ── */}
             <div
               style={{
-                background: dc.white,
-                borderRadius: 9,
-                padding: 30,
-                border: "1px solid rgba(0,55,56,0.1)",
+                background: swatch.white,
+                borderRadius: radius.md,
+                padding: "clamp(20px,2.4vw,28px)",
+                border: `1px solid ${swatch.midnightFaded}`,
               }}
             >
               <div
@@ -575,296 +580,48 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 Property
               </div>
 
-              {/* Purchase Price */}
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
-                  Purchase Price
-                </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
-                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
-                  <input
-                    className="da-num"
-                    type="number"
-                    step={5000}
-                    value={price}
-                    onChange={(e) => setPrice(+e.target.value)}
-                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
-                  />
-                </div>
-              </label>
-
-              {/* Down Payment */}
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
-                  Down Payment
-                </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
-                  <input
-                    className="da-num"
-                    type="number"
-                    step={1}
-                    value={down}
-                    onChange={(e) => setDown(+e.target.value)}
-                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
-                  />
-                  <span style={{ color: "rgba(0,55,56,0.4)" }}>%</span>
-                </div>
-              </label>
-
-              {/* Monthly Rent */}
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
-                  Monthly Rent
-                </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
-                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
-                  <input
-                    className="da-num"
-                    type="number"
-                    step={100}
-                    value={rent}
-                    onChange={(e) => setRent(+e.target.value)}
-                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
-                  />
-                </div>
-              </label>
-
-              {/* Note Rate */}
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
-                  Note Rate
-                </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
-                  <input
-                    className="da-num"
-                    type="number"
-                    step={0.125}
-                    value={rate}
-                    onChange={(e) => setRate(+e.target.value)}
-                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
-                  />
-                  <span style={{ color: "rgba(0,55,56,0.4)" }}>%</span>
-                </div>
-              </label>
-
-              {/* Annual Taxes */}
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
-                  Annual Taxes
-                </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
-                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
-                  <input
-                    className="da-num"
-                    type="number"
-                    step={250}
-                    value={tax}
-                    onChange={(e) => setTax(+e.target.value)}
-                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
-                  />
-                </div>
-              </label>
-
-              {/* Annual Insurance */}
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
-                  Annual Insurance
-                </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
-                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
-                  <input
-                    className="da-num"
-                    type="number"
-                    step={100}
-                    value={ins}
-                    onChange={(e) => setIns(+e.target.value)}
-                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
-                  />
-                </div>
-              </label>
-
-              {/* HOA */}
-              <label style={{ display: "block", marginBottom: 16 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
-                  HOA / mo
-                </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
-                  <span style={{ color: "rgba(0,55,56,0.4)" }}>$</span>
-                  <input
-                    className="da-num"
-                    type="number"
-                    step={50}
-                    value={hoa}
-                    onChange={(e) => setHoa(+e.target.value)}
-                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
-                  />
-                </div>
-              </label>
+              {/* Reusable label style */}
+              {([
+                { label: "Purchase Price", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16 },
+                { label: "Down Payment",   value: down,  set: setDown,  step: 1,    prefix: "",  suffix: "%", mb: 16 },
+                { label: "Monthly Rent",   value: rent,  set: setRent,  step: 100,  prefix: "$", suffix: "", mb: 16 },
+                { label: "Note Rate",      value: rate,  set: setRate,  step: 0.125,prefix: "",  suffix: "%", mb: 16 },
+                { label: "Annual Taxes",   value: tax,   set: setTax,   step: 250,  prefix: "$", suffix: "", mb: 16 },
+                { label: "Annual Insurance", value: ins, set: setIns,   step: 100,  prefix: "$", suffix: "", mb: 16 },
+                { label: "HOA / mo",       value: hoa,   set: setHoa,   step: 50,   prefix: "$", suffix: "", mb: 16 },
+              ] as const).map((f) => (
+                <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>
+                    {f.label}
+                  </span>
+                  <div className="da-field">
+                    {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.prefix}</span>}
+                    <input
+                      className="da-num"
+                      type="number"
+                      step={f.step}
+                      value={f.value}
+                      onChange={(e) => (f.set as (n: number) => void)(+e.target.value)}
+                      style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }}
+                    />
+                    {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.suffix}</span>}
+                  </div>
+                </label>
+              ))}
 
               {/* State */}
               <label style={{ display: "block", marginBottom: 0 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
-                    marginBottom: 7,
-                  }}
-                >
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>
                   State (2-letter)
                 </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 12px",
-                  }}
-                >
+                <div className="da-field">
                   <input
                     className="da-num"
                     type="text"
                     maxLength={2}
                     value={stateCode}
-                    onChange={(e) =>
-                      setStateCode(e.target.value.toUpperCase().slice(0, 2))
-                    }
-                    style={{
-                      padding: "11px 7px",
-                      fontSize: 16,
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                    }}
+                    onChange={(e) => setStateCode(e.target.value.toUpperCase().slice(0, 2))}
+                    style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600, textTransform: "uppercase" }}
                   />
                 </div>
               </label>
@@ -874,10 +631,11 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               {/* BIG VERDICT */}
               <div
+                className="gs-reveal"
                 style={{
                   background: verdictBg,
                   border: `2px solid ${verdictColor}`,
-                  borderRadius: 12,
+                  borderRadius: radius.md,
                   padding: "clamp(28px,3.5vw,44px)",
                   display: "grid",
                   gridTemplateColumns: "auto 1fr",
@@ -927,110 +685,52 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "1fr 1fr 1fr",
+                      gridTemplateColumns: "repeat(3,1fr)",
                       gap: 14,
                     }}
                   >
-                    <div
-                      style={{
-                        background: "rgba(0,55,56,0.05)",
-                        borderRadius: 8,
-                        padding: 14,
-                        textAlign: "center",
-                      }}
-                    >
-                      <Mono
-                        style={{
-                          display: "block",
-                          fontSize: "clamp(18px,2vw,24px)",
-                          fontWeight: 600,
-                          letterSpacing: "-0.02em",
-                          color: dc.dark,
-                        }}
-                      >
-                        {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
-                      </Mono>
+                    {[
+                      { val: (cashFlow >= 0 ? "+" : "") + fmt(cashFlow), label: "cash flow",  color: cashFlow >= 0 ? dc.emerald : swatch.emerald },
+                      { val: capRate.toFixed(2) + "%",                    label: "cap rate",   color: dc.dark },
+                      { val: debtYield.toFixed(2) + "%",                  label: "debt yield", color: dc.dark },
+                    ].map((m) => (
                       <div
+                        key={m.label}
                         style={{
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: "rgba(0,55,56,0.5)",
-                          marginTop: 4,
+                          background: `${swatch.midnight}33`,
+                          borderRadius: radius.sm,
+                          padding: "clamp(10px,1.2vw,14px)",
+                          textAlign: "center",
                         }}
                       >
-                        cash flow
+                        <Mono
+                          style={{
+                            display: "block",
+                            fontSize: "clamp(16px,2vw,24px)",
+                            fontWeight: 600,
+                            letterSpacing: "-0.02em",
+                            color: m.color,
+                          }}
+                        >
+                          {m.val}
+                        </Mono>
+                        <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginTop: 4 }}>
+                          {m.label}
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        background: "rgba(0,55,56,0.05)",
-                        borderRadius: 8,
-                        padding: 14,
-                        textAlign: "center",
-                      }}
-                    >
-                      <Mono
-                        style={{
-                          display: "block",
-                          fontSize: "clamp(18px,2vw,24px)",
-                          fontWeight: 600,
-                          letterSpacing: "-0.02em",
-                          color: dc.dark,
-                        }}
-                      >
-                        {capRate.toFixed(2)}%
-                      </Mono>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: "rgba(0,55,56,0.5)",
-                          marginTop: 4,
-                        }}
-                      >
-                        cap rate
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        background: "rgba(0,55,56,0.05)",
-                        borderRadius: 8,
-                        padding: 14,
-                        textAlign: "center",
-                      }}
-                    >
-                      <Mono
-                        style={{
-                          display: "block",
-                          fontSize: "clamp(18px,2vw,24px)",
-                          fontWeight: 600,
-                          letterSpacing: "-0.02em",
-                          color: dc.dark,
-                        }}
-                      >
-                        {debtYield.toFixed(2)}%
-                      </Mono>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: "rgba(0,55,56,0.5)",
-                          marginTop: 4,
-                        }}
-                      >
-                        debt yield
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
               {/* STATE RULE */}
               <div
+                className="gs-reveal"
                 style={{
                   background: dc.dark,
-                  borderRadius: 9,
-                  padding: 26,
+                  borderRadius: radius.md,
+                  padding: "clamp(20px,2.4vw,28px)",
+                  border: `1px solid rgba(238,239,211,0.1)`,
                 }}
               >
                 <div
@@ -1072,11 +772,12 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
               {/* MATCHED PROGRAMS */}
               <div
+                className="gs-reveal"
                 style={{
-                  background: dc.white,
-                  borderRadius: 9,
-                  padding: 24,
-                  border: "1px solid rgba(0,55,56,0.1)",
+                  background: swatch.white,
+                  borderRadius: radius.md,
+                  padding: "clamp(20px,2.4vw,28px)",
+                  border: `1px solid ${swatch.midnightFaded}`,
                 }}
               >
                 <div
@@ -1158,14 +859,14 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               <a
                 href="/rate-quiz"
                 onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, whiteSpace: "nowrap", minHeight: 44 }}
               >
                 Get my rate →
               </a>
               <a
                 href="/lender-intel"
                 onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: `1px solid rgba(238,239,211,0.25)`, whiteSpace: "nowrap" }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, border: `1.5px solid ${swatch.midnightFaded}`, whiteSpace: "nowrap", minHeight: 44 }}
               >
                 Browse programs
               </a>

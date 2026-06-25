@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatedCard, AnimatedButton } from "./PageShell";
-import { swatch } from "../theme";
+import { swatch, radius } from "../theme";
 
 // Blue "how it works" band — recreation of greenboard.com's step_tab scroll motion,
 // rebuilt for Greenstreet's DSCR flow:
@@ -98,8 +98,6 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
         padding: "clamp(56px, 7vw, 96px) clamp(1.5rem, 4vw, 4rem)",
         marginTop: "40px",
         overflow: "hidden",
-        backgroundImage:
-          "radial-gradient(circle at 20% 0%, rgba(77,196,255,0.10), transparent 45%), radial-gradient(circle at 90% 100%, rgba(77,196,255,0.07), transparent 40%)",
       }}
     >
       <style>{`
@@ -154,26 +152,26 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div
                     style={{
-                      width: "30px", height: "30px", borderRadius: "50%", flexShrink: 0,
+                      width: "30px", height: "30px", borderRadius: radius.pill, flexShrink: 0,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       background: on ? CYAN : NAVY_2,
-                      border: `2px solid ${on ? CYAN : "rgba(191,230,255,0.3)"}`,
+                      border: `1.5px solid ${on ? CYAN : `${CYAN}50`}`,
                       color: on ? NAVY : ICE, fontSize: "13px", fontWeight: 800,
-                      boxShadow: on ? `0 0 16px ${CYAN}` : "none",
+                      boxShadow: "none",
                       transition: "background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease",
-                      animation: isActive ? "hiw-pulse 1.6s ease-out infinite" : "none",
+                      animation: "none",
                     }}
                   >
                     {on ? "✓".repeat(0) || i + 1 : i + 1}
                   </div>
                   {!last && (
-                    <div style={{ width: "3px", flex: 1, minHeight: "28px", borderRadius: "3px", background: "rgba(191,230,255,0.16)", position: "relative", overflow: "hidden" }}>
+                    <div style={{ width: "3px", flex: 1, minHeight: "28px", borderRadius: radius.sm, background: `${CYAN}20`, position: "relative", overflow: "hidden" }}>
                       <div
                         style={{
                           position: "absolute", top: 0, left: 0, right: 0,
                           height: `${segFill * 100}%`,
                           background: `linear-gradient(${CYAN}, ${LEMON})`,
-                          boxShadow: segFill > 0 ? `0 0 12px ${CYAN}` : "none",
+                          boxShadow: "none",
                           transition: "height 0.15s linear",
                         }}
                       />
@@ -186,13 +184,13 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
                   themeName="dark"
                   hoverScale={false}
                   style={{
-                    background: on ? NAVY_2 : "rgba(10,58,85,0.4)",
-                    border: `1px solid ${isActive ? CYAN : on ? "rgba(77,196,255,0.45)" : "rgba(191,230,255,0.12)"}`,
-                    borderRadius: "14px", padding: "clamp(18px, 2.5vw, 28px)",
+                    background: on ? NAVY_2 : `${NAVY_2}60`,
+                    border: `1.5px solid ${isActive ? CYAN : on ? `${CYAN}70` : `${CYAN}20`}`,
+                    borderRadius: radius.lg, padding: "clamp(18px, 2.5vw, 28px)",
                     marginBottom: last ? 0 : "clamp(14px, 2vw, 22px)",
                     opacity: on ? 1 : 0.5,
                     transform: isActive ? "translateX(0) scale(1.015)" : on ? "translateX(0)" : "translateX(-8px)",
-                    boxShadow: isActive ? `0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px ${CYAN}` : on ? "0 8px 30px rgba(0,0,0,0.25)" : "none",
+                    boxShadow: isActive ? `0 0 0 1px ${CYAN}` : "none",
                     transition: "all 0.35s cubic-bezier(.2,.7,.2,1)",
                   }}
                 >
