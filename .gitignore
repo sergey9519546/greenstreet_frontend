@@ -52,3 +52,7 @@ __pycache__/
 # Build artifacts
 .deployed-index.html
 .cake_matrices/
+
+# HyperFrames render outputs (mp4 lives in public/video)
+hf-statelaws/renders/
+hf-*/node_modules/

@@ -124,6 +124,20 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
         </div>
       </section>
 
+      {/* EXPLAINER — rendered HyperFrames loop introducing the 50-state engine */}
+      <section style={{ background: RAIN, padding: `0 ${dc.pad} clamp(40px,5vw,64px)` }}>
+        <div className="gs-reveal" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <video
+            src="/video/state-laws-explainer.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{ width: "100%", display: "block", borderRadius: 16, border: "1px solid rgba(238,239,211,0.18)", aspectRatio: "16 / 9", objectFit: "cover", background: RAIN }}
+          />
+        </div>
+      </section>
+
       {/* MAP GRID — the signature: animated 10-col state grid + sticky detail */}
       <section id="sl-tool" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
