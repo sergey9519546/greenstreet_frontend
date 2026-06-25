@@ -12,7 +12,7 @@ const BL_CSS = `
 /* Light-nav override: links + wordmark use dark ink on pistachio bg */
 .dc-nav a { color: rgba(0,55,56,0.72) !important; }
 .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
-.dc-nav { border-bottom: ${BL_NAV_BORDER} !important; background: rgba(238,239,211,0.92) !important; backdrop-filter: blur(12px); }
+.dc-nav { border-bottom: ${BL_NAV_BORDER} !important; background: rgba(238,239,211,1) !important;  }
 /* footer ink on pistachio footer */
 footer { color: rgba(0,55,56,0.55) !important; }
 footer div[style] { color: #003738 !important; }

@@ -35,7 +35,7 @@ const ABOUT_CSS = `
   /* Lemon nav: swap all text to dark ink */
   .dc-nav a { color: rgba(0,55,56,0.72) !important; }
   .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
-  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,0.92) !important; backdrop-filter: blur(12px); }
+  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,1) !important;  }
   /* Lemon footer: dark wordmark */
   footer { color: rgba(0,55,56,0.55) !important; }
   footer div[style] { color: #003738 !important; }

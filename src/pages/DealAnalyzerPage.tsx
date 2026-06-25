@@ -160,7 +160,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
         .dc-nav a[style*="background"]{color:${dc.cream} !important;}
         .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
         /* nav border */
-        .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:rgba(238,239,211,0.92) !important;backdrop-filter:blur(12px);}
+        .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:rgba(238,239,211,1) !important;}
         /* footer ink on pistachio footer */
         footer{color:rgba(0,55,56,0.55) !important;}
         footer div[style]{color:${dc.dark} !important;}
@@ -180,9 +180,6 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       >
         {/* dot grid */}
         <div className="gs-dot-grid" />
-        {/* ambient glows from mockup */}
-        <div style={{ position: "absolute", top: "-20%", right: "-8%", width: "52%", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle,rgba(216,217,88,0.10),transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-15%", left: "5%", width: "42%", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle,rgba(77,189,151,0.09),transparent 70%)", pointerEvents: "none" }} />
 
         <div
           className="dc-hero"

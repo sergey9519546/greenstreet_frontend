@@ -282,19 +282,6 @@ export default function ReturnsPage({
         }}
       >
         <div className="gs-dot-grid" />
-        {/* Lemon radial glow — Returns signature; absent from DSCR Calculator hero */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-18%",
-            right: "-6%",
-            width: "52%",
-            aspectRatio: "1",
-            borderRadius: "50%",
-            background: "radial-gradient(circle,rgba(216,217,88,0.10),transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
         <div
           className="dc-hero"
           style={{

@@ -201,7 +201,7 @@ export default function PortfolioPage({
         .pf-row:hover{background:rgba(0,55,56,0.03);}
         .dc-nav a{color:rgba(0,55,56,0.72) !important;}
         .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
-        .dc-nav{border-bottom:${PF_NAV_BORDER} !important;background:rgba(238,239,211,0.92) !important;backdrop-filter:blur(12px);}
+        .dc-nav{border-bottom:${PF_NAV_BORDER} !important;background:rgba(238,239,211,1) !important;}
         footer{color:rgba(0,55,56,0.55) !important;}
         footer div[style]{color:${dc.dark} !important;}
         .pf-hbar{transform-origin:bottom;}
