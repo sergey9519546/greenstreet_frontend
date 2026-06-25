@@ -172,9 +172,9 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
             
             <div className="nav-links-contain">
               <div className="nav-links-wrap">
-                <a className="nav-link w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>
-                    DSCR<span style={{ color: MIDNIGHT, fontWeight: 500 }}>Go</span>
+                    Investor<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
                   </div>
                 </a>
                 <a className="nav-link w-inline-block" href="/products" onClick={(e) => { e.preventDefault(); onNavigate("products"); }}>
@@ -189,7 +189,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <a className="nav-link w-inline-block" href="/about" onClick={(e) => { e.preventDefault(); onNavigate("about"); }}>
                   <div className="nav_links_text">About</div>
                 </a>
-                <a className="nav-link is-underline w-inline-block" href="/dscrgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link is-underline w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div>Login</div>
                 </a>
                 <div className="nav-btn">
@@ -222,12 +222,12 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
         {/* Mobile dropdown menu rendering */}
         {menuOpen && (
           <div className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>DSCR</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>Go</span></a>
+            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>Investor</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
             <a href="/products" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("products"); setMenuOpen(false); }}>Product</a>
             <a href="/solutions" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("solutions"); setMenuOpen(false); }}>Who We Serve</a>
             <a href="/blog" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("blog"); setMenuOpen(false); }}>Resources</a>
             <a href="/about" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("about"); setMenuOpen(false); }}>About</a>
-            <a href="/dscrgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
+            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
             <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); setMenuOpen(false); }}>Book a demo</a>
           </div>
         )}

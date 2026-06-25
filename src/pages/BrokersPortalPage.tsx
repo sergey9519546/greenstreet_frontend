@@ -66,7 +66,7 @@ export default function BrokersPortalPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "Broker Portal | Greenstreet Finance";
+    document.title = "InvestorGO | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -112,7 +112,7 @@ export default function BrokersPortalPage({
                 marginBottom: 20,
               }}
             >
-              Partner Portal
+              InvestorGO &middot; Partner Portal
             </div>
 
             {/* H1 */}
