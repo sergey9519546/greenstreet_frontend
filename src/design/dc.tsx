@@ -151,7 +151,10 @@ export function useDcGsap(scope: React.RefObject<HTMLElement>) {
       // above). useGSAP runs in a layout effect (pre-paint), so from() sets the
       // start state before the browser paints — no visible "drop" on route change.
       document.querySelectorAll(".gs-reveal").forEach((el) => {
-        gsap.from(el, { y: 40, opacity: 0, duration: 0.85, ease: "power3.out", clearProps: "all", scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+        // Transform-only (no opacity-from-0): ScrollTrigger initialises after
+        // layout, so an above-fold section animating opacity would flash invisible
+        // then "recover" — the visible drop. A pure rise can never hide content.
+        gsap.from(el, { y: 28, duration: 0.7, ease: "power3.out", clearProps: "transform", scrollTrigger: { trigger: el, start: "top 90%", once: true } });
       });
       // Pop-in stagger for signature grids/tiles (e.g. the State Laws map cells).
       const pop = document.querySelectorAll(".dc-pop");

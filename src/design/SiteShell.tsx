@@ -65,8 +65,11 @@ const NAV_DD_CSS = `
 .gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:none;border:none;font-family:inherit;position:relative;}
 .gs-dd-caret{transition:transform .18s ease;}
 .gs-dd-wrap.is-open .gs-dd-caret{transform:rotate(180deg);}
-.nav-link.is-current{position:relative;}
-.gs-dd-toggle.is-active::after,.nav-link.is-current::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:${LEMON};}
+/* Active section / current page = the mint hover pill (matches the home's
+   .nav-link:has(.w--current){background:card}). The original nav has NO
+   underline — the lemon ::after line was a React-only addition; removed. */
+.gs-site-nav .gs-dd-toggle.is-active .nav-link-background,
+.gs-site-nav .nav-link.is-current .nav-link-background{opacity:1;}
 .gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
 /* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
    opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
