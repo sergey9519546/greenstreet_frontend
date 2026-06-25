@@ -1,5 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono } from "../design/dc";
+import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tier = 0 | 1 | 2 | 3; // 0 allowed, 1 threshold, 2 high-risk, 3 banned
@@ -43,7 +49,7 @@ const SPECIAL: Record<string, Omit<StateEntry, "code">> = {
 };
 
 const ALL_CODES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
-const CODE_TO_NAME: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming" };
+const CODE_TO_NAME: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia" };
 
 const TIER_COLORS: Record<Tier, string> = { 0: dc.emerald, 1: dc.lemon, 2: "#f97316", 3: "#ff6b6b" };
 const TIER_LABELS: Record<Tier, string> = { 0: "PPP Allowed", 1: "Threshold-Based", 2: "High-Risk", 3: "Effectively Banned" };
@@ -68,7 +74,19 @@ const RAIN = dc.rain; // #006565 — State Laws' distinct colour identity
 export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   const [selected, setSelected] = useState("NJ");
   const [q, setQ] = useState("");
+  const [hover, setHover] = useState<string | null>(null);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const mapRef = useRef<HTMLDivElement>(null);
   const sel = resolve(selected);
+
+  // Region-by-region scan-in of the map (honors reduced-motion).
+  useGSAP(
+    () => {
+      if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.from(".us-state", { opacity: 0, duration: 0.5, ease: "power2.out", stagger: { each: 0.008, from: "edges" }, scrollTrigger: { trigger: mapRef.current, start: "top 82%", once: true } });
+    },
+    { scope: mapRef }
+  );
 
   const counts = ALL_CODES.map(resolve).reduce((a, r) => { a[r.tier]++; return a; }, [0, 0, 0, 0] as number[]);
 
@@ -99,6 +117,8 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
         .sl-cell:hover{transform:scale(1.09);}
         .sl-input{width:100%;border:1px solid rgba(238,239,211,0.25);background:rgba(238,239,211,0.08);outline:none;color:#eeefd3;font-family:${dc.sans};font-size:15px;letter-spacing:-0.01em;border-radius:8px;padding:12px 14px;}
         .sl-input::placeholder{color:rgba(238,239,211,0.5);}
+        .us-state{transition:fill .15s, filter .15s, stroke .12s, stroke-width .12s;}
+        .us-state:focus{outline:none;}
       `}</style>
 
       {/* HERO — rain-forest, single column (distinct from the dark tool heroes) */}
@@ -149,23 +169,49 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
             ))}
           </div>
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 36, alignItems: "start" }}>
-            {/* animated grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 7 }}>
-              {ALL_CODES.map((code) => {
-                const r = resolve(code);
-                const isSel = code === selected;
+            {/* interactive US map — hover to peek, click to lock the detail panel */}
+            <div ref={mapRef} style={{ position: "relative" }}>
+              <svg
+                viewBox={US_VIEWBOX}
+                style={{ width: "100%", height: "auto", display: "block", overflow: "visible" }}
+                role="img"
+                aria-label="United States prepayment-penalty rule map"
+                onMouseMove={(e) => {
+                  const rect = mapRef.current?.getBoundingClientRect();
+                  if (rect) setPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                }}
+                onMouseLeave={() => setHover(null)}
+              >
+                {Object.keys(US_PATHS).map((code) => {
+                  const r = resolve(code);
+                  const isSel = code === selected;
+                  const isHov = code === hover;
+                  return (
+                    <path
+                      key={code}
+                      className="us-state"
+                      d={US_PATHS[code]}
+                      fill={TIER_COLORS[r.tier]}
+                      stroke={isSel ? dc.dark : "#eeefd3"}
+                      strokeWidth={isSel ? 2.4 : 0.8}
+                      onMouseEnter={() => setHover(code)}
+                      onClick={() => setSelected(code)}
+                      style={{ cursor: "pointer", filter: isHov ? "brightness(1.12)" : "none" }}
+                      aria-label={`${r.name}: ${TIER_LABELS[r.tier]}`}
+                    />
+                  );
+                })}
+              </svg>
+              {hover && (() => {
+                const r = resolve(hover);
                 return (
-                  <button
-                    key={code}
-                    className="sl-cell dc-pop"
-                    onClick={() => setSelected(code)}
-                    style={{ background: TIER_COLORS[r.tier], color: TIER_INK[r.tier], outlineColor: isSel ? dc.dark : "transparent" }}
-                    aria-label={`${r.name}: ${TIER_LABELS[r.tier]}`}
-                  >
-                    <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "-0.02em" }}>{code}</span>
-                  </button>
+                  <div style={{ position: "absolute", left: pos.x + 14, top: pos.y + 14, pointerEvents: "none", background: dc.dark, color: dc.cream, borderRadius: 8, padding: "10px 13px", maxWidth: 240, boxShadow: "0 14px 32px -18px rgba(0,0,0,0.55)", zIndex: 5 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{r.name}</div>
+                    <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: TIER_COLORS[r.tier] }}>{TIER_LABELS[r.tier]}</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.7)", marginTop: 5, lineHeight: 1.4 }}>{r.impact}</div>
+                  </div>
                 );
-              })}
+              })()}
             </div>
             {/* sticky detail panel */}
             <div style={{ background: dc.dark, borderRadius: 9, padding: 32, position: "sticky", top: 96 }}>
