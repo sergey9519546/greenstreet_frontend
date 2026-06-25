@@ -199,15 +199,21 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <div id="gs-hero-content">
             <div
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
                 fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.lemon,
-                marginBottom: 22,
+                color: dc.dark,
+                background: dc.lemon,
+                padding: "7px 14px",
+                borderRadius: 100,
+                marginBottom: 24,
               }}
             >
-              Deal Analyzer &middot; Full underwrite &middot; Seven inputs
+              Deal Analyzer &middot; Full underwrite
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
               Plug in 7 numbers.

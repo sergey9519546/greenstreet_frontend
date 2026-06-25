@@ -47,6 +47,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── Leads (See If You Qualify form) ────────────────────────────────────────
+    // Anonymous users can submit lead forms. No one can read/update/delete leads.
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+
     // ── Block everything else ─────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

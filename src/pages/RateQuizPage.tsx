@@ -280,11 +280,8 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
 
           {/* Sub — five questions, compliance-safe, no email/credit pull */}
           <Lead style={{ color: "rgba(0,55,56,0.62)", maxWidth: "50ch", margin: "0 auto" }}>
-            Five questions. One real rate tier. Greenstreet programs matched to
-            your deal profile.{" "}
-            <span style={{ color: "rgba(0,55,56,0.42)" }}>
-              No email, no account, no credit pull.
-            </span>
+            Five quick questions. No credit pull, no email. We map your answers
+            to a Greenstreet program and an indicative rate band.
           </Lead>
         </div>
       </section>

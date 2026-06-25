@@ -216,7 +216,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 36 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
-              Live program matcher
+              Live lender matcher
             </div>
             <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", lineHeight: 1.05 }}>
               <Mono style={{ fontWeight: 600 }}>{matchCount}</Mono> of {total} programs fit this deal

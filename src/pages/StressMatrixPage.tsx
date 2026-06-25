@@ -146,6 +146,9 @@ export default function StressMatrixPage({
   const baseDSCR = result?.baseTrack1DSCR ?? 0;
   const safeCount = (result?.zoneCounts.SAFE ?? 0) + (result?.zoneCounts.COMFORTABLE ?? 0);
   const breakCount = result?.zoneCounts.DEAL_BREAK ?? 0;
+  const passCount = (result?.zoneCounts.SAFE ?? 0) + (result?.zoneCounts.COMFORTABLE ?? 0) + (result?.zoneCounts.MARGINAL ?? 0);
+  const totalCells = result?.totalCells ?? 1;
+  const passRate = Math.round((passCount / totalCells) * 100) + "%";
 
   // Cell background + ink colors
   function cellStyle(zone: StressRiskZone, isBaseCell: boolean, isHovered: boolean): React.CSSProperties {
@@ -284,21 +287,29 @@ export default function StressMatrixPage({
           <div id="gs-hero-content">
             <div
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
                 fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: "#006565",
-                marginBottom: 22,
+                color: dc.dark,
+                background: dc.lemon,
+                padding: "7px 14px",
+                borderRadius: 100,
+                marginBottom: 24,
               }}
             >
-              Stress Matrix &middot; 12&times;10 grid &middot; 5 risk zones
+              Stress Matrix &middot; 12&times;10 grid &middot; 5 zones
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
               See every stress scenario in one view.
             </H1>
             <Lead style={{ color: "rgba(0,55,56,0.65)", maxWidth: "48ch", margin: "0 0 36px" }}>
-              120 cells. Rate shocks &minus;150 to +200bps. Rent shocks &minus;25% to +20%. Five risk zones from SAFE to DEAL_BREAK.
+              120 cells. Rate shocks from &minus;150 to +200 bps, rent shocks
+              from &minus;25% to +20%. Every cell recolors live as you change
+              the base deal.
             </Lead>
             <Btn label="Open the matrix" href="#sm-tool" onClick={scrollToTool} />
           </div>
@@ -388,12 +399,11 @@ export default function StressMatrixPage({
               Live stress matrix
             </div>
             <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
-              Base:{" "}
-              <Mono style={{ color: dc.lemon }}>{baseDSCR.toFixed(2)}x</Mono>
+              Base{" "}
+              <Mono style={{ color: dc.cream }}>{baseDSCR.toFixed(2)}x</Mono>
               {" · "}
-              <span style={{ color: dc.emerald }}>{(result?.zoneCounts.SAFE ?? 0) + (result?.zoneCounts.COMFORTABLE ?? 0)} SAFE</span>
-              {" · "}
-              <span style={{ color: "#ff6b6b" }}>{result?.zoneCounts.DEAL_BREAK ?? 0} DEAL_BREAK</span>
+              <span style={{ color: dc.emerald }}>{passRate}</span>
+              {" of scenarios hold ≥ 1.0x"}
             </h2>
           </div>
 

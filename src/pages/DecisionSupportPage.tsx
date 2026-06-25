@@ -290,15 +290,21 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
           <div id="gs-hero-content">
             <div
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
                 fontSize: 12,
                 fontWeight: 600,
-                letterSpacing: "0.03em",
+                letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.lemon,
+                color: dc.dark,
+                background: dc.lemon,
+                borderRadius: 100,
+                padding: "7px 14px",
                 marginBottom: 24,
               }}
             >
-              Underwriting verdict · IC memo · risk flags
+              Decision engine · IC memo
             </div>
             <H1 style={{ margin: "0 0 24px" }}>
               One verdict.
@@ -316,7 +322,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
               composite — GO, CONDITIONAL, or NO-GO — with the reasons spelled out
               like an investment-committee memo.
             </Lead>
-            <Btn label="Run the decision engine" href="#ds-tool" onClick={scrollToTool} />
+            <Btn label="Run the decision engine ↓" href="#ds-tool" onClick={scrollToTool} />
           </div>
 
           {/* Right: live verdict gauge — the mockup's signature */}
@@ -324,20 +330,20 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         </div>
       </section>
 
-      {/* ── TOOL ── */}
+      {/* ── TOOL — dark teal, matches mockup #003a39 ── */}
       <section
         id="ds-tool"
-        style={{ background: dc.cream, padding: `clamp(64px,8vw,112px) ${dc.pad}` }}
+        style={{ background: "#003a39", color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           {/* Section header */}
-          <div className="gs-reveal" style={{ marginBottom: 40 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
+          <div className="gs-reveal" style={{ marginBottom: 34 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live decision-support engine
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.02, margin: 0 }}>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
               Verdict:{" "}
-              <span style={{ color: result ? verdictInk(heroVerdict) : dc.rain }}>
+              <span style={{ color: result ? verdictColor(heroVerdict) : dc.lemon }}>
                 {result?.verdict.verdict ?? "—"}
               </span>{" "}
               · composite {heroComposite}/100
@@ -349,10 +355,10 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             className="gs-reveal dc-split"
             style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 36, alignItems: "start" }}
           >
-            {/* ── INPUTS (dark panel) ── */}
-            <div style={{ background: dc.dark, borderRadius: 9, padding: 30 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 20 }}>
-                Deal &amp; Borrower
+            {/* ── INPUTS ── */}
+            <div style={{ background: "#002a29", borderRadius: 14, padding: 30, border: "1px solid rgba(238,239,211,0.08)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 22 }}>
+                Deal &amp; borrower
               </div>
 
               {([
@@ -387,117 +393,110 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
             {/* ── RESULTS ── */}
             {!result ? (
-              <div style={{ background: dc.white, borderRadius: 9, padding: 40, border: "1px solid rgba(0,55,56,0.1)", textAlign: "center" }}>
-                <p style={{ color: "#d32f2f", fontWeight: 600 }}>Engine returned no result — check inputs.</p>
+              <div style={{ background: "#002a29", borderRadius: 14, padding: 40, border: "1px solid rgba(238,239,211,0.08)", textAlign: "center" }}>
+                <p style={{ color: "#e06363", fontWeight: 600 }}>Engine returned no result — check inputs.</p>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-                {/* BIG VERDICT */}
+                {/* VERDICT CARD — gauge + chip (matches mockup readout panel layout) */}
                 <div
                   style={{
-                    background: verdictBg(result.verdict.verdict),
-                    borderRadius: 9,
-                    padding: 34,
+                    background: "linear-gradient(160deg,#00302f,#002423)",
+                    borderRadius: 14,
+                    padding: "clamp(28px,3vw,40px)",
+                    border: "1px solid rgba(238,239,211,0.08)",
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr",
+                    gap: "clamp(28px,4vw,52px)",
+                    alignItems: "center",
                   }}
                 >
-                  <div style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictInk(result.verdict.verdict), opacity: 0.7, marginBottom: 10 }}>
-                    Investment committee verdict
+                  <div style={{ width: "clamp(200px,22vw,270px)" }}>
+                    <VerdictGauge composite={result.composite} />
                   </div>
-                  <Mono
-                    style={{
-                      display: "block",
-                      fontSize: "clamp(44px,5vw,64px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.03em",
-                      color: verdictInk(result.verdict.verdict),
-                      lineHeight: 1,
-                    }}
-                  >
-                    {result.verdict.verdict}
-                  </Mono>
-                  <div style={{ fontSize: 16, fontWeight: 500, color: verdictInk(result.verdict.verdict), opacity: 0.85, marginTop: 12, letterSpacing: "-0.02em" }}>
-                    {result.verdict.verdict === "PROCEED"
-                      ? "Clears underwriting on all primary signals. Proceed to term sheet."
-                      : result.verdict.verdict === "RESTRUCTURE"
-                      ? "Workable with compensating factors. Tighten the weak signals before IC."
-                      : "Fails one or more hard gates. Restructure the deal or pass."}
+                  <div>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: result.verdict.verdict === "PROCEED" ? "rgba(77,189,151,0.12)" : result.verdict.verdict === "RESTRUCTURE" ? "rgba(216,217,88,0.12)" : "rgba(224,99,99,0.12)", border: `1px solid ${verdictColor(result.verdict.verdict)}`, borderRadius: 100, padding: "6px 14px", marginBottom: 16 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: verdictColor(result.verdict.verdict), display: "inline-block" }} />
+                      <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor(result.verdict.verdict) }}>IC verdict</span>
+                    </div>
+                    <Mono
+                      style={{
+                        display: "block",
+                        fontSize: "clamp(38px,4.4vw,58px)",
+                        fontWeight: 600,
+                        letterSpacing: "-0.035em",
+                        color: verdictColor(result.verdict.verdict),
+                        lineHeight: 1,
+                        marginBottom: 14,
+                      }}
+                    >
+                      {result.verdict.verdict}
+                    </Mono>
+                    <p style={{ fontSize: "clamp(15px,1.3vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.72)", margin: 0 }}>
+                      {result.verdict.verdict === "PROCEED"
+                        ? "Clears underwriting on all primary signals. Proceed to term sheet."
+                        : result.verdict.verdict === "RESTRUCTURE"
+                        ? "Workable with compensating factors. Tighten the weak signals before IC."
+                        : "Fails one or more hard gates. Restructure the deal or pass."}
+                    </p>
                   </div>
                 </div>
 
-                {/* METRICS ROW */}
-                <div
-                  className="dc-band-2"
-                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "1px", background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}
-                >
-                  {[
-                    { label: "Track 1 DSCR", val: `${result.deal.dscr.toFixed(2)}x`,    color: result.deal.dscr >= 1.25 ? dc.rain : result.deal.dscr >= 1.0 ? "#a16207" : "#d32f2f" },
-                    { label: "Track 2 DSCR", val: `${result.track2DSCR.toFixed(2)}x`,    color: result.track2DSCR >= 1.25 ? dc.rain : result.track2DSCR >= 1.0 ? "#a16207" : "#d32f2f" },
-                    { label: "Rate cushion",  val: `${Math.round(result.deal.rateHeadroomBps)} bps`, color: result.deal.rateHeadroomBps > 50 ? dc.rain : "#d32f2f" },
-                    { label: "Acq score",     val: `${Math.round(result.acq.score)}/100`, color: result.acq.score >= 75 ? dc.rain : result.acq.score >= 60 ? "#a16207" : "#d32f2f" },
-                  ].map((m) => (
-                    <div key={m.label} style={{ background: dc.white, padding: "18px 16px", textAlign: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 6 }}>
-                        {m.label}
-                      </div>
-                      <Mono style={{ display: "block", fontSize: "clamp(18px,2vw,24px)", fontWeight: 700, color: m.color }}>
-                        {m.val}
-                      </Mono>
+                {/* COMPOSITE BREAKDOWN + IC MEMO — side by side (matches mockup 2-col bottom) */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+                  {/* Composite factors */}
+                  <div style={{ background: "#002a29", borderRadius: 14, padding: 26, border: "1px solid rgba(238,239,211,0.08)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 18 }}>
+                      Composite breakdown (weighted)
                     </div>
-                  ))}
-                </div>
-
-                {/* COMPOSITE FACTORS */}
-                <div style={{ background: dc.white, borderRadius: 9, padding: 30, border: "1px solid rgba(0,55,56,0.1)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 18 }}>
-                    Composite breakdown (weighted)
+                    {result.factors.map((f) => (
+                      <div key={f.label} style={{ marginBottom: 16 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: dc.cream }}>{f.label}</span>
+                          <Mono style={{ fontSize: 13, fontWeight: 700, color: f.color }}>{f.valStr}</Mono>
+                        </div>
+                        <div style={{ height: 6, borderRadius: 3, background: "rgba(238,239,211,0.1)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: f.pct, background: f.color, borderRadius: 3 }} />
+                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 5 }}>{f.note}</div>
+                      </div>
+                    ))}
                   </div>
-                  {result.factors.map((f) => (
-                    <div key={f.label} style={{ marginBottom: 16 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: dc.dark }}>{f.label}</span>
-                        <Mono style={{ fontSize: 13, fontWeight: 700, color: f.color }}>{f.valStr}</Mono>
-                      </div>
-                      <div style={{ height: 6, borderRadius: 3, background: "rgba(0,55,56,0.08)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: f.pct, background: f.color, borderRadius: 3 }} />
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginTop: 5 }}>{f.note}</div>
-                    </div>
-                  ))}
-                </div>
 
-                {/* IC MEMO */}
-                <div style={{ background: dc.dark, borderRadius: 9, padding: 30 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 14 }}>
-                    IC memo — key reasons
-                  </div>
-                  {result.memo.map((m, i) => (
-                    <div key={i} style={{ display: "flex", gap: 12, padding: "9px 0", borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
-                      <span style={{ color: m.color, fontWeight: 700, flexShrink: 0 }}>{m.mark}</span>
-                      <span style={{ color: "rgba(238,239,211,0.85)", fontSize: 14, fontWeight: 500, lineHeight: 1.5, letterSpacing: "-0.01em" }}>{m.text}</span>
+                  {/* IC MEMO */}
+                  <div style={{ background: "#002a29", borderRadius: 14, padding: 26, border: "1px solid rgba(238,239,211,0.08)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
+                      IC memo — key reasons
                     </div>
-                  ))}
+                    {result.memo.map((m, i) => (
+                      <div key={i} style={{ display: "flex", gap: 12, padding: "11px 0", borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
+                        <span style={{ color: m.color, fontWeight: 700, flexShrink: 0 }}>{m.mark}</span>
+                        <span style={{ color: "rgba(238,239,211,0.82)", fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>{m.text}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* KILL CRITERIA (when flagged) */}
                 {result.kill.criteria.length > 0 && (
-                  <div className="gs-reveal" style={{ background: dc.white, borderRadius: 9, padding: 28, border: "1px solid rgba(0,55,56,0.1)" }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 16 }}>
+                  <div className="gs-reveal" style={{ background: "#002a29", borderRadius: 14, padding: 28, border: "1px solid rgba(238,239,211,0.08)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                       Kill-criterion checklist — {result.kill.criteria.length} flagged
                     </div>
                     {result.kill.criteria.map((k, i) => {
-                      const kc = k.severity === "BLOCKER" ? "#d32f2f" : k.severity === "WARNING" ? "#a16207" : dc.rain;
+                      const kc = k.severity === "BLOCKER" ? "#e06363" : k.severity === "WARNING" ? "#e6b84d" : dc.emerald;
                       return (
-                        <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                            <span style={{ fontWeight: 600, fontSize: 14, color: dc.dark }}>{k.criterion}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: `${kc}1a`, color: kc, border: `1px solid ${kc}` }}>
+                            <span style={{ fontWeight: 600, fontSize: 14, color: dc.cream }}>{k.criterion}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: `${kc}22`, color: kc, border: `1px solid ${kc}` }}>
                               {k.severity}
                             </span>
                           </div>
-                          <p style={{ color: "rgba(0,55,56,0.55)", fontSize: 12, margin: "0 0 2px" }}>{k.detail}</p>
-                          <p style={{ color: "rgba(0,55,56,0.55)", fontSize: 12, margin: 0 }}>
-                            <strong style={{ color: dc.rain }}>Action: </strong>{k.action}
+                          <p style={{ color: "rgba(238,239,211,0.55)", fontSize: 12, margin: "0 0 2px" }}>{k.detail}</p>
+                          <p style={{ color: "rgba(238,239,211,0.55)", fontSize: 12, margin: 0 }}>
+                            <strong style={{ color: dc.emerald }}>Action: </strong>{k.action}
                           </p>
                         </div>
                       );
@@ -508,26 +507,26 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 {/* GRADE + ACQ SCORE */}
                 <div
                   className="gs-reveal dc-band-2"
-                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}
+                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: 14, overflow: "hidden", border: "1px solid rgba(238,239,211,0.08)" }}
                 >
-                  <div style={{ background: dc.white, padding: "28px 24px", textAlign: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.rain, marginBottom: 8 }}>Return grade</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade), lineHeight: 1 }}>
+                  <div style={{ background: "#002a29", padding: "28px 24px", textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 8 }}>Return grade</div>
+                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade) === dc.rain ? dc.emerald : gradeColor(result.grade), lineHeight: 1 }}>
                       {result.grade}
                     </Mono>
                   </div>
-                  <div style={{ background: dc.cream, padding: "28px 24px", textAlign: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.rain, marginBottom: 8 }}>Acquisition score</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: result.acq.score >= 75 ? dc.rain : result.acq.score >= 60 ? "#a16207" : "#d32f2f", lineHeight: 1 }}>
+                  <div style={{ background: "#002a29", padding: "28px 24px", textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 8 }}>Acquisition score</div>
+                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? "#e6b84d" : "#e06363", lineHeight: 1 }}>
                       {Math.round(result.acq.score)}
                     </Mono>
-                    <div style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", marginTop: 4 }}>{result.acq.band}</div>
+                    <div style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>{result.acq.band}</div>
                   </div>
                 </div>
 
                 {/* ENGINE FOOTNOTE */}
-                <div style={{ padding: "14px 18px", background: "rgba(0,101,101,0.07)", borderRadius: 9, border: "1px solid rgba(0,55,56,0.1)", fontSize: 12, color: "rgba(0,55,56,0.6)", lineHeight: 1.6 }}>
-                  <strong style={{ color: dc.rain }}>Engine:</strong>{" "}
+                <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: 9, border: "1px solid rgba(238,239,211,0.08)", fontSize: 12, color: "rgba(238,239,211,0.55)", lineHeight: 1.6 }}>
+                  <strong style={{ color: dc.emerald }}>Engine:</strong>{" "}
                   src/engine/decisionSupport.ts → computeVerdict + computeDealKillCheck + computeReturnGrade.
                   PROCEED requires: T1 ≥ lender min + 5 bps cushion, T2 ≥ 1.0, Grade ≥ B, cushion ≥ 50 bps, no blockers, ≥1 eligible program.
                 </div>

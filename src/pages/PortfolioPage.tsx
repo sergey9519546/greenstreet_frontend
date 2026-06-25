@@ -237,17 +237,17 @@ export default function PortfolioPage({
         >
           {/* Left */}
           <div id="gs-hero-content">
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 22 }}>
-              Portfolio &middot; Blanket &middot; Multi-property
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24 }}>
+              Portfolio · Blanket · Multi-property
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
               Underwrite the whole portfolio at once.
             </H1>
             <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              Blended DSCR, aggregate equity, weighted rate and total monthly cash flow across every door.
+              Blended DSCR, aggregate equity, weighted rate and total monthly cash flow across every door — the way a blanket underwriter sees your book.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <Btn label="Open the portfolio builder" href="#pf-tool" onClick={scrollToTool} />
+              <Btn label="Open the portfolio builder ↓" href="#pf-tool" onClick={scrollToTool} />
               <Btn
                 label="DSCR calculator"
                 variant="secondary"
@@ -321,7 +321,7 @@ export default function PortfolioPage({
       {/* ── TOOL ─────────────────────────────────────────────────────────── */}
       <section
         id="pf-tool"
-        style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}
+        style={{ background: "#003a39", color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
 
@@ -350,7 +350,7 @@ export default function PortfolioPage({
               { label: "Monthly Cash Flow",  val: cashStr,   color: cashColor },
               { label: "Weighted Rate",      val: wRateStr,  color: dc.cream },
             ].map(({ label, val, color }) => (
-              <div key={label} style={{ background: dc.teal, padding: 26 }}>
+              <div key={label} style={{ background: "#002a29", padding: 26 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{label}</div>
                 <Mono style={{ display: "block", fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color, lineHeight: 1 }}>{val}</Mono>
               </div>
@@ -358,15 +358,15 @@ export default function PortfolioPage({
           </div>
 
           {/* Inline-editable property table */}
-          <div className="gs-reveal" style={{ background: dc.cream, borderRadius: 9, overflow: "hidden", marginBottom: 16 }}>
+          <div className="gs-reveal" style={{ background: "#002a29", borderRadius: 14, overflow: "hidden", marginBottom: 16, border: "1px solid rgba(238,239,211,0.08)" }}>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.dark }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
                 <thead>
                   <tr>
                     {["Property", "Type", "Value", "Balance", "Rate %", "Rent/mo", "LTV", "DSCR", "Cash/mo", ""].map((h, i) => (
                       <th
                         key={i}
-                        style={{ padding: "12px 14px", fontSize: 11, color: "rgba(0,55,56,0.45)", textAlign: i >= 2 && i < 9 ? "right" : "left", fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", borderBottom: "1px solid rgba(0,55,56,0.12)" }}
+                        style={{ padding: "12px 14px", fontSize: 11, color: "rgba(238,239,211,0.42)", textAlign: i >= 2 && i < 9 ? "right" : "left", fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", borderBottom: "1px solid rgba(238,239,211,0.1)" }}
                       >
                         {h}
                       </th>
@@ -376,42 +376,42 @@ export default function PortfolioPage({
                 <tbody>
                   {computed.length === 0 && (
                     <tr>
-                      <td colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(0,55,56,0.4)", fontSize: 14, fontWeight: 500 }}>
+                      <td colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(238,239,211,0.4)", fontSize: 14, fontWeight: 500 }}>
                         No properties yet — add one to see your blended DSCR.
                       </td>
                     </tr>
                   )}
                   {computed.map((c) => {
-                    const dc2 = c.dscr >= 1.25 ? "#006565" : c.dscr >= 1.0 ? "#9a7b00" : RED;
-                    const cc  = c.cf >= 0 ? "#006565" : RED;
+                    const dc2 = c.dscr >= 1.25 ? MINT : c.dscr >= 1.0 ? YELLOW : RED;
+                    const cc  = c.cf >= 0 ? MINT : RED;
                     return (
                       <tr key={c.id} className="pf-row" style={{ background: "transparent", transition: "background .12s" }}>
-                        <td style={{ padding: "11px 14px", fontSize: 14, fontWeight: 600, color: dc.dark, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>{c.name}</td>
-                        <td style={{ padding: "11px 14px", fontSize: 13, color: "rgba(0,55,56,0.5)", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>{c.propertyType}</td>
+                        <td style={{ padding: "11px 14px", fontSize: 14, fontWeight: 600, color: dc.cream, borderBottom: "1px solid rgba(238,239,211,0.07)" }}>{c.name}</td>
+                        <td style={{ padding: "11px 14px", fontSize: 13, color: "rgba(238,239,211,0.5)", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>{c.propertyType}</td>
                         {/* Editable: value */}
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           <input className="pf-in" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
                         </td>
                         {/* Editable: balance */}
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           <input className="pf-in" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
                         </td>
                         {/* Editable: rate */}
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           <input className="pf-in" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
                         </td>
                         {/* Editable: rent */}
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           <input className="pf-in" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
                         </td>
                         {/* Computed read-only */}
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(0,55,56,0.5)", fontFamily: dc.mono, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.5)", fontFamily: dc.mono, borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           {c.ltv.toFixed(0)}%
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 14, fontWeight: 700, color: dc2, fontFamily: dc.mono, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 14, fontWeight: 700, color: dc2, fontFamily: dc.mono, borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           {c.dscr.toFixed(2)}x
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cc, fontFamily: dc.mono, borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cc, fontFamily: dc.mono, borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           {(c.cf >= 0 ? "+" : "") + fmt(c.cf)}
                         </td>
                         {/* Remove */}

@@ -811,7 +811,7 @@ export default function CaseStudiesPage({
             </div>
             <div>
               <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "40ch", margin: "0 0 32px" }}>
-                Brokers and investors who moved to Greenstreet — and what
+                Brokers and investors who switched to Greenstreet — and what
                 changed for them.
               </Lead>
               <Btn label="Try it yourself" onClick={() => onNavigate("dscr-calculator")} />
@@ -958,7 +958,7 @@ export default function CaseStudiesPage({
                 step: "Match",
                 stepColor: dc.rain,
                 heading: "Match lenders before you pick up the phone.",
-                body: "Programs ranked by fit — FICO floors, LTV caps, state rules — no cold calls.",
+                body: "19 program boxes ranked by fit — FICO floors, LTV caps, state rules — no cold calls.",
               },
               {
                 step: "Prove",

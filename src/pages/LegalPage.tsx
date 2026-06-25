@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { useDcGsap, dc, DC_CSS } from "../design/dc";
+import React, { useEffect } from "react";
+import { DcShell, dc, H1, H2, Lead } from "../design/dc";
 import { MINT_BG, PISTACHIO, MIDNIGHT } from "../theme";
 
 // ─── Content data — three path-driven documents ────────────────────────────
@@ -256,117 +256,6 @@ function DocSwitcher({ current }: { current: LegalDoc }) {
   );
 }
 
-// ─── Mint nav — light background, dark ink ───────────────────────────────────
-// The Legal mockup inverts the usual midnight nav: mint bg + #003738 text.
-// We render this directly rather than going through DcNav (which wires for dark bg).
-function LegalNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
-  return (
-    <nav
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-        background: "rgba(232,233,191,0.94)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(0,55,56,0.10)",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: dc.maxW,
-          margin: "0 auto",
-          padding: `0 ${dc.pad}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          height: 74,
-        }}
-      >
-        {/* Wordmark — dark ink on mint */}
-        <a
-          href="/"
-          onClick={(e) => { e.preventDefault(); onNavigate?.("marketing"); }}
-          style={{
-            fontSize: 22,
-            fontWeight: 600,
-            letterSpacing: "-0.04em",
-            color: MIDNIGHT,
-            textDecoration: "none",
-          }}
-        >
-          Greenstreet
-        </a>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
-          {[
-            { label: "DSCR Calc", view: "dscr-calculator" },
-            { label: "Lender Intel", view: "lender-intel" },
-            { label: "State Rules", view: "state-laws" },
-          ].map((l) => (
-            <a
-              key={l.label}
-              href="#"
-              onClick={(e) => { e.preventDefault(); onNavigate?.(l.view); }}
-              style={{
-                color: "rgba(0,55,56,0.65)",
-                fontWeight: 500,
-                textDecoration: "none",
-                fontSize: 15,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {l.label}
-            </a>
-          ))}
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              background: MIDNIGHT,
-              color: MINT_BG,
-              fontWeight: 600,
-              fontSize: 14,
-              textDecoration: "none",
-              padding: "11px 22px",
-              borderRadius: 6,
-            }}
-          >
-            Price a deal →
-          </a>
-        </div>
-      </div>
-    </nav>
-  );
-}
-
-// ─── Mint footer ─────────────────────────────────────────────────────────────
-function LegalFooter() {
-  return (
-    <footer style={{ background: MINT_BG, color: "rgba(0,55,56,0.55)", padding: `48px ${dc.pad}` }}>
-      <div
-        style={{
-          maxWidth: dc.maxW,
-          margin: "0 auto",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 16,
-        }}
-      >
-        <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.04em", color: MIDNIGHT }}>
-          Greenstreet
-        </div>
-        <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
-      </div>
-    </footer>
-  );
-}
-
 // ─── Main page ───────────────────────────────────────────────────────────────
 export default function LegalPage({
   onBack,
@@ -383,8 +272,6 @@ export default function LegalPage({
     href: "#" + s.id,
   }));
 
-  const scope = useRef<HTMLDivElement>(null);
-  useDcGsap(scope);
   useTocHighlight();
 
   useEffect(() => {
@@ -393,19 +280,8 @@ export default function LegalPage({
   }, [path]);
 
   return (
-    // Outer wrapper: mint base, dark ink — the full-page identity
-    <div
-      ref={scope}
-      style={{
-        background: MINT_BG,
-        color: MIDNIGHT,
-        fontFamily: dc.sans,
-        minHeight: "100vh",
-        overflowX: "hidden",
-        letterSpacing: "-0.02em",
-      }}
-    >
-      <style>{DC_CSS}{`
+    <DcShell onNavigate={onNavigate}>
+      <style>{`
         .lg-toc-link {
           transition: color .12s, border-left-color .12s;
           text-decoration: none;
@@ -419,13 +295,9 @@ export default function LegalPage({
         }
         .lg-toc-link:hover { color: ${MIDNIGHT} !important; }
         @media (max-width: 760px) { .lg-toc-col { display: none !important; } }
-        @media (max-width: 640px) { .lg-nav-link { display: none !important; } }
       `}</style>
 
-      {/* Mint nav — dark ink, no glass blur on the wordmark */}
-      <LegalNav onNavigate={onNavigate} />
-
-      {/* ── HERO — solid mint, dark ink ── */}
+      {/* ── HERO — mint bg, dark ink ── */}
       <section
         style={{
           background: MINT_BG,
@@ -445,37 +317,33 @@ export default function LegalPage({
           >
             {doc.eyebrow}
           </div>
-          <h1
+          <H1
             style={{
               fontSize: "clamp(40px,5vw,76px)",
-              fontWeight: 600,
               lineHeight: 0.99,
               letterSpacing: "-0.035em",
-              margin: "0 0 18px",
+              marginBottom: 18,
               maxWidth: "18ch",
               color: MIDNIGHT,
             }}
           >
             {doc.heading}
-          </h1>
-          <p
+          </H1>
+          <Lead
             style={{
               fontSize: "clamp(16px,1.4vw,20px)",
-              fontWeight: 500,
-              lineHeight: 1.5,
-              letterSpacing: "-0.02em",
               color: "rgba(0,55,56,0.62)",
               maxWidth: "54ch",
               margin: 0,
             }}
           >
             {doc.sub}
-          </p>
+          </Lead>
           <DocSwitcher current={doc} />
         </div>
       </section>
 
-      {/* ── CONTENT: sticky TOC + sections card — cream band ── */}
+      {/* ── CONTENT: sticky TOC + sections card — pistachio band ── */}
       <section
         className="gs-reveal"
         style={{
@@ -526,17 +394,16 @@ export default function LegalPage({
                 id={s.id}
                 style={{ marginBottom: 40, scrollMarginTop: 100 }}
               >
-                <h2
+                <H2
                   style={{
                     fontSize: "clamp(22px,2.4vw,30px)",
-                    fontWeight: 600,
                     letterSpacing: "-0.03em",
-                    margin: "0 0 16px",
+                    marginBottom: 16,
                     color: MIDNIGHT,
                   }}
                 >
                   {s.title}
-                </h2>
+                </H2>
                 {s.paras.map((para, i) => (
                   <p
                     key={i}
@@ -571,9 +438,6 @@ export default function LegalPage({
           </div>
         </div>
       </section>
-
-      {/* Mint footer — dark ink wordmark */}
-      <LegalFooter />
-    </div>
+    </DcShell>
   );
 }

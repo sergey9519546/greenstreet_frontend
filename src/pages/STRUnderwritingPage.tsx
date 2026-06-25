@@ -44,7 +44,7 @@ function Field({
           fontWeight: 600,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
-          color: "rgba(0,55,56,0.5)",
+          color: "rgba(238,239,211,0.5)",
           marginBottom: 5,
         }}
       >
@@ -54,13 +54,13 @@ function Field({
         style={{
           display: "flex",
           alignItems: "center",
-          background: dc.cream,
-          borderRadius: 6,
-          padding: "0 11px",
+          background: "#003a39",
+          borderRadius: 7,
+          padding: "0 12px",
         }}
       >
         {prefix && (
-          <span style={{ color: "rgba(0,55,56,0.4)", fontSize: 13 }}>{prefix}</span>
+          <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{prefix}</span>
         )}
         <input
           className="str-num"
@@ -71,7 +71,7 @@ function Field({
           style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
         />
         {suffix && (
-          <span style={{ color: "rgba(0,55,56,0.4)", fontSize: 13 }}>{suffix}</span>
+          <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{suffix}</span>
         )}
       </div>
     </label>
@@ -110,12 +110,12 @@ function MonthTable({
                 style={{
                   padding: "6px 10px",
                   textAlign: h === "Mo" ? "left" : "right",
-                  color: "rgba(0,55,56,0.4)",
+                  color: "rgba(238,239,211,0.42)",
                   fontWeight: 600,
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
                   fontSize: 10,
-                  borderBottom: "1px solid rgba(0,55,56,0.1)",
+                  borderBottom: "1px solid rgba(238,239,211,0.1)",
                 }}
               >
                 {h}
@@ -127,17 +127,17 @@ function MonthTable({
           {months.map((m) => {
             const c =
               m.monthlyDSCR >= 1.25
-                ? "#006565"
+                ? dc.emerald
                 : m.monthlyDSCR >= 1.0
-                ? "#9a7b00"
-                : "#d32f2f";
+                ? dc.lemon
+                : "#e06363";
             return (
               <tr key={m.month}>
                 <td
                   style={{
                     padding: "6px 10px",
-                    color: dc.dark,
-                    borderBottom: "1px solid rgba(0,55,56,0.07)",
+                    color: dc.cream,
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
                   }}
                 >
                   {m.month}
@@ -146,8 +146,8 @@ function MonthTable({
                   style={{
                     padding: "6px 10px",
                     textAlign: "right",
-                    color: "rgba(0,55,56,0.5)",
-                    borderBottom: "1px solid rgba(0,55,56,0.07)",
+                    color: "rgba(238,239,211,0.5)",
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
                   }}
                 >
                   {m.seasonalityIndex}
@@ -156,8 +156,8 @@ function MonthTable({
                   style={{
                     padding: "6px 10px",
                     textAlign: "right",
-                    color: dc.dark,
-                    borderBottom: "1px solid rgba(0,55,56,0.07)",
+                    color: dc.cream,
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
                   }}
                 >
                   {fmt(m.projectedRevenue)}
@@ -168,7 +168,7 @@ function MonthTable({
                     textAlign: "right",
                     color: c,
                     fontWeight: 700,
-                    borderBottom: "1px solid rgba(0,55,56,0.07)",
+                    borderBottom: "1px solid rgba(238,239,211,0.07)",
                   }}
                 >
                   {m.monthlyDSCR.toFixed(2)}x
@@ -208,10 +208,10 @@ function SeasonalityBars({
         const heightPct = (m.seasonalityIndex / maxIndex) * 100;
         const c =
           m.monthlyDSCR >= 1.25
-            ? "#006565"
+            ? dc.emerald
             : m.monthlyDSCR >= 1.0
-            ? "#9a7b00"
-            : "#d32f2f";
+            ? dc.lemon
+            : "#e06363";
         const bgAlpha = m.isOffSeason ? "22" : "33";
         return (
           <div
@@ -247,7 +247,7 @@ function SeasonalityBars({
             <div
               style={{
                 fontSize: 8,
-                color: "rgba(0,55,56,0.45)",
+                color: "rgba(238,239,211,0.45)",
                 marginTop: 3,
                 textAlign: "center",
                 letterSpacing: 0,
@@ -360,7 +360,9 @@ export default function STRUnderwritingPage({
 
   const dscrStr = bestDSCR !== null ? bestDSCR.toFixed(2) + "x" : "—";
   const verdict = bestDSCR !== null ? dscrLabel(bestDSCR) : "—";
-  const vColor = bestDSCR !== null ? dscrColor(bestDSCR) : "rgba(0,55,56,0.35)";
+  const vColor = bestDSCR !== null
+    ? (bestDSCR >= 1.25 ? dc.emerald : bestDSCR >= 1.0 ? dc.lemon : "#e06363")
+    : "rgba(238,239,211,0.35)";
 
   const grossAnnual = result
     ? result.underwriting.world2_Projected.qualifyingRent * 12 / 0.8
@@ -393,68 +395,119 @@ export default function STRUnderwritingPage({
       {/* ── spinner-hide + flat input override ─────────────────────────── */}
       <style>{`
         .str-num::-webkit-outer-spin-button,.str-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-        .str-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.dark};letter-spacing:-0.02em;}
+        .str-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ══ HERO — dark-teal, copy-only, no device panel ═════════════════ */}
+      {/* ══ HERO — dark bg matches mockup, 2-col: copy left, stats right ══ */}
       <section
-        id="gs-hero-content"
+        id="st-hero"
         style={{
-          background: TEAL,
+          position: "relative",
+          background: dc.dark,
           color: dc.cream,
-          padding: "clamp(56px,8vh,104px) clamp(1.5rem,4vw,3rem)",
+          overflow: "hidden",
+          padding: "clamp(56px,8vh,108px) clamp(1.5rem,4vw,3rem) clamp(44px,6vh,76px)",
         }}
       >
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+        <div className="gs-dot-grid" />
+        <div
+          className="dc-hero"
+          style={{
+            position: "relative",
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1.02fr 0.98fr",
+            gap: "clamp(36px,5vw,72px)",
+            alignItems: "center",
+          }}
+        >
+          <div id="gs-hero-content">
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: dc.dark,
+                background: dc.lemon,
+                borderRadius: 100,
+                padding: "7px 14px",
+                marginBottom: 24,
+              }}
+            >
+              STR · ADR × occupancy × seasonality
+            </div>
+            <H1 style={{ margin: "0 0 26px", color: dc.cream }}>
+              Will the STR cash flow in the off-season?
+            </H1>
+            <Lead
+              style={{
+                color: "rgba(238,239,211,0.68)",
+                maxWidth: "46ch",
+                margin: "0 0 36px",
+              }}
+            >
+              Month-by-month revenue from ADR, occupancy and a seasonality curve — then the DSCR a lender will actually underwrite, off-season included.
+            </Lead>
+            <Btn label="Open the STR engine ↓" href="#str-tool" onClick={scrollToTool} />
+          </div>
+
+          {/* Right — live metric preview */}
           <div
             style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: dc.lemon,
-              marginBottom: 22,
+              background: "linear-gradient(160deg,#00302f,#002423)",
+              borderRadius: 16,
+              padding: 24,
+              border: "1px solid rgba(238,239,211,0.1)",
             }}
           >
-            Short-term rental · ADR × occupancy × seasonality
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)" }}>Underwritten DSCR</div>
+              <Mono style={{ fontSize: 13, fontWeight: 700, color: vColor }}>{dscrStr}</Mono>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+              {result ? [
+                { label: "Gross annual", val: fmt(grossAnnual), color: dc.cream },
+                { label: "UW /mo", val: fmt(uwMonthly), color: dc.lemon },
+                { label: "DSCR", val: dscrStr, color: vColor },
+              ].map((m) => (
+                <div key={m.label} style={{ background: "rgba(238,239,211,0.07)", borderRadius: 10, padding: "14px 12px", textAlign: "center" }}>
+                  <Mono style={{ display: "block", fontSize: "clamp(14px,1.6vw,20px)", fontWeight: 700, color: m.color, lineHeight: 1 }}>{m.val}</Mono>
+                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.4)", marginTop: 4, fontWeight: 500 }}>{m.label}</div>
+                </div>
+              )) : (
+                <div style={{ gridColumn: "1/-1", textAlign: "center", color: "rgba(238,239,211,0.35)", fontSize: 13, padding: "20px 0" }}>Enter inputs below</div>
+              )}
+            </div>
           </div>
-          <H1 style={{ margin: "0 0 24px" }}>
-            Will the STR cash flow in the off-season?
-          </H1>
-          <Lead
-            style={{
-              color: "rgba(238,239,211,0.7)",
-              maxWidth: "48ch",
-              margin: "0 0 36px",
-            }}
-          >
-            Month-by-month revenue modeled across three underwriting worlds — LTR
-            lease, STR projected, STR documented — against a 12-month seasonality
-            curve. See the DSCR a lender will actually qualify.
-          </Lead>
-          <Btn label="Open the STR engine" href="#str-tool" onClick={scrollToTool} />
         </div>
       </section>
 
-      {/* ══ TOOL ══════════════════════════════════════════════════════════ */}
+      {/* ══ TOOL — dark teal, matches mockup #003a39 ══════════════════════ */}
       <section
         id="str-tool"
         style={{
-          background: dc.cream,
-          padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)`,
+          background: "#003a39",
+          color: dc.cream,
+          padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
+          borderTop: "1px solid rgba(238,239,211,0.07)",
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
 
           {/* Section header */}
-          <div className="gs-reveal" style={{ marginBottom: 48 }}>
+          <div className="gs-reveal" style={{ marginBottom: 30 }}>
             <div
               style={{
                 fontSize: 12,
                 fontWeight: 600,
-                letterSpacing: "0.04em",
+                letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: "#006565",
+                color: dc.lemon,
                 marginBottom: 12,
               }}
             >
@@ -462,11 +515,12 @@ export default function STRUnderwritingPage({
             </div>
             <h2
               style={{
-                fontSize: "clamp(30px,3.8vw,48px)",
+                fontSize: "clamp(30px,3.8vw,52px)",
                 fontWeight: 600,
-                letterSpacing: "-0.035em",
+                letterSpacing: "-0.04em",
                 lineHeight: 1.0,
                 margin: 0,
+                color: dc.cream,
               }}
             >
               Underwritten DSCR{" "}
@@ -487,10 +541,10 @@ export default function STRUnderwritingPage({
             {/* ── INPUTS ─────────────────────────────────────────────── */}
             <div
               style={{
-                background: dc.white,
-                borderRadius: 9,
-                padding: 24,
-                border: "1px solid rgba(0,55,56,0.1)",
+                background: "#002a29",
+                borderRadius: 14,
+                padding: 28,
+                border: "1px solid rgba(238,239,211,0.08)",
               }}
             >
               <div
@@ -499,8 +553,8 @@ export default function STRUnderwritingPage({
                   fontWeight: 600,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
-                  color: "#006565",
-                  marginBottom: 16,
+                  color: dc.emerald,
+                  marginBottom: 18,
                 }}
               >
                 STR assumptions
@@ -515,7 +569,7 @@ export default function STRUnderwritingPage({
                     fontWeight: 600,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)",
+                    color: "rgba(238,239,211,0.5)",
                     marginBottom: 5,
                   }}
                 >
@@ -525,9 +579,9 @@ export default function STRUnderwritingPage({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    background: dc.cream,
-                    borderRadius: 6,
-                    padding: "0 11px",
+                    background: "#003a39",
+                    borderRadius: 7,
+                    padding: "0 12px",
                   }}
                 >
                   <input
@@ -562,70 +616,74 @@ export default function STRUnderwritingPage({
               {!result ? (
                 <div
                   style={{
-                    background: dc.white,
-                    borderRadius: 9,
+                    background: "#002a29",
+                    borderRadius: 14,
                     padding: 40,
                     textAlign: "center",
-                    border: "1px solid rgba(0,55,56,0.1)",
+                    border: "1px solid rgba(238,239,211,0.08)",
                   }}
                 >
-                  <p style={{ color: "#d32f2f", margin: 0 }}>Engine returned no result. Check inputs.</p>
+                  <p style={{ color: "#e06363", margin: 0 }}>Engine returned no result. Check inputs.</p>
                 </div>
               ) : (
                 <>
-                  {/* ── THREE METRICS ROW (mockup signature) ────────────── */}
+                  {/* ── THREE METRICS ROW (matches mockup 3-tile strip) ─────── */}
                   <div
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr 1fr",
                       gap: "1px",
-                      background: "rgba(0,55,56,0.1)",
-                      borderRadius: 9,
+                      background: "rgba(238,239,211,0.1)",
+                      borderRadius: 14,
                       overflow: "hidden",
+                      border: "1px solid rgba(238,239,211,0.08)",
                     }}
                   >
-                    <div style={{ background: "#e8e9bf", padding: 22, textAlign: "center" }}>
+                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
                           fontSize: "clamp(22px,2.8vw,36px)",
                           fontWeight: 600,
-                          color: dc.dark,
+                          letterSpacing: "-0.03em",
+                          color: dc.cream,
                         }}
                       >
                         {fmt(grossAnnual)}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginTop: 5 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
                         gross annual
                       </div>
                     </div>
-                    <div style={{ background: dc.lemon, padding: 22, textAlign: "center" }}>
+                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
                           fontSize: "clamp(22px,2.8vw,36px)",
                           fontWeight: 600,
-                          color: dc.dark,
+                          letterSpacing: "-0.03em",
+                          color: dc.lemon,
                         }}
                       >
                         {fmt(uwMonthly)}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.6)", marginTop: 5 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
                         underwritten /mo
                       </div>
                     </div>
-                    <div style={{ background: dc.dark, padding: 22, textAlign: "center" }}>
+                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
                           fontSize: "clamp(22px,2.8vw,36px)",
                           fontWeight: 600,
+                          letterSpacing: "-0.03em",
                           color: vColor,
                         }}
                       >
                         {dscrStr}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 5 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
                         underwritten DSCR
                       </div>
                     </div>
@@ -638,31 +696,29 @@ export default function STRUnderwritingPage({
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr 1fr",
                       gap: "1px",
-                      background: "rgba(0,55,56,0.1)",
-                      borderRadius: 9,
+                      background: "rgba(238,239,211,0.1)",
+                      borderRadius: 14,
                       overflow: "hidden",
+                      border: "1px solid rgba(238,239,211,0.08)",
                     }}
                   >
                     {[
                       {
                         label: "World 1 — LTR",
                         world: result.underwriting.world1_LTR,
-                        bg: "rgba(238,239,211,0.85)",
-                        dark: false,
+                        bg: "#002a29",
                       },
                       {
                         label: "World 2 — Projected",
                         world: result.underwriting.world2_Projected,
-                        bg: dc.lemon,
-                        dark: false,
+                        bg: "#002a29",
                       },
                       {
                         label: "World 3 — Documented",
                         world: result.underwriting.world3_Documented,
-                        bg: dc.dark,
-                        dark: true,
+                        bg: "#002a29",
                       },
-                    ].map(({ label, world, bg, dark }) => {
+                    ].map(({ label, world, bg }) => {
                       const isBest = label
                         .toLowerCase()
                         .includes(result.underwriting.bestWorld.toLowerCase().slice(0, 5));
@@ -671,9 +727,9 @@ export default function STRUnderwritingPage({
                           key={label}
                           style={{
                             background: bg,
-                            padding: 22,
+                            padding: 24,
                             textAlign: "center",
-                            outline: isBest ? "2px solid #006565" : undefined,
+                            outline: isBest ? `2px solid ${dc.emerald}` : undefined,
                             outlineOffset: isBest ? -2 : undefined,
                           }}
                         >
@@ -683,7 +739,7 @@ export default function STRUnderwritingPage({
                               fontWeight: 600,
                               letterSpacing: "0.05em",
                               textTransform: "uppercase",
-                              color: dark ? "rgba(238,239,211,0.5)" : "rgba(0,55,56,0.5)",
+                              color: "rgba(238,239,211,0.5)",
                               marginBottom: 8,
                             }}
                           >
@@ -694,7 +750,8 @@ export default function STRUnderwritingPage({
                               display: "block",
                               fontSize: "clamp(22px,2.8vw,36px)",
                               fontWeight: 600,
-                              color: dscrColor(world.dscr),
+                              letterSpacing: "-0.03em",
+                              color: dscrColor(world.dscr) === "#006565" ? dc.emerald : dscrColor(world.dscr) === "#9a7b00" ? dc.lemon : "#e06363",
                             }}
                           >
                             {world.dscr.toFixed(2)}x
@@ -703,7 +760,7 @@ export default function STRUnderwritingPage({
                             style={{
                               fontSize: 11,
                               fontWeight: 500,
-                              color: dark ? "rgba(238,239,211,0.5)" : "rgba(0,55,56,0.5)",
+                              color: "rgba(238,239,211,0.5)",
                               marginTop: 5,
                             }}
                           >
@@ -716,7 +773,7 @@ export default function STRUnderwritingPage({
                                 fontWeight: 700,
                                 letterSpacing: "0.06em",
                                 textTransform: "uppercase",
-                                color: "#006565",
+                                color: dc.emerald,
                                 marginTop: 6,
                               }}
                             >
@@ -732,10 +789,10 @@ export default function STRUnderwritingPage({
                   {result.seasonality?.months && (
                     <div
                       style={{
-                        background: dc.white,
-                        borderRadius: 9,
+                        background: "#002a29",
+                        borderRadius: 14,
                         padding: 22,
-                        border: "1px solid rgba(0,55,56,0.1)",
+                        border: "1px solid rgba(238,239,211,0.08)",
                       }}
                     >
                       <div
@@ -744,7 +801,7 @@ export default function STRUnderwritingPage({
                           fontWeight: 600,
                           letterSpacing: "0.04em",
                           textTransform: "uppercase",
-                          color: "#006565",
+                          color: dc.emerald,
                           marginBottom: 4,
                         }}
                       >
@@ -753,7 +810,7 @@ export default function STRUnderwritingPage({
                       <p
                         style={{
                           fontSize: 12,
-                          color: "rgba(0,55,56,0.5)",
+                          color: "rgba(238,239,211,0.5)",
                           margin: "0 0 16px",
                           lineHeight: 1.5,
                         }}
@@ -769,16 +826,16 @@ export default function STRUnderwritingPage({
                       {/* off-season / peak legend */}
                       <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "#d32f2f33", border: "1px solid #d32f2f" }} />
-                          <span style={{ fontSize: 11, color: "rgba(0,55,56,0.55)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(224,99,99,0.2)", border: "1px solid #e06363" }} />
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "#9a7b0033", border: "1px solid #9a7b00" }} />
-                          <span style={{ fontSize: 11, color: "rgba(0,55,56,0.55)", fontWeight: 500 }}>Qualifies (1.0–1.24x)</span>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(216,217,88,0.2)", border: `1px solid ${dc.lemon}` }} />
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Qualifies (1.0–1.24x)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "#00656533", border: "1px solid #006565" }} />
-                          <span style={{ fontSize: 11, color: "rgba(0,55,56,0.55)", fontWeight: 500 }}>Peak (≥ 1.25x)</span>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(77,189,151,0.2)", border: `1px solid ${dc.emerald}` }} />
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Peak (≥ 1.25x)</span>
                         </div>
                       </div>
 
@@ -791,11 +848,11 @@ export default function STRUnderwritingPage({
                           style={{
                             marginTop: 14,
                             padding: "12px 16px",
-                            background: "rgba(211,47,47,0.06)",
+                            background: "rgba(224,99,99,0.08)",
                             borderRadius: 7,
-                            border: "1px solid rgba(211,47,47,0.2)",
+                            border: "1px solid rgba(224,99,99,0.25)",
                             fontSize: 12,
-                            color: "#b91c1c",
+                            color: "#e06363",
                             lineHeight: 1.55,
                           }}
                         >
@@ -844,8 +901,8 @@ export default function STRUnderwritingPage({
                             result.legality.status === "CLEAR"
                               ? dc.emerald
                               : result.legality.status === "RESTRICTED"
-                              ? "#d32f2f"
-                              : "#9a7b00",
+                              ? "#e06363"
+                              : dc.lemon,
                           letterSpacing: "-0.02em",
                         }}
                       >
@@ -871,8 +928,8 @@ export default function STRUnderwritingPage({
                         background: result.legality.incomeEnabled
                           ? "rgba(77,189,151,0.15)"
                           : "rgba(211,47,47,0.15)",
-                        border: `1px solid ${result.legality.incomeEnabled ? dc.emerald : "#d32f2f"}`,
-                        color: result.legality.incomeEnabled ? dc.emerald : "#d32f2f",
+                        border: `1px solid ${result.legality.incomeEnabled ? dc.emerald : "#e06363"}`,
+                        color: result.legality.incomeEnabled ? dc.emerald : "#e06363",
                         fontSize: 12,
                         fontWeight: 700,
                         letterSpacing: "0.06em",
@@ -888,15 +945,15 @@ export default function STRUnderwritingPage({
                   <div
                     style={{
                       padding: "14px 18px",
-                      background: "rgba(0,64,65,0.06)",
+                      background: "rgba(238,239,211,0.05)",
                       borderRadius: 9,
-                      border: "1px solid rgba(0,55,56,0.1)",
+                      border: "1px solid rgba(238,239,211,0.08)",
                       fontSize: 12,
-                      color: "rgba(0,55,56,0.65)",
+                      color: "rgba(238,239,211,0.5)",
                       lineHeight: 1.6,
                     }}
                   >
-                    <strong style={{ color: "#006565" }}>Engine:</strong>{" "}
+                    <strong style={{ color: dc.emerald }}>Engine:</strong>{" "}
                     <code>evaluateSTRUnderwriting</code> +{" "}
                     <code>checkSTRLegality</code> +{" "}
                     <code>computeSTRMonthlySeasonality</code>. State{" "}

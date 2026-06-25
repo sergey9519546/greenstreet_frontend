@@ -236,13 +236,14 @@ export default function RefiTrackerPage({
         .rt-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:#eeefd3;letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ── HERO — MINT background, dark ink, break-even chart as signature ── */}
+      {/* ── HERO — dark background (matches mockup #002423) ── */}
       <section
         id="rf-hero"
         style={{
-          background: MINT,
-          color: dc.dark,
-          padding: "clamp(56px,8vh,100px) clamp(1.25rem,4vw,2.5rem) clamp(48px,6vh,80px)",
+          position: "relative",
+          background: dc.dark,
+          color: dc.cream,
+          padding: "clamp(56px,8vh,108px) clamp(1.5rem,4vw,3rem) clamp(44px,6vh,76px)",
           overflow: "hidden",
         }}
       >
@@ -264,42 +265,34 @@ export default function RefiTrackerPage({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.14em",
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.rain,
-                marginBottom: 22,
-                border: "1px solid rgba(0,101,101,0.4)",
-                borderRadius: 8,
-                padding: "7px 16px",
+                color: dc.dark,
+                background: dc.lemon,
+                borderRadius: 100,
+                padding: "7px 14px",
+                marginBottom: 24,
               }}
             >
-              4-factor readiness · break-even · cash-out
+              Refi Tracker · 4-factor readiness
             </div>
-            <H1 style={{ margin: "0 0 22px" }}>
+            <H1 style={{ margin: "0 0 24px", color: dc.cream }}>
               Should you refi this DSCR loan yet?
             </H1>
             <Lead
               style={{
-                color: "rgba(0,55,56,0.7)",
-                maxWidth: "52ch",
-                margin: "0 0 32px",
+                color: "rgba(238,239,211,0.68)",
+                maxWidth: "50ch",
+                margin: "0 0 34px",
               }}
             >
-              Seasoning, equity, DSCR headroom, and monthly savings — scored
+              Seasoning, equity, DSCR headroom and monthly savings — scored
               0–100. Plus the break-even month where refi costs cross savings.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 40 }}>
-              <Btn label="Open the refi tracker" href="#rf-tool" onClick={scrollToTool} />
-              <Btn
-                label="DSCR calc"
-                variant="secondary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigate?.("dscr-calculator");
-                }}
-              />
+              <Btn label="Open the refi tracker ↓" href="#rf-tool" onClick={scrollToTool} />
             </div>
             {/* Live stat bar — live output under the hero CTA */}
             <div style={{ display: "flex", gap: "clamp(24px,4vw,48px)", flexWrap: "wrap" }}>
@@ -315,7 +308,7 @@ export default function RefiTrackerPage({
                 >
                   {result ? Math.round(score) : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
                   readiness / 100
                 </div>
               </div>
@@ -325,13 +318,13 @@ export default function RefiTrackerPage({
                     display: "block",
                     fontSize: "clamp(32px,3.6vw,48px)",
                     fontWeight: 600,
-                    color: dc.rain,
+                    color: dc.cream,
                     lineHeight: 1,
                   }}
                 >
                   {result && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
                   break-even
                 </div>
               </div>
@@ -341,13 +334,13 @@ export default function RefiTrackerPage({
                     display: "block",
                     fontSize: "clamp(32px,3.6vw,48px)",
                     fontWeight: 600,
-                    color: dc.rain,
+                    color: dc.cream,
                     lineHeight: 1,
                   }}
                 >
                   {result ? fmt$(result.cashOutMaxAmount) : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
                   cash-out capacity
                 </div>
               </div>
@@ -357,10 +350,10 @@ export default function RefiTrackerPage({
           {/* Right — break-even crossing-lines chart (THE signature visual) */}
           <div
             style={{
-              background: dc.dark,
+              background: "linear-gradient(160deg,#00302f,#002423)",
               borderRadius: 16,
               padding: 26,
-              boxShadow: "0 40px 80px -20px rgba(0,55,56,0.4)",
+              border: "1px solid rgba(238,239,211,0.1)",
             }}
           >
             <div
@@ -476,13 +469,14 @@ export default function RefiTrackerPage({
         </div>
       </section>
 
-      {/* ── TOOL (dark bg) ── */}
+      {/* ── TOOL (slightly lighter dark, matches mockup #003a39) ── */}
       <section
         id="rf-tool"
         style={{
-          background: dc.dark,
+          background: "#003a39",
           color: dc.cream,
-          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
+          padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
+          borderTop: "1px solid rgba(238,239,211,0.07)",
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
@@ -538,15 +532,15 @@ export default function RefiTrackerPage({
             >
               <div
                 style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.12em",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.04em",
                   textTransform: "uppercase",
-                  color: dc.lemon,
-                  marginBottom: 16,
+                  color: dc.emerald,
+                  marginBottom: 20,
                 }}
               >
-                Current Loan &amp; Refi Assumptions
+                Current loan &amp; refi
               </div>
               {loanFields.map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: 12 }}>
@@ -752,14 +746,14 @@ export default function RefiTrackerPage({
                 <div
                   style={{
                     fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: "0.12em",
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: dc.lemon,
+                    color: dc.emerald,
                     marginBottom: 14,
                   }}
                 >
-                  Score Breakdown (4 factors × 25)
+                  Score breakdown (4 × 25)
                 </div>
                 {result ? (
                   result.factors.map((f) => {
@@ -851,74 +845,6 @@ export default function RefiTrackerPage({
         </div>
       </section>
 
-      {/* ── MINT CLOSING BAND — matches mockup footer treatment (mint bg, dark ink) ── */}
-      <section
-        style={{
-          background: MINT,
-          color: dc.dark,
-          padding: `clamp(40px,5vw,64px) ${dc.pad}`,
-          borderTop: "1px solid rgba(0,55,56,0.2)",
-        }}
-      >
-        <div
-          className="gs-reveal"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 24,
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: dc.rain,
-                marginBottom: 8,
-              }}
-            >
-              Ready to run the numbers?
-            </div>
-            <p
-              style={{
-                fontSize: "clamp(20px,2.2vw,28px)",
-                fontWeight: 600,
-                letterSpacing: "-0.025em",
-                color: dc.dark,
-                margin: 0,
-                maxWidth: "44ch",
-              }}
-            >
-              Run your DSCR calc first — confirm the loan qualifies before pricing the refi.
-            </p>
-          </div>
-          <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              background: dc.dark,
-              color: MINT,
-              fontWeight: 700,
-              fontSize: 16,
-              textDecoration: "none",
-              padding: "15px 30px",
-              borderRadius: 8,
-              whiteSpace: "nowrap",
-            }}
-          >
-            Open DSCR Calc →
-          </a>
-        </div>
-      </section>
     </DcShell>
   );
 }

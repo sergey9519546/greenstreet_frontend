@@ -44,8 +44,8 @@ const USECASES: UseCase[] = [
     num: "04",
     title: "Stress-test the rate and the rent",
     desc: "A 120-cell rate × rent shock matrix across five risk zones — run it in seconds to show the borrower how far the deal bends before it breaks.",
-    cta: "Open the calculator",
-    view: "dscr-calculator",
+    cta: "Open Stress Matrix",
+    view: "stress-matrix",
     numBg: dc.dark,
     numInk: dc.lemon,
   },
@@ -53,8 +53,8 @@ const USECASES: UseCase[] = [
     num: "05",
     title: "Submit clean. Close fast.",
     desc: "The IC memo, the state rule and the stress matrix — all defensible, all citable. Hand the lender the package they need to say yes the first time.",
-    cta: "Run a deal",
-    view: "dscr-calculator",
+    cta: "Open Deal Analyzer",
+    view: "deal-analyzer",
     numBg: dc.lemon,
     numInk: dc.dark,
   },
@@ -142,9 +142,8 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Non-QM wholesale for mortgage professionals who are tired of
-              chasing lender portals. Price, match and stress-test a DSCR deal
-              in under a minute — then walk into the call knowing the answer.
+              Price, match and stress-test a DSCR deal in under a minute —
+              then walk into the lender call knowing the answer.
             </Lead>
             <Btn
               label="Open the calculator"

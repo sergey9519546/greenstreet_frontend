@@ -102,7 +102,7 @@ export default function AboutPage({
 
           {/* H1 */}
           <H1 style={{ margin: "0 0 28px", maxWidth: "24ch" }}>
-            We got tired of watching good deals die in spreadsheets.
+            Institutional math in support of every DSCR deal.
           </H1>
 
           {/* Subtitle */}
@@ -117,23 +117,6 @@ export default function AboutPage({
             DSCR software so good that pricing a rental loan any other way would
             feel like negligence.
           </Lead>
-
-          {/* 2-track differentiator badge */}
-          <div
-            style={{
-              display: "inline-block",
-              background: dc.dark,
-              color: dc.lemon,
-              borderRadius: 8,
-              padding: "14px 24px",
-              fontSize: "clamp(14px,1.2vw,17px)",
-              fontWeight: 600,
-              letterSpacing: "-0.02em",
-              marginBottom: 40,
-            }}
-          >
-            2 DSCR tracks on every deal — standard and sub-1.0 — so no quote dies on a ratio floor.
-          </div>
 
           {/* Hero meta */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 40 }}>
@@ -626,6 +609,78 @@ export default function AboutPage({
         </div>
       </section>
 
+      {/* ── INVESTORS — 6-logo grid ──────────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.mintBg,
+          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase" as const,
+              color: dc.rain,
+              marginBottom: 14,
+            }}
+          >
+            Our Investors
+          </div>
+          <h2
+            style={{
+              fontSize: "clamp(28px,3.4vw,46px)",
+              fontWeight: 600,
+              letterSpacing: "-0.03em",
+              margin: "0 0 40px",
+            }}
+          >
+            Backed by top investors.
+          </h2>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 16,
+            }}
+          >
+            {[
+              "Cedar Ventures",
+              "Mistral Capital",
+              "Greylock Bridge",
+              "First Round West",
+              "Founders Co-op",
+              "Range Partners",
+            ].map((inv) => (
+              <div
+                key={inv}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: dc.cream,
+                  borderRadius: 9,
+                  padding: "38px 24px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "clamp(18px,1.8vw,24px)",
+                    fontWeight: 600,
+                    letterSpacing: "-0.03em",
+                    color: dc.dark,
+                  }}
+                >
+                  {inv}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA — two cards ─────────────────────────────────────────────── */}
       <section
         style={{
@@ -692,9 +747,8 @@ export default function AboutPage({
             </span>
           </button>
 
-          {/* Card 2: Calculator */}
-          <button
-            onClick={() => onNavigate("dscr-calculator")}
+          {/* Card 2: Contact */}
+          <div
             className="cta-card"
             style={{
               display: "flex",
@@ -705,11 +759,7 @@ export default function AboutPage({
               color: dc.cream,
               borderRadius: 12,
               padding: "clamp(32px,4vw,52px)",
-              border: "none",
-              cursor: "pointer",
-              textAlign: "left" as const,
               minHeight: 240,
-              fontFamily: dc.sans,
             }}
           >
             <div
@@ -721,7 +771,7 @@ export default function AboutPage({
                 color: dc.cream,
               }}
             >
-              Price any DSCR deal — standard track or sub-1.0 — in under two minutes.
+              Get your questions answered by a member of the team.
             </div>
             <span
               style={{
@@ -730,15 +780,15 @@ export default function AboutPage({
                 gap: 8,
                 color: dc.lemon,
                 fontWeight: 600,
-                fontSize: 16,
+                fontSize: 18,
                 fontFamily: dc.mono,
                 letterSpacing: "-0.02em",
                 alignSelf: "flex-start",
               }}
             >
-              Open the calculator →
+              +1 (332) 455-1462 →
             </span>
-          </button>
+          </div>
         </div>
       </section>
     </DcShell>

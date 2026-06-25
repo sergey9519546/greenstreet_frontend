@@ -145,17 +145,21 @@ export default function MonteCarloPage({
           {/* left col — GSAP target */}
           <div id="gs-hero-content">
             <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
-              textTransform: "uppercase", color: dc.lemon, marginBottom: 22,
+              textTransform: "uppercase", color: dc.dark,
+              background: dc.lemon, padding: "7px 14px", borderRadius: 100,
+              marginBottom: 24,
             }}>
-              Monte Carlo · Vasicek SOFR · {simulations} paths
+              Monte Carlo &middot; Vasicek SOFR &middot; {simulations} paths
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
               Stress-test the deal over {simulations} futures.
             </H1>
             <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              Stochastic SOFR paths using a calibrated Vasicek process. Know
-              the probability your DSCR breaks below 1.0 before the ARM resets.
+              Stochastic SOFR paths from a calibrated Vasicek process &mdash; every
+              green line is a future where the DSCR survives above 1.0, every
+              red one where it breaks.
             </Lead>
             <Btn label="Run the simulation" href="#mc-tool" onClick={scrollToTool} />
           </div>

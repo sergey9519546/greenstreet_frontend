@@ -124,7 +124,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       {/* HERO — rain-forest, single column (distinct from the dark tool heroes) */}
       <section style={{ background: RAIN, color: dc.cream, padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`, overflow: "hidden" }}>
         <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product · 50-State Rule Engine</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product / 50-State Rule Engine</div>
           <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
             Prepayment penalty rules, all fifty states.
           </H1>

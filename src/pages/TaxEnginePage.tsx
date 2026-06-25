@@ -187,22 +187,29 @@ export default function TaxEnginePage({
           <div id="gs-hero-content">
             <div
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
                 fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: "rgba(0,55,56,0.6)",
-                marginBottom: 22,
+                color: dc.dark,
+                background: dc.lemon,
+                padding: "7px 14px",
+                borderRadius: 100,
+                marginBottom: 24,
               }}
             >
-              Tax Engine &middot; IRC 167 &middot; 469 PAL &middot; 1250 &middot; NIIT
+              Tax Engine &middot; &sect;167 &middot; &sect;469 &middot; &sect;1250 &middot; NIIT
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
               What does it really earn after taxes?
             </H1>
             <Lead style={{ color: "rgba(0,55,56,0.72)", maxWidth: "48ch", margin: "0 0 36px" }}>
-              After-tax IRR with depreciation shield, §1250 recapture, LTCG,
-              NIIT and IRC §469 passive-loss rules.
+              After-tax IRR with the depreciation shield, &sect;1250 recapture, LTCG,
+              NIIT and &sect;469 passive-loss rules &mdash; and exactly how much the tax
+              bill costs you.
             </Lead>
             <Btn label="Open the tax engine" href="#te-tool" onClick={scrollToTool} />
           </div>
@@ -315,9 +322,9 @@ export default function TaxEnginePage({
                 color: dc.cream,
               }}
             >
-              After-Tax{" "}
+              After-tax{" "}
               <span style={{ color: irrColor }}>{afterTaxStr}</span>
-              {" "}· Pre-tax {preTaxStr} · Drag {dragStr}
+              {" "}· pre-tax {preTaxStr} · drag {dragStr}
             </h2>
           </div>
 

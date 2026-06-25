@@ -210,9 +210,8 @@ export default function InvestorsPage({
                 margin: "0 0 36px",
               }}
             >
-              Know if the deal works before you spend a dollar on appraisal.
-              After-tax IRR, stress matrix, and dual-track DSCR — the analysis a
-              fund desk runs, on every one of your deals.
+              After-tax IRR, Monte Carlo rate paths, and a 120-cell stress
+              matrix — the analysis a fund desk runs, on every one of your deals.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <PrimaryBtn onClick={() => onNavigate("returns")}>
@@ -329,6 +328,165 @@ export default function InvestorsPage({
             >
               Illustrative. Open the calculator to price your deal.
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── USE-CASE LIST: vertical rail + numbered rows (mockup centrepiece) ── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `clamp(64px,8vw,112px) ${dc.pad} clamp(40px,5vw,64px)`,
+        }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="gs-reveal" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.4vw,46px)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                margin: 0,
+                maxWidth: "18ch",
+                color: dc.dark,
+              }}
+            >
+              Institutional analysis, no fund required.
+            </h2>
+          </div>
+
+          <div style={{ position: "relative" }}>
+            <div
+              style={{
+                position: "absolute",
+                left: 22,
+                top: 0,
+                bottom: 0,
+                width: 1,
+                background: "rgba(0,55,56,0.15)",
+              }}
+            />
+            {[
+              {
+                num: "01",
+                title: "Levered and unlevered IRR",
+                desc: "Pre-tax levered IRR, equity multiple, yield-on-cost and a hold × rent-growth × exit-cap sensitivity matrix — all using proper amortization on every cell.",
+                cta: "Open Returns & IRR",
+                view: "returns",
+                numBg: dc.lemon,
+                numInk: dc.dark,
+              },
+              {
+                num: "02",
+                title: "Monte Carlo rate-path simulation",
+                desc: "500 Vasicek SOFR paths using a calibrated OU process. Know the probability your DSCR breaks below 1.0 before the ARM resets, with P10/P50/P90 distributions.",
+                cta: "Open Monte Carlo",
+                view: "monte-carlo",
+                numBg: dc.dark,
+                numInk: dc.lemon,
+              },
+              {
+                num: "03",
+                title: "After-tax IRR with full depreciation stack",
+                desc: "IRC §167 SL depreciation, §469 passive-activity-loss rules with the REP exception, §1250 recapture at 25%, §1(h) LTCG rates and §1411 NIIT — the real net.",
+                cta: "Open Tax Engine",
+                view: "tax-engine",
+                numBg: dc.lemon,
+                numInk: dc.dark,
+              },
+              {
+                num: "04",
+                title: "Portfolio and blanket view",
+                desc: "Blended DSCR, aggregate equity and weighted rate across every door — the way a blanket lender actually sees your book. Add and edit properties inline.",
+                cta: "Open Portfolio",
+                view: "portfolio",
+                numBg: dc.dark,
+                numInk: dc.lemon,
+              },
+              {
+                num: "05",
+                title: "Refi timing and break-even",
+                desc: "4-factor refi readiness score, monthly savings, break-even month and cash-out capacity at 70% LTV — so you know exactly when the refinance pencils.",
+                cta: "Open Refi Tracker",
+                view: "refi-tracker",
+                numBg: dc.lemon,
+                numInk: dc.dark,
+              },
+            ].map((u) => (
+              <div
+                key={u.num}
+                className="gs-reveal"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "44px 1fr",
+                  gap: "clamp(20px,3vw,48px)",
+                  alignItems: "start",
+                  paddingBottom: "clamp(36px,4vw,56px)",
+                }}
+              >
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 1,
+                    width: 44,
+                    height: 44,
+                    borderRadius: "50%",
+                    background: u.numBg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Mono style={{ fontSize: 14, fontWeight: 700, color: u.numInk }}>
+                    {u.num}
+                  </Mono>
+                </div>
+                <div style={{ paddingTop: 10 }}>
+                  <h3
+                    style={{
+                      fontSize: "clamp(21px,2.2vw,30px)",
+                      fontWeight: 600,
+                      letterSpacing: "-0.03em",
+                      margin: "0 0 12px",
+                      color: dc.dark,
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {u.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: "clamp(16px,1.35vw,19px)",
+                      fontWeight: 500,
+                      lineHeight: 1.6,
+                      color: "rgba(0,55,56,0.65)",
+                      margin: "0 0 16px",
+                      maxWidth: "58ch",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {u.desc}
+                  </p>
+                  <button
+                    onClick={() => onNavigate(u.view)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      color: dc.rain,
+                      letterSpacing: "-0.01em",
+                      fontFamily: dc.sans,
+                    }}
+                  >
+                    {u.cta} →
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -651,6 +809,51 @@ export default function InvestorsPage({
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── BACK PILL ── matches mockup ─────────────────────────────────────── */}
+      <section
+        style={{
+          background: dc.cream,
+          padding: `0 ${dc.pad} clamp(72px,10vh,120px)`,
+          paddingTop: "clamp(8px,2vh,24px)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            onClick={() => onBack()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              background: dc.mintBg,
+              border: "none",
+              borderRadius: 999,
+              padding: "15px 30px",
+              cursor: "pointer",
+              fontFamily: dc.sans,
+            }}
+          >
+            <span
+              style={{
+                fontSize: "clamp(16px,1.4vw,19px)",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: dc.dark,
+              }}
+            >
+              Back to all tools
+            </span>
+            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
+          </button>
         </div>
       </section>
 

@@ -312,17 +312,18 @@ export default function ReturnsPage({
                 marginBottom: 22,
               }}
             >
-              Returns &amp; IRR &middot; Levered + Unlevered &middot; 16-cell sensitivity
+              Returns &amp; IRR &middot; levered + unlevered
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
               The full return, not just the cash flow.
             </H1>
             <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              Levered and unlevered IRR, equity multiple, yield-on-cost, break-even
-              occupancy, and a hold &times; rent-growth &times; exit-cap matrix.
+              Equity out, annual cash flows, and the exit — the whole J-curve,
+              with levered and unlevered IRR, equity multiple and a full
+              sensitivity grid.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <Btn label="Run returns engine" href="#rt-tool" onClick={scrollToTool} />
+              <Btn label="Run the returns engine ↓" href="#rt-tool" onClick={scrollToTool} />
             </div>
           </div>
 
