@@ -146,11 +146,24 @@ export default function RefiTrackerPage({
       });
   };
 
-  // ── Break-even chart geometry ──
+  // ── Break-even chart geometry (data-driven so the crossover is honest) ──
   const beMonths = result?.breakEvenMonths ?? 36;
+  const ms = result?.monthlySavings ?? 0;
   const bePct = Math.min(1, Math.max(0, beMonths / 60));
   const beDotX = Math.round(bePct * 420);
-  const showDot = result !== null && beMonths < 120;
+  const noBreakeven = result === null || ms <= 0 || beMonths >= 120;
+  const showDot = !noBreakeven;
+  // Cumulative-savings line passes through (0,178) and must cross the flat refi-cost
+  // line (y=40) exactly at beDotX — so the dot sits on the real intersection, not a
+  // decorative one. Slope therefore encodes how fast savings accrue.
+  const COST_Y = 40, BASE_Y = 178, TOP_Y = 20;
+  const crossX = Math.max(10, beDotX); // guard against a vertical/zero-width slope
+  const slope = (COST_Y - BASE_Y) / crossX; // SVG y is inverted → negative
+  let saveEndX = 420, saveEndY = BASE_Y + slope * 420;
+  if (saveEndY < TOP_Y) { saveEndX = (TOP_Y - BASE_Y) / slope; saveEndY = TOP_Y; }
+  const savePath = noBreakeven
+    ? "M 0,178 L 420,150" // savings never reach the cost line — no payoff yet
+    : `M 0,${BASE_Y} L ${Math.round(saveEndX)},${Math.round(saveEndY)}`;
 
   // ── Animate SVG lines on mount (draw-on effect, matches mockup rf-line anim) ──
   useEffect(() => {
@@ -426,10 +439,11 @@ export default function RefiTrackerPage({
               <path
                 ref={saveLineRef}
                 id="rf-save"
-                d="M 0,178 L 420,30"
+                d={savePath}
                 fill="none"
                 stroke={dc.emerald}
                 strokeWidth="3"
+                style={{ transition: "d 0.35s ease" }}
               />
               {/* Break-even intersection dot + label */}
               <circle
@@ -440,6 +454,7 @@ export default function RefiTrackerPage({
                 r={6}
                 fill={dc.lemon}
                 opacity={showDot ? 1 : 0}
+                style={{ transition: "cx 0.35s ease" }}
               />
               {showDot && (
                 <text
@@ -471,6 +486,33 @@ export default function RefiTrackerPage({
             >
               <span>mo 0</span>
               <span>mo 60</span>
+            </div>
+
+            {/* Live driver — drag the refi rate, watch the crossover move */}
+            <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(238,239,211,0.12)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 9 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>
+                  Projected refi rate
+                </span>
+                <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.emerald }}>
+                  {currentRate.toFixed(2)}% → {projectedRate.toFixed(3).replace(/0$/, "")}%
+                </Mono>
+              </div>
+              <input
+                type="range"
+                min={4}
+                max={Math.max(9, Math.ceil(currentRate))}
+                step={0.125}
+                value={projectedRate}
+                onChange={(e) => setProjectedRate(+e.target.value)}
+                aria-label="Projected refi rate"
+                style={{ width: "100%", accentColor: dc.emerald, cursor: "pointer" }}
+              />
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", marginTop: 5, fontFamily: dc.mono }}>
+                {noBreakeven
+                  ? "no break-even at this rate — savings never recoup the cost"
+                  : `break-even ≈ month ${Math.round(beMonths)} · drag to move it`}
+              </div>
             </div>
           </div>
         </div>
