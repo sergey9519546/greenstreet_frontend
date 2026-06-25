@@ -15,7 +15,12 @@ export {
   estimateRate,
   getDSCRGradient,
   verifyGoldenValues,
+  // Shared quick-estimate helper for lightweight callers (e.g. QualifyModal).
+  // Accepts the same inputs as the modal's inline calc but uses engine defaults
+  // (0.5%/yr insurance) and returns a structured tier + disclaimer.
+  quickDscrEstimate,
 } from './engine';
+export type { QuickDscrTier, QuickDscrEstimate } from './engine';
 
 // --- Lender matching (real 19-lender provenance DB) ---
 export {

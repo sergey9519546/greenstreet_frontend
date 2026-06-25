@@ -30,10 +30,17 @@ narrateRouter.post("/", validateBody(NarrateRequestSchema), async (req, res, nex
     const ai = getClaudeClient();
     const { dscr, solvedRate, dealBreakRate, rateHeadroomBps, dualTrackDSCR } = deal;
 
+    // Guard against NaN/Infinity from upstream computation — never let malformed
+    // numbers reach the prompt string or the AI call.
+    const safeNum = (v: unknown, decimals: number): string => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n.toFixed(decimals) : "N/A";
+    };
+
     const prompt = `DSCR underwriting result for a broker to explain to a borrower:
-- DSCR: ${dscr.toFixed(2)}x
-- Solved Rate: ${solvedRate.toFixed(3)}%
-- Deal-Break Rate: ${typeof dealBreakRate === "number" ? dealBreakRate.toFixed(3) : "N/A"}% (${rateHeadroomBps ?? "N/A"} bps headroom)
+- DSCR: ${safeNum(dscr, 2)}x
+- Solved Rate: ${safeNum(solvedRate, 3)}%
+- Deal-Break Rate: ${typeof dealBreakRate === "number" && Number.isFinite(dealBreakRate) ? dealBreakRate.toFixed(3) : "N/A"}% (${typeof rateHeadroomBps === "number" && Number.isFinite(rateHeadroomBps) ? rateHeadroomBps : "N/A"} bps headroom)
 - Track 1 (lender qual): ${dualTrackDSCR?.track1?.passes ? "PASSES" : "FAILS"}
 - Track 2 (investor survival): ${dualTrackDSCR?.track2?.passes ? "PASSES" : "FAILS"}
 - Summary: ${dualTrackDSCR?.verdict?.summary ?? ""}
@@ -48,9 +55,11 @@ Write 2-3 sentences in plain English for a real estate investor who is NOT a fin
       messages: [{ role: "user", content: prompt }],
     });
 
+    // Only return the text content — never echo back the request body or any env vars
     const text = response.content[0].type === "text" ? response.content[0].text : "";
     res.json({ narrative: text });
   } catch (err) {
+    // Errors are forwarded to the global handler which strips internal details
     next(err);
   }
 });

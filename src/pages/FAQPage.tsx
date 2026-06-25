@@ -83,6 +83,18 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
   },
   {
     group: "Qualification",
+    q: "What happens after I prequalify — what are the steps to close?",
+    a: "Six steps: (1) Soft file review (Day 1–2): Greenstreet confirms program fit — property type, DSCR range, FICO tier, entity structure, reserves. (2) Term sheet (Day 2–4): indicative rate range, fees, reserve requirement, prepay options — not a commitment. (3) Formal application + appraisal ordered (Day 3–5): you complete the application and pay the appraisal deposit; the 1007 rent schedule is part of the appraisal. (4) Document submission (Day 5–10): submit the full doc package in parallel with the appraisal. (5) Underwriting (Day 12–20 after appraisal returns): DSCR verified at the locked rate, title reviewed, conditions issued. (6) Clear to close → closing → funding: 3-business-day CD delivery period required by federal law. Total target: 21–30 business days on a clean file. The appraisal is the critical path — order it as early as possible.",
+    src: "Greenstreet close-process SOP · TRID 3-day CD rule (12 CFR 1026.19)",
+  },
+  {
+    group: "Qualification",
+    q: "How can I improve my DSCR before applying?",
+    a: "Four levers: (1) Buy down the rate: each 0.25% rate reduction saves ~$15–17/month per $100K of loan. On a $400K loan, buying down 0.50% saves ~$130/month in P&I. Points cost roughly 1% of loan per 0.25% of rate reduction. (2) Switch to interest-only (IO): IO eliminates the principal component, saving roughly $250–350/month on a $400K loan at current rates. Requires 720+ FICO, ≤75% LTV on most programs. (3) Raise the qualifying rent: provide the appraiser with comparable rental data before the inspection; sign a market-rate lease before closing (if vacant); or use documented 12-month STR history if the property is STR-eligible. (4) Increase the down payment: going from 80% to 75% LTV on a $400K deal reduces P&I by ~$85/month AND unlocks the better LTV rate tier, saving an additional 0.25–0.50%. Levers 2 and 4 combined can often take a 0.92x DSCR to 1.10x+ without touching the rent.",
+    src: "Greenstreet engine.ts IO model · LTV pricing matrix · Q2 2026",
+  },
+  {
+    group: "Qualification",
     q: "What is the deal-break rate?",
     a: "The deal-break rate is the interest rate at which DSCR falls to exactly 1.00x — the lender's hard floor. Below 1.00x, the deal won't qualify. The headroom between your offered rate and the deal-break rate (in basis points) tells you how much rate shock the deal can absorb before it fails — useful for ARM reset modeling and refinance planning. Greenstreet's Deal Analyzer surfaces both numbers on every solve.",
     src: "Greenstreet engine.ts · dealBreakRate + rateHeadroomBps",
@@ -105,6 +117,18 @@ const FAQS: { q: string; a: string; src: string; group?: string }[] = [
     q: "What properties qualify for DSCR loans?",
     a: "Eligible: SFR (attached and detached), 2–4 unit residential, warrantable and non-warrantable condos, condotels (with conditions), manufactured/modular, ADUs. Ineligible: assisted living/group homes, agricultural (>20 acres), co-ops, fractional/timeshares, mixed-use commercial, <500 sqft. Properties must be C4 condition or better.",
     src: "Fannie Mae Property Eligibility Guide · Greenstreet underwriter notes",
+  },
+  {
+    group: "Rental income & property",
+    q: "What documents do I need for a DSCR loan?",
+    a: "No W-2s or tax returns — but there is a document list. Property docs: executed contract or mortgage statement, Form 1007 rent schedule (from the appraisal), signed lease if occupied, HOA dues statement. Insurance: hazard binder (investment occupancy), flood binder (SFHA properties), wind/hurricane coverage where required. Entity docs: LLC Operating Agreement, Articles of Organization, Certificate of Good Standing (dated within 90 days), EIN letter, resolution to borrow. Borrower docs: photo ID, SSN/ITIN, credit authorization, 12 months bank statements for reserves. Funds to close: 60-day paper trail on down payment and closing cost funds. The three items that most commonly delay closings: insurance binder with wrong occupancy type, LLC with lapsed good standing, and reserves shortfall discovered at bank statement review.",
+    src: "Greenstreet doc checklist · program underwriting guidelines Q2 2026",
+  },
+  {
+    group: "Rental income & property",
+    q: "How is STR (Airbnb/short-term rental) income qualified for DSCR?",
+    a: "Lenders use the lowest of three figures: (1) Form 1007 long-term market rent from the appraisal — this is the floor and controls if you have no STR history. (2) AirDNA projected income × 70–80% — the market estimate, haircut for vacancy and seasonality. (3) Documented 12-month STR gross revenue × 70–80% — only available with full platform payout statements for all 12 months. If the property has never operated as an STR, you qualify on the 1007 long-term rent regardless of Airbnb projections. STR adds +3 months to reserve requirements. Greenstreet pre-verifies STR legality by municipality before program matching. See our full STR underwriting article for the deal math.",
+    src: "50-state STR matrix · Q2 2026 · AirDNA methodology · Greenstreet STR program overlays",
   },
   {
     group: "Rental income & property",
@@ -174,7 +198,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       {/* Accordion transition CSS only — no glassmorphism, no blur, no float */}
       <style>{`
         .faq-answer{overflow:hidden;transition:max-height .28s ease,opacity .22s ease;}
-        .faq-answer-open{max-height:600px;opacity:1;}
+        .faq-answer-open{max-height:900px;opacity:1;}
         .faq-answer-closed{max-height:0;opacity:0;}
         .faq-btn:hover{background:${dc.mintBg} !important;}
       `}</style>

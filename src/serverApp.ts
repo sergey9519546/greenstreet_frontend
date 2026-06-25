@@ -35,7 +35,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (req.path.startsWith("/api/")) {
-      logRequest(req.method, req.path, res.statusCode, duration, { ip: req.ip });
+      // FLAG (human decision): req.ip is PII under GDPR/CCPA.
+      // Options: (a) drop it entirely, (b) hash it, (c) only log in dev.
+      // For now, only include IP in non-production to avoid logging raw IPs in prod.
+      const extra = process.env.NODE_ENV !== "production" ? { ip: req.ip } : {};
+      logRequest(req.method, req.path, res.statusCode, duration, extra);
     }
   });
   next();

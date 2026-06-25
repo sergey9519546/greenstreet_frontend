@@ -13,6 +13,7 @@ import {
   calculatePI,
   calculateIOPayment,
   solveDSCR,
+  quickDscrEstimate,
 } from './engine';
 import { buildEngineInputs } from './inputs';
 import { checkPPPLegal } from './statePppLaws';
@@ -331,6 +332,84 @@ describe('checkPPPLegal', () => {
     // Both should return valid result objects regardless
     expect(llc).toHaveProperty('allowed');
     expect(ind).toHaveProperty('allowed');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. QUICK DSCR ESTIMATE — tier classification + validation guard
+// ─────────────────────────────────────────────────────────────────────────────
+describe('quickDscrEstimate', () => {
+  it('returns LIKELY_QUALIFIES tier for strong deal', () => {
+    // $400k, 75% LTV, $3,500/mo rent, 6.5% rate → should have comfortable buffer
+    const result = quickDscrEstimate(400_000, 3_500, 6.5);
+    expect(result.needsReview).toBe(false);
+    expect(result.dscr).toBeGreaterThan(1.25);
+    expect(result.tier).toBe('LIKELY_QUALIFIES');
+  });
+
+  it('returns BORDERLINE tier for marginal deal', () => {
+    // $400k, 75% LTV, $2,600/mo rent, 6.5% rate → borderline ~1.0–1.24
+    const result = quickDscrEstimate(400_000, 2_600, 6.5);
+    expect(result.needsReview).toBe(false);
+    expect(result.dscr).toBeGreaterThanOrEqual(1.0);
+    expect(result.dscr).toBeLessThan(1.25);
+    expect(result.tier).toBe('BORDERLINE');
+  });
+
+  it('returns UNLIKELY tier for very low rent', () => {
+    const result = quickDscrEstimate(600_000, 1_000, 7.0);
+    expect(result.tier).toBe('UNLIKELY');
+    expect(result.dscr).toBeLessThan(0.85);
+  });
+
+  it('returns needsReview=true for zero purchase price', () => {
+    const result = quickDscrEstimate(0, 3_000, 6.5);
+    expect(result.needsReview).toBe(true);
+  });
+
+  it('returns needsReview=true for negative rent', () => {
+    const result = quickDscrEstimate(400_000, -100, 6.5);
+    expect(result.needsReview).toBe(true);
+  });
+
+  it('always includes a disclaimer string', () => {
+    const result = quickDscrEstimate(400_000, 3_000, 6.5);
+    expect(result.disclaimer).toContain('PRELIMINARY ESTIMATE');
+    expect(result.disclaimer).toContain('not a pre-approval');
+  });
+
+  it('PITIA is a positive number for valid inputs', () => {
+    const result = quickDscrEstimate(400_000, 3_000, 6.5);
+    expect(result.pitia).toBeGreaterThan(0);
+  });
+
+  it('higher rent → higher DSCR (monotonic)', () => {
+    const r1 = quickDscrEstimate(400_000, 2_500, 6.5);
+    const r2 = quickDscrEstimate(400_000, 3_500, 6.5);
+    expect(r2.dscr).toBeGreaterThan(r1.dscr);
+  });
+
+  it('modal alignment: at 0.5%/yr insurance, DSCR is lower than at 0.35%/yr', () => {
+    // Engine default (0.5%) is more conservative than the modal's 0.35%
+    const engine = quickDscrEstimate(400_000, 3_000, 6.5, 0.75, 0.012, 0.005);
+    const modal  = quickDscrEstimate(400_000, 3_000, 6.5, 0.75, 0.012, 0.0035);
+    expect(engine.dscr).toBeLessThan(modal.dscr);
+    // Delta must be meaningful (the 0.15% insurance difference matters)
+    expect(modal.dscr - engine.dscr).toBeGreaterThan(0.01);
+  });
+
+  it('solveDSCR returns NEEDS_REVIEW verdict on zero purchasePrice', () => {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 0,  // invalid
+      monthlyRent: 3_000,
+      state: 'TX',
+    });
+    // Override purchasePrice to 0 after buildEngineInputs (it floors to 0)
+    property.purchasePrice = 0;
+    const result = solveDSCR(property, borrower, loan, strategy);
+    expect(result.dscr).toBe(0);
+    expect(result.dualTrackDSCR.verdict.summary).toContain('NEEDS_REVIEW');
   });
 });
 

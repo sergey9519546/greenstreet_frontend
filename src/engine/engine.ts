@@ -309,12 +309,14 @@ function buildTrack1(
   formulaMethod: DSCRFormulaMethod,
   ioPayment: number | null,
   haircutApplied: number,
-  fixedExpenses: number, // taxes + insurance + HOA + flood + MI (monthly)
+  piOnly: number, // P&I payment only (excludes taxes, insurance, HOA, flood, MI)
 ): DSCRTrack {
   const denominator = formulaMethod === 'GROSS_ITIA' && ioPayment
     ? ioPayment
     : formulaMethod === 'NOI_PI'
-    ? (pitia - fixedExpenses) // NOI/P&I: denominator is P&I only = PITIA - fixed expenses
+    // NOI/P&I: denominator is P&I only. Previously used (pitia - fixedExpenses) which
+    // accidentally included mortgageInsurance when MI > 0. Using piOnly is exact.
+    ? piOnly
     : pitia;
 
   const dscr = denominator > 0 ? qualifyingRent / denominator : 0;
@@ -661,6 +663,118 @@ function computeAppraisalBreakpoint(qualifyingRent: number, pitia: number): {
 }
 
 // ============================================================
+// QUICK DSCR ESTIMATE — shared helper for lightweight callers
+// (e.g. QualifyModal inline calculator)
+//
+// Parameters mirror the modal's own assumptions so both surfaces
+// agree on the same number. The modal currently uses 0.35%/yr
+// insurance; the engine default is 0.5%/yr. Callers should pass
+// annualInsuranceRate=0.005 to match the engine, or 0.0035 to
+// reproduce the original modal result.
+//
+// Qualification tier returned:
+//   dscr ≥ 1.25  → "LIKELY_QUALIFIES"        (strong buffer)
+//   dscr ≥ 1.00  → "BORDERLINE"               (meets minimum, verify)
+//   dscr ≥ 0.85  → "SPECIALIST_REQUIRED"      (flex programs only)
+//   dscr  < 0.85  → "UNLIKELY"                 (deal-break territory)
+//
+// NOTE: This is a PRELIMINARY ESTIMATE — not a pre-approval.
+// Always cross-check with solveDSCR for the full iterative model.
+// ============================================================
+
+export type QuickDscrTier =
+  | 'LIKELY_QUALIFIES'      // DSCR ≥ 1.25 — strong buffer, standard programs
+  | 'BORDERLINE'            // 1.00–1.24 — meets minimum, lender confirmation required
+  | 'SPECIALIST_REQUIRED'   // 0.85–0.99 — flex/specialist lenders only
+  | 'UNLIKELY';             // < 0.85 — does not meet standard DSCR thresholds
+
+export interface QuickDscrEstimate {
+  dscr: number;
+  tier: QuickDscrTier;
+  label: string;
+  pitia: number;
+  /** Always "PRELIMINARY ESTIMATE — not a pre-approval or guarantee." */
+  disclaimer: string;
+  /** True when any input was missing/invalid; dscr and tier are not reliable. */
+  needsReview: boolean;
+  needsReviewReason?: string;
+}
+
+/**
+ * Lightweight DSCR estimate for quick-calculator surfaces.
+ *
+ * Formula: rent / PITIA (Track 1, no vacancy, 30-yr amortization)
+ * where PITIA = P&I + taxes + insurance (no HOA or flood in this simplified form).
+ *
+ * @param propertyValue   Purchase price or appraised value ($)
+ * @param monthlyRent     Gross monthly rent ($)
+ * @param annualRatePct   Annual interest rate (%)
+ * @param ltv             LTV fraction (default 0.75)
+ * @param annualTaxRate   Annual tax as % of value (default 0.012 = 1.2%)
+ * @param annualInsRate   Annual insurance as % of value (default 0.005 = 0.5%)
+ * @param termMonths      Amortization term in months (default 360 = 30yr)
+ */
+export function quickDscrEstimate(
+  propertyValue: number,
+  monthlyRent: number,
+  annualRatePct: number,
+  ltv: number = 0.75,
+  annualTaxRate: number = 0.012,
+  annualInsRate: number = 0.005,
+  termMonths: number = 360,
+): QuickDscrEstimate {
+  // Input validation — return needs-review state on bad data
+  if (
+    !Number.isFinite(propertyValue) || propertyValue <= 0 ||
+    !Number.isFinite(monthlyRent) || monthlyRent <= 0 ||
+    !Number.isFinite(annualRatePct) || annualRatePct <= 0
+  ) {
+    return {
+      dscr: 0,
+      tier: 'UNLIKELY',
+      label: 'Insufficient data',
+      pitia: 0,
+      disclaimer: 'PRELIMINARY ESTIMATE — not a pre-approval or guarantee.',
+      needsReview: true,
+      needsReviewReason: 'One or more required inputs (property value, rent, rate) are missing or invalid.',
+    };
+  }
+
+  const loanAmount = propertyValue * ltv;
+  const pi = calculatePI(loanAmount, annualRatePct, termMonths);
+  const taxesMo = (propertyValue * annualTaxRate) / 12;
+  const insMo = (propertyValue * annualInsRate) / 12;
+  const pitia = pi + taxesMo + insMo;
+
+  const dscr = pitia > 0 ? Math.round((monthlyRent / pitia) * 1000) / 1000 : 0;
+
+  let tier: QuickDscrTier;
+  let label: string;
+  if (dscr >= 1.25) {
+    tier = 'LIKELY_QUALIFIES';
+    label = 'Likely qualifies — strong DSCR buffer';
+  } else if (dscr >= 1.00) {
+    tier = 'BORDERLINE';
+    label = 'Borderline — meets minimum; lender review required';
+  } else if (dscr >= 0.85) {
+    tier = 'SPECIALIST_REQUIRED';
+    label = 'Specialist lenders only — below standard threshold';
+  } else {
+    tier = 'UNLIKELY';
+    label = 'Unlikely — DSCR below typical program minimums';
+  }
+
+  return {
+    dscr,
+    tier,
+    label,
+    pitia: Math.round(pitia),
+    disclaimer: 'PRELIMINARY ESTIMATE — not a pre-approval or guarantee.',
+    needsReview: false,
+  };
+}
+
+// ============================================================
 // MAIN SOLVER: DUAL-TRACK DSCR WITH ITERATIVE RATE
 // ============================================================
 
@@ -680,6 +794,45 @@ export function solveDSCR(
    */
   reassessedAnnualTaxOverride?: number,
 ): DSCRResult {
+  // ── Input guard: clamp / sanitise key numbers before any math ──────────────
+  // Returns a safe zero-DSCR "needs review" result rather than NaN/Infinity.
+  if (
+    !Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0 ||
+    !Number.isFinite(property.leaseRent) || property.leaseRent < 0 ||
+    !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100
+  ) {
+    const zeroPITIA: PITIABreakdown = {
+      principalAndInterest: 0, taxes: 0, insurance: 0, hoa: 0,
+      floodInsurance: 0, mortgageInsurance: 0, total: 0,
+      isInterestOnly: false,
+    };
+    const noRatioGradient = getDSCRGradient(0);
+    const stub: DSCRTrack = {
+      label: 'Track 1 — Lender Qualification',
+      dscr: 0, gradient: noRatioGradient, qualifyingRent: 0,
+      rentSource: 'NEEDS_REVIEW — missing or invalid inputs',
+      formulaMethod: 'GROSS_PITIA', vacancyApplied: 0, managementApplied: 0,
+      maintenanceApplied: 0, netRentAfterDeductions: 0, monthlyCashFlow: 0, passes: false,
+    };
+    const stub2: DSCRTrack = { ...stub, label: 'Track 2 — Investor Survival' };
+    return {
+      dualTrackDSCR: {
+        track1: stub, track2: stub2,
+        verdict: { track1Passes: false, track2Passes: false,
+          summary: 'NEEDS_REVIEW — one or more required inputs are missing or invalid. Provide purchase price, rent, and LTV before qualifying.',
+          warningRequired: true },
+      },
+      qualifyingRent: 0, rentSource: 'NEEDS_REVIEW',
+      monthlyPITIA: zeroPITIA, dscr: 0, dscrGradient: noRatioGradient,
+      solvedRate: 0, tripleRate: { competitive: 0, typical: 0, fullMarket: 0, dateStamp: 'June 2026', treasurySpread: '' },
+      loanAmount: 0, debtYield: 0,
+      cashToClose: { downPayment: 0, closingCosts: 0, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0, reserveRequirement: 0, reserveConservative: 0, furnishingBudget: 0, credits: 0, total: 0, totalConservative: 0, totalStress: 0 },
+      appraisalBreakpointRent: 0, appraisalBreakpointPercent: 0,
+      dealBreakRate: 0, rateHeadroomBps: 0,
+      maxPurchaseAtDSCR1: 0, minDownPayment: 0, additionalDownNeeded: 0,
+    };
+  }
+
   // v11 FIX: Use reassessed tax if provided; otherwise fall back to seller's bill
   const annualTaxes = reassessedAnnualTaxOverride ?? property.annualTaxes;
   const loanAmount = property.purchasePrice * (loan.ltv / 100);
@@ -747,9 +900,23 @@ export function solveDSCR(
   dscr = pitiaDenom > 0 ? qualifyingRent / pitiaDenom : 0;
 
   // Build dual-track
-  const fixedExpenses = annualTaxes / 12 + property.annualInsurance / 12 + property.hoa + property.floodInsurance / 12;
-  const track1 = buildTrack1(qualifyingRent, rentSource, pitia.total, formulaMethod, pitia.itia ?? null, haircutApplied, fixedExpenses);
-  const track2 = buildTrack2(qualifyingRent, pitia.total, strategy);
+  //
+  // FIX (bug audit): buildTrack1 now receives pitia.principalAndInterest directly
+  // instead of (pitia.total - fixedExpenses). The old form incorrectly included
+  // mortgageInsurance in the NOI/P&I denominator when MI > 0.
+  //
+  // FIX (bug audit): For STR, Track2 must use the RAW strProjectedRent as grossRent,
+  // not qualifyingRent (which already has the 20% lender haircut applied for Track1).
+  // Track2 models actual investor cash flow, so the pre-haircut gross is correct.
+  // LTR/MTR: qualifyingRent = min(lease, market) = actual income → correct as-is.
+  const track2GrossRent = strategy === 'STR'
+    ? property.strProjectedRent  // raw STR gross before any haircut
+    : strategy === 'MTR'
+    ? property.strProjectedRent  // raw MTR gross before 12% haircut
+    : qualifyingRent;            // LTR: min(lease, market) = actual income
+
+  const track1 = buildTrack1(qualifyingRent, rentSource, pitia.total, formulaMethod, pitia.itia ?? null, haircutApplied, pitia.principalAndInterest);
+  const track2 = buildTrack2(track2GrossRent, pitia.total, strategy);
   const verdict = buildVerdict(track1, track2);
   const dualTrackDSCR: DualTrackDSCR = { track1, track2, verdict };
 
