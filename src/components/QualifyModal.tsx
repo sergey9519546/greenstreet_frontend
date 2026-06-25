@@ -306,7 +306,7 @@ const ANIMATION_CSS = `
   }
 
   /* Mobile: tighter card padding */
-  @media (max-width: 420px) {
+  @media (max-width: 479px) {
     .qm-card {
       padding: 20px 18px !important;
     }

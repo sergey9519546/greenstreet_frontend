@@ -49,15 +49,15 @@ const ABOUT_CSS = `
   .cta-card:hover { transform: translateY(-4px); }
   /* Team grid: 4-col desktop → 2-col mobile */
   .ab-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
-  @media (max-width: 640px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 767px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
   /* Investor logo grid: 3-col desktop → 2-col mobile */
   .ab-inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 640px) { .ab-inv-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 767px) { .ab-inv-grid { grid-template-columns: repeat(2, 1fr); } }
   /* Values, Jobs, CTA 2-col grids → single col on mobile */
   .ab-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .ab-jobs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px,5vw,72px); align-items: start; }
   .ab-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 900px) {
+  @media (max-width: 991px) {
     .ab-2col { grid-template-columns: 1fr !important; }
     .ab-jobs-grid { grid-template-columns: 1fr !important; }
     .ab-cta-grid { grid-template-columns: 1fr !important; }

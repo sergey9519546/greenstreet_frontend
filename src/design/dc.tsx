@@ -101,11 +101,11 @@ export const DC_CSS = `
 @keyframes gsPulse{from,to{opacity:1;}}
 @keyframes gsBar{from{width:0;}}
 .gs-bar{animation:gsBar .8s ease-out both;}
-@media (max-width:640px){.dc-navlinks{gap:14px !important;}.dc-navlink{display:none !important;}}
+@media (max-width: 767px){.dc-navlinks{gap:14px !important;}.dc-navlink{display:none !important;}}
 /* Responsive layout hooks — desktop grids stay inline; these stack them on
    small screens (the .dc.html mockups are desktop-only). Add the class to any
    2/3-col hero, band, or tool-split container. */
-@media (max-width:900px){
+@media (max-width: 991px){
   .dc-hero{grid-template-columns:1fr !important;gap:40px !important;}
   .dc-band-3,.dc-band-2,.dc-split{grid-template-columns:1fr !important;}
 }

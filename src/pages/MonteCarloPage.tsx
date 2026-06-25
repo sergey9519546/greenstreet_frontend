@@ -118,7 +118,7 @@ export default function MonteCarloPage({
   return (
     <DcShell onNavigate={onNavigate} accent="#004041" navLinks={navLinks} cta={cta}>
       <style>{`
-        @media (max-width:900px){.mc-3step{grid-template-columns:1fr !important;}}
+        @media (max-width: 991px){.mc-3step{grid-template-columns:1fr !important;}}
         .mc-path{fill:none;stroke-linecap:round;}
       `}</style>
 

@@ -142,7 +142,7 @@ const FLIP_CSS = `
   .bp-inner { transition: none !important; }
   .bp-flip:hover .bp-inner, .bp-flip:focus-within .bp-inner { transform: none !important; }
 }
-@media (max-width: 900px) {
+@media (max-width: 991px) {
   .bp-grid { grid-template-columns: 1fr !important; }
   .bp-flip { height: 380px !important; }
 }

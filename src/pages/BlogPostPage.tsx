@@ -20,7 +20,7 @@ const ARTICLE_CSS = `
   .bp-body li{color:#3f5252;font-size:17px;line-height:1.6;margin-bottom:12px;padding-left:26px;position:relative;}
   .bp-body li::before{content:"→";position:absolute;left:0;color:${dc.rain};font-weight:800;}
   .bp-card{transition:transform .14s;} .bp-card:hover{transform:translateY(-4px);}
-  @media(max-width:900px){
+  @media(max-width: 991px){
     .bp-related-grid{grid-template-columns:1fr !important;}
     .bp-byline{flex-wrap:wrap;}
   }

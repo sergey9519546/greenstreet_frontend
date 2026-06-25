@@ -292,7 +292,7 @@ export default function SolutionsPage({
       {/* Page-scoped CSS: mobile stacking for the so-feat alternating grid.
           On ≤900 px the grid collapses to 1 col; order resets so text leads. */}
       <style>{`
-        @media (max-width: 900px) {
+        @media (max-width: 991px) {
           .so-feat { grid-template-columns: 1fr !important; }
           .so-feat > * { order: unset !important; }
         }

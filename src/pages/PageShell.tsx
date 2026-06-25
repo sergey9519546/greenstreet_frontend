@@ -104,7 +104,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
           color: #d8d958 !important;
           font-family: "Outfit Variable", Outfit, Arial, sans-serif !important;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
           .gs-nav-links { display: none; }
           .gs-hamburger { display: flex; flex-direction: column; gap: 5px; }
           .gs-mobile-menu { display: ${menuOpen ? "flex" : "none"}; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: ${PISTACHIO}; border-bottom: 1px solid ${FADED}; padding: 16px clamp(1.5rem, 4vw, 2rem) 24px; gap: 0; z-index: 49; }

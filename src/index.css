@@ -1006,7 +1006,7 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 .gs-video-mute svg { width: 18px; height: 18px; display: block; }
 .gs-video-mute[data-muted="true"] .ico-unmuted { display: none; }
 .gs-video-mute[data-muted="false"] .ico-muted { display: none; }
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .gs-video-mute .gs-mute-label { display: none; }
   .gs-video-mute { padding: 10px; }
 }
@@ -1035,7 +1035,7 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 .gs-statemap-cta { display: inline-flex; align-items: center; justify-content: center; background: #d8d958; color: #003738; font: 600 15px/1 "Outfit Variable", Outfit, Arial, sans-serif; text-decoration: none; padding: 13px 20px; border-radius: 8px; margin-top: 6px; }
 .gs-statemap-cta:hover { background: #e3e36a; }
 .gs-statemap-note { font-size: 12px; color: rgba(238, 239, 211, 0.5); line-height: 1.45; }
-@media (max-width: 860px) {
+@media (max-width: 991px) {
   .gs-statemap-grid { grid-template-columns: 1fr; }
   .gs-sm-tip { display: none; }
 }
@@ -1103,13 +1103,13 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   flex: 0 0 auto !important;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 991px) {
   .pr-special-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .pr-special-grid {
     grid-template-columns: 1fr !important;
   }
@@ -1284,12 +1284,12 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
 
 /* ---- Embedded Style ---- */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   #hs-booking {
     min-height: 900px !important;
   }
 }
-@media (max-width: 480px) {
+@media (max-width: 479px) {
   #hs-booking {
     min-height: 1200px !important;
   }

@@ -294,7 +294,7 @@ export default function LegalPage({
           border-left: 2px solid transparent;
         }
         .lg-toc-link:hover { color: ${MIDNIGHT} !important; }
-        @media (max-width: 760px) { .lg-toc-col { display: none !important; } }
+        @media (max-width: 767px) { .lg-toc-col { display: none !important; } }
       `}</style>
 
       {/* ── HERO — mint bg, dark ink ── */}

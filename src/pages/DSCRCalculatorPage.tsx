@@ -149,8 +149,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         .g-needle { transition: transform .75s cubic-bezier(.34,1.42,.5,1); }
         @keyframes gsBar { from { width: 0; } }
         .gs-bar { animation: gsBar .8s ease-out both; }
-        @media (max-width: 900px) { #gs-hero-inner { grid-template-columns: 1fr !important; gap: 40px !important; } .dc-band-3, .dc-split { grid-template-columns: 1fr !important; } .calc-panel { grid-template-columns: 1fr !important; } .bottom-trio { grid-template-columns: 1fr !important; } }
-        @media (max-width: 600px) { .bottom-trio { grid-template-columns: 1fr !important; } }
+        @media (max-width: 991px) { #gs-hero-inner { grid-template-columns: 1fr !important; gap: 40px !important; } .dc-band-3, .dc-split { grid-template-columns: 1fr !important; } .calc-panel { grid-template-columns: 1fr !important; } .bottom-trio { grid-template-columns: 1fr !important; } }
+        @media (max-width: 767px) { .bottom-trio { grid-template-columns: 1fr !important; } }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; } .g-needle { transition: none !important; } }
       `}</style>
 
