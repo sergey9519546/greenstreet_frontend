@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DcShell, dc } from "../design/dc";
+import { DcShell, dc, H1, Lead } from "../design/dc";
 
 // ── Open roles (all original descriptions preserved) ─────────────────────────
 interface Role {
@@ -241,32 +241,12 @@ export default function CareersPage({
             >
               Careers
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(44px,5.8vw,88px)",
-                fontWeight: 600,
-                lineHeight: 0.98,
-                letterSpacing: "-0.035em",
-                margin: "0 0 26px",
-                maxWidth: "17ch",
-                color: dc.dark,
-              }}
-            >
+            <H1 style={{ margin: "0 0 26px", maxWidth: "17ch" }}>
               Build the math layer of real-estate lending.
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(18px,1.7vw,25px)",
-                fontWeight: 500,
-                lineHeight: 1.4,
-                letterSpacing: "-0.02em",
-                color: "rgba(0,55,56,0.68)",
-                maxWidth: "48ch",
-                margin: 0,
-              }}
-            >
+            </H1>
+            <Lead style={{ color: "rgba(0,55,56,0.68)", maxWidth: "48ch", margin: 0 }}>
               We're a small team shipping a generational tool for DSCR brokers and investors. Remote-first, deeply technical, allergic to hand-waving.
-            </p>
+            </Lead>
           </div>
         </div>
       </section>

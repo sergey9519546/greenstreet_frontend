@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 interface Props {
   onBack?: () => void;
@@ -274,37 +274,18 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
           </div>
 
           {/* H1 — matches mockup sizing exactly */}
-          <h1
-            style={{
-              fontSize: "clamp(44px,6vw,84px)",
-              fontWeight: 600,
-              lineHeight: 0.98,
-              letterSpacing: "-0.035em",
-              margin: "0 0 22px",
-              color: dc.dark,
-            }}
-          >
+          <H1 style={{ margin: "0 0 22px" }}>
             Which DSCR loan fits you?
-          </h1>
+          </H1>
 
           {/* Sub — five questions, compliance-safe, no email/credit pull */}
-          <p
-            style={{
-              fontSize: "clamp(17px,1.5vw,22px)",
-              fontWeight: 500,
-              lineHeight: 1.45,
-              letterSpacing: "-0.02em",
-              color: "rgba(0,55,56,0.62)",
-              maxWidth: "50ch",
-              margin: "0 auto",
-            }}
-          >
+          <Lead style={{ color: "rgba(0,55,56,0.62)", maxWidth: "50ch", margin: "0 auto" }}>
             Five questions. One real rate tier. Greenstreet programs matched to
             your deal profile.{" "}
             <span style={{ color: "rgba(0,55,56,0.42)" }}>
               No email, no account, no credit pull.
             </span>
-          </p>
+          </Lead>
         </div>
       </section>
 

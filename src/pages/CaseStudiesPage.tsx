@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
 // ── Case studies data (kept from existing page, framed as illustrative) ────────
 interface StudyMetric {
@@ -506,18 +506,9 @@ function StudyDetail({
                 }}
               />
             )}
-            <h1
-              style={{
-                fontSize: "clamp(36px,5.5vw,80px)",
-                fontWeight: 600,
-                lineHeight: 0.95,
-                letterSpacing: "-0.04em",
-                margin: "0 0 24px",
-                maxWidth: "22ch",
-              }}
-            >
+            <H1 style={{ margin: "0 0 24px", maxWidth: "22ch" }}>
               {s.headline}
-            </h1>
+            </H1>
           </div>
         </div>
       </section>
@@ -814,53 +805,16 @@ export default function CaseStudiesPage({
               >
                 Customer stories
               </div>
-              <h1
-                style={{
-                  fontSize: "clamp(48px,7.5vw,116px)",
-                  fontWeight: 600,
-                  lineHeight: 0.93,
-                  letterSpacing: "-0.04em",
-                  margin: 0,
-                }}
-              >
+              <H1 style={{ margin: 0 }}>
                 Real results.
-              </h1>
+              </H1>
             </div>
             <div>
-              <p
-                style={{
-                  fontSize: "clamp(17px,1.5vw,22px)",
-                  fontWeight: 500,
-                  lineHeight: 1.5,
-                  letterSpacing: "-0.02em",
-                  color: "rgba(238,239,211,0.72)",
-                  margin: "0 0 32px",
-                  maxWidth: "40ch",
-                }}
-              >
+              <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "40ch", margin: "0 0 32px" }}>
                 Brokers and investors who moved to Greenstreet — and what
                 changed for them.
-              </p>
-              <button
-                onClick={() => onNavigate("dscr-calculator")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                  fontFamily: dc.sans,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                Try it yourself →
-              </button>
+              </Lead>
+              <Btn label="Try it yourself" onClick={() => onNavigate("dscr-calculator")} />
             </div>
           </div>
 

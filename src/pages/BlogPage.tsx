@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 // ── Pistachio editorial identity ───────────────────────────────────────────────
 // Accent matches mockup: #eeefd3 nav + footer, dark-ink overrides on .dc-nav
@@ -262,12 +262,12 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" as const, color: dc.lemon, marginBottom: 16 }}>
               {post.tag} · {post.date}
             </div>
-            <h1 style={{ fontSize: "clamp(32px,4.5vw,64px)", fontWeight: 600, lineHeight: 1.0, letterSpacing: "-0.035em", margin: "0 0 20px", maxWidth: "24ch", color: dc.cream }}>
+            <H1 style={{ margin: "0 0 20px", maxWidth: "24ch" }}>
               {post.title}
-            </h1>
-            <p style={{ fontSize: "clamp(16px,1.4vw,20px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.7)", maxWidth: "52ch", margin: "0 0 28px", letterSpacing: "-0.01em" }}>
+            </H1>
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "52ch", margin: "0 0 28px" }}>
               {post.summary}
-            </p>
+            </Lead>
             <button
               onClick={() => onNavigate("blog")}
               style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600, color: "rgba(238,239,211,0.65)", letterSpacing: "-0.01em", fontFamily: dc.sans, padding: 0 }}
@@ -357,9 +357,9 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginBottom: 18, letterSpacing: "-0.01em" }}>
               Greenstreet Guidance
             </div>
-            <h1 style={{ fontSize: "clamp(42px,5.6vw,84px)", fontWeight: 600, lineHeight: 0.98, letterSpacing: "-0.035em", margin: 0, maxWidth: "16ch", color: dc.dark }}>
+            <H1 style={{ margin: 0, maxWidth: "16ch" }}>
               Notes from the DSCR desk.
-            </h1>
+            </H1>
           </div>
         </div>
       </section>

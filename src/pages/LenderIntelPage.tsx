@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 
 interface Props {
@@ -161,26 +161,13 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
           </div>
 
           {/* H1 */}
-          <h1
-            style={{
-              fontSize: "clamp(46px,6.4vw,92px)",
-              fontWeight: 600,
-              lineHeight: 0.97,
-              letterSpacing: "-0.035em",
-              margin: "0 0 24px",
-              maxWidth: "15ch",
-            }}
-          >
+          <H1 style={{ margin: "0 0 24px", maxWidth: "15ch" }}>
             {total} lenders, ranked for your exact deal.
-          </h1>
+          </H1>
 
           {/* Sub */}
-          <p
+          <Lead
             style={{
-              fontSize: "clamp(18px,1.6vw,23px)",
-              fontWeight: 500,
-              lineHeight: 1.45,
-              letterSpacing: "-0.02em",
               color: "rgba(238,239,211,0.7)",
               maxWidth: "52ch",
               margin: "0 0 40px",
@@ -189,7 +176,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             A provenance-tracked database of real DSCR program boxes — FICO floors,
             LTV caps, DSCR minimums, state coverage and entity rules. Score your deal
             against every one.
-          </p>
+          </Lead>
 
           {/* Program name chips — the hero's live "19 chips" identity */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, maxWidth: 920 }}>

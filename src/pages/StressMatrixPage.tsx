@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
 
@@ -294,49 +294,13 @@ export default function StressMatrixPage({
             >
               Stress Matrix &middot; 12&times;10 grid &middot; 5 risk zones
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(46px,7vw,108px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 28px",
-                color: DARK_INK,
-              }}
-            >
+            <H1 style={{ margin: "0 0 28px" }}>
               See every stress scenario in one view.
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
-                color: "rgba(0,55,56,0.65)",
-                maxWidth: "48ch",
-                margin: "0 0 36px",
-              }}
-            >
+            </H1>
+            <Lead style={{ color: "rgba(0,55,56,0.65)", maxWidth: "48ch", margin: "0 0 36px" }}>
               120 cells. Rate shocks &minus;150 to +200bps. Rent shocks &minus;25% to +20%. Five risk zones from SAFE to DEAL_BREAK.
-            </p>
-            <a
-              href="#sm-tool"
-              onClick={scrollToTool}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: DARK_INK,
-                color: MINT,
-                fontWeight: 600,
-                fontSize: 16,
-                textDecoration: "none",
-                padding: "15px 30px",
-                borderRadius: 6,
-              }}
-            >
-              Open the matrix ↓
-            </a>
+            </Lead>
+            <Btn label="Open the matrix" href="#sm-tool" onClick={scrollToTool} />
           </div>
 
           {/* Right — live mini heatmap (4×10 preview grid) */}

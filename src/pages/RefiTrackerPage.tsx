@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { gsap } from "gsap";
 import { analyzeRefi } from "../engine/refiTracker";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
@@ -277,22 +277,11 @@ export default function RefiTrackerPage({
             >
               4-factor readiness · break-even · cash-out
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(40px,5.5vw,76px)",
-                fontWeight: 600,
-                lineHeight: 1.02,
-                letterSpacing: "-0.02em",
-                margin: "0 0 22px",
-              }}
-            >
+            <H1 style={{ margin: "0 0 22px" }}>
               Should you refi this DSCR loan yet?
-            </h1>
-            <p
+            </H1>
+            <Lead
               style={{
-                fontSize: "clamp(16px,1.4vw,20px)",
-                lineHeight: 1.55,
-                letterSpacing: "-0.02em",
                 color: "rgba(0,55,56,0.7)",
                 maxWidth: "52ch",
                 margin: "0 0 32px",
@@ -300,48 +289,17 @@ export default function RefiTrackerPage({
             >
               Seasoning, equity, DSCR headroom, and monthly savings — scored
               0–100. Plus the break-even month where refi costs cross savings.
-            </p>
+            </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 40 }}>
-              <a
-                href="#rf-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 10,
-                  background: dc.dark,
-                  color: MINT,
-                  fontWeight: 700,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "14px 28px",
-                  borderRadius: 8,
-                }}
-              >
-                Open the refi tracker ↓
-              </a>
-              <a
-                href="#"
+              <Btn label="Open the refi tracker" href="#rf-tool" onClick={scrollToTool} />
+              <Btn
+                label="DSCR calc"
+                variant="secondary"
                 onClick={(e) => {
                   e.preventDefault();
                   onNavigate?.("dscr-calculator");
                 }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "14px 22px",
-                  borderRadius: 8,
-                  border: "1px solid rgba(0,55,56,0.3)",
-                }}
-              >
-                DSCR calc
-              </a>
+              />
             </div>
             {/* Live stat bar — live output under the hero CTA */}
             <div style={{ display: "flex", gap: "clamp(24px,4vw,48px)", flexWrap: "wrap" }}>

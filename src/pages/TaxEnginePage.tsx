@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeAfterTaxIRR } from "../engine/taxEngine";
 import { calculatePI } from "../engine/engine";
 import type { TaxProfile, FilingStatus } from "../engine/types";
@@ -197,50 +197,14 @@ export default function TaxEnginePage({
             >
               Tax Engine &middot; IRC 167 &middot; 469 PAL &middot; 1250 &middot; NIIT
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(46px,7vw,108px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 28px",
-                color: dc.dark,
-              }}
-            >
+            <H1 style={{ margin: "0 0 28px" }}>
               What does it really earn after taxes?
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
-                color: "rgba(0,55,56,0.72)",
-                maxWidth: "48ch",
-                margin: "0 0 36px",
-              }}
-            >
+            </H1>
+            <Lead style={{ color: "rgba(0,55,56,0.72)", maxWidth: "48ch", margin: "0 0 36px" }}>
               After-tax IRR with depreciation shield, §1250 recapture, LTCG,
               NIIT and IRC §469 passive-loss rules.
-            </p>
-            <a
-              href="#te-tool"
-              onClick={scrollToTool}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: dc.dark,
-                color: dc.lemon,
-                fontWeight: 600,
-                fontSize: 16,
-                textDecoration: "none",
-                padding: "15px 30px",
-                borderRadius: 6,
-              }}
-            >
-              Open the tax engine ↓
-            </a>
+            </Lead>
+            <Btn label="Open the tax engine" href="#te-tool" onClick={scrollToTool} />
           </div>
 
           {/* Right — live IRR card matching the mockup's dark teal panel */}

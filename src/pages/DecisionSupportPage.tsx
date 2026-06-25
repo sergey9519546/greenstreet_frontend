@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
@@ -300,25 +300,13 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             >
               Underwriting verdict · IC memo · risk flags
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(44px,5.8vw,84px)",
-                fontWeight: 600,
-                lineHeight: 0.98,
-                letterSpacing: "-0.035em",
-                margin: "0 0 24px",
-              }}
-            >
+            <H1 style={{ margin: "0 0 24px" }}>
               One verdict.
               <br />
               Every signal weighed.
-            </h1>
-            <p
+            </H1>
+            <Lead
               style={{
-                fontSize: "clamp(17px,1.4vw,21px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
                 color: "rgba(238,239,211,0.7)",
                 maxWidth: "50ch",
                 margin: "0 0 36px",
@@ -327,25 +315,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
               DSCR, leverage, returns, liquidity and state risk roll into a single
               composite — GO, CONDITIONAL, or NO-GO — with the reasons spelled out
               like an investment-committee memo.
-            </p>
-            <a
-              href="#ds-tool"
-              onClick={scrollToTool}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: dc.lemon,
-                color: dc.dark,
-                fontWeight: 600,
-                fontSize: 16,
-                textDecoration: "none",
-                padding: "15px 30px",
-                borderRadius: 6,
-              }}
-            >
-              Run the decision engine →
-            </a>
+            </Lead>
+            <Btn label="Run the decision engine" href="#ds-tool" onClick={scrollToTool} />
           </div>
 
           {/* Right: live verdict gauge — the mockup's signature */}

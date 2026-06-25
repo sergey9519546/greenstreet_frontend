@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono, useRevealOnView } from "../design/dc";
+import { DcShell, dc, Mono, useRevealOnView, H1, Lead, Btn } from "../design/dc";
 import {
   simulateARMResetLadder,
   DEFAULT_ARM_PROGRAMS,
@@ -201,27 +201,15 @@ export default function ARMPage({
           </div>
 
           {/* Headline */}
-          <h1
-            style={{
-              fontSize: "clamp(46px,6.6vw,92px)",
-              fontWeight: 600,
-              lineHeight: 0.98,
-              letterSpacing: "-0.035em",
-              margin: "0 0 26px",
-            }}
-          >
+          <H1 style={{ margin: "0 0 26px" }}>
             What happens when
             <br />
             the fixed period ends?
-          </h1>
+          </H1>
 
           {/* Sub */}
-          <p
+          <Lead
             style={{
-              fontSize: "clamp(17px,1.5vw,22px)",
-              fontWeight: 500,
-              lineHeight: 1.5,
-              letterSpacing: "-0.015em",
               color: "rgba(238,239,211,0.7)",
               maxWidth: "58ch",
               margin: "0 auto 44px",
@@ -230,7 +218,7 @@ export default function ARMPage({
             Model the payment shock at first reset, every subsequent adjustment,
             and the lifetime cap — initial and periodic caps applied exactly as
             written in the note.
-          </p>
+          </Lead>
 
           {/* ── PAYMENT-SHOCK TIMELINE — the hero's signature ── */}
           <div
@@ -390,46 +378,15 @@ export default function ARMPage({
               flexWrap: "wrap",
             }}
           >
-            <a
-              href="#arm-tool"
-              onClick={scrollToTool}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                background: dc.lemon,
-                color: dc.dark,
-                fontWeight: 600,
-                fontSize: 14,
-                textDecoration: "none",
-                padding: "11px 22px",
-                borderRadius: 6,
-              }}
-            >
-              Model the reset →
-            </a>
-            <a
-              href="#"
+            <Btn label="Model the reset" href="#arm-tool" onClick={scrollToTool} />
+            <Btn
+              label="DSCR Calculator"
+              variant="secondary"
               onClick={(e) => {
                 e.preventDefault();
                 onNavigate?.("dscr-calculator");
               }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                background: "transparent",
-                color: dc.cream,
-                fontWeight: 600,
-                fontSize: 14,
-                textDecoration: "none",
-                padding: "11px 18px",
-                borderRadius: 6,
-                border: "1px solid rgba(238,239,211,0.3)",
-              }}
-            >
-              DSCR Calculator
-            </a>
+            />
           </div>
         </div>
       </section>

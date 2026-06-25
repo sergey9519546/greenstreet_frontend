@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -125,12 +125,12 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       <section style={{ background: RAIN, color: dc.cream, padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`, overflow: "hidden" }}>
         <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product · 50-State Rule Engine</div>
-          <h1 style={{ fontSize: "clamp(46px,6.4vw,92px)", fontWeight: 600, lineHeight: 0.97, letterSpacing: "-0.035em", margin: "0 0 24px", maxWidth: "16ch" }}>
+          <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
             Prepayment penalty rules, all fifty states.
-          </h1>
-          <p style={{ fontSize: "clamp(18px,1.6vw,23px)", fontWeight: 500, lineHeight: 1.45, letterSpacing: "-0.02em", color: "rgba(238,239,211,0.78)", maxWidth: "54ch", margin: "0 0 28px" }}>
+          </H1>
+          <Lead style={{ color: "rgba(238,239,211,0.78)", maxWidth: "54ch", margin: "0 0 28px" }}>
             Where a prepay penalty holds, where it's banned, where a threshold applies, and the usury cap that bounds your rate. Click any state.
-          </p>
+          </Lead>
           <div style={{ display: "flex", gap: "clamp(20px,4vw,44px)", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
               <div><Mono data-count={50} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>50</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states mapped</div></div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 
@@ -150,34 +150,14 @@ export default function MonteCarloPage({
             }}>
               Monte Carlo · Vasicek SOFR · {simulations} paths
             </div>
-            <h1 style={{
-              fontSize: "clamp(46px,7vw,108px)", fontWeight: 600,
-              lineHeight: 0.93, letterSpacing: "-0.04em", margin: "0 0 28px",
-            }}>
+            <H1 style={{ margin: "0 0 28px" }}>
               Stress-test the deal over {simulations} futures.
-            </h1>
-            <p style={{
-              fontSize: "clamp(17px,1.5vw,22px)", fontWeight: 500,
-              lineHeight: 1.5, letterSpacing: "-0.02em",
-              color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px",
-            }}>
+            </H1>
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
               Stochastic SOFR paths using a calibrated Vasicek process. Know
               the probability your DSCR breaks below 1.0 before the ARM resets.
-            </p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a
-                href="#mc-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 9,
-                  background: dc.lemon, color: dc.dark, fontWeight: 600,
-                  fontSize: 16, textDecoration: "none",
-                  padding: "15px 30px", borderRadius: 6,
-                }}
-              >
-                Run the simulation ↓
-              </a>
-            </div>
+            </Lead>
+            <Btn label="Run the simulation" href="#mc-tool" onClick={scrollToTool} />
           </div>
 
           {/* right col — animated preview card */}

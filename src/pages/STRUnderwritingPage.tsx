@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
 import type { PropertyInputs } from "../engine/types";
 
@@ -418,23 +418,11 @@ export default function STRUnderwritingPage({
           >
             Short-term rental · ADR × occupancy × seasonality
           </div>
-          <h1
-            style={{
-              fontSize: "clamp(44px,6.5vw,92px)",
-              fontWeight: 600,
-              lineHeight: 0.97,
-              letterSpacing: "-0.04em",
-              margin: "0 0 24px",
-            }}
-          >
+          <H1 style={{ margin: "0 0 24px" }}>
             Will the STR cash flow in the off-season?
-          </h1>
-          <p
+          </H1>
+          <Lead
             style={{
-              fontSize: "clamp(17px,1.5vw,22px)",
-              fontWeight: 500,
-              lineHeight: 1.5,
-              letterSpacing: "-0.02em",
               color: "rgba(238,239,211,0.7)",
               maxWidth: "48ch",
               margin: "0 0 36px",
@@ -443,25 +431,8 @@ export default function STRUnderwritingPage({
             Month-by-month revenue modeled across three underwriting worlds — LTR
             lease, STR projected, STR documented — against a 12-month seasonality
             curve. See the DSCR a lender will actually qualify.
-          </p>
-          <a
-            href="#str-tool"
-            onClick={scrollToTool}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.lemon,
-              color: dc.dark,
-              fontWeight: 600,
-              fontSize: 16,
-              textDecoration: "none",
-              padding: "15px 30px",
-              borderRadius: 6,
-            }}
-          >
-            Open the STR engine ↓
-          </a>
+          </Lead>
+          <Btn label="Open the STR engine" href="#str-tool" onClick={scrollToTool} />
         </div>
       </section>
 

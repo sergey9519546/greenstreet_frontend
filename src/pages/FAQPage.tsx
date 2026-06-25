@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 const AS_OF = "Jun 22, 2026";
 
@@ -140,31 +140,12 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
           >
             Frequently asked
           </div>
-          <h1
-            style={{
-              fontSize: "clamp(48px,7.5vw,116px)",
-              fontWeight: 600,
-              lineHeight: 0.93,
-              letterSpacing: "-0.04em",
-              margin: "0 0 24px",
-              maxWidth: "16ch",
-            }}
-          >
+          <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
             Questions, answered straight.
-          </h1>
-          <p
-            style={{
-              fontSize: "clamp(17px,1.5vw,22px)",
-              fontWeight: 500,
-              lineHeight: 1.5,
-              letterSpacing: "-0.02em",
-              color: "rgba(238,239,211,0.7)",
-              maxWidth: "50ch",
-              margin: 0,
-            }}
-          >
+          </H1>
+          <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "50ch", margin: 0 }}>
             Every question that matters about qualifying, structuring, and closing a DSCR investment property loan — answered precisely, with sources. Last reviewed {AS_OF}.
-          </p>
+          </Lead>
         </div>
       </section>
 

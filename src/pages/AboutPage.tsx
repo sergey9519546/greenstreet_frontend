@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { DcShell, dc } from "../design/dc";
+import { DcShell, dc, H1, Lead } from "../design/dc";
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
@@ -101,26 +101,13 @@ export default function AboutPage({
           </div>
 
           {/* H1 */}
-          <h1
-            style={{
-              fontSize: "clamp(34px,4.6vw,68px)",
-              fontWeight: 600,
-              lineHeight: 1.04,
-              letterSpacing: "-0.035em",
-              margin: "0 0 28px",
-              maxWidth: "24ch",
-            }}
-          >
+          <H1 style={{ margin: "0 0 28px", maxWidth: "24ch" }}>
             We got tired of watching good deals die in spreadsheets.
-          </h1>
+          </H1>
 
           {/* Subtitle */}
-          <p
+          <Lead
             style={{
-              fontSize: "clamp(18px,1.6vw,24px)",
-              fontWeight: 500,
-              lineHeight: 1.45,
-              letterSpacing: "-0.02em",
               color: "rgba(0,55,56,0.72)",
               maxWidth: "54ch",
               margin: "0 0 36px",
@@ -129,7 +116,7 @@ export default function AboutPage({
             Greenstreet was founded by a broker and a quant who set out to build
             DSCR software so good that pricing a rental loan any other way would
             feel like negligence.
-          </p>
+          </Lead>
 
           {/* 2-track differentiator badge */}
           <div

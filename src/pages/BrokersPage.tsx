@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
 // ── Use-case rows — numbered vertical list (signature section) ────────────────
 interface UseCase {
@@ -128,27 +128,15 @@ export default function BrokersPage({
             >
               For Brokers
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(40px,5.6vw,84px)",
-                fontWeight: 600,
-                lineHeight: 0.97,
-                letterSpacing: "-0.04em",
-                margin: 0,
-              }}
-            >
+            <H1 style={{ margin: 0 }}>
               Quote with
               <br />
               confidence.
               <br />
               Close faster.
-            </h1>
-            <p
+            </H1>
+            <Lead
               style={{
-                fontSize: "clamp(18px,1.6vw,24px)",
-                fontWeight: 500,
-                lineHeight: 1.4,
-                letterSpacing: "-0.025em",
                 color: "rgba(238,239,211,0.72)",
                 margin: 0,
                 maxWidth: "38ch",
@@ -157,27 +145,11 @@ export default function BrokersPage({
               Non-QM wholesale for mortgage professionals who are tired of
               chasing lender portals. Price, match and stress-test a DSCR deal
               in under a minute — then walk into the call knowing the answer.
-            </p>
-            <button
+            </Lead>
+            <Btn
+              label="Open the calculator"
               onClick={() => onNavigate("dscr-calculator")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: dc.lemon,
-                color: dc.dark,
-                fontWeight: 600,
-                fontSize: 16,
-                border: "none",
-                cursor: "pointer",
-                padding: "15px 30px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Open the calculator →
-            </button>
+            />
           </div>
 
           {/* Right column — Greenstreet DSCR programs panel */}

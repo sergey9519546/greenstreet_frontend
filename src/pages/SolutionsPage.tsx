@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 // ── Audience segments — data from Solutions.dc.html renderVals() ───────────────
 // Each segment has alternating content/visual order: even indices content-left,
@@ -408,32 +408,19 @@ export default function SolutionsPage({
             >
               Who we serve
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(44px,6.4vw,100px)",
-                fontWeight: 600,
-                lineHeight: 0.95,
-                letterSpacing: "-0.04em",
-                margin: 0,
-                maxWidth: "15ch",
-              }}
-            >
+            <H1 style={{ margin: 0, maxWidth: "15ch" }}>
               Built for everyone in the deal
-            </h1>
+            </H1>
           </div>
-          <p
+          <Lead
             style={{
-              fontSize: "clamp(19px,1.9vw,28px)",
-              fontWeight: 500,
-              lineHeight: 1.35,
-              letterSpacing: "-0.025em",
               color: "rgba(238,239,211,0.72)",
               maxWidth: "40ch",
               margin: 0,
             }}
           >
             Brokers, investors, funds and lenders all work off the same provenance-tracked math.
-          </p>
+          </Lead>
         </div>
       </section>
 

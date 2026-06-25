@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { DcShell, dc, Mono, useRevealOnView } from "../design/dc";
+import { DcShell, dc, Mono, useRevealOnView, H1, Lead, Btn } from "../design/dc";
 import { analyzePortfolio } from "../engine/portfolio";
 import { buildEngineInputs } from "../engine/inputs";
 
@@ -240,27 +240,19 @@ export default function PortfolioPage({
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 22 }}>
               Portfolio &middot; Blanket &middot; Multi-property
             </div>
-            <h1 style={{ fontSize: "clamp(48px,7.5vw,116px)", fontWeight: 600, lineHeight: 0.93, letterSpacing: "-0.04em", margin: "0 0 28px" }}>
+            <H1 style={{ margin: "0 0 28px" }}>
               Underwrite the whole portfolio at once.
-            </h1>
-            <p style={{ fontSize: "clamp(17px,1.5vw,22px)", fontWeight: 500, lineHeight: 1.5, letterSpacing: "-0.02em", color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
+            </H1>
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
               Blended DSCR, aggregate equity, weighted rate and total monthly cash flow across every door.
-            </p>
+            </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a
-                href="#pf-tool"
-                onClick={scrollToTool}
-                style={{ display: "inline-flex", alignItems: "center", gap: 9, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 16, textDecoration: "none", padding: "15px 30px", borderRadius: 6 }}
-              >
-                Open the portfolio builder ↓
-              </a>
-              <a
-                href="#"
+              <Btn label="Open the portfolio builder" href="#pf-tool" onClick={scrollToTool} />
+              <Btn
+                label="DSCR calculator"
+                variant="secondary"
                 onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
-                style={{ display: "inline-flex", alignItems: "center", gap: 9, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 16, textDecoration: "none", padding: "15px 26px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.3)" }}
-              >
-                DSCR calculator
-              </a>
+              />
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
+import QualifyWidget from "./components/QualifyWidget";
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -332,6 +333,8 @@ export default function App() {
       <Suspense fallback={<PageLoader />}>
         <div className="font-sans antialiased text-slate-800">
           <PageRenderer />
+          {/* QualifyWidget overlays every view — modal + sticky pill */}
+          <QualifyWidget />
         </div>
       </Suspense>
     </ErrorBoundary>

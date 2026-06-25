@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 // ── Six borrower archetypes (preserved from existing page + mockup data) ──────
 interface Profile {
@@ -424,24 +424,11 @@ export default function BorrowerProfilesPage({
           >
             Who we serve / Borrower archetypes
           </div>
-          <h1
-            style={{
-              fontSize: "clamp(46px,6.4vw,92px)",
-              fontWeight: 600,
-              lineHeight: 0.97,
-              letterSpacing: "-0.035em",
-              margin: "0 0 24px",
-              maxWidth: "16ch",
-            }}
-          >
+          <H1 style={{ margin: "0 0 24px", maxWidth: "16ch" }}>
             Six borrowers. One engine that fits them all.
-          </h1>
-          <p
+          </H1>
+          <Lead
             style={{
-              fontSize: "clamp(18px,1.6vw,23px)",
-              fontWeight: 500,
-              lineHeight: 1.45,
-              letterSpacing: "-0.02em",
               color: "rgba(0,55,56,0.65)",
               maxWidth: "54ch",
               margin: 0,
@@ -450,7 +437,7 @@ export default function BorrowerProfilesPage({
             From the first-timer to the foreign national to the 40-door
             portfolio operator — hover any card to see the program and terms
             that match.
-          </p>
+          </Lead>
         </div>
       </section>
 

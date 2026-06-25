@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 // ── Five myths — the centrepiece educational content ──────────────────────────
 // Each myth gets a bps-specific rebuttal. Do not dilute or reorder.
@@ -196,27 +196,15 @@ export default function InvestorsPage({
             >
               For Investors
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 24px",
-              }}
-            >
+            <H1 style={{ margin: "0 0 24px" }}>
               Underwrite
               <br />
               like an
               <br />
               institution.
-            </h1>
-            <p
+            </H1>
+            <Lead
               style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
                 color: "rgba(238,239,211,0.7)",
                 maxWidth: "46ch",
                 margin: "0 0 36px",
@@ -225,7 +213,7 @@ export default function InvestorsPage({
               Know if the deal works before you spend a dollar on appraisal.
               After-tax IRR, stress matrix, and dual-track DSCR — the analysis a
               fund desk runs, on every one of your deals.
-            </p>
+            </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <PrimaryBtn onClick={() => onNavigate("returns")}>
                 Open Returns &amp; IRR →

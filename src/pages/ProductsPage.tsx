@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -412,26 +412,14 @@ export default function ProductsPage({
             >
               Product
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(46px, 7vw, 108px)",
-                fontWeight: 600,
-                lineHeight: 0.95,
-                letterSpacing: "-0.04em",
-                margin: 0,
-              }}
-            >
+            <H1 style={{ margin: 0 }}>
               The DSCR Engine
-            </h1>
+            </H1>
           </div>
 
           {/* Sub — separate child so hero stagger steps to it after the h1 */}
-          <p
+          <Lead
             style={{
-              fontSize: "clamp(19px, 1.9vw, 28px)",
-              fontWeight: 500,
-              lineHeight: 1.35,
-              letterSpacing: "-0.025em",
               color: "rgba(238,239,211,0.72)",
               maxWidth: "38ch",
               margin: 0,
@@ -439,7 +427,7 @@ export default function ProductsPage({
           >
             Deterministic underwriting and thoughtful automation to price every
             rental loan with confidence.
-          </p>
+          </Lead>
         </div>
       </section>
 

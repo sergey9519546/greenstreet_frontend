@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
 interface Props {
   onBack?: () => void;
@@ -209,74 +209,25 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             >
               Deal Analyzer &middot; Full underwrite &middot; Seven inputs
             </div>
-            <h1
-              style={{
-                fontSize: "clamp(48px,7.5vw,116px)",
-                fontWeight: 600,
-                lineHeight: 0.93,
-                letterSpacing: "-0.04em",
-                margin: "0 0 28px",
-              }}
-            >
+            <H1 style={{ margin: "0 0 28px" }}>
               Plug in 7 numbers.
               <br />
               Get the verdict.
-            </h1>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
-                fontWeight: 500,
-                lineHeight: 1.5,
-                letterSpacing: "-0.02em",
-                color: "rgba(238,239,211,0.7)",
-                maxWidth: "46ch",
-                margin: "0 0 36px",
-              }}
-            >
+            </H1>
+            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
               DSCR, cash flow, cap rate, debt yield, state PPP rule and your
               live Greenstreet program shortlist &mdash; from one screen.
-            </p>
+            </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a
-                href="#da-tool"
-                onClick={scrollToTool}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: dc.lemon,
-                  color: dc.dark,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 30px",
-                  borderRadius: 6,
-                }}
-              >
-                Run the analyzer ↓
-              </a>
-              <a
-                href="#"
+              <Btn label="Run the analyzer" href="#da-tool" onClick={scrollToTool} />
+              <Btn
+                label="State rules"
+                variant="secondary"
                 onClick={(e) => {
                   e.preventDefault();
                   onNavigate?.("state-laws");
                 }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 9,
-                  background: "transparent",
-                  color: dc.cream,
-                  fontWeight: 600,
-                  fontSize: 16,
-                  textDecoration: "none",
-                  padding: "15px 26px",
-                  borderRadius: 6,
-                  border: "1px solid rgba(238,239,211,0.3)",
-                }}
-              >
-                State rules
-              </a>
+              />
             </div>
           </div>
 
