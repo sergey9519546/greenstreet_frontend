@@ -59,22 +59,39 @@ const NAV_DD_CSS = `
 .gs-dd-panel{position:absolute;top:calc(100% + 12px);left:0;min-width:240px;background:${PISTACHIO};border:1px solid ${FADED};border-radius:12px;padding:8px;display:flex;flex-direction:column;z-index:60;}
 .gs-dd-panel.is-mega{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;min-width:430px;}
 .gs-dd-panel::before{content:"";position:absolute;top:-12px;left:0;right:0;height:12px;}
-.gs-dd-item{display:block;padding:10px 13px;border-radius:8px;color:${MIDNIGHT};font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .14s,box-shadow .14s;}
+.gs-dd-item{display:block;padding:10px 13px;border-radius:8px;color:${MIDNIGHT};font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background-color .2s ease,box-shadow .2s ease;}
 .gs-dd-item:hover,.gs-dd-item:focus-visible{background:${MINT_BG};outline:none;}
 .gs-dd-item.is-active{background:${MINT_BG};box-shadow:inset 3px 0 0 ${LEMON};}
 .gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:none;border:none;font-family:inherit;position:relative;}
-.gs-dd-caret{transition:transform .18s;}
+.gs-dd-caret{transition:transform .18s ease;}
 .gs-dd-wrap.is-open .gs-dd-caret{transform:rotate(180deg);}
 .nav-link.is-current{position:relative;}
 .gs-dd-toggle.is-active::after,.nav-link.is-current::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:${LEMON};}
 .gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
+/* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
+   opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
+   nav-link must be the positioned containing block so the pill anchors to it. */
+.gs-site-nav .nav-link{position:relative;}
+.gs-site-nav .nav-link .nav_links_text,.gs-site-nav .nav-link .gs-dd-caret{position:relative;z-index:2;}
+.gs-site-nav .nav-link:hover .nav-link-background,
+.gs-site-nav .nav-link:focus-visible .nav-link-background{opacity:1;}
+.gs-site-nav .nav-btn{transition:filter .2s ease,transform .1s ease;}
+.gs-site-nav .nav-btn:hover{filter:brightness(1.08);}
+.gs-site-nav .nav-btn:active{transform:translateY(1px);}
 `;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const mobileRef = useRef<HTMLDivElement | null>(null);
+  const closeTimer = useRef<number | null>(null);
   const path = typeof window !== "undefined" ? (window.location.pathname.replace(/\/$/, "") || "/") : "/";
+
+  // Match Webflow's W.Dropdown 400ms hover-out delay (data-delay="400") so the
+  // panel doesn't snap shut when the cursor crosses the gap to it.
+  const openNow = (label: string) => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; } setOpenMenu(label); };
+  const scheduleClose = (label: string) => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = window.setTimeout(() => setOpenMenu((cur) => (cur === label ? null : cur)), 400); };
 
   const closeAll = () => { setMenuOpen(false); setOpenMenu(null); };
   const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); closeAll(); };
@@ -96,9 +113,18 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     if (!openMenu || !panelRef.current) return;
     const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
-    gsap.fromTo(panelRef.current, { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22, ease: "power2.out" });
-    gsap.fromTo(panelRef.current.querySelectorAll(".gs-dd-item"), { y: -4, opacity: 0 }, { y: 0, opacity: 1, duration: 0.2, stagger: 0.025, ease: "power2.out", delay: 0.03, clearProps: "all" });
+    gsap.fromTo(panelRef.current, { y: -8, opacity: 0, transformOrigin: "top center" }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" });
+    gsap.fromTo(panelRef.current.querySelectorAll(".gs-dd-item"), { y: -6, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, stagger: 0.035, ease: "power2.out", delay: 0.04, clearProps: "all" });
   }, [openMenu]);
+
+  // GSAP: mobile menu open (slide+fade, then staggered links). Reduced-motion safe.
+  useEffect(() => {
+    if (!menuOpen || !mobileRef.current) return;
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    gsap.fromTo(mobileRef.current, { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" });
+    gsap.fromTo(mobileRef.current.children, { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.26, stagger: 0.03, ease: "power2.out", delay: 0.05, clearProps: "all" });
+  }, [menuOpen]);
 
   const caret = (
     <svg className="gs-dd-caret" width="11" height="11" viewBox="0 0 12 8" fill="none" aria-hidden="true">
@@ -110,8 +136,8 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     <div
       key={m.label}
       className={`gs-dd-wrap${openMenu === m.label ? " is-open" : ""}`}
-      onMouseEnter={() => setOpenMenu(m.label)}
-      onMouseLeave={() => setOpenMenu((cur) => (cur === m.label ? null : cur))}
+      onMouseEnter={() => openNow(m.label)}
+      onMouseLeave={() => scheduleClose(m.label)}
     >
       <a
         className={`nav-link gs-dd-toggle w-inline-block${menuActive(m) ? " is-active" : ""}`}
@@ -119,8 +145,9 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         aria-haspopup="true"
         aria-expanded={openMenu === m.label}
         onClick={go(m.view)}
-        onFocus={() => setOpenMenu(m.label)}
+        onFocus={() => openNow(m.label)}
       >
+        <div className="nav-link-background" aria-hidden="true" />
         <div className="nav_links_text">{m.label}</div>
         {caret}
       </a>
@@ -149,14 +176,15 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           <div className="nav-links-contain" hide-t="">
             <div className="nav-links-wrap">
               <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")}>
+                <div className="nav-link-background" aria-hidden="true" />
                 <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>{INVESTGO_LABEL}</div>
               </a>
 
               {renderMenu(NAV_MENUS[0])}
               {renderMenu(NAV_MENUS[1])}
-              <a className={`nav-link w-inline-block${path === "/partners" || path === "/partnerships" ? " is-current" : ""}`} href="/partnerships" onClick={go("brokers-partner")}><div className="nav_links_text">Partnerships</div></a>
+              <a className={`nav-link w-inline-block${path === "/partners" || path === "/partnerships" ? " is-current" : ""}`} href="/partnerships" onClick={go("brokers-partner")}><div className="nav-link-background" aria-hidden="true" /><div className="nav_links_text">Partnerships</div></a>
               {renderMenu(NAV_MENUS[2])}
-              <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div>Login</div></a>
+              <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div className="nav-link-background" aria-hidden="true" /><div>Login</div></a>
               {/* Solid, always-visible CTA (matches the home nav button). */}
               <a className="nav-btn" href="/book-demo" onClick={go("book-demo")}
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, background: MIDNIGHT, color: PISTACHIO, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "12px 22px", borderRadius: 8, whiteSpace: "nowrap" }}>
@@ -175,7 +203,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         </div>
       </div>
       {menuOpen && (
-        <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "6px", zIndex: 49, maxHeight: "80vh", overflowY: "auto" }}>
+        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "6px", zIndex: 49, maxHeight: "80vh", overflowY: "auto" }}>
           <a href="/investgo" className="nav-link" onClick={go("portal")} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>
