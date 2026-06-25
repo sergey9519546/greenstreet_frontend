@@ -55,7 +55,8 @@ export async function verifyFirebaseToken(
       };
     } else {
       // In local development where admin SDK is not fully credentialed, fallback to mock user
-      logger.info({ token: token.slice(0, 10) + "..." }, "Bypassing token verification in development fallback");
+      // NOTE: never log any portion of the token — even partial JWTs can leak header/payload info
+      logger.info("Bypassing token verification in development fallback");
       req.user = {
         uid: "dev-user-id",
         email: "dev-user@greenstreet.dev",

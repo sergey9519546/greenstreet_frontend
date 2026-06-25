@@ -17,13 +17,24 @@ const isDev = process.env.NODE_ENV !== 'production';
 export const logger = pino(
   {
     level: process.env.LOG_LEVEL || 'info',
-    // Redact secrets from log output — never log API keys or auth tokens
+    // Redact secrets and PII from log output — never log API keys, auth tokens, or personal data
     redact: {
       paths: [
+        // Auth / secrets
         'req.headers.authorization',
         'req.headers["x-api-key"]',
         'body.apiKey',
         'body.token',
+        // PII — lead form fields and user profile data
+        'body.email',
+        'body.name',
+        'body.phone',
+        'body.firstName',
+        'body.lastName',
+        'email',
+        'user.email',
+        // Partial tokens logged by auth middleware
+        'token',
       ],
       censor: '[REDACTED]',
     },

@@ -23,7 +23,10 @@ app.use(
   })
 );
 
-app.use(express.json());
+// Hard cap on request body size — prevents memory/cost abuse from large payloads
+app.use(express.json({ limit: "100kb" }));
+// Explicitly remove the X-Powered-By header so the runtime stack is not disclosed
+app.disable("x-powered-by");
 app.use(verifyFirebaseToken);
 
 // ── Request Logging ──────────────────────────────────────────────────────────
@@ -43,6 +46,14 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  // Prevent browsers from doing MIME-type sniffing for DNS prefetch
+  res.setHeader("X-DNS-Prefetch-Control", "off");
+  // Enforce HTTPS in production (1 year, include subdomains)
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+  // Disable powerful features not used by this API
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   next();
 });
 
