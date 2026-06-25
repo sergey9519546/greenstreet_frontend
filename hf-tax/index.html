@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #d8d958; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #003738; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      #stage { position: absolute; inset: 0; }
+
+      /* Subtle dot grid — dark ink on lemon */
+      .dotgrid { position: absolute; inset: 0; background-image: radial-gradient(rgba(0,55,56,0.07) 2px, transparent 2px); background-size: 46px 46px; }
+
+      /* Wordmark */
+      #wordmark { position: absolute; left: 160px; top: 90px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #003738; opacity: 0; }
+
+      /* Scene A — Title */
+      #sceneA { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+      #titleLine1 { font-size: 112px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.0; color: #003738; opacity: 0; }
+      #titleLine2 { font-size: 112px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.0; color: rgba(0,55,56,0.45); opacity: 0; margin-top: 8px; }
+
+      /* Scene B — Dark-teal result card */
+      #sceneB { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0; }
+      #card { background: #004041; border-radius: 28px; padding: 56px 72px 64px; width: 900px; }
+      #cardLabel { font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #d8d958; margin-bottom: 48px; opacity: 0; }
+
+      .row { display: flex; justify-content: space-between; align-items: baseline; padding: 18px 0; border-bottom: 1px solid rgba(238,239,211,0.1); opacity: 0; }
+      .row-key { font-size: 24px; font-weight: 500; color: rgba(238,239,211,0.65); }
+      .row-val { font-family: "JetBrains Mono", monospace; font-size: 28px; font-weight: 700; }
+
+      /* Big IRR counter lives inside card, below rows */
+      #irrWrap { margin-top: 44px; display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0; }
+      #irrSublabel { font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #d8d958; }
+      #irrNum { font-family: "JetBrains Mono", monospace; font-size: 160px; font-weight: 700; letter-spacing: -0.05em; line-height: 0.85; color: #4dbd97; }
+
+      /* Scene C — Comparison bars */
+      #sceneC { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 48px; opacity: 0; }
+      #barsLabel { font-size: 28px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(0,55,56,0.55); }
+      #barsWrap { display: flex; flex-direction: column; gap: 28px; width: 780px; }
+      .bar-row { display: flex; align-items: center; gap: 28px; }
+      .bar-name { font-size: 22px; font-weight: 600; color: #003738; width: 160px; text-align: right; }
+      .bar-track { flex: 1; height: 26px; border-radius: 13px; background: rgba(0,55,56,0.12); overflow: hidden; }
+      .bar-fill { height: 100%; border-radius: 13px; width: 0%; display: block; }
+      #barPreFill { background: #003738; }
+      #barAfterFill { background: #4dbd97; }
+      .bar-pct { font-family: "JetBrains Mono", monospace; font-size: 24px; font-weight: 700; color: #003738; width: 80px; }
+      #barPreRow { opacity: 0; }
+      #barAfterRow { opacity: 0; }
+
+      /* Drag callout */
+      #dragChip { display: inline-flex; align-items: center; gap: 12px; background: #d23f3f; color: #fff; font-size: 22px; font-weight: 700; padding: 14px 30px; border-radius: 40px; opacity: 0; }
+
+      /* Scene D — End card */
+      #sceneD { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; opacity: 0; background: #d8d958; }
+      #endAccent { width: 100px; height: 6px; background: #003738; border-radius: 3px; opacity: 0; }
+      #endH { font-size: 96px; font-weight: 600; letter-spacing: -0.04em; line-height: 0.97; text-align: center; color: #003738; max-width: 20ch; opacity: 0; }
+      #endSub { font-size: 38px; font-weight: 500; color: rgba(0,55,56,0.55); opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="9" data-width="1920" data-height="1080"
+         style="position: relative; width: 1920px; height: 1080px; overflow: hidden;">
+
+      <div id="stage" class="clip" data-start="0" data-duration="9" data-track-index="1">
+        <div class="dotgrid"></div>
+        <div id="wordmark">Greenstreet</div>
+
+        <!-- A: Title -->
+        <div id="sceneA">
+          <div id="titleLine1">What does it really earn</div>
+          <div id="titleLine2">after taxes?</div>
+        </div>
+
+        <!-- B: Dark-teal result card -->
+        <div id="sceneB">
+          <div id="card">
+            <div id="cardLabel">Tax Engine &middot; After-Tax IRR</div>
+
+            <div class="row" id="rowDep">
+              <span class="row-key">Depreciation shield</span>
+              <span class="row-val" style="color:#4dbd97">+$12,364 / yr</span>
+            </div>
+            <div class="row" id="rowPre">
+              <span class="row-key">Pre-tax IRR</span>
+              <span class="row-val" style="color:#eeefd3">11.0%</span>
+            </div>
+            <div class="row" id="rowDrag">
+              <span class="row-key">Tax drag</span>
+              <span class="row-val" style="color:#d23f3f">&minus;2.4 pts</span>
+            </div>
+
+            <div id="irrWrap">
+              <div id="irrSublabel">After-Tax IRR</div>
+              <div id="irrNum" class="mono">0.0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- C: Comparison bars -->
+        <div id="sceneC">
+          <div id="barsLabel">Pre-tax vs After-tax</div>
+          <div id="barsWrap">
+            <div class="bar-row" id="barPreRow">
+              <span class="bar-name">Pre-tax</span>
+              <div class="bar-track"><span class="bar-fill" id="barPreFill"></span></div>
+              <span class="bar-pct">11.0%</span>
+            </div>
+            <div class="bar-row" id="barAfterRow">
+              <span class="bar-name">After-tax</span>
+              <div class="bar-track"><span class="bar-fill" id="barAfterFill"></span></div>
+              <span class="bar-pct" style="color:#4dbd97">8.6%</span>
+            </div>
+          </div>
+          <div id="dragChip">Tax drag: &minus;2.4 pts</div>
+        </div>
+
+        <!-- D: End card -->
+        <div id="sceneD">
+          <div id="endAccent"></div>
+          <div id="endH">After-tax, done right.</div>
+          <div id="endSub">&mdash; Greenstreet</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ── initial states ── */
+      gsap.set("#wordmark",    { opacity: 0 });
+      gsap.set("#titleLine1",  { opacity: 0, y: 30 });
+      gsap.set("#titleLine2",  { opacity: 0, y: 30 });
+      gsap.set("#sceneB",      { opacity: 0 });
+      gsap.set("#card",        { y: 60, scale: 0.92 });
+      gsap.set("#cardLabel",   { opacity: 0, y: 16 });
+      gsap.set(".row",         { opacity: 0, x: -24 });
+      gsap.set("#irrWrap",     { opacity: 0, scale: 0.85 });
+      gsap.set("#sceneC",      { opacity: 0 });
+      gsap.set("#barPreRow",   { opacity: 0 });
+      gsap.set("#barAfterRow", { opacity: 0 });
+      gsap.set("#dragChip",    { opacity: 0, y: 20 });
+      gsap.set("#sceneD",      { opacity: 0 });
+      gsap.set("#endAccent",   { opacity: 0, scaleX: 0 });
+      gsap.set("#endH",        { opacity: 0, y: 40 });
+      gsap.set("#endSub",      { opacity: 0, y: 24 });
+
+      /* ── Scene A: Title (0 → 2.1s) ── */
+      tl.to("#wordmark",   { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.15);
+      tl.to("#titleLine1", { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" }, 0.25);
+      tl.to("#titleLine2", { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" }, 0.55);
+
+      /* fade A out */
+      tl.to("#sceneA",   { opacity: 0, duration: 0.45, ease: "power2.in" }, 1.95);
+      tl.to("#wordmark", { opacity: 0, duration: 0.3,  ease: "power2.in" }, 1.95);
+
+      /* ── Scene B: Card slides in (2.2 → 5.8s) ── */
+      tl.to("#sceneB",    { opacity: 1, duration: 0.35, ease: "power2.out" }, 2.15);
+      tl.to("#card",      { y: 0, scale: 1, duration: 0.75, ease: "back.out(1.4)" }, 2.2);
+      tl.to("#cardLabel", { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.5);
+
+      /* Rows stagger in */
+      tl.to("#rowDep",  { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 2.85);
+      tl.to("#rowPre",  { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 3.15);
+      tl.to("#rowDrag", { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 3.45);
+
+      /* Big IRR number counts up */
+      tl.to("#irrWrap", { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.5)" }, 3.9);
+
+      /* IRR count-up from 0 to 8.6 */
+      var irrObj = { val: 0 };
+      tl.to(irrObj, {
+        val: 8.6,
+        duration: 0.9,
+        ease: "power2.out",
+        onUpdate: function () {
+          var el = document.getElementById("irrNum");
+          if (el) el.textContent = irrObj.val.toFixed(1) + "%";
+        }
+      }, 3.95);
+
+      /* fade B out */
+      tl.to("#sceneB", { opacity: 0, duration: 0.45, ease: "power2.in" }, 5.7);
+
+      /* ── Scene C: Comparison bars (5.9 → 8.0s) ── */
+      tl.to("#sceneC",      { opacity: 1, duration: 0.4, ease: "power2.out" }, 5.85);
+      tl.to("#barPreRow",   { opacity: 1, duration: 0.4, ease: "power2.out" }, 6.0);
+      tl.to("#barPreFill",  { width: "80%",    duration: 0.8, ease: "power2.out" }, 6.05);
+      tl.to("#barAfterRow", { opacity: 1, duration: 0.4, ease: "power2.out" }, 6.4);
+      tl.to("#barAfterFill",{ width: "62.5%",  duration: 0.8, ease: "power2.out" }, 6.45);
+      tl.to("#dragChip",    { opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.4)" }, 7.0);
+
+      /* fade C out */
+      tl.to("#sceneC", { opacity: 0, duration: 0.45, ease: "power2.in" }, 7.7);
+
+      /* ── Scene D: End card (7.9 → 9s) ── */
+      tl.to("#sceneD",    { opacity: 1, duration: 0.5, ease: "power2.out" }, 7.85);
+      tl.to("#endAccent", { opacity: 1, scaleX: 1, duration: 0.5, ease: "power3.out", transformOrigin: "left center" }, 7.95);
+      tl.to("#endH",      { opacity: 1, y: 0, duration: 0.65, ease: "power3.out" }, 8.1);
+      tl.to("#endSub",    { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 8.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
