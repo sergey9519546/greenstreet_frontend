@@ -334,8 +334,10 @@ export default function PortfolioPage({
             </div>
             <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
               Blended DSCR{" "}
-              <Mono style={{ color: blendColor }}>{blendStr}</Mono>
-              {" "}across {rows.length} door{rows.length !== 1 ? "s" : ""}
+              <Mono style={{ color: rows.length === 0 ? "rgba(238,239,211,0.3)" : blendColor }}>
+                {rows.length === 0 ? "—" : blendStr}
+              </Mono>
+              {rows.length > 0 && <>{" "}across {rows.length} door{rows.length !== 1 ? "s" : ""}</>}
             </h2>
           </div>
 
@@ -345,7 +347,7 @@ export default function PortfolioPage({
             style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "1px", background: "rgba(238,239,211,0.12)", borderRadius: 9, overflow: "hidden", marginBottom: 28 }}
           >
             {[
-              { label: "Blended DSCR",      val: blendStr,  color: blendColor },
+              { label: "Blended DSCR",      val: rows.length === 0 ? "—" : blendStr,  color: rows.length === 0 ? "rgba(238,239,211,0.3)" : blendColor },
               { label: "Total Equity",       val: equityStr, color: dc.cream },
               { label: "Monthly Cash Flow",  val: cashStr,   color: cashColor },
               { label: "Weighted Rate",      val: wRateStr,  color: dc.cream },
@@ -374,6 +376,13 @@ export default function PortfolioPage({
                   </tr>
                 </thead>
                 <tbody>
+                  {computed.length === 0 && (
+                    <tr>
+                      <td colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(0,55,56,0.4)", fontSize: 14, fontWeight: 500 }}>
+                        No properties yet — add one to see your blended DSCR.
+                      </td>
+                    </tr>
+                  )}
                   {computed.map((c) => {
                     const dc2 = c.dscr >= 1.25 ? "#006565" : c.dscr >= 1.0 ? "#9a7b00" : RED;
                     const cc  = c.cf >= 0 ? "#006565" : RED;

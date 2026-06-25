@@ -133,7 +133,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
           </p>
           <div style={{ display: "flex", gap: "clamp(20px,4vw,44px)", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
-              <div><Mono data-count={50} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>0</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states mapped</div></div>
+              <div><Mono data-count={50} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>50</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states mapped</div></div>
               <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#ff6b6b", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
               <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
             </div>

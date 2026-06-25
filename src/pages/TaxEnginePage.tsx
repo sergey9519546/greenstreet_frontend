@@ -16,7 +16,7 @@ export default function TaxEnginePage({
   // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
   const [landPct, setLandPct] = useState(20);
-  const [monthlyRent, setMonthlyRent] = useState(3000);
+  const [monthlyRent, setMonthlyRent] = useState(3800);
   const [annualTaxes, setAnnualTaxes] = useState(5000);
   const [annualInsurance, setAnnualInsurance] = useState(2000);
   const [hoa, setHoa] = useState(0);
@@ -33,7 +33,7 @@ export default function TaxEnginePage({
   // ── Engine ──
   const result = useMemo(() => {
     try {
-      const loanAmount = purchasePrice * (1 - ltv / 100);
+      const loanAmount = purchasePrice * (ltv / 100);
       const piMonthly = calculatePI(loanAmount, rate, 360);
       const ads = piMonthly * 12;
       const annualNOI =
@@ -95,12 +95,19 @@ export default function TaxEnginePage({
   const preTaxIRR = result?.preTaxIRR ?? 0;
   const drag = result?.irrImpactOfTaxes ?? 0;
 
-  const afterTaxStr = afterTaxIRR.toFixed(1) + "%";
-  const preTaxStr = preTaxIRR.toFixed(1) + "%";
-  const dragStr = drag.toFixed(1) + " pts";
+  // Guard display: show "—" when result is null or IRR is exactly 0 (no confident value).
+  const hasResult = result !== null && afterTaxIRR !== 0;
+
+  // Engine returns IRR/drag as decimal fractions (e.g. 0.107 = 10.7%); scale to %.
+  const afterTaxStr = hasResult ? (afterTaxIRR * 100).toFixed(1) + "%" : "—";
+  const preTaxStr   = hasResult ? (preTaxIRR * 100).toFixed(1) + "%" : "—";
+  const dragStr     = hasResult ? (drag * 100).toFixed(1) + " pts" : "—";
 
   const irrColor =
-    afterTaxIRR >= 10 ? dc.emerald : afterTaxIRR >= 6 ? dc.lemon : "#ff6b6b";
+    !hasResult ? "rgba(238,239,211,0.3)"
+    : afterTaxIRR >= 0.1 ? dc.emerald
+    : afterTaxIRR >= 0.06 ? dc.lemon
+    : "#ff6b6b";
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -271,7 +278,7 @@ export default function TaxEnginePage({
                 },
                 {
                   label: "Tax drag",
-                  val: drag > 0 ? "-" + Math.abs(drag).toFixed(1) + " pts" : drag.toFixed(1) + " pts",
+                  val: dragStr,
                   color: "#ff6b6b",
                 },
               ].map((r) => (

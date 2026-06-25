@@ -356,11 +356,11 @@ export default function STRUnderwritingPage({
         result.underwriting.world2_Projected.dscr,
         result.underwriting.world3_Documented.dscr,
       )
-    : 1.11;
+    : null;
 
-  const dscrStr = bestDSCR.toFixed(2) + "x";
-  const verdict = dscrLabel(bestDSCR);
-  const vColor = dscrColor(bestDSCR);
+  const dscrStr = bestDSCR !== null ? bestDSCR.toFixed(2) + "x" : "—";
+  const verdict = bestDSCR !== null ? dscrLabel(bestDSCR) : "—";
+  const vColor = bestDSCR !== null ? dscrColor(bestDSCR) : "rgba(0,55,56,0.35)";
 
   const grossAnnual = result
     ? result.underwriting.world2_Projected.qualifyingRent * 12 / 0.8

@@ -203,7 +203,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       const factors = [
         { label: "DSCR coverage (30%)", v: dscrScore, note: `${deal.dscr.toFixed(2)}x — ${deal.dscr >= 1.25 ? "comfortable" : deal.dscr >= 1.0 ? "qualifies" : "sub-1.0"}` },
         { label: "Leverage (18%)",      v: levScore,  note: `${100 - downPct}% LTV` },
-        { label: "Levered IRR (20%)",   v: irrScore,  note: `${(afterTaxIRR * 100).toFixed(1)}% projected` },
+        { label: "Est. 5-yr return proxy (20%)", v: irrScore,  note: `${(afterTaxIRR * 100).toFixed(1)}% (proxy, not true IRR)` },
         { label: "Borrower credit (14%)", v: ficoScore, note: `${fico} FICO` },
         { label: "Liquidity (10%)",     v: liqScore,  note: "6-month reserve proxy" },
       ].map((f) => ({ ...f, color: factorColor(f.v), valStr: Math.round(f.v) + "/100", pct: f.v + "%" }));

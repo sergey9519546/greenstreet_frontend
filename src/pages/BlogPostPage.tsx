@@ -2,6 +2,14 @@ import React, { useEffect } from "react";
 import { POSTS } from "./BlogPage";
 import { DcShell, dc, Mono } from "../design/dc";
 
+// ── Author registry ───────────────────────────────────────────────────────────
+const AUTHOR_META: Record<string, { initials: string; role: string }> = {
+  "Priya Rao":    { initials: "PR", role: "Cofounder & Head of Quant" },
+  "Sara López":   { initials: "SL", role: "Compliance & State Law" },
+  "Marcus Chen":  { initials: "MC", role: "Lending Programs" },
+  "Greenstreet":  { initials: "GS", role: "Greenstreet Finance" },
+};
+
 // ── Article-body prose styles (typography only; no shell/nav/glass) ───────────
 const ARTICLE_CSS = `
   .bp-body p{font-size:clamp(17px,1.35vw,20px);font-weight:500;line-height:1.7;color:rgba(0,55,56,0.78);margin:0 0 22px;letter-spacing:-0.01em;}
@@ -65,6 +73,9 @@ export default function BlogPostPage({
   const relatedPosts = POSTS.filter((x) => x.slug !== post.slug)
     .slice(0, 3)
     .map((r, i) => ({ ...r, ...RELATED_PALETTES[i % 3] }));
+
+  const authorName = (post as any).author ?? "Greenstreet";
+  const authorMeta = AUTHOR_META[authorName] ?? AUTHOR_META["Greenstreet"];
 
   return (
     <DcShell onNavigate={onNavigate} navLinks={navLinks} cta={cta}>
@@ -174,14 +185,14 @@ export default function BlogPostPage({
                 justifyContent: "center",
               }}
             >
-              <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.dark }}>PR</Mono>
+              <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.dark }}>{authorMeta.initials}</Mono>
             </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em", color: dc.cream }}>
-                Priya Rao
+                {authorName}
               </div>
               <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", letterSpacing: "-0.01em" }}>
-                Cofounder &amp; Head of Quant
+                {authorMeta.role}
               </div>
             </div>
 
