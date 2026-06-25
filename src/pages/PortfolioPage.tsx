@@ -158,7 +158,8 @@ export default function PortfolioPage({
       else if (c.dscr < 1.50) comfortable++;
       else                     safe++;
     }
-    return { dealBreak, fragile, marginal, comfortable, safe };
+    const max = Math.max(1, dealBreak, fragile, marginal, comfortable, safe);
+    return { dealBreak, fragile, marginal, comfortable, safe, max };
   }, [computed]);
 
   // ── Derived display values ────────────────────────────────────────────────
@@ -200,6 +201,12 @@ export default function PortfolioPage({
         .dc-nav{border-bottom:${PF_NAV_BORDER} !important;background:rgba(238,239,211,0.92) !important;backdrop-filter:blur(12px);}
         footer{color:rgba(0,55,56,0.55) !important;}
         footer div[style]{color:${dc.dark} !important;}
+        @media (prefers-reduced-motion: no-preference){
+          @keyframes pfBarGrow{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+          @keyframes pfBarWide{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+          .pf-hbar{transform-origin:bottom;animation:pfBarGrow .55s cubic-bezier(.16,1,.3,1) both;}
+          .pf-gbar{transform-origin:left;animation:pfBarWide .6s cubic-bezier(.16,1,.3,1) both;}
+        }
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -449,18 +456,32 @@ export default function PortfolioPage({
             {/* DSCR buckets */}
             <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>DSCR distribution</div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, alignItems: "end" }}>
                 {[
                   { label: "DEAL BREAK", range: "< 0.85", count: buckets.dealBreak, color: RED },
                   { label: "FRAGILE",    range: "0.85–1.0", count: buckets.fragile,   color: RED },
                   { label: "MARGINAL",   range: "1.0–1.25", count: buckets.marginal,  color: dc.lemon },
                   { label: "SOLID",      range: "1.25–1.5", count: buckets.comfortable, color: dc.emerald },
                   { label: "SAFE",       range: "≥ 1.5",   count: buckets.safe,       color: dc.emerald },
-                ].map((b) => (
-                  <div key={b.label} style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 4 }}>{b.label}</div>
-                    <Mono style={{ display: "block", fontSize: 28, fontWeight: 600, color: b.color, lineHeight: 1 }}>{b.count}</Mono>
-                    <div style={{ fontSize: 9, color: "rgba(238,239,211,0.4)", marginTop: 2 }}>{b.range}</div>
+                ].map((b, i) => (
+                  <div key={b.label} style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 6 }}>{b.label}</div>
+                    {/* histogram column — true distribution shape, grows on view */}
+                    <div style={{ height: 60, width: "100%", display: "flex", alignItems: "flex-end", justifyContent: "center", marginBottom: 6 }}>
+                      <div
+                        className="pf-hbar"
+                        style={{
+                          width: 24,
+                          height: `${Math.max(b.count > 0 ? 7 : 0, (b.count / buckets.max) * 100)}%`,
+                          background: b.color,
+                          opacity: b.count === 0 ? 0.18 : 1,
+                          borderRadius: "3px 3px 0 0",
+                          animationDelay: `${0.12 + i * 0.08}s`,
+                        }}
+                      />
+                    </div>
+                    <Mono style={{ display: "block", fontSize: 22, fontWeight: 600, color: b.color, lineHeight: 1 }}>{b.count}</Mono>
+                    <div style={{ fontSize: 9, color: "rgba(238,239,211,0.4)", marginTop: 3 }}>{b.range}</div>
                   </div>
                 ))}
               </div>
@@ -469,7 +490,7 @@ export default function PortfolioPage({
             {/* Concentration */}
             <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 9, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Geographic spread</div>
-              {geoConc.slice(0, 5).map((g) => {
+              {geoConc.slice(0, 5).map((g, i) => {
                 const barColor = g.pct > 50 ? RED : g.pct > 30 ? dc.lemon : dc.emerald;
                 return (
                   <div key={g.state} style={{ marginBottom: 10 }}>
@@ -478,7 +499,10 @@ export default function PortfolioPage({
                       <Mono style={{ fontSize: 13, fontWeight: 700, color: barColor }}>{g.pct.toFixed(0)}%</Mono>
                     </div>
                     <div style={{ height: 5, background: "rgba(238,239,211,0.12)", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${Math.min(100, g.pct)}%`, background: barColor, transition: "width 0.3s" }} />
+                      <div
+                        className="pf-gbar"
+                        style={{ height: "100%", width: `${Math.min(100, g.pct)}%`, background: barColor, transition: "width 0.3s", animationDelay: `${0.15 + i * 0.07}s` }}
+                      />
                     </div>
                   </div>
                 );
