@@ -4,7 +4,8 @@
 // .footer_wrap, .u-container, .u-text-style-*), which are styled by the globally
 // loaded greenboard CSS, so they match the home pixel-for-pixel for free.
 // Extracted from PageShell so DcShell (every tool/content page) can reuse them.
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { gsap } from "gsap";
 import { PISTACHIO, MIDNIGHT, LEMON, FADED, MINT_BG } from "../theme";
 
 // ── Shared nav menu model — the SAME dropdowns + pages as the marketing home ──
@@ -55,29 +56,84 @@ const NAV_MENUS: NavMenu[] = [
 
 const NAV_DD_CSS = `
 .gs-dd-wrap{position:relative;}
-.gs-dd-panel{position:absolute;top:calc(100% + 10px);left:0;min-width:230px;background:${PISTACHIO};border:1px solid ${FADED};border-radius:10px;padding:7px;display:flex;flex-direction:column;z-index:60;box-shadow:0 10px 30px rgba(0,55,56,0.10);}
-.gs-dd-panel::before{content:"";position:absolute;top:-10px;left:0;right:0;height:10px;}
-.gs-dd-item{display:block;padding:9px 12px;border-radius:7px;color:${MIDNIGHT};font-size:14px;font-weight:500;text-decoration:none;white-space:nowrap;transition:background .12s,color .12s;}
+.gs-dd-panel{position:absolute;top:calc(100% + 12px);left:0;min-width:240px;background:${PISTACHIO};border:1px solid ${FADED};border-radius:12px;padding:8px;display:flex;flex-direction:column;z-index:60;}
+.gs-dd-panel.is-mega{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;min-width:430px;}
+.gs-dd-panel::before{content:"";position:absolute;top:-12px;left:0;right:0;height:12px;}
+.gs-dd-item{display:block;padding:10px 13px;border-radius:8px;color:${MIDNIGHT};font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .14s,box-shadow .14s;}
 .gs-dd-item:hover,.gs-dd-item:focus-visible{background:${MINT_BG};outline:none;}
-.gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:none;border:none;font-family:inherit;}
-.gs-dd-caret{transition:transform .15s;}
-.gs-dd-wrap:hover .gs-dd-caret,.gs-dd-wrap:focus-within .gs-dd-caret{transform:rotate(180deg);}
+.gs-dd-item.is-active{background:${MINT_BG};box-shadow:inset 3px 0 0 ${LEMON};}
+.gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:none;border:none;font-family:inherit;position:relative;}
+.gs-dd-caret{transition:transform .18s;}
+.gs-dd-wrap.is-open .gs-dd-caret{transform:rotate(180deg);}
+.nav-link.is-current{position:relative;}
+.gs-dd-toggle.is-active::after,.nav-link.is-current::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:${LEMON};}
 .gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
 `;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const path = typeof window !== "undefined" ? (window.location.pathname.replace(/\/$/, "") || "/") : "/";
 
   const closeAll = () => { setMenuOpen(false); setOpenMenu(null); };
   const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); closeAll(); };
   const goPath = (p: string) => (e: React.MouseEvent) => { e.preventDefault(); window.history.pushState({}, "", p); window.dispatchEvent(new PopStateEvent("popstate")); closeAll(); };
   const nav = (it: NavItem) => it.view ? go(it.view) : goPath(it.path || "/");
+  const itemActive = (it: NavItem) => !!it.path && it.path !== "/" && path === it.path.replace(/\/$/, "");
+  const menuActive = (m: NavMenu) => path === m.path || m.items.some(itemActive);
+
+  // Esc closes any open dropdown.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenMenu(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // GSAP: premium dropdown open (panel slide+fade, then staggered items).
+  // Reduced-motion safe — skips entirely and leaves the panel fully visible.
+  useEffect(() => {
+    if (!openMenu || !panelRef.current) return;
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    gsap.fromTo(panelRef.current, { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22, ease: "power2.out" });
+    gsap.fromTo(panelRef.current.querySelectorAll(".gs-dd-item"), { y: -4, opacity: 0 }, { y: 0, opacity: 1, duration: 0.2, stagger: 0.025, ease: "power2.out", delay: 0.03, clearProps: "all" });
+  }, [openMenu]);
 
   const caret = (
     <svg className="gs-dd-caret" width="11" height="11" viewBox="0 0 12 8" fill="none" aria-hidden="true">
       <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
+  );
+
+  const renderMenu = (m: NavMenu) => (
+    <div
+      key={m.label}
+      className={`gs-dd-wrap${openMenu === m.label ? " is-open" : ""}`}
+      onMouseEnter={() => setOpenMenu(m.label)}
+      onMouseLeave={() => setOpenMenu((cur) => (cur === m.label ? null : cur))}
+    >
+      <a
+        className={`nav-link gs-dd-toggle w-inline-block${menuActive(m) ? " is-active" : ""}`}
+        href={m.path}
+        aria-haspopup="true"
+        aria-expanded={openMenu === m.label}
+        onClick={go(m.view)}
+        onFocus={() => setOpenMenu(m.label)}
+      >
+        <div className="nav_links_text">{m.label}</div>
+        {caret}
+      </a>
+      {openMenu === m.label && (
+        <div ref={panelRef} className={`gs-dd-panel${m.items.length > 4 ? " is-mega" : ""}`} role="menu" aria-label={m.label}>
+          {m.items.map((it, i) => (
+            <a key={i} role="menuitem" className={`gs-dd-item${itemActive(it) ? " is-active" : ""}`} href={it.path} onClick={nav(it)}>
+              {it.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
   );
 
   return (
@@ -96,37 +152,10 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
                 <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>{INVESTGO_LABEL}</div>
               </a>
 
-              {NAV_MENUS.map((m) => (
-                <div
-                  key={m.label}
-                  className="gs-dd-wrap"
-                  onMouseEnter={() => setOpenMenu(m.label)}
-                  onMouseLeave={() => setOpenMenu((cur) => (cur === m.label ? null : cur))}
-                >
-                  <a
-                    className="nav-link gs-dd-toggle w-inline-block"
-                    href={m.path}
-                    aria-haspopup="true"
-                    aria-expanded={openMenu === m.label}
-                    onClick={go(m.view)}
-                    onFocus={() => setOpenMenu(m.label)}
-                  >
-                    <div className="nav_links_text">{m.label}</div>
-                    {caret}
-                  </a>
-                  {openMenu === m.label && (
-                    <div className="gs-dd-panel" role="menu" aria-label={m.label}>
-                      {m.items.map((it, i) => (
-                        <a key={i} role="menuitem" className="gs-dd-item" href={it.path} onClick={nav(it)}>
-                          {it.label}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              <a className="nav-link w-inline-block" href="/partnerships" onClick={go("brokers-partner")}><div className="nav_links_text">Partnerships</div></a>
+              {renderMenu(NAV_MENUS[0])}
+              {renderMenu(NAV_MENUS[1])}
+              <a className={`nav-link w-inline-block${path === "/partners" || path === "/partnerships" ? " is-current" : ""}`} href="/partnerships" onClick={go("brokers-partner")}><div className="nav_links_text">Partnerships</div></a>
+              {renderMenu(NAV_MENUS[2])}
               <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div>Login</div></a>
               {/* Solid, always-visible CTA (matches the home nav button). */}
               <a className="nav-btn" href="/book-demo" onClick={go("book-demo")}
