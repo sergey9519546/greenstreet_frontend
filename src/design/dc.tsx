@@ -113,6 +113,8 @@ export const DC_CSS = `
   [class*="gsFloat"],.gs-bar{animation:none !important;}
   *{animation-duration:.001ms !important;}
 }
+.gs-num:focus-visible{outline:2px solid #d8d958;outline-offset:2px;border-radius:3px;}
+.gs-range:focus-visible{outline:2px solid #d8d958;outline-offset:4px;}
 `;
 
 // Scroll/entrance animation over a scope. Pages add className="gs-reveal" to sections,
@@ -322,7 +324,7 @@ export function DcShell({
           page is framed identically. Per-page navLinks/cta/accent are no longer
           used for the shell — kept in the signature for back-compat only. */}
       <SiteNav onNavigate={onNavigate} />
-      {children}
+      <main>{children}</main>
       <SiteFooter onNavigate={onNavigate} />
     </div>
   );

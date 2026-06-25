@@ -43,15 +43,15 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               </a>
             </div>
           </div>
-          <div className="burger-wrap" style={{ cursor: "pointer" }} onClick={() => setMenuOpen(!menuOpen)}>
-            <div className="burger-line top"></div>
-            <div className="burger-line middle"></div>
-            <div className="burger-line bottom"></div>
-          </div>
+          <button type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+            <div className="burger-line top" aria-hidden="true"></div>
+            <div className="burger-line middle" aria-hidden="true"></div>
+            <div className="burger-line bottom" aria-hidden="true"></div>
+          </button>
         </div>
       </div>
       {menuOpen && (
-        <div className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
+        <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
           <a href="/investorgo" className="nav-link" onClick={go("portal")}><span>Investor</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
           <a href="/products" className="nav-link" onClick={go("products")}>Product</a>
           <a href="/solutions" className="nav-link" onClick={go("solutions")}>Who We Serve</a>

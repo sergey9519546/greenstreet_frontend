@@ -12,6 +12,10 @@
         --lemon:    #d8d958;
         --rain:     #006565;
         --teal:     #004041;
+        --safe:     #8ec44a;
+        --caution:  #e2d968;
+        --warn:     #ee9678;
+        --break:    #b8485a;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -191,8 +195,6 @@
         inset: 0;
         background: var(--cream);
       }
-      /* FIX: full title "Greenstreet Finance" — language/wording correction.
-         Dropped the period — at 144px it would be a smudge. */
       #stamp-logo {
         position: absolute;
         left: 50%; top: 50%;
@@ -232,10 +234,7 @@
         font-weight: 700;
       }
 
-      /* ─── EXPLAINER SCENES (54s, all inline — no MP4 refs) ──── */
-      /* All 6 explainers share a dark midnight bg + brand watermark + URL.
-         Each is a self-contained scene with its own visual concept. */
-
+      /* ─── EXPLAINER SCENES ──────────────────────────────────── */
       .explainer {
         position: absolute;
         inset: 0;
@@ -275,39 +274,89 @@
         justify-content: center;
       }
 
-      /* EXPLAINER 1: DSCR — big number with 3 input chips */
+      /* ─── EXPLAINER 1: DSCR — animated counter + chips ──────── */
+      #dscr-result-box {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 32px 56px;
+        background: rgba(238, 239, 211, 0.04);
+        border: 1px solid rgba(216, 217, 88, 0.3);
+        border-radius: 14px;
+        position: relative;
+      }
+      #dscr-result-box .equals {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 80px;
+        color: rgba(238, 239, 211, 0.5);
+        font-weight: 300;
+      }
       #dscr-number {
         font-family: "JetBrains Mono", monospace;
-        font-size: 240px;
+        font-size: 160px;
         font-weight: 700;
         color: var(--lemon);
         letter-spacing: -0.04em;
         line-height: 1;
+        min-width: 380px;
+        text-align: center;
       }
-      #dscr-number .x { font-size: 120px; color: var(--cream); margin-left: 8px; }
+      #dscr-number .x { font-size: 80px; color: var(--cream); margin-left: 4px; }
+      #dscr-number .check {
+        display: inline-block;
+        margin-left: 16px;
+        font-size: 80px;
+        color: var(--safe);
+        opacity: 0;
+      }
       #dscr-inputs {
         position: absolute;
-        bottom: 26%; left: 50%;
+        bottom: 28%; left: 50%;
         transform: translateX(-50%);
         display: flex;
-        gap: 16px;
+        gap: 14px;
+        align-items: center;
       }
       #dscr-inputs .chip {
-        padding: 12px 22px;
+        padding: 14px 22px;
         background: rgba(238, 239, 211, 0.06);
         border: 1px solid rgba(238, 239, 211, 0.2);
         border-radius: 8px;
         color: var(--cream);
         font-size: 18px;
         font-weight: 500;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 120px;
+        opacity: 0;
+      }
+      #dscr-inputs .chip .k {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(238, 239, 211, 0.5);
+      }
+      #dscr-inputs .chip .v {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--cream);
       }
       #dscr-inputs .arrow {
-        align-self: center;
+        font-size: 22px;
         color: var(--lemon);
-        font-size: 24px;
+        opacity: 0;
+      }
+      /* pulsing arrow glow */
+      #dscr-inputs .arrow.active { animation: arrowPulse 1.4s ease-in-out infinite; }
+      @keyframes arrowPulse {
+        0%, 100% { opacity: 0.5; transform: scale(1); }
+        50%      { opacity: 1;   transform: scale(1.18); }
       }
 
-      /* EXPLAINER 2: Deal Analyzer — 7 input fields grid */
+      /* ─── EXPLAINER 2: Deal Analyzer — data typing-in ───────── */
       #deal-grid {
         display: grid;
         grid-template-columns: repeat(4, 240px);
@@ -322,6 +371,8 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        opacity: 0;
+        position: relative;
       }
       #deal-grid .field .k {
         font-size: 12px;
@@ -335,14 +386,24 @@
         font-size: 22px;
         font-weight: 700;
         color: var(--cream);
+        min-height: 26px;
+      }
+      #deal-grid .field .v.placeholder {
+        color: rgba(238, 239, 211, 0.18);
+        font-weight: 400;
       }
       #deal-grid .field.highlight {
         background: rgba(216, 217, 88, 0.15);
         border-color: var(--lemon);
+        box-shadow: 0 0 0 1px var(--lemon), 0 0 32px rgba(216, 217, 88, 0.3);
       }
       #deal-grid .field.highlight .v { color: var(--lemon); }
+      #deal-grid .field.highlight .v::after {
+        content: " ✓";
+        color: var(--safe);
+      }
 
-      /* EXPLAINER 3: Lender Match — 19 lender chips */
+      /* ─── EXPLAINER 3: Lender Match — chip shuffle + match pulse ── */
       #lender-grid {
         display: grid;
         grid-template-columns: repeat(5, 160px);
@@ -360,16 +421,36 @@
         font-size: 13px;
         font-weight: 600;
         font-family: "JetBrains Mono", monospace;
+        opacity: 0;
+        position: relative;
       }
+      #lender-grid .chip .score {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        font-size: 9px;
+        color: var(--lemon);
+        opacity: 0;
+      }
+      #lender-grid .chip.dim { opacity: 0.18 !important; }
       #lender-grid .chip.highlight {
         background: var(--lemon);
         border-color: var(--lemon);
         color: var(--midnight);
         font-weight: 700;
-        transform: scale(1.08);
+        opacity: 1;
+      }
+      #lender-grid .chip.highlight .score { opacity: 1; color: var(--midnight); }
+      /* match-glow pulse on the highlighted chip */
+      @keyframes matchPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(216, 217, 88, 0.7); }
+        50%      { box-shadow: 0 0 0 18px rgba(216, 217, 88, 0); }
+      }
+      #lender-grid .chip.highlight {
+        animation: matchPulse 1.6s ease-out infinite;
       }
 
-      /* EXPLAINER 4: Stress Matrix — 12x10 color grid */
+      /* ─── EXPLAINER 4: Stress Matrix — wave-fill cells + risk overlay ── */
       #stress-grid {
         display: grid;
         grid-template-columns: repeat(10, 44px);
@@ -379,28 +460,162 @@
       #stress-grid .cell {
         border-radius: 3px;
         background: rgba(238, 239, 211, 0.06);
+        opacity: 0;
       }
-      /* color gradient: top-left green (safe) → bottom-right red (deal-break).
-         Applied inline per cell. Animation reveals left-to-right + top-to-bottom. */
+      #stress-grid .cell.flash {
+        /* brief white flash when the cell "computes" */
+        animation: cellFlash 0.35s ease-out;
+      }
+      @keyframes cellFlash {
+        0%   { filter: brightness(2.4); transform: scale(1.18); }
+        100% { filter: brightness(1);   transform: scale(1); }
+      }
+      #stress-zone-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        background:
+          linear-gradient(135deg,
+            rgba(142, 196, 74, 0.22) 0%,
+            rgba(142, 196, 74, 0) 38%,
+            rgba(226, 217, 104, 0) 58%,
+            rgba(184, 72, 90, 0.28) 100%);
+        border-radius: 14px;
+      }
+      #stress-dealbreak-line {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        width: 480px;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(238,239,211,0) 0%, var(--break) 50%, rgba(238,239,211,0) 100%);
+        box-shadow: 0 0 12px rgba(184, 72, 90, 0.7);
+        transform-origin: left center;
+      }
+      #stress-axis-y, #stress-axis-x {
+        position: absolute;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(238, 239, 211, 0.45);
+        opacity: 0;
+      }
+      #stress-axis-y {
+        left: -130px;
+        top: 50%;
+        transform: translateY(-50%) rotate(-90deg);
+        white-space: nowrap;
+      }
+      #stress-axis-x {
+        bottom: -34px;
+        right: 0;
+        font-size: 11px;
+      }
+      #stress-stat-panel {
+        position: absolute;
+        top: 22%;
+        right: 8%;
+        font-family: "JetBrains Mono", monospace;
+        opacity: 0;
+        text-align: right;
+      }
+      #stress-stat-panel .stat-row {
+        font-size: 12px;
+        color: rgba(238, 239, 211, 0.55);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      #stress-stat-panel .stat-val {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      #stress-stat-panel .stat-val.safe    { color: var(--safe); }
+      #stress-stat-panel .stat-val.caution { color: var(--caution); }
+      #stress-stat-panel .stat-val.warn    { color: var(--warn); }
+      #stress-stat-panel .stat-val.break   { color: var(--break); }
+      #stress-dealbreak-label {
+        position: absolute;
+        top: 0;
+        left: 105%;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--break);
+        white-space: nowrap;
+        opacity: 0;
+      }
+      #stress-critical-pulse {
+        position: absolute;
+        width: 50px;
+        height: 42px;
+        border: 2px solid var(--break);
+        border-radius: 4px;
+        opacity: 0;
+        box-shadow: 0 0 24px rgba(184, 72, 90, 0.6);
+      }
+      @keyframes criticalPulse {
+        0%, 100% { opacity: 0.8; transform: scale(1); }
+        50%      { opacity: 0.2; transform: scale(1.18); }
+      }
+      #stress-critical-pulse.active {
+        animation: criticalPulse 0.9s ease-in-out infinite;
+      }
+      #stress-counter {
+        position: absolute;
+        top: 22%; right: 8%;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 18px;
+        color: var(--lemon);
+        opacity: 0;
+        text-align: right;
+      }
+      #stress-counter .label {
+        font-size: 11px;
+        color: rgba(238, 239, 211, 0.4);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      #stress-counter .num {
+        font-size: 48px;
+        font-weight: 700;
+        color: var(--lemon);
+      }
 
-      /* EXPLAINER 5: Monte Carlo — rate path lines */
+      /* ─── EXPLAINER 5: Monte Carlo — paths + median + distribution ─ */
       #mc-canvas {
         width: 1100px;
         height: 320px;
         position: relative;
       }
       #mc-canvas svg { width: 100%; height: 100%; }
-      /* FIX: replaced drawSVG (premium plugin, not available) with stroke-dasharray
-         trick — paths have full length as dash, then animate dashoffset to 0. */
       #mc-canvas svg path {
         stroke-dasharray: 2400;
         stroke-dashoffset: 2400;
+      }
+      #mc-canvas svg path.median {
+        stroke-width: 3.5;
+        filter: drop-shadow(0 0 6px rgba(216, 217, 88, 0.5));
+      }
+      @keyframes medianGlow {
+        0%, 100% { filter: drop-shadow(0 0 6px rgba(216, 217, 88, 0.5)); }
+        50%      { filter: drop-shadow(0 0 14px rgba(216, 217, 88, 0.95)); }
+      }
+      #mc-canvas svg path.median.active {
+        animation: medianGlow 1.4s ease-in-out infinite;
       }
       #mc-canvas .baseline {
         position: absolute;
         left: 0; right: 0; bottom: 50%;
         height: 1px;
         background: rgba(238, 239, 211, 0.18);
+        transform-origin: left center;
       }
       #mc-canvas .axis-label {
         position: absolute;
@@ -409,8 +624,22 @@
         font-size: 14px;
         color: rgba(238, 239, 211, 0.4);
       }
+      #mc-canvas .histogram {
+        position: absolute;
+        bottom: 12%;
+        left: 8%;
+        right: 8%;
+        height: 32%;
+        opacity: 0;
+      }
+      #mc-canvas .histogram .bar {
+        position: absolute;
+        bottom: 0;
+        background: rgba(216, 217, 88, 0.55);
+        border-radius: 2px 2px 0 0;
+      }
 
-      /* EXPLAINER 6: Returns — IRR number + bar chart */
+      /* ─── EXPLAINER 6: Returns — counter + bar values ──────── */
       #ret-number {
         font-family: "JetBrains Mono", monospace;
         font-size: 200px;
@@ -419,6 +648,7 @@
         letter-spacing: -0.04em;
         line-height: 1;
       }
+      #ret-number .pct { font-size: 100px; color: var(--cream); margin-left: 4px; }
       #ret-bars {
         position: absolute;
         bottom: 26%; left: 50%;
@@ -432,9 +662,19 @@
         width: 36px;
         background: var(--rain);
         border-radius: 4px 4px 0 0;
+        height: 0;
+        position: relative;
       }
-      #ret-bars .bar.lemon {
-        background: var(--lemon);
+      #ret-bars .bar.lemon { background: var(--lemon); }
+      #ret-bars .bar .val {
+        position: absolute;
+        top: -22px; left: 50%;
+        transform: translateX(-50%);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--cream);
+        opacity: 0;
+        white-space: nowrap;
       }
 
       /* ─── OUTCOME (12s) ───────────────────────────────────── */
@@ -514,6 +754,8 @@
         letter-spacing: 0;
         text-transform: none;
         font-size: 14px;
+        opacity: 0;
+        transform: scale(0.5);
       }
       #out-priced .rows {
         display: flex;
@@ -535,6 +777,7 @@
         font-weight: 700;
         color: var(--midnight);
         font-size: 22px;
+        opacity: 0;
       }
       #out-priced .rate {
         margin-top: auto;
@@ -544,6 +787,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        transform: scaleX(0);
+        transform-origin: left center;
       }
       #out-priced .rate .label {
         font-size: 16px;
@@ -574,6 +819,7 @@
         top: 14px; left: 14px; right: 14px; bottom: 14px;
         background: var(--lemon);
         border-radius: 4px;
+        opacity: 0;
       }
       #out-coffee .steam {
         position: absolute;
@@ -581,16 +827,16 @@
         transform: translateX(-50%);
         display: flex;
         gap: 6px;
+        opacity: 0;
       }
       #out-coffee .steam .wisp {
         width: 5px;
         height: 22px;
         background: rgba(0, 55, 56, 0.45);
         border-radius: 3px;
-        opacity: 0.6;
       }
       #out-coffee .steam .wisp:nth-child(1) { height: 18px; }
-      #out-coffee .steam .wisp:nth-child(2) { height: 26px; opacity: 0.8; }
+      #out-coffee .steam .wisp:nth-child(2) { height: 26px; }
       #out-coffee .steam .wisp:nth-child(3) { height: 20px; }
       #out-phone {
         position: absolute;
@@ -636,7 +882,6 @@
         width: 100%; height: 35%;
         background: linear-gradient(180deg, var(--mint) 0%, var(--cream) 100%);
       }
-      /* FIX: full title "Greenstreet Finance" — wordmark correction */
       #cta-logo {
         position: absolute;
         top: 14%; left: 50%;
@@ -757,13 +1002,24 @@
           <div class="brand-url">greenstreet.finance</div>
           <div class="label">Tool 01 / 06</div>
           <div class="visual">
-            <div id="dscr-number">1.18<span class="x">×</span></div>
+            <div id="dscr-result-box">
+              <span id="dscr-number">0.00<span class="x">×</span><span class="check">✓</span></span>
+            </div>
             <div id="dscr-inputs">
-              <div class="chip">Income</div>
-              <div class="arrow">→</div>
-              <div class="chip">Rate</div>
-              <div class="arrow">→</div>
-              <div class="chip">Term</div>
+              <div class="chip">
+                <span class="k">Income</span>
+                <span class="v" data-final="$3,200 / mo">— —</span>
+              </div>
+              <span class="arrow">→</span>
+              <div class="chip">
+                <span class="k">Rate</span>
+                <span class="v" data-final="7.125%">— —</span>
+              </div>
+              <span class="arrow">→</span>
+              <div class="chip">
+                <span class="k">Term</span>
+                <span class="v" data-final="30 yr / IO">— —</span>
+              </div>
             </div>
           </div>
           <div class="tool-name">DSCR Calculator</div>
@@ -779,14 +1035,14 @@
           <div class="label">Tool 02 / 06</div>
           <div class="visual">
             <div id="deal-grid">
-              <div class="field"><span class="k">Address</span><span class="v">GS-2847-N</span></div>
-              <div class="field"><span class="k">Price</span><span class="v">$425,000</span></div>
-              <div class="field"><span class="k">Rent</span><span class="v">$3,200 / mo</span></div>
-              <div class="field"><span class="k">LTV</span><span class="v">72.4%</span></div>
-              <div class="field"><span class="k">Rate</span><span class="v">7.125%</span></div>
-              <div class="field"><span class="k">Term</span><span class="v">30yr / IO</span></div>
-              <div class="field highlight"><span class="k">DSCR</span><span class="v">1.18 ✓</span></div>
-              <div class="field"><span class="k">Lender</span><span class="v">#4 of 19</span></div>
+              <div class="field"><span class="k">Address</span><span class="v placeholder" data-final="GS-2847-N">— —</span></div>
+              <div class="field"><span class="k">Price</span><span class="v placeholder" data-final="$425,000">— —</span></div>
+              <div class="field"><span class="k">Rent</span><span class="v placeholder" data-final="$3,200 / mo">— —</span></div>
+              <div class="field"><span class="k">LTV</span><span class="v placeholder" data-final="72.4%">— —</span></div>
+              <div class="field"><span class="k">Rate</span><span class="v placeholder" data-final="7.125%">— —</span></div>
+              <div class="field"><span class="k">Term</span><span class="v placeholder" data-final="30yr / IO">— —</span></div>
+              <div class="field highlight"><span class="k">DSCR</span><span class="v placeholder" data-final="1.18">— —</span></div>
+              <div class="field"><span class="k">Lender</span><span class="v placeholder" data-final="#4 of 19">— —</span></div>
             </div>
           </div>
           <div class="tool-name">Deal Analyzer</div>
@@ -802,25 +1058,25 @@
           <div class="label">Tool 03 / 06</div>
           <div class="visual">
             <div id="lender-grid">
-              <div class="chip">Kiavi</div>
-              <div class="chip">Lima One</div>
-              <div class="chip">Newfi</div>
-              <div class="chip">Angel Oak</div>
-              <div class="chip highlight">GS Match</div>
-              <div class="chip">RCN</div>
-              <div class="chip">AHLI</div>
-              <div class="chip">Visio</div>
-              <div class="chip">Sky</div>
-              <div class="chip">Pangea</div>
-              <div class="chip">Temple</div>
-              <div class="chip">Civic</div>
-              <div class="chip">AMCap</div>
-              <div class="chip">Cherry</div>
-              <div class="chip">WaFd</div>
-              <div class="chip">Easy Street</div>
-              <div class="chip">LendSure</div>
-              <div class="chip">Goose</div>
-              <div class="chip">K1</div>
+              <div class="chip" data-name="Kiavi"><span class="score">82</span></div>
+              <div class="chip" data-name="Lima One"><span class="score">79</span></div>
+              <div class="chip" data-name="Newfi"><span class="score">76</span></div>
+              <div class="chip" data-name="Angel Oak"><span class="score">73</span></div>
+              <div class="chip" data-name="Visio"><span class="score">68</span></div>
+              <div class="chip" data-name="Sky"><span class="score">66</span></div>
+              <div class="chip" data-name="Temple"><span class="score">62</span></div>
+              <div class="chip" data-name="AMCap"><span class="score">59</span></div>
+              <div class="chip" data-name="Cherry"><span class="score">55</span></div>
+              <div class="chip" data-name="Easy Street"><span class="score">51</span></div>
+              <div class="chip" data-name="LendSure"><span class="score">48</span></div>
+              <div class="chip" data-name="RCN"><span class="score">44</span></div>
+              <div class="chip" data-name="AHLI"><span class="score">42</span></div>
+              <div class="chip" data-name="Pangea"><span class="score">39</span></div>
+              <div class="chip" data-name="Civic"><span class="score">36</span></div>
+              <div class="chip" data-name="WaFd"><span class="score">33</span></div>
+              <div class="chip" data-name="Goose"><span class="score">29</span></div>
+              <div class="chip" data-name="K1"><span class="score">25</span></div>
+              <div class="chip highlight" data-name="GS Match"><span class="score">94</span></div>
             </div>
           </div>
           <div class="tool-name">Lender Match</div>
@@ -836,8 +1092,6 @@
           <div class="label">Tool 04 / 06</div>
           <div class="visual">
             <div id="stress-grid">
-              <!-- 80 cells: 10 cols × 8 rows. Color from green (top-left, safe)
-                   to red (bottom-right, deal-break) using inline styles. -->
               <div class="cell" style="background:#8ec44a"></div><div class="cell" style="background:#a8d052"></div><div class="cell" style="background:#c0d85a"></div><div class="cell" style="background:#d4dc62"></div><div class="cell" style="background:#e2d968"></div><div class="cell" style="background:#ecd06c"></div><div class="cell" style="background:#f0c470"></div><div class="cell" style="background:#eeb274"></div><div class="cell" style="background:#e89c78"></div><div class="cell" style="background:#dc847a"></div>
               <div class="cell" style="background:#7fc044"></div><div class="cell" style="background:#9cc84e"></div><div class="cell" style="background:#b4d456"></div><div class="cell" style="background:#c8d85e"></div><div class="cell" style="background:#d8d664"></div><div class="cell" style="background:#e2cc6a"></div><div class="cell" style="background:#e6c46e"></div><div class="cell" style="background:#e4b074"></div><div class="cell" style="background:#dc9678"></div><div class="cell" style="background:#cc7c7a"></div>
               <div class="cell" style="background:#70b83e"></div><div class="cell" style="background:#90c048"></div><div class="cell" style="background:#a8cc52"></div><div class="cell" style="background:#bcd05a"></div><div class="cell" style="background:#ccce62"></div><div class="cell" style="background:#d6c468"></div><div class="cell" style="background:#dcb86c"></div><div class="cell" style="background:#d8a474"></div><div class="cell" style="background:#cc8a78"></div><div class="cell" style="background:#bc747a"></div>
@@ -846,6 +1100,21 @@
               <div class="cell" style="background:#48942c"></div><div class="cell" style="background:#68a034"></div><div class="cell" style="background:#80ac3e"></div><div class="cell" style="background:#94b048"></div><div class="cell" style="background:#a4a852"></div><div class="cell" style="background:#aa9458"></div><div class="cell" style="background:#aa805c"></div><div class="cell" style="background:#9e6060"></div><div class="cell" style="background:#884460"></div><div class="cell" style="background:#6c3860"></div>
               <div class="cell" style="background:#3a8426"></div><div class="cell" style="background:#589030"></div><div class="cell" style="background:#6e9c36"></div><div class="cell" style="background:#82a040"></div><div class="cell" style="background:#92984a"></div><div class="cell" style="background:#948050"></div><div class="cell" style="background:#946a52"></div><div class="cell" style="background:#824456"></div><div class="cell" style="background:#5e2c50"></div><div class="cell" style="background:#422044"></div>
               <div class="cell" style="background:#2c7420"></div><div class="cell" style="background:#48802a"></div><div class="cell" style="background:#5e8c30"></div><div class="cell" style="background:#708c3a"></div><div class="cell" style="background:#7c7c40"></div><div class="cell" style="background:#786440"></div><div class="cell" style="background:#704840"></div><div class="cell" style="background:#582434"></div><div class="cell" style="background:#3c1428"></div><div class="cell" style="background:#281020"></div>
+            </div>
+            <div id="stress-zone-overlay"></div>
+            <div id="stress-dealbreak-line"><span id="stress-dealbreak-label">DSCR &lt; 1.00 · deal-break</span></div>
+            <div id="stress-axis-y">Rate stress →</div>
+            <div id="stress-axis-x">← Rent decline</div>
+            <div id="stress-critical-pulse"></div>
+            <div id="stress-stat-panel">
+              <div class="stat-row">Safe</div>
+              <div class="stat-val safe" id="stat-safe">92</div>
+              <div class="stat-row" style="margin-top:14px">Caution</div>
+              <div class="stat-val caution" id="stat-caution">18</div>
+              <div class="stat-row" style="margin-top:14px">Warning</div>
+              <div class="stat-val warn" id="stat-warn">7</div>
+              <div class="stat-row" style="margin-top:14px;color:var(--break)">Deal-break</div>
+              <div class="stat-val break" id="stat-break">3</div>
             </div>
           </div>
           <div class="tool-name">Stress Matrix</div>
@@ -863,14 +1132,14 @@
             <div id="mc-canvas">
               <div class="baseline"></div>
               <svg viewBox="0 0 1100 320" preserveAspectRatio="none">
-                <!-- 6 rate paths drawn as smooth curves, jittered -->
                 <path d="M0,160 Q150,140 300,150 T600,120 T900,140 T1100,130" stroke="rgba(238,239,211,0.45)" stroke-width="2" fill="none"/>
                 <path d="M0,160 Q150,180 300,165 T600,170 T900,155 T1100,150" stroke="rgba(238,239,211,0.45)" stroke-width="2" fill="none"/>
                 <path d="M0,160 Q150,130 300,135 T600,110 T900,125 T1100,115" stroke="rgba(238,239,211,0.45)" stroke-width="2" fill="none"/>
                 <path d="M0,160 Q150,160 300,140 T600,100 T900,90 T1100,80" stroke="rgba(238,239,211,0.45)" stroke-width="2" fill="none"/>
                 <path d="M0,160 Q150,170 300,180 T600,190 T900,175 T1100,170" stroke="rgba(238,239,211,0.45)" stroke-width="2" fill="none"/>
-                <path d="M0,160 Q150,150 300,150 T600,145 T900,140 T1100,135" stroke="rgba(216,217,88,0.95)" stroke-width="3" fill="none"/>
+                <path class="median" d="M0,160 Q150,150 300,150 T600,145 T900,140 T1100,135" stroke="rgba(216,217,88,0.95)" stroke-width="3" fill="none"/>
               </svg>
+              <div class="histogram" id="mc-histogram"></div>
               <div class="axis-label">500 rate paths</div>
             </div>
           </div>
@@ -886,18 +1155,18 @@
           <div class="brand-url">greenstreet.finance</div>
           <div class="label">Tool 06 / 06</div>
           <div class="visual">
-            <div id="ret-number">14.4%</div>
+            <div id="ret-number">0.0<span class="pct">%</span></div>
             <div id="ret-bars">
-              <div class="bar" style="height: 38%"></div>
-              <div class="bar" style="height: 52%"></div>
-              <div class="bar lemon" style="height: 78%"></div>
-              <div class="bar" style="height: 64%"></div>
-              <div class="bar" style="height: 84%"></div>
-              <div class="bar lemon" style="height: 92%"></div>
-              <div class="bar" style="height: 70%"></div>
-              <div class="bar" style="height: 58%"></div>
-              <div class="bar" style="height: 88%"></div>
-              <div class="bar lemon" style="height: 100%"></div>
+              <div class="bar" style="--h: 38%"><span class="val">$1.2K</span></div>
+              <div class="bar" style="--h: 52%"><span class="val">$1.8K</span></div>
+              <div class="bar lemon" style="--h: 78%"><span class="val">$2.4K</span></div>
+              <div class="bar" style="--h: 64%"><span class="val">$2.1K</span></div>
+              <div class="bar" style="--h: 84%"><span class="val">$2.6K</span></div>
+              <div class="bar lemon" style="--h: 92%"><span class="val">$2.9K</span></div>
+              <div class="bar" style="--h: 70%"><span class="val">$2.3K</span></div>
+              <div class="bar" style="--h: 58%"><span class="val">$1.9K</span></div>
+              <div class="bar" style="--h: 88%"><span class="val">$2.7K</span></div>
+              <div class="bar lemon" style="--h: 100%"><span class="val">$3.2K</span></div>
             </div>
           </div>
           <div class="tool-name">Returns Engine</div>
@@ -919,10 +1188,10 @@
                 <span class="badge">Sub-1.0 ✓</span>
               </div>
               <div class="rows">
-                <div class="row"><span class="k">LTV</span><span class="v">72.4%</span></div>
-                <div class="row"><span class="k">Rate</span><span class="v">7.125%</span></div>
-                <div class="row"><span class="k">DSCR</span><span class="v">0.97</span></div>
-                <div class="row"><span class="k">Track</span><span class="v">Sub-1.0</span></div>
+                <div class="row"><span class="k">LTV</span><span class="v" data-final="72.4%">— —</span></div>
+                <div class="row"><span class="k">Rate</span><span class="v" data-final="7.125%">— —</span></div>
+                <div class="row"><span class="k">DSCR</span><span class="v" data-final="0.97">— —</span></div>
+                <div class="row"><span class="k">Track</span><span class="v" data-final="Sub-1.0">— —</span></div>
               </div>
               <div class="rate">
                 <span class="label">Rate band locked</span>
@@ -966,16 +1235,63 @@
 
     <script>
       window.__timelines = window.__timelines || {};
+
+      // Build Monte Carlo histogram (bell curve approximation)
+      const mcHist = document.getElementById("mc-histogram");
+      if (mcHist) {
+        const heights = [4, 9, 18, 34, 56, 78, 88, 80, 62, 40, 22, 11, 5];
+        heights.forEach((h, i) => {
+          const b = document.createElement("div");
+          b.className = "bar";
+          b.style.left = `${(i / heights.length) * 100}%`;
+          b.style.width = `${(1 / heights.length) * 100 - 0.5}%`;
+          b.style.height = `${h}%`;
+          mcHist.appendChild(b);
+        });
+      }
+
+      // COUNTER helper — tween a numeric display from `from` to `to` over `duration` seconds,
+      // formatted with `decimals` and `prefix`/`suffix`. Calls onComplete if provided.
+      function countTween(target, from, to, duration, decimals = 0, prefix = "", suffix = "") {
+        const obj = { v: from };
+        return gsap.to(obj, {
+          v: to,
+          duration: duration,
+          ease: "power2.out",
+          onUpdate: () => {
+            target.textContent = prefix + obj.v.toFixed(decimals) + suffix;
+          }
+        });
+      }
+
       const tl = gsap.timeline({ paused: true });
 
       /* ─── HOOK (0-8s) ─────────────────────────────────────── */
       tl.fromTo("#hook-windowlight", { opacity: 0 }, { opacity: 1, duration: 1.5, ease: "power2.out" }, 0.2);
-      tl.from("#hook-clock", { opacity: 0, y: -20, duration: 0.6, ease: "power2.out" }, 0.3);
-      tl.from("#hook-hooktxt", { opacity: 0, y: 30, duration: 0.9, ease: "power3.out" }, 0.3);
-      tl.from("#hook-laptop", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" }, 0.5);
-      tl.from("#hook-spreadsheet .row", { opacity: 0, x: -10, duration: 0.3, stagger: 0.06, ease: "power1.out" }, 0.8);
-      tl.from("#hook-coffee", { opacity: 0, scale: 0.85, duration: 0.5, ease: "back.out(1.2)" }, 1.0);
-      tl.from("#hook-phone", { opacity: 0, x: 30, duration: 0.6, ease: "power2.out" }, 1.2);
+      tl.fromTo("#hook-clock",
+          { opacity: 0, y: -20, duration: 0.6, ease: "power2.out" },
+          { opacity: 1 },
+          0.3);
+      tl.fromTo("#hook-hooktxt",
+          { opacity: 0, y: 30, duration: 0.9, ease: "power3.out" },
+          { opacity: 1 },
+          0.3);
+      tl.fromTo("#hook-laptop",
+          { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" },
+          { opacity: 1 },
+          0.5);
+      tl.fromTo("#hook-spreadsheet .row",
+          { opacity: 0, x: -10, duration: 0.3, stagger: 0.06, ease: "power1.out" },
+          { opacity: 1 },
+          0.8);
+      tl.fromTo("#hook-coffee",
+          { opacity: 0, scale: 0.85, duration: 0.5, ease: "back.out(1.2)" },
+          { opacity: 1 },
+          1.0);
+      tl.fromTo("#hook-phone",
+          { opacity: 0, x: 30, duration: 0.6, ease: "power2.out" },
+          { opacity: 1 },
+          1.2);
 
       /* ─── STAMP (8-9s) ────────────────────────────────────── */
       tl.fromTo("#stamp-logo",
@@ -989,80 +1305,430 @@
       );
 
       /* ─── SOLUTION (9-15s) ────────────────────────────────── */
-      tl.from("#sol-text", { opacity: 0, y: 40, duration: 0.7, ease: "power3.out" }, 9.1);
-      tl.from("#sol-tagline", { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" }, 9.7);
+      tl.fromTo("#sol-text",
+          { opacity: 0, y: 40, duration: 0.7, ease: "power3.out" },
+          { opacity: 1 },
+          9.1);
+      tl.fromTo("#sol-tagline",
+          { opacity: 0, y: 20, duration: 0.6, ease: "power2.out" },
+          { opacity: 1 },
+          9.7);
 
       /* ─── EXPLAINER 1: DSCR (15-24s) ──────────────────────── */
-      tl.from("#explainer-dscr .label", { opacity: 0, duration: 0.4 }, 15.1);
-      tl.from("#explainer-dscr .brand-mark", { opacity: 0, duration: 0.4 }, 15.1);
-      tl.from("#explainer-dscr .brand-url", { opacity: 0, duration: 0.4 }, 15.1);
-      tl.from("#dscr-inputs .chip", { opacity: 0, y: 10, stagger: 0.1, duration: 0.4, ease: "power2.out" }, 15.3);
-      tl.from("#dscr-inputs .arrow", { opacity: 0, stagger: 0.1, duration: 0.3 }, 15.45);
-      tl.from("#dscr-number", { scale: 0.4, opacity: 0, duration: 0.8, ease: "back.out(1.4)" }, 15.7);
-      tl.from("#explainer-dscr .tool-name", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 22.0);
-      tl.from("#explainer-dscr .tool-tagline", { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" }, 22.4);
+      tl.fromTo("#explainer-dscr .label",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          15.1);
+      tl.fromTo("#explainer-dscr .brand-mark",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          15.1);
+      tl.fromTo("#explainer-dscr .brand-url",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          15.1);
+      // Input chips fade in sequentially
+      tl.fromTo("#dscr-inputs .chip",
+          { opacity: 0, y: 10, stagger: 0.18, duration: 0.45, ease: "power2.out" },
+          { opacity: 1 },
+          15.4);
+      tl.fromTo("#dscr-inputs .arrow",
+          { opacity: 0, stagger: 0.18, duration: 0.3 },
+          { opacity: 1 },
+          15.55);
+      tl.add("dscr-arrows-active", 16.5);
+      tl.to("#dscr-inputs .arrow", { opacity: 1, duration: 0.05 }, "dscr-arrows-active");
+      document.querySelectorAll("#dscr-inputs .arrow").forEach(a => a.classList.add("active"));
+      // Result box scales in
+      tl.fromTo("#dscr-result-box",
+        { opacity: 0, scale: 0.6 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" },
+        16.7
+      );
+      // COUNTER: 0.00 → 1.18 over 1.4s
+      tl.add("dscr-counter-start", 17.2);
+      tl.call(() => {
+        const num = document.querySelector("#dscr-number");
+        countTween(num, 0.00, 1.18, 1.4, 2, "", "");
+      }, null, "dscr-counter-start");
+      // Type-in the chip values at absolute timeline positions
+      tl.call(() => {
+        const v0 = document.querySelectorAll("#dscr-inputs .chip .v")[0];
+        v0.textContent = v0.getAttribute("data-final");
+        v0.classList.remove("placeholder");
+      }, null, 18.0);
+      tl.call(() => {
+        const v1 = document.querySelectorAll("#dscr-inputs .chip .v")[1];
+        v1.textContent = v1.getAttribute("data-final");
+        v1.classList.remove("placeholder");
+      }, null, 18.35);
+      tl.call(() => {
+        const v2 = document.querySelectorAll("#dscr-inputs .chip .v")[2];
+        v2.textContent = v2.getAttribute("data-final");
+        v2.classList.remove("placeholder");
+      }, null, 18.7);
+      // Check mark appears at end of counter
+      tl.fromTo("#dscr-number .check",
+        { opacity: 0, scale: 0.4 },
+        { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" },
+        19.0
+      );
+      tl.fromTo("#explainer-dscr .tool-name",
+          { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          22.0);
+      tl.fromTo("#explainer-dscr .tool-tagline",
+          { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" },
+          { opacity: 1 },
+          22.4);
 
       /* ─── EXPLAINER 2: Deal Analyzer (24-33s) ─────────────── */
-      tl.from("#explainer-deal .label", { opacity: 0, duration: 0.4 }, 24.1);
-      tl.from("#explainer-deal .brand-mark", { opacity: 0, duration: 0.4 }, 24.1);
-      tl.from("#explainer-deal .brand-url", { opacity: 0, duration: 0.4 }, 24.1);
-      tl.from("#deal-grid .field", { opacity: 0, y: 12, stagger: 0.05, duration: 0.35, ease: "power1.out" }, 24.3);
-      tl.from("#deal-grid .field.highlight", { scale: 0.92, duration: 0.4, ease: "back.out(1.2)" }, 24.9);
-      tl.from("#explainer-deal .tool-name", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 31.0);
-      tl.from("#explainer-deal .tool-tagline", { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" }, 31.4);
+      tl.fromTo("#explainer-deal .label",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          24.1);
+      tl.fromTo("#explainer-deal .brand-mark",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          24.1);
+      tl.fromTo("#explainer-deal .brand-url",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          24.1);
+      // Empty cards stagger in
+      tl.fromTo("#deal-grid .field",
+          { opacity: 0, y: 12, stagger: 0.07, duration: 0.4, ease: "power2.out" },
+          { opacity: 1 },
+          24.3);
+      // Type-in field values card-by-card (absolute positions)
+      const dealFieldEls = document.querySelectorAll("#deal-grid .field .v");
+      for (let i = 0; i < dealFieldEls.length; i++) {
+        const el = dealFieldEls[i];
+        const final = el.getAttribute("data-final");
+        tl.call(() => {
+          el.textContent = final;
+          el.classList.remove("placeholder");
+        }, null, 24.8 + (i * 0.22));
+      }
+      // DSCR card scales + highlights (after data fills in)
+      tl.fromTo("#deal-grid .field.highlight",
+        { scale: 1, boxShadow: "0 0 0 0px rgba(216, 217, 88, 0)" },
+        { scale: 1.06, boxShadow: "0 0 0 3px var(--lemon), 0 0 36px rgba(216, 217, 88, 0.45)",
+          duration: 0.5, ease: "back.out(2.0)" },
+        27.5
+      );
+      tl.to("#deal-grid .field.highlight", { scale: 1, duration: 0.35, ease: "power2.out" }, 28.2);
+      tl.fromTo("#explainer-deal .tool-name",
+          { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          31.0);
+      tl.fromTo("#explainer-deal .tool-tagline",
+          { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" },
+          { opacity: 1 },
+          31.4);
 
       /* ─── EXPLAINER 3: Lender Match (33-42s) ───────────────── */
-      tl.from("#explainer-lender .label", { opacity: 0, duration: 0.4 }, 33.1);
-      tl.from("#explainer-lender .brand-mark", { opacity: 0, duration: 0.4 }, 33.1);
-      tl.from("#explainer-lender .brand-url", { opacity: 0, duration: 0.4 }, 33.1);
-      tl.from("#lender-grid .chip", { opacity: 0, scale: 0.5, stagger: 0.04, duration: 0.3, ease: "back.out(1.4)" }, 33.3);
-      tl.from("#lender-grid .chip.highlight", { scale: 0.5, duration: 0.5, ease: "back.out(1.6)" }, 34.5);
-      tl.from("#explainer-lender .tool-name", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 40.0);
-      tl.from("#explainer-lender .tool-tagline", { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" }, 40.4);
+      tl.fromTo("#explainer-lender .label",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          33.1);
+      tl.fromTo("#explainer-lender .brand-mark",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          33.1);
+      tl.fromTo("#explainer-lender .brand-url",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          33.1);
+      // Empty chips fade in
+      tl.fromTo("#lender-grid .chip",
+          { opacity: 0.06, stagger: 0.04, duration: 0.3, ease: "power1.out" },
+          { opacity: 1 },
+          33.4);
+      // Names appear in score order at absolute positions
+      const sortedChips = [...document.querySelectorAll("#lender-grid .chip")].sort((a, b) => {
+        if (a.classList.contains("highlight")) return 1;
+        if (b.classList.contains("highlight")) return -1;
+        return (parseInt(b.querySelector(".score").textContent) || 0) - (parseInt(a.querySelector(".score").textContent) || 0);
+      });
+      sortedChips.forEach((chip, i) => {
+        tl.call(() => {
+          chip.textContent = chip.getAttribute("data-name");
+        }, null, 33.85 + (i * 0.13));
+      });
+      // Scores fade in after names
+      const scoreEls = document.querySelectorAll("#lender-grid .chip .score");
+      scoreEls.forEach((scoreEl, i) => {
+        tl.call(() => { scoreEl.style.opacity = "0.6"; }, null, 34.5 + (i * 0.13));
+      });
+      // GS Match pulse: scale up + flash
+      tl.fromTo("#lender-grid .chip.highlight",
+        { scale: 1 },
+        { scale: 1.12, duration: 0.3, ease: "back.out(1.8)" },
+        37.0
+      );
+      tl.fromTo("#lender-grid .chip.highlight .score",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3 },
+        37.0
+      );
+      // Dim the others
+      tl.to("#lender-grid .chip:not(.highlight)", { opacity: 0.18, duration: 0.5, ease: "power2.out" }, 37.3);
+      tl.fromTo("#explainer-lender .tool-name",
+          { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          40.0);
+      tl.fromTo("#explainer-lender .tool-tagline",
+          { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" },
+          { opacity: 1 },
+          40.4);
 
       /* ─── EXPLAINER 4: Stress Matrix (42-51s) ─────────────── */
-      tl.from("#explainer-stress .label", { opacity: 0, duration: 0.4 }, 42.1);
-      tl.from("#explainer-stress .brand-mark", { opacity: 0, duration: 0.4 }, 42.1);
-      tl.from("#explainer-stress .brand-url", { opacity: 0, duration: 0.4 }, 42.1);
-      tl.from("#stress-grid .cell", { opacity: 0, stagger: 0.012, duration: 0.25, ease: "power1.out" }, 42.3);
-      tl.from("#explainer-stress .tool-name", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 49.0);
-      tl.from("#explainer-stress .tool-tagline", { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" }, 49.4);
+      tl.fromTo("#explainer-stress .label",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          42.1);
+      tl.fromTo("#explainer-stress .brand-mark",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          42.1);
+      tl.fromTo("#explainer-stress .brand-url",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          42.1);
+      // Empty grid cells appear (gray)
+      tl.fromTo("#stress-grid .cell",
+          { opacity: 0, stagger: 0.005, duration: 0.2, ease: "power1.out" },
+          { opacity: 1 },
+          42.4);
+      // Cells fill with colors in a wave: top-left first, bottom-right last (absolute positions)
+      const stressCells = Array.from(document.querySelectorAll("#stress-grid .cell"));
+      stressCells.forEach((cell, i) => {
+        const row = Math.floor(i / 10);
+        const col = i % 10;
+        const absTime = 42.9 + (row + col) * 0.04;
+        tl.call(() => {
+          cell.style.opacity = "1";
+          cell.classList.add("flash");
+        }, null, absTime);
+      });
+      // Risk zone overlay fades in after wave completes
+      tl.fromTo("#stress-zone-overlay",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.6, ease: "power2.out" },
+        46.5
+      );
+
+      // Axis labels fade in
+      tl.fromTo("#stress-axis-y", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 42.5);
+      tl.fromTo("#stress-axis-x", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 42.5);
+
+      // Stat panel reveals after cells fill
+      tl.fromTo("#stress-stat-panel", { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, 46.8);
+      // Stat numbers counter up
+      tl.call(() => {
+        const safeEl = document.getElementById("stat-safe");
+        const cautionEl = document.getElementById("stat-caution");
+        const warnEl = document.getElementById("stat-warn");
+        const breakEl = document.getElementById("stat-break");
+        countTween(safeEl, 0, 92, 1.0, 0, "", "");
+        countTween(cautionEl, 0, 18, 0.9, 0, "", "");
+        countTween(warnEl, 0, 7, 0.8, 0, "", "");
+        countTween(breakEl, 0, 3, 0.7, 0, "", "");
+      }, null, 47.0);
+
+      // Deal-break diagonal line — animates diagonally across the matrix
+      tl.call(() => {
+        const explainer = document.getElementById("explainer-stress");
+        const grid = document.getElementById("stress-grid");
+        const explainerRect = explainer.getBoundingClientRect();
+        const gridRect = grid.getBoundingClientRect();
+        const line = document.getElementById("stress-dealbreak-line");
+        // Position the line diagonally across the grid (top-left to bottom-right)
+        // Grid is 10 cols × 44px + 9×3px gap = 467px wide, 8 rows × 36px + 7×3px gap = 309px tall
+        const gridLeft = gridRect.left - explainerRect.left;
+        const gridTop = gridRect.top - explainerRect.top;
+        const gridW = gridRect.width;
+        const gridH = gridRect.height;
+        const lineLen = Math.sqrt(gridW * gridW + gridH * gridH);
+        const angle = Math.atan2(gridH, gridW) * 180 / Math.PI;
+        line.style.left = `${gridLeft}px`;
+        line.style.top = `${gridTop + gridH / 2}px`;
+        line.style.width = `${lineLen}px`;
+        line.style.transform = `rotate(${-angle}deg)`;
+        line.style.transformOrigin = "left center";
+      }, null, 46.0);
+      tl.fromTo("#stress-dealbreak-line",
+        { opacity: 0, scaleX: 0 },
+        { opacity: 1, scaleX: 1, duration: 0.9, ease: "power2.inOut" },
+        46.2
+      );
+      tl.fromTo("#stress-dealbreak-label",
+        { opacity: 0, x: 10 },
+        { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" },
+        47.0
+      );
+
+      // Critical pulse in bottom-right (the deal-break zone)
+      tl.call(() => {
+        const cell = document.querySelectorAll("#stress-grid .cell")[79]; // bottom-right
+        const rect = cell.getBoundingClientRect();
+        const vRect = document.querySelector("#explainer-stress").getBoundingClientRect();
+        const pulse = document.getElementById("stress-critical-pulse");
+        pulse.style.left = `${rect.left - vRect.left - 3}px`;
+        pulse.style.top = `${rect.top - vRect.top - 3}px`;
+        pulse.classList.add("active");
+        pulse.style.opacity = "0.8";
+      }, null, 47.5);
+      tl.fromTo("#explainer-stress .tool-name",
+          { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          49.0);
+      tl.fromTo("#explainer-stress .tool-tagline",
+          { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" },
+          { opacity: 1 },
+          49.4);
 
       /* ─── EXPLAINER 5: Monte Carlo (51-60s) ───────────────── */
-      tl.from("#explainer-mc .label", { opacity: 0, duration: 0.4 }, 51.1);
-      tl.from("#explainer-mc .brand-mark", { opacity: 0, duration: 0.4 }, 51.1);
-      tl.from("#explainer-mc .brand-url", { opacity: 0, duration: 0.4 }, 51.1);
-      tl.from("#mc-canvas .baseline", { scaleX: 0, transformOrigin: "left center", duration: 0.6, ease: "power2.out" }, 51.3);
-      // FIX: drawSVG not available; use stroke-dashoffset to reveal paths
-      tl.to("#mc-canvas svg path:nth-child(1)", { strokeDashoffset: 0, duration: 1.4, ease: "power2.out" }, 51.4);
-      tl.to("#mc-canvas svg path:nth-child(2)", { strokeDashoffset: 0, duration: 1.4, ease: "power2.out" }, 51.5);
-      tl.to("#mc-canvas svg path:nth-child(3)", { strokeDashoffset: 0, duration: 1.4, ease: "power2.out" }, 51.6);
-      tl.to("#mc-canvas svg path:nth-child(4)", { strokeDashoffset: 0, duration: 1.4, ease: "power2.out" }, 51.7);
-      tl.to("#mc-canvas svg path:nth-child(5)", { strokeDashoffset: 0, duration: 1.4, ease: "power2.out" }, 51.8);
-      tl.to("#mc-canvas svg path:nth-child(6)", { strokeDashoffset: 0, duration: 1.4, ease: "power2.out" }, 51.9);
-      tl.from("#mc-canvas .axis-label", { opacity: 0, duration: 0.4 }, 58.0);
-      tl.from("#explainer-mc .tool-name", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 58.0);
-      tl.from("#explainer-mc .tool-tagline", { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" }, 58.4);
+      tl.fromTo("#explainer-mc .label",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          51.1);
+      tl.fromTo("#explainer-mc .brand-mark",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          51.1);
+      tl.fromTo("#explainer-mc .brand-url",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          51.1);
+      tl.fromTo("#mc-canvas .baseline",
+          { scaleX: 0, transformOrigin: "left center", duration: 0.6, ease: "power2.out" },
+          { scaleX: 1,
+          opacity: 1 },
+          51.3);
+      // 6 rate paths draw one at a time
+      const paths = document.querySelectorAll("#mc-canvas svg path");
+      paths.forEach((p, i) => {
+        tl.to(p, { strokeDashoffset: 0, duration: 0.8, ease: "power2.out" }, 51.5 + i * 0.4);
+      });
+      // Median line: glow pulse after all paths drawn
+      tl.call(() => {
+        document.querySelectorAll("#mc-canvas svg path.median").forEach(p => p.classList.add("active"));
+      }, null, 54.5);
+      // Distribution histogram fades in
+      tl.fromTo("#mc-canvas .histogram",
+          { opacity: 0, y: 30, duration: 0.7, ease: "power2.out" },
+          { opacity: 1 },
+          55.0);
+      tl.fromTo("#mc-canvas .histogram .bar",
+          { scaleY: 0, transformOrigin: "bottom center", stagger: 0.05, duration: 0.4, ease: "back.out(1.4)" },
+          { scaleY: 1,
+          opacity: 1 },
+          55.2);
+      tl.fromTo("#mc-canvas .axis-label",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          56.5);
+      tl.fromTo("#explainer-mc .tool-name",
+          { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          58.0);
+      tl.fromTo("#explainer-mc .tool-tagline",
+          { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" },
+          { opacity: 1 },
+          58.4);
 
       /* ─── EXPLAINER 6: Returns (60-69s) ────────────────────── */
-      tl.from("#explainer-returns .label", { opacity: 0, duration: 0.4 }, 60.1);
-      tl.from("#explainer-returns .brand-mark", { opacity: 0, duration: 0.4 }, 60.1);
-      tl.from("#explainer-returns .brand-url", { opacity: 0, duration: 0.4 }, 60.1);
-      tl.from("#ret-bars .bar", { scaleY: 0, transformOrigin: "bottom center", stagger: 0.06, duration: 0.4, ease: "back.out(1.4)" }, 60.3);
-      tl.from("#ret-number", { scale: 0.4, opacity: 0, duration: 0.8, ease: "back.out(1.4)" }, 60.7);
-      tl.from("#explainer-returns .tool-name", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 67.0);
-      tl.from("#explainer-returns .tool-tagline", { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" }, 67.4);
+      tl.fromTo("#explainer-returns .label",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          60.1);
+      tl.fromTo("#explainer-returns .brand-mark",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          60.1);
+      tl.fromTo("#explainer-returns .brand-url",
+          { opacity: 0, duration: 0.4 },
+          { opacity: 1 },
+          60.1);
+      // Bars grow sequentially to their target heights (CSS transition, absolute positions)
+      const bars = document.querySelectorAll("#ret-bars .bar");
+      bars.forEach((bar, i) => {
+        const targetH = bar.style.getPropertyValue("--h");
+        tl.call(() => {
+          bar.style.height = targetH;
+          bar.style.transition = "height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        }, null, 60.4 + (i * 0.09));
+      });
+      // Bar value labels pop in
+      const valEls = document.querySelectorAll("#ret-bars .bar .val");
+      valEls.forEach((valEl, i) => {
+        tl.call(() => { valEl.style.opacity = "1"; }, null, 60.7 + (i * 0.09));
+      });
+      // COUNTER: 0.0 → 14.4 over 1.5s
+      tl.call(() => {
+        const num = document.querySelector("#ret-number");
+        countTween(num, 0.0, 14.4, 1.5, 1, "", "");
+      }, null, 61.5);
+      tl.fromTo("#explainer-returns .tool-name",
+          { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          67.0);
+      tl.fromTo("#explainer-returns .tool-tagline",
+          { opacity: 0, y: 10, duration: 0.4, ease: "power2.out" },
+          { opacity: 1 },
+          67.4);
 
       /* ─── OUTCOME (69-81s) ────────────────────────────────── */
       tl.fromTo("#out-windowlight", { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "power2.out" }, 69.0);
-      tl.from("#out-clock", { opacity: 0, y: -20, duration: 0.5, ease: "power2.out" }, 69.2);
-      tl.from("#out-headline", { opacity: 0, y: 30, duration: 0.8, ease: "power3.out" }, 69.4);
-      tl.from("#out-laptop", { y: 30, opacity: 0, duration: 0.7, ease: "power3.out" }, 69.6);
-      tl.from("#out-priced .h", { opacity: 0, y: 10, duration: 0.4, ease: "power1.out" }, 70.0);
-      tl.from("#out-priced .row", { opacity: 0, y: 8, duration: 0.35, stagger: 0.06, ease: "power1.out" }, 70.2);
-      tl.from("#out-priced .rate", { opacity: 0, scale: 0.95, duration: 0.5, ease: "back.out(1.2)" }, 70.6);
-      tl.from("#out-coffee", { opacity: 0, scale: 0.85, duration: 0.5, ease: "back.out(1.2)" }, 70.8);
-      tl.from("#out-phone", { opacity: 0, x: 30, duration: 0.5, ease: "power2.out" }, 71.0);
+      tl.fromTo("#out-clock",
+          { opacity: 0, y: -20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          69.2);
+      tl.fromTo("#out-headline",
+          { opacity: 0, y: 30, duration: 0.8, ease: "power3.out" },
+          { opacity: 1 },
+          69.4);
+      tl.fromTo("#out-laptop",
+          { y: 30, opacity: 0, duration: 0.7, ease: "power3.out" },
+          { opacity: 1 },
+          69.6);
+      tl.fromTo("#out-priced .h",
+          { opacity: 0, y: 10, duration: 0.4, ease: "power1.out" },
+          { opacity: 1 },
+          70.0);
+      // Badge pops in with bounce
+      tl.fromTo("#out-priced .h .badge",
+        { opacity: 0, scale: 0.4 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2.4)" },
+        70.3
+      );
+      // Data fields type-in (absolute positions)
+      const outFieldEls = document.querySelectorAll("#out-priced .row .v");
+      outFieldEls.forEach((el, i) => {
+        const final = el.getAttribute("data-final");
+        tl.call(() => {
+          el.textContent = final;
+          el.style.opacity = "1";
+        }, null, 70.6 + (i * 0.13));
+      });
+      // Rate band slides in from left
+      tl.fromTo("#out-priced .rate",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power3.out" },
+        71.5
+      );
+      // Coffee fills
+      tl.fromTo("#out-coffee .full", { opacity: 0 }, { opacity: 1, duration: 0.7 }, 71.0);
+      tl.fromTo("#out-coffee .steam",
+          { opacity: 0, duration: 0.5 },
+          { opacity: 1 },
+          71.6);
+      tl.fromTo("#out-phone",
+          { opacity: 0, x: 30, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          71.0);
 
       /* ─── CTA (81-91s) ────────────────────────────────────── */
       tl.fromTo("#cta-logo",
@@ -1070,10 +1736,22 @@
         { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" },
         81.1
       );
-      tl.from("#cta-tagline", { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" }, 81.5);
-      tl.from("#cta-btn-1", { opacity: 0, x: -30, duration: 0.5, ease: "power3.out" }, 81.9);
-      tl.from("#cta-btn-2", { opacity: 0, x: 30, duration: 0.5, ease: "power3.out" }, 81.9);
-      tl.from("#cta-url", { opacity: 0, y: 10, duration: 0.5, ease: "power2.out" }, 82.3);
+      tl.fromTo("#cta-tagline",
+          { opacity: 0, y: 20, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          81.5);
+      tl.fromTo("#cta-btn-1",
+          { opacity: 0, x: -30, duration: 0.5, ease: "power3.out" },
+          { opacity: 1 },
+          81.9);
+      tl.fromTo("#cta-btn-2",
+          { opacity: 0, x: 30, duration: 0.5, ease: "power3.out" },
+          { opacity: 1 },
+          81.9);
+      tl.fromTo("#cta-url",
+          { opacity: 0, y: 10, duration: 0.5, ease: "power2.out" },
+          { opacity: 1 },
+          82.3);
 
       window.__timelines["main"] = tl;
     </script>

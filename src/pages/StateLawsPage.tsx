@@ -117,8 +117,9 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
         .sl-cell:hover{transform:scale(1.09);}
         .sl-input{width:100%;border:1px solid rgba(238,239,211,0.25);background:rgba(238,239,211,0.08);outline:none;color:#eeefd3;font-family:${dc.sans};font-size:15px;letter-spacing:-0.01em;border-radius:8px;padding:12px 14px;}
         .sl-input::placeholder{color:rgba(238,239,211,0.5);}
+        .sl-input:focus-visible{outline:2px solid rgba(238,239,211,0.8);outline-offset:2px;}
         .us-state{transition:fill .15s, filter .15s, stroke .12s, stroke-width .12s;}
-        .us-state:focus{outline:none;}
+        .us-state:focus-visible{stroke:#d8d958 !important;stroke-width:2.5px !important;}
       `}</style>
 
       {/* HERO — rain-forest, single column (distinct from the dark tool heroes) */}
