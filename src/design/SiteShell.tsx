@@ -55,7 +55,7 @@ const NAV_MENUS: NavMenu[] = [
 ];
 
 const NAV_DD_CSS = `
-.gs-dd-wrap{position:relative;}
+.gs-dd-wrap{position:static;}
 .gs-dd-panel{position:absolute;top:calc(100% + 12px);left:0;min-width:240px;background:${PISTACHIO};border:1px solid ${FADED};border-radius:12px;padding:8px;display:flex;flex-direction:column;z-index:60;}
 .gs-dd-panel.is-mega{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;min-width:430px;}
 .gs-dd-panel::before{content:"";position:absolute;top:-12px;left:0;right:0;height:12px;}
@@ -78,6 +78,21 @@ const NAV_DD_CSS = `
 .gs-site-nav .nav-btn{transition:filter .2s ease,transform .1s ease;}
 .gs-site-nav .nav-btn:hover{filter:brightness(1.08);}
 .gs-site-nav .nav-btn:active{transform:translateY(1px);}
+/* ── Mega dropdown — matches the Webflow home mega (full-width card grid) ── */
+.gs-dd-wrap.is-open .gs-dd-toggle .nav-link-background{opacity:1;}
+.gs-mega{position:absolute;top:100%;left:0;right:0;z-index:60;background:${PISTACHIO};border-top:1px solid ${FADED};border-radius:0 0 16px 16px;}
+.gs-mega::before{content:"";position:absolute;top:-14px;left:0;right:0;height:14px;}
+.gs-mega-inner{padding:16px 0 26px;}
+.gs-mega-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.gs-mega-card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:20px;min-height:116px;padding:16px 18px;border-radius:14px;background:${MINT_BG};color:${MIDNIGHT};text-decoration:none;transition:background-color .18s ease,color .18s ease;}
+.gs-mega-card:hover,.gs-mega-card:focus-visible{background:${LEMON};color:${MIDNIGHT};outline:none;}
+.gs-mega-card.is-current{background:${LEMON};color:${MIDNIGHT};}
+.gs-mega-title{font-size:18px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
+.gs-mega-arrow{align-self:flex-end;flex-shrink:0;}
+.gs-mega-feature{grid-row:span 2;grid-column:1;min-height:auto;background:${MIDNIGHT};color:${PISTACHIO};}
+.gs-mega-feature:hover,.gs-mega-feature:focus-visible{background:${MIDNIGHT};color:${PISTACHIO};}
+.gs-mega-logo{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
+@media (max-width:991px){.gs-mega{display:none !important;}}
 `;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
@@ -113,8 +128,10 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     if (!openMenu || !panelRef.current) return;
     const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
-    gsap.fromTo(panelRef.current, { y: -8, opacity: 0, transformOrigin: "top center" }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" });
-    gsap.fromTo(panelRef.current.querySelectorAll(".gs-dd-item"), { y: -6, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, stagger: 0.035, ease: "power2.out", delay: 0.04, clearProps: "all" });
+    // Transform-only (no opacity-from-0): if the rAF ticker is ever throttled the
+    // panel still ends VISIBLE — a stuck few-px slide is fine, an invisible menu is not.
+    gsap.fromTo(panelRef.current, { y: -10 }, { y: 0, duration: 0.3, ease: "power2.out", clearProps: "transform" });
+    gsap.fromTo(panelRef.current.querySelectorAll(".gs-mega-card"), { y: -8 }, { y: 0, duration: 0.28, stagger: 0.03, ease: "power2.out", delay: 0.04, clearProps: "transform" });
   }, [openMenu]);
 
   // GSAP: mobile menu open (slide+fade, then staggered links). Reduced-motion safe.
@@ -132,36 +149,60 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     </svg>
   );
 
-  const renderMenu = (m: NavMenu) => (
-    <div
-      key={m.label}
-      className={`gs-dd-wrap${openMenu === m.label ? " is-open" : ""}`}
-      onMouseEnter={() => openNow(m.label)}
-      onMouseLeave={() => scheduleClose(m.label)}
-    >
-      <a
-        className={`nav-link gs-dd-toggle w-inline-block${menuActive(m) ? " is-active" : ""}`}
-        href={m.path}
-        aria-haspopup="true"
-        aria-expanded={openMenu === m.label}
-        onClick={go(m.view)}
-        onFocus={() => openNow(m.label)}
-      >
-        <div className="nav-link-background" aria-hidden="true" />
-        <div className="nav_links_text">{m.label}</div>
-        {caret}
-      </a>
-      {openMenu === m.label && (
-        <div ref={panelRef} className={`gs-dd-panel${m.items.length > 4 ? " is-mega" : ""}`} role="menu" aria-label={m.label}>
-          {m.items.map((it, i) => (
-            <a key={i} role="menuitem" className={`gs-dd-item${itemActive(it) ? " is-active" : ""}`} href={it.path} onClick={nav(it)}>
-              {it.label}
-            </a>
-          ))}
-        </div>
-      )}
-    </div>
+  const arrow = (
+    <svg className="gs-mega-arrow" width="17" height="17" viewBox="0 0 24 25" fill="none" aria-hidden="true">
+      <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor" />
+    </svg>
   );
+
+  const renderMenu = (m: NavMenu) => {
+    // First item is the INVESTGO portal -> render as the tall dark feature card
+    // (matches the home mega); the rest fill the 4-col card grid beside it.
+    const hasFeature = m.items[0]?.view === "portal";
+    const feature = hasFeature ? m.items[0] : null;
+    const cards = hasFeature ? m.items.slice(1) : m.items;
+    return (
+      <div
+        key={m.label}
+        className={`gs-dd-wrap${openMenu === m.label ? " is-open" : ""}`}
+        onMouseEnter={() => openNow(m.label)}
+        onMouseLeave={() => scheduleClose(m.label)}
+      >
+        <a
+          className={`nav-link gs-dd-toggle w-inline-block${menuActive(m) ? " is-active" : ""}`}
+          href={m.path}
+          aria-haspopup="true"
+          aria-expanded={openMenu === m.label}
+          onClick={go(m.view)}
+          onFocus={() => openNow(m.label)}
+        >
+          <div className="nav-link-background" aria-hidden="true" />
+          <div className="nav_links_text">{m.label}</div>
+          {caret}
+        </a>
+        {openMenu === m.label && (
+          <div ref={panelRef} className="gs-mega" role="menu" aria-label={m.label}>
+            <div className="gs-mega-inner">
+              <div className="gs-mega-grid">
+                {feature && (
+                  <a className="gs-mega-card gs-mega-feature" href={feature.path} onClick={nav(feature)}>
+                    <div className="gs-mega-logo">INVEST<span style={{ opacity: 0.5 }}>GO</span></div>
+                    {arrow}
+                  </a>
+                )}
+                {cards.map((it, i) => (
+                  <a key={i} role="menuitem" className={`gs-mega-card${itemActive(it) ? " is-current" : ""}`} href={it.path} onClick={nav(it)}>
+                    <div className="gs-mega-title">{it.label}</div>
+                    {arrow}
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
