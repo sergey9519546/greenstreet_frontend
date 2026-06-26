@@ -55,16 +55,38 @@ export default function BlogPostPage({
   }, [post]);
 
   const navLinks = [
-    { label: "Guidance",     view: "blog" },
-    { label: "Case Studies", view: "case-studies" },
+    { label: "Guidance", view: "blog" },
+    { label: "DSCR Calc", view: "dscr-calculator" },
+    { label: "FAQ", view: "faq" },
   ];
   const cta = { label: "Price a deal →", view: "dscr-calculator" };
 
   if (!post) {
     return (
       <DcShell onNavigate={onNavigate} navLinks={navLinks} cta={cta}>
-        <div style={{ padding: "100px clamp(1.5rem,4vw,3rem)", textAlign: "center", color: dc.dark }}>
-          Post not found.
+        <div
+          style={{
+            padding: "clamp(80px,12vh,140px) clamp(1.5rem,4vw,3rem)",
+            textAlign: "center",
+            maxWidth: 480,
+            margin: "0 auto",
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 16 }}>
+            404 · Article not found
+          </div>
+          <h1 style={{ fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, margin: "0 0 16px", lineHeight: 1.1 }}>
+            That article doesn't exist.
+          </h1>
+          <p style={{ fontSize: 16, fontWeight: 500, color: "rgba(0,55,56,0.6)", lineHeight: 1.6, margin: "0 0 28px" }}>
+            It may have moved or the URL may be wrong. Browse all investor guidance below.
+          </p>
+          <button
+            onClick={() => onNavigate("blog")}
+            style={{ background: dc.dark, color: dc.cream, border: "none", borderRadius: dc.r.sm, padding: "12px 24px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+          >
+            ← Back to all articles
+          </button>
         </div>
       </DcShell>
     );

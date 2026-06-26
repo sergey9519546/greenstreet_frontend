@@ -246,6 +246,21 @@ function TabPane({ id, children }: { id: string; children: React.ReactNode }) {
   );
 }
 
+/** Returns true while viewport width >= minPx — re-evaluates on resize */
+function useMinWidth(minPx: number): boolean {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= minPx : true
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${minPx}px)`);
+    const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
+    setMatches(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [minPx]);
+  return matches;
+}
+
 // ─── Disclaimer footer (compliance) ─────────────────────────────────────────
 function Disclaimer() {
   return (
@@ -271,6 +286,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Breakpoint hooks — must be at top level, before any early returns
+  const isWide = useMinWidth(992);
+  const isMd   = useMinWidth(768);
+
   const [brokerConfig, setBrokerConfig] = useState({ brokerName: "", nmls: "", licenseType: "", primaryMarket: "", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend." });
   const [brokerSaved, setBrokerSaved] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -284,6 +303,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
   const [isRunning, setIsRunning] = useState(false);
   const [solveError, setSolveError] = useState<string | null>(null);
+  const [sensError, setSensError] = useState<string | null>(null);
+  const [optError, setOptError] = useState<string | null>(null);
   const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
   const [sensResult, setSensResult] = useState<SensResult | null>(null);
   const [optResult, setOptResult] = useState<OptResult | null>(null);
@@ -362,7 +383,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const handleAnalyze = useCallback(async () => {
     const payload = buildPayload();
     setIsRunning(true);
-    setSolveResult(null); setSensResult(null); setOptResult(null); setSolveError(null);
+    setSolveResult(null); setSensResult(null); setOptResult(null);
+    setSolveError(null); setSensError(null); setOptError(null);
     try {
       const [solveRes, sensRes, optRes] = await Promise.all([
         fetch("/api/dscr/solve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
@@ -372,8 +394,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
       const [solve, sens, opt] = await Promise.all([solveRes.json(), sensRes.json(), optRes.json()]);
       if (!solveRes.ok) throw new Error(solve.error || "Solve failed");
       setSolveResult(solve);
-      if (sensRes.ok) setSensResult(sens);
-      if (optRes.ok) setOptResult(opt);
+      if (sensRes.ok) { setSensResult(sens); } else { setSensError(sens.error || "Sensitivity engine failed. Re-run from Deal Workspace."); }
+      if (optRes.ok) { setOptResult(opt); } else { setOptError(opt.error || "Optimizer engine failed. Re-run from Deal Workspace."); }
       await saveLog("analyze",
         `DSCR ${solve.deal.dscr.toFixed(2)}x — ${dealForm.propertyType} ${dealForm.state} ${dscrLabel(solve.deal.dscr)}`,
         JSON.stringify(payload), solve);
@@ -403,6 +425,14 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const ltv = dealForm.purchasePrice && dealForm.loanAmount
     ? ((parseFloat(dealForm.loanAmount) / parseFloat(dealForm.purchasePrice)) * 100).toFixed(1)
     : "—";
+
+  // Form validation — required fields must be non-zero numbers
+  const dealFormValid =
+    parseFloat(dealForm.purchasePrice) > 0 &&
+    parseFloat(dealForm.loanAmount) > 0 &&
+    parseFloat(dealForm.monthlyRent) > 0 &&
+    parseInt(dealForm.ficoScore) >= 300 &&
+    dealForm.state.trim().length === 2;
 
   const switchTab = (tab: DashboardTab) => { setActiveTab(tab); setSelectedLog(null); setSidebarOpen(false); };
 
@@ -736,8 +766,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         ))}
                       </div>
 
-                      {/* Two-column (stacks on mobile) */}
-                      <div className="grid gap-4" style={{ gridTemplateColumns: "minmax(0,1.5fr) minmax(0,1fr)" }}>
+                      {/* Two-column (stacks below 992px) */}
+                      <div className="grid gap-4" style={{ gridTemplateColumns: isWide ? "minmax(0,1.5fr) minmax(0,1fr)" : "minmax(0,1fr)" }}>
                         {/* Pipeline table */}
                         <WhiteCard style={{ padding: "24px" }}>
                           <div className="text-base font-bold mb-4" style={{ color: T.ink, letterSpacing: "-0.02em" }}>Active pipeline</div>
@@ -887,14 +917,19 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             LTV: {ltv}% · Rate auto-solved by engine
                           </p>
 
-                          <PrimaryBtn onClick={handleAnalyze} disabled={isRunning} className="w-full mt-4">
+                          <PrimaryBtn onClick={handleAnalyze} disabled={isRunning || !dealFormValid} className="w-full mt-4">
                             {isRunning ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
                             {isRunning ? "Solving…" : "Analyze Deal"}
                           </PrimaryBtn>
 
-                          {!solveResult && !isRunning && !solveError && (
+                          {!dealFormValid && !isRunning && (
+                            <p className="text-[10px] text-center mt-2" style={{ color: T.dangerText }}>
+                              Fill in purchase price, loan amount, rent, FICO, and state to run.
+                            </p>
+                          )}
+                          {dealFormValid && !solveResult && !isRunning && !solveError && (
                             <p className="text-[10px] text-center mt-2" style={{ color: T.faint }}>
-                              Runs solve + sensitivity + optimizer in parallel
+                              Solves DSCR · sensitivity · optimizer in one pass
                             </p>
                           )}
                         </WhiteCard>
@@ -1025,16 +1060,25 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                   ))}
                                 </div>
 
-                                {/* Top lenders */}
+                                {/* Top Programs */}
                                 {solveResult!.topLenders.length > 0 && (
                                   <WhiteCard style={{ padding: "20px" }}>
-                                    <h4 className="font-bold text-sm mb-3" style={{ color: T.ink }}>Top Matching Lenders</h4>
+                                    <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
+                                      <div>
+                                        <h4 className="font-bold text-sm" style={{ color: T.ink }}>Top Matching Programs</h4>
+                                        <p className="text-[11px] mt-0.5" style={{ color: T.faint }}>Programs ranked by fit score for this deal. Ready to submit to underwriting.</p>
+                                      </div>
+                                      <GhostBtn onClick={() => switchTab("optimize")}>
+                                        See all structures →
+                                      </GhostBtn>
+                                    </div>
                                     <div className="flex flex-wrap gap-2">
                                       {solveResult!.topLenders.map((l, i) => (
                                         <div key={i} className="px-3 py-1.5 text-xs"
                                           style={{ background: T.inputBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.sm }}>
                                           <span className="font-bold" style={{ color: T.ink }}>{l.name}</span>
                                           <span className="ml-2 font-mono" style={{ color: T.faint }}>{l.score}/100</span>
+                                          {l.tier && <span className="ml-2 font-semibold uppercase text-[9px]" style={{ color: swatch.rainforest }}>{l.tier}</span>}
                                         </div>
                                       ))}
                                     </div>
@@ -1065,18 +1109,38 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     <TabPane id="sensitivity">
                       <div className="pb-1">
                         <p className="text-sm" style={{ color: T.muted }}>
-                          Shows how far the deal can bend before it breaks. Run <strong>Analyze</strong> first — this tab populates from the same engine call. Use it to find the rent floor, max rate, and max price that still clear each DSCR threshold.
+                          Shows how far the deal can bend before it breaks — the rent floor, max rate, and highest purchase price that still clears each DSCR threshold. Run <strong>Analyze</strong> from Deal Workspace; sensitivity runs in the same engine call.
                         </p>
                       </div>
 
-                      {!sensResult ? (
+                      {/* Loading */}
+                      {isRunning && (
+                        <Card style={{ padding: "28px" }}>
+                          <div className="flex items-center gap-3 mb-5">
+                            <RefreshCw className="w-5 h-5 animate-spin" style={{ color: swatch.rainforest }} />
+                            <span className="text-sm font-semibold" style={{ color: T.ink }}>Running sensitivity analysis…</span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Skeleton h={140} rounded={radius.md} />
+                            <Skeleton h={140} rounded={radius.md} />
+                            <Skeleton h={140} rounded={radius.md} />
+                          </div>
+                        </Card>
+                      )}
+
+                      {/* Error */}
+                      {sensError && !isRunning && (
+                        <ErrorBanner message={sensError} onRetry={() => { switchTab("analyze"); }} />
+                      )}
+
+                      {!isRunning && !sensError && !sensResult ? (
                         <Card style={{ padding: "64px 24px", textAlign: "center" }}>
                           <BarChart2 className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
-                          <p className="text-sm font-semibold" style={{ color: T.muted }}>Run DSCR Analyzer first to populate sensitivity data.</p>
-                          <p className="text-xs mt-1 mb-5" style={{ color: T.faint }}>Sensitivity runs in the same engine call as the deal solve.</p>
+                          <p className="text-sm font-semibold" style={{ color: T.muted }}>No sensitivity data yet.</p>
+                          <p className="text-xs mt-1 mb-5" style={{ color: T.faint }}>Go to Deal Workspace, enter your inputs, and run Analyze. Sensitivity populates automatically.</p>
                           <PrimaryBtn onClick={() => switchTab("analyze")}>Go to Deal Workspace →</PrimaryBtn>
                         </Card>
-                      ) : (
+                      ) : !isRunning && sensResult ? (
                         <>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Rent breakeven */}
@@ -1236,7 +1300,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             );
                           })()}
                         </>
-                      )}
+                      ) : null}
                     </TabPane>
                   )}
 
@@ -1245,17 +1309,36 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     <TabPane id="optimize">
                       <div className="pb-1">
                         <p className="text-sm" style={{ color: T.muted }}>
-                          Compares every loan structure the engine knows — 30yr, IO, 40yr, different term lengths — ranked by DSCR. Run <strong>Analyze</strong> first; this populates from the same call.
+                          Compares every loan structure Greenstreet offers — 30yr P&amp;I, interest-only, 40yr amort — ranked by DSCR so you can see which structure gives the deal the most room. Run <strong>Analyze</strong> in Deal Workspace first; optimizer runs in the same call.
                         </p>
                       </div>
 
-                      {!optResult ? (
+                      {/* Loading */}
+                      {isRunning && (
+                        <Card style={{ padding: "28px" }}>
+                          <div className="flex items-center gap-3 mb-5">
+                            <RefreshCw className="w-5 h-5 animate-spin" style={{ color: swatch.rainforest }} />
+                            <span className="text-sm font-semibold" style={{ color: T.ink }}>Evaluating loan structures…</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[1,2,3].map(i => <Skeleton key={i} h={160} rounded={radius.md} />)}
+                          </div>
+                        </Card>
+                      )}
+
+                      {/* Error */}
+                      {optError && !isRunning && (
+                        <ErrorBanner message={optError} onRetry={() => switchTab("analyze")} />
+                      )}
+
+                      {!isRunning && !optError && !optResult ? (
                         <Card style={{ padding: "64px 24px", textAlign: "center" }}>
                           <Zap className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
-                          <p className="text-sm font-semibold" style={{ color: T.muted }}>Run DSCR Analyzer first to generate structure options.</p>
+                          <p className="text-sm font-semibold" style={{ color: T.muted }}>No structure data yet.</p>
+                          <p className="text-xs mt-1 mb-5" style={{ color: T.faint }}>Go to Deal Workspace, fill in the deal inputs, and run Analyze. The optimizer evaluates all structures in the same pass.</p>
                           <div className="mt-5"><PrimaryBtn onClick={() => switchTab("analyze")}>Go to Deal Workspace →</PrimaryBtn></div>
                         </Card>
-                      ) : (
+                      ) : !isRunning && optResult ? (
                         <>
                           <p className="text-xs" style={{ color: T.faint }}>
                             {optResult.options.length} structures evaluated — sorted by Track 1 DSCR, highest first
@@ -1322,7 +1405,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             })}
                           </div>
                         </>
-                      )}
+                      ) : null}
                     </TabPane>
                   )}
 

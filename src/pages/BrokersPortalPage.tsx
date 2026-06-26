@@ -5,34 +5,34 @@ import { radius } from "../theme";
 // ── Workspace feature tiles — ported from "Everything a serious investor needs." ──
 const BENEFITS = [
   {
-    icon: "❏",
+    icon: "01",
     title: "Saved scenarios",
     desc: "Every deal you price is stored and reopenable. No re-entering data when you come back to it.",
   },
   {
-    icon: "⊕",
+    icon: "02",
     title: "Submit to underwriting",
     desc: "Once your deal matches a program, send it straight to underwriting from the same screen — we are the lender. No copy-paste, no portal-hop.",
   },
   {
-    icon: "◰",
+    icon: "03",
     title: "Shareable deal summary",
     desc: "Generate a clean deal-summary PDF in 10 seconds — share it with a partner or keep it for your records.",
   },
   {
-    icon: "$",
+    icon: "04",
     title: "Portfolio tracker",
-    desc: "Track every deal across your portfolio so nothing slips through.",
+    desc: "Track every active deal across your pipeline so nothing slips through the cracks.",
   },
   {
-    icon: "⚑",
+    icon: "05",
     title: "State-rule alerts",
     desc: "Automatically flagged when a deal hits a high-risk prepayment penalty (a fee some loans charge for early payoff or refi) or usury state — before the quote goes out.",
   },
   {
-    icon: "⤓",
+    icon: "06",
     title: "Export-ready deal package",
-    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for lender review or borrower presentation.",
+    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for underwriting review or your own records.",
   },
 ];
 
@@ -76,8 +76,8 @@ export default function BrokersPortalPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
+        { label: "FAQ", view: "faq" },
       ]}
       cta={{ label: "Sign in →", view: "portal" }}
     >
@@ -254,7 +254,7 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                New partner?{" "}
+                New to Greenstreet?{" "}
                 <button
                   onClick={() => onNavigate("rate-quiz")}
                   style={{
@@ -269,7 +269,7 @@ export default function BrokersPortalPage({
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  Request access
+                  Price your first deal free →
                 </button>
               </div>
             </div>
@@ -548,7 +548,7 @@ export default function BrokersPortalPage({
                 gap: 9,
                 background: "transparent",
                 color: dc.cream,
-                border: `1.5px solid ${dc.dark}50`,
+                border: `1.5px solid rgba(238,239,211,0.3)`,
                 fontWeight: 600,
                 fontSize: 16,
                 cursor: "pointer",

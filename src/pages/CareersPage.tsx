@@ -34,18 +34,18 @@ const ROLES: Role[] = [
     body: "You've underwritten non-QM files. You read prepay statutes for fun. You can translate a lender rate sheet into a rule set that a machine can execute — and you spot a bad deal structure before anyone else in the room does.",
   },
   {
-    title: "Broker Success Manager",
+    title: "Investor Success Lead",
     team: "Customer",
     location: "Remote (US)",
     type: "Full-time",
-    body: "You turn new partners into power users. Onboard, train, run deal clinics, answer the 10pm question from a broker in the middle of a close. The metric that matters: how fast does their first deal become their fiftieth?",
+    body: "You turn new investors into repeat closers. Onboard, guide deal structuring, answer the 10pm question from an investor in the middle of a close. The metric that matters: how fast does their first funded deal become their fifth.",
   },
   {
     title: "Product Designer",
     team: "Design",
     location: "Remote (US)",
     type: "Full-time",
-    body: "You're designing tools that brokers use when there's real money on the line — DSCR calculators, lender matrices, deal flow screens. Every decision you make should make the numbers clearer, faster, and harder to misread.",
+    body: "You're designing tools that investors use when there's real money on the line — DSCR analyzers, program-match flows, deal-summary screens. Every decision you make should make the numbers clearer, faster, and harder to misread.",
   },
   {
     title: "Compliance Counsel",
@@ -69,6 +69,10 @@ const VALUES = [
   {
     title: "Remote, written, async",
     desc: "We default to writing things down. Deep work beats meetings.",
+  },
+  {
+    title: "Investor-first design",
+    desc: "Every screen is stress-tested by asking: does this help an investor close a better deal, faster?",
   },
 ];
 
@@ -216,8 +220,8 @@ export default function CareersPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
+        { label: "FAQ", view: "faq" },
       ]}
       cta={{ label: "See openings →", onClick: scrollToJobs }}
     >
@@ -352,7 +356,7 @@ export default function CareersPage({
             className="dc-band-3"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3,1fr)",
+              gridTemplateColumns: "repeat(4,1fr)",
               gap: "1px",
               background: `${dc.dark}20`,
               borderRadius: radius.md,
@@ -396,11 +400,10 @@ export default function CareersPage({
         </div>
       </section>
 
-      {/* ── CLOSING CTA — lemon primary, direct to open roles ── */}
+      {/* ── CLOSING CTA — mintBg for visual break from the dark "how we work" band ── */}
       <section
         style={{
-          background: dc.dark,
-          color: dc.cream,
+          background: dc.mintBg,
           padding: "clamp(56px,7vw,88px) clamp(1.5rem,4vw,3rem)",
         }}
       >
@@ -422,7 +425,7 @@ export default function CareersPage({
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase" as const,
-                color: dc.lemon,
+                color: dc.rain,
                 marginBottom: 14,
               }}
             >
@@ -434,7 +437,7 @@ export default function CareersPage({
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
-                color: dc.cream,
+                color: dc.dark,
                 margin: "0 0 14px",
               }}
             >
@@ -447,7 +450,7 @@ export default function CareersPage({
                 fontSize: "clamp(14px,1.2vw,17px)",
                 fontWeight: 500,
                 lineHeight: 1.55,
-                color: "rgba(238,239,211,0.6)",
+                color: "rgba(0,55,56,0.6)",
                 margin: 0,
                 letterSpacing: "-0.01em",
               }}
@@ -462,8 +465,8 @@ export default function CareersPage({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
-                background: dc.lemon,
-                color: dc.dark,
+                background: dc.dark,
+                color: dc.cream,
                 fontWeight: 700,
                 fontSize: 15,
                 textDecoration: "none",
@@ -476,16 +479,16 @@ export default function CareersPage({
               Email your application →
             </a>
             <button
-              onClick={() => onNavigate("about")}
+              onClick={() => onNavigate?.("about")}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
                 background: "transparent",
-                color: dc.cream,
+                color: dc.dark,
                 fontWeight: 600,
                 fontSize: 15,
-                border: `1.5px solid ${dc.faded}`,
+                border: `1.5px solid ${dc.dark}40`,
                 cursor: "pointer",
                 padding: "15px 30px",
                 borderRadius: dc.r.md,

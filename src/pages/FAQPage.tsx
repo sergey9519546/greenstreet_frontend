@@ -208,8 +208,8 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       accent={dc.teal}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
+        { label: "How It Works", view: "how-it-works" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
     >

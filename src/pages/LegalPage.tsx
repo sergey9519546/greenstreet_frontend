@@ -56,9 +56,9 @@ const DISCLOSURES: LegalDoc = {
     },
     {
       id: "lenders",
-      title: "5. Lender information",
+      title: "5. Program information",
       paras: [
-        "Program boxes in the lender database reflect publicly available guidelines and our research. They are indicative, not commitments. Actual terms are set by each lender at underwriting.",
+        "Greenstreet program parameters shown in the tools reflect current guidelines and are updated periodically. They are indicative, not commitments. Final terms are set by Greenstreet Finance after full underwriting.",
       ],
     },
     {
@@ -380,22 +380,23 @@ export default function LegalPage({
             ))}
           </nav>
 
-          {/* Sections card — solid white, flat border */}
+          {/* Sections card — solid white, 1px faded border per design system */}
           <div
             style={{
               background: "#fff",
               borderRadius: radius.md,
+              border: `1px solid rgba(0,55,56,0.10)`,
               padding: "clamp(32px,4vw,56px)",
             }}
           >
             <div style={{ padding: "14px 18px", background: "rgba(0,55,56,0.04)", borderRadius: 8, border: "1px solid rgba(0,55,56,0.1)", marginBottom: 36, fontSize: 14, color: "rgba(0,55,56,0.65)", lineHeight: 1.6 }}>
               <strong style={{ color: MIDNIGHT }}>Plain summary:</strong>{" "}
-              {doc.heading.includes("Terms, privacy") &&
+              {doc.eyebrow === "Legal & Disclosures" && doc.sections[0]?.id === "estimates" &&
                 "This page explains that Greenstreet's tools produce estimates, not advice. Numbers are computed by code, not AI. State rules may lag recent changes. The tools don't need an account and don't sell your data."}
-              {doc.heading.includes("Privacy Policy") &&
+              {doc.sections[0]?.id === "what-we-collect" &&
                 "We collect the deal parameters you enter and your contact info if you request a quote. We don't sell your information. You can request deletion at any time."}
-              {doc.heading.includes("Terms of Service") &&
-                "Tool outputs are estimates, not rate locks or credit approvals. Verify everything with your lender before acting. Don't scrape the site or redistribute our data."}
+              {doc.sections[0]?.id === "not-advice" &&
+                "Tool outputs are estimates, not rate locks or credit approvals. Verify everything with Greenstreet before acting. Don't scrape the site or redistribute our data."}
             </div>
             {doc.sections.map((s) => (
               <div
@@ -445,6 +446,68 @@ export default function LegalPage({
               {doc.contactLine}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── INVESTOR CTA — clear next step after reading legal copy ── */}
+      <section
+        style={{
+          background: MIDNIGHT,
+          color: PISTACHIO,
+          padding: "clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1080,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "clamp(24px,4vw,48px)",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontSize: "clamp(15px,1.3vw,18px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(238,239,211,0.65)",
+                margin: 0,
+                letterSpacing: "-0.01em",
+                maxWidth: "44ch",
+              }}
+            >
+              Questions about terms? Email{" "}
+              <a href="mailto:legal@greenstreetfinance.com" style={{ color: dc.lemon, textDecoration: "none" }}>
+                legal@greenstreetfinance.com
+              </a>
+              . Ready to price a deal? The calculator has no login and takes 30 seconds.
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate("dscr-calculator")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: dc.lemon,
+              color: MIDNIGHT,
+              fontWeight: 700,
+              fontSize: 15,
+              border: "none",
+              cursor: "pointer",
+              padding: "14px 28px",
+              borderRadius: radius.sm,
+              fontFamily: dc.sans,
+              letterSpacing: "-0.01em",
+              flexShrink: 0,
+            }}
+          >
+            Price a deal — no login →
+          </button>
         </div>
       </section>
     </DcShell>

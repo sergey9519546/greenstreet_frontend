@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, useRevealOnView, H1, Lead, Btn } from "../design/dc";
+import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import {
   simulateARMResetLadder,
   DEFAULT_ARM_PROGRAMS,
@@ -9,7 +10,7 @@ import {
 import { calculatePI } from "../engine/engine";
 import type { ARMTerms } from "../engine/types";
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 type ArmType = "5_6_ARM" | "7_6_ARM" | "10_6_ARM";
 
@@ -50,7 +51,7 @@ export default function ARMPage({
   const [armType, setArmType] = useState<ArmType>("5_6_ARM");
   const [loanAmount, setLoanAmount]     = useState(340000);
   const [monthlyRent, setMonthlyRent]   = useState(3000);
-  const [pitiaNonDebt, setPitiaNonDebt] = useState(750);    // taxes + ins + HOA /mo
+  const [pitiaNonDebt, setPitiaNonDebt] = useState(750);
 
   // Derived from engine
   const result = useMemo(() => {
@@ -59,10 +60,8 @@ export default function ARMPage({
       const fixedMonths = cfg.fixedPeriodMonths;
       const firstResetYear = fixedMonths / 12;
 
-      // Initial P&I at origination rate (full 360-month amortization)
       const piInitial = calculatePI(loanAmount, cfg.initialRate, 360);
 
-      // Remaining balance at first reset
       const balAtReset = computeRemainingBalanceAtReset(
         loanAmount,
         cfg.initialRate,
@@ -71,20 +70,17 @@ export default function ARMPage({
       );
       const remTerm = 360 - fixedMonths;
 
-      // ── 5-scenario reset ladders (using CURRENT_MARKET_SNAPSHOT SOFR for BASE)
       const scenarios = SOFR_SCENARIOS.map((sc) => {
         const ladder = simulateARMResetLadder(cfg, sc.sofr, 15);
         const firstReset  = ladder.trajectory[0];
         const lastReset   = ladder.trajectory[ladder.trajectory.length - 1];
 
-        // P&I and DSCR at first reset
         const piAtFirst = firstReset
           ? calculatePI(balAtReset, firstReset.rate, remTerm)
           : 0;
         const dscrAtFirst =
           piAtFirst > 0 ? monthlyRent / (piAtFirst + pitiaNonDebt) : 0;
 
-        // P&I and DSCR at stabilized (last ladder) rate
         const piAtLast = lastReset
           ? calculatePI(balAtReset, lastReset.rate, remTerm)
           : 0;
@@ -103,7 +99,6 @@ export default function ARMPage({
         };
       });
 
-      // ── Payment shock: worst-case first reset (initial cap binding)
       const worstFirstResetRate = Math.min(
         cfg.initialRate + cfg.initialCapPct,
         cfg.initialRate + cfg.lifetimeCapPct,
@@ -114,14 +109,11 @@ export default function ARMPage({
           ? ((piAtWorstFirstReset - piInitial) / piInitial) * 100
           : 0;
 
-      // ── Bearish ladder for the reset schedule table
       const bearish = scenarios.find((s) => s.label === "Bearish")!;
 
-      // ── Lifetime cap payment
       const lifetimeCapRate = cfg.initialRate + cfg.lifetimeCapPct;
       const piAtLifetimeCap = calculatePI(balAtReset, lifetimeCapRate, remTerm);
 
-      // ── Fixed-period timeline label
       const fixedYears = fixedMonths / 12;
 
       return {
@@ -158,8 +150,9 @@ export default function ARMPage({
     <DcShell
       onNavigate={onNavigate}
       navLinks={[
-        { label: "DSCR Calc",  view: "dscr-calculator" },
+        { label: "DSCR Calc",     view: "dscr-calculator" },
         { label: "Deal Analyzer", view: "deal-analyzer" },
+        { label: "Portfolio",     view: "portfolio" },
       ]}
       cta={{ label: "Model the reset →", onClick: scrollToTool }}
     >
@@ -169,7 +162,7 @@ export default function ARMPage({
         .arm-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
       `}</style>
 
-      {/* ── HERO — centered, payment-shock timeline as signature ── */}
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section
         id="ar-hero"
         style={{
@@ -183,14 +176,14 @@ export default function ARMPage({
           id="gs-hero-content"
           style={{ maxWidth: 1080, margin: "0 auto", textAlign: "center" }}
         >
-          {/* Eyebrow — lemon pill on dark, matches mockup */}
+          {/* Eyebrow pill */}
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
               fontSize: 12,
-              fontWeight: 600,
+              fontWeight: 700,
               letterSpacing: "0.06em",
               textTransform: "uppercase",
               color: dc.dark,
@@ -203,19 +196,31 @@ export default function ARMPage({
             5/6 · 7/6 · 10/6 ARM · SOFR + margin · caps
           </div>
 
-          {/* Headline */}
           <H1 style={{ margin: "0 0 20px" }}>
             What happens when
             <br />
             the fixed period ends?
           </H1>
 
-          {/* Tool intro */}
-          <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "56ch", margin: "0 auto 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            An ARM (a loan whose rate is fixed for a few years, then can adjust) looks cheap at first — but your payment jumps when the fixed period ends. This tool shows exactly how big that jump is, and whether your DSCR (whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it; higher is stronger) still holds up.
+          {/* Glossed definition upfront */}
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 500,
+              color: dc.lemon,
+              maxWidth: "56ch",
+              margin: "0 auto 14px",
+              lineHeight: 1.6,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            An ARM (a loan whose rate is fixed for a few years, then can adjust)
+            looks cheap at first — but your payment jumps when the fixed period
+            ends. This tool shows exactly how big that jump is, and whether your
+            DSCR (whether the property's rent can cover the loan payment; 1.00 =
+            rent exactly covers it; higher is stronger) still holds up.
           </div>
 
-          {/* Sub */}
           <Lead
             style={{
               color: "rgba(238,239,211,0.7)",
@@ -223,23 +228,24 @@ export default function ARMPage({
               margin: "0 auto 44px",
             }}
           >
-            Enter your loan and pick a program. See the payment at first reset, every subsequent adjustment, and the worst-case lifetime cap — caps applied exactly as written in the note.
+            Enter your loan and pick a program. See the payment at first reset,
+            every subsequent adjustment, and the worst-case lifetime cap — caps
+            applied exactly as written in the note.
           </Lead>
 
-          {/* ── PAYMENT-SHOCK TIMELINE — the hero's signature ── */}
+          {/* ── PAYMENT-SHOCK TIMELINE — hero signature ── */}
           <div
             style={{
               display: "flex",
               alignItems: "stretch",
               maxWidth: 960,
               margin: "0 auto 36px",
-              borderRadius: 8,
+              borderRadius: dc.r.md,
               overflow: "hidden",
             }}
           >
-            {/* Segment 1: Fixed */}
+            {/* Fixed */}
             <div
-              className="ar-seg"
               style={{
                 flex: 5,
                 background: dc.emerald,
@@ -248,26 +254,10 @@ export default function ARMPage({
                 textAlign: "left",
               }}
             >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  opacity: 0.7,
-                }}
-              >
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.7 }}>
                 {result ? `Years 1–${result.fixedYears}` : "Years 1–5"}
               </div>
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(20px,2.4vw,30px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.02em",
-                  marginTop: 4,
-                }}
-              >
+              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4 }}>
                 Fixed
               </Mono>
               <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 2 }}>
@@ -275,9 +265,8 @@ export default function ARMPage({
               </div>
             </div>
 
-            {/* Segment 2: First reset */}
+            {/* First reset */}
             <div
-              className="ar-seg"
               style={{
                 flex: 2,
                 background: dc.lemon,
@@ -286,26 +275,10 @@ export default function ARMPage({
                 textAlign: "left",
               }}
             >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  opacity: 0.7,
-                }}
-              >
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.7 }}>
                 First reset
               </div>
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(20px,2.4vw,30px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.02em",
-                  marginTop: 4,
-                }}
-              >
+              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4 }}>
                 {result ? `+${result.cfg.initialCapPct.toFixed(1)}%` : "+2.0%"}
               </Mono>
               <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.75, marginTop: 2 }}>
@@ -313,9 +286,8 @@ export default function ARMPage({
               </div>
             </div>
 
-            {/* Segment 3: Adjusts */}
+            {/* Adjusts */}
             <div
-              className="ar-seg"
               style={{
                 flex: 3,
                 background: dc.rain,
@@ -324,27 +296,10 @@ export default function ARMPage({
                 textAlign: "left",
               }}
             >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  opacity: 0.65,
-                }}
-              >
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.65 }}>
                 {result ? `Years ${result.fixedYears + 1}–30` : "Years 6–30"}
               </div>
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(20px,2.4vw,30px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.02em",
-                  marginTop: 4,
-                  color: dc.cream,
-                }}
-              >
+              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4, color: dc.cream }}>
                 Adjusts
               </Mono>
               <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.7, marginTop: 2 }}>
@@ -353,13 +308,32 @@ export default function ARMPage({
             </div>
           </div>
 
-          {/* Payment jump — the real dollar shock, bars lurch up on view */}
+          {/* Payment jump bars */}
           {result && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, margin: "8px 0 36px" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 14,
+                margin: "8px 0 36px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                  color: "rgba(238,239,211,0.5)",
+                }}
+              >
                 Monthly P&amp;I at first reset
               </div>
-              <div ref={jumpRef} style={{ display: "flex", alignItems: "flex-end", gap: 26, height: 150 }}>
+              <div
+                ref={jumpRef}
+                style={{ display: "flex", alignItems: "flex-end", gap: 26, height: 150 }}
+              >
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
                   <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.emerald }}>{fmt$(result.piInitial)}</Mono>
                   <div style={{ width: 64, height: Math.round(120 * (result.piInitial / Math.max(1, result.piAtWorstFirstReset))), background: dc.emerald, borderRadius: "8px 8px 0 0", transformOrigin: "bottom", transform: jumpShown ? "scaleY(1)" : "scaleY(0)", transition: "transform .7s cubic-bezier(.16,.84,.44,1)" }} />
@@ -376,14 +350,7 @@ export default function ARMPage({
           )}
 
           {/* CTA row */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: 14,
-              flexWrap: "wrap",
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
             <Btn label="Model the reset ↓" href="#arm-tool" onClick={scrollToTool} />
             <Btn
               label="DSCR Calculator"
@@ -397,24 +364,24 @@ export default function ARMPage({
         </div>
       </section>
 
-      {/* ── TOOL — dark teal, matches mockup #003a39 ── */}
+      {/* ── TOOL ─────────────────────────────────────────────────────────── */}
       <section
         id="arm-tool"
         style={{
           background: "#003a39",
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
-          borderTop: "1px solid rgba(238,239,211,0.07)",
+          borderTop: `1px solid ${dc.faded}`,
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
 
           {/* Section header */}
-          <div className="gs-reveal" style={{ marginBottom: 30 }}>
+          <div style={{ marginBottom: 30 }}>
             <div
               style={{
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
                 color: dc.lemon,
@@ -438,14 +405,27 @@ export default function ARMPage({
                 {result ? `+${result.paymentShockPct.toFixed(1)}%` : "—"}
               </span>
             </h2>
-            <p style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", margin: 0, maxWidth: "62ch", lineHeight: 1.6, fontWeight: 500 }}>
-              Below 8% shock = manageable. 8–20% = watch carefully. Above 20% = red. If DSCR drops below 1.0 at reset, the property can no longer cover its own costs — a deal-breaker for most lenders. A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) may also apply if you try to exit before the fixed period ends.
+            <p
+              style={{
+                fontSize: 14,
+                color: "rgba(238,239,211,0.6)",
+                margin: 0,
+                maxWidth: "62ch",
+                lineHeight: 1.6,
+                fontWeight: 500,
+              }}
+            >
+              Below 8% shock = manageable. 8–20% = watch carefully. Above 20% = red.
+              If DSCR drops below 1.0 at reset, the property can no longer cover its own
+              costs — a deal-breaker for most investors and underwriters. A prepayment
+              penalty (a fee some loans charge if you refinance early) may also apply if
+              you try to exit before the fixed period ends.
             </p>
           </div>
 
           {/* Tool grid */}
           <div
-            className="gs-reveal dc-split"
+            className="dc-split"
             style={{
               display: "grid",
               gridTemplateColumns: "300px 1fr",
@@ -453,19 +433,19 @@ export default function ARMPage({
               alignItems: "start",
             }}
           >
-            {/* ── INPUTS (dark panel) ── */}
+            {/* ── INPUTS ── */}
             <div
               style={{
                 background: "#002a29",
-                borderRadius: 14,
+                borderRadius: dc.r.lg,
                 padding: 28,
-                border: "1px solid rgba(238,239,211,0.08)",
+                border: `1px solid ${dc.faded}`,
               }}
             >
               <div
                 style={{
                   fontSize: 12,
-                  fontWeight: 600,
+                  fontWeight: 700,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   color: dc.emerald,
@@ -482,7 +462,7 @@ export default function ARMPage({
                     fontSize: 11,
                     color: "rgba(238,239,211,0.55)",
                     marginBottom: 4,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
                   }}
@@ -500,13 +480,13 @@ export default function ARMPage({
                       style={{
                         flex: 1,
                         padding: "9px 4px",
-                        borderRadius: 6,
-                        border: `1px solid ${armType === t ? dc.lemon : "rgba(238,239,211,0.18)"}`,
+                        borderRadius: dc.r.sm,
+                        border: `1px solid ${armType === t ? dc.lemon : dc.faded}`,
                         background: armType === t ? "rgba(216,217,88,0.12)" : "transparent",
                         color: armType === t ? dc.lemon : "rgba(238,239,211,0.55)",
                         cursor: "pointer",
                         fontSize: 12,
-                        fontWeight: 600,
+                        fontWeight: 700,
                         fontFamily: dc.sans,
                         letterSpacing: "-0.01em",
                       }}
@@ -524,16 +504,16 @@ export default function ARMPage({
                     marginBottom: 20,
                     padding: "14px 16px",
                     background: "rgba(238,239,211,0.05)",
-                    borderRadius: 6,
-                    border: "1px solid rgba(238,239,211,0.1)",
+                    borderRadius: dc.r.sm,
+                    border: `1px solid ${dc.faded}`,
                   }}
                 >
                   {[
-                    ["Initial rate",     `${result.cfg.initialRate.toFixed(3)}%`],
-                    ["Margin",           `${result.cfg.marginPct.toFixed(2)}%`],
-                    ["First-reset cap",  `+${result.cfg.initialCapPct.toFixed(1)}%`],
-                    ["Periodic cap",     `+${result.cfg.periodicCapPct.toFixed(1)}% / reset`],
-                    ["Lifetime cap",     `+${result.cfg.lifetimeCapPct.toFixed(1)}%`],
+                    ["Initial rate",    `${result.cfg.initialRate.toFixed(3)}%`],
+                    ["Margin",          `${result.cfg.marginPct.toFixed(2)}%`],
+                    ["First-reset cap", `+${result.cfg.initialCapPct.toFixed(1)}%`],
+                    ["Periodic cap",    `+${result.cfg.periodicCapPct.toFixed(1)}% / reset`],
+                    ["Lifetime cap",    `+${result.cfg.lifetimeCapPct.toFixed(1)}%`],
                   ].map(([label, val]) => (
                     <div
                       key={label}
@@ -541,12 +521,12 @@ export default function ARMPage({
                         display: "flex",
                         justifyContent: "space-between",
                         padding: "5px 0",
-                        borderBottom: "1px solid rgba(238,239,211,0.07)",
+                        borderBottom: `1px solid ${dc.faded}`,
                         fontSize: 12,
                       }}
                     >
                       <span style={{ color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>{label}</span>
-                      <Mono style={{ color: dc.cream, fontWeight: 600, fontSize: 12 }}>{val}</Mono>
+                      <Mono style={{ color: dc.cream, fontWeight: 700, fontSize: 12 }}>{val}</Mono>
                     </div>
                   ))}
                 </div>
@@ -558,7 +538,7 @@ export default function ARMPage({
                   fontSize: 11,
                   color: "rgba(238,239,211,0.55)",
                   marginBottom: 10,
-                  fontWeight: 600,
+                  fontWeight: 700,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                 }}
@@ -567,9 +547,9 @@ export default function ARMPage({
               </div>
 
               {[
-                { label: "Loan Amount", hint: "The total amount borrowed — not the purchase price.", value: loanAmount, set: setLoanAmount, step: 5000, prefix: "$", suffix: "" },
-                { label: "Monthly Rent", hint: "Gross rent the property generates each month. Used to compute DSCR at each reset.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
-                { label: "Taxes + Insurance + HOA /mo", hint: "Monthly taxes, insurance, and HOA combined. Together with P&I this is your PITIA — the full monthly payment.", value: pitiaNonDebt, set: setPitiaNonDebt, step: 25, prefix: "$", suffix: "" },
+                { label: "Loan Amount", hint: "The total amount borrowed — not the purchase price.", value: loanAmount, set: setLoanAmount, step: 5000, prefix: "$" },
+                { label: "Monthly Rent", hint: "Gross rent the property generates each month. Used to compute DSCR at each reset.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
+                { label: "Taxes + Insurance + HOA /mo", hint: "Monthly taxes, insurance, and HOA combined. Together with P&I this is your PITIA (the total monthly cost of the loan including principal, interest, taxes, insurance, and association fees).", value: pitiaNonDebt, set: setPitiaNonDebt, step: 25, prefix: "$" },
               ].map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: 14 }}>
                   <span
@@ -578,7 +558,7 @@ export default function ARMPage({
                       fontSize: 11,
                       color: "rgba(238,239,211,0.55)",
                       marginBottom: 5,
-                      fontWeight: 600,
+                      fontWeight: 700,
                       letterSpacing: "0.04em",
                       textTransform: "uppercase",
                     }}
@@ -590,13 +570,12 @@ export default function ARMPage({
                       display: "flex",
                       alignItems: "center",
                       background: dc.teal,
-                      borderRadius: 6,
+                      borderRadius: dc.r.sm,
                       padding: "0 13px",
+                      border: `1px solid ${dc.faded}`,
                     }}
                   >
-                    {f.prefix && (
-                      <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.prefix}</span>
-                    )}
+                    <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.prefix}</span>
                     <input
                       className="arm-in"
                       type="number"
@@ -605,15 +584,10 @@ export default function ARMPage({
                       onChange={(e) => f.set(+e.target.value)}
                       style={{ padding: "12px 7px", fontSize: 16, fontWeight: 600 }}
                     />
-                    {f.suffix && (
-                      <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.suffix}</span>
-                    )}
                   </div>
-                  {"hint" in f && f.hint && (
-                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 4, lineHeight: 1.4, letterSpacing: 0 }}>
-                      {f.hint}
-                    </span>
-                  )}
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 4, lineHeight: 1.4 }}>
+                    {f.hint}
+                  </span>
                 </label>
               ))}
             </div>
@@ -622,32 +596,21 @@ export default function ARMPage({
             {result ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-                {/* Payment comparison tiles — matches mockup 3-col metric strip */}
+                {/* Payment comparison tiles */}
                 <div
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr 1fr",
                     gap: "1px",
-                    background: "rgba(238,239,211,0.1)",
-                    borderRadius: 14,
+                    background: dc.faded,
+                    borderRadius: dc.r.lg,
                     overflow: "hidden",
-                    border: "1px solid rgba(238,239,211,0.08)",
+                    border: `1px solid ${dc.faded}`,
                   }}
                 >
                   <div style={{ background: "#002a29", padding: 24 }}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        letterSpacing: "0.03em",
-                        textTransform: "uppercase",
-                        color: dc.emerald,
-                        marginBottom: 10,
-                      }}
-                    >
-                      Fixed payment
-                    </div>
-                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.emerald, marginBottom: 10 }}>Fixed payment</div>
+                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: dc.cream, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piInitial)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>
@@ -655,19 +618,8 @@ export default function ARMPage({
                     </div>
                   </div>
                   <div style={{ background: "#002a29", padding: 24 }}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        letterSpacing: "0.03em",
-                        textTransform: "uppercase",
-                        color: dc.lemon,
-                        marginBottom: 10,
-                      }}
-                    >
-                      First reset (worst case)
-                    </div>
-                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 600, color: dc.lemon, letterSpacing: "-0.02em" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 10 }}>First reset (worst case)</div>
+                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtWorstFirstReset)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>
@@ -675,67 +627,42 @@ export default function ARMPage({
                     </div>
                   </div>
                   <div style={{ background: "#002a29", padding: 24 }}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        letterSpacing: "0.03em",
-                        textTransform: "uppercase",
-                        color: "#e06363",
-                        marginBottom: 10,
-                      }}
-                    >
-                      Lifetime cap (absolute max)
-                    </div>
-                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 600, color: "#e88a8a", letterSpacing: "-0.02em" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: "#e06363", marginBottom: 10 }}>Lifetime cap (absolute max)</div>
+                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: "#e88a8a", letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtLifetimeCap)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>
-                      at {result.lifetimeCapRate.toFixed(3)}% — rate can never go higher
+                      at {result.lifetimeCapRate.toFixed(3)}% — rate can never exceed this
                     </div>
                   </div>
                 </div>
 
-                {/* 5-scenario table — dark panel, matches mockup reset schedule style */}
+                {/* 5-scenario table — with RiskFlame per row */}
                 <div
                   style={{
                     background: "#002a29",
-                    borderRadius: 14,
+                    borderRadius: dc.r.lg,
                     padding: 26,
-                    border: "1px solid rgba(238,239,211,0.08)",
+                    border: `1px solid ${dc.faded}`,
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                      color: dc.emerald,
-                      marginBottom: 6,
-                    }}
-                  >
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
                     5 rate scenarios — does the deal survive?
                   </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "rgba(238,239,211,0.5)",
-                      marginBottom: 16,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    SOFR is the index your rate floats with. Each row shows a different SOFR future — from falling rates (Bullish) to a spike (Crisis). "Deal breaks" means DSCR (rent ÷ full payment) drops below 1.0 — the property can no longer cover its costs. Caps are enforced exactly as in your loan note.
+                  <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginBottom: 16, letterSpacing: "-0.01em" }}>
+                    SOFR is the index your rate floats with after the fixed period. Each row shows a different SOFR future — from falling rates (Bullish) to a spike (Crisis). "Deal breaks" means DSCR (rent ÷ full payment including taxes + insurance) drops below 1.0 — the property can no longer cover its own costs. Caps are enforced exactly as in your loan note.
                   </div>
                   {result.scenarios.map((s) => {
                     const breaks = s.dscrAtFirst < 1.0 || s.dscrAtLast < 1.0;
+                    // Use the worst DSCR between first reset and stabilized for the flame
+                    const worstDscr = Math.min(s.dscrAtFirst, s.dscrAtLast);
+                    const riskLevel = riskFromDscr(worstDscr);
                     return (
                       <div
                         key={s.label}
                         style={{
                           padding: "11px 0",
-                          borderBottom: "1px solid rgba(0,55,56,0.07)",
+                          borderBottom: `1px solid ${dc.faded}`,
                         }}
                       >
                         <div
@@ -746,9 +673,13 @@ export default function ARMPage({
                             marginBottom: 6,
                           }}
                         >
-                          <span style={{ fontWeight: 700, fontSize: 14, color: dc.cream, letterSpacing: "-0.01em" }}>
-                            {s.label}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontWeight: 700, fontSize: 14, color: dc.cream, letterSpacing: "-0.01em" }}>
+                              {s.label}
+                            </span>
+                            {/* RiskFlame: rate-rise danger indicator for ARM scenarios */}
+                            <RiskFlame level={riskLevel} size={18} />
+                          </div>
                           <Mono style={{ fontSize: 12, fontWeight: 700, color: s.color }}>
                             SOFR {s.sofr.toFixed(2)}%
                           </Mono>
@@ -764,25 +695,25 @@ export default function ARMPage({
                         >
                           <div>
                             First reset&nbsp;
-                            <Mono style={{ color: dc.cream, fontWeight: 600 }}>
+                            <Mono style={{ color: dc.cream, fontWeight: 700 }}>
                               {s.firstReset ? `${s.firstReset.rate.toFixed(3)}%` : "—"}
                             </Mono>
                           </div>
                           <div>
                             P&I /mo&nbsp;
-                            <Mono style={{ color: dc.cream, fontWeight: 600 }}>
+                            <Mono style={{ color: dc.cream, fontWeight: 700 }}>
                               {s.piAtFirst > 0 ? fmt$(s.piAtFirst) : "—"}
                             </Mono>
                           </div>
                           <div>
                             DSCR @ reset&nbsp;
-                            <Mono style={{ color: s.dscrAtFirst < 1.0 ? "#e06363" : dc.cream, fontWeight: 600 }}>
+                            <Mono style={{ color: s.dscrAtFirst < 1.0 ? "#e06363" : dc.cream, fontWeight: 700 }}>
                               {s.dscrAtFirst.toFixed(2)}x
                             </Mono>
                           </div>
                           <div>
                             DSCR @ stable&nbsp;
-                            <Mono style={{ color: s.dscrAtLast < 1.0 ? "#e06363" : dc.cream, fontWeight: 600 }}>
+                            <Mono style={{ color: s.dscrAtLast < 1.0 ? "#e06363" : dc.cream, fontWeight: 700 }}>
                               {s.dscrAtLast.toFixed(2)}x
                             </Mono>
                           </div>
@@ -798,7 +729,7 @@ export default function ARMPage({
                               color: "#e06363",
                             }}
                           >
-                            Deal breaks at this SOFR
+                            Deal breaks at this SOFR — DSCR drops below 1.0
                           </div>
                         )}
                       </div>
@@ -806,46 +737,23 @@ export default function ARMPage({
                   })}
                 </div>
 
-                {/* Bearish reset schedule — matches mockup "Reset schedule" section */}
+                {/* Bearish reset schedule */}
                 <div
                   style={{
                     background: "#002a29",
-                    borderRadius: 14,
+                    borderRadius: dc.r.lg,
                     padding: 26,
-                    border: "1px solid rgba(238,239,211,0.08)",
+                    border: `1px solid ${dc.faded}`,
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                      color: dc.emerald,
-                      marginBottom: 6,
-                    }}
-                  >
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
                     Reset schedule
                   </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "rgba(238,239,211,0.5)",
-                      marginBottom: 16,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    Shows the Bearish scenario (SOFR +4.59%). Each reset year the rate moves by at most the periodic cap — it can't jump all at once. The "Cap binding" column tells you which cap is holding the rate back from going higher.
+                  <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginBottom: 16, letterSpacing: "-0.01em" }}>
+                    Shows the Bearish scenario (SOFR +4.59%). Each reset the rate moves by at most the periodic cap — it cannot jump all at once. "Cap binding" tells you which cap is holding the rate back.
                   </div>
                   <div style={{ overflowX: "auto" }}>
-                    <table
-                      style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        minWidth: 400,
-                      }}
-                    >
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 400 }}>
                       <thead>
                         <tr>
                           {["Period", "Rate", "P&I /mo", "Cap binding"].map((h, i) => (
@@ -856,10 +764,10 @@ export default function ARMPage({
                                 fontSize: 11,
                                 color: "rgba(238,239,211,0.42)",
                                 textAlign: i >= 1 && i <= 2 ? "right" : "left",
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 letterSpacing: "0.03em",
                                 textTransform: "uppercase",
-                                borderBottom: "1px solid rgba(238,239,211,0.1)",
+                                borderBottom: `1px solid ${dc.faded}`,
                               }}
                             >
                               {h}
@@ -868,18 +776,15 @@ export default function ARMPage({
                         </tr>
                       </thead>
                       <tbody>
-                        {/* Fixed period row */}
                         <tr>
-                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
-                            Fixed period
-                          </td>
-                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.emerald, fontWeight: 700, textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
+                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>Fixed period</td>
+                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.emerald, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                             <Mono>{result.cfg.initialRate.toFixed(3)}%</Mono>
                           </td>
-                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
+                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                             <Mono>{fmt$(result.piInitial)}</Mono>
                           </td>
-                          <td style={{ padding: "9px 10px", fontSize: 12, color: "rgba(238,239,211,0.5)", borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
+                          <td style={{ padding: "9px 10px", fontSize: 12, color: "rgba(238,239,211,0.5)", borderBottom: `1px solid ${dc.faded}` }}>
                             Years 1–{result.fixedYears}
                           </td>
                         </tr>
@@ -889,16 +794,14 @@ export default function ARMPage({
                           const rateColor = isLifetimeCap ? "#e06363" : dc.cream;
                           return (
                             <tr key={t.resetNumber}>
-                              <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
-                                Reset {t.resetNumber}
-                              </td>
-                              <td style={{ padding: "9px 10px", fontSize: 13, color: rateColor, fontWeight: 700, textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
+                              <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>Reset {t.resetNumber}</td>
+                              <td style={{ padding: "9px 10px", fontSize: 13, color: rateColor, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                                 <Mono>{t.rate.toFixed(3)}%</Mono>
                               </td>
-                              <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, textAlign: "right", borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
+                              <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                                 <Mono>{fmt$(piRow)}</Mono>
                               </td>
-                              <td style={{ padding: "9px 10px", fontSize: 12, color: isLifetimeCap ? "#e06363" : t.capBinding === "INITIAL_CAP" ? "#e6b84d" : "rgba(238,239,211,0.5)", borderBottom: "1px solid rgba(238,239,211,0.06)" }}>
+                              <td style={{ padding: "9px 10px", fontSize: 12, color: isLifetimeCap ? "#e06363" : t.capBinding === "INITIAL_CAP" ? "#e6b84d" : "rgba(238,239,211,0.5)", borderBottom: `1px solid ${dc.faded}` }}>
                                 {t.capBinding.replace("_", " ")} · Yr {t.year}
                               </td>
                             </tr>
@@ -914,29 +817,100 @@ export default function ARMPage({
                   style={{
                     padding: "16px 20px",
                     background: "rgba(238,239,211,0.05)",
-                    borderRadius: 6,
-                    border: "1px solid rgba(238,239,211,0.08)",
+                    borderRadius: dc.r.sm,
+                    border: `1px solid ${dc.faded}`,
                     fontSize: 13,
                     fontWeight: 500,
                     color: "rgba(238,239,211,0.55)",
                     lineHeight: 1.6,
                   }}
                 >
-                  <strong style={{ color: dc.emerald, fontWeight: 600 }}>Engine:</strong>{" "}
+                  <strong style={{ color: dc.emerald, fontWeight: 700 }}>Engine:</strong>{" "}
                   Fully-indexed rate = current SOFR + margin, bounded by the initial cap at first reset,
                   periodic cap each subsequent reset, and lifetime cap = start rate + life cap.
                   P&amp;I re-amortizes over the remaining term at each reset.
                   CRISIS scenario hits the lifetime cap after {result.cfg.lifetimeCapPct / result.cfg.periodicCapPct + 1} consecutive upward resets.
+                  Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                </div>
+
+                {/* Terminal CTA */}
+                <div
+                  style={{
+                    background: dc.dark,
+                    borderRadius: dc.r.lg,
+                    padding: "clamp(24px,3vw,36px)",
+                    border: `1px solid ${dc.faded}`,
+                    display: "flex",
+                    gap: 12,
+                    flexWrap: "wrap" as const,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
+                      Ready to lock a rate before the clock runs out?
+                    </div>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.6)", margin: 0, maxWidth: "46ch", lineHeight: 1.5 }}>
+                      Greenstreet can refinance you into a fixed DSCR loan before your ARM resets — no income docs, qualify on rent alone.
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
+                    {/* Dominant lemon CTA */}
+                    <button
+                      onClick={() => onNavigate?.("rate-quiz")}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        background: dc.lemon,
+                        color: dc.dark,
+                        fontWeight: 700,
+                        fontSize: 14,
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "12px 22px",
+                        borderRadius: dc.r.md,
+                        fontFamily: dc.sans,
+                        letterSpacing: "-0.01em",
+                        whiteSpace: "nowrap" as const,
+                      }}
+                    >
+                      Get a refi rate →
+                    </button>
+                    {/* Secondary */}
+                    <button
+                      onClick={() => onNavigate?.("dscr-calculator")}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        background: "transparent",
+                        color: dc.cream,
+                        fontWeight: 600,
+                        fontSize: 14,
+                        border: `1.5px solid ${dc.faded}`,
+                        cursor: "pointer",
+                        padding: "12px 20px",
+                        borderRadius: dc.r.md,
+                        fontFamily: dc.sans,
+                        letterSpacing: "-0.01em",
+                        whiteSpace: "nowrap" as const,
+                      }}
+                    >
+                      Run the DSCR Calc
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
               <div
                 style={{
                   background: "#002a29",
-                  borderRadius: 14,
+                  borderRadius: dc.r.lg,
                   padding: 40,
                   textAlign: "center",
-                  border: "1px solid rgba(238,239,211,0.08)",
+                  border: `1px solid ${dc.faded}`,
                 }}
               >
                 <p style={{ color: "#e06363", margin: 0 }}>Engine returned no result — adjust inputs.</p>

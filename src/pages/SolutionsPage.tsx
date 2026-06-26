@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 
-// ── Audience segments — data from Solutions.dc.html renderVals() ───────────────
-// Each segment has alternating content/visual order: even indices content-left,
-// odd indices content-right. This is the SIGNATURE of this page.
+// ── Audience segments ─────────────────────────────────────────────────────────
+// Audience: real estate investors, foreign nationals, STR/Airbnb, portfolio
+// builders. We ARE the lender AND the broker — direct to investors.
 interface Segment {
   tag: string;
   title: string;
@@ -16,128 +17,156 @@ interface Segment {
   gridline: string;
   statBg: string;
   stats: { v: string; k: string }[];
+  /** Optional DSCR value to show a gauge + flame in the stat panel */
+  dscrPreview?: number;
 }
 
 const SEGMENTS: Segment[] = [
   {
-    tag: "Brokers",
-    title: "Quote with confidence, close faster",
-    desc: "Price a DSCR deal in under 60 seconds, hand the borrower a defensible rate band, and match to the right Greenstreet program — all before your first call to a lender. No income docs needed: DSCR loans (business-purpose / non-owner-occupied rentals) qualify on the property's rent, not the borrower's pay stubs.",
-    cta: "See the broker workflow",
-    view: "brokers",
+    tag: "Buy-and-hold investors",
+    title: "Qualify on rent, not your W-2",
+    desc:
+      "DSCR loans (whether the property's rent can cover the loan payment — 1.00 = break-even; higher is stronger) let you qualify purely on the rental income your property generates. No tax returns, no employment history, no income docs. Greenstreet underwrites the deal — one file, one decision, one lender relationship.",
+    cta: "Price my rental deal →",
+    view: "dscr-calculator",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
     gridline: "rgba(0,55,56,0.10)",
     statBg: dc.cream,
+    dscrPreview: 1.32,
     stats: [
       { v: "<60s", k: "to a priced deal" },
-      { v: "19", k: "lender programs" },
+      { v: "0", k: "income docs required" },
       { v: "50", k: "state rule sets" },
-      { v: "0", k: "income docs" },
+      { v: "1", k: "lender relationship" },
     ],
   },
   {
-    tag: "Investors",
-    title: "Underwrite your rental like an institution",
-    desc: "After-tax IRR, 500-path Monte Carlo rate simulations, and a 120-cell stress matrix — the analysis a private-fund desk runs, on every deal you own. DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) is the entry check. These tools tell you whether the deal survives the next five years.",
-    cta: "Explore investor tools",
-    view: "investors",
+    tag: "Short-term & vacation rental investors",
+    title: "STR income counts. Full stop.",
+    desc:
+      "Airbnb gross revenue or vacation-rental income qualifies under our STR program — we use actual platform data, not hypothetical long-term-lease assumptions. Foreign nationals qualify too: passport + alternative credit, no SSN required. Every file runs Dual-Track DSCR: lender qualifying (Track 1) and investor cash-flow survival (Track 2) in one pass.",
+    cta: "Explore STR & global programs →",
+    view: "borrower-profiles",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     gridline: "rgba(238,239,211,0.12)",
     statBg: dc.teal,
+    dscrPreview: 1.18,
     stats: [
-      { v: "14.4%", k: "levered IRR" },
-      { v: "500×", k: "rate sims" },
-      { v: "§469", k: "PAL handled" },
-      { v: "4×4", k: "sensitivity" },
+      { v: "STR", k: "income accepted" },
+      { v: "Global", k: "foreign national program" },
+      { v: "Dual-Track", k: "DSCR analysis" },
+      { v: "3 min", k: "ITIN approval path" },
     ],
   },
   {
-    tag: "Funds & Portfolios",
-    title: "One book, one underwriting view",
-    desc: "When you own 10+ doors, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket lender actually underwrites your book. Blanket lines to $25M.",
-    cta: "Build my portfolio view",
+    tag: "Portfolio builders",
+    title: "One blended view of all your doors",
+    desc:
+      "When you own 10+ properties, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket underwriter actually evaluates your book. Blanket and multi-property lines to $25M, single application.",
+    cta: "Build my portfolio view →",
     view: "portfolio",
     panelBg: dc.rain,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.60)",
     gridline: "rgba(238,239,211,0.14)",
-    // darkTeal is the closest on-token surface darker than rainforest
     statBg: dc.teal,
+    dscrPreview: 1.49,
     stats: [
-      { v: "$25M", k: "blanket lines" },
-      { v: "1.49×", k: "blended DSCR" },
+      { v: "$25M", k: "blanket line capacity" },
+      { v: "1.49×", k: "blended DSCR example" },
       { v: "40+", k: "doors modeled" },
-      { v: "1", k: "relationship" },
+      { v: "1", k: "application" },
     ],
   },
   {
-    tag: "Lenders & Partners",
-    title: "Every rule cited. Every output defensible.",
-    desc: "Every program rule and state compliance check traces to a statutory citation. Share the program fit, state rule, and investment-committee memo with partners or regulators without asking them to reverse-engineer the file. No LLM-generated numbers — deterministic math only.",
-    cta: "See program intelligence",
-    view: "lender-intel",
+    tag: "Investors with ARM exposure",
+    title: "See exactly how big the payment jump is",
+    desc:
+      "An ARM (a loan whose rate is fixed for a few years, then can adjust) looks cheap at origination — but your DSCR can collapse at the first reset. The ARM Reset tool runs five SOFR scenarios (Bullish → Crisis), applies initial, periodic, and lifetime caps exactly as written in the note, and shows whether the deal still qualifies at each adjustment. Know the floor before the clock runs out.",
+    cta: "Model my ARM reset →",
+    view: "arm-reset",
     panelBg: dc.lemon,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.60)",
     gridline: "rgba(0,55,56,0.12)",
-    // mint is the closest on-token light surface for lemon panel stat cells
     statBg: dc.mintBg,
+    dscrPreview: 0.92,
     stats: [
-      { v: "50", k: "state rules" },
-      { v: "100%", k: "cited rules" },
-      { v: "Memo", k: "output" },
-      { v: "0", k: "LLM in math" },
+      { v: "5", k: "rate scenarios" },
+      { v: "3", k: "cap types enforced" },
+      { v: "DSCR", k: "checked at every reset" },
+      { v: "0", k: "black-box math" },
     ],
   },
 ];
 
-// ── Stat panel: solid fills, flat 1-px grid, no blur/glow ────────────────────
+// ── Stat panel ────────────────────────────────────────────────────────────────
 function StatPanel({ seg }: { seg: Segment }) {
   return (
     <div
       style={{
-        borderRadius: 12,
+        borderRadius: dc.r.lg,
         overflow: "hidden",
         background: seg.panelBg,
-        border: "1px solid rgba(0,55,56,0.10)",
+        border: `1px solid ${dc.faded}`,
         padding: "clamp(20px,2.2vw,30px)",
         aspectRatio: "1.4",
         boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
       }}
     >
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase" as const,
-          color: seg.panelAccent,
-          marginBottom: 16,
-        }}
-      >
-        {seg.tag}
+      {/* Tag + optional artifacts row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase" as const,
+            color: seg.panelAccent,
+          }}
+        >
+          {seg.tag}
+        </div>
+        {/* RiskFlame for ARM segment (high DSCR-risk scenario); DscrGauge badge inline for others */}
+        {seg.dscrPreview !== undefined && seg.dscrPreview < 1.0 && (
+          <RiskFlame level={riskFromDscr(seg.dscrPreview)} size={20} />
+        )}
+        {seg.dscrPreview !== undefined && seg.dscrPreview >= 1.0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <DscrGauge value={seg.dscrPreview} size={56} label={false} />
+            <Mono style={{ fontSize: 14, fontWeight: 700, color: dscrColor(seg.dscrPreview) }}>
+              {seg.dscrPreview.toFixed(2)}x
+            </Mono>
+          </div>
+        )}
       </div>
+
+      {/* Stat grid */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: 1,
           background: seg.gridline,
-          borderRadius: 8,
+          borderRadius: dc.r.sm,
           overflow: "hidden",
+          flex: 1,
         }}
       >
         {seg.stats.map((st) => (
-          <div key={st.k} style={{ background: seg.statBg, padding: "18px 16px" }}>
+          <div key={st.k} style={{ background: seg.statBg, padding: "16px 14px" }}>
             <Mono
               style={{
                 display: "block",
-                fontSize: "clamp(22px,2.4vw,32px)",
-                fontWeight: 600,
+                fontSize: "clamp(20px,2.2vw,30px)",
+                fontWeight: 700,
                 color: seg.panelAccent,
                 lineHeight: 1,
               }}
@@ -162,10 +191,7 @@ function StatPanel({ seg }: { seg: Segment }) {
   );
 }
 
-// ── SegmentRow: the CENTERPIECE — alternating content↔visual layout ───────────
-// Each row gets its own gs-reveal so GSAP fires per-row, not for the whole list.
-// CSS order property drives left/right alternation; the so-feat responsive override
-// neutralizes order on mobile so text always appears first.
+// ── SegmentRow ────────────────────────────────────────────────────────────────
 function SegmentRow({
   seg,
   index,
@@ -178,7 +204,7 @@ function SegmentRow({
   const contentFirst = index % 2 === 0;
   return (
     <div
-      className="gs-reveal so-feat"
+      className="so-feat"
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -198,7 +224,7 @@ function SegmentRow({
         <div
           style={{
             fontSize: 12,
-            fontWeight: 600,
+            fontWeight: 700,
             letterSpacing: "0.04em",
             textTransform: "uppercase" as const,
             color: dc.rain,
@@ -221,9 +247,9 @@ function SegmentRow({
         </h2>
         <p
           style={{
-            fontSize: "clamp(17px,1.4vw,21px)",
+            fontSize: "clamp(16px,1.3vw,20px)",
             fontWeight: 500,
-            lineHeight: 1.55,
+            lineHeight: 1.58,
             color: "rgba(0,55,56,0.68)",
             margin: "0 0 28px",
             letterSpacing: "-0.01em",
@@ -231,6 +257,7 @@ function SegmentRow({
         >
           {seg.desc}
         </p>
+        {/* Primary lemon CTA */}
         <button
           onClick={() => onNavigate(seg.view)}
           style={{
@@ -250,7 +277,7 @@ function SegmentRow({
             minHeight: 44,
           }}
         >
-          {seg.cta} →
+          {seg.cta}
         </button>
       </div>
 
@@ -262,10 +289,7 @@ function SegmentRow({
   );
 }
 
-
-// ── Page ─────────────────────────────────────────────────────────────────────
-// accent = dc.dark: midnight nav + footer, cream body — Solutions' own identity.
-// No 3-step band. No generic HeroProof. Alternating segment list IS the page.
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function SolutionsPage({
   onBack,
   onNavigate,
@@ -284,13 +308,11 @@ export default function SolutionsPage({
       accent={dc.dark}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
-        { label: "State Rules", view: "state-laws" },
+        { label: "Tools", view: "portfolio" },
+        { label: "Case Studies", view: "case-studies" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
     >
-      {/* Page-scoped CSS: mobile stacking for the so-feat alternating grid.
-          On ≤900 px the grid collapses to 1 col; order resets so text leads. */}
       <style>{`
         @media (max-width: 991px) {
           .so-feat { grid-template-columns: 1fr !important; }
@@ -298,8 +320,7 @@ export default function SolutionsPage({
         }
       `}</style>
 
-      {/* ── HERO — midnight dark, "Who we serve" eyebrow, large h1 ─────────── */}
-      {/* No HeroProof — this is an audience-routing page, not a live tool */}
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section
         style={{
           background: dc.dark,
@@ -324,7 +345,7 @@ export default function SolutionsPage({
             <div
               style={{
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: "0.04em",
                 textTransform: "uppercase" as const,
                 color: dc.lemon,
@@ -333,30 +354,27 @@ export default function SolutionsPage({
             >
               Who we serve
             </div>
-            <H1 style={{ margin: 0, maxWidth: "15ch" }}>
-              Find your workflow
+            <H1 style={{ margin: 0, maxWidth: "18ch" }}>
+              Built for real estate investors.
             </H1>
           </div>
           <Lead
             style={{
               color: "rgba(238,239,211,0.72)",
-              maxWidth: "44ch",
+              maxWidth: "46ch",
               margin: 0,
             }}
           >
-            DSCR loans let rental-property owners qualify on the property's rent —
-            not their personal income. Whether you're a broker placing a file,
-            an investor underwriting your first rental, or a fund managing a
-            blanket line, Greenstreet has a purpose-built workflow. All tools run
-            off the same deterministic math.
+            Greenstreet is the lender — no middlemen, no broker portals. Whether
+            you're closing your first rental, running a short-term rental on
+            Airbnb, building a portfolio of 40 doors, or stress-testing an ARM
+            reset, every product runs off the same deterministic underwriting
+            math. Qualify on rent, not your income.
           </Lead>
         </div>
       </section>
 
-      {/* ── ALTERNATING AUDIENCE SEGMENT FEATURE ROWS — the centerpiece ──────── */}
-      {/* Each row: text ↔ stat panel alternates left/right per mockup.
-          Large gap between rows (clamp 56→120px) preserves the editorial pace.
-          No numbered steps, no generic band classes — this section IS the page. */}
+      {/* ── ALTERNATING SEGMENT ROWS ─────────────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
@@ -378,8 +396,7 @@ export default function SolutionsPage({
         </div>
       </section>
 
-      {/* ── RATE QUIZ + CLOSE — dark band breaks the cream sequence ─────────── */}
-      {/* Collapses the two orphan cream sections into a single intentional band */}
+      {/* ── RATE QUIZ + CLOSE ────────────────────────────────────────────── */}
       <section
         style={{
           background: dc.dark,
@@ -397,19 +414,19 @@ export default function SolutionsPage({
             alignItems: "center",
           }}
         >
-          {/* Left: rate quiz card */}
-          <div className="gs-reveal">
+          {/* Left: rate quiz */}
+          <div>
             <div
               style={{
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: "0.04em",
                 textTransform: "uppercase" as const,
                 color: dc.lemon,
                 marginBottom: 16,
               }}
             >
-              Rate quiz
+              Rate estimate
             </div>
             <h2
               style={{
@@ -421,24 +438,25 @@ export default function SolutionsPage({
                 color: dc.cream,
               }}
             >
-              Just want a rate estimate?
+              Five questions. Real rate tier.
             </h2>
             <p
               style={{
-                fontSize: "clamp(16px,1.3vw,19px)",
+                fontSize: "clamp(15px,1.2vw,18px)",
                 fontWeight: 500,
-                lineHeight: 1.5,
+                lineHeight: 1.55,
                 color: "rgba(238,239,211,0.65)",
                 margin: "0 0 28px",
                 letterSpacing: "-0.01em",
                 maxWidth: "42ch",
               }}
             >
-              Five questions — property type, LTV (how the loan compares to the
-              property value), DSCR, FICO, and state. Get a real rate tier and
-              your matched Greenstreet program. No email, no credit pull, no pitch.
+              Property type, LTV (how the loan compares to the property value),
+              DSCR, FICO, and state. Get a preliminary rate tier and your matched
+              Greenstreet program in under a minute. No email, no credit pull, no
+              commitment.
             </p>
-            {/* ONE dominant lemon primary per contract */}
+            {/* Dominant lemon CTA */}
             <button
               onClick={() => onNavigate("rate-quiz")}
               style={{
@@ -463,11 +481,11 @@ export default function SolutionsPage({
           </div>
 
           {/* Right: explore nav */}
-          <div className="gs-reveal" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div
               style={{
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: "0.04em",
                 textTransform: "uppercase" as const,
                 color: "rgba(238,239,211,0.45)",
@@ -476,60 +494,40 @@ export default function SolutionsPage({
             >
               Explore further
             </div>
-            <button
-              onClick={() => onNavigate("marketing")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: "transparent",
-                border: `1.5px solid ${dc.faded}`,
-                borderRadius: dc.r.pill,
-                padding: "14px 26px",
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                minHeight: 44,
-                alignSelf: "flex-start",
-              }}
-            >
-              <span
+            {[
+              { label: "Run a deal in the DSCR Calculator →", view: "dscr-calculator" },
+              { label: "See the full product catalog →", view: "products" },
+              { label: "Read investor case studies →", view: "case-studies" },
+            ].map(({ label, view }) => (
+              <button
+                key={view}
+                onClick={() => onNavigate(view)}
                 style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  letterSpacing: "-0.02em",
-                  color: dc.cream,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 9,
+                  background: "transparent",
+                  border: `1.5px solid ${dc.faded}`,
+                  borderRadius: dc.r.md,
+                  padding: "14px 24px",
+                  cursor: "pointer",
+                  fontFamily: dc.sans,
+                  minHeight: 44,
+                  alignSelf: "flex-start",
                 }}
               >
-                Explore all tools →
-              </span>
-            </button>
-            <button
-              onClick={() => onNavigate("products")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: "transparent",
-                border: `1.5px solid ${dc.faded}`,
-                borderRadius: dc.r.pill,
-                padding: "14px 26px",
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                minHeight: 44,
-                alignSelf: "flex-start",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  letterSpacing: "-0.02em",
-                  color: dc.cream,
-                }}
-              >
-                Full product catalog →
-              </span>
-            </button>
+                <span
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 600,
+                    letterSpacing: "-0.02em",
+                    color: dc.cream,
+                  }}
+                >
+                  {label}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </section>
