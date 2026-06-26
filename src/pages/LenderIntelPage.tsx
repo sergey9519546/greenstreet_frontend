@@ -98,7 +98,7 @@ function scorePrograms(
 
 export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () => void; onNavigate?: (v: any) => void }) {
   useEffect(() => {
-    document.title = "Lender Intelligence | Greenstreet Finance";
+    document.title = "Our DSCR Programs | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -161,7 +161,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             {/* Left: copy + chips */}
             <div>
               <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginBottom: 20, letterSpacing: "-0.01em" }}>
-                Product / Lender Intelligence
+                Product / Our DSCR Programs
               </div>
               <H1 style={{ margin: "0 0 24px", maxWidth: "15ch" }}>
                 Which programs fit your deal?
@@ -254,7 +254,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 36 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
-              Live lender matcher
+              Live program matcher
             </div>
             <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", lineHeight: 1.05 }}>
               <Mono style={{ fontWeight: 600 }}>{matchCount}</Mono> of {total} programs fit this deal
