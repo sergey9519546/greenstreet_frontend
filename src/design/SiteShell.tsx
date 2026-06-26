@@ -25,7 +25,7 @@ const NAV_MENUS: NavMenu[] = [
       { label: INVESTGO_LABEL, view: "portal", path: "/investgo" },
       { label: "Platform", path: "/products/platform" },
       { label: "DSCR Calculator", view: "dscr-calculator", path: "/dscr-calculator" },
-      { label: "Lender Intelligence", view: "lender-intel", path: "/lender-intel" },
+      { label: "Our DSCR Programs", view: "lender-intel", path: "/lender-intel" },
       { label: "State Regulations", view: "state-laws", path: "/state-laws" },
       { label: "Deal Analyzer", view: "deal-analyzer", path: "/deal-analyzer" },
       { label: "Borrower Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
@@ -34,9 +34,10 @@ const NAV_MENUS: NavMenu[] = [
   {
     label: "Who We Serve", view: "solutions", path: "/solutions",
     items: [
-      { label: "Mortgage Brokers", view: "brokers", path: "/brokers" },
       { label: "Real Estate Investors", view: "investors", path: "/investors" },
-      { label: "Investor Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
+      { label: "Foreign Nationals", view: "borrower-profiles", path: "/borrower-profiles" },
+      { label: "STR & Airbnb Hosts", view: "borrower-profiles", path: "/borrower-profiles" },
+      { label: "Vacation & Second Homes", view: "borrower-profiles", path: "/borrower-profiles" },
       { label: "Rate Quiz", view: "rate-quiz", path: "/rate-quiz" },
     ],
   },
@@ -227,7 +228,6 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
 
               {renderMenu(NAV_MENUS[0])}
               {renderMenu(NAV_MENUS[1])}
-              <a className={`nav-link w-inline-block${path === "/partners" || path === "/partnerships" ? " is-current" : ""}`} href="/partnerships" onClick={go("brokers-partner")}><div className="nav-link-background" aria-hidden="true" /><div className="nav_links_text">Partnerships</div></a>
               {renderMenu(NAV_MENUS[2])}
               <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div className="nav-link-background" aria-hidden="true" /><div>Login</div></a>
               {/* Solid, always-visible CTA (matches the home nav button). */}
@@ -258,7 +258,6 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               ))}
             </React.Fragment>
           ))}
-          <a href="/partnerships" className="nav-link" onClick={go("brokers-partner")} style={{ marginTop: 10 }}>Partnerships</a>
           <a href="/investgo" className="nav-link" onClick={go("portal")}>Login</a>
           <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")}>Book a demo</a>
         </div>
@@ -287,7 +286,7 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <div className="footer_group_list u-grid-column-2">
                 <a className="footer_link_wrap w-inline-block" href="/dscr-calculator" onClick={go("dscr-calculator")}><div className="footer_link_text u-weight-bold">DSCR Calculator</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/deal-analyzer" onClick={go("deal-analyzer")}><div className="footer_link_text u-weight-bold">Deal Analyzer</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={go("lender-intel")}><div className="footer_link_text u-weight-bold">Lender Intelligence</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={go("lender-intel")}><div className="footer_link_text u-weight-bold">Our DSCR Programs</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={go("state-laws")}><div className="footer_link_text u-weight-bold">State Regulations</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">DSCR Borrower Profiles</div></a>
               </div>
@@ -295,8 +294,9 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
             <section className="footer_group_wrap">
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
               <div className="footer_group_list">
-                <a className="footer_link_wrap w-inline-block" href="/brokers" onClick={go("brokers")}><div className="footer_link_text u-weight-bold">Mortgage Brokers</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/investors" onClick={go("investors")}><div className="footer_link_text u-weight-bold">Private Funds</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/investors" onClick={go("investors")}><div className="footer_link_text u-weight-bold">Real Estate Investors</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">Foreign Nationals</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/rate-quiz" onClick={go("rate-quiz")}><div className="footer_link_text u-weight-bold">Rate Quiz</div></a>
               </div>
             </section>
