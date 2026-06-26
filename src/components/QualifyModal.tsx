@@ -27,7 +27,7 @@ import type {
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Purpose = "purchase" | "rate-term" | "cash-out";
 type FicoBand = "under-680" | "680-719" | "720-759" | "760-plus";
-type Role = "broker" | "investor";
+type Role = "investor" | "foreign" | "str" | "vacation";
 type Experience = "0" | "1-3" | "4-9" | "10-plus";
 type Timeline = "exploring" | "under-30" | "30-90" | "refi-soon";
 
@@ -1451,8 +1451,10 @@ function Step4({
   const [shaking, setShaking] = useState(false);
 
   const roles: { val: Role; label: string; helper: string }[] = [
-    { val: "broker", label: "Mortgage broker", helper: "I submit deals on behalf of clients." },
-    { val: "investor", label: "Real-estate investor", helper: "I own or am acquiring the property." },
+    { val: "investor", label: "Buy & hold investor", helper: "Long-term rental income." },
+    { val: "foreign", label: "Foreign national", helper: "Investing from outside the U.S." },
+    { val: "str", label: "STR / Airbnb host", helper: "Short-term / vacation rental." },
+    { val: "vacation", label: "Second / vacation home", helper: "A second home I'll also rent." },
   ];
   const timelines: { val: Timeline; label: string }[] = [
     { val: "exploring", label: "Just exploring" },
@@ -1569,8 +1571,8 @@ function Step4({
       </FieldGroup>
 
       <FieldGroup
-        label="I am a"
-        helper="Helps us tailor the right program for your situation."
+        label="What best describes you?"
+        helper="Helps us match the right program for your situation."
       >
         <div
           role="group"
