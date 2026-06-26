@@ -271,7 +271,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [brokerConfig, setBrokerConfig] = useState({ brokerName: "", nmls: "", licenseType: "Mortgage Broker", primaryMarket: "", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend." });
+  const [brokerConfig, setBrokerConfig] = useState({ brokerName: "", nmls: "", licenseType: "", primaryMarket: "", autoDisclaimer: "Rates and terms subject to change. Not a commitment to lend." });
   const [brokerSaved, setBrokerSaved] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
@@ -479,7 +479,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }}
               className="space-y-3">
               <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                placeholder="broker@yourfirm.com"
+                placeholder="you@email.com"
                 className="w-full px-4 py-3 text-sm outline-none transition-colors"
                 style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
                 onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
@@ -497,7 +497,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                 style={{ color: T.muted }}
                 onMouseEnter={e => e.currentTarget.style.color = swatch.midnight}
                 onMouseLeave={e => e.currentTarget.style.color = T.muted}>
-                {isSignUpMode ? "Already registered? Sign in" : "New broker? Create account"}
+                {isSignUpMode ? "Already registered? Sign in" : "New here? Create account"}
               </button>
             </div>
           </div>
@@ -1556,15 +1556,15 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {activeTab === "settings" && (
                     <TabPane id="settings">
                       <WhiteCard className="max-w-xl" style={{ padding: "32px" }}>
-                        <h2 className="font-bold text-lg mb-1" style={{ color: T.ink }}>Broker Profile</h2>
+                        <h2 className="font-bold text-lg mb-1" style={{ color: T.ink }}>Your Profile</h2>
                         <p className="text-xs mb-6" style={{ color: T.muted }}>
                           Your name and license info appear on IC memos and audit exports.
                         </p>
                         <form onSubmit={saveBrokerConfig} className="space-y-4">
                           {[
-                            { key: "brokerName",    label: "Broker / Company Name",    helper: "Displayed on all exports" },
+                            { key: "brokerName",    label: "Name / Company",    helper: "Displayed on all exports" },
                             { key: "nmls",          label: "NMLS License Number",      helper: "Required for compliance memos" },
-                            { key: "licenseType",   label: "License Type",             helper: "e.g. Mortgage Broker, Mortgage Banker" },
+                            { key: "licenseType",   label: "License Type",             helper: "Optional" },
                             { key: "primaryMarket", label: "Primary Markets (States)", helper: "e.g. FL, TX, GA" },
                           ].map(({ key, label, helper }) => (
                             <FieldInput key={key} label={label} helper={helper} type="text"
