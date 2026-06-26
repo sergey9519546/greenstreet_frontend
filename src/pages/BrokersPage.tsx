@@ -25,7 +25,7 @@ const USECASES: UseCase[] = [
   {
     num: "02",
     title: "Match the right Greenstreet program before your first call",
-    desc: "Your file is scored against every Greenstreet DSCR program: FICO floors, LTV caps (how the loan amount compares to the property value — lower = more equity = better terms), DSCR minimums, state coverage and entity rules — ranked by fit score. Know which program funds your deal before you pick up the phone.",
+    desc: "Your file is scored against every Greenstreet DSCR program: FICO floors, LTV caps (how the loan amount compares to the property value — lower = more equity = better terms), DSCR minimums, state coverage and entity rules — ranked by fit score. Know which program funds your deal before you make an offer.",
     cta: "Find the best program for my file",
     view: "lender-intel",
     numBg: dc.dark,
@@ -34,7 +34,7 @@ const USECASES: UseCase[] = [
   {
     num: "03",
     title: "Check the state rule before it kills the deal",
-    desc: "Prepayment-penalty fees (a fee some loans charge if you pay the loan off or refinance early), usury caps and short-term-rental rules for all 50 states — each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you quote the borrower.",
+    desc: "Prepayment-penalty fees (a fee some loans charge if you pay the loan off or refinance early), usury caps and short-term-rental rules for all 50 states — each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you make an offer.",
     cta: "Look up state rules for my deal",
     view: "state-laws",
     numBg: dc.lemon,
@@ -43,7 +43,7 @@ const USECASES: UseCase[] = [
   {
     num: "04",
     title: "Stress-test the rate and the rent",
-    desc: "A 120-cell rate × rent shock grid shows your borrower exactly how far the deal can bend before DSCR breaks below 1.00. Run it in seconds — then share it as a defensible page in the loan package.",
+    desc: "A 120-cell rate × rent shock grid shows you exactly how far the deal can bend before DSCR breaks below 1.00. Run it in seconds — then keep it as a defensible page in your deal package.",
     cta: "Run the stress matrix",
     view: "stress-matrix",
     numBg: dc.dark,
@@ -71,7 +71,7 @@ export default function BrokersPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "For Brokers | Greenstreet Finance";
+    document.title = "For Investors | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -126,14 +126,14 @@ export default function BrokersPage({
                 color: dc.lemon,
               }}
             >
-              For Brokers
+              For Investors
             </div>
             <H1 style={{ margin: 0 }}>
-              Submit once.
+              One deal.
               <br />
-              Place and fund
+              We underwrite
               <br />
-              in-house.
+              and fund it.
             </H1>
             <Lead
               style={{
@@ -142,10 +142,10 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Greenstreet gives brokers five tools to price, qualify, and package
-              every DSCR rental-loan file — no income docs, no login, no lender
-              phone tag. Price a deal in under 60 seconds and submit a package
-              that sticks the first time.
+              Greenstreet is the broker and the lender — direct to you. Five tools
+              price, qualify, and stress-test your DSCR rental deal — no income
+              docs, no income tax returns, no middleman. Price a deal in under 60
+              seconds, then we fund it in-house.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Btn
@@ -269,7 +269,7 @@ export default function BrokersPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                In-house underwriting · wholesale
+                In-house underwriting · direct
               </span>
               <span
                 style={{
@@ -459,7 +459,7 @@ export default function BrokersPage({
                 marginBottom: 14,
               }}
             >
-              Wholesale · in-house underwriting
+              Direct · in-house underwriting
             </div>
             <h2
               style={{
@@ -486,7 +486,7 @@ export default function BrokersPage({
             >
               Book a 15-minute walkthrough — we'll run a real file through the
               Greenstreet engine together, from pricing to submission, so you see
-              exactly what your borrower will see before you commit.
+              exactly what you will see before you fund.
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
