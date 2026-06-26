@@ -13,6 +13,10 @@ export default function TaxEnginePage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  React.useEffect(() => {
+    document.title = "Tax Engine | Greenstreet Finance";
+  }, []);
+
   // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
   const [landPct, setLandPct] = useState(20);
@@ -157,19 +161,6 @@ export default function TaxEnginePage({
             pointerEvents: "none",
           }}
         />
-        {/* ambient radial glow */}
-        <div
-          style={{
-            position: "absolute",
-            top: "-20%",
-            right: "-8%",
-            width: "55%",
-            aspectRatio: "1",
-            borderRadius: "50%",
-            background: "radial-gradient(circle,rgba(0,55,56,0.08),transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
         <div
           className="dc-hero"
           style={{
@@ -204,13 +195,14 @@ export default function TaxEnginePage({
               Tax Engine &middot; &sect;167 &middot; &sect;469 &middot; &sect;1250 &middot; NIIT
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
-              What does it really earn after taxes?
+              What does this property really earn after taxes?
             </H1>
-            <Lead style={{ color: "rgba(0,55,56,0.72)", maxWidth: "48ch", margin: "0 0 36px" }}>
-              After-tax IRR with the depreciation shield, &sect;1250 recapture, LTCG,
-              NIIT and &sect;469 passive-loss rules &mdash; and exactly how much the tax
-              bill costs you.
+            <Lead style={{ color: "rgba(0,55,56,0.72)", maxWidth: "48ch", margin: "0 0 20px" }}>
+              Most return calculators ignore taxes. This one doesn't. Enter your deal and tax profile and see: your depreciation tax shield (the annual tax saving from writing off the building), the tax bill at exit (depreciation recapture + capital gains + NIIT), and the after-tax IRR — what you actually keep.
             </Lead>
+            <p style={{ color: "rgba(0,55,56,0.55)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+              How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IRR to the pre-tax IRR — the gap is your tax drag. Real estate professional status (750hr + 50% test) can dramatically reduce that drag.
+            </p>
             <Btn label="Open the tax engine" href="#te-tool" onClick={scrollToTool} />
           </div>
 
@@ -318,7 +310,7 @@ export default function TaxEnginePage({
                 fontWeight: 600,
                 letterSpacing: "-0.035em",
                 lineHeight: 1.0,
-                margin: 0,
+                margin: "0 0 10px",
                 color: dc.cream,
               }}
             >
@@ -326,6 +318,15 @@ export default function TaxEnginePage({
               <span style={{ color: irrColor }}>{afterTaxStr}</span>
               {" "}· pre-tax {preTaxStr} · drag {dragStr}
             </h2>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+              {!hasResult
+                ? "Adjust inputs to see your after-tax return."
+                : afterTaxIRR >= 0.1
+                ? `After-tax IRR of ${afterTaxStr} is strong. The depreciation shield offsets some of the tax bill — your real return after the IRS takes its share still works.`
+                : afterTaxIRR >= 0.06
+                ? `After-tax IRR of ${afterTaxStr} is acceptable but the ${dragStr} tax drag is meaningful. Look for ways to increase the depreciation shield — a cost-segregation study or higher land allocation can help.`
+                : `After-tax IRR of ${afterTaxStr} is below the typical 6% threshold. The ${dragStr} tax drag may be larger than expected. Check whether real estate professional status (REP) applies — it can unlock passive-loss deductions that significantly improve the after-tax number.`}
+            </p>
           </div>
 
           {/* Grid: inputs + results */}
@@ -354,17 +355,21 @@ export default function TaxEnginePage({
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   color: dc.lemon,
-                  marginBottom: 20,
+                  marginBottom: 6,
                 }}
               >
                 Deal &amp; Tax profile
               </div>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", margin: "0 0 16px", lineHeight: 1.5 }}>
+                Deal numbers at the top; your personal tax situation below. Estimates are fine — numbers update live.
+              </p>
 
               {/* Numeric fields */}
               {(
                 [
                   {
                     label: "Purchase Price",
+                    hint: "What you're paying for the property.",
                     key: "purchasePrice" as const,
                     step: 5000,
                     prefix: "$",
@@ -374,6 +379,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "LTV",
+                    hint: "Loan-to-value — loan ÷ value. E.g. 25% down = 75% LTV.",
                     key: "ltv" as const,
                     step: 1,
                     prefix: "",
@@ -383,6 +389,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "Note Rate",
+                    hint: "Your loan interest rate. Estimate is fine.",
                     key: "rate" as const,
                     step: 0.125,
                     prefix: "",
@@ -392,6 +399,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "Monthly Rent",
+                    hint: "Expected gross rent per month.",
                     key: "monthlyRent" as const,
                     step: 100,
                     prefix: "$",
@@ -401,6 +409,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "Annual Taxes",
+                    hint: "Property taxes per year.",
                     key: "annualTaxes" as const,
                     step: 250,
                     prefix: "$",
@@ -409,7 +418,8 @@ export default function TaxEnginePage({
                     set: setAnnualTaxes,
                   },
                   {
-                    label: "Annual Ins.",
+                    label: "Annual Insurance",
+                    hint: "Homeowners insurance per year.",
                     key: "annualInsurance" as const,
                     step: 100,
                     prefix: "$",
@@ -419,6 +429,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "Monthly HOA",
+                    hint: "HOA dues per month. Enter 0 if none.",
                     key: "hoa" as const,
                     step: 25,
                     prefix: "$",
@@ -428,6 +439,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "Hold Years",
+                    hint: "How long you plan to own the property before selling.",
                     key: "holdYears" as const,
                     step: 1,
                     prefix: "",
@@ -437,6 +449,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "Land %",
+                    hint: "Estimated land value as a percent of purchase price. Land is not depreciable — lower land % = larger depreciation deduction. Typical range: 15%–30%.",
                     key: "landPct" as const,
                     step: 1,
                     prefix: "",
@@ -445,7 +458,8 @@ export default function TaxEnginePage({
                     set: setLandPct,
                   },
                   {
-                    label: "MAGI ($)",
+                    label: "MAGI — your income",
+                    hint: "Modified adjusted gross income. Determines whether passive-loss rules limit your deductions and whether NIIT (3.8% extra tax) applies.",
                     key: "magi" as const,
                     step: 5000,
                     prefix: "$",
@@ -455,6 +469,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "State Tax %",
+                    hint: "Your state income tax rate. Enter 0 for states with no income tax (TX, FL, etc.).",
                     key: "stateRate" as const,
                     step: 0.5,
                     prefix: "",
@@ -463,7 +478,8 @@ export default function TaxEnginePage({
                     set: setStateRate,
                   },
                   {
-                    label: "Exit PPP %",
+                    label: "Exit prepayment penalty %",
+                    hint: "A fee some loans charge if you pay the loan off or refinance early. Expressed as % of loan balance. Enter 0 if your loan has no prepayment penalty.",
                     key: "exitPppPct" as const,
                     step: 0.5,
                     prefix: "",
@@ -473,6 +489,7 @@ export default function TaxEnginePage({
                   },
                 ] as {
                   label: string;
+                  hint: string;
                   key: string;
                   step: number;
                   prefix: string;
@@ -490,11 +507,12 @@ export default function TaxEnginePage({
                       letterSpacing: "0.04em",
                       textTransform: "uppercase",
                       color: "rgba(238,239,211,0.55)",
-                      marginBottom: 5,
+                      marginBottom: 3,
                     }}
                   >
                     {f.label}
                   </span>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.35)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
                   <div
                     style={{
                       display: "flex",
@@ -570,19 +588,20 @@ export default function TaxEnginePage({
               <label
                 style={{
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   gap: 10,
                   cursor: "pointer",
+                  marginTop: 8,
                 }}
               >
                 <input
                   type="checkbox"
                   checked={isRep}
                   onChange={(e) => setIsRep(e.target.checked)}
-                  style={{ accentColor: dc.lemon, width: 16, height: 16 }}
+                  style={{ accentColor: dc.lemon, width: 16, height: 16, marginTop: 2, flexShrink: 0 }}
                 />
-                <span style={{ fontSize: 13, color: "rgba(238,239,211,0.8)" }}>
-                  Real estate professional (750hr + 50% test)
+                <span style={{ fontSize: 13, color: "rgba(238,239,211,0.8)", lineHeight: 1.45 }}>
+                  <strong style={{ color: dc.lemon }}>Real estate professional status</strong> (750hr test + 50% of work time in real estate) — unlocks the ability to deduct passive losses against ordinary income. If you don't meet both tests, leave this unchecked.
                 </span>
               </label>
             </div>
@@ -668,38 +687,41 @@ export default function TaxEnginePage({
                         letterSpacing: "0.04em",
                         textTransform: "uppercase",
                         color: dc.lemon,
-                        marginBottom: 14,
+                        marginBottom: 6,
                       }}
                     >
-                      Tax stack
+                      Tax breakdown — where the money goes
                     </div>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                      Green = tax benefit that improves your return. Red = tax cost that reduces it. The difference between pre-tax and after-tax IRR is your total tax drag.
+                    </p>
                     {(
                       [
                         {
-                          label: "Depreciation shield (total hold)",
+                          label: "Depreciation shield (total hold) — your annual tax savings from writing off the building",
                           val: fmt$(result.totalDepreciationShield),
                           color: dc.emerald,
                         },
                         {
-                          label: "Total tax on exit",
+                          label: "Total tax on exit — depreciation recapture + capital gains tax owed when you sell",
                           val: fmt$(result.totalTaxOnExit),
                           color: "#ff6b6b",
                         },
                         {
-                          label: "Effective recapture rate",
+                          label: "§1250 recapture rate — the tax rate on depreciation you claimed (capped at 25%)",
                           val:
                             (result.effectiveRecaptureRate * 100).toFixed(1) + "%",
                           color: dc.lemon,
                         },
                         {
-                          label: "Effective LTCG rate",
+                          label: "Long-term capital gains rate — applied to the remaining profit above your basis",
                           val:
                             (result.effectiveLtcgRate * 100).toFixed(1) + "%",
                           color: dc.cream,
                         },
                         {
-                          label: "NIIT applies",
-                          val: result.niitApplies ? "Yes" : "No",
+                          label: "NIIT (3.8% net investment income tax) — applies if MAGI exceeds $200K single / $250K joint",
+                          val: result.niitApplies ? "Yes — adds 3.8% to investment income" : "No",
                           color: result.niitApplies ? "#ff6b6b" : dc.emerald,
                         },
                       ] as { label: string; val: string; color: string }[]
@@ -747,11 +769,14 @@ export default function TaxEnginePage({
                         letterSpacing: "0.04em",
                         textTransform: "uppercase",
                         color: dc.lemon,
-                        marginBottom: 14,
+                        marginBottom: 6,
                       }}
                     >
-                      Year-by-year after-tax NCF
+                      Year-by-year cash flow — before and after taxes
                     </div>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                      Pre-Tax = net operating income minus debt service. Dep. = depreciation deduction (reduces your taxable income each year). Fed+St Tax = federal plus state tax owed. After-Tax = what you actually keep. Green = positive; red = negative cash flow that year.
+                    </p>
                     <div style={{ overflowX: "auto" }}>
                       <table
                         style={{
@@ -863,10 +888,10 @@ export default function TaxEnginePage({
                       lineHeight: 1.6,
                     }}
                   >
-                    <strong style={{ color: dc.lemon }}>Engine:</strong>{" "}
-                    src/engine/taxEngine.ts → computeAfterTaxIRR · IRC §167 27.5yr
-                    SL · §469 PAL rules · §1250 recapture 25% · §1(h) LTCG ·
-                    §1411 NIIT 3.8% · {result.disclaimer}
+                    <strong style={{ color: dc.lemon }}>Tax rules applied:</strong>{" "}
+                    IRC §167 straight-line depreciation over 27.5 years · §469 passive-activity-loss rules (limited to $25K for incomes under $100K; phased out to $150K; suspended above unless you qualify as a real estate professional) · §1250 recapture at 25% on depreciation claimed · §1(h) long-term capital gains rates · §1411 net investment income tax 3.8%.{" "}
+                    {result.disclaimer}{" "}
+                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
                   </div>
                 </>
               )}

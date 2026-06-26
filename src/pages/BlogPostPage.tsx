@@ -20,7 +20,7 @@ const ARTICLE_CSS = `
   .bp-body li{color:#3f5252;font-size:17px;line-height:1.6;margin-bottom:12px;padding-left:26px;position:relative;}
   .bp-body li::before{content:"→";position:absolute;left:0;color:${dc.rain};font-weight:800;}
   .bp-card{transition:transform .14s;} .bp-card:hover{transform:translateY(-4px);}
-  @media(max-width:900px){
+  @media(max-width: 991px){
     .bp-related-grid{grid-template-columns:1fr !important;}
     .bp-byline{flex-wrap:wrap;}
   }
@@ -55,16 +55,38 @@ export default function BlogPostPage({
   }, [post]);
 
   const navLinks = [
-    { label: "Guidance",     view: "blog" },
-    { label: "Case Studies", view: "case-studies" },
+    { label: "Guidance", view: "blog" },
+    { label: "DSCR Calc", view: "dscr-calculator" },
+    { label: "FAQ", view: "faq" },
   ];
   const cta = { label: "Price a deal →", view: "dscr-calculator" };
 
   if (!post) {
     return (
       <DcShell onNavigate={onNavigate} navLinks={navLinks} cta={cta}>
-        <div style={{ padding: "100px clamp(1.5rem,4vw,3rem)", textAlign: "center", color: dc.dark }}>
-          Post not found.
+        <div
+          style={{
+            padding: "clamp(80px,12vh,140px) clamp(1.5rem,4vw,3rem)",
+            textAlign: "center",
+            maxWidth: 480,
+            margin: "0 auto",
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 16 }}>
+            404 · Article not found
+          </div>
+          <h1 style={{ fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, margin: "0 0 16px", lineHeight: 1.1 }}>
+            That article doesn't exist.
+          </h1>
+          <p style={{ fontSize: 16, fontWeight: 500, color: "rgba(0,55,56,0.6)", lineHeight: 1.6, margin: "0 0 28px" }}>
+            It may have moved or the URL may be wrong. Browse all investor guidance below.
+          </p>
+          <button
+            onClick={() => onNavigate("blog")}
+            style={{ background: dc.dark, color: dc.cream, border: "none", borderRadius: dc.r.sm, padding: "12px 24px", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+          >
+            ← Back to all articles
+          </button>
         </div>
       </DcShell>
     );
@@ -218,17 +240,17 @@ export default function BlogPostPage({
                         window.open(href, "_blank", "noopener");
                     }}
                     style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 6,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 8,
                       background: "rgba(238,239,211,0.08)",
-                      border: "1px solid rgba(238,239,211,0.14)",
+                      border: "1px solid rgba(238,239,211,0.18)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontSize: 12,
                       fontWeight: 700,
-                      color: "rgba(238,239,211,0.6)",
+                      color: "rgba(238,239,211,0.65)",
                       cursor: "pointer",
                     }}
                   >
@@ -323,7 +345,7 @@ export default function BlogPostPage({
         >
           <div
             style={{
-              maxWidth: 980,
+              maxWidth: 820,
               margin: "0 auto",
               display: "flex",
               alignItems: "center",
@@ -349,7 +371,7 @@ export default function BlogPostPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              DSCR at 1.11× — the threshold where both coverage and cash flow hold under a 10% vacancy shock.
+              {post.tag} · {post.date} · Greenstreet Finance
             </span>
           </div>
         </div>
@@ -398,6 +420,44 @@ export default function BlogPostPage({
               background: "rgba(0,55,56,0.12)",
             }}
           />
+        </div>
+
+        {/* TL;DR — 30-second plain summary; progressive disclosure */}
+        <div
+          className="gs-reveal"
+          style={{
+            maxWidth: 680,
+            margin: "0 auto 40px",
+            background: dc.mintBg,
+            borderRadius: 10,
+            border: `1px solid rgba(0,55,56,0.12)`,
+            padding: "clamp(18px,2vw,26px) clamp(18px,2vw,28px)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.07em",
+              textTransform: "uppercase" as const,
+              color: dc.rain,
+              marginBottom: 8,
+            }}
+          >
+            TL;DR — 30-second version
+          </div>
+          <p
+            style={{
+              color: dc.dark,
+              fontSize: "clamp(15px,1.3vw,17px)",
+              fontWeight: 600,
+              margin: 0,
+              lineHeight: 1.5,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {post.summary}
+          </p>
         </div>
 
         <article className="bp-body gs-reveal" style={{ maxWidth: 680, margin: "0 auto" }}>
@@ -495,7 +555,7 @@ export default function BlogPostPage({
               color: dc.cream,
             }}
           >
-            See the deterministic engine for yourself.
+            See if your deal qualifies.
           </h2>
           <p
             style={{
@@ -506,26 +566,51 @@ export default function BlogPostPage({
               letterSpacing: "-0.02em",
             }}
           >
-            Price a real DSCR deal in under a minute — every figure traceable.
+            Enter your property's rent, purchase price, and loan amount — get a DSCR
+            (whether the property's rent can cover the loan payment), a rate estimate, and a program match in under a minute.
+            No W-2s, no tax returns, no commitment.
           </p>
-          <a
-            href="/dscr-calculator"
-            onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: dc.lemon,
-              color: dc.dark,
-              fontWeight: 600,
-              fontSize: 16,
-              textDecoration: "none",
-              padding: "16px 32px",
-              borderRadius: 6,
-            }}
-          >
-            Open the calculator →
-          </a>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
+            <button
+              onClick={() => (window as any).openQualify?.()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.lemon,
+                color: dc.dark,
+                fontWeight: 700,
+                fontSize: 16,
+                border: "none",
+                cursor: "pointer",
+                padding: "15px 30px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              See if your deal qualifies →
+            </button>
+            <a
+              href="/dscr-calculator"
+              onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "transparent",
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 16,
+                textDecoration: "none",
+                padding: "15px 28px",
+                borderRadius: 6,
+                border: "1px solid rgba(238,239,211,0.3)",
+              }}
+            >
+              Open the Deal Analyzer
+            </a>
+          </div>
         </div>
       </section>
 
@@ -561,19 +646,20 @@ export default function BlogPostPage({
                 onClick={(e) => { e.preventDefault(); (window.history.pushState({},'',`/blog/${r.slug}`),window.dispatchEvent(new PopStateEvent('popstate'))); }}
                 className="bp-card"
                 style={{
-                  background: "#fff",
-                  borderRadius: 9,
-                  border: "1px solid rgba(0,55,56,0.08)",
+                  background: dc.mintBg,
+                  borderRadius: 12,
+                  border: `1px solid ${dc.faded}`,
                   overflow: "hidden",
                   textDecoration: "none",
                   display: "flex",
                   flexDirection: "column",
                 }}
               >
-                {/* Card thumbnail — solid fill, no blur */}
+                {/* Card thumbnail — solid fill, aspect-ratio locked, no blur */}
                 <div
                   style={{
-                    height: 150,
+                    aspectRatio: "16/7",
+                    minHeight: 110,
                     background: r.bg,
                     display: "flex",
                     alignItems: "center",
@@ -582,7 +668,7 @@ export default function BlogPostPage({
                 >
                   <Mono
                     style={{
-                      fontSize: 30,
+                      fontSize: "clamp(24px,3vw,36px)",
                       fontWeight: 600,
                       color: r.glyphColor,
                       letterSpacing: "-0.03em",
@@ -591,24 +677,25 @@ export default function BlogPostPage({
                     {r.glyph}
                   </Mono>
                 </div>
-                <div style={{ padding: 24 }}>
+                <div style={{ padding: "clamp(18px,2vw,24px)" }}>
                   <div
                     style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      letterSpacing: "0.03em",
-                      textTransform: "uppercase" as const,
-                      color: dc.rain,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
                       marginBottom: 10,
                     }}
                   >
-                    {r.tag} · {r.date}
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
+                      {r.tag}
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.45)" }}>{r.date}</span>
                   </div>
                   <div
                     style={{
-                      fontSize: 18,
+                      fontSize: "clamp(15px,1.4vw,18px)",
                       fontWeight: 600,
-                      letterSpacing: "-0.02em",
+                      letterSpacing: "-0.025em",
                       lineHeight: 1.2,
                       color: dc.dark,
                     }}

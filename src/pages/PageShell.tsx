@@ -1,9 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { HowItWorks } from "./HowItWorks";
 import { Logo } from "../components/Logo";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Design tokens — single source of truth in src/theme.ts (Webflow-faithful)
 import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED } from "../theme";
@@ -22,14 +19,14 @@ const FOOTER: { h: string; links: { label: string; view: PageView; href?: string
     links: [
       { label: "Deal Analyzer", view: "deal-analyzer" },
       { label: "DSCR Calculator", view: "dscr-calculator" },
-      { label: "Lender Intelligence", view: "lender-intel" },
+      { label: "Our DSCR Programs", view: "lender-intel" },
       { label: "State Rules", view: "state-laws" },
     ],
   },
   {
     h: "Who We Serve",
     links: [
-      { label: "Mortgage Brokers", view: "brokers" },
+      { label: "Real Estate Investors", view: "investors" },
       { label: "Real Estate Investors", view: "investors" },
       { label: "Borrower Profiles", view: "borrower-profiles" },
       { label: "Rate Quiz", view: "rate-quiz" },
@@ -63,9 +60,6 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
-  const headerRef = useRef<HTMLElement>(null);
-  const mainRef = useRef<HTMLElement>(null);
-
   useEffect(() => {
     // Dynamic SEO
     if (title) {
@@ -81,34 +75,6 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
     // Scroll to top on mount
     window.scrollTo(0, 0);
   }, [title, subtitle]);
-
-  useGSAP(() => {
-    // Header: stagger-in on mount (label → h1 → subtitle)
-    if (headerRef.current) {
-      const headerEls = headerRef.current.children;
-      gsap.from(headerEls, {
-        y: 52, opacity: 0, duration: 0.85,
-        stagger: 0.13, ease: "power3.out", clearProps: "all",
-      });
-    }
-
-    // Main content: batch-reveal children as they scroll in
-    if (mainRef.current) {
-      const targets = mainRef.current.querySelectorAll(":scope > *");
-      targets.forEach((el, i) => {
-        gsap.from(el, {
-          y: 40, opacity: 0, duration: 0.7,
-          ease: "power3.out", clearProps: "all",
-          delay: i < 3 ? i * 0.07 : 0,
-          scrollTrigger: {
-            trigger: el,
-            start: "top 88%",
-            once: true,
-          },
-        });
-      });
-    }
-  }, [title]);  // re-run when page changes
 
   return (
     <div style={{ minHeight: "100vh", background: PISTACHIO, color: MIDNIGHT, fontFamily: "Outfit, sans-serif" }}>
@@ -138,7 +104,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
           color: #d8d958 !important;
           font-family: "Outfit Variable", Outfit, Arial, sans-serif !important;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
           .gs-nav-links { display: none; }
           .gs-hamburger { display: flex; flex-direction: column; gap: 5px; }
           .gs-mobile-menu { display: ${menuOpen ? "flex" : "none"}; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: ${PISTACHIO}; border-bottom: 1px solid ${FADED}; padding: 16px clamp(1.5rem, 4vw, 2rem) 24px; gap: 0; z-index: 49; }
@@ -154,22 +120,23 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
               <div className="nav-logo w-embed">
                 <span style={{
                   fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
-                  fontSize: "28px",
-                  fontWeight: 600,
+                  fontSize: "22px",
+                  fontWeight: 700,
+                  fontVariationSettings: '"wght" 700',
                   letterSpacing: "-0.04em",
                   color: "currentColor",
                   whiteSpace: "nowrap",
-                  lineHeight: 1,
+                  lineHeight: 0.98,
                   display: "inline-block"
-                }}>Greenstreet Finance</span>
+                }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
               </div>
             </a>
             
             <div className="nav-links-contain">
               <div className="nav-links-wrap">
-                <a className="nav-link w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link w-inline-block" href="/investgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div className="nav_links_text font-go" style={{ color: RAINFOREST, fontWeight: 700 }}>
-                    Investor<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
+                    Invest<span style={{ color: MIDNIGHT, fontWeight: 500 }}>GO</span>
                   </div>
                 </a>
                 <a className="nav-link w-inline-block" href="/products" onClick={(e) => { e.preventDefault(); onNavigate("products"); }}>
@@ -184,7 +151,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <a className="nav-link w-inline-block" href="/about" onClick={(e) => { e.preventDefault(); onNavigate("about"); }}>
                   <div className="nav_links_text">About</div>
                 </a>
-                <a className="nav-link is-underline w-inline-block" href="/investorgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
+                <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={(e) => { e.preventDefault(); onNavigate("portal"); }}>
                   <div>Login</div>
                 </a>
                 <div className="nav-btn">
@@ -206,30 +173,30 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
             </div>
             
             {/* Burger toggle for mobile */}
-            <div className="burger-wrap" style={{ cursor: "pointer" }} onClick={() => setMenuOpen(!menuOpen)}>
-              <div className="burger-line top"></div>
-              <div className="burger-line middle"></div>
-              <div className="burger-line bottom"></div>
-            </div>
+            <button type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              <div className="burger-line top" aria-hidden="true"></div>
+              <div className="burger-line middle" aria-hidden="true"></div>
+              <div className="burger-line bottom" aria-hidden="true"></div>
+            </button>
           </div>
         </div>
 
         {/* Mobile dropdown menu rendering */}
         {menuOpen && (
-          <div className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
-            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>Investor</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
+          <div id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "12px", zIndex: 49 }}>
+            <a href="/investgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}><span>Invest</span><span style={{ color: RAINFOREST, fontWeight: 700 }}>GO</span></a>
             <a href="/products" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("products"); setMenuOpen(false); }}>Product</a>
             <a href="/solutions" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("solutions"); setMenuOpen(false); }}>Who We Serve</a>
             <a href="/blog" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("blog"); setMenuOpen(false); }}>Resources</a>
             <a href="/about" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("about"); setMenuOpen(false); }}>About</a>
-            <a href="/investorgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
+            <a href="/investgo" className="nav-link" onClick={(e) => { e.preventDefault(); onNavigate("portal"); setMenuOpen(false); }}>Login</a>
             <a href="/rate-quiz" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700 }} onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); setMenuOpen(false); }}>Book a demo</a>
           </div>
         )}
       </nav>
 
       {/* Page header — dark hero band matching Webflow marketing page treatment */}
-      <header ref={headerRef} className="gs-dark-header" style={{
+      <header className="gs-dark-header" style={{
         background: MIDNIGHT,
         padding: "clamp(48px, 7vw, 96px) clamp(1.5rem, 4vw, 4rem) clamp(40px, 5vw, 72px)",
       }}>
@@ -251,7 +218,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
       </header>
 
       {/* Content — full-width with inner padding */}
-      <main ref={mainRef} style={{ padding: "24px clamp(1.5rem, 4vw, 4rem) 40px" }}>{children}</main>
+      <main style={{ padding: "24px clamp(1.5rem, 4vw, 4rem) 40px" }}>{children}</main>
 
       {/* Blue animated "How It Works" band — on every inner page */}
       <HowItWorks onCTA={() => onNavigate("rate-quiz")} />
@@ -265,14 +232,15 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
               <div className="footer_logo w-embed">
                 <span style={{
                   fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
-                  fontSize: "24px",
-                  fontWeight: 600,
+                  fontSize: "22px",
+                  fontWeight: 700,
+                  fontVariationSettings: '"wght" 700',
                   letterSpacing: "-0.04em",
                   color: "currentColor",
                   whiteSpace: "nowrap",
-                  lineHeight: 1,
+                  lineHeight: 0.98,
                   display: "inline-block"
-                }}>Greenstreet Finance</span>
+                }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
               </div>
             </a>
             <nav className="footer_layout u-grid-autofit">
@@ -286,7 +254,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                     <div className="footer_link_text u-weight-bold">Deal Analyzer</div>
                   </a>
                   <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate("lender-intel"); }}>
-                    <div className="footer_link_text u-weight-bold">Lender Intelligence</div>
+                    <div className="footer_link_text u-weight-bold">Our DSCR Programs</div>
                   </a>
                   <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={(e) => { e.preventDefault(); onNavigate("state-laws"); }}>
                     <div className="footer_link_text u-weight-bold">State Regulations</div>
@@ -300,7 +268,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
                 <div className="footer_group_list">
                   <a className="footer_link_wrap w-inline-block" href="/brokers" onClick={(e) => { e.preventDefault(); onNavigate("brokers"); }}>
-                    <div className="footer_link_text u-weight-bold">Mortgage Brokers</div>
+                    <div className="footer_link_text u-weight-bold">Real Estate Investors</div>
                   </a>
                   <a className="footer_link_wrap w-inline-block" href="/investors" onClick={(e) => { e.preventDefault(); onNavigate("investors"); }}>
                     <div className="footer_link_text u-weight-bold">Private Funds</div>

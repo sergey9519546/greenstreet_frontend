@@ -1,7 +1,7 @@
 import React from "react";
 
-// Greenstreet Finance logo — text only, in the site's title font (Outfit, weight 600,
-// tight tracking) to match the original greenboard wordmark. No icon/mark.
+// Greenstreet Finance logo — text only, in the site's title font with the heavy,
+// tight wordmark treatment used by the Greenboard reference logo. No icon/mark.
 //
 // Props:
 //   variant: "dark"  → midnight ink (use on light/pistachio bg)
@@ -33,9 +33,10 @@ export function Logo({
         color: ink,
         fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
         fontSize: `${size}px`,
-        fontWeight: 600,
-        letterSpacing: "-0.04em",
-        lineHeight: 1,
+        fontWeight: 900,
+        fontVariationSettings: '"wght" 900',
+        letterSpacing: "-0.065em",
+        lineHeight: 0.98,
         whiteSpace: "nowrap",
       }}
     >

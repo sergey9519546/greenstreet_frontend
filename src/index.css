@@ -1,4 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap");
+/* "Outfit Variable" is loaded by the global greenboard @font-face (same file the
+   home uses) — do NOT import Google "Outfit"/"Inter" here: those are different
+   builds and made React fall back to a different font during load. Keep only
+   JetBrains Mono (numerics). */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss/theme";
 @import "tailwindcss/utilities";
 
@@ -7,10 +11,11 @@
      render in (loaded globally via the greenboard CSS). Falling back to Google
      "Outfit" made every React page render in a different Outfit build than the
      home = the pervasive type "drop". */
-  --font-sans:
-    "Outfit Variable", "Outfit", "Inter", ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Outfit Variable", "Outfit", "Inter", sans-serif;
+  /* Exact Webflow primary family (greenboard --_typography---font--primary-family).
+     Same fallback (Arial) as the home, so React never renders a different Outfit
+     build or fallback during font load — the #1 cause of nav/text mismatch. */
+  --font-sans: "Outfit Variable", Arial, sans-serif;
+  --font-display: "Outfit Variable", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* Precise color tokens as requested */
@@ -47,8 +52,19 @@
   background-color: var(--color-midnight-green);
   color: var(--color-pistachio);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
+
+/* Unify base with the Webflow home. The global greenboard normalize already
+   provides box-sizing:border-box, button/input{font:inherit}, and
+   -moz-osx-font-smoothing on body — restate the essentials so no default
+   (Tailwind utilities, browser defaults) can drift the React pages. Webflow does
+   NOT set text-rendering, so neither do we (exact match). */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+button, input, select, textarea { font: inherit; }
 
 #root .page_wrap h1,
 #root .u-text-style-h1 {
@@ -80,7 +96,9 @@
 #root .page_wrap h4,
 #root .u-text-style-h4 {
   font-family: var(--font-display) !important;
-  font-size: 1.5rem !important; /* 24px */
+  /* Webflow .u-text-style-h4 is fluid, not 24px: 18.08px@1280 / 18.336px@1536
+     (measured on the home). Match its curve exactly. */
+  font-size: clamp(1rem, 1.05rem + 0.1vw, 1.25rem) !important;
   line-height: 1.2 !important;
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
@@ -97,7 +115,9 @@
 
 #root .u-text-style-large,
 #root .u-text-style-large-medium {
-  font-size: 1.25rem !important; /* 20px */
+  /* Webflow .u-text-style-large is fluid, not 20px: 18.08px@1280 / 18.336px@1536
+     (measured on the home). Match its curve exactly. */
+  font-size: clamp(1rem, 1.05rem + 0.1vw, 1.25rem) !important;
   line-height: 1.2 !important;
   font-weight: 500 !important;
   letter-spacing: -0.02em !important;
@@ -109,6 +129,27 @@
   line-height: 1.35 !important;
   font-weight: 500 !important;
   letter-spacing: -0.02em !important;
+}
+
+/* Tailwind defaults fighting the Webflow language: the only Tailwind-heavy
+   surface is the InvestGO portal (ComplianceDashboard). The Webflow/dc language
+   is FLAT — neutralize Tailwind soft shadows so cards match the rest of the site.
+   (Focus rings use `outline`; the nav's lemon active-bar is an inline box-shadow,
+   so neither is affected by these class-scoped rules.) */
+#root .shadow-sm,
+#root .shadow,
+#root .shadow-md,
+#root .shadow-lg,
+#root .shadow-xl,
+#root .shadow-2xl {
+  box-shadow: none !important;
+}
+
+/* Webflow surfaces are warm (mint cards on a pistachio page) — never pure white.
+   Map the portal's Tailwind bg-white cards to the dc card surface so they match
+   the rest of the site (paired with the existing 1px FADED-ish borders). */
+#root .bg-white {
+  background-color: var(--color-mint) !important;
 }
 
 /* Custom scrollbars */
@@ -939,6 +980,107 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   fill: currentColor;
 }
 
+:where(.nav-logo, .footer_logo) > span {
+  font-family: "Outfit Variable", "Outfit", Arial, sans-serif !important;
+  font-size: 30px !important;
+  font-weight: 700 !important;
+  font-variation-settings: "wght" 700 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 0.98 !important;
+  color: currentColor !important;
+  white-space: nowrap !important;
+  display: inline-block !important;
+}
+
+:where(.nav-logo, .footer_logo) > span > span:last-child {
+  display: inline-block !important;
+  width: 0.2em !important;
+  height: 0.2em !important;
+  margin-left: 0.075em !important;
+  border-radius: 999px !important;
+  background: #d8d958 !important;
+  color: transparent !important;
+  font-size: 1em !important;
+  line-height: 1 !important;
+  vertical-align: -0.015em !important;
+  transform: translateY(0.01em) !important;
+  overflow: hidden !important;
+}
+
+/* Footer logo larger than the nav logo (higher specificity wins over the shared rule) */
+.footer_logo > span { font-size: 46px !important; }
+
+/* Greenstreet rebuild video section (home, immediately before Solutions) */
+.gs-video-section { padding: clamp(2rem, 5vw, 4.5rem) 0; }
+.gs-video-head { max-width: 52rem; margin-bottom: clamp(1.25rem, 3vw, 2.25rem); }
+.gs-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #003738;
+  border: 1px solid rgba(0, 55, 56, 0.15);
+  cursor: pointer;
+}
+.gs-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.gs-video-mute {
+  position: absolute;
+  right: clamp(12px, 2vw, 20px);
+  bottom: clamp(12px, 2vw, 20px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 16px;
+  background: #003738;
+  color: #eeefd3;
+  border: 1px solid rgba(238, 239, 211, 0.18);
+  border-radius: 999px;
+  font: 600 14px/1 "Outfit Variable", Outfit, Arial, sans-serif;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.gs-video-mute:hover { background: #004041; color: #fff; }
+.gs-video-mute .gs-mute-ico { display: inline-flex; }
+.gs-video-mute svg { width: 18px; height: 18px; display: block; }
+.gs-video-mute[data-muted="true"] .ico-unmuted { display: none; }
+.gs-video-mute[data-muted="false"] .ico-muted { display: none; }
+@media (max-width: 767px) {
+  .gs-video-mute .gs-mute-label { display: none; }
+  .gs-video-mute { padding: 10px; }
+}
+
+/* 50-state PPP rule map (home, after Solutions) — solid dark band, no glass */
+.gs-statemap-section { background: #003738; color: #eeefd3; padding: clamp(3rem, 6vw, 5.5rem) 0; }
+.gs-statemap-head { max-width: 56rem; margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
+.gs-statemap-head h2, .gs-statemap-head .u-text-style-h5 { color: #eeefd3; }
+.gs-statemap-sub { color: rgba(238, 239, 211, 0.72); margin-top: 0.6rem; }
+.gs-statemap-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: clamp(1.5rem, 3vw, 3rem); align-items: center; }
+.gs-statemap-canvas { position: relative; width: 100%; }
+.gs-sm-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.gs-sm-state { stroke: #003738; stroke-width: 1; opacity: 0; transition: opacity .45s ease, fill .2s ease, filter .15s ease; cursor: pointer; }
+.gs-sm-state.is-in { opacity: 1; }
+.gs-sm-state.is-hot { filter: brightness(1.15); stroke: #eeefd3; stroke-width: 1.4; }
+.gs-statemap-loading { color: rgba(238, 239, 211, 0.6); font-size: 14px; padding: 2rem 0; }
+.gs-statemap-loading a { color: #d8d958; }
+.gs-sm-tip { position: absolute; pointer-events: none; transform: translateY(-100%); background: #00201f; color: #eeefd3; border: 1px solid rgba(238, 239, 211, 0.18); border-radius: 8px; padding: 7px 11px; font: 600 13px/1.2 "Outfit Variable", Outfit, Arial, sans-serif; white-space: nowrap; opacity: 0; transition: opacity .12s ease; z-index: 3; }
+.gs-sm-tip.is-on { opacity: 1; }
+.gs-sm-tip-dot, .gs-sm-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; vertical-align: middle; margin-right: 7px; }
+.gs-statemap-side { display: flex; flex-direction: column; gap: 14px; }
+.gs-statemap-legend { display: flex; flex-direction: column; gap: 8px; }
+.gs-sm-legend-row { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+.gs-sm-legend-label { flex: 1; color: rgba(238, 239, 211, 0.85); }
+.gs-sm-legend-count { font-variant-numeric: tabular-nums; font-weight: 700; color: #eeefd3; }
+.gs-statemap-cta { display: inline-flex; align-items: center; justify-content: center; background: #d8d958; color: #003738; font: 600 15px/1 "Outfit Variable", Outfit, Arial, sans-serif; text-decoration: none; padding: 13px 20px; border-radius: 8px; margin-top: 6px; }
+.gs-statemap-cta:hover { background: #e3e36a; }
+.gs-statemap-note { font-size: 12px; color: rgba(238, 239, 211, 0.5); line-height: 1.45; }
+@media (max-width: 991px) {
+  .gs-statemap-grid { grid-template-columns: 1fr; }
+  .gs-sm-tip { display: none; }
+}
+
 .nav-logo-wrap,
 .footer_logo_wrap {
   width: auto !important;
@@ -951,7 +1093,7 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 .nav-logo-go,
 .footer_logo {
   display: block;
-  max-width: 280px;
+  max-width: 700px;
   width: 100%;
 }
 
@@ -967,6 +1109,51 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 }
 [data-wf--nav-main--variant="greenboard"] .nav-logo-go {
   display: block !important;
+}
+
+/* React-routed pages use the same home nav classes, but not the home-only
+   scroll intro that starts .nav-btn at width:0. Keep the chrome stable from
+   first paint so routed pages do not visually "drop" after React/GSAP loads. */
+.gs-site-nav {
+  min-height: 96px !important;
+}
+.gs-site-nav .nav-wrap {
+  min-height: 64px !important;
+  align-items: center !important;
+}
+.gs-site-nav .nav-logo-wrap,
+.gs-site-nav .nav-logo {
+  width: auto !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
+}
+.gs-site-nav .nav-logo > span {
+  font-size: 30px !important;
+}
+.gs-site-nav .nav-links-contain,
+.gs-site-nav .nav-links-wrap {
+  min-height: 0 !important;
+  align-items: center !important;
+}
+.gs-site-nav .nav-link {
+  white-space: nowrap !important;
+}
+.gs-site-nav .nav-btn {
+  width: auto !important;
+  min-width: auto !important;
+  flex: 0 0 auto !important;
+}
+
+@media (max-width: 991px) {
+  .pr-special-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .pr-special-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 .swiper-slide {
   -webkit-transform: translate3d(0, 0, 0);
@@ -1138,12 +1325,12 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
 
 /* ---- Embedded Style ---- */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   #hs-booking {
     min-height: 900px !important;
   }
 }
-@media (max-width: 480px) {
+@media (max-width: 479px) {
   #hs-booking {
     min-height: 1200px !important;
   }

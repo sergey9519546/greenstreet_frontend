@@ -12,15 +12,40 @@ const BL_CSS = `
 /* Light-nav override: links + wordmark use dark ink on pistachio bg */
 .dc-nav a { color: rgba(0,55,56,0.72) !important; }
 .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
-.dc-nav { border-bottom: ${BL_NAV_BORDER} !important; background: rgba(238,239,211,1) !important;  }
+.dc-nav { border-bottom: ${BL_NAV_BORDER} !important; background: rgba(238,239,211,1) !important; }
 /* footer ink on pistachio footer */
 footer { color: rgba(0,55,56,0.55) !important; }
-footer div[style] { color: #003738 !important; }
 `;
 
 // ── Post data (all existing posts preserved) ──────────────────────────────────
 export const POSTS = [
   // ── DSCR EDUCATION ARTICLES (added 2026-06-25) ──────────────────────────────
+  {
+    slug: "greenstreet-go-launch",
+    date: "June 25, 2026", tag: "Product",
+    title: "Greenstreet announces InvestGO, the unified DSCR loan platform",
+    summary: "InvestGO brings DSCR pricing, program fit, state-rule checks, stress testing, and borrower qualification into one workflow for real estate investors.",
+    body: [
+      { p: "Greenstreet Finance is launching InvestGO: a unified operating layer for DSCR loan analysis. The goal is simple: let a broker or investor move from deal inputs to a defensible lending path without rebuilding the file across spreadsheets, portals, and disconnected calculators." },
+      { h: "Why InvestGO exists" },
+      { p: "DSCR lending looks simple until the file crosses real-world constraints. Rent has to cover PITIA. FICO and LTV change rate tiers. State prepayment rules can alter economics. Short-term rental income may qualify on a different figure than the owner expects. InvestGO puts those checks in one deterministic workflow." },
+      { h: "What the platform does" },
+      { list: [
+        "Runs Track 1 DSCR for lender qualification and Track 2 DSCR for investor survival.",
+        "Ranks Greenstreet programs and lender paths by fit instead of forcing manual portal checks.",
+        "Surfaces 50-state prepayment and usury flags before rate lock.",
+        "Adds stress testing, refi timing, ARM reset, returns, tax, and portfolio views around the same deal inputs.",
+      ]},
+      { h: "No black box in the numbers" },
+      { p: "The numeric path stays deterministic: the same inputs return the same outputs. AI can help explain the result, but it does not decide the DSCR, rate tier, state rule, or underwriting output." },
+      { quote: "InvestGO is built so every number can be traced back to the input, rule, and calculation that produced it." },
+      { h: "Who it is for" },
+      { p: "Investors can stress-test the acquisition before wiring earnest money, and review the logic behind program fit, state rules, and rate-path assumptions in one place." },
+    ],
+    glyph: "GO", glyphColor: dc.lemon, bg: dc.dark,
+    author: "Greenstreet",
+    featured: false,
+  },
   {
     slug: "what-is-dscr-how-it-works",
     date: "June 25, 2026", tag: "Lending",
@@ -29,7 +54,7 @@ export const POSTS = [
     body: [
       { p: "DSCR stands for Debt Service Coverage Ratio. It is the single number that determines whether a non-QM investment property loan qualifies. Unlike a conventional mortgage that weighs your W-2s and tax returns, a DSCR loan is underwritten on the property's ability to pay for itself — not yours." },
       { h: "The formula: rent ÷ PITIA" },
-      { p: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. That's it. If the property rents for $2,400/month and the full payment (principal + interest + taxes + insurance + HOA) is $2,000/month, the DSCR is 1.20x. The property generates 20% more income than it costs to carry." },
+      { p: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA. That's it. Example: rent = $2,500/month. PITIA = $1,420 P&I + $330 taxes + $110 insurance + $60 HOA = $1,920/month. DSCR = $2,500 ÷ $1,920 = 1.30x. The property generates 30% more income than it costs to carry. A DSCR of exactly 1.0x means rent equals the payment — no surplus. Below 1.0x, the rent does not cover the payment." },
       { h: "What goes into PITIA" },
       { list: [
         "P — Principal reduction on the loan balance.",
@@ -51,6 +76,7 @@ export const POSTS = [
       { h: "Why DSCR ≠ cash flow" },
       { p: "DSCR uses gross rent, not net. It doesn't subtract vacancy, property management, repairs, or capital expenditures. A 1.15x DSCR property is not necessarily cash-flow-positive after accounting for those real operating costs. Run the net analysis separately — the DSCR gets you through underwriting, but your actual return depends on the full operating picture." },
       { quote: "DSCR is the lender's question: does the rent cover the payment? It's not the investor's question: does the property actually cash flow after expenses?" },
+      { p: "→ Estimate the DSCR on your property using Greenstreet's Deal Analyzer: open the DSCR Calculator from any page." },
     ],
     glyph: "÷", glyphColor: dc.lemon, bg: dc.dark,
     author: "Priya Rao",
@@ -213,7 +239,7 @@ export const POSTS = [
       { p: "Foreign nationals with U.S. real property income are subject to FIRPTA (Foreign Investment in Real Property Tax Act) withholding on sale. DSCR loan qualification does not depend on U.S. tax status, but the borrower should work with a CPA familiar with cross-border real estate tax before closing — the tax implications on exit can be significant." },
       { quote: "DSCR is one of the most accessible U.S. lending products for foreign investors, because the loan doesn't depend on where you earned your money — only on what the property earns." },
     ],
-    glyph: "🌐", glyphColor: dc.lemon, bg: dc.dark,
+    glyph: "FN", glyphColor: dc.lemon, bg: dc.dark,
     author: "Marcus Chen",
     featured: false,
   },
@@ -386,7 +412,7 @@ export const POSTS = [
       ]},
       { p: "In each of these cases, the AI is writing prose or ranking options — not producing the authoritative number. The number comes from the deterministic engine: rate × balance × amortization factor, plus explicit addlines for taxes, insurance, HOA. No token sampling." },
       { h: "The audit trail requirement" },
-      { p: "Wholesale lending involves compliance reviews. Every number on a submitted file needs to be explainable: where did PITIA come from, what rate was used, what rent figure was applied. A deterministic engine produces the same answer every time and can show its work. An LLM cannot." },
+      { p: "DSCR lending involves compliance reviews. Every number on a submitted file needs to be explainable: where did PITIA come from, what rate was used, what rent figure was applied. A deterministic engine produces the same answer every time and can show its work. An LLM cannot." },
       { quote: "Determinism is a feature. Every figure Greenstreet produces is auditable — the same inputs produce the same output, every time." },
     ],
     glyph: "det()", glyphColor: dc.lemon, bg: dc.dark,
@@ -422,7 +448,7 @@ export const POSTS = [
       { h: "Reserve overlay for STR" },
       { p: "STR adds 3 months to the baseline reserve requirement. At 1.20x DSCR on an STR, you need 6 months PITIA in reserves minimum (3 standard + 3 STR overlay). At sub-1.0 DSCR on an STR, you're looking at 12–15 months. Make sure the investor is holding these reserves before you take the application." },
       { h: "Which Greenstreet program applies" },
-      { p: "Greenstreet's Core program covers STR 1–4 unit with 12 months history. InvestorGO covers STR properties where 1007 long-term rent is used as the qualifying figure (no history required). The Premier tier is available on STR if DSCR ≥ 1.20x using documented history at 740+ FICO, ≤75% LTV. STR condotels and short-term rental condos have additional program restrictions — confirm property type eligibility before the appraisal is ordered." },
+      { p: "Greenstreet's Core program covers STR 1–4 unit with 12 months history. InvestGO covers STR properties where 1007 long-term rent is used as the qualifying figure (no history required). The Premier tier is available on STR if DSCR ≥ 1.20x using documented history at 740+ FICO, ≤75% LTV. STR condotels and short-term rental condos have additional program restrictions — confirm property type eligibility before the appraisal is ordered." },
       { h: "The math on a real STR deal" },
       { p: "Example: 3BR SFR in a beach market. AirDNA projected gross: $72,000/year ($6,000/month). 1007 long-term rent: $2,400/month. PITIA: $2,200/month." },
       { p: "Qualifying income hierarchy: (1) 1007 = $2,400 → DSCR 1.09x. (2) AirDNA × 75% = $4,500 → DSCR 2.05x. (3) Documented 12-mo history × 75% — only applies if history exists." },
@@ -520,7 +546,7 @@ export const POSTS = [
         "Prepayment penalty options and rate differential.",
         "Estimated close timeline.",
       ]},
-      { p: "Review the term sheet carefully. The rate on the term sheet is indicative — it locks only when you formally lock the rate after the appraisal returns. The fee schedule on the term sheet is binding only to the extent stated. Greenstreet uses the InvestorGO term sheet format for most files." },
+      { p: "Review the term sheet carefully. The rate on the term sheet is indicative — it locks only when you formally lock the rate after the appraisal returns. The fee schedule on the term sheet is binding only to the extent stated. Greenstreet uses the InvestGO term sheet format for most files." },
       { h: "Step 3: Formal application and appraisal order (Day 3–5)" },
       { p: "Once you accept the term sheet, you complete a formal loan application (1003 or equivalent) and pay the appraisal deposit. The appraisal — which includes the Form 1007 rent schedule — is ordered. This is the longest step: appraisals for investment properties typically take 10–21 business days depending on the market, appraiser availability, and property access." },
       { p: "Two important notes on the appraisal: (1) The Form 1007 rent schedule is not optional — it's part of the DSCR calculation. Make sure the appraisal engagement letter specifies the 1007. (2) If you're buying in a market with limited comparable properties (rural, beach, unusual property type), the appraiser may need extra time. Build this into your contract timeline if you're purchasing." },
@@ -609,26 +635,26 @@ function ArticleBody({ blocks }: { blocks: { p?: string; h?: string; quote?: str
     <>
       {blocks.map((b, i) => {
         if (b.h) return (
-          <h2 key={i} style={{ color: dc.rain, fontSize: "22px", fontWeight: 700, margin: "32px 0 12px", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+          <h2 key={i} style={{ color: dc.dark, fontSize: "clamp(20px,2vw,26px)", fontWeight: 600, margin: "36px 0 14px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>
             {b.h}
           </h2>
         );
         if (b.quote) return (
-          <blockquote key={i} style={{ borderLeft: `3px solid ${dc.lemon}`, padding: "10px 22px", margin: "28px 0", color: dc.dark, fontSize: "20px", fontStyle: "italic", lineHeight: 1.4, fontWeight: 500 }}>
+          <blockquote key={i} style={{ borderLeft: `3px solid ${dc.lemon}`, padding: "14px 24px", margin: "32px 0", color: dc.dark, fontSize: "clamp(18px,1.6vw,22px)", lineHeight: 1.35, fontWeight: 600, letterSpacing: "-0.02em" }}>
             {b.quote}
           </blockquote>
         );
         if (b.list) return (
-          <ul key={i} style={{ margin: "0 0 20px", padding: 0, listStyle: "none" }}>
+          <ul key={i} style={{ margin: "0 0 22px", padding: 0, listStyle: "none" }}>
             {b.list.map((li, j) => (
-              <li key={j} style={{ color: "#3f5252", fontSize: "16px", lineHeight: 1.6, marginBottom: "12px", paddingLeft: "26px", position: "relative" }}>
-                <span style={{ position: "absolute", left: 0, color: dc.rain, fontWeight: 800 }}>→</span>
+              <li key={j} style={{ color: "rgba(0,55,56,0.75)", fontSize: "clamp(15px,1.25vw,17px)", lineHeight: 1.65, marginBottom: "14px", paddingLeft: "26px", position: "relative" }}>
+                <span style={{ position: "absolute", left: 0, color: dc.rain, fontWeight: 700 }}>→</span>
                 {li}
               </li>
             ))}
           </ul>
         );
-        return <p key={i} style={{ color: "#3f5252", fontSize: "17px", lineHeight: 1.75, marginBottom: "18px" }}>{b.p}</p>;
+        return <p key={i} style={{ color: "rgba(0,55,56,0.75)", fontSize: "clamp(16px,1.35vw,18px)", lineHeight: 1.75, marginBottom: "20px", fontWeight: 500 }}>{b.p}</p>;
       })}
     </>
   );
@@ -679,31 +705,41 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
       {/* Article body */}
       <section className="gs-reveal" style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          {/* TL;DR summary — progressive disclosure: quick answer first */}
+          <div style={{ background: dc.mintBg, borderRadius: 10, border: `1px solid ${dc.faded}`, padding: "clamp(18px,2vw,26px) clamp(18px,2vw,28px)", marginBottom: 36 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 8 }}>
+              TL;DR — 30-second version
+            </div>
+            <p style={{ color: dc.dark, fontSize: "clamp(15px,1.3vw,17px)", fontWeight: 600, margin: 0, lineHeight: 1.5, letterSpacing: "-0.01em" }}>
+              {post.summary}
+            </p>
+          </div>
+
           <ArticleBody blocks={post.body} />
 
-          {/* CTA card — qualifier + deal analyzer */}
+          {/* End CTA — concrete next step */}
           <div
             className="gs-reveal"
-            style={{ marginTop: 44, borderRadius: 9, border: `1px solid ${dc.rain}`, background: "rgba(0,101,101,0.07)", padding: "28px 32px" }}
+            style={{ marginTop: 48, borderRadius: 12, border: `1px solid rgba(0,55,56,0.12)`, background: dc.mintBg, padding: "clamp(24px,3vw,36px) clamp(24px,3vw,40px)" }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 10 }}>
-              Ready to run a real deal?
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 12 }}>
+              See if your deal qualifies
             </div>
-            <p style={{ color: "#4a5d5d", fontSize: 15, marginBottom: 20, lineHeight: 1.6 }}>
-              Model DSCR, break-even rate, and your program match — or check whether your deal qualifies right now.
+            <p style={{ color: "rgba(0,55,56,0.72)", fontSize: 15, marginBottom: 22, lineHeight: 1.6, fontWeight: 500 }}>
+              Enter your property's rent and loan details — get a DSCR estimate, a rate range, and a program match in under a minute. No commitment, no account required.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
               <button
-                onClick={() => onNavigate("dscr-calculator")}
-                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "11px 22px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em" }}
-              >
-                Open the Deal Analyzer →
-              </button>
-              <button
                 onClick={() => (window as any).openQualify?.()}
-                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "11px 22px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
               >
                 See if your deal qualifies →
+              </button>
+              <button
+                onClick={() => onNavigate("dscr-calculator")}
+                style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
+              >
+                Open the Deal Analyzer →
               </button>
             </div>
           </div>
@@ -718,9 +754,9 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
                 <button
                   key={r.slug}
                   onClick={() => (window.history.pushState({},'',`/blog/${r.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
-                  style={{ background: dc.white, borderRadius: 8, border: `1px solid rgba(0,55,56,0.10)`, padding: "20px 22px", textAlign: "left" as const, cursor: "pointer", fontFamily: dc.sans }}
+                  style={{ background: dc.mintBg, borderRadius: 8, border: `1px solid rgba(0,55,56,0.10)`, padding: "20px 22px", textAlign: "left" as const, cursor: "pointer", fontFamily: dc.sans }}
                 >
-                  <div style={{ color: "#647474", fontSize: 12, marginBottom: 6 }}>{r.date}</div>
+                  <div style={{ color: dc.rain, fontSize: 12, fontWeight: 500, marginBottom: 6 }}>{r.date}</div>
                   <div style={{ color: dc.dark, fontWeight: 700, fontSize: 15, lineHeight: 1.3, letterSpacing: "-0.01em" }}>{r.title}</div>
                 </button>
               ))}
@@ -763,9 +799,12 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginBottom: 18, letterSpacing: "-0.01em" }}>
               Greenstreet Guidance
             </div>
-            <H1 style={{ margin: 0, maxWidth: "16ch" }}>
-              Notes from the DSCR desk.
+            <H1 style={{ margin: "0 0 16px", maxWidth: "20ch" }}>
+              Practical guides for DSCR investors.
             </H1>
+            <Lead style={{ color: "rgba(0,55,56,0.6)", maxWidth: "52ch", margin: 0, fontSize: "clamp(16px,1.3vw,19px)" }}>
+              Plain-language articles on qualifying, structuring, and closing investment property loans — with the math and sources included.
+            </Lead>
           </div>
         </div>
       </section>
@@ -781,7 +820,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             maxWidth: dc.maxW,
             margin: "0 auto",
             background: dc.dark,
-            borderRadius: 9,
+            borderRadius: 12,
             overflow: "hidden",
             border: "none",
             cursor: "pointer",
@@ -827,15 +866,16 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
               onClick={() => setTag(t)}
               style={{
                 padding: "8px 16px",
-                borderRadius: 20,
-                border: `1px solid ${tag === t ? dc.rain : "rgba(0,55,56,0.22)"}`,
-                background: tag === t ? "rgba(0,101,101,0.10)" : "transparent",
-                color: tag === t ? dc.rain : "#4a5d5d",
+                borderRadius: 999,
+                border: `1.5px solid ${tag === t ? dc.rain : dc.faded}`,
+                background: tag === t ? dc.mintBg : "transparent",
+                color: tag === t ? dc.rain : dc.dark,
                 cursor: "pointer",
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
+                minHeight: 36,
               }}
             >
               {t}
@@ -854,10 +894,10 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
                 className="bl-card"
                 onClick={() => (window.history.pushState({},'',`/blog/${p.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
                 style={{
-                  background: dc.white,
-                  borderRadius: 9,
+                  background: dc.mintBg,
+                  borderRadius: 12,
                   overflow: "hidden",
-                  border: "1px solid rgba(0,55,56,0.08)",
+                  border: `1px solid ${dc.faded}`,
                   textAlign: "left" as const,
                   cursor: "pointer",
                   display: "flex",
@@ -866,25 +906,36 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
                   padding: 0,
                 }}
               >
-                {/* Glyph header — solid fill */}
-                <div style={{ height: 160, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Mono style={{ fontSize: 34, fontWeight: 600, color: p.glyphColor, letterSpacing: "-0.03em" }}>
+                {/* Glyph header — solid fill, aspect-ratio locked */}
+                <div style={{ aspectRatio: "16/7", minHeight: 120, background: p.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Mono style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 600, color: p.glyphColor, letterSpacing: "-0.03em" }}>
                     {p.glyph}
                   </Mono>
                 </div>
-                <div style={{ padding: 26, display: "flex", flexDirection: "column", flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 10 }}>
-                    {p.tag} · {p.date}
+                <div style={{ padding: "clamp(20px,2.4vw,28px)", display: "flex", flexDirection: "column", flex: 1 }}>
+                  {/* Tag pill + date on same row */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
+                      {p.tag}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.45)", letterSpacing: "-0.01em" }}>{p.date}</span>
                   </div>
-                  <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.2, color: dc.dark, marginBottom: 10 }}>
+                  <div style={{ fontSize: "clamp(16px,1.5vw,20px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.2, color: dc.dark, marginBottom: 10 }}>
                     {p.title}
                   </div>
-                  <p style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.5, color: "rgba(0,55,56,0.6)", margin: "0 0 18px", letterSpacing: "-0.01em", flex: 1 }}>
+                  <p style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.58)", margin: "0 0 18px", letterSpacing: "-0.01em", flex: 1 }}>
                     {p.summary}
                   </p>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: dc.rain, letterSpacing: "-0.01em" }}>
-                    {p.author} →
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ width: 28, height: 28, borderRadius: "50%", background: dc.rain, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: dc.cream, letterSpacing: "-0.01em" }}>
+                        {p.author === "Greenstreet" ? "GS" : p.author.split(" ").map((n: string) => n[0]).join("")}
+                      </span>
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: dc.rain, letterSpacing: "-0.01em" }}>
+                      {p.author} →
+                    </span>
+                  </div>
                 </div>
               </button>
             ))}

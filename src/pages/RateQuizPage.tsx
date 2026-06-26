@@ -1,70 +1,166 @@
-import React, { useState, useRef, useEffect } from "react";
+/**
+ * RateQuizPage — Greenstreet Finance rate-intelligence quiz.
+ *
+ * Design contract:
+ *   • Solid flat cards, radius.md/lg, 1px FADED border, NO shadow/glow/glass
+ *   • ONE dominant lemon primary CTA per screen
+ *   • GSAP/CSS only on interaction (step transitions, select, result reveal)
+ *   • NEVER page-load gsap.from() / scroll-reveal (route-drop bug)
+ *   • Reduced-motion safe — default fully visible
+ *   • DscrGauge on result when DSCR value available
+ *   • RiskFlame for WEAK tier results
+ *   • 44px+ tap targets, mobile-first, breakpoints 991/767/479
+ *   • Mono+tabular numerics
+ *   • Compliance: "preliminary estimate, not a commitment to lend"
+ */
+import React, { useState, useRef, useCallback } from "react";
 import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
+import { DscrGauge, RiskFlame, MotionWorkbench } from "../design/artifacts";
+import { swatch, radius, font } from "../theme";
 
 interface Props {
   onBack?: () => void;
-  onNavigate?: (view: any) => void;
+  onNavigate?: (view: string) => void;
 }
 
-// Pistachio accent — matches the Rate Quiz mockup exactly.
-// Nav + footer: pistachio background, dark-ink text (light identity).
-const RQ_ACCENT = dc.cream; // #eeefd3
+// ─────────────────────────────────────────────────────────────────────────────
+// Quiz data — five questions, verbatim labels + education copy
+// ─────────────────────────────────────────────────────────────────────────────
+interface QuizOption {
+  label: string;
+  hint: string;
+  v: string;
+}
 
-// ── Quiz data — five questions, preserved verbatim ──────────────────────────
-const qs = [
+interface QuizQuestion {
+  id: string;
+  step: number;
+  group: string;
+  q: string;
+  education: string;
+  opts: QuizOption[];
+}
+
+const QUESTIONS: QuizQuestion[] = [
   {
-    q: "What are you financing?",
+    id: "type",
+    step: 1,
+    group: "Property",
+    q: "What type of property are you financing?",
+    education:
+      "DSCR loans work for most rental property types. Short-term rentals (Airbnb-style) and larger multifamily buildings have specialty programs with slightly different requirements.",
     opts: [
-      { label: "Single-family rental", hint: "SFR", v: "sfr" },
-      { label: "2–4 unit", hint: "small multi", v: "small" },
+      { label: "Single-family rental", hint: "1 unit — most common", v: "sfr" },
+      { label: "2–4 unit rental", hint: "small multifamily", v: "small" },
       { label: "5+ unit / mixed-use", hint: "multifamily", v: "multi" },
-      { label: "Short-term rental", hint: "STR", v: "str" },
+      { label: "Short-term rental (STR)", hint: "Airbnb / VRBO", v: "str" },
     ],
   },
   {
-    q: "Where does your credit land?",
+    id: "credit",
+    step: 2,
+    group: "Credit",
+    q: "What's your approximate credit score?",
+    education:
+      "We don't pull your credit here — a range is enough. Your score affects your rate tier and the minimum down payment required. Higher score = lower rate.",
     opts: [
-      { label: "740+", hint: "best tier", v: "a" },
-      { label: "700–739", hint: "strong", v: "b" },
-      { label: "660–699", hint: "standard", v: "c" },
-      { label: "620–659", hint: "flexible", v: "d" },
+      { label: "740 or above", hint: "best rate tier", v: "a" },
+      { label: "700–739", hint: "strong — near-best pricing", v: "b" },
+      { label: "660–699", hint: "standard programs available", v: "c" },
+      { label: "620–659", hint: "flexible — more down needed", v: "d" },
     ],
   },
   {
+    id: "down",
+    step: 3,
+    group: "Down payment",
     q: "How much are you putting down?",
     education:
-      "LTV = loan ÷ value. A 25% down payment = 75% LTV. Most DSCR programs cap at 80% LTV (20% down). Better LTV tiers unlock lower rates.",
+      "LTV (loan-to-value — lower means more equity and better terms) = 100% minus your down payment. A 25% down payment = 75% LTV. Most DSCR programs require at least 20% down (80% LTV). Putting more down lowers your rate and opens more programs.",
     opts: [
-      { label: "35%+", hint: "≤65% LTV", v: "a" },
-      { label: "25–34%", hint: "66–75% LTV", v: "b" },
-      { label: "20–24%", hint: "76–80% LTV", v: "c" },
-      { label: "Under 20%", hint: ">80% LTV", v: "d" },
+      { label: "35% or more", hint: "≤65% LTV — best rate tier", v: "a" },
+      { label: "25–34%", hint: "66–75% LTV — strong", v: "b" },
+      { label: "20–24%", hint: "76–80% LTV — standard floor", v: "c" },
+      { label: "Less than 20%", hint: ">80% LTV — limited programs", v: "d" },
     ],
   },
   {
-    q: "How does the rent cover the payment?",
+    id: "coverage",
+    step: 4,
+    group: "Cash flow",
+    q: "How does the monthly rent compare to the full payment?",
+    education:
+      "DSCR (Debt Service Coverage Ratio) = monthly rent ÷ PITIA (the full monthly payment — principal, interest, taxes, insurance, and HOA). 1.00x means rent exactly covers the payment. Most programs require at least 1.00x; some accept below 1.0x with compensating factors like reserves or low LTV.",
     opts: [
-      { label: "Comfortably — 1.25x+", hint: "strong DSCR", v: "a" },
-      { label: "It qualifies — ~1.0–1.25x", hint: "standard", v: "b" },
-      { label: "It's tight — below 1.0x", hint: "sub-1.0", v: "c" },
-      { label: "Not sure yet", hint: "estimate", v: "b" },
+      {
+        label: "Comfortably — 1.25x or higher",
+        hint: "strong DSCR — best programs",
+        v: "a",
+      },
+      {
+        label: "It qualifies — roughly 1.0–1.25x",
+        hint: "standard DSCR",
+        v: "b",
+      },
+      {
+        label: "It's tight — below 1.0x",
+        hint: "sub-1.0 programs available",
+        v: "c",
+      },
+      {
+        label: "Not sure yet",
+        hint: "estimate ok — use calculator",
+        v: "b",
+      },
     ],
   },
   {
+    id: "who",
+    step: 5,
+    group: "Borrower",
     q: "Who is the borrower?",
+    education:
+      "This affects which program tiers and structures are available. First-time investors qualify — DSCR loans don't require prior rental experience.",
     opts: [
-      { label: "US citizen / PR via LLC", hint: "standard", v: "a" },
-      { label: "Experienced investor (5+)", hint: "portfolio", v: "b" },
-      { label: "Foreign national / ITIN", hint: "global", v: "g" },
-      { label: "First DSCR loan", hint: "new", v: "c" },
+      {
+        label: "US citizen or permanent resident",
+        hint: "LLC or personal — standard",
+        v: "a",
+      },
+      {
+        label: "Experienced investor — 5+ rentals",
+        hint: "portfolio programs available",
+        v: "b",
+      },
+      {
+        label: "Foreign national or ITIN borrower",
+        hint: "global program",
+        v: "g",
+      },
+      {
+        label: "First DSCR loan — new to rentals",
+        hint: "new investor programs",
+        v: "c",
+      },
     ],
   },
 ];
 
-// ── Rate tier logic — preserved verbatim from original ───────────────────────
-function deriveResult(answers: string[]) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Scoring — preserved verbatim from original logic
+// ─────────────────────────────────────────────────────────────────────────────
+interface ResultData {
+  program: string;
+  rate: string;
+  note: string;
+  resultStats: { label: string; val: string }[];
+  tier: "BEST" | "GOOD" | "WEAK";
+  dscrValue: number | null; // numeric DSCR for the gauge
+  verdictLines: { driven: string; why: string }[];
+}
+
+function deriveResult(answers: string[]): ResultData {
   let program = "Greenstreet DSCR 1-4 — Standard";
   let rate = "6.75% – 7.25%";
   let note =
@@ -75,11 +171,7 @@ function deriveResult(answers: string[]) {
   let term = "30-yr fixed";
   let tier: "BEST" | "GOOD" | "WEAK" = "GOOD";
 
-  const credit = answers[1];
-  const down = answers[2];
-  const cov = answers[3];
-  const who = answers[4];
-  const type = answers[0];
+  const [type, credit, down, cov, who] = answers;
 
   if (who === "g") {
     program = "Greenstreet DSCR Global";
@@ -120,12 +212,10 @@ function deriveResult(answers: string[]) {
   } else if (credit === "a" && (down === "a" || down === "b")) {
     program = "Greenstreet DSCR 1-4 — Best Tier";
     rate = "6.25% – 6.75%";
-    note =
-      "Lowest rate tier. 740+ FICO, ≤75% LTV, three months reserves.";
+    note = "Lowest rate tier. 740+ FICO, ≤75% LTV, three months reserves.";
     ltv = "Up to 75%";
     fico = "740+";
     dscrMin = "1.25x";
-    term = "30-yr fixed";
     tier = "BEST";
   }
 
@@ -136,297 +226,534 @@ function deriveResult(answers: string[]) {
     { label: "Term", val: term },
   ];
 
-  return { program, rate, note, resultStats, tier };
+  // Derive a numeric DSCR estimate for the gauge (based on coverage answer)
+  const dscrEstimate: number | null =
+    cov === "a" ? 1.35 : cov === "b" ? 1.12 : cov === "c" ? 0.88 : 1.12;
+
+  // What drove the result — plain language
+  const verdictLines: { driven: string; why: string }[] = [];
+  if (who === "g") {
+    verdictLines.push({ driven: "Borrower type", why: "Foreign national / ITIN — dedicated global program applies." });
+  }
+  if (cov === "c") {
+    verdictLines.push({ driven: "Cash flow (DSCR)", why: "Sub-1.0 coverage requires compensating factors." });
+  }
+  if (type === "multi") {
+    verdictLines.push({ driven: "Property type", why: "5+ unit / mixed-use triggers the multifamily program." });
+  }
+  if (type === "str") {
+    verdictLines.push({ driven: "Property type", why: "STR income is underwritten with a documented ADR haircut." });
+  }
+  if (tier === "BEST") {
+    verdictLines.push({ driven: "Credit + down payment", why: "740+ FICO and ≤75% LTV put you in the best-rate tier." });
+  }
+  if (verdictLines.length === 0) {
+    verdictLines.push({ driven: "Overall profile", why: "Solid across credit, LTV, and cash flow — standard program." });
+  }
+
+  return { program, rate, note, resultStats, tier, dscrValue: dscrEstimate, verdictLines };
 }
 
-export default function RateQuizPage({ onBack, onNavigate }: Props) {
-  const cardRef = useRef<HTMLDivElement>(null);
+// ─────────────────────────────────────────────────────────────────────────────
+// Micro-components
+// ─────────────────────────────────────────────────────────────────────────────
 
+// Progress dots — 5 steps, filled/active/empty states
+function ProgressDots({ step, total }: { step: number; total: number }) {
+  return (
+    <div
+      role="progressbar"
+      aria-valuenow={step}
+      aria-valuemin={0}
+      aria-valuemax={total}
+      aria-label={`Question ${step} of ${total}`}
+      style={{ display: "flex", gap: 8, alignItems: "center" }}
+    >
+      {Array.from({ length: total }).map((_, i) => {
+        const filled = i < step;
+        const active = i === step;
+        return (
+          <div
+            key={i}
+            style={{
+              width: active ? 28 : 8,
+              height: 8,
+              borderRadius: 99,
+              background: filled
+                ? swatch.emerald
+                : active
+                ? swatch.lemon
+                : swatch.midnightFaded,
+              transition: "width .25s ease, background .25s ease",
+              flexShrink: 0,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+// Education/helper callout
+function HelperBox({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        background: swatch.mint,
+        borderRadius: radius.sm,
+        padding: "12px 16px",
+        marginBottom: 28,
+        fontSize: 13,
+        fontWeight: 500,
+        lineHeight: 1.65,
+        color: "rgba(0,55,56,0.68)",
+        letterSpacing: "-0.01em",
+        border: `1px solid ${swatch.midnightFaded}`,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+// Option chip/row — the tappable card for each answer
+function OptionRow({
+  label,
+  hint,
+  selected,
+  onClick,
+}: {
+  label: string;
+  hint: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      aria-pressed={selected}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 16,
+        background: selected ? swatch.lemon : swatch.pistachio,
+        border: selected
+          ? `2px solid ${swatch.midnight}`
+          : `1px solid ${swatch.midnightFaded}`,
+        borderRadius: radius.sm,
+        padding: "18px 22px",
+        cursor: "pointer",
+        minHeight: 56,
+        transition: "background .13s, border-color .13s, transform .1s",
+        userSelect: "none",
+      }}
+      onMouseEnter={(e) => {
+        if (!selected)
+          (e.currentTarget as HTMLElement).style.background = swatch.mint;
+      }}
+      onMouseLeave={(e) => {
+        if (!selected)
+          (e.currentTarget as HTMLElement).style.background = swatch.pistachio;
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        {/* Selection dot */}
+        <div
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: "50%",
+            border: selected
+              ? `5px solid ${swatch.midnight}`
+              : `2px solid ${swatch.midnightFaded}`,
+            background: selected ? swatch.lemon : "transparent",
+            flexShrink: 0,
+            transition: "border .13s",
+          }}
+        />
+        <span
+          style={{
+            fontSize: 16,
+            fontWeight: 600,
+            letterSpacing: "-0.02em",
+            color: swatch.midnight,
+            lineHeight: 1.25,
+          }}
+        >
+          {label}
+        </span>
+      </div>
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 500,
+          color: selected ? "rgba(0,55,56,0.6)" : "rgba(0,55,56,0.45)",
+          letterSpacing: "-0.005em",
+          whiteSpace: "nowrap",
+          flexShrink: 0,
+        }}
+      >
+        {hint}
+      </span>
+    </div>
+  );
+}
+
+// Stat tile for the result grid
+function StatTile({ label, val }: { label: string; val: string }) {
+  return (
+    <div
+      style={{
+        background: swatch.darkTeal,
+        borderRadius: radius.sm,
+        padding: "18px 20px",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase" as const,
+          color: "rgba(238,239,211,0.45)",
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </div>
+      <Mono
+        style={{
+          display: "block",
+          fontSize: 20,
+          fontWeight: 700,
+          letterSpacing: "-0.02em",
+          color: swatch.pistachio,
+        }}
+      >
+        {val}
+      </Mono>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main page component
+// ─────────────────────────────────────────────────────────────────────────────
+export default function RateQuizPage({ onNavigate }: Props) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
 
-  useEffect(() => {
-    document.title = "Rate Quiz | Greenstreet Finance";
-    window.scrollTo(0, 0);
-  }, []);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
-  // Hero entrance — targets #rq-hero-content children
-  useGSAP(() => {
-    const hc = document.querySelector("#rq-hero-content");
-    if (hc) {
-      gsap.from(hc.children, {
-        y: 42,
-        opacity: 0,
-        duration: 0.9,
-        stagger: 0.13,
-        ease: "power3.out",
-        clearProps: "all",
-      });
-    }
-  });
-
-  // Card transition — animate in after each answer or step change
-  const flash = () => {
-    requestAnimationFrame(() => {
-      const c = cardRef.current;
-      if (c) {
-        gsap.fromTo(
-          c,
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }
-        );
-      }
-    });
-  };
-
-  const pick = (v: string) => {
-    const newAns = [...answers];
-    newAns[step] = v;
-    setAnswers(newAns);
-    setStep(step + 1);
-    flash();
-  };
-
-  const back = () => {
-    if (step > 0) {
-      setStep(step - 1);
-      flash();
-    }
-  };
-
-  const restart = () => {
-    setStep(0);
-    setAnswers([]);
-    flash();
-  };
-
-  const inQuiz = step < qs.length;
-  const done = !inQuiz;
-
+  const total = QUESTIONS.length;
+  const inQuiz = step < total;
+  const done = step === total;
   const result = done ? deriveResult(answers) : null;
 
+  // GSAP transition on step change — interaction-driven only, never on mount
+  const animateCard = useCallback((dir: 1 | -1 = 1) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+    gsap.fromTo(
+      el,
+      { x: dir * 32, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.32, ease: "power2.out" }
+    );
+  }, []);
+
+  const animateResult = useCallback(() => {
+    const el = resultRef.current;
+    if (!el) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) { setRevealed(true); return; }
+    gsap.fromTo(
+      el,
+      { y: 24, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.48,
+        ease: "power3.out",
+        onComplete: () => setRevealed(true),
+      }
+    );
+  }, []);
+
+  // Pick an answer and advance
+  const pick = useCallback(
+    (v: string) => {
+      setPendingAnswer(v);
+      const newAns = [...answers];
+      newAns[step] = v;
+
+      // Brief selection flash, then advance
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          setPendingAnswer(null);
+          setAnswers(newAns);
+          const nextStep = step + 1;
+          setStep(nextStep);
+          if (nextStep < total) {
+            requestAnimationFrame(() => animateCard(1));
+          } else {
+            requestAnimationFrame(() => animateResult());
+          }
+        }, 160);
+      });
+    },
+    [answers, step, total, animateCard, animateResult]
+  );
+
+  const back = useCallback(() => {
+    if (step <= 0) return;
+    const prev = step - 1;
+    setStep(prev);
+    setRevealed(false);
+    requestAnimationFrame(() => animateCard(-1));
+  }, [step, animateCard]);
+
+  const restart = useCallback(() => {
+    setStep(0);
+    setAnswers([]);
+    setPendingAnswer(null);
+    setRevealed(false);
+    requestAnimationFrame(() => animateCard(1));
+  }, [animateCard]);
+
+  // Tier config
   const tierColor =
     result?.tier === "BEST"
-      ? dc.emerald
+      ? swatch.emerald
       : result?.tier === "GOOD"
-      ? dc.lemon
-      : "#a78bfa";
+      ? swatch.lemon
+      : "#f97316";
 
-  const scrollToQuiz = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const el = document.querySelector("#rq-tool");
-    if (el)
-      window.scrollTo({
-        top: el.getBoundingClientRect().top + window.scrollY - 30,
-        behavior: "smooth",
-      });
-  };
+  const tierLabel =
+    result?.tier === "BEST"
+      ? "Best rate tier"
+      : result?.tier === "GOOD"
+      ? "Standard program"
+      : "Specialty program";
+
+  // Risk level for RiskFlame
+  const riskLevel =
+    result?.tier === "WEAK" ? ("high" as const) : ("none" as const);
 
   return (
     <DcShell
       onNavigate={onNavigate}
       navLinks={[
-        { label: "Calculator", view: "dscr-calculator" },
+        { label: "DSCR Calculator", view: "dscr-calculator" },
         { label: "Lender Intel", view: "lender-intel" },
+        { label: "State Laws", view: "state-laws" },
       ]}
-      cta={{ label: "Take the quiz →", onClick: scrollToQuiz }}
-      accent={RQ_ACCENT}
+      cta={{ label: "Speak to a specialist", onClick: () => (window as any).openQualify?.() }}
     >
-      {/* Extra CSS — option hover only; no glass/float/blur */}
+      {/* Inline style overrides scoped to this page */}
       <style>{`
-        .rq-opt{cursor:pointer;transition:transform .12s,background .15s,border-color .15s;}
-        .rq-opt:hover{transform:translateY(-2px);border-color:${dc.rain} !important;}
-        .rq-opt:focus-visible{outline:2px solid ${dc.rain};outline-offset:2px;border-radius:8px;}
-        /* Nav is pistachio — override text colour to dark ink */
-        .dc-nav a,.dc-nav button{color:rgba(0,55,56,0.72) !important;}
-        .dc-nav a.dc-cta{color:${dc.cream} !important;background:${dc.dark} !important;}
-        .dc-nav a:first-child{color:${dc.dark} !important;}
+        .rq-opt:focus-visible {
+          outline: 2px solid ${swatch.lemon};
+          outline-offset: 2px;
+          border-radius: ${radius.sm};
+        }
+        @media (max-width: 479px) {
+          .rq-opt-hint { display: none !important; }
+          .rq-result-grid { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 767px) {
+          .rq-cta-row { flex-direction: column !important; }
+          .rq-cta-row a, .rq-cta-row button { width: 100% !important; text-align: center !important; justify-content: center !important; }
+          .rq-result-cols { flex-direction: column !important; }
+          .rq-gauge-col { align-self: flex-start !important; }
+          .rq-hero-grid { grid-template-columns: 1fr !important; }
+          .rq-hero-copy { text-align: left !important; }
+        }
       `}</style>
 
-      {/* ── HERO — pistachio, centred, light identity ─────────────────────── */}
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section
         style={{
-          background: dc.cream,
-          color: dc.dark,
-          padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(32px,4vh,48px)",
-          overflow: "hidden",
+          background: swatch.pistachio,
+          padding:
+            "clamp(52px,7vh,88px) clamp(1.5rem,5vw,4rem) clamp(28px,4vh,44px)",
         }}
       >
         <div
-          id="rq-hero-content"
+          id="gs-hero-content"
+          className="rq-hero-grid"
           style={{
-            maxWidth: 820,
+            maxWidth: 1180,
             margin: "0 auto",
-            textAlign: "center",
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1.05fr) minmax(320px, 0.75fr)",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "center",
           }}
         >
-          {/* Eyebrow */}
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "rgba(0,55,56,0.5)",
-              marginBottom: 20,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Find your program / 60-second quiz
+          <div className="rq-hero-copy">
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: swatch.mint,
+                border: `1px solid ${swatch.midnightFaded}`,
+                borderRadius: 99,
+                padding: "6px 14px",
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: swatch.emerald,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "rgba(0,55,56,0.65)",
+                  letterSpacing: "0.02em",
+                  textTransform: "uppercase" as const,
+                }}
+              >
+                Rate intelligence · 5 questions · 60 seconds
+              </span>
+            </div>
+
+            <h1
+              style={{
+                fontSize: "clamp(38px,5.8vw,74px)",
+                fontWeight: 700,
+                letterSpacing: "-0.04em",
+                lineHeight: 0.98,
+                color: swatch.midnight,
+                margin: "0 0 20px",
+                fontFamily: font.family,
+              }}
+            >
+              Find the right DSCR program for your deal.
+            </h1>
+
+            <p
+              style={{
+                fontSize: "clamp(15px,1.8vw,18px)",
+                fontWeight: 500,
+                lineHeight: 1.6,
+                color: "rgba(0,55,56,0.6)",
+                margin: 0,
+                maxWidth: "54ch",
+                letterSpacing: "-0.01em",
+                fontFamily: font.family,
+              }}
+            >
+              Five quick questions about your property, credit, and cash flow. No credit pull — we map your answers to a Greenstreet program and an indicative rate range. Estimate-ok on every field.
+            </p>
           </div>
-
-          {/* H1 — matches mockup sizing exactly */}
-          <H1 style={{ margin: "0 0 22px" }}>
-            Which DSCR loan fits you?
-          </H1>
-
-          {/* Sub — five questions, compliance-safe, no email/credit pull */}
-          <Lead style={{ color: "rgba(0,55,56,0.62)", maxWidth: "50ch", margin: "0 auto" }}>
-            Five quick questions. No credit pull, no email. We map your answers
-            to a Greenstreet program and an indicative rate band.
-          </Lead>
+          <MotionWorkbench mode="quiz" value={`${step + 1}/${total}`} label="Questions answered" />
         </div>
       </section>
 
-      {/* ── QUIZ BAND — the centerpiece ────────────────────────────────────── */}
+      {/* ── QUIZ / RESULT BAND ───────────────────────────────────────────── */}
       <section
-        id="rq-tool"
-        className="gs-reveal"
         style={{
-          background: dc.cream,
+          background: swatch.pistachio,
           padding:
-            "clamp(16px,2vh,32px) clamp(1.5rem,4vw,3rem) clamp(72px,10vh,128px)",
+            "clamp(8px,1.5vh,20px) clamp(1.5rem,5vw,4rem) clamp(64px,10vh,120px)",
         }}
       >
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          {/* Progress bar strip — 5 segments, one per question */}
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              marginBottom: 36,
-            }}
-          >
-            {qs.map((_, i) => (
+        <div style={{ maxWidth: 680, margin: "0 auto" }}>
+          {/* ── QUIZ ── */}
+          {inQuiz && (
+            <div ref={cardRef}>
+              {/* Progress strip + meta */}
               <div
-                key={i}
                 style={{
-                  flex: 1,
-                  height: 5,
-                  borderRadius: 3,
-                  background:
-                    i < step
-                      ? "#4dbd97"
-                      : i === step && inQuiz
-                      ? "#006565"
-                      : "rgba(0,55,56,0.12)",
-                  transition: "background .3s",
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Card container — GSAP targets this ref */}
-          <div ref={cardRef}>
-            {/* ── QUESTION CARD ── */}
-            {inQuiz && (
-              <div
-                id="rq-card"
-                style={{
-                  background: "#fff",
-                  borderRadius: 9,
-                  padding: "clamp(32px,4vw,56px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 28,
+                  gap: 12,
+                  flexWrap: "wrap" as const,
                 }}
               >
-                <div
+                <ProgressDots step={step} total={total} />
+                <span
                   style={{
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: 600,
-                    letterSpacing: "0.04em",
+                    color: "rgba(0,55,56,0.45)",
+                    letterSpacing: "0.03em",
                     textTransform: "uppercase" as const,
-                    color: "#006565",
-                    marginBottom: 14,
                   }}
                 >
-                  Question {step + 1} of 5
-                </div>
+                  {QUESTIONS[step].group} · {step + 1} of {total}
+                </span>
+              </div>
 
+              {/* Question card */}
+              <div
+                style={{
+                  background: swatch.white,
+                  borderRadius: radius.lg,
+                  padding: "clamp(28px,4vw,48px)",
+                  border: `1px solid ${swatch.midnightFaded}`,
+                }}
+              >
+                {/* Question heading */}
                 <h2
                   style={{
-                    fontSize: "clamp(26px,3.2vw,40px)",
-                    fontWeight: 600,
+                    fontSize: "clamp(22px,3vw,34px)",
+                    fontWeight: 700,
                     letterSpacing: "-0.03em",
-                    lineHeight: 1.05,
-                    margin: "0 0 32px",
-                    color: dc.dark,
+                    lineHeight: 1.1,
+                    color: swatch.midnight,
+                    margin: "0 0 20px",
+                    fontFamily: font.family,
                   }}
                 >
-                  {qs[step].q}
+                  {QUESTIONS[step].q}
                 </h2>
 
-                {/* Q3 LTV education copy */}
-                {step === 2 && (
-                  <div
-                    style={{
-                      background: dc.cream,
-                      borderRadius: 6,
-                      padding: "14px 18px",
-                      marginBottom: 24,
-                      fontSize: 14,
-                      fontWeight: 500,
-                      lineHeight: 1.55,
-                      color: "rgba(0,55,56,0.65)",
-                      letterSpacing: "-0.01em",
-                      border: "1px solid rgba(0,55,56,0.1)",
-                    }}
-                  >
-                    {(qs[step] as any).education}
-                  </div>
-                )}
+                {/* Education / helper text */}
+                <HelperBox text={QUESTIONS[step].education} />
 
-                {/* Options */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {qs[step].opts.map((o, idx) => (
-                    <div
+                {/* Answer options */}
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                >
+                  {QUESTIONS[step].opts.map((o, idx) => (
+                    <OptionRow
                       key={idx}
-                      className="rq-opt"
-                      role="button"
-                      tabIndex={0}
+                      label={o.label}
+                      hint={o.hint}
+                      selected={
+                        pendingAnswer === o.v ||
+                        (pendingAnswer === null && answers[step] === o.v)
+                      }
                       onClick={() => pick(o.v)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") pick(o.v);
-                      }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 16,
-                        background: dc.cream,
-                        border: "1.5px solid rgba(0,55,56,0.14)",
-                        borderRadius: 8,
-                        padding: "20px 24px",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 17,
-                          fontWeight: 600,
-                          letterSpacing: "-0.02em",
-                          color: dc.dark,
-                        }}
-                      >
-                        {o.label}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: "rgba(0,55,56,0.5)",
-                          letterSpacing: "-0.01em",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {o.hint}
-                      </span>
-                    </div>
+                    />
                   ))}
                 </div>
 
@@ -434,142 +761,389 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                 {step > 0 && (
                   <button
                     onClick={back}
+                    aria-label="Go back to previous question"
                     style={{
-                      marginTop: 28,
+                      marginTop: 24,
                       background: "none",
                       border: "none",
-                      color: "rgba(0,55,56,0.55)",
-                      fontFamily: dc.sans,
+                      color: "rgba(0,55,56,0.45)",
+                      fontFamily: font.family,
                       fontWeight: 600,
                       fontSize: 14,
                       letterSpacing: "-0.01em",
                       cursor: "pointer",
-                      padding: 0,
+                      minHeight: 44,
+                      padding: "0 4px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
                     }}
                   >
                     ← Back
                   </button>
                 )}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* ── RESULT CARD ── */}
-            {done && result && (
+          {/* ── RESULT ── */}
+          {done && result && (
+            <div
+              ref={resultRef}
+              style={{ opacity: revealed ? 1 : 0, transition: "opacity .2s" }}
+            >
+              {/* Tier badge */}
               <div
-                id="rq-result"
                 style={{
-                  background: dc.dark,
-                  borderRadius: 9,
-                  padding: "clamp(36px,4.5vw,60px)",
-                  color: dc.cream,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  marginBottom: 20,
+                  flexWrap: "wrap" as const,
                 }}
               >
-                {/* "Your match" label */}
                 <div
                   style={{
-                    fontSize: 13,
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase" as const,
-                    color: dc.lemon,
-                    marginBottom: 14,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: swatch.mint,
+                    border: `1px solid ${swatch.midnightFaded}`,
+                    borderRadius: 99,
+                    padding: "6px 14px",
                   }}
                 >
-                  Your match
+                  <div
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: tierColor,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "rgba(0,55,56,0.65)",
+                      letterSpacing: "0.04em",
+                      textTransform: "uppercase" as const,
+                    }}
+                  >
+                    {tierLabel}
+                  </span>
+                </div>
+                {result.tier === "WEAK" && (
+                  <RiskFlame level={riskLevel} size={22} />
+                )}
+              </div>
+
+              {/* Main result card — dark */}
+              <div
+                style={{
+                  background: swatch.midnight,
+                  borderRadius: radius.lg,
+                  padding: "clamp(28px,4.5vw,52px)",
+                  border: "1px solid rgba(238,239,211,0.1)",
+                  marginBottom: 16,
+                }}
+              >
+                {/* Program name */}
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase" as const,
+                    color: swatch.lemon,
+                    marginBottom: 8,
+                  }}
+                >
+                  Best-match program
                 </div>
 
-                {/* Program name */}
                 <h2
                   style={{
-                    fontSize: "clamp(30px,3.8vw,48px)",
-                    fontWeight: 600,
+                    fontSize: "clamp(22px,3.2vw,36px)",
+                    fontWeight: 700,
                     letterSpacing: "-0.03em",
-                    lineHeight: 1.02,
+                    lineHeight: 1.05,
                     margin: "0 0 10px",
-                    color: dc.cream,
+                    color: swatch.pistachio,
+                    fontFamily: font.family,
                   }}
                 >
                   {result.program}
                 </h2>
 
-                {/* Rate band — mono, lemon */}
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: "clamp(36px,5vw,60px)",
-                    fontWeight: 600,
-                    letterSpacing: "-0.03em",
-                    color: dc.lemon,
-                    marginBottom: 18,
-                    lineHeight: 1,
-                  }}
-                >
-                  {result.rate}
-                </Mono>
-
-                {/* Program description */}
+                {/* Plain verdict */}
                 <p
                   style={{
-                    fontSize: 17,
+                    fontSize: 15,
                     fontWeight: 500,
-                    lineHeight: 1.55,
-                    color: "rgba(238,239,211,0.72)",
+                    lineHeight: 1.6,
+                    color: "rgba(238,239,211,0.65)",
                     margin: "0 0 28px",
+                    maxWidth: "54ch",
                     letterSpacing: "-0.01em",
-                    maxWidth: "52ch",
                   }}
                 >
-                  {result.note}
+                  {result.tier === "BEST"
+                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest lender selection."
+                    : result.tier === "GOOD"
+                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match and lock your terms."
+                    : "This program has tighter requirements, but it's built for your situation. Reserves, lower LTV, or stronger credit can help you qualify — a specialist can structure the deal."}
                 </p>
 
-                {/* Stats grid — 2×2, solid fills */}
+                {/* Rate + gauge columns */}
                 <div
+                  className="rq-result-cols"
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 1,
-                    background: "rgba(238,239,211,0.12)",
-                    borderRadius: 8,
-                    overflow: "hidden",
+                    display: "flex",
+                    gap: 28,
+                    alignItems: "flex-start",
                     marginBottom: 28,
+                    flexWrap: "wrap" as const,
                   }}
                 >
-                  {result.resultStats.map((r, i) => (
+                  {/* Rate */}
+                  <div style={{ flex: "1 1 220px" }}>
                     <div
-                      key={i}
-                      style={{ background: "#004041", padding: "20px 22px" }}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase" as const,
+                        color: "rgba(238,239,211,0.4)",
+                        marginBottom: 6,
+                      }}
+                    >
+                      Indicative rate range
+                    </div>
+                    <Mono
+                      style={{
+                        display: "block",
+                        fontSize: "clamp(30px,4.5vw,52px)",
+                        fontWeight: 700,
+                        letterSpacing: "-0.03em",
+                        color: swatch.lemon,
+                        lineHeight: 1,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {result.rate}
+                    </Mono>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        lineHeight: 1.55,
+                        color: "rgba(238,239,211,0.55)",
+                        margin: 0,
+                        maxWidth: "42ch",
+                      }}
+                    >
+                      {result.note}
+                    </p>
+                  </div>
+
+                  {/* DSCR Gauge — only when we have a coverage estimate */}
+                  {result.dscrValue !== null && (
+                    <div
+                      className="rq-gauge-col"
+                      style={{ flex: "0 0 auto", textAlign: "center" }}
                     >
                       <div
                         style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          letterSpacing: "0.04em",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: "0.06em",
                           textTransform: "uppercase" as const,
-                          color: "rgba(238,239,211,0.5)",
-                          marginBottom: 6,
+                          color: "rgba(238,239,211,0.4)",
+                          marginBottom: 8,
                         }}
                       >
-                        {r.label}
+                        DSCR estimate
                       </div>
-                      <Mono
+                      <DscrGauge value={result.dscrValue} size={140} label />
+                    </div>
+                  )}
+                </div>
+
+                {/* What drove this result */}
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase" as const,
+                    color: "rgba(238,239,211,0.35)",
+                    marginBottom: 10,
+                  }}
+                >
+                  What drove this result
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                    marginBottom: 24,
+                  }}
+                >
+                  {result.verdictLines.map((vl, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <div
                         style={{
-                          display: "block",
-                          fontSize: 20,
-                          fontWeight: 600,
-                          letterSpacing: "-0.02em",
-                          color: dc.cream,
+                          flexShrink: 0,
+                          marginTop: 3,
+                          width: 5,
+                          height: 5,
+                          borderRadius: "50%",
+                          background: tierColor,
                         }}
-                      >
-                        {r.val}
-                      </Mono>
+                      />
+                      <div>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: 13,
+                            color: swatch.pistachio,
+                          }}
+                        >
+                          {vl.driven}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 13,
+                            color: "rgba(238,239,211,0.55)",
+                          }}
+                        >
+                          {" "}
+                          — {vl.why}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
 
+                {/* Program stat grid */}
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase" as const,
+                    color: "rgba(238,239,211,0.35)",
+                    marginBottom: 10,
+                  }}
+                >
+                  Program requirements
+                </div>
+                <div
+                  className="rq-result-grid"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                    gap: 8,
+                    marginBottom: 24,
+                  }}
+                >
+                  {result.resultStats.map((r, i) => (
+                    <StatTile key={i} label={r.label} val={r.val} />
+                  ))}
+                </div>
+
+                {/* WEAK — strengthen the deal */}
+                {result.tier === "WEAK" && (
+                  <div
+                    style={{
+                      background: "rgba(249,115,22,0.08)",
+                      border: "1px solid rgba(249,115,22,0.28)",
+                      borderRadius: radius.sm,
+                      padding: "14px 18px",
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase" as const,
+                        color: "#f97316",
+                        marginBottom: 6,
+                      }}
+                    >
+                      How to strengthen this deal
+                    </div>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: "rgba(238,239,211,0.62)",
+                        margin: 0,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      Increasing your down payment (lower LTV), building 6+ months of reserves kept in the bank after closing, or raising your credit score each improve your position. A Greenstreet specialist can structure the deal to qualify.
+                    </p>
+                  </div>
+                )}
+
+                {/* Next step box */}
+                <div
+                  style={{
+                    background: "rgba(238,239,211,0.06)",
+                    border: "1px solid rgba(238,239,211,0.13)",
+                    borderRadius: radius.sm,
+                    padding: "14px 18px",
+                    marginBottom: 10,
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "rgba(238,239,211,0.6)",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <strong
+                    style={{
+                      color: swatch.lemon,
+                      display: "block",
+                      marginBottom: 4,
+                    }}
+                  >
+                    What happens next
+                  </strong>
+                  Run your exact numbers in the DSCR Calculator (rent ÷ PITIA) to confirm the ratio, then speak with a Greenstreet specialist for a full scenario review and program lock. No credit pull. No commitment.
+                </div>
+
+                {/* Compliance disclaimer */}
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(238,239,211,0.32)",
+                    margin: "8px 0 28px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Preliminary estimate only — not a commitment to lend. Final terms subject to full underwriting, appraisal, and credit review. Self-reported credit is indicative only; no credit pull is performed.
+                </p>
+
                 {/* CTAs */}
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <div
+                  className="rq-cta-row"
+                  style={{ display: "flex", gap: 12, flexWrap: "wrap" as const, alignItems: "center" }}
+                >
                   <a
-                    href="#"
+                    href="/dscr-calculator"
                     onClick={(e) => {
                       e.preventDefault();
                       onNavigate?.("dscr-calculator");
@@ -577,39 +1151,227 @@ export default function RateQuizPage({ onBack, onNavigate }: Props) {
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
+                      justifyContent: "center",
                       gap: 8,
-                      background: dc.lemon,
-                      color: dc.dark,
-                      fontWeight: 600,
-                      fontSize: 16,
+                      background: swatch.lemon,
+                      color: swatch.midnight,
+                      fontFamily: font.family,
+                      fontWeight: 700,
+                      fontSize: 15,
                       textDecoration: "none",
                       padding: "15px 28px",
-                      borderRadius: 6,
+                      borderRadius: radius.sm,
+                      minHeight: 48,
+                      letterSpacing: "-0.01em",
                     }}
                   >
-                    Price it exactly →
+                    Run the numbers →
                   </a>
+                  <button
+                    onClick={() => (window as any).openQualify?.()}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      background: "transparent",
+                      border: `1.5px solid rgba(238,239,211,0.28)`,
+                      color: swatch.pistachio,
+                      fontFamily: font.family,
+                      fontWeight: 600,
+                      fontSize: 15,
+                      padding: "14px 24px",
+                      borderRadius: radius.sm,
+                      cursor: "pointer",
+                      minHeight: 48,
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    Speak to a specialist →
+                  </button>
                   <button
                     onClick={restart}
                     style={{
                       background: "none",
-                      border: "1px solid rgba(238,239,211,0.3)",
-                      color: dc.cream,
-                      fontFamily: dc.sans,
-                      fontWeight: 600,
-                      fontSize: 16,
-                      letterSpacing: "-0.01em",
-                      padding: "15px 24px",
-                      borderRadius: 6,
+                      border: "none",
+                      color: "rgba(238,239,211,0.38)",
+                      fontFamily: font.family,
+                      fontWeight: 500,
+                      fontSize: 14,
                       cursor: "pointer",
+                      padding: "14px 0",
+                      textDecoration: "underline",
+                      letterSpacing: "-0.01em",
+                      minHeight: 44,
                     }}
                   >
                     Retake quiz
                   </button>
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Trust strip */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 20,
+                  flexWrap: "wrap" as const,
+                  padding: "14px 4px 0",
+                }}
+              >
+                {[
+                  "No credit pull",
+                  "No email required",
+                  "Estimate only — not a commitment",
+                ].map((item) => (
+                  <span
+                    key={item}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "rgba(0,55,56,0.42)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      letterSpacing: "-0.005em",
+                    }}
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <path
+                        d="M2 6.5l2.5 2.5L10 3"
+                        stroke={swatch.emerald}
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Trust strip on quiz steps */}
+          {inQuiz && (
+            <div
+              style={{
+                display: "flex",
+                gap: 20,
+                flexWrap: "wrap" as const,
+                padding: "18px 4px 0",
+              }}
+            >
+              {[
+                "No credit pull",
+                "No email required",
+                "Estimate-ok on every field",
+              ].map((item) => (
+                <span
+                  key={item}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "rgba(0,55,56,0.42)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <path
+                      d="M2 6.5l2.5 2.5L10 3"
+                      stroke={swatch.emerald}
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── BOTTOM INFO BAND ─────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: swatch.mint,
+          borderTop: `1px solid ${swatch.midnightFaded}`,
+          padding:
+            "clamp(36px,5vh,56px) clamp(1.5rem,5vw,4rem)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 880,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 24,
+          }}
+        >
+          {[
+            {
+              label: "What is DSCR?",
+              body: "Debt Service Coverage Ratio — whether the property's monthly rent can cover the full loan payment (PITIA: principal, interest, taxes, insurance, and HOA). 1.00x = rent exactly covers the payment.",
+            },
+            {
+              label: "No income docs needed",
+              body: "DSCR loans qualify on the property's income, not your tax returns or pay stubs. Ideal for self-employed investors and those with complex income structures.",
+            },
+            {
+              label: "Rates are illustrative",
+              body: "Rate ranges shown are indicative only and based on current Greenstreet program tiers. Final pricing depends on full underwriting. Call +1 (555) 010-0000 for a live scenario review.",
+            },
+          ].map((card) => (
+            <div
+              key={card.label}
+              style={{
+                background: swatch.pistachio,
+                borderRadius: radius.md,
+                padding: "22px 24px",
+                border: `1px solid ${swatch.midnightFaded}`,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: swatch.midnight,
+                  marginBottom: 8,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                {card.label}
+              </div>
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  lineHeight: 1.6,
+                  color: "rgba(0,55,56,0.58)",
+                  margin: 0,
+                }}
+              >
+                {card.body}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
     </DcShell>

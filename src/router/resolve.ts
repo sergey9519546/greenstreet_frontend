@@ -36,7 +36,13 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/": "marketing",
 
   // Portal
-  "/investorgo": "portal",
+  "/investgo": "portal",
+  "/investgo/analyze": "portal",
+  "/investgo/sensitivity": "portal",
+  "/investgo/optimize": "portal",
+  "/investgo/state": "portal",
+  "/investgo/history": "portal",
+  "/investgo/settings": "portal",
 
   // Audience pages
   "/brokers": "brokers",
@@ -79,6 +85,11 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/tools/decision-support": "decision-support",
   "/tools/str-underwriting": "str-underwriting",
   "/tools/portfolio": "portfolio",
+  "/tools/workspace": "portal",
+  "/tools/deal-workspace": "portal",
+  "/tools/sensitivity": "portal",
+  "/tools/structure-optimizer": "portal",
+  "/tools/scenario-history": "portal",
 };
 
 export function resolveRoute(href: string): PageView {
@@ -98,6 +109,10 @@ export function resolveRoute(href: string): PageView {
     if (path.startsWith("/book-demo")) return "book-demo";
     if (path.startsWith("/tools/")) {
       const slug = path.replace("/tools/", "").replace(/\/$/, "");
+      if (slug === "workspace" || slug === "deal-workspace") return "portal";
+      if (slug === "sensitivity") return "portal";
+      if (slug === "structure-optimizer") return "portal";
+      if (slug === "scenario-history") return "portal";
       if (slug === "refi-tracker") return "refi-tracker";
       if (slug === "arm-reset" || slug === "arm") return "arm-reset";
       if (slug === "monte-carlo") return "monte-carlo";
@@ -139,6 +154,10 @@ export function isKnownRoute(href: string): boolean {
   }
   if (path === "/") return true;
   if (ROUTE_MAP[path]) return true;
+  if (path.startsWith("/investgo/")) {
+    const slug = path.replace("/investgo/", "").replace(/\/$/, "");
+    return ["analyze", "sensitivity", "optimize", "state", "history", "settings"].includes(slug);
+  }
   if (path.startsWith("/book-demo")) return true;
   if (path.startsWith("/blog")) return true;
   if (path.startsWith("/case-studies")) return true;
@@ -161,6 +180,11 @@ export function isKnownRoute(href: string): boolean {
       "state-laws",
       "deal-analyzer",
       "borrower-profiles",
+      "workspace",
+      "deal-workspace",
+      "sensitivity",
+      "structure-optimizer",
+      "scenario-history",
     ].includes(slug);
   }
   return false;

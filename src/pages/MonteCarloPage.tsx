@@ -1,20 +1,199 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import React, { useState, useMemo, useRef, useCallback } from "react";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
+import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
 
-// ─── colour helpers (no local colour constants — everything via dc.*) ───────
-const RED = "#ff6b6b";
-const YELLOW = "#9a7b00"; // dark-gold legible on cream bg
-const YELLOW_DARK = "#d8d958"; // lemon on dark bg labels
+// ─── color helpers ────────────────────────────────────────────────────────────
+const RED     = "#ff6b6b";
+const ORANGE  = "#f97316";
+const YELLOW  = "#9a7b00"; // dark-gold on cream
+const YELLOW_DARK = dc.lemon;
 
-// ─── types ─────────────────────────────────────────────────────────────────
 function pColor(p: number, warnAt: number, errorAt: number): string {
   if (p > errorAt) return RED;
-  if (p > warnAt) return YELLOW;
+  if (p > warnAt)  return YELLOW;
   return dc.emerald;
 }
 
+// ─── slider input helper ──────────────────────────────────────────────────────
+interface SliderFieldProps {
+  label: string;
+  hint: string;
+  value: number;
+  set: (v: number) => void;
+  min: number;
+  max: number;
+  step: number;
+  prefix?: string;
+  suffix?: string;
+  fmt?: (v: number) => string;
+}
+function SliderField({ label, hint, value, set, min, max, step, prefix = "", suffix = "", fmt }: SliderFieldProps) {
+  const display = fmt ? fmt(value) : value.toString();
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)" }}>
+          {label}
+        </span>
+        <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.dark }}>
+          {prefix}{display}{suffix}
+        </Mono>
+      </div>
+      <input
+        className="gs-range"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => set(+e.target.value)}
+      />
+      {hint && (
+        <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 4, lineHeight: 1.4 }}>
+          {hint}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ─── DSCR distribution bar chart ─────────────────────────────────────────────
+// Visual spread from P10 → P90 as a horizontal bar with zones.
+function DscrSpreadBar({ p10, median, p90, animate }: { p10: number; median: number; p90: number; animate: boolean }) {
+  // Map DSCR 0.5–2.0 to % position in the bar
+  const toX = (v: number) => Math.max(0, Math.min(100, ((Math.min(v, 2.0) - 0.5) / 1.5) * 100));
+  const x10 = toX(p10);
+  const xMed = toX(median);
+  const x90 = toX(p90);
+  const spread = x90 - x10;
+  const medColor = pColor(100 - median * 50, 20, 50); // rough color for median
+  const p10Color = p10 < 1.0 ? RED : p10 < 1.25 ? ORANGE : dc.emerald;
+
+  return (
+    <div style={{ position: "relative", marginTop: 8, marginBottom: 24 }}>
+      {/* track */}
+      <div style={{ position: "relative", height: 14, borderRadius: 999, background: "rgba(0,55,56,0.08)", overflow: "hidden" }}>
+        {/* spread fill */}
+        <div style={{
+          position: "absolute", top: 0, left: `${x10}%`, width: animate ? `${spread}%` : "0%",
+          height: "100%", borderRadius: 999,
+          background: p10 < 1.0
+            ? `linear-gradient(90deg, ${RED}88, ${dc.emerald}88)`
+            : `linear-gradient(90deg, ${ORANGE}66, ${dc.emerald}88)`,
+          transition: "width 0.6s cubic-bezier(0.16,1,0.3,1), left 0.6s cubic-bezier(0.16,1,0.3,1)",
+        }} />
+        {/* median tick */}
+        <div style={{
+          position: "absolute", top: 0, left: animate ? `${xMed}%` : "50%",
+          width: 3, height: "100%",
+          background: dc.dark, borderRadius: 2,
+          transition: "left 0.6s cubic-bezier(0.16,1,0.3,1)",
+        }} />
+        {/* 1.0 threshold tick */}
+        <div style={{
+          position: "absolute", top: -2, left: `${toX(1.0)}%`,
+          width: 2, height: "calc(100% + 4px)",
+          background: RED, opacity: 0.6, borderRadius: 1,
+        }} />
+        {/* 1.25 threshold tick */}
+        <div style={{
+          position: "absolute", top: -2, left: `${toX(1.25)}%`,
+          width: 2, height: "calc(100% + 4px)",
+          background: dc.emerald, opacity: 0.5, borderRadius: 1,
+        }} />
+      </div>
+      {/* labels */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
+        <span style={{ fontSize: 10, color: p10Color, fontWeight: 700, fontFamily: dc.mono }}>P10 {p10.toFixed(2)}x</span>
+        <span style={{ fontSize: 10, color: dc.rain, fontWeight: 700, fontFamily: dc.mono }}>Med {median.toFixed(2)}x</span>
+        <span style={{ fontSize: 10, color: dc.emerald, fontWeight: 700, fontFamily: dc.mono }}>P90 {p90.toFixed(2)}x</span>
+      </div>
+      {/* threshold legend */}
+      <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
+        <span style={{ fontSize: 10, color: "rgba(0,55,56,0.4)", display: "flex", alignItems: "center", gap: 4 }}>
+          <span style={{ width: 8, height: 2, background: RED, display: "inline-block", borderRadius: 1 }} />
+          1.0 = break-even
+        </span>
+        <span style={{ fontSize: 10, color: "rgba(0,55,56,0.4)", display: "flex", alignItems: "center", gap: 4 }}>
+          <span style={{ width: 8, height: 2, background: dc.emerald, display: "inline-block", borderRadius: 1 }} />
+          1.25 = lender comfort zone
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─── P-probability card ───────────────────────────────────────────────────────
+function ProbCard({
+  title, value, color, sub, dark = false, flame,
+}: { title: string; value: string; color: string; sub: string; dark?: boolean; flame?: React.ReactNode }) {
+  const [ref, shown] = useRevealOnView<HTMLDivElement>();
+  return (
+    <div
+      ref={ref}
+      style={{
+        background: dark ? dc.dark : "#fff",
+        borderRadius: dc.r.md, padding: "clamp(22px,3vw,36px)",
+        border: dark ? "none" : "1px solid rgba(0,55,56,0.1)",
+        textAlign: "center",
+        opacity: shown ? 1 : 0,
+        transform: shown ? "none" : "translateY(10px)",
+        transition: "opacity 0.4s ease, transform 0.4s ease",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <div style={{
+          fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
+          textTransform: "uppercase", color: dark ? YELLOW_DARK : dc.rain,
+        }}>
+          {title}
+        </div>
+        {flame && <div>{flame}</div>}
+      </div>
+      <Mono style={{
+        fontSize: "clamp(48px,6vw,80px)", fontWeight: 600,
+        letterSpacing: "-0.04em", color, lineHeight: 0.95, display: "block",
+      }}>
+        {value}
+      </Mono>
+      <div style={{ fontSize: 12, fontWeight: 500, color: dark ? "rgba(238,239,211,0.5)" : "rgba(0,55,56,0.5)", marginTop: 10, lineHeight: 1.45 }}>
+        {sub}
+      </div>
+    </div>
+  );
+}
+
+// ─── collapsible details disclosure ──────────────────────────────────────────
+function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ borderRadius: dc.r.sm, border: "1px solid rgba(0,55,56,0.12)", overflow: "hidden" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "14px 18px", background: "rgba(0,55,56,0.04)",
+          border: "none", cursor: "pointer", fontFamily: dc.sans,
+          fontSize: 12, fontWeight: 600, color: dc.rain, letterSpacing: "0.04em", textTransform: "uppercase",
+        }}
+      >
+        {label}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }}>
+          <path d="M4 6l4 4 4-4" stroke={dc.rain} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div style={{ padding: "16px 18px 18px", borderTop: "1px solid rgba(0,55,56,0.08)" }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── main component ───────────────────────────────────────────────────────────
 export default function MonteCarloPage({
   onBack,
   onNavigate,
@@ -22,17 +201,27 @@ export default function MonteCarloPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
-  // ── state ────────────────────────────────────────────────────────────────
-  const [loanAmount, setLoanAmount]     = useState(340000);
-  const [monthlyRent, setMonthlyRent]   = useState(3000);
-  const [pitiaNonDebt, setPitiaNonDebt] = useState(750);
-  const [initialSofr, setInitialSofr]   = useState(CURRENT_MARKET_SNAPSHOT.sofr30Day);
-  const [longRunSofr, setLongRunSofr]   = useState(DEFAULT_VASICEK_PARAMS.longRunMeanSOFR);
-  const [simulations, setSimulations]   = useState(500);
-  const [horizonYears, setHorizonYears] = useState(10);
-  const [seed, setSeed]                 = useState(42);
+  // ── inputs ────────────────────────────────────────────────────────────────
+  const [loanAmount,    setLoanAmount]    = useState(340000);
+  const [monthlyRent,   setMonthlyRent]   = useState(3000);
+  const [pitiaNonDebt,  setPitiaNonDebt]  = useState(750);
+  const [initialSofr,   setInitialSofr]   = useState(CURRENT_MARKET_SNAPSHOT.sofr30Day);
+  const [longRunSofr,   setLongRunSofr]   = useState(DEFAULT_VASICEK_PARAMS.longRunMeanSOFR);
+  const [simulations,   setSimulations]   = useState(500);
+  const [horizonYears,  setHorizonYears]  = useState(10);
+  const [seed,          setSeed]          = useState(42);
 
-  // ── engine ───────────────────────────────────────────────────────────────
+  // track last-changed field for cause→effect highlight
+  const [lastChanged, setLastChanged] = useState<string | null>(null);
+  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touch = useCallback((field: string, setter: (v: number) => void) => (v: number) => {
+    setter(v);
+    setLastChanged(field);
+    if (highlightTimer.current) clearTimeout(highlightTimer.current);
+    highlightTimer.current = setTimeout(() => setLastChanged(null), 1800);
+  }, []);
+
+  // ── engine ────────────────────────────────────────────────────────────────
   const result = useMemo(() => {
     try {
       const armTerms = DEFAULT_ARM_PROGRAMS["5_6_ARM"];
@@ -53,14 +242,9 @@ export default function MonteCarloPage({
     }
   }, [loanAmount, monthlyRent, pitiaNonDebt, initialSofr, longRunSofr, simulations, horizonYears, seed]);
 
-  // ── derived display values ─────────────────────────────────────────────
-  // Engine returns fractions (0-1); multiply ×100 for percentage display
+  // ── derived values ────────────────────────────────────────────────────────
   const pD1   = result ? result.probabilityDSCRBelow1_0  * 100 : 0;
   const pD125 = result ? result.probabilityDSCRBelow1_25 * 100 : 0;
-  const pD1Str   = pD1.toFixed(1)   + "%";
-  const pD125Str = pD125.toFixed(1) + "%";
-  const pD1Color   = pColor(pD1,   5, 20);
-  const pD125Color = pColor(pD125, 30, 60);
 
   const dscrP10    = result?.dscrStats.p10    ?? 0;
   const dscrMedian = result?.dscrStats.median ?? 0;
@@ -72,393 +256,363 @@ export default function MonteCarloPage({
   const sofrY5  = result ? result.sofrAtHorizon.year5.mean.toFixed(2)  + "%" : "—";
   const sofrY10 = result ? result.sofrAtHorizon.year10.mean.toFixed(2) + "%" : "—";
 
-  // ── mc-path stroke-draw animation (mockup signature) ─────────────────────
-  useEffect(() => {
-    let raf = 0;
-    const animate = () => {
-      const paths = document.querySelectorAll<SVGPathElement>(".mc-path");
-      if (!paths.length) { raf = requestAnimationFrame(animate); return; }
-      const reduce =
-        typeof window !== "undefined" &&
-        typeof window.matchMedia === "function" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduce) return;
-      paths.forEach((p, i) => {
-        const len = p.getTotalLength ? p.getTotalLength() : 420;
-        p.style.strokeDasharray = String(len);
-        p.style.strokeDashoffset = String(len);
-        p.style.transition = `stroke-dashoffset ${1.4 + i * 0.12}s ease-out ${0.5 + i * 0.12}s`;
-        // force reflow then trigger
-        void p.getBoundingClientRect();
-        p.style.strokeDashoffset = "0";
-      });
-    };
-    raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+  const pD1Color   = pColor(pD1,   5, 20);
+  const pD125Color = pColor(pD125, 30, 60);
 
-  // ── scroll helper ────────────────────────────────────────────────────────
-  const scrollToTool = (e: React.MouseEvent) => {
+  // risk level based on pD1
+  const riskLevel = pD1 > 20 ? "high" : pD1 > 5 ? "med" : pD1 > 1 ? "low" : "none";
+
+  // headline verdict text
+  const verdictText = pD1 > 20
+    ? `High risk — ${pD1.toFixed(1)}% chance the property can't cover its own costs in some rate scenarios. Consider raising rent, reducing the loan, or choosing a fixed-rate program.`
+    : pD1 > 5
+    ? `Moderate risk — ${pD1.toFixed(1)}% chance of a coverage break. Review your long-run rate assumption and consider a lower LTV.`
+    : `Low risk — only ${pD1.toFixed(1)}% of rate paths break coverage. This deal holds up across most simulated futures.`;
+
+  // ── scroll helper ─────────────────────────────────────────────────────────
+  const scrollToTool = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     const el = document.querySelector("#mc-tool");
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
-  };
+  }, []);
 
-  // ── nav ──────────────────────────────────────────────────────────────────
+  // ── highlight style helper ────────────────────────────────────────────────
+  const hl = (field: string): React.CSSProperties =>
+    lastChanged === field
+      ? { outline: `2px solid ${dc.lemon}`, outlineOffset: 2, borderRadius: 6, transition: "outline 0.2s" }
+      : {};
+
+  const [spreadRef, spreadShown] = useRevealOnView<HTMLDivElement>();
+
   const navLinks = [
     { label: "DSCR Calc",     view: "dscr-calculator" },
     { label: "Stress Matrix", view: "stress-matrix" },
   ];
-  const cta = {
-    label: "Run simulation →",
-    href: "#mc-tool",
-    onClick: scrollToTool,
-  };
+  const cta = { label: "Run simulation →", href: "#mc-tool", onClick: scrollToTool };
 
   return (
     <DcShell onNavigate={onNavigate} accent="#004041" navLinks={navLinks} cta={cta}>
       <style>{`
-        @media (max-width:900px){.mc-3step{grid-template-columns:1fr !important;}}
-        .mc-path{fill:none;stroke-linecap:round;}
+        @media (max-width: 991px) {
+          .mc-3step { grid-template-columns: 1fr !important; }
+          .mc-tool-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 767px) {
+          .mc-prob-grid { grid-template-columns: 1fr !important; }
+        }
+        .mc-path { fill: none; stroke-linecap: round; }
+        .mc-card-highlight {
+          transition: box-shadow 0.25s ease;
+        }
+        .mc-card-highlight.active {
+          box-shadow: 0 0 0 2px ${dc.lemon};
+        }
       `}</style>
 
-      {/* ── HERO ──────────────────────────────────────────────────────── */}
-      <section
-        style={{
-          position: "relative",
-          background: dc.teal,
-          color: dc.cream,
-          overflow: "hidden",
-          minHeight: "clamp(480px,60vh,760px)",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
+      {/* ── HERO ────────────────────────────────────────────────────────── */}
+      <section style={{
+        position: "relative", background: dc.teal, color: dc.cream,
+        overflow: "hidden", minHeight: "clamp(480px,60vh,760px)",
+        display: "flex", alignItems: "center",
+      }}>
         <div className="gs-dot-grid" />
-
         <div className="dc-hero" style={{
           position: "relative", width: "100%", maxWidth: dc.maxW,
           margin: "0 auto", padding: `clamp(48px,7vh,88px) ${dc.pad}`,
           display: "grid", gridTemplateColumns: "1.1fr 0.9fr",
           gap: "clamp(32px,5vw,72px)", alignItems: "center",
         }}>
-          {/* left col — GSAP target */}
+          {/* left */}
           <div id="gs-hero-content">
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
               textTransform: "uppercase", color: dc.dark,
-              background: dc.lemon, padding: "7px 14px", borderRadius: 100,
-              marginBottom: 24,
+              background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24,
             }}>
-              Monte Carlo &middot; Vasicek SOFR &middot; {simulations} paths
+              Monte Carlo · Vasicek SOFR · <span data-count={simulations}>{simulations}</span> paths
             </div>
-            <H1 style={{ margin: "0 0 28px" }}>
+            <H1 style={{ margin: "0 0 20px" }}>
               Stress-test the deal over {simulations} futures.
             </H1>
-            <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              Stochastic SOFR paths from a calibrated Vasicek process &mdash; every
-              green line is a future where the DSCR survives above 1.0, every
-              red one where it breaks.
+            <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+              This tool runs {simulations} what-if interest-rate scenarios to show the <em>range</em> of possible outcomes. Your DSCR (debt-service coverage ratio — whether the property's rent covers the loan payment; 1.00 = break-even, higher is safer) is computed at each simulated ARM reset.
+            </div>
+            <Lead style={{ color: "rgba(238,239,211,0.65)", maxWidth: "46ch", margin: "0 0 36px" }}>
+              The headline number is the <strong style={{ color: dc.cream }}>probability your deal breaks</strong> — that DSCR falls below 1.0 in some future rate scenario. Below 5% is comfortable; above 20% needs attention.
             </Lead>
             <Btn label="Run the simulation" href="#mc-tool" onClick={scrollToTool} />
           </div>
 
-          {/* right col — animated preview card */}
-          <div style={{ position: "relative" }}>
-            <div style={{
-              background: "#003738", borderRadius: 16, padding: 22,
-            }}>
-              <div style={{
-                fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
-                textTransform: "uppercase", color: "rgba(238,239,211,0.5)",
-                marginBottom: 12,
-              }}>
-                SOFR rate paths · {simulations} sims · {horizonYears}yr
+          {/* right — live preview card */}
+          <div style={{ position: "relative", display: "grid", gap: 18 }}>
+            <MotionWorkbench
+              mode="sim"
+              value={`${pD1.toFixed(1)}%`}
+              label="Break-risk paths"
+            />
+            <div style={{ background: dc.dark, borderRadius: dc.r.lg, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 16 }}>
+                Live — median DSCR across {simulations} paths
               </div>
-              <svg viewBox="0 0 420 200" style={{ width: "100%", display: "block" }} preserveAspectRatio="none">
-                <line x1="0" y1="170" x2="420" y2="170" stroke="rgba(238,239,211,0.08)" />
-                <line x1="0" y1="105" x2="420" y2="105" stroke="rgba(238,239,211,0.08)" />
-                <path className="mc-path" d="M0,120 C120,108 240,96 420,88"  stroke="rgba(77,189,151,0.9)"  strokeWidth="2.5" fill="none" strokeLinecap="round" />
-                <path className="mc-path" d="M0,120 C100,90 220,72 420,66"   stroke="rgba(77,189,151,0.5)"  strokeWidth="1.8" fill="none" strokeLinecap="round" />
-                <path className="mc-path" d="M0,120 C110,100 240,88 420,82"  stroke="rgba(77,189,151,0.4)"  strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                <path className="mc-path" d="M0,120 C80,72 180,52 280,48 C340,44 390,50 420,52" stroke="rgba(216,217,88,0.65)" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-                <path className="mc-path" d="M0,120 C70,145 160,158 280,162 C350,165 400,162 420,160" stroke="rgba(255,107,107,0.55)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-                <circle cx="0" cy="120" r="5" fill={dc.emerald} />
-                <text x="8" y="116" fill={dc.emerald} fontSize="10" fontFamily={dc.mono}>
-                  r0={initialSofr.toFixed(2)}%
-                </text>
-              </svg>
+              {/* Gauge centered */}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                <DscrGauge value={Math.max(0.5, Math.min(2.0, dscrMedian || 1.2))} size={160} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-around" }}>
+                <div style={{ textAlign: "center" }}>
+                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", display: "block" }}>P10 (worst 10%)</Mono>
+                  <Mono style={{ fontSize: 18, fontWeight: 700, color: dscrP10 < 1.0 ? RED : dc.emerald }}>{result ? dscrP10.toFixed(2) + "x" : "—"}</Mono>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", display: "block" }}>P90 (best 10%)</Mono>
+                  <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.emerald }}>{result ? dscrP90.toFixed(2) + "x" : "—"}</Mono>
+                </div>
+              </div>
             </div>
 
             {/* P(DSCR<1.0) badge */}
             <div style={{
               position: "absolute", bottom: -14, right: -12,
-              background: dc.lemon, borderRadius: 10,
-              padding: "14px 18px", zIndex: 2,
+              background: dc.lemon, borderRadius: 10, padding: "14px 18px", zIndex: 2,
             }}>
-              <div style={{
-                fontSize: 10, fontWeight: 600, letterSpacing: "0.04em",
-                textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 2,
-              }}>
+              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 2 }}>
                 P(DSCR&lt;1.0)
               </div>
-              <div style={{
-                fontSize: 32, fontWeight: 600, letterSpacing: "-0.03em",
-                color: dc.dark, fontFamily: dc.mono, lineHeight: 1,
-              }}>
-                {pD1Str}
+              <Mono style={{ fontSize: 32, fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, lineHeight: 1, display: "block" }}>
+                {pD1.toFixed(1)}%
+              </Mono>
+              <div style={{ marginTop: 4 }}>
+                <RiskFlame level={riskLevel} size={18} />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      
-
-      {/* ── 3-STEP BAND ───────────────────────────────────────────────── */}
-      <section style={{
-        background: dc.cream,
-        padding: `clamp(48px,6vw,72px) ${dc.pad}`,
-      }}>
+      {/* ── HOW IT WORKS ────────────────────────────────────────────────── */}
+      <section style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal mc-3step" style={{
+          <div className="mc-3step" style={{
             display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 1, background: "rgba(0,55,56,0.12)",
-            borderRadius: 9, overflow: "hidden",
+            gap: 1, background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden",
           }}>
-            {/* 01 Seed */}
             <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.lemon, marginBottom: 14, lineHeight: 1, display: "block" }}>01</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Seed</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: dc.faded, margin: 0, letterSpacing: "-0.01em" }}>
-                Set loan amount, rent, SOFR start and long-run mean. Pick a simulation seed.
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Set your deal</h3>
+              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: dc.faded, margin: 0 }}>
+                Enter your loan, rent, and rate expectations using the sliders. Estimates are fine — adjust and watch the results update live.
               </p>
             </div>
-            {/* 02 Simulate */}
             <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: dc.emerald, marginBottom: 14, lineHeight: 1, display: "block" }}>02</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Simulate</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                Vasicek OU process: dr = k(theta-r)dt + sigma·dW. {simulations} seeded paths, ARM margin applied.
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Run {simulations} rate paths</h3>
+              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0 }}>
+                The Vasicek model (a mean-reverting interest-rate model — rates wander but drift back to a long-run average) generates {simulations} plausible SOFR futures. Your 5/6 ARM rate is recalculated at each simulated reset.
               </p>
             </div>
-            {/* 03 Analyze */}
             <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1, display: "block" }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Analyze</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                P(DSCR&lt;1.0), P(DSCR&lt;1.25), percentile distribution, SOFR path stats at Y1/Y5/Y10.
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Read the risk</h3>
+              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0 }}>
+                P(DSCR&lt;1.0) = the fraction of futures where the property can't cover costs. Below 5% is solid; above 20% needs attention. The spread bar shows where most outcomes land.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── TOOL SECTION ──────────────────────────────────────────────── */}
+      {/* ── TOOL ────────────────────────────────────────────────────────── */}
       <section id="mc-tool" style={{
         background: dc.cream,
         padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)`,
       }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
 
-          {/* section heading */}
-          <div className="gs-reveal" style={{ marginBottom: 48 }}>
-            <div style={{
-              fontSize: 12, fontWeight: 600, letterSpacing: "0.04em",
-              textTransform: "uppercase", color: dc.rain, marginBottom: 12,
-            }}>
+          {/* section headline + verdict */}
+          <div style={{ marginBottom: 40 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
               Live Monte Carlo engine
             </div>
-            <h2 style={{
-              fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600,
-              letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0,
-            }}>
-              <Mono>{simulations}</Mono> paths · <Mono>{horizonYears}</Mono>yr · seed <Mono>{seed}</Mono>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 14px" }}>
+              <Mono>{simulations}</Mono> paths · <Mono>{horizonYears}</Mono>yr horizon
             </h2>
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 14,
+              background: pD1 > 20 ? "rgba(255,107,107,0.08)" : pD1 > 5 ? "rgba(216,217,88,0.12)" : "rgba(77,189,151,0.1)",
+              border: `1px solid ${pD1 > 20 ? "rgba(255,107,107,0.25)" : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.25)"}`,
+              borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 680,
+            }}>
+              <RiskFlame level={riskLevel} size={20} />
+              <p style={{ fontSize: 14, fontWeight: 500, color: dc.dark, margin: 0, lineHeight: 1.5 }}>
+                {verdictText}
+              </p>
+            </div>
           </div>
 
-          {/* two-column layout */}
-          <div className="gs-reveal dc-split" style={{
-            display: "grid", gridTemplateColumns: "320px 1fr",
-            gap: 36, alignItems: "start",
-          }}>
+          {/* two-column tool layout */}
+          <div className="mc-tool-grid" style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 32, alignItems: "start" }}>
 
-            {/* ── INPUT PANEL ──────────────────────────────────────────── */}
-            <div style={{
-              background: "#fff", borderRadius: 9, padding: 28,
-              border: "1px solid rgba(0,55,56,0.1)",
-            }}>
-              <div style={{
-                fontSize: 12, fontWeight: 600, letterSpacing: "0.04em",
-                textTransform: "uppercase", color: dc.rain, marginBottom: 20,
-              }}>
+            {/* ── INPUT PANEL ─────────────────────────────────────────── */}
+            <div style={{ background: "#fff", borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(0,55,56,0.1)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 6 }}>
                 Simulation parameters
               </div>
+              <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 20px", lineHeight: 1.5 }}>
+                Drag the sliders — results update live.
+              </p>
 
-              {(
-                [
-                  { label: "Loan Amount",        value: loanAmount,    set: setLoanAmount,    step: 5000,  prefix: "$", suffix: ""  },
-                  { label: "Monthly Rent",        value: monthlyRent,   set: setMonthlyRent,   step: 100,   prefix: "$", suffix: ""  },
-                  { label: "Taxes+Ins+HOA / mo",  value: pitiaNonDebt,  set: setPitiaNonDebt,  step: 50,    prefix: "$", suffix: ""  },
-                  { label: "Initial SOFR %",      value: initialSofr,   set: setInitialSofr,   step: 0.05,  prefix: "",  suffix: ""  },
-                  { label: "Long-run theta %",    value: longRunSofr,   set: setLongRunSofr,   step: 0.05,  prefix: "",  suffix: ""  },
-                  { label: "Simulations",         value: simulations,   set: setSimulations,   step: 100,   prefix: "",  suffix: ""  },
-                  { label: "Horizon years",       value: horizonYears,  set: setHorizonYears,  step: 1,     prefix: "",  suffix: ""  },
-                  { label: "Seed",                value: seed,          set: setSeed,          step: 1,     prefix: "",  suffix: ""  },
-                ] as const
-              ).map((f) => (
-                <label key={f.label} style={{ display: "block", marginBottom: 16 }}>
-                  <span style={{
-                    display: "block", fontSize: 11, fontWeight: 600,
-                    letterSpacing: "0.04em", textTransform: "uppercase",
-                    color: "rgba(0,55,56,0.5)", marginBottom: 7,
-                  }}>
-                    {f.label}
-                  </span>
-                  <div style={{
-                    display: "flex", alignItems: "center",
-                    background: dc.cream, borderRadius: 6, padding: "0 12px",
-                  }}>
-                    {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)" }}>{f.prefix}</span>}
-                    <input
-                      className="gs-num"
-                      type="number"
-                      step={f.step}
-                      value={f.value}
-                      onChange={(e) => (f.set as (v: number) => void)(+e.target.value)}
-                      style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600, color: dc.dark }}
-                    />
+              <div style={hl("loanAmount")}>
+                <SliderField label="Loan Amount" hint="Total borrowed — not the purchase price." value={loanAmount} set={touch("loanAmount", setLoanAmount)} min={50000} max={2000000} step={5000} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+              </div>
+              <div style={hl("monthlyRent")}>
+                <SliderField label="Monthly Rent" hint="Gross rent the property generates." value={monthlyRent} set={touch("monthlyRent", setMonthlyRent)} min={500} max={10000} step={50} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+              </div>
+              <div style={hl("pitiaNonDebt")}>
+                <SliderField label="Taxes + Insurance + HOA /mo" hint="Non-debt PITIA costs. Together with the P&I payment, this makes up the full monthly obligation." value={pitiaNonDebt} set={touch("pitiaNonDebt", setPitiaNonDebt)} min={0} max={3000} step={25} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+              </div>
+
+              <div style={{ borderTop: "1px solid rgba(0,55,56,0.08)", margin: "20px 0 20px" }} />
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.4)", marginBottom: 16 }}>
+                Rate assumptions
+              </div>
+
+              <div style={hl("initialSofr")}>
+                <SliderField label="Initial SOFR %" hint="Today's short-term rate index. ARM resets float off this after the fixed period ends." value={initialSofr} set={touch("initialSofr", setInitialSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
+              </div>
+              <div style={hl("longRunSofr")}>
+                <SliderField label="Long-run SOFR (θ) %" hint="Where you think rates settle over time. All paths drift toward this level." value={longRunSofr} set={touch("longRunSofr", setLongRunSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
+              </div>
+
+              <div style={{ borderTop: "1px solid rgba(0,55,56,0.08)", margin: "20px 0 20px" }} />
+              <Disclosure label="Advanced parameters">
+                <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 4 }}>
+                  <SliderField label="Number of simulations" hint="More paths = more precise probability. 500 is a solid default." value={simulations} set={setSimulations} min={100} max={2000} step={100} suffix="" fmt={(v) => v.toLocaleString("en-US")} />
+                  <SliderField label="Horizon (years)" hint="Match your planned hold period." value={horizonYears} set={setHorizonYears} min={1} max={30} step={1} suffix="yr" fmt={(v) => v.toString()} />
+                  <div style={{ marginBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)" }}>Random seed</span>
+                      <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.dark }}>{seed}</Mono>
+                    </div>
+                    <input className="gs-range" type="range" min={1} max={999} step={1} value={seed} onChange={(e) => setSeed(+e.target.value)} />
+                    <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 4, lineHeight: 1.4 }}>Controls which specific paths are drawn. Different seeds give similar but not identical results.</span>
                   </div>
-                </label>
-              ))}
+                </div>
+              </Disclosure>
             </div>
 
-            {/* ── OUTPUT PANEL ─────────────────────────────────────────── */}
+            {/* ── OUTPUT PANEL ──────────────────────────────────────────── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-              {/* probability cards */}
-              <div className="dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-                {/* P(DSCR < 1.0) */}
-                <div style={{
-                  background: dc.dark, borderRadius: 12,
-                  padding: "clamp(24px,3vw,36px)", textAlign: "center",
-                }}>
-                  <div style={{
-                    fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
-                    textTransform: "uppercase", color: YELLOW_DARK, marginBottom: 12,
-                  }}>
-                    P(DSCR &lt; 1.0)
-                  </div>
-                  <Mono style={{
-                    fontSize: "clamp(48px,6vw,80px)", fontWeight: 600,
-                    letterSpacing: "-0.04em", color: pD1Color, lineHeight: 0.95, display: "block",
-                  }}>
-                    {pD1Str}
-                  </Mono>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 10 }}>
-                    deal-break probability
-                  </div>
-                </div>
-
-                {/* P(DSCR < 1.25) */}
-                <div style={{
-                  background: dc.cream, border: "2px solid rgba(0,55,56,0.12)",
-                  borderRadius: 12, padding: "clamp(24px,3vw,36px)", textAlign: "center",
-                }}>
-                  <div style={{
-                    fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
-                    textTransform: "uppercase", color: dc.rain, marginBottom: 12,
-                  }}>
-                    P(DSCR &lt; 1.25)
-                  </div>
-                  <Mono style={{
-                    fontSize: "clamp(48px,6vw,80px)", fontWeight: 600,
-                    letterSpacing: "-0.04em", color: pD125Color, lineHeight: 0.95, display: "block",
-                  }}>
-                    {pD125Str}
-                  </Mono>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginTop: 10 }}>
-                    comfort-zone miss
-                  </div>
-                </div>
+              {/* Probability cards */}
+              <div className="mc-prob-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+                <ProbCard
+                  title="P(DSCR < 1.0)"
+                  value={pD1.toFixed(1) + "%"}
+                  color={pD1Color}
+                  sub="chance the property can't cover its costs in some rate futures — below 5% is comfortable, above 20% is high-risk"
+                  dark
+                  flame={<RiskFlame level={riskLevel} size={16} />}
+                />
+                <ProbCard
+                  title="P(DSCR < 1.25)"
+                  value={pD125.toFixed(1) + "%"}
+                  color={pD125Color}
+                  sub="chance of falling short of the 1.25 cushion most lenders prefer — below 30% is acceptable"
+                />
               </div>
 
-              {/* DSCR distribution table */}
-              <div style={{
-                background: "#fff", borderRadius: 9, padding: 24,
-                border: "1px solid rgba(0,55,56,0.1)",
-              }}>
-                <div style={{
-                  fontSize: 12, fontWeight: 600, letterSpacing: "0.04em",
-                  textTransform: "uppercase", color: dc.rain, marginBottom: 14,
-                }}>
-                  Final DSCR distribution
-                </div>
-                {result ? (
-                  [
-                    { label: "P10 (worst 10%)",  val: dscrP10.toFixed(2)    + "x", color: dscrP10 < 1.0 ? RED : YELLOW },
-                    { label: "Median",            val: dscrMedian.toFixed(2) + "x", color: dc.dark },
-                    { label: "P90 (best 10%)",    val: dscrP90.toFixed(2)    + "x", color: dc.emerald },
-                    { label: "Min",               val: dscrMin.toFixed(2)    + "x", color: RED },
-                    { label: "Max",               val: dscrMax.toFixed(2)    + "x", color: dc.emerald },
-                  ].map((r) => (
-                    <div key={r.label} style={{
-                      display: "flex", justifyContent: "space-between",
-                      padding: "8px 0", borderBottom: "1px solid rgba(0,55,56,0.07)",
-                      fontSize: 14,
-                    }}>
-                      <span style={{ color: "rgba(0,55,56,0.65)", fontWeight: 500 }}>{r.label}</span>
-                      <Mono style={{ color: r.color, fontWeight: 700 }}>{r.val}</Mono>
+              {/* Median DSCR gauge + spread */}
+              <div style={{ background: "#fff", borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(0,55,56,0.1)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 24, alignItems: "center" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.rain, marginBottom: 10 }}>Median DSCR</div>
+                    <DscrGauge value={Math.max(0.5, Math.min(2.0, dscrMedian || 1.0))} size={130} />
+                    <div style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", marginTop: 6, lineHeight: 1.4 }}>
+                      {dscrMedian >= 1.25 ? "Comfortable cushion" : dscrMedian >= 1.0 ? "Thin margin — watch for rate rises" : "Below break-even in median scenario"}
                     </div>
-                  ))
-                ) : (
-                  <div style={{ color: RED, fontSize: 14 }}>Engine returned no result.</div>
-                )}
-              </div>
-
-              {/* SOFR at horizons */}
-              <div style={{
-                background: dc.dark, borderRadius: 9, padding: 22,
-                display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16,
-              }}>
-                {[
-                  { label: "SOFR yr 1",  val: sofrY1  },
-                  { label: "SOFR yr 5",  val: sofrY5  },
-                  { label: "SOFR yr 10", val: sofrY10 },
-                ].map((col) => (
-                  <div key={col.label} style={{ textAlign: "center" }}>
-                    <div style={{
-                      fontSize: 11, color: "rgba(238,239,211,0.5)",
-                      textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6,
-                    }}>
-                      {col.label}
-                    </div>
-                    <Mono style={{
-                      fontSize: "clamp(18px,2vw,24px)", fontWeight: 600,
-                      color: dc.emerald, letterSpacing: "-0.02em", display: "block",
-                    }}>
-                      {col.val}
-                    </Mono>
                   </div>
-                ))}
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 4 }}>
+                      DSCR outcome spread
+                    </div>
+                    <p style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", margin: "0 0 4px", lineHeight: 1.5 }}>
+                      The bar shows the P10–P90 range of DSCR outcomes across all simulated paths. A healthy deal has P10 above 1.0 and median above 1.25.
+                    </p>
+                    <div ref={spreadRef}>
+                      <DscrSpreadBar p10={dscrP10} median={dscrMedian} p90={dscrP90} animate={spreadShown} />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* engine parameters footnote */}
+              {/* SOFR horizon cards */}
+              <div style={{ background: dc.dark, borderRadius: dc.r.md, padding: 24 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 6 }}>
+                  Average simulated SOFR — where rates land across all paths
+                </div>
+                <p style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", margin: "0 0 16px", lineHeight: 1.5 }}>
+                  These averages show where SOFR is likely heading. If the year-5 rate is well above your long-run assumption (θ = {longRunSofr.toFixed(2)}%), the model sees rates staying elevated — a riskier environment for your ARM.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                  {[
+                    { label: "Year 1",  val: sofrY1 },
+                    { label: "Year 5",  val: sofrY5 },
+                    { label: "Year 10", val: sofrY10 },
+                  ].map((col) => (
+                    <div key={col.label} style={{ textAlign: "center", background: "rgba(238,239,211,0.05)", borderRadius: dc.r.sm, padding: "16px 12px" }}>
+                      <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>
+                        {col.label} avg
+                      </div>
+                      <Mono style={{ fontSize: "clamp(20px,2.4vw,28px)", fontWeight: 600, color: dc.emerald, letterSpacing: "-0.02em", display: "block" }}>
+                        {col.val}
+                      </Mono>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Advanced detail — progressive disclosure */}
+              <Disclosure label="Full distribution · P10 / Median / P90 / Min / Max">
+                <div>
+                  <p style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                    P10 = worst 10% of outcomes. A deal is robust when even P10 stays above 1.0. Min shows the single worst path — outlier scenarios are real but rare.
+                  </p>
+                  {result ? (
+                    [
+                      { label: "P10 (worst 10%)",  val: dscrP10.toFixed(2) + "x",    color: dscrP10 < 1.0 ? RED : ORANGE },
+                      { label: "P25",               val: result.dscrStats.p25.toFixed(2) + "x", color: dc.dark },
+                      { label: "Median (P50)",      val: dscrMedian.toFixed(2) + "x",   color: dc.dark },
+                      { label: "P75",               val: result.dscrStats.p75.toFixed(2) + "x", color: dc.dark },
+                      { label: "P90 (best 10%)",    val: dscrP90.toFixed(2) + "x",    color: dc.emerald },
+                      { label: "Min (worst path)",  val: dscrMin.toFixed(2) + "x",    color: RED },
+                      { label: "Max (best path)",   val: dscrMax.toFixed(2) + "x",    color: dc.emerald },
+                    ].map((row) => (
+                      <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(0,55,56,0.07)", fontSize: 13 }}>
+                        <span style={{ color: "rgba(0,55,56,0.65)", fontWeight: 500 }}>{row.label}</span>
+                        <Mono style={{ color: row.color, fontWeight: 700 }}>{row.val}</Mono>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: RED, fontSize: 13 }}>Engine returned no result.</div>
+                  )}
+                </div>
+              </Disclosure>
+
+              {/* engine footnote */}
               {result && (
                 <div style={{
-                  padding: "14px 18px",
-                  background: "rgba(0,101,101,0.08)",
-                  borderRadius: 9,
-                  border: "1px solid rgba(0,101,101,0.22)",
+                  padding: "14px 18px", background: "rgba(0,101,101,0.08)",
+                  borderRadius: dc.r.sm, border: "1px solid rgba(0,101,101,0.22)",
                   fontSize: 12, color: "rgba(0,55,56,0.6)", lineHeight: 1.6,
                 }}>
-                  <strong style={{ color: dc.rain }}>Engine:</strong>{" "}
-                  Vasicek mean-reverting process. {result.simulations} paths × {result.horizonMonths} months.
-                  θ={result.modelParameters.longRunMeanSOFR}%,
-                  κ={result.modelParameters.meanReversionSpeed},
-                  σ={result.modelParameters.volatility}%,
-                  r₀={result.modelParameters.initialSOFR}%.
+                  <strong style={{ color: dc.rain }}>Model parameters:</strong>{" "}
+                  Vasicek mean-reverting model · {result.simulations} paths × {result.horizonMonths} months.
+                  θ={result.modelParameters.longRunMeanSOFR}% (long-run mean),
+                  κ={result.modelParameters.meanReversionSpeed} (reversion speed),
+                  σ={result.modelParameters.volatility}% (volatility),
+                  r₀={result.modelParameters.initialSOFR}% (starting rate).
+                  {" "}<em>Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.</em>
                 </div>
               )}
             </div>
@@ -466,6 +620,40 @@ export default function MonteCarloPage({
         </div>
       </section>
 
+      {/* ── FUNNEL CTA ──────────────────────────────────────────────────── */}
+      <section style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
+                Ready to move forward?
+              </div>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+                Get a real rate on this deal.
+              </h2>
+              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
+                Submit once. Greenstreet places your file in the best-fit program and funds it.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+              <a
+                href="/rate-quiz"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
+              >
+                Get my rate →
+              </a>
+              <a
+                href="/tools/stress-matrix"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("stress-matrix"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
+              >
+                Stress matrix →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </DcShell>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatedCard, AnimatedButton } from "./PageShell";
-import { swatch } from "../theme";
+import { swatch, radius } from "../theme";
 
 // Blue "how it works" band — recreation of greenboard.com's step_tab scroll motion,
 // rebuilt for Greenstreet's DSCR flow:
@@ -16,29 +16,29 @@ const LEMON = swatch.lemon;         // brand CTA pop (lemon)
 
 const STEPS = [
   {
-    icon: "📊",
+    icon: "÷",
     title: "Run the numbers in half a second",
-    body: "Price, rent, FICO, LTV — enter once. The engine returns Track 1 DSCR (what qualifies), Track 2 DSCR (what survives), PITIA, break-even rate, and cash-on-cash before you finish your coffee.",
+    body: "Enter price, rent, and your loan details once. The engine instantly returns your DSCR (whether the property's rent can cover the loan payment — 1.00 means rent exactly covers it; higher is stronger), your full PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues), break-even rate, and cash-on-cash return.",
   },
   {
-    icon: "🏦",
-    title: "Let the program find you",
-    body: "Seven Greenstreet programs — from high-leverage DSCR to no-ratio, multi-family, and foreign national — are ranked by fit the moment the file lands. No portal-hopping. No re-keying.",
+    icon: "§",
+    title: "Let the right program find you",
+    body: "Seven Greenstreet programs — from high-LTV (how the loan compares to property value) DSCR to no-ratio, multi-family, and foreign national — are ranked by fit the moment the file lands. No portal-hopping or re-keying.",
   },
   {
-    icon: "🗺️",
-    title: "Catch the compliance traps early",
-    body: "50-state prepay and usury matrix is built in, not bolted on. OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437 — flagged before they cost you $.",
+    icon: "⊕",
+    title: "Catch state-rule traps before they cost you",
+    body: "The 50-state prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) and usury map is built in, not bolted on. Ohio/PA loan-amount thresholds, NJ LLC risk, TX APR triggers, and MN's 2026 law change are all flagged before they affect your quote.",
   },
   {
-    icon: "🧩",
+    icon: "∿",
     title: "Structure for the actual borrower",
-    body: "First-timer, STR operator, portfolio builder, ITIN, BRRRR cash-out — each profile has a different lane and a different rate tier. The engine reads your file and routes you to the right one.",
+    body: "First-timer, short-term rental operator, portfolio builder, ITIN borrower, BRRRR cash-out — each profile has a different rate tier and qualifying lane. The engine reads your file and routes you to the right one, including noting when an ARM (a loan whose rate is fixed for a few years, then can adjust) or IO period improves the deal.",
   },
   {
-    icon: "🔒",
+    icon: "✓",
     title: "Lock with confidence",
-    body: "Every number you bring to the rate-lock conversation is the number Greenstreet will see at underwriting. No surprises. No last-minute conditions you didn't model.",
+    body: "Every number you bring to the rate-lock conversation is the number Greenstreet will see at underwriting. No surprises. No last-minute conditions you didn't already model.",
   },
 ];
 
@@ -98,8 +98,6 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
         padding: "clamp(56px, 7vw, 96px) clamp(1.5rem, 4vw, 4rem)",
         marginTop: "40px",
         overflow: "hidden",
-        backgroundImage:
-          "radial-gradient(circle at 20% 0%, rgba(77,196,255,0.10), transparent 45%), radial-gradient(circle at 90% 100%, rgba(77,196,255,0.07), transparent 40%)",
       }}
     >
       <style>{`
@@ -133,7 +131,7 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
           Five steps. One application. Your deal — funded.
         </h2>
         <p className="hiw-head" style={{ animationDelay: "0.16s", fontSize: "18px", color: ICE, opacity: 0.85, maxWidth: "640px", lineHeight: 1.6, marginBottom: "clamp(40px, 5vw, 64px)" }}>
-          The line fills as you scroll. Every step runs on the same engine — the one that underwrites and funds your file.
+          Scroll through to see how a DSCR deal moves from first number to funded. Every step runs on the same engine — the one that underwrites and funds your file.
         </p>
 
         {/* Steps — each row owns its dot + connector so heights resolve naturally */}
@@ -154,26 +152,26 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div
                     style={{
-                      width: "30px", height: "30px", borderRadius: "50%", flexShrink: 0,
+                      width: "30px", height: "30px", borderRadius: radius.pill, flexShrink: 0,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       background: on ? CYAN : NAVY_2,
-                      border: `2px solid ${on ? CYAN : "rgba(191,230,255,0.3)"}`,
+                      border: `1.5px solid ${on ? CYAN : `${CYAN}50`}`,
                       color: on ? NAVY : ICE, fontSize: "13px", fontWeight: 800,
-                      boxShadow: on ? `0 0 16px ${CYAN}` : "none",
+                      boxShadow: "none",
                       transition: "background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease",
-                      animation: isActive ? "hiw-pulse 1.6s ease-out infinite" : "none",
+                      animation: "none",
                     }}
                   >
                     {on ? "✓".repeat(0) || i + 1 : i + 1}
                   </div>
                   {!last && (
-                    <div style={{ width: "3px", flex: 1, minHeight: "28px", borderRadius: "3px", background: "rgba(191,230,255,0.16)", position: "relative", overflow: "hidden" }}>
+                    <div style={{ width: "3px", flex: 1, minHeight: "28px", borderRadius: radius.sm, background: `${CYAN}20`, position: "relative", overflow: "hidden" }}>
                       <div
                         style={{
                           position: "absolute", top: 0, left: 0, right: 0,
                           height: `${segFill * 100}%`,
                           background: `linear-gradient(${CYAN}, ${LEMON})`,
-                          boxShadow: segFill > 0 ? `0 0 12px ${CYAN}` : "none",
+                          boxShadow: "none",
                           transition: "height 0.15s linear",
                         }}
                       />
@@ -186,18 +184,18 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
                   themeName="dark"
                   hoverScale={false}
                   style={{
-                    background: on ? NAVY_2 : "rgba(10,58,85,0.4)",
-                    border: `1px solid ${isActive ? CYAN : on ? "rgba(77,196,255,0.45)" : "rgba(191,230,255,0.12)"}`,
-                    borderRadius: "14px", padding: "clamp(18px, 2.5vw, 28px)",
+                    background: on ? NAVY_2 : `${NAVY_2}60`,
+                    border: `1.5px solid ${isActive ? CYAN : on ? `${CYAN}70` : `${CYAN}20`}`,
+                    borderRadius: radius.lg, padding: "clamp(18px, 2.5vw, 28px)",
                     marginBottom: last ? 0 : "clamp(14px, 2vw, 22px)",
                     opacity: on ? 1 : 0.5,
                     transform: isActive ? "translateX(0) scale(1.015)" : on ? "translateX(0)" : "translateX(-8px)",
-                    boxShadow: isActive ? `0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px ${CYAN}` : on ? "0 8px 30px rgba(0,0,0,0.25)" : "none",
+                    boxShadow: isActive ? `0 0 0 1px ${CYAN}` : "none",
                     transition: "all 0.35s cubic-bezier(.2,.7,.2,1)",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-                    <span style={{ fontSize: "26px", display: "inline-block", transform: isActive ? "scale(1.12)" : "scale(1)", transition: "transform 0.35s ease" }}>{s.icon}</span>
+                    <span style={{ fontSize: "22px", fontFamily: "JetBrains Mono, monospace", fontWeight: 700, color: LEMON, display: "inline-block", lineHeight: 1, width: 28, flexShrink: 0, transform: isActive ? "scale(1.12)" : "scale(1)", transition: "transform 0.35s ease" }}>{s.icon}</span>
                     <span style={{ fontSize: "clamp(18px, 2.2vw, 22px)", fontWeight: 700, color: "#fff" }}>{s.title}</span>
                   </div>
                   <p style={{ fontSize: "15px", lineHeight: 1.65, color: ICE, opacity: 0.9, margin: 0 }}>{s.body}</p>

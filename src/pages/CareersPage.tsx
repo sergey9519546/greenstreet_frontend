@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead } from "../design/dc";
+import { radius } from "../theme";
 
 // ── Open roles (all original descriptions preserved) ─────────────────────────
 interface Role {
@@ -16,7 +17,7 @@ const ROLES: Role[] = [
     team: "Sales",
     location: "Remote (US)",
     type: "Full-time",
-    body: "You've sold non-QM to mortgage brokers before. You can read a rate sheet without squinting and explain DSCR to a skeptical borrower in 60 seconds flat. You own the broker relationship from first demo to first funded deal — and you're allergic to commission cliffs.",
+    body: "You've sold non-QM or DSCR financing to real estate investors before. You can read a rate sheet without squinting and explain DSCR to a skeptical investor in 60 seconds flat. You own the investor relationship from first demo to first funded deal — and you're allergic to commission cliffs.",
   },
   {
     title: "Senior Full-Stack Engineer",
@@ -33,18 +34,18 @@ const ROLES: Role[] = [
     body: "You've underwritten non-QM files. You read prepay statutes for fun. You can translate a lender rate sheet into a rule set that a machine can execute — and you spot a bad deal structure before anyone else in the room does.",
   },
   {
-    title: "Broker Success Manager",
+    title: "Investor Success Lead",
     team: "Customer",
     location: "Remote (US)",
     type: "Full-time",
-    body: "You turn new partners into power users. Onboard, train, run deal clinics, answer the 10pm question from a broker in the middle of a close. The metric that matters: how fast does their first deal become their fiftieth?",
+    body: "You turn new investors into repeat closers. Onboard, guide deal structuring, answer the 10pm question from an investor in the middle of a close. The metric that matters: how fast does their first funded deal become their fifth.",
   },
   {
     title: "Product Designer",
     team: "Design",
     location: "Remote (US)",
     type: "Full-time",
-    body: "You're designing tools that brokers use when there's real money on the line — DSCR calculators, lender matrices, deal flow screens. Every decision you make should make the numbers clearer, faster, and harder to misread.",
+    body: "You're designing tools that investors use when there's real money on the line — DSCR analyzers, program-match flows, deal-summary screens. Every decision you make should make the numbers clearer, faster, and harder to misread.",
   },
   {
     title: "Compliance Counsel",
@@ -69,6 +70,10 @@ const VALUES = [
     title: "Remote, written, async",
     desc: "We default to writing things down. Deep work beats meetings.",
   },
+  {
+    title: "Investor-first design",
+    desc: "Every screen is stress-tested by asking: does this help an investor close a better deal, faster?",
+  },
 ];
 
 // ── Scroll helper ─────────────────────────────────────────────────────────────
@@ -85,8 +90,8 @@ function RoleRow({ role, isOpen, onToggle }: { role: Role; isOpen: boolean; onTo
       className="cr-job"
       style={{
         background: isOpen ? dc.dark : dc.white,
-        borderRadius: 9,
-        border: `1px solid ${isOpen ? "rgba(238,239,211,0.16)" : "rgba(0,55,56,0.10)"}`,
+        borderRadius: radius.md,
+        border: `1.5px solid ${isOpen ? `${dc.dark}40` : `${dc.dark}20`}`,
         overflow: "hidden",
         transition: "background 0.15s, border-color 0.15s",
       }}
@@ -180,7 +185,7 @@ function RoleRow({ role, isOpen, onToggle }: { role: Role; isOpen: boolean; onTo
               fontSize: 14,
               textDecoration: "none",
               padding: "11px 22px",
-              borderRadius: 6,
+              borderRadius: radius.sm,
               letterSpacing: "-0.01em",
               fontFamily: dc.sans,
             }}
@@ -215,8 +220,8 @@ export default function CareersPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
+        { label: "FAQ", view: "faq" },
       ]}
       cta={{ label: "See openings →", onClick: scrollToJobs }}
     >
@@ -241,12 +246,26 @@ export default function CareersPage({
             >
               Careers
             </div>
-            <H1 style={{ margin: "0 0 26px", maxWidth: "17ch" }}>
+            <H1 style={{ margin: "0 0 20px", maxWidth: "17ch" }}>
               Build the math layer of real-estate lending.
             </H1>
-            <Lead style={{ color: "rgba(0,55,56,0.68)", maxWidth: "48ch", margin: 0 }}>
-              We're a small team shipping a generational tool for DSCR brokers and investors. Remote-first, deeply technical, allergic to hand-waving.
+            <Lead style={{ color: "rgba(0,55,56,0.68)", maxWidth: "48ch", margin: "0 0 20px" }}>
+              We're a small team shipping tools that help DSCR investors price deals, model risk, and close faster. Remote-first, deeply technical, no hand-waving.
             </Lead>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button
+                onClick={scrollToJobs}
+                style={{ background: dc.dark, color: dc.mintBg, border: "none", borderRadius: 8, padding: "12px 24px", fontSize: 15, fontWeight: 600, fontFamily: dc.sans, cursor: "pointer", letterSpacing: "-0.01em" }}
+              >
+                See open roles below
+              </button>
+              <a
+                href="mailto:careers@greenstreetfinance.com"
+                style={{ display: "inline-flex", alignItems: "center", background: "transparent", color: "rgba(0,55,56,0.7)", border: "1.5px solid rgba(0,55,56,0.3)", borderRadius: 8, padding: "12px 24px", fontSize: 15, fontWeight: 500, textDecoration: "none", fontFamily: dc.sans, letterSpacing: "-0.01em" }}
+              >
+                careers@greenstreetfinance.com
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -337,10 +356,10 @@ export default function CareersPage({
             className="dc-band-3"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3,1fr)",
+              gridTemplateColumns: "repeat(4,1fr)",
               gap: "1px",
-              background: "rgba(238,239,211,0.12)",
-              borderRadius: 9,
+              background: `${dc.dark}20`,
+              borderRadius: radius.md,
               overflow: "hidden",
             }}
           >
@@ -377,6 +396,108 @@ export default function CareersPage({
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CLOSING CTA — mintBg for visual break from the dark "how we work" band ── */}
+      <section
+        style={{
+          background: dc.mintBg,
+          padding: "clamp(56px,7vw,88px) clamp(1.5rem,4vw,3rem)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "clamp(24px,4vw,56px)",
+            flexWrap: "wrap" as const,
+          }}
+        >
+          <div style={{ flex: "1 1 320px" }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase" as const,
+                color: dc.rain,
+                marginBottom: 14,
+              }}
+            >
+              We're hiring
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.6vw,50px)",
+                fontWeight: 600,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                color: dc.dark,
+                margin: "0 0 14px",
+              }}
+            >
+              Build the infrastructure
+              <br />
+              DSCR lending is missing.
+            </h2>
+            <p
+              style={{
+                fontSize: "clamp(14px,1.2vw,17px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(0,55,56,0.6)",
+                margin: 0,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Remote-first. Equity upside. Ship on day two.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: "0 0 auto" }}>
+            <a
+              href="mailto:careers@greenstreetfinance.com"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.dark,
+                color: dc.cream,
+                fontWeight: 700,
+                fontSize: 15,
+                textDecoration: "none",
+                padding: "15px 30px",
+                borderRadius: dc.r.md,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Email your application →
+            </a>
+            <button
+              onClick={() => onNavigate?.("about")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "transparent",
+                color: dc.dark,
+                fontWeight: 600,
+                fontSize: 15,
+                border: `1.5px solid ${dc.dark}40`,
+                cursor: "pointer",
+                padding: "15px 30px",
+                borderRadius: dc.r.md,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Learn about the team
+            </button>
           </div>
         </div>
       </section>

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, H1, H2, Lead } from "../design/dc";
-import { MINT_BG, PISTACHIO, MIDNIGHT } from "../theme";
+import { MINT_BG, PISTACHIO, MIDNIGHT, radius } from "../theme";
 
 // ─── Content data — three path-driven documents ────────────────────────────
 
@@ -22,7 +22,7 @@ interface LegalDoc {
 const DISCLOSURES: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Terms, privacy, and the fine print.",
-  sub: "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not financial, legal, or tax advice.",
+  sub: "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not financial, legal, or tax advice. Use the navigation on the left to jump to any section.",
   updated: "June 24, 2026",
   sections: [
     {
@@ -56,9 +56,9 @@ const DISCLOSURES: LegalDoc = {
     },
     {
       id: "lenders",
-      title: "5. Lender information",
+      title: "5. Program information",
       paras: [
-        "Program boxes in the lender database reflect publicly available guidelines and our research. They are indicative, not commitments. Actual terms are set by each lender at underwriting.",
+        "Greenstreet program parameters shown in the tools reflect current guidelines and are updated periodically. They are indicative, not commitments. Final terms are set by Greenstreet Finance after full underwriting.",
       ],
     },
     {
@@ -75,7 +75,7 @@ const DISCLOSURES: LegalDoc = {
 const PRIVACY_DOC: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Privacy Policy.",
-  sub: "How Greenstreet Finance collects, uses, and protects your information.",
+  sub: "How Greenstreet Finance collects, uses, and protects your information. Jump to any section using the navigation on the left.",
   updated: "June 22, 2026",
   sections: [
     {
@@ -125,7 +125,7 @@ const PRIVACY_DOC: LegalDoc = {
 const TERMS_DOC: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Terms of Service.",
-  sub: "The terms governing your use of Greenstreet Finance tools and website.",
+  sub: "The terms governing your use of Greenstreet Finance tools and website. Jump to any section using the navigation on the left.",
   updated: "June 22, 2026",
   sections: [
     {
@@ -236,8 +236,8 @@ function DocSwitcher({ current }: { current: LegalDoc }) {
             }}
             style={{
               padding: "9px 18px",
-              borderRadius: 6,
-              border: `1px solid ${isActive ? MIDNIGHT : "rgba(0,55,56,0.22)"}`,
+              borderRadius: radius.sm,
+              border: `1.5px solid ${isActive ? MIDNIGHT : `${dc.dark}30`}`,
               background: isActive ? MIDNIGHT : "transparent",
               color: isActive ? MINT_BG : MIDNIGHT,
               fontSize: 13,
@@ -294,7 +294,7 @@ export default function LegalPage({
           border-left: 2px solid transparent;
         }
         .lg-toc-link:hover { color: ${MIDNIGHT} !important; }
-        @media (max-width: 760px) { .lg-toc-col { display: none !important; } }
+        @media (max-width: 767px) { .lg-toc-col { display: none !important; } }
       `}</style>
 
       {/* ── HERO — mint bg, dark ink ── */}
@@ -380,14 +380,24 @@ export default function LegalPage({
             ))}
           </nav>
 
-          {/* Sections card — solid white, flat border */}
+          {/* Sections card — solid white, 1px faded border per design system */}
           <div
             style={{
               background: "#fff",
-              borderRadius: 9,
+              borderRadius: radius.md,
+              border: `1px solid rgba(0,55,56,0.10)`,
               padding: "clamp(32px,4vw,56px)",
             }}
           >
+            <div style={{ padding: "14px 18px", background: "rgba(0,55,56,0.04)", borderRadius: 8, border: "1px solid rgba(0,55,56,0.1)", marginBottom: 36, fontSize: 14, color: "rgba(0,55,56,0.65)", lineHeight: 1.6 }}>
+              <strong style={{ color: MIDNIGHT }}>Plain summary:</strong>{" "}
+              {doc.eyebrow === "Legal & Disclosures" && doc.sections[0]?.id === "estimates" &&
+                "This page explains that Greenstreet's tools produce estimates, not advice. Numbers are computed by code, not AI. State rules may lag recent changes. The tools don't need an account and don't sell your data."}
+              {doc.sections[0]?.id === "what-we-collect" &&
+                "We collect the deal parameters you enter and your contact info if you request a quote. We don't sell your information. You can request deletion at any time."}
+              {doc.sections[0]?.id === "not-advice" &&
+                "Tool outputs are estimates, not rate locks or credit approvals. Verify everything with Greenstreet before acting. Don't scrape the site or redistribute our data."}
+            </div>
             {doc.sections.map((s) => (
               <div
                 key={s.id}
@@ -425,17 +435,79 @@ export default function LegalPage({
             {/* Contact footer line */}
             <div
               style={{
-                borderTop: "1px solid rgba(0,55,56,0.12)",
+                borderTop: `1px solid ${dc.dark}20`,
                 paddingTop: 24,
                 fontSize: 14,
                 fontWeight: 500,
-                color: "rgba(0,55,56,0.50)",
+                color: `${dc.dark}80`,
                 letterSpacing: "-0.01em",
               }}
             >
               {doc.contactLine}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── INVESTOR CTA — clear next step after reading legal copy ── */}
+      <section
+        style={{
+          background: MIDNIGHT,
+          color: PISTACHIO,
+          padding: "clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem)",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1080,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "clamp(24px,4vw,48px)",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontSize: "clamp(15px,1.3vw,18px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(238,239,211,0.65)",
+                margin: 0,
+                letterSpacing: "-0.01em",
+                maxWidth: "44ch",
+              }}
+            >
+              Questions about terms? Email{" "}
+              <a href="mailto:legal@greenstreetfinance.com" style={{ color: dc.lemon, textDecoration: "none" }}>
+                legal@greenstreetfinance.com
+              </a>
+              . Ready to price a deal? The calculator has no login and takes 30 seconds.
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate("dscr-calculator")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: dc.lemon,
+              color: MIDNIGHT,
+              fontWeight: 700,
+              fontSize: 15,
+              border: "none",
+              cursor: "pointer",
+              padding: "14px 28px",
+              borderRadius: radius.sm,
+              fontFamily: dc.sans,
+              letterSpacing: "-0.01em",
+              flexShrink: 0,
+            }}
+          >
+            Price a deal — no login →
+          </button>
         </div>
       </section>
     </DcShell>

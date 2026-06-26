@@ -22,10 +22,10 @@ const JOBS = [
 ];
 
 const VALUES = [
-  { heading: "Speed is the product",                    body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds, not a spreadsheet round-trip." },
-  { heading: "No black boxes",                          body: "Every figure Greenstreet produces is computed by versioned code with a citation behind every rule. When a regulator asks where a number came from, we hand them the source." },
-  { heading: "Your borrower stays yours",               body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship. Your pipeline is yours." },
-  { heading: "Compliance is a feature, not a footnote", body: "State PPP rules, DSCR floors, seasoning requirements — baked into every output, not an afterthought appended to the printout." },
+  { heading: "Speed is the product",                    body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds — not a spreadsheet round-trip or a call to the lender." },
+  { heading: "No black boxes",                          body: "Every figure Greenstreet produces is computed by versioned code with a statutory citation behind every rule — never an AI-generated estimate. When a regulator asks where a number came from, we hand them the source." },
+  { heading: "Your borrower stays yours",               body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship, share your pipeline data, or take a cut of your deal. Your business is yours." },
+  { heading: "Compliance is a feature, not a footnote", body: "State prepayment-penalty rules, DSCR floors, seasoning requirements — baked into every output from the start, not an afterthought appended to a printout after the fact." },
 ];
 
 // ── Scoped styles ─────────────────────────────────────────────────────────────
@@ -35,10 +35,10 @@ const ABOUT_CSS = `
   /* Lemon nav: swap all text to dark ink */
   .dc-nav a { color: rgba(0,55,56,0.72) !important; }
   .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
-  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,1) !important;  }
+  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,1) !important; }
   /* Lemon footer: dark wordmark */
   footer { color: rgba(0,55,56,0.55) !important; }
-  footer div[style] { color: #003738 !important; }
+  footer .gs-footer-word { color: #003738 !important; }
   /* Job-row hover */
   .ab-job { transition: transform .14s, background .15s; }
   .ab-job:hover { transform: translateX(6px); background: #003738 !important; }
@@ -49,7 +49,19 @@ const ABOUT_CSS = `
   .cta-card:hover { transform: translateY(-4px); }
   /* Team grid: 4-col desktop → 2-col mobile */
   .ab-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
-  @media (max-width: 640px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 767px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
+  /* Investor logo grid: 3-col desktop → 2-col mobile */
+  .ab-inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 767px) { .ab-inv-grid { grid-template-columns: repeat(2, 1fr); } }
+  /* Values, Jobs, CTA 2-col grids → single col on mobile */
+  .ab-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ab-jobs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px,5vw,72px); align-items: start; }
+  .ab-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 991px) {
+    .ab-2col { grid-template-columns: 1fr !important; }
+    .ab-jobs-grid { grid-template-columns: 1fr !important; }
+    .ab-cta-grid { grid-template-columns: 1fr !important; }
+  }
 `;
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -105,7 +117,7 @@ export default function AboutPage({
 
           {/* H1 */}
           <H1 style={{ margin: "0 0 28px", maxWidth: "24ch" }}>
-            Institutional math in support of every DSCR deal.
+            The DSCR underwriting platform real estate investors trust.
           </H1>
 
           {/* Subtitle */}
@@ -116,9 +128,12 @@ export default function AboutPage({
               margin: "0 0 36px",
             }}
           >
-            Greenstreet was founded by a broker and a quant who set out to build
-            DSCR software so good that pricing a rental loan any other way would
-            feel like negligence.
+            DSCR loans let rental-property owners qualify on the property's rent —
+            not their personal income. Greenstreet is the software platform that
+            makes that process fast, accurate, and defensible. Founded by a broker
+            and a quant who watched good deals die at the lender because the math
+            was wrong. We built the engine we wished existed: deterministic,
+            provenance-tracked, every line citable.
           </Lead>
 
           {/* Hero meta */}
@@ -157,6 +172,50 @@ export default function AboutPage({
                 Austin, Texas
               </div>
             </div>
+          </div>
+
+          {/* Hero CTA row */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
+            <button
+              onClick={() => onNavigate("dscr-calculator")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: dc.dark,
+                color: dc.cream,
+                fontWeight: 600,
+                fontSize: 15,
+                border: "none",
+                cursor: "pointer",
+                padding: "13px 26px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Check my deal's DSCR →
+            </button>
+            <button
+              onClick={() => onNavigate("rate-quiz")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "transparent",
+                color: "rgba(0,55,56,0.75)",
+                fontWeight: 600,
+                fontSize: 15,
+                border: "1px solid rgba(0,55,56,0.25)",
+                cursor: "pointer",
+                padding: "13px 22px",
+                borderRadius: 6,
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Book a 15-min demo
+            </button>
           </div>
         </div>
       </section>
@@ -223,10 +282,12 @@ export default function AboutPage({
               }}
             >
               In 2026 we founded Greenstreet after watching, first-hand, how hard
-              it had become for brokers to price DSCR deals that actually held at
-              the lender. We went back to the drawing board on rental-loan software
-              — and built the engine we wished existed: deterministic,
-              provenance-tracked, defensible.
+              it had become for investors to price DSCR deals that actually held at
+              the lender — and how often investors signed on deals where the
+              numbers hadn't been run correctly. We went back to the drawing board
+              on rental-loan software and built the engine we wished existed:
+              deterministic, provenance-tracked, defensible to a regulator on every
+              line.
             </p>
           </div>
 
@@ -279,9 +340,9 @@ export default function AboutPage({
             >
               Brokers, investors and the borrowers they serve deserve the same math
               an institution runs. Every figure Greenstreet produces is computed by
-              versioned code with a citation behind every rule — never an LLM
-              guess. When a regulator asks where a number came from, we hand them
-              the source.
+              versioned code with a statutory citation behind every rule — never an
+              AI-generated estimate. When a regulator, a lender, or a borrower asks
+              where a number came from, we hand them the source.
             </p>
           </div>
         </div>
@@ -322,21 +383,15 @@ export default function AboutPage({
             </h2>
           </div>
 
-          <div
-            className="gs-reveal dc-band-2"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 20,
-            }}
-          >
+          <div className="gs-reveal ab-2col">
             {VALUES.map((v, i) => (
               <div
                 key={i}
+                className="ix-card"
                 style={{
                   background: dc.cream,
-                  borderRadius: 9,
-                  border: "1px solid rgba(0,55,56,0.10)",
+                  borderRadius: dc.r.md,
+                  border: `1px solid ${dc.faded}`,
                   padding: "clamp(24px,3vw,36px)",
                 }}
               >
@@ -408,7 +463,7 @@ export default function AboutPage({
                 maxWidth: "18ch",
               }}
             >
-              World-class people. An even better team.
+              The people behind the engine.
             </h2>
           </div>
 
@@ -487,14 +542,10 @@ export default function AboutPage({
         }}
       >
         <div
-          className="gs-reveal dc-band-2"
+          className="gs-reveal ab-jobs-grid"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "start",
           }}
         >
           {/* Left: job list */}
@@ -509,7 +560,7 @@ export default function AboutPage({
                 marginBottom: 14,
               }}
             >
-              Job opportunities
+              Open roles
             </div>
             <h2
               style={{
@@ -520,7 +571,7 @@ export default function AboutPage({
                 margin: "0 0 28px",
               }}
             >
-              We're hiring!
+              Come build the engine with us.
             </h2>
 
             <div
@@ -677,7 +728,7 @@ export default function AboutPage({
               marginBottom: 14,
             }}
           >
-            Our Investors
+            Our backers
           </div>
           <h2
             style={{
@@ -687,15 +738,9 @@ export default function AboutPage({
               margin: "0 0 40px",
             }}
           >
-            Backed by top investors.
+            Backed by investors who build fintech for the long run.
           </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 16,
-            }}
-          >
+          <div className="ab-inv-grid">
             {[
               "Cedar Ventures",
               "Mistral Capital",
@@ -711,7 +756,8 @@ export default function AboutPage({
                   alignItems: "center",
                   justifyContent: "center",
                   background: dc.cream,
-                  borderRadius: 9,
+                  borderRadius: dc.r.md,
+                  border: `1px solid ${dc.faded}`,
                   padding: "38px 24px",
                 }}
               >
@@ -739,18 +785,15 @@ export default function AboutPage({
         }}
       >
         <div
-          className="gs-reveal dc-band-2"
+          className="gs-reveal ab-cta-grid"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 20,
           }}
         >
           {/* Card 1: Demo */}
           <button
-            onClick={() => onNavigate("book-demo")}
+            onClick={() => onNavigate("rate-quiz")}
             className="cta-card"
             style={{
               display: "flex",
@@ -759,7 +802,7 @@ export default function AboutPage({
               gap: 40,
               background: dc.dark,
               color: dc.cream,
-              borderRadius: 12,
+              borderRadius: dc.r.lg,
               padding: "clamp(32px,4vw,52px)",
               border: "none",
               cursor: "pointer",
@@ -777,7 +820,7 @@ export default function AboutPage({
                 color: dc.cream,
               }}
             >
-              Learn the how and why of Greenstreet in 15 minutes.
+              See Greenstreet run a real deal — live, 15 minutes.
             </div>
             <span
               style={{
@@ -793,12 +836,13 @@ export default function AboutPage({
                 alignSelf: "flex-start",
               }}
             >
-              Book a live demo →
+              Book a walkthrough →
             </span>
           </button>
 
-          {/* Card 2: Contact */}
-          <div
+          {/* Card 2: Contact — anchor makes the phone number a real tap target */}
+          <a
+            href="tel:+15550100000"
             className="cta-card"
             style={{
               display: "flex",
@@ -807,9 +851,11 @@ export default function AboutPage({
               gap: 40,
               background: dc.rain,
               color: dc.cream,
-              borderRadius: 12,
+              borderRadius: dc.r.lg,
               padding: "clamp(32px,4vw,52px)",
               minHeight: 240,
+              textDecoration: "none",
+              cursor: "pointer",
             }}
           >
             <div
@@ -821,7 +867,7 @@ export default function AboutPage({
                 color: dc.cream,
               }}
             >
-              Get your questions answered by a member of the team.
+              Talk to a specialist — not a form.
             </div>
             <span
               style={{
@@ -829,16 +875,16 @@ export default function AboutPage({
                 alignItems: "center",
                 gap: 8,
                 color: dc.lemon,
-                fontWeight: 600,
-                fontSize: 18,
+                fontWeight: 700,
+                fontSize: "clamp(22px,2.6vw,32px)",
                 fontFamily: dc.mono,
-                letterSpacing: "-0.02em",
+                letterSpacing: "-0.03em",
                 alignSelf: "flex-start",
               }}
             >
-              +1 (332) 455-1462 →
+              +1 (555) 010-0000 →
             </span>
-          </div>
+          </a>
         </div>
       </section>
     </DcShell>

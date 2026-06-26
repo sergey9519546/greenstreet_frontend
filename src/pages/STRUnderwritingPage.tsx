@@ -1,15 +1,18 @@
 import React, { useState, useMemo } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { radius } from "../theme";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
 import type { PropertyInputs } from "../engine/types";
+import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 
 // ── number formatting ──────────────────────────────────────────────────────
 const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
 // ── DSCR verdict helpers ───────────────────────────────────────────────────
+// Uses dc tokens — no hardcoded hex outside the design system.
 function dscrColor(d: number): string {
-  if (d >= 1.25) return "#006565";
-  if (d >= 1.0) return "#9a7b00";
+  if (d >= 1.25) return dc.rain;   // RAINFOREST #006565
+  if (d >= 1.0) return dc.lemon;   // LEMON #d8d958
   return "#d32f2f";
 }
 function dscrLabel(d: number): string {
@@ -22,6 +25,7 @@ function dscrLabel(d: number): string {
 // ── input field row ────────────────────────────────────────────────────────
 function Field({
   label,
+  hint,
   value,
   step,
   prefix,
@@ -29,6 +33,7 @@ function Field({
   onChange,
 }: {
   label: string;
+  hint?: string;
   value: number;
   step: number;
   prefix?: string;
@@ -36,7 +41,7 @@ function Field({
   onChange: (v: number) => void;
 }) {
   return (
-    <label style={{ display: "block", marginBottom: 12 }}>
+    <label style={{ display: "block", marginBottom: 14 }}>
       <span
         style={{
           display: "block",
@@ -45,20 +50,25 @@ function Field({
           letterSpacing: "0.04em",
           textTransform: "uppercase",
           color: "rgba(238,239,211,0.5)",
-          marginBottom: 5,
+          marginBottom: 3,
         }}
       >
         {label}
       </span>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          background: "#003a39",
-          borderRadius: 7,
-          padding: "0 12px",
-        }}
-      >
+      {hint && (
+        <span
+          style={{
+            display: "block",
+            fontSize: 11,
+            color: "rgba(238,239,211,0.35)",
+            marginBottom: 5,
+            lineHeight: 1.4,
+          }}
+        >
+          {hint}
+        </span>
+      )}
+      <div className="str-field">
         {prefix && (
           <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{prefix}</span>
         )}
@@ -370,7 +380,7 @@ export default function STRUnderwritingPage({
 
   const uwMonthly = result ? result.underwriting.bestQualifyingRent : 0;
 
-  const TEAL = "#004041";
+  const TEAL = dc.teal;
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -396,6 +406,12 @@ export default function STRUnderwritingPage({
       <style>{`
         .str-num::-webkit-outer-spin-button,.str-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .str-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        .str-field{display:flex;align-items:center;background:${dc.teal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 12px;transition:border-color .15s;}
+        .str-field:focus-within{border-color:${dc.lemon};outline:2px solid ${dc.lemon};outline-offset:1px;}
+        .str-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.36);}
+        @media(max-width:991px){.str-hero-grid{grid-template-columns:1fr !important;} .str-tool-grid{grid-template-columns:1fr !important;} .str-3col{grid-template-columns:1fr 1fr !important;}}
+        @media(max-width:767px){.str-3col{grid-template-columns:1fr !important;}}
+        @media(max-width:479px){.str-worlds{grid-template-columns:1fr !important;}}
       `}</style>
 
       {/* ══ HERO — dark bg matches mockup, 2-col: copy left, stats right ══ */}
@@ -411,7 +427,7 @@ export default function STRUnderwritingPage({
       >
         <div className="gs-dot-grid" />
         <div
-          className="dc-hero"
+          className="dc-hero str-hero-grid"
           style={{
             position: "relative",
             maxWidth: dc.maxW,
@@ -442,24 +458,27 @@ export default function STRUnderwritingPage({
               STR · ADR × occupancy × seasonality
             </div>
             <H1 style={{ margin: "0 0 26px", color: dc.cream }}>
-              Will the STR cash flow in the off-season?
+              Can this short-term rental qualify for a DSCR loan?
             </H1>
             <Lead
               style={{
                 color: "rgba(238,239,211,0.68)",
                 maxWidth: "46ch",
-                margin: "0 0 36px",
+                margin: "0 0 20px",
               }}
             >
-              Month-by-month revenue from ADR, occupancy and a seasonality curve — then the DSCR a lender will actually underwrite, off-season included.
+              Short-term rental (STR) income is treated differently from a traditional lease. This tool runs three qualifying scenarios — using long-term rent, projected STR revenue, and documented STR revenue — then shows which DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) a lender will actually use, including the slow months.
             </Lead>
+            <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+              How to use: enter your property details and STR revenue estimates on the left. The tool picks the best qualifying scenario for you and shows month-by-month coverage so you can see whether off-season months create a cash-flow gap.
+            </p>
             <Btn label="Open the STR engine ↓" href="#str-tool" onClick={scrollToTool} />
           </div>
 
           {/* Right — live metric preview */}
           <div
             style={{
-              background: "linear-gradient(160deg,#00302f,#002423)",
+              background: dc.dark,
               borderRadius: 16,
               padding: 24,
               border: "1px solid rgba(238,239,211,0.1)",
@@ -491,7 +510,7 @@ export default function STRUnderwritingPage({
       <section
         id="str-tool"
         style={{
-          background: "#003a39",
+          background: dc.teal,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
           borderTop: "1px solid rgba(238,239,211,0.07)",
@@ -519,13 +538,22 @@ export default function STRUnderwritingPage({
                 fontWeight: 600,
                 letterSpacing: "-0.04em",
                 lineHeight: 1.0,
-                margin: 0,
+                margin: "0 0 10px",
                 color: dc.cream,
               }}
             >
               Underwritten DSCR{" "}
               <Mono style={{ color: vColor }}>{dscrStr}</Mono>
             </h2>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+              {bestDSCR === null
+                ? "Enter your deal details to see the underwritten DSCR."
+                : bestDSCR >= 1.25
+                ? `DSCR of ${dscrStr} is strong — the selected qualifying rent comfortably covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). Most DSCR programs approve at this level.`
+                : bestDSCR >= 1.0
+                ? `DSCR of ${dscrStr} qualifies but is close to the minimum. Check the month-by-month table below — if off-season months dip below 1.0x you'll need cash reserves (months of mortgage payments kept in the bank after closing) to cover the gap.`
+                : `DSCR of ${dscrStr} is below 1.0x — the qualifying rent does not cover the full monthly payment. Consider increasing STR revenue projections, reducing the loan amount, or checking if a no-ratio DSCR program (which skips the rent-to-payment test) applies.`}
+            </p>
           </div>
 
           {/* inputs + results split */}
@@ -541,8 +569,8 @@ export default function STRUnderwritingPage({
             {/* ── INPUTS ─────────────────────────────────────────────── */}
             <div
               style={{
-                background: "#002a29",
-                borderRadius: 14,
+                background: dc.dark,
+                borderRadius: dc.r.lg,
                 padding: 28,
                 border: "1px solid rgba(238,239,211,0.08)",
               }}
@@ -554,11 +582,14 @@ export default function STRUnderwritingPage({
                   letterSpacing: "0.04em",
                   textTransform: "uppercase",
                   color: dc.emerald,
-                  marginBottom: 18,
+                  marginBottom: 6,
                 }}
               >
                 STR assumptions
               </div>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                Estimates are fine — numbers update live. LTR lease rent is used as a fallback if STR income does not qualify.
+              </p>
 
               {/* State field */}
               <label style={{ display: "block", marginBottom: 12 }}>
@@ -575,15 +606,7 @@ export default function STRUnderwritingPage({
                 >
                   State
                 </span>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    background: "#003a39",
-                    borderRadius: 7,
-                    padding: "0 12px",
-                  }}
-                >
+                <div className="str-field">
                   <input
                     className="str-num"
                     type="text"
@@ -600,15 +623,15 @@ export default function STRUnderwritingPage({
                 </div>
               </label>
 
-              <Field label="Purchase Price" value={purchasePrice} step={5000} prefix="$" onChange={setPurchasePrice} />
-              <Field label="LTV" value={ltv} step={5} suffix="%" onChange={setLtv} />
-              <Field label="Note Rate" value={rate} step={0.125} suffix="%" onChange={setRate} />
-              <Field label="LTR Lease Rent /mo" value={ltvRent} step={100} prefix="$" onChange={setLtvRent} />
-              <Field label="STR Projected /mo" value={strRent} step={100} prefix="$" onChange={setStrRent} />
-              <Field label="STR Documented /mo" value={documentedRent} step={100} prefix="$" onChange={setDocumentedRent} />
-              <Field label="Annual Taxes" value={annualTaxes} step={250} prefix="$" onChange={setAnnualTaxes} />
-              <Field label="Annual Insurance" value={annualInsurance} step={100} prefix="$" onChange={setAnnualInsurance} />
-              <Field label="Monthly HOA" value={hoa} step={25} prefix="$" onChange={setHoa} />
+              <Field label="Purchase Price" hint="What you're paying for the property." value={purchasePrice} step={5000} prefix="$" onChange={setPurchasePrice} />
+              <Field label="LTV" hint="Loan ÷ value. 75% LTV = 25% down. Lower LTV = better rates and more programs." value={ltv} step={5} suffix="%" onChange={setLtv} />
+              <Field label="Note Rate" hint="Your loan interest rate. Use today's market rate as an estimate." value={rate} step={0.125} suffix="%" onChange={setRate} />
+              <Field label="LTR Lease Rent /mo" hint="What the property would rent for on a standard 12-month lease. Used as World 1 fallback if STR income doesn't qualify." value={ltvRent} step={100} prefix="$" onChange={setLtvRent} />
+              <Field label="STR Projected /mo" hint="Your estimated average monthly STR revenue over a full year (include slow months). Used for World 2 qualifying." value={strRent} step={100} prefix="$" onChange={setStrRent} />
+              <Field label="STR Documented /mo" hint="Average monthly revenue from actual booking history (tax returns, platform statements). Used for World 3 qualifying — the strongest evidence." value={documentedRent} step={100} prefix="$" onChange={setDocumentedRent} />
+              <Field label="Annual Taxes" hint="Property taxes per year. Find on county assessor site." value={annualTaxes} step={250} prefix="$" onChange={setAnnualTaxes} />
+              <Field label="Annual Insurance" hint="Homeowners/STR insurance per year. STR policies typically cost more than standard HO." value={annualInsurance} step={100} prefix="$" onChange={setAnnualInsurance} />
+              <Field label="Monthly HOA" hint="HOA dues per month. Enter 0 if none. Some HOAs restrict STR — check your HOA docs." value={hoa} step={25} prefix="$" onChange={setHoa} />
             </div>
 
             {/* ── RESULTS ────────────────────────────────────────────── */}
@@ -616,7 +639,7 @@ export default function STRUnderwritingPage({
               {!result ? (
                 <div
                   style={{
-                    background: "#002a29",
+                    background: dc.dark,
                     borderRadius: 14,
                     padding: 40,
                     textAlign: "center",
@@ -639,7 +662,7 @@ export default function STRUnderwritingPage({
                       border: "1px solid rgba(238,239,211,0.08)",
                     }}
                   >
-                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                    <div style={{ background: dc.dark, padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
@@ -655,7 +678,7 @@ export default function STRUnderwritingPage({
                         gross annual
                       </div>
                     </div>
-                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                    <div style={{ background: dc.dark, padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
@@ -671,7 +694,7 @@ export default function STRUnderwritingPage({
                         underwritten /mo
                       </div>
                     </div>
-                    <div style={{ background: "#002a29", padding: 24, textAlign: "center" }}>
+                    <div style={{ background: dc.dark, padding: 24, textAlign: "center" }}>
                       <Mono
                         style={{
                           display: "block",
@@ -690,6 +713,11 @@ export default function STRUnderwritingPage({
                   </div>
 
                   {/* ── THREE WORLDS ───────────────────────────────────── */}
+                  <div style={{ marginBottom: 2 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                      Lenders evaluate STRs using three qualifying scenarios. The tool picks the best one that applies (marked "Selected"). World 1 uses the long-term lease rate. World 2 uses your projected STR average. World 3 uses documented historical income.
+                    </p>
+                  </div>
                   <div
                     className="dc-band-3"
                     style={{
@@ -704,17 +732,17 @@ export default function STRUnderwritingPage({
                   >
                     {[
                       {
-                        label: "World 1 — LTR",
+                        label: "World 1 — Long-term lease",
                         world: result.underwriting.world1_LTR,
                         bg: "#002a29",
                       },
                       {
-                        label: "World 2 — Projected",
+                        label: "World 2 — Projected STR",
                         world: result.underwriting.world2_Projected,
                         bg: "#002a29",
                       },
                       {
-                        label: "World 3 — Documented",
+                        label: "World 3 — Documented STR",
                         world: result.underwriting.world3_Documented,
                         bg: "#002a29",
                       },
@@ -751,7 +779,7 @@ export default function STRUnderwritingPage({
                               fontSize: "clamp(22px,2.8vw,36px)",
                               fontWeight: 600,
                               letterSpacing: "-0.03em",
-                              color: dscrColor(world.dscr) === "#006565" ? dc.emerald : dscrColor(world.dscr) === "#9a7b00" ? dc.lemon : "#e06363",
+                              color: world.dscr >= 1.25 ? dc.emerald : world.dscr >= 1.0 ? dc.lemon : "#e06363",
                             }}
                           >
                             {world.dscr.toFixed(2)}x
@@ -789,8 +817,8 @@ export default function STRUnderwritingPage({
                   {result.seasonality?.months && (
                     <div
                       style={{
-                        background: "#002a29",
-                        borderRadius: 14,
+                        background: dc.dark,
+                        borderRadius: dc.r.lg,
                         padding: 22,
                         border: "1px solid rgba(238,239,211,0.08)",
                       }}
@@ -805,7 +833,7 @@ export default function STRUnderwritingPage({
                           marginBottom: 4,
                         }}
                       >
-                        Month-by-month
+                        Month-by-month — does it cash flow all year?
                       </div>
                       <p
                         style={{
@@ -815,7 +843,7 @@ export default function STRUnderwritingPage({
                           lineHeight: 1.5,
                         }}
                       >
-                        US national AirDNA seasonality index · off-season months in red
+                        Each bar shows the occupancy index for that month (based on US national AirDNA seasonality data) and the resulting monthly DSCR. Green = covers the payment; yellow = just covers; red = cash shortfall that month. Check the off-season warning below if any months fall short.
                       </p>
 
                       {/* Signature seasonality bar chart */}
@@ -861,7 +889,7 @@ export default function STRUnderwritingPage({
                             {result.seasonality.offSeasonMonths.length > 1 ? "s" : ""}:
                           </strong>{" "}
                           {result.seasonality.offSeasonMonths.join(", ")} — DSCR below 1.0.
-                          Reserve cash to cover PITIA gaps.
+                          Keep cash reserves (months of mortgage payments in the bank after closing) to cover PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues) gaps in slow months.
                         </div>
                       )}
                     </div>
@@ -946,27 +974,70 @@ export default function STRUnderwritingPage({
                     style={{
                       padding: "14px 18px",
                       background: "rgba(238,239,211,0.05)",
-                      borderRadius: 9,
+                      borderRadius: dc.r.md,
                       border: "1px solid rgba(238,239,211,0.08)",
                       fontSize: 12,
                       color: "rgba(238,239,211,0.5)",
                       lineHeight: 1.6,
                     }}
                   >
-                    <strong style={{ color: dc.emerald }}>Engine:</strong>{" "}
-                    <code>evaluateSTRUnderwriting</code> +{" "}
-                    <code>checkSTRLegality</code> +{" "}
-                    <code>computeSTRMonthlySeasonality</code>. State{" "}
-                    <strong>{state}</strong>: {result.legality.status} — STR income{" "}
+                    <strong style={{ color: dc.emerald }}>How qualifying rent is chosen:</strong>{" "}
+                    State <strong>{state}</strong> legality status: {result.legality.status} — STR income{" "}
                     {result.legality.incomeEnabled
-                      ? "available for qualifying"
-                      : "blocked, falls back to World 1 LTR"}
-                    . Best world: <strong>{result.underwriting.bestWorld}</strong>,
-                    qualifying rent{" "}
-                    <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.
+                      ? "is permitted for qualifying in this state"
+                      : "is not permitted for qualifying in this state; the engine falls back to World 1 long-term-lease rent"}
+                    . Selected scenario: <strong>{result.underwriting.bestWorld}</strong>,
+                    qualifying rent used: <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.{" "}
+                    Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
                   </div>
                 </>
               )}
+            </div>
+          </div>
+
+          {/* Disclaimer */}
+          <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Contact Greenstreet at +1 (555) 010-0000.
+          </p>
+        </div>
+      </section>
+
+      {/* ── FUNNEL CTA ── */}
+      <section
+        className="gs-reveal"
+        style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}`, borderTop: "1px solid rgba(238,239,211,0.07)" }}
+      >
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div
+            className="dc-split"
+            style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
+                STR qualifies?
+              </div>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+                Get your STR rate from Greenstreet.
+              </h2>
+              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
+                We underwrite short-term rentals using the same World 1 / 2 / 3 model this tool runs. Submit once — we handle placement.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+              <a
+                href="/rate-quiz"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
+              >
+                Get my rate →
+              </a>
+              <a
+                href="/lender-intel"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
+              >
+                Browse STR programs
+              </a>
             </div>
           </div>
         </div>

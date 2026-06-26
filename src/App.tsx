@@ -1,6 +1,79 @@
 import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 import QualifyWidget from "./components/QualifyWidget";
 
+// Route module importers — the SINGLE source for both React.lazy and the idle
+// prefetch (warmAllRoutes) below. Each page is its own chunk (small initial
+// bundle), but every chunk is warmed during idle right after first paint, so
+// navigation NEVER suspends: the chunk is already cached, React.lazy resolves
+// synchronously, and the page renders its FINAL layout immediately — no
+// temporary Suspense "shell" flash and no typography/layout reset on route change.
+const routeModules = {
+  ComplianceDashboard: () => import("./components/ComplianceDashboard"),
+  DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
+  LenderIntelPage: () => import("./pages/LenderIntelPage"),
+  StateLawsPage: () => import("./pages/StateLawsPage"),
+  FAQPage: () => import("./pages/FAQPage"),
+  BlogPage: () => import("./pages/BlogPage"),
+  BlogPostPage: () => import("./pages/BlogPostPage"),
+  RateQuizPage: () => import("./pages/RateQuizPage"),
+  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
+  ARMPage: () => import("./pages/ARMPage"),
+  MonteCarloPage: () => import("./pages/MonteCarloPage"),
+  ReturnsPage: () => import("./pages/ReturnsPage"),
+  TaxEnginePage: () => import("./pages/TaxEnginePage"),
+  StressMatrixPage: () => import("./pages/StressMatrixPage"),
+  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
+  STRUnderwritingPage: () => import("./pages/STRUnderwritingPage"),
+  PortfolioPage: () => import("./pages/PortfolioPage"),
+  DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
+  BorrowerProfilesPage: () => import("./pages/BorrowerProfilesPage"),
+  BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
+  InvestorsPage: () => import("./pages/InvestorsPage"),
+  AboutPage: () => import("./pages/AboutPage"),
+  CareersPage: () => import("./pages/CareersPage"),
+  CaseStudiesPage: () => import("./pages/CaseStudiesPage"),
+  LegalPage: () => import("./pages/LegalPage"),
+  ProductsPage: () => import("./pages/ProductsPage"),
+  SolutionsPage: () => import("./pages/SolutionsPage"),
+  BrokersPage: () => import("./pages/BrokersPage"),
+} as const;
+
+let _warmed = false;
+function warmAllRoutes() {
+  if (_warmed || typeof window === "undefined") return;
+  _warmed = true;
+  Object.values(routeModules).forEach((load) => { (load() as Promise<unknown>).catch(() => {}); });
+}
+
+const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
+const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
+const LenderIntelPage = lazy(routeModules.LenderIntelPage);
+const StateLawsPage = lazy(routeModules.StateLawsPage);
+const FAQPage = lazy(routeModules.FAQPage);
+const BlogPage = lazy(routeModules.BlogPage);
+const BlogPostPage = lazy(routeModules.BlogPostPage);
+const RateQuizPage = lazy(routeModules.RateQuizPage);
+const RefiTrackerPage = lazy(routeModules.RefiTrackerPage);
+const ARMPage = lazy(routeModules.ARMPage);
+const MonteCarloPage = lazy(routeModules.MonteCarloPage);
+const ReturnsPage = lazy(routeModules.ReturnsPage);
+const TaxEnginePage = lazy(routeModules.TaxEnginePage);
+const StressMatrixPage = lazy(routeModules.StressMatrixPage);
+const DecisionSupportPage = lazy(routeModules.DecisionSupportPage);
+const STRUnderwritingPage = lazy(routeModules.STRUnderwritingPage);
+const PortfolioPage = lazy(routeModules.PortfolioPage);
+const DealAnalyzerPage = lazy(routeModules.DealAnalyzerPage);
+const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
+const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
+const InvestorsPage = lazy(routeModules.InvestorsPage);
+const AboutPage = lazy(routeModules.AboutPage);
+const CareersPage = lazy(routeModules.CareersPage);
+const CaseStudiesPage = lazy(routeModules.CaseStudiesPage);
+const LegalPage = lazy(routeModules.LegalPage);
+const ProductsPage = lazy(routeModules.ProductsPage);
+const SolutionsPage = lazy(routeModules.SolutionsPage);
+const BrokersPage = lazy(routeModules.BrokersPage);
+
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
   state = { error: null };
@@ -25,50 +98,18 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
   }
 }
 
-// ─── Page loading fallback ─────────────────────────────────────────────────────
-function PageLoader() {
-  return (
-    <div style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
-      <div style={{ textAlign: "center", color: "#006565" }}>
-        <div style={{ fontSize: "32px", marginBottom: "12px" }}>⏳</div>
-        <p style={{ fontSize: "16px", fontWeight: 500 }}>Loading…</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Lazy page imports (code-split — each page loads on demand) ───────────────
-// MarketingSite is unified directly in index.html
-const ComplianceDashboard = lazy(() => import("./components/ComplianceDashboard"));
-const DSCRCalculatorPage  = lazy(() => import("./pages/DSCRCalculatorPage"));
-const LenderIntelPage     = lazy(() => import("./pages/LenderIntelPage"));
-const StateLawsPage       = lazy(() => import("./pages/StateLawsPage"));
-const FAQPage             = lazy(() => import("./pages/FAQPage"));
-const BlogPage            = lazy(() => import("./pages/BlogPage"));
-const BlogPostPage        = lazy(() => import("./pages/BlogPostPage"));
-const RateQuizPage        = lazy(() => import("./pages/RateQuizPage"));
-const RefiTrackerPage     = lazy(() => import("./pages/RefiTrackerPage"));
-const ARMPage             = lazy(() => import("./pages/ARMPage"));
-const MonteCarloPage      = lazy(() => import("./pages/MonteCarloPage"));
-const ReturnsPage         = lazy(() => import("./pages/ReturnsPage"));
-const TaxEnginePage       = lazy(() => import("./pages/TaxEnginePage"));
-const StressMatrixPage    = lazy(() => import("./pages/StressMatrixPage"));
-const DecisionSupportPage = lazy(() => import("./pages/DecisionSupportPage"));
-const STRUnderwritingPage = lazy(() => import("./pages/STRUnderwritingPage"));
-const PortfolioPage       = lazy(() => import("./pages/PortfolioPage"));
-const DealAnalyzerPage    = lazy(() => import("./pages/DealAnalyzerPage"));
-const BorrowerProfilesPage = lazy(() => import("./pages/BorrowerProfilesPage"));
-const BrokersPortalPage   = lazy(() => import("./pages/BrokersPortalPage"));
-const InvestorsPage       = lazy(() => import("./pages/InvestorsPage"));
-const AboutPage           = lazy(() => import("./pages/AboutPage"));
-const CareersPage         = lazy(() => import("./pages/CareersPage"));
-const CaseStudiesPage     = lazy(() => import("./pages/CaseStudiesPage"));
-const LegalPage           = lazy(() => import("./pages/LegalPage"));
-const ProductsPage        = lazy(() => import("./pages/ProductsPage"));
-const SolutionsPage       = lazy(() => import("./pages/SolutionsPage"));
-const BrokersPage         = lazy(() => import("./pages/BrokersPage"));
-
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+
+function portalTabFromPath(pathname: string): string | undefined {
+  const clean = pathname.replace(/\/$/, "");
+  if (clean === "/investgo/analyze" || clean === "/tools/deal-workspace" || clean === "/tools/workspace") return "analyze";
+  if (clean === "/investgo/sensitivity" || clean === "/tools/sensitivity") return "sensitivity";
+  if (clean === "/investgo/optimize" || clean === "/tools/structure-optimizer") return "optimize";
+  if (clean === "/investgo/state") return "state";
+  if (clean === "/investgo/history" || clean === "/tools/scenario-history") return "history";
+  if (clean === "/investgo/settings") return "settings";
+  return undefined;
+}
 
 function navigateTo(view: PageView) {
   const path = viewToPath(view);
@@ -81,7 +122,7 @@ function navigateTo(view: PageView) {
 function viewToPath(view: PageView): string {
   switch (view) {
     case "marketing":         return "/";
-    case "portal":            return "/investorgo";
+    case "portal":            return "/investgo";
     case "dscr-calculator":   return "/dscr-calculator";
     case "lender-intel":      return "/lender-intel";
     case "state-laws":        return "/state-laws";
@@ -135,6 +176,18 @@ export default function App() {
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  // Warm every route chunk during idle, right after first paint. After this runs,
+  // navigation never hits a Suspense fallback — the chunk is already cached, so
+  // React.lazy resolves synchronously and the page renders its FINAL layout
+  // immediately (no temporary shell flash / typography-layout reset).
+  useEffect(() => {
+    const w = window as any;
+    const id = w.requestIdleCallback
+      ? w.requestIdleCallback(warmAllRoutes, { timeout: 2500 })
+      : window.setTimeout(warmAllRoutes, 1500);
+    return () => { if (w.cancelIdleCallback) w.cancelIdleCallback(id); else clearTimeout(id); };
   }, []);
 
   // Global link interceptor: any <a href="/internal"> click navigates via
@@ -218,6 +271,8 @@ export default function App() {
       // pointer events or be reachable on React routes.
       wfRoot.style.pointerEvents = isMarketing ? "" : "none";
       wfRoot.setAttribute("aria-hidden", isMarketing ? "false" : "true");
+      wfRoot.hidden = !isMarketing;
+      (wfRoot as any).inert = !isMarketing;
     }
     if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
 
@@ -257,8 +312,10 @@ export default function App() {
       case "portal":
         return (
           <ComplianceDashboard
+            key={pathname}
             onBackToMarketing={() => goTo("marketing")}
             initialEmail={passedEmail}
+            initialTab={portalTabFromPath(pathname) as any}
           />
         );
       case "dscr-calculator":
@@ -331,13 +388,13 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
-        <div className="font-sans antialiased text-slate-800">
+      <div className="font-sans antialiased text-slate-800">
+        <Suspense fallback={null}>
           <PageRenderer />
-          {/* QualifyWidget overlays every view — modal + sticky pill */}
-          <QualifyWidget />
-        </div>
-      </Suspense>
+        </Suspense>
+        {/* QualifyWidget overlays every view — modal + sticky pill */}
+        <QualifyWidget />
+      </div>
     </ErrorBoundary>
   );
 }

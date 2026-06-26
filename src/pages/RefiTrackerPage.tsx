@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { gsap } from "gsap";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
+import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzeRefi } from "../engine/refiTracker";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 
@@ -27,12 +27,12 @@ export default function RefiTrackerPage({
     window.scrollTo(0, 0);
   }, []);
 
-  // Ref to the SVG lines for draw animation
+  // Refs for the SVG chart lines — draw-on driven by IntersectionObserver, not page-load GSAP
   const costLineRef = useRef<SVGPathElement>(null);
   const saveLineRef = useRef<SVGPathElement>(null);
   const dotRef = useRef<SVGCircleElement>(null);
   const lblRef = useRef<SVGTextElement>(null);
-  const animatedOnce = useRef(false);
+  const [chartRef, chartVisible] = useRevealOnView<HTMLDivElement>();
 
   // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
@@ -165,60 +165,64 @@ export default function RefiTrackerPage({
     ? "M 0,178 L 420,150" // savings never reach the cost line — no payoff yet
     : `M 0,${BASE_Y} L ${Math.round(saveEndX)},${Math.round(saveEndY)}`;
 
-  // ── Animate SVG lines on mount (draw-on effect, matches mockup rf-line anim) ──
+  // ── Draw-on chart lines via IntersectionObserver (never page-load GSAP) ──
+  // chartVisible flips true once the chart div enters the viewport (useRevealOnView).
+  // CSS transitions on strokeDashoffset handle the draw effect — reduced-motion safe.
   useEffect(() => {
-    if (animatedOnce.current) return;
-    const reduce =
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-
+    if (!chartVisible) return;
     const cost = costLineRef.current;
     const save = saveLineRef.current;
     const dot = dotRef.current;
     const lbl = lblRef.current;
     if (!cost || !save) return;
 
-    animatedOnce.current = true;
-
-    // Cost line: fixed length 420
     const costLen = 420;
     const saveLen = save.getTotalLength ? save.getTotalLength() : 420;
 
-    // Set initial dash state — cost keeps its 6,4 dashes but offset hides it
-    gsap.set(cost, { strokeDasharray: "6,4", strokeDashoffset: costLen });
-    gsap.set(save, { strokeDasharray: saveLen, strokeDashoffset: saveLen });
-    if (dot) gsap.set(dot, { opacity: 0 });
-    if (lbl) gsap.set(lbl, { opacity: 0 });
+    // Start hidden, then let CSS transition draw them in
+    cost.style.strokeDasharray = "6,4";
+    cost.style.strokeDashoffset = String(costLen);
+    save.style.strokeDasharray = String(saveLen);
+    save.style.strokeDashoffset = String(saveLen);
+    if (dot) { dot.style.opacity = "0"; }
+    if (lbl) { lbl.style.opacity = "0"; }
 
-    gsap.to(cost, { strokeDashoffset: 0, duration: 1.3, delay: 0.5, ease: "power2.inOut" });
-    gsap.to(save, { strokeDashoffset: 0, duration: 1.3, delay: 0.7, ease: "power2.inOut" });
-    if (dot && lbl && showDot) {
-      gsap.to([dot, lbl], { opacity: 1, duration: 0.5, delay: 1.7 });
-    }
-  }, []); // run once on mount
+    // rAF ensures the "hidden" state is painted before transition begins
+    requestAnimationFrame(() => {
+      cost.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.1s";
+      cost.style.strokeDashoffset = "0";
+      save.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.3s";
+      save.style.strokeDashoffset = "0";
+      if (dot && lbl && showDot) {
+        dot.style.transition = "opacity 0.5s ease 1.3s";
+        lbl.style.transition = "opacity 0.5s ease 1.3s";
+        dot.style.opacity = "1";
+        lbl.style.opacity = "1";
+      }
+    });
+  }, [chartVisible, showDot]);
 
   // Input field definitions
   const loanFields: Array<{
     label: string;
+    hint?: string;
     value: number;
     set: (v: number) => void;
     step: number;
     prefix?: string;
     suffix?: string;
   }> = [
-    { label: "Purchase Price", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
-    { label: "Current Loan Balance", value: currentBalance, set: setCurrentBalance, step: 1000, prefix: "$" },
-    { label: "Current Rate", value: currentRate, set: setCurrentRate, step: 0.125, suffix: "%" },
-    { label: "Current Monthly P&I", value: currentPayment, set: setCurrentPayment, step: 25, prefix: "$" },
-    { label: "Months Owned", value: monthsOwned, set: setMonthsOwned, step: 1 },
-    { label: "Monthly Rent (qualifying)", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
-    { label: "Projected Rate at Refi", value: projectedRate, set: setProjectedRate, step: 0.125, suffix: "%" },
-    { label: "Projected Appreciation", value: projectedAppreciation, set: setProjectedAppreciation, step: 0.5, suffix: "%" },
-    { label: "Annual Taxes", value: annualTaxes, set: setAnnualTaxes, step: 500, prefix: "$" },
-    { label: "Annual Insurance", value: annualInsurance, set: setAnnualInsurance, step: 250, prefix: "$" },
-    { label: "Monthly HOA", value: hoa, set: setHoa, step: 25, prefix: "$" },
+    { label: "Purchase Price", hint: "What you originally paid — sets your equity baseline.", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
+    { label: "Current Loan Balance", hint: "What you still owe today. Estimate is fine.", value: currentBalance, set: setCurrentBalance, step: 1000, prefix: "$" },
+    { label: "Current Rate", hint: "Your existing interest rate — drives savings math.", value: currentRate, set: setCurrentRate, step: 0.125, suffix: "%" },
+    { label: "Current Monthly P&I", hint: "Principal + interest only (not taxes/insurance). Check your statement.", value: currentPayment, set: setCurrentPayment, step: 25, prefix: "$" },
+    { label: "Months Owned", hint: "Most lenders require 6 months before you can refi a DSCR loan.", value: monthsOwned, set: setMonthsOwned, step: 1 },
+    { label: "Monthly Rent (qualifying)", hint: "The rent your lender will count — lease amount or appraised rent, whichever is lower.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
+    { label: "Projected Rate at Refi", hint: "The rate you expect to get on the new loan. Use today's market rate as your starting estimate.", value: projectedRate, set: setProjectedRate, step: 0.125, suffix: "%" },
+    { label: "Projected Appreciation (%/yr)", hint: "How much you think the property will rise in value annually. Used to estimate equity at refi time.", value: projectedAppreciation, set: setProjectedAppreciation, step: 0.5, suffix: "%" },
+    { label: "Annual Taxes", hint: "Your property tax bill per year. Find it on your last tax statement.", value: annualTaxes, set: setAnnualTaxes, step: 500, prefix: "$" },
+    { label: "Annual Insurance", hint: "Homeowner's insurance premium per year.", value: annualInsurance, set: setAnnualInsurance, step: 250, prefix: "$" },
+    { label: "Monthly HOA", hint: "Enter 0 if there is no HOA.", value: hoa, set: setHoa, step: 25, prefix: "$" },
   ];
 
   return (
@@ -281,6 +285,9 @@ export default function RefiTrackerPage({
             <H1 style={{ margin: "0 0 24px", color: dc.cream }}>
               Should you refi this DSCR loan yet?
             </H1>
+            <div style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.6, color: dc.lemon, maxWidth: "50ch", margin: "0 0 14px", letterSpacing: "-0.01em" }}>
+              Enter your current loan and the rate you could refi into. This tool scores your deal 0–100 on four factors and shows the exact month your savings pay back the refi cost.
+            </div>
             <Lead
               style={{
                 color: "rgba(238,239,211,0.68)",
@@ -288,8 +295,7 @@ export default function RefiTrackerPage({
                 margin: "0 0 34px",
               }}
             >
-              Seasoning, equity, DSCR headroom and monthly savings — scored
-              0–100. Plus the break-even month where refi costs cross savings.
+              Scores seasoning (you usually need 6 months), equity (how much LTV — how the loan amount compares to the property value — has improved), DSCR (whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it; higher is stronger) headroom, and monthly savings.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 40 }}>
               <Btn label="Open the refi tracker ↓" href="#rf-tool" onClick={scrollToTool} />
@@ -349,9 +355,10 @@ export default function RefiTrackerPage({
 
           {/* Right — break-even crossing-lines chart (THE signature visual) */}
           <div
+            ref={chartRef}
             style={{
-              background: "linear-gradient(160deg,#00302f,#002423)",
-              borderRadius: 16,
+              background: dc.dark,
+              borderRadius: dc.r.lg,
               padding: 26,
               border: "1px solid rgba(238,239,211,0.1)",
             }}
@@ -494,6 +501,9 @@ export default function RefiTrackerPage({
             >
               Live refi readiness engine
             </div>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.6)", maxWidth: "64ch", margin: "0 0 6px", lineHeight: 1.6 }}>
+              80–100 = refi-ready now. 55–79 = worth watching. Below 55 = wait. A rate &amp; term refinance (replace your current loan to change the rate or term, without taking cash out) needs at least 6 months of seasoning; cash-out requires additional equity.
+            </p>
           </div>
           <h2
             className="gs-reveal"
@@ -582,6 +592,11 @@ export default function RefiTrackerPage({
                       <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.suffix}</span>
                     )}
                   </div>
+                  {f.hint && (
+                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 4, lineHeight: 1.45, letterSpacing: 0 }}>
+                      {f.hint}
+                    </span>
+                  )}
                 </label>
               ))}
             </div>
@@ -636,12 +651,12 @@ export default function RefiTrackerPage({
                 </div>
                 <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)" }}>
                   {result?.refiType === "RATE_TERM" &&
-                    "Rate-and-term refi. Balance roughly flat."}
+                    "Rate & term refi — you lower your rate/term without pulling cash out. Balance stays roughly the same."}
                   {result?.refiType === "CASH_OUT" &&
-                    `Cash-out capacity: ${fmt$(result.cashOutMaxAmount)} at 70% LTV.`}
+                    `You have equity to pull out. Maximum cash-out: ${fmt$(result.cashOutMaxAmount)} (at 70% LTV — 70 cents borrowed per dollar of value).`}
                   {result?.refiType === "NO_REFI" &&
-                    "No savings, no equity. Wait for better conditions."}
-                  {!result && "Adjust inputs to compute readiness."}
+                    "No meaningful savings and not enough equity. Stay in your current loan and revisit in 6–12 months."}
+                  {!result && "Fill in the inputs on the left to see your readiness score."}
                 </div>
               </div>
 
@@ -671,23 +686,29 @@ export default function RefiTrackerPage({
                   [
                     {
                       label: "Current DSCR",
+                      sub: "Rent ÷ PITIA today. Above 1.0 = property covers its costs.",
                       val: result.currentDSCR.toFixed(2) + "x",
                       color: dc.cream,
+                      flame: riskFromDscr(result.currentDSCR),
                     },
                     {
-                      label: "Projected DSCR after refi",
+                      label: "DSCR after refi",
+                      sub: result.refiDSCR >= 1.0 ? "Still qualifies after the new payment." : "Caution — rent may not cover the new payment.",
                       val: result.refiDSCR.toFixed(2) + "x",
                       color: result.refiDSCR >= 1.0 ? dc.emerald : "#ff6b6b",
+                      flame: riskFromDscr(result.refiDSCR),
                     },
                     {
                       label: "Monthly savings",
+                      sub: "How much less you'd pay per month vs. your current loan.",
                       val:
                         (result.monthlySavings >= 0 ? "+" : "") +
                         fmt$(result.monthlySavings),
                       color: result.monthlySavings >= 0 ? dc.emerald : "#ff6b6b",
                     },
                     {
-                      label: "Break-even (months)",
+                      label: "Break-even",
+                      sub: result.breakEvenMonths > 120 ? "Savings never recoup refi costs at this rate — don't refi yet." : "Months until cumulative savings exceed refi closing costs. Under 24 is excellent.",
                       val:
                         result.breakEvenMonths > 120
                           ? "120+ (don't refi)"
@@ -695,30 +716,38 @@ export default function RefiTrackerPage({
                       color: result.breakEvenMonths < 36 ? dc.emerald : dc.lemon,
                     },
                     {
-                      label: "Cash-out capacity (70% LTV)",
+                      label: "Cash-out capacity",
+                      sub: "Max you could pull out at 70% LTV (how the loan compares to property value). Zero if not enough equity.",
                       val: fmt$(result.cashOutMaxAmount),
                       color: dc.cream,
                     },
                     {
-                      label: "Seasoning (6 mo required)",
+                      label: "Seasoning requirement",
+                      sub: "Lenders typically require you to own the property 6 months before refinancing.",
                       val: result.seasoningMet
-                        ? "Met"
-                        : `${monthsOwned}/6 mo`,
+                        ? "Met (6 mo)"
+                        : `${monthsOwned}/6 mo — not yet met`,
                       color: result.seasoningMet ? dc.emerald : "#ff6b6b",
                     },
                   ].map((r, i) => (
                     <div
                       key={i}
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
                         padding: "8px 0",
                         borderBottom: "1px solid rgba(238,239,211,0.08)",
                         fontSize: 14,
                       }}
                     >
-                      <span style={{ color: "rgba(238,239,211,0.65)" }}>{r.label}</span>
-                      <Mono style={{ color: r.color, fontWeight: 700 }}>{r.val}</Mono>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "rgba(238,239,211,0.65)" }}>{r.label}</span>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          {"flame" in r && r.flame !== undefined && <RiskFlame level={r.flame} size={16} />}
+                          <Mono style={{ color: r.color, fontWeight: 700 }}>{r.val}</Mono>
+                        </span>
+                      </div>
+                      {"sub" in r && r.sub && (
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -729,7 +758,7 @@ export default function RefiTrackerPage({
                       padding: "8px 0",
                     }}
                   >
-                    Engine returned no result. Adjust inputs.
+                    No result yet — check that your loan balance and purchase price are filled in above.
                   </div>
                 )}
               </div>
@@ -753,7 +782,7 @@ export default function RefiTrackerPage({
                     marginBottom: 14,
                   }}
                 >
-                  Score breakdown (4 × 25)
+                  What drives the score (4 factors, 25 pts each)
                 </div>
                 {result ? (
                   result.factors.map((f) => {
@@ -838,7 +867,7 @@ export default function RefiTrackerPage({
                   lineHeight: 1.6,
                 }}
               >
-                <strong style={{ color: dc.emerald }}>Engine:</strong> src/engine/refiTracker.ts → analyzeRefi (v11.7). 4-factor composite: seasoning (25), equity (25), DSCR headroom (25), monthly savings (25). Cash-out cap 70% LTV; rate-term cap 75%.
+                <strong style={{ color: dc.emerald }}>How the score works:</strong> Four factors scored 0–25 each: seasoning (how long you've owned it), equity (LTV improvement), DSCR headroom (rent vs. new payment), and monthly savings. Cash-out is capped at 70% LTV (loan-to-value); rate &amp; term at 75%. Output from analyzeRefi v11.7.
               </div>
             </div>
           </div>

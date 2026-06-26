@@ -1,37 +1,38 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
+import { radius } from "../theme";
 
-// ── Workspace feature tiles — ported from "Everything a producing broker needs." ──
+// ── Workspace feature tiles — ported from "Everything a serious investor needs." ──
 const BENEFITS = [
   {
-    icon: "❏",
+    icon: "01",
     title: "Saved scenarios",
-    desc: "Every priced deal stored and re-openable. Pick up where you left off.",
+    desc: "Every deal you price is stored and reopenable. No re-entering data when you come back to it.",
   },
   {
-    icon: "⊕",
-    title: "Lender submissions",
-    desc: "Submit a matched deal straight to the lender box from the workspace.",
+    icon: "02",
+    title: "Submit to underwriting",
+    desc: "Once your deal matches a program, send it straight to underwriting from the same screen — we are the lender. No copy-paste, no portal-hop.",
   },
   {
-    icon: "◰",
-    title: "Co-branded quotes",
-    desc: "Generate a borrower-ready PDF with your name and logo on it.",
+    icon: "03",
+    title: "Shareable deal summary",
+    desc: "Generate a clean deal-summary PDF in 10 seconds — share it with a partner or keep it for your records.",
   },
   {
-    icon: "$",
-    title: "Commission ledger",
-    desc: "Track expected and paid commissions across your pipeline.",
+    icon: "04",
+    title: "Portfolio tracker",
+    desc: "Track every active deal across your pipeline so nothing slips through the cracks.",
   },
   {
-    icon: "⚑",
+    icon: "05",
     title: "State-rule alerts",
-    desc: "Get flagged when a deal hits a high-risk PPP or usury state.",
+    desc: "Automatically flagged when a deal hits a high-risk prepayment penalty (a fee some loans charge for early payoff or refi) or usury state — before the quote goes out.",
   },
   {
-    icon: "⤓",
-    title: "Exam-ready exports",
-    desc: "Download the IC memo, stress matrix and cited rules as collateral.",
+    icon: "06",
+    title: "Export-ready deal package",
+    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for underwriting review or your own records.",
   },
 ];
 
@@ -47,7 +48,7 @@ const TESTIMONIALS = [
     quote:
       "The program match and state-rule checks mean I stopped second-guessing my quotes. I price the deal and move on.",
     name: "Sandra Rivera",
-    role: "Mortgage Broker, Miami FL",
+    role: "Real Estate Investor, Miami FL",
   },
   {
     quote:
@@ -66,7 +67,7 @@ export default function BrokersPortalPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "InvestorGO | Greenstreet Finance";
+    document.title = "InvestGO | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -75,8 +76,8 @@ export default function BrokersPortalPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
+        { label: "FAQ", view: "faq" },
       ]}
       cta={{ label: "Sign in →", view: "portal" }}
     >
@@ -112,7 +113,7 @@ export default function BrokersPortalPage({
                 marginBottom: 20,
               }}
             >
-              InvestorGO &middot; Partner Portal
+              INVEST<span style={{ opacity: 0.5 }}>GO</span> &middot; Investor Workspace
             </div>
 
             {/* H1 */}
@@ -122,7 +123,7 @@ export default function BrokersPortalPage({
                 fontWeight: 600,
                 lineHeight: 0.98,
                 letterSpacing: "-0.035em",
-                margin: "0 0 24px",
+                margin: "0 0 18px",
               }}
             >
               Your deals,
@@ -132,20 +133,24 @@ export default function BrokersPortalPage({
               one login.
             </h1>
 
+            {/* Purpose line */}
+            <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+              InvestGO is your investor workspace where your priced deals live between sessions. Save a DSCR scenario, come back tomorrow, and Greenstreet underwrites and funds it in-house — all without re-entering data.
+            </div>
+
             {/* Sub */}
             <p
               style={{
-                fontSize: "clamp(17px,1.5vw,22px)",
+                fontSize: "clamp(15px,1.2vw,18px)",
                 fontWeight: 500,
-                lineHeight: 1.45,
+                lineHeight: 1.55,
                 letterSpacing: "-0.02em",
                 color: "rgba(238,239,211,0.7)",
                 maxWidth: "46ch",
                 margin: "0 0 32px",
               }}
             >
-              Saved scenarios, lender submissions, co-branded quotes and your
-              commission ledger — all in the broker workspace.
+              Free for individual investors. Team pricing for funds and portfolios.
             </p>
 
             {/* Checklist */}
@@ -159,8 +164,8 @@ export default function BrokersPortalPage({
             >
               {[
                 "Save and revisit priced deals",
-                "Co-branded borrower-ready quotes",
-                "Submit straight to matched lenders",
+                "Shareable deal summaries",
+                "Submit straight to underwriting",
               ].map((item) => (
                 <div
                   key={item}
@@ -180,12 +185,12 @@ export default function BrokersPortalPage({
             </div>
           </div>
 
-          {/* Right: Sign-in card — solid fill, flat 1px border, no blur */}
+          {/* Right: Sign-in card — solid fill, flat 1.5px faded border, no blur */}
           <div
             style={{
               background: dc.teal,
-              border: "1px solid rgba(238,239,211,0.14)",
-              borderRadius: 9,
+              border: `1.5px solid ${dc.dark}30`,
+              borderRadius: radius.md,
               padding: "clamp(28px,3vw,40px)",
             }}
           >
@@ -199,7 +204,7 @@ export default function BrokersPortalPage({
                 marginBottom: 18,
               }}
             >
-              Partner sign-in
+              Investor sign-in
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -214,8 +219,7 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Access your saved deals, lender submissions, and co-branded
-                quotes in one place.
+                Access your saved deals, underwriting submissions, and deal summaries in one place.
               </p>
               <button
                 onClick={() => onNavigate("portal")}
@@ -231,13 +235,13 @@ export default function BrokersPortalPage({
                   fontSize: 15,
                   cursor: "pointer",
                   padding: 14,
-                  borderRadius: 6,
+                  borderRadius: radius.sm,
                   marginTop: 4,
                   fontFamily: dc.sans,
                   letterSpacing: "-0.01em",
                 }}
               >
-                Sign in to InvestorGO →
+                Sign in to INVEST<span style={{ opacity: 0.5 }}>GO</span> →
               </button>
 
               <div
@@ -250,7 +254,7 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                New partner?{" "}
+                New to Greenstreet?{" "}
                 <button
                   onClick={() => onNavigate("rate-quiz")}
                   style={{
@@ -265,7 +269,7 @@ export default function BrokersPortalPage({
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  Request access
+                  Price your first deal free →
                 </button>
               </div>
             </div>
@@ -273,7 +277,7 @@ export default function BrokersPortalPage({
         </div>
       </section>
 
-      {/* ── BENEFIT GRID — "Everything a producing broker needs." ─────────── */}
+      {/* ── BENEFIT GRID — "Everything a serious investor needs." ─────────── */}
       <section
         style={{
           background: dc.cream,
@@ -287,12 +291,15 @@ export default function BrokersPortalPage({
               fontSize: "clamp(28px,3.4vw,46px)",
               fontWeight: 600,
               letterSpacing: "-0.03em",
-              margin: "0 0 44px",
+              margin: "0 0 12px",
               maxWidth: "18ch",
             }}
           >
-            Everything a producing broker needs.
+            Everything a serious investor needs.
           </h2>
+          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(0,55,56,0.6)", margin: "0 0 36px", maxWidth: "52ch", lineHeight: 1.6 }}>
+            The workspace sits on top of the same DSCR engine you already use — so every saved deal includes the full analysis, not just a rate.
+          </p>
 
           <div
             className="gs-reveal"
@@ -300,8 +307,8 @@ export default function BrokersPortalPage({
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
               gap: 1,
-              background: "rgba(0,55,56,0.12)",
-              borderRadius: 9,
+              background: `${dc.dark}20`,
+              borderRadius: radius.md,
               overflow: "hidden",
             }}
           >
@@ -382,7 +389,7 @@ export default function BrokersPortalPage({
                 margin: 0,
               }}
             >
-              What brokers tell us.
+              What investors tell us.
             </h2>
           </div>
 
@@ -390,8 +397,8 @@ export default function BrokersPortalPage({
             className="gs-reveal"
             style={{
               background: dc.white,
-              border: "1px solid rgba(0,55,56,0.08)",
-              borderRadius: 9,
+              border: `1px solid ${dc.dark}15`,
+              borderRadius: radius.md,
               padding: "4px 28px 8px",
             }}
           >
@@ -402,7 +409,7 @@ export default function BrokersPortalPage({
                   padding: "20px 0",
                   borderBottom:
                     i < TESTIMONIALS.length - 1
-                      ? "1px solid rgba(0,55,56,0.08)"
+                      ? `1px solid ${dc.dark}15`
                       : "none",
                 }}
               >
@@ -500,7 +507,7 @@ export default function BrokersPortalPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Free for individual brokers. White-label pricing for broker shops
+              Free for individual investors. Team pricing for funds
               with five or more users.
             </p>
           </div>
@@ -526,7 +533,7 @@ export default function BrokersPortalPage({
                 fontSize: 16,
                 cursor: "pointer",
                 padding: "15px 32px",
-                borderRadius: 6,
+                borderRadius: radius.sm,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
               }}
@@ -541,12 +548,12 @@ export default function BrokersPortalPage({
                 gap: 9,
                 background: "transparent",
                 color: dc.cream,
-                border: "1px solid rgba(238,239,211,0.3)",
+                border: `1.5px solid rgba(238,239,211,0.3)`,
                 fontWeight: 600,
                 fontSize: 16,
                 cursor: "pointer",
                 padding: "15px 32px",
-                borderRadius: 6,
+                borderRadius: radius.sm,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
               }}

@@ -16,26 +16,26 @@ const USECASES: UseCase[] = [
   {
     num: "01",
     title: "Price the deal in under a minute",
-    desc: "Enter the property address, rent, rate and costs. Get DSCR, Track 1 and Track 2 analysis, cash-on-cash return and break-even — no login, no guesswork.",
-    cta: "Open the calculator",
+    desc: "Enter the property address, rent, rate and costs. Get DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) on both tracks: Track 1 is what the lender uses to qualify you; Track 2 adds vacancy, management fees and CapEx to show what you'll actually pocket. No login, no guesswork.",
+    cta: "See if my deal qualifies",
     view: "dscr-calculator",
     numBg: dc.lemon,
     numInk: dc.dark,
   },
   {
     num: "02",
-    title: "Match the best-fit Greenstreet program for every file",
-    desc: "Your deal is scored against Greenstreet DSCR program boxes — FICO floors, LTV caps, DSCR minimums, state coverage and entity rules — ranked by fit before you make a single call.",
-    cta: "Open Lender Intel",
+    title: "Match the right Greenstreet program before your first call",
+    desc: "Your file is scored against every Greenstreet DSCR program: FICO floors, LTV caps (how the loan amount compares to the property value — lower = more equity = better terms), DSCR minimums, state coverage and entity rules — ranked by fit score. Know which program funds your deal before you make an offer.",
+    cta: "Find the best program for my file",
     view: "lender-intel",
     numBg: dc.dark,
     numInk: dc.lemon,
   },
   {
     num: "03",
-    title: "Know the state rule before it bites",
-    desc: "Prepayment-penalty, usury and STR rules for all 50 states, each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you quote.",
-    cta: "Open State Rules",
+    title: "Check the state rule before it kills the deal",
+    desc: "Prepayment-penalty fees (a fee some loans charge if you pay the loan off or refinance early), usury caps and short-term-rental rules for all 50 states — each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you make an offer.",
+    cta: "Look up state rules for my deal",
     view: "state-laws",
     numBg: dc.lemon,
     numInk: dc.dark,
@@ -43,17 +43,17 @@ const USECASES: UseCase[] = [
   {
     num: "04",
     title: "Stress-test the rate and the rent",
-    desc: "A 120-cell rate × rent shock matrix across five risk zones — run it in seconds to show the borrower how far the deal bends before it breaks.",
-    cta: "Open Stress Matrix",
+    desc: "A 120-cell rate × rent shock grid shows you exactly how far the deal can bend before DSCR breaks below 1.00. Run it in seconds — then keep it as a defensible page in your deal package.",
+    cta: "Run the stress matrix",
     view: "stress-matrix",
     numBg: dc.dark,
     numInk: dc.lemon,
   },
   {
     num: "05",
-    title: "Submit clean. Close fast.",
-    desc: "The IC memo, the state rule and the stress matrix — all defensible, all citable. Hand the lender the package they need to say yes the first time.",
-    cta: "Open Deal Analyzer",
+    title: "Hand the lender everything they need to say yes",
+    desc: "The investment-committee memo, the state compliance check, and the stress matrix — all generated in one pass, all citable. Submit a clean package and close faster, because the lender isn't waiting on missing documents.",
+    cta: "Build the deal package",
     view: "deal-analyzer",
     numBg: dc.lemon,
     numInk: dc.dark,
@@ -71,7 +71,7 @@ export default function BrokersPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "For Brokers | Greenstreet Finance";
+    document.title = "For Investors | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -126,14 +126,14 @@ export default function BrokersPage({
                 color: dc.lemon,
               }}
             >
-              For Brokers
+              For Investors
             </div>
             <H1 style={{ margin: 0 }}>
-              Quote with
+              One deal.
               <br />
-              confidence.
+              We underwrite
               <br />
-              Close faster.
+              and fund it.
             </H1>
             <Lead
               style={{
@@ -142,13 +142,38 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Price, match and stress-test a DSCR deal in under a minute —
-              then walk into the lender call knowing the answer.
+              Greenstreet is the broker and the lender — direct to you. Five tools
+              price, qualify, and stress-test your DSCR rental deal — no income
+              docs, no income tax returns, no middleman. Price a deal in under 60
+              seconds, then we fund it in-house.
             </Lead>
-            <Btn
-              label="Open the calculator"
-              onClick={() => onNavigate("dscr-calculator")}
-            />
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Btn
+                label="Price my first deal →"
+                onClick={() => onNavigate("dscr-calculator")}
+              />
+              <button
+                onClick={() => onNavigate("rate-quiz")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "transparent",
+                  color: "rgba(238,239,211,0.82)",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  border: `1.5px solid ${dc.faded}`,
+                  cursor: "pointer",
+                  padding: "13px 22px",
+                  borderRadius: dc.r.md,
+                  fontFamily: dc.sans,
+                  letterSpacing: "-0.01em",
+                  minHeight: 44,
+                }}
+              >
+                See my rate in 5 questions →
+              </button>
+            </div>
           </div>
 
           {/* Right column — Greenstreet DSCR programs panel */}
@@ -244,7 +269,7 @@ export default function BrokersPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                In-house underwriting · wholesale
+                In-house underwriting · direct
               </span>
               <span
                 style={{
@@ -280,13 +305,26 @@ export default function BrokersPage({
                 fontSize: "clamp(28px,3.4vw,46px)",
                 fontWeight: 600,
                 letterSpacing: "-0.03em",
-                margin: 0,
+                margin: "0 0 14px",
                 maxWidth: "18ch",
                 color: dc.dark,
               }}
             >
-              Everything a producing broker needs.
+              Five steps from first look to funded file.
             </h2>
+            <p
+              style={{
+                fontSize: "clamp(16px,1.25vw,19px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(0,55,56,0.62)",
+                margin: 0,
+                maxWidth: "54ch",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              DSCR loans qualify on rental income, not the borrower's pay stubs (business-purpose / non-owner-occupied — a rental you invest in, not a home you live in). These tools handle every step of that process.
+            </p>
           </div>
 
           {/* Numbered list with continuous left-rail */}
@@ -391,12 +429,116 @@ export default function BrokersPage({
         </div>
       </section>
 
-      {/* ── BACK PILL ────────────────────────────────────────────────────────── */}
+      {/* ── BROKER CTA STRIP ─────────────────────────────────────────────────── */}
       <section
         style={{
-          background: dc.cream,
-          padding: `0 ${dc.pad} clamp(72px,10vh,120px)`,
-          paddingTop: "clamp(8px,2vh,24px)",
+          background: dc.dark,
+          color: dc.cream,
+          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
+        }}
+      >
+        <div
+          className="gs-reveal dc-band-2"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase" as const,
+                color: dc.lemon,
+                marginBottom: 14,
+              }}
+            >
+              Direct · in-house underwriting
+            </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.8vw,52px)",
+                fontWeight: 600,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.0,
+                color: dc.cream,
+                margin: "0 0 16px",
+              }}
+            >
+              Ready to place your next file?
+            </h2>
+            <p
+              style={{
+                fontSize: "clamp(15px,1.3vw,18px)",
+                fontWeight: 500,
+                lineHeight: 1.55,
+                color: "rgba(238,239,211,0.6)",
+                maxWidth: "50ch",
+                margin: 0,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Book a 15-minute walkthrough — we'll run a real file through the
+              Greenstreet engine together, from pricing to submission, so you see
+              exactly what you will see before you fund.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
+            {/* ONE dominant lemon primary CTA per contract */}
+            <button
+              onClick={() => onNavigate("rate-quiz")}
+              style={{
+                background: dc.lemon,
+                color: dc.dark,
+                border: "none",
+                borderRadius: dc.r.md,
+                padding: "16px 28px",
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                textAlign: "left" as const,
+                minHeight: 44,
+              }}
+            >
+              See my rate in 5 questions →
+            </button>
+            {/* Secondary: transparent + FADED border, per contract */}
+            <button
+              onClick={() => onNavigate("rate-quiz")}
+              style={{
+                background: "transparent",
+                color: dc.cream,
+                border: `1.5px solid ${dc.faded}`,
+                borderRadius: dc.r.md,
+                padding: "15px 28px",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: dc.sans,
+                letterSpacing: "-0.01em",
+                textAlign: "left" as const,
+                minHeight: 44,
+              }}
+            >
+              Get a rate in 5 questions →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CLOSE BAND: freshness + back nav — mintBg breaks the cream/dark rhythm ── */}
+      <section
+        style={{
+          background: dc.mintBg,
+          padding: `clamp(40px,5vw,64px) ${dc.pad}`,
         }}
       >
         <div
@@ -404,56 +546,19 @@ export default function BrokersPage({
             maxWidth: dc.maxW,
             margin: "0 auto",
             display: "flex",
-            justifyContent: "center",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 24,
           }}
         >
-          <button
-            onClick={() => onBack()}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.mintBg,
-              border: "none",
-              borderRadius: 999,
-              padding: "15px 30px",
-              cursor: "pointer",
-              fontFamily: dc.sans,
-            }}
-          >
-            <span
-              style={{
-                fontSize: "clamp(16px,1.4vw,19px)",
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                color: dc.dark,
-              }}
-            >
-              Back to all tools
-            </span>
-            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
-          </button>
-        </div>
-      </section>
-
-      {/* ── FRESHNESS SIGNAL ─────────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `0 ${dc.pad} clamp(36px,4vh,48px)`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          {/* Freshness signal — intentional trust element, not decorative */}
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 12,
               flexWrap: "wrap",
-              padding: "14px 18px",
-              background: "rgba(216,217,88,0.12)",
-              borderRadius: 10,
-              border: "1px solid rgba(216,217,88,0.3)",
             }}
           >
             <span
@@ -462,21 +567,46 @@ export default function BrokersPage({
                 fontWeight: 700,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase" as const,
-                padding: "4px 10px",
-                borderRadius: 999,
+                padding: "5px 11px",
+                borderRadius: dc.r.pill,
                 background: dc.lemon,
                 color: dc.dark,
               }}
             >
               Reviewed
             </span>
-            <span
-              style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}
-            >
-              Page refreshed {AS_OF} · program lineup + fees reviewed · next
-              review Jul 22, 2026
+            <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
+              Page refreshed {AS_OF} · program lineup + fees reviewed · next review Jul 22, 2026
             </span>
           </div>
+
+          {/* Back nav */}
+          <button
+            onClick={() => onBack()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 9,
+              background: "transparent",
+              border: `1.5px solid ${dc.faded}`,
+              borderRadius: dc.r.pill,
+              padding: "13px 24px",
+              cursor: "pointer",
+              fontFamily: dc.sans,
+              minHeight: 44,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: dc.dark,
+              }}
+            >
+              ← All tools
+            </span>
+          </button>
         </div>
       </section>
     </DcShell>
