@@ -35,9 +35,10 @@ const NAV_MENUS: NavMenu[] = [
     label: "Who We Serve", view: "solutions", path: "/solutions",
     items: [
       { label: "Real Estate Investors", view: "investors", path: "/investors" },
-      { label: "Foreign Nationals", view: "borrower-profiles", path: "/borrower-profiles" },
-      { label: "STR & Airbnb Hosts", view: "borrower-profiles", path: "/borrower-profiles" },
-      { label: "Vacation & Second Homes", view: "borrower-profiles", path: "/borrower-profiles" },
+      { label: "Foreign Nationals", path: "/borrower-profiles#foreign-nationals" },
+      { label: "STR & Airbnb Hosts", path: "/borrower-profiles#str-airbnb" },
+      { label: "Vacation & Second Homes", path: "/borrower-profiles#vacation" },
+      { label: "Portfolio Builders", path: "/borrower-profiles#portfolio" },
       { label: "Rate Quiz", view: "rate-quiz", path: "/rate-quiz" },
     ],
   },
@@ -295,8 +296,8 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
               <div className="footer_group_list">
                 <a className="footer_link_wrap w-inline-block" href="/investors" onClick={go("investors")}><div className="footer_link_text u-weight-bold">Real Estate Investors</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">Foreign Nationals</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#foreign-nationals" onClick={goPath("/borrower-profiles#foreign-nationals")}><div className="footer_link_text u-weight-bold">Foreign Nationals</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#str-airbnb" onClick={goPath("/borrower-profiles#str-airbnb")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/rate-quiz" onClick={go("rate-quiz")}><div className="footer_link_text u-weight-bold">Rate Quiz</div></a>
               </div>
             </section>

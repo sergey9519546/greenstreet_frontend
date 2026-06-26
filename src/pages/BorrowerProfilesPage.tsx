@@ -252,6 +252,13 @@ export default function BorrowerProfilesPage({
 }) {
   useEffect(() => {
     document.title = "Who We Serve | Greenstreet Finance";
+    // Deep-linked from the nav/footer segment links (/borrower-profiles#str-airbnb
+    // etc.) — scroll to that section after first paint; otherwise start at top.
+    const id = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
+    if (id) {
+      const t = setTimeout(() => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 90);
+      return () => clearTimeout(t);
+    }
     window.scrollTo(0, 0);
   }, []);
 
