@@ -19,7 +19,7 @@ const FOOTER: { h: string; links: { label: string; view: PageView; href?: string
     links: [
       { label: "Deal Analyzer", view: "deal-analyzer" },
       { label: "DSCR Calculator", view: "dscr-calculator" },
-      { label: "Lender Intelligence", view: "lender-intel" },
+      { label: "Our DSCR Programs", view: "lender-intel" },
       { label: "State Rules", view: "state-laws" },
     ],
   },
@@ -254,7 +254,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                     <div className="footer_link_text u-weight-bold">Deal Analyzer</div>
                   </a>
                   <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate("lender-intel"); }}>
-                    <div className="footer_link_text u-weight-bold">Lender Intelligence</div>
+                    <div className="footer_link_text u-weight-bold">Our DSCR Programs</div>
                   </a>
                   <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={(e) => { e.preventDefault(); onNavigate("state-laws"); }}>
                     <div className="footer_link_text u-weight-bold">State Regulations</div>
