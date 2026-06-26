@@ -17,7 +17,7 @@ const ROLES: Role[] = [
     team: "Sales",
     location: "Remote (US)",
     type: "Full-time",
-    body: "You've sold non-QM to mortgage brokers before. You can read a rate sheet without squinting and explain DSCR to a skeptical borrower in 60 seconds flat. You own the broker relationship from first demo to first funded deal — and you're allergic to commission cliffs.",
+    body: "You've sold non-QM or DSCR financing to real estate investors before. You can read a rate sheet without squinting and explain DSCR to a skeptical investor in 60 seconds flat. You own the investor relationship from first demo to first funded deal — and you're allergic to commission cliffs.",
   },
   {
     title: "Senior Full-Stack Engineer",
@@ -246,7 +246,7 @@ export default function CareersPage({
               Build the math layer of real-estate lending.
             </H1>
             <Lead style={{ color: "rgba(0,55,56,0.68)", maxWidth: "48ch", margin: "0 0 20px" }}>
-              We're a small team shipping tools that help DSCR brokers and investors price deals, model risk, and close faster. Remote-first, deeply technical, no hand-waving.
+              We're a small team shipping tools that help DSCR investors price deals, model risk, and close faster. Remote-first, deeply technical, no hand-waving.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button

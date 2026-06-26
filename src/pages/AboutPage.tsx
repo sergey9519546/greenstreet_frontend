@@ -117,7 +117,7 @@ export default function AboutPage({
 
           {/* H1 */}
           <H1 style={{ margin: "0 0 28px", maxWidth: "24ch" }}>
-            The DSCR underwriting platform brokers and investors trust.
+            The DSCR underwriting platform real estate investors trust.
           </H1>
 
           {/* Subtitle */}
@@ -282,7 +282,7 @@ export default function AboutPage({
               }}
             >
               In 2026 we founded Greenstreet after watching, first-hand, how hard
-              it had become for brokers to price DSCR deals that actually held at
+              it had become for investors to price DSCR deals that actually held at
               the lender — and how often investors signed on deals where the
               numbers hadn't been run correctly. We went back to the drawing board
               on rental-loan software and built the engine we wished existed:

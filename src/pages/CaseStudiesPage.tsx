@@ -27,7 +27,7 @@ const STUDIES: Study[] = [
   {
     slug: "vela-capital",
     company: "Vela Capital",
-    location: "Wholesale originator",
+    location: "Buy-and-hold investor",
     type: "Originator",
     num: "01",
     headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
@@ -49,7 +49,7 @@ const STUDIES: Study[] = [
   {
     slug: "northshore-non-qm",
     company: "Northshore Non-QM",
-    location: "Wholesale brokerage",
+    location: "Real estate investor",
     type: "Broker",
     num: "02",
     headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
@@ -827,7 +827,7 @@ export default function CaseStudiesPage({
                 Customer stories
               </div>
               <H1 style={{ margin: 0 }}>
-                What changed when brokers and investors ran their deals through Greenstreet.
+                What changed when investors ran their deals through Greenstreet.
               </H1>
             </div>
             <div>

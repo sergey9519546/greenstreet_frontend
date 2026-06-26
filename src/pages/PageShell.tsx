@@ -26,7 +26,7 @@ const FOOTER: { h: string; links: { label: string; view: PageView; href?: string
   {
     h: "Who We Serve",
     links: [
-      { label: "Mortgage Brokers", view: "brokers" },
+      { label: "Real Estate Investors", view: "investors" },
       { label: "Real Estate Investors", view: "investors" },
       { label: "Borrower Profiles", view: "borrower-profiles" },
       { label: "Rate Quiz", view: "rate-quiz" },
@@ -268,7 +268,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                 <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
                 <div className="footer_group_list">
                   <a className="footer_link_wrap w-inline-block" href="/brokers" onClick={(e) => { e.preventDefault(); onNavigate("brokers"); }}>
-                    <div className="footer_link_text u-weight-bold">Mortgage Brokers</div>
+                    <div className="footer_link_text u-weight-bold">Real Estate Investors</div>
                   </a>
                   <a className="footer_link_wrap w-inline-block" href="/investors" onClick={(e) => { e.preventDefault(); onNavigate("investors"); }}>
                     <div className="footer_link_text u-weight-bold">Private Funds</div>

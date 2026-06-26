@@ -175,7 +175,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               </a>
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>19</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>verified lenders</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>7</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>Greenstreet programs</div></div>
               <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>state rule sets</div></div>
               <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>to a priced deal</div></div>
             </div>
@@ -206,7 +206,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div style={{ background: LEMON, padding: 'clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)' }}>
               <Mono style={{ fontSize: 'clamp(32px,4vw,52px)', fontWeight: 600, color: FADED, marginBottom: 14, lineHeight: 1 }}>03</Mono>
               <H3 style={{ marginBottom: 10, lineHeight: 1.1 }}>Match</H3>
-              <Lead style={{ color: MIDNIGHT, margin: 0 }}>19 lenders ranked by fit. State PPP rule checked. Rate band. No calls needed.</Lead>
+              <Lead style={{ color: MIDNIGHT, margin: 0 }}>Every Greenstreet program ranked by fit. State PPP rule checked. Rate band. No calls needed.</Lead>
             </div>
           </div>
         </div>
