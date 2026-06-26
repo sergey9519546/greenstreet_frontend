@@ -8,7 +8,8 @@
 // Rules honored: premium flat brand, stylized SVG (not literal fire, no
 // characters/particles/bounce), all motion is CSS-transition / keyframe driven
 // off the VALUE (never a page-load from()), and fully reduced-motion safe.
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 import { swatch } from "../theme";
 
 const LEMON = swatch.lemon;
@@ -34,9 +35,17 @@ function ensureCss() {
 .gsa-flame{transform-origin:50% 100%;animation:gsaFlicker 1.4s ease-in-out infinite;}
 .gsa-flame.f2{animation-delay:.25s;}
 .gsa-flame.f3{animation-delay:.5s;}
+@keyframes gsaOrbit{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+@keyframes gsaBob{0%,100%{transform:translateY(0) rotate(-1deg);}50%{transform:translateY(-8px) rotate(1deg);}}
+@keyframes gsaDraw{0%{stroke-dashoffset:420;}45%,100%{stroke-dashoffset:0;}}
+@keyframes gsaPulseDot{0%,100%{transform:scale(1);opacity:.86;}50%{transform:scale(1.22);opacity:1;}}
+.gsa-orbit{transform-origin:50% 50%;animation:gsaOrbit 18s linear infinite;}
+.gsa-bob{animation:gsaBob 3.2s ease-in-out infinite;}
+.gsa-path{stroke-dasharray:420;stroke-dashoffset:420;animation:gsaDraw 4.8s cubic-bezier(.16,1,.3,1) infinite;}
+.gsa-pulse-dot{transform-origin:center;animation:gsaPulseDot 1.6s ease-in-out infinite;}
 @media (prefers-reduced-motion: reduce){
   .gsa-needle,.gsa-beam,.gsa-pan,.gsa-fill{transition:none !important;}
-  .gsa-flame{animation:none !important;}
+  .gsa-flame,.gsa-orbit,.gsa-bob,.gsa-path,.gsa-pulse-dot{animation:none !important;}
 }`;
   document.head.appendChild(el);
 }
@@ -88,6 +97,201 @@ export function DscrGauge({ value, size = 200, label = true }: { value: number; 
           <span style={{ fontSize: size * 0.07 }}>x</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── ClaudeDscrGauge ─────────────────────────────────────────────────────────
+// Restores the larger Claude-design dial: conic color bands, glowing needle,
+// center readout. GSAP only responds to value / pointer interactions.
+export function ClaudeDscrGauge({
+  value,
+  size = 320,
+  min = 0.5,
+  max = 1.5,
+  label = "DSCR",
+  onValueChange,
+}: {
+  value: number;
+  size?: number;
+  min?: number;
+  max?: number;
+  label?: string;
+  onValueChange?: (value: number) => void;
+}) {
+  ensureCss();
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const needleRef = useRef<HTMLDivElement | null>(null);
+  const glowRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const displayRef = useRef(value);
+  const [displayValue, setDisplayValue] = useState(value);
+  const clamped = Math.max(min, Math.min(max, value));
+  const pct = (clamped - min) / (max - min);
+  const angle = -135 + pct * 270;
+  const col = dscrColor(value);
+  const reduced =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  useEffect(() => {
+    const needle = needleRef.current;
+    if (!needle) return;
+    if (reduced) {
+      gsap.set(needle, { xPercent: -50, rotation: angle, transformOrigin: "50% 100%" });
+      setDisplayValue(value);
+      displayRef.current = value;
+      return;
+    }
+    gsap.to(needle, {
+      xPercent: -50,
+      rotation: angle,
+      transformOrigin: "50% 100%",
+      duration: 0.74,
+      ease: "back.out(1.35)",
+      overwrite: true,
+    });
+    gsap.to(displayRef, {
+      current: value,
+      duration: 0.48,
+      ease: "power2.out",
+      overwrite: true,
+      onUpdate: () => setDisplayValue(displayRef.current),
+    });
+    if (glowRef.current) {
+      gsap.fromTo(
+        glowRef.current,
+        { scale: 0.78, opacity: 0.72 },
+        { scale: 1, opacity: 1, duration: 0.36, ease: "power2.out", overwrite: true }
+      );
+    }
+  }, [angle, reduced, value]);
+
+  const setFromPointer = (clientX: number, clientY: number) => {
+    if (!onValueChange || !wrapRef.current) return;
+    const rect = wrapRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const raw = Math.atan2(clientX - cx, -(clientY - cy)) * 180 / Math.PI;
+    const nextAngle = Math.max(-135, Math.min(135, raw));
+    const next = min + ((nextAngle + 135) / 270) * (max - min);
+    onValueChange(Number(next.toFixed(2)));
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseEnter={() => !reduced && cardRef.current && gsap.to(cardRef.current, { y: -2, duration: 0.22, ease: "power2.out" })}
+      onMouseLeave={() => !reduced && cardRef.current && gsap.to(cardRef.current, { y: 0, duration: 0.22, ease: "power2.out" })}
+      style={{
+        width: "100%",
+        maxWidth: size,
+        margin: "0 auto",
+        position: "relative",
+        touchAction: onValueChange ? "none" : "auto",
+      }}
+    >
+      <div
+        ref={wrapRef}
+        role="slider"
+        aria-label={`${label} gauge`}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={Number(value.toFixed(2))}
+        tabIndex={onValueChange ? 0 : -1}
+        onPointerDown={(e) => {
+          if (!onValueChange) return;
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          setFromPointer(e.clientX, e.clientY);
+        }}
+        onPointerMove={(e) => {
+          if (!onValueChange || !(e.buttons & 1)) return;
+          setFromPointer(e.clientX, e.clientY);
+        }}
+        onKeyDown={(e) => {
+          if (!onValueChange) return;
+          const step = e.shiftKey ? 0.1 : 0.05;
+          if (e.key === "ArrowLeft" || e.key === "ArrowDown") onValueChange(Math.max(min, Number((value - step).toFixed(2))));
+          if (e.key === "ArrowRight" || e.key === "ArrowUp") onValueChange(Math.min(max, Number((value + step).toFixed(2))));
+        }}
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: "1",
+          cursor: onValueChange ? "grab" : "default",
+          borderRadius: "50%",
+          background: "radial-gradient(circle at 50% 56%, rgba(238,239,211,0.08), transparent 42%)",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "50%",
+            background:
+              "conic-gradient(from 225deg,#e06363 0deg 67.5deg,#e6b84d 67.5deg 135deg,#d8d958 135deg 189deg,#4dbd97 189deg 270deg,rgba(238,239,211,0.07) 270deg 360deg)",
+            WebkitMask: "radial-gradient(circle,transparent 0 59%,#000 60% 100%)",
+            mask: "radial-gradient(circle,transparent 0 59%,#000 60% 100%)",
+          }}
+        />
+        <div style={{ position: "absolute", inset: "10.5%", borderRadius: "50%", border: "1px dashed rgba(238,239,211,0.16)" }} />
+        <div style={{ position: "absolute", inset: "22%", borderRadius: "50%", border: "1px solid rgba(238,239,211,0.08)" }} />
+        <div
+          ref={needleRef}
+          className="gsa-needle"
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: "50%",
+            width: 5,
+            height: "39%",
+            borderRadius: 5,
+            background: "linear-gradient(#eeefd3,#d8d958)",
+            boxShadow: "0 10px 22px rgba(0,0,0,0.28)",
+            transform: `translateX(-50%) rotate(${angle}deg)`,
+            transformOrigin: "50% 100%",
+            zIndex: 3,
+          }}
+        >
+          <div
+            ref={glowRef}
+            style={{
+              position: "absolute",
+              top: -8,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: 16,
+              height: 16,
+              borderRadius: "50%",
+              background: col,
+              boxShadow: `0 0 20px ${col}`,
+            }}
+          />
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%,-50%)",
+            width: "58%",
+            height: "58%",
+            borderRadius: "50%",
+            background: "radial-gradient(circle,#002423 50%,rgba(0,36,35,0) 82%)",
+            zIndex: 4,
+            pointerEvents: "none",
+          }}
+        />
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingBottom: "7%", pointerEvents: "none", zIndex: 5 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(238,239,211,0.44)", marginBottom: 2 }}>{label}</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(32px,4vw,48px)", fontWeight: 700, color: col, lineHeight: 0.9, textShadow: "0 2px 14px rgba(0,36,35,0.9)" }}>
+            {displayValue.toFixed(2)}<span style={{ fontSize: "0.48em" }}>x</span>
+          </div>
+        </div>
+        <div style={{ position: "absolute", left: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.56)" }}>{min.toFixed(2)}</div>
+        <div style={{ position: "absolute", right: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.56)" }}>{max.toFixed(2)}</div>
+      </div>
     </div>
   );
 }
@@ -152,5 +356,75 @@ export function RiskFlame({ level, size = 22 }: { level: RiskLevel; size?: numbe
         </svg>
       ))}
     </span>
+  );
+}
+
+export function MotionWorkbench({
+  mode = "quiz",
+  value = "1.25x",
+  label = "Program fit",
+  size = 420,
+}: {
+  mode?: "quiz" | "stress" | "sim";
+  value?: string;
+  label?: string;
+  size?: number;
+}) {
+  ensureCss();
+  const accent = mode === "stress" ? ORANGE : mode === "sim" ? EMERALD : LEMON;
+  const secondary = mode === "stress" ? RED : mode === "sim" ? RAIN : EMERALD;
+  const title = mode === "stress" ? "Stress path" : mode === "sim" ? "Rate futures" : "Loan fit";
+  return (
+    <div
+      data-gs-motion-artifact="workbench"
+      style={{
+        width: "100%",
+        maxWidth: size,
+        margin: "0 auto",
+        aspectRatio: "1.08",
+        position: "relative",
+        borderRadius: 18,
+        background: mode === "quiz" ? "#e8e9bf" : MIDNIGHT,
+        border: `1px solid ${mode === "quiz" ? "rgba(0,55,56,0.12)" : "rgba(238,239,211,0.14)"}`,
+        overflow: "hidden",
+        color: mode === "quiz" ? MIDNIGHT : "#eeefd3",
+      }}
+    >
+      <svg viewBox="0 0 420 388" width="100%" height="100%" role="img" aria-label={`${title} animation`}>
+        <defs>
+          <pattern id={`dots-${mode}`} width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.1" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.13" />
+          </pattern>
+        </defs>
+        <rect width="420" height="388" fill={`url(#dots-${mode})`} />
+        <g className="gsa-orbit" opacity="0.95">
+          <ellipse cx="210" cy="194" rx="138" ry="78" fill="none" stroke={accent} strokeWidth="3" strokeDasharray="10 12" />
+          <circle className="gsa-pulse-dot" cx="348" cy="194" r="12" fill={accent} />
+          <circle className="gsa-pulse-dot" cx="72" cy="194" r="8" fill={secondary} style={{ animationDelay: ".35s" }} />
+        </g>
+        <path
+          className="gsa-path"
+          d="M55 279 C105 210 138 245 178 174 C216 106 260 147 292 98 C318 60 350 68 374 40"
+          fill="none"
+          stroke={secondary}
+          strokeWidth="6"
+          strokeLinecap="round"
+          opacity="0.88"
+        />
+        <g className="gsa-bob">
+          <rect x="112" y="120" width="196" height="146" rx="18" fill={mode === "quiz" ? "#eeefd3" : "#004041"} stroke={mode === "quiz" ? MIDNIGHT : "#eeefd3"} strokeOpacity="0.18" />
+          <rect x="134" y="145" width="76" height="12" rx="6" fill={accent} />
+          <rect x="134" y="171" width="126" height="10" rx="5" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.35" />
+          <rect x="134" y="195" width="104" height="10" rx="5" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.22" />
+          <circle cx="270" cy="202" r="28" fill={secondary} opacity="0.95" />
+          <path d="M256 202l10 10 20-24" fill="none" stroke={mode === "stress" ? "#fff" : MIDNIGHT} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+        <g>
+          <rect x="42" y="314" width="336" height="44" rx="22" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.96" />
+          <text x="64" y="342" fill={mode === "quiz" ? "#eeefd3" : MIDNIGHT} fontFamily="Outfit, Arial, sans-serif" fontSize="18" fontWeight="700">{label}</text>
+          <text x="332" y="342" textAnchor="end" fill={accent} fontFamily="JetBrains Mono, monospace" fontSize="22" fontWeight="800">{value}</text>
+        </g>
+      </svg>
+    </div>
   );
 }

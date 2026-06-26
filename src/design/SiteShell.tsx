@@ -208,8 +208,9 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   };
 
   return (
-    <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
+    <>
       <style>{NAV_DD_CSS}</style>
+      <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
@@ -262,7 +263,8 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")}>Book a demo</a>
         </div>
       )}
-    </nav>
+      </nav>
+    </>
   );
 }
 

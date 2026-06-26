@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, H1, H2, H3, Lead, Btn, HeroProof, Mono } from "../design/dc";
 import { PISTACHIO, MIDNIGHT, LEMON, FADED, font, swatch, radius } from "../theme";
-import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 
 interface Props {
   onBack?: () => void;
@@ -307,10 +307,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <p style={{ fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 500, lineHeight: 1.55, color: 'rgba(238,239,211,0.72)', margin: 0 }}>{verdictText}</p>
                   </div>
 
-                  {/* Artifacts row: DscrGauge + BalanceScale side by side */}
+                  {/* Artifacts row: Claude gauge + BalanceScale side by side */}
                   <div className="dscr-verdict-inner" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(16px,3vw,36px)', alignItems: 'center', marginBottom: 20 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                      <DscrGauge value={dscr} size={180} />
+                      <ClaudeDscrGauge value={dscr} size={320} />
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <RiskFlame level={riskLevel} size={20} />
                         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.45)' }}>
@@ -468,7 +468,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 </div>
               </div>
               <div>
-                {/* Headline answer: DscrGauge for target */}
+                {/* Headline answer: scrub-able Claude gauge for target */}
                 <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', marginBottom: 20, border: '1px solid rgba(238,239,211,0.1)' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {target.toFixed(2)}x DSCR</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
@@ -479,7 +479,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         Pay more than this and the rent won't cover the full monthly payment at the target ratio. Use this as your bid ceiling.
                       </p>
                     </div>
-                    <DscrGauge value={target} size={140} />
+                    <ClaudeDscrGauge value={target} size={170} min={0.75} max={1.5} label="Target" onValueChange={setTarget} />
                   </div>
                 </div>
                 <div style={{ background: CARD, borderRadius: radius.lg, padding: '24px 28px', border: '1px solid rgba(238,239,211,0.1)' }}>

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useCallback } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
-import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
+import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
 
 // ─── color helpers ────────────────────────────────────────────────────────────
 const RED     = "#ff6b6b";
@@ -345,7 +345,12 @@ export default function MonteCarloPage({
           </div>
 
           {/* right — live preview card */}
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", display: "grid", gap: 18 }}>
+            <MotionWorkbench
+              mode="sim"
+              value={`${pD1.toFixed(1)}%`}
+              label="Break-risk paths"
+            />
             <div style={{ background: dc.dark, borderRadius: dc.r.lg, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 16 }}>
                 Live — median DSCR across {simulations} paths

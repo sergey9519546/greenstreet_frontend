@@ -271,6 +271,8 @@ export default function App() {
       // pointer events or be reachable on React routes.
       wfRoot.style.pointerEvents = isMarketing ? "" : "none";
       wfRoot.setAttribute("aria-hidden", isMarketing ? "false" : "true");
+      wfRoot.hidden = !isMarketing;
+      (wfRoot as any).inert = !isMarketing;
     }
     if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
 

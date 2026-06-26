@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { MotionWorkbench } from "../design/artifacts";
 
 // ── Five myths — the centrepiece educational content ──────────────────────────
 // Each myth gets a bps-specific rebuttal. Do not dilute or reorder.
@@ -245,6 +246,7 @@ export default function InvestorsPage({
             >
               Sample deal preview
             </div>
+            <MotionWorkbench mode="stress" value="1.11x" label="Investor coverage" />
             <div>
               <Mono
                 style={{

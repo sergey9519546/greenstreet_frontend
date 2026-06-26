@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { MotionWorkbench } from "../design/artifacts";
 
 // ScrollTrigger is already registered in dc.tsx — calling it again here is a
 // no-op for GSAP but avoids the "Plugin already registered" warning in strict mode.
@@ -449,19 +450,19 @@ export default function ProductsPage({
       >
         <div
           id="gs-hero-content"
+          className="dc-hero"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 0.95fr) minmax(320px, 0.6fr)",
+            alignItems: "center",
             gap: "clamp(28px, 4vw, 48px)",
             minHeight: "clamp(280px, 38vh, 420px)",
-            justifyContent: "space-between",
           }}
         >
-          {/* Title block — eyebrow + display h1 */}
           <div>
+            {/* Title block — eyebrow + display h1 */}
             <div
               style={{
                 fontSize: 13,
@@ -477,22 +478,23 @@ export default function ProductsPage({
             <H1 style={{ margin: 0 }}>
               The DSCR Engine
             </H1>
-          </div>
 
-          {/* Sub — separate child so hero stagger steps to it after the h1 */}
-          <Lead
-            style={{
-              color: "rgba(238,239,211,0.72)",
-              maxWidth: "40ch",
-              margin: 0,
-            }}
-          >
-            Eleven tools for DSCR rental-loan underwriting — from a 60-second
-            deal check to a full after-tax returns model. Every tool runs off the
-            same deterministic core: versioned math, statutory citations, no
-            AI-generated numbers. Brokers typically use three tools. Investors
-            use five. Funds use all eleven. Start anywhere.
-          </Lead>
+            {/* Sub — separate child so hero stagger steps to it after the h1 */}
+            <Lead
+              style={{
+                color: "rgba(238,239,211,0.72)",
+                maxWidth: "48ch",
+                margin: "clamp(24px,3vw,36px) 0 0",
+              }}
+            >
+              Eleven tools for DSCR rental-loan underwriting — from a 60-second
+              deal check to a full after-tax returns model. Every tool runs off the
+              same deterministic core: versioned math, statutory citations, no
+              AI-generated numbers. Brokers typically use three tools. Investors
+              use five. Funds use all eleven. Start anywhere.
+            </Lead>
+          </div>
+          <MotionWorkbench mode="sim" value="11" label="Connected tools" />
         </div>
       </section>
 

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
-import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import { DscrGauge, RiskFlame, riskFromDscr, dscrColor, MotionWorkbench } from "../design/artifacts";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const MINT      = dc.mintBg;
@@ -343,8 +343,13 @@ export default function StressMatrixPage({
             <Btn label="Open the simulator →" href="#sm-tool" onClick={scrollToTool} />
           </div>
 
-          {/* Right: mini heatmap */}
-          <div>
+          {/* Right: animated stress preview + mini heatmap */}
+          <div style={{ display: "grid", gap: 16 }}>
+            <MotionWorkbench
+              mode="stress"
+              value={`${stressedDSCR.toFixed(2)}x`}
+              label="Live stressed DSCR"
+            />
             <div style={{
               display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 5,
               background: DARK_INK, borderRadius: dc.r.lg, padding: 14,

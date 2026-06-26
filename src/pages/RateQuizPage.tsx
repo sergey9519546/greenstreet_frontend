@@ -16,7 +16,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono } from "../design/dc";
-import { DscrGauge, RiskFlame } from "../design/artifacts";
+import { DscrGauge, RiskFlame, MotionWorkbench } from "../design/artifacts";
 import { swatch, radius, font } from "../theme";
 
 interface Props {
@@ -583,6 +583,8 @@ export default function RateQuizPage({ onNavigate }: Props) {
           .rq-cta-row a, .rq-cta-row button { width: 100% !important; text-align: center !important; justify-content: center !important; }
           .rq-result-cols { flex-direction: column !important; }
           .rq-gauge-col { align-self: flex-start !important; }
+          .rq-hero-grid { grid-template-columns: 1fr !important; }
+          .rq-hero-copy { text-align: left !important; }
         }
       `}</style>
 
@@ -596,69 +598,80 @@ export default function RateQuizPage({ onNavigate }: Props) {
       >
         <div
           id="gs-hero-content"
-          style={{ maxWidth: 680, margin: "0 auto", textAlign: "center" }}
+          className="rq-hero-grid"
+          style={{
+            maxWidth: 1180,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1.05fr) minmax(320px, 0.75fr)",
+            gap: "clamp(32px,5vw,72px)",
+            alignItems: "center",
+          }}
         >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: swatch.mint,
-              border: `1px solid ${swatch.midnightFaded}`,
-              borderRadius: 99,
-              padding: "6px 14px",
-              marginBottom: 20,
-            }}
-          >
+          <div className="rq-hero-copy">
             <div
               style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: swatch.emerald,
-              }}
-            />
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "rgba(0,55,56,0.65)",
-                letterSpacing: "0.02em",
-                textTransform: "uppercase" as const,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: swatch.mint,
+                border: `1px solid ${swatch.midnightFaded}`,
+                borderRadius: 99,
+                padding: "6px 14px",
+                marginBottom: 20,
               }}
             >
-              Rate intelligence · 5 questions · 60 seconds
-            </span>
+              <div
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: swatch.emerald,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "rgba(0,55,56,0.65)",
+                  letterSpacing: "0.02em",
+                  textTransform: "uppercase" as const,
+                }}
+              >
+                Rate intelligence · 5 questions · 60 seconds
+              </span>
+            </div>
+
+            <h1
+              style={{
+                fontSize: "clamp(38px,5.8vw,74px)",
+                fontWeight: 700,
+                letterSpacing: "-0.04em",
+                lineHeight: 0.98,
+                color: swatch.midnight,
+                margin: "0 0 20px",
+                fontFamily: font.family,
+              }}
+            >
+              Find the right DSCR program for your deal.
+            </h1>
+
+            <p
+              style={{
+                fontSize: "clamp(15px,1.8vw,18px)",
+                fontWeight: 500,
+                lineHeight: 1.6,
+                color: "rgba(0,55,56,0.6)",
+                margin: 0,
+                maxWidth: "54ch",
+                letterSpacing: "-0.01em",
+                fontFamily: font.family,
+              }}
+            >
+              Five quick questions about your property, credit, and cash flow. No credit pull — we map your answers to a Greenstreet program and an indicative rate range. Estimate-ok on every field.
+            </p>
           </div>
-
-          <h1
-            style={{
-              fontSize: "clamp(36px,5.5vw,68px)",
-              fontWeight: 700,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.0,
-              color: swatch.midnight,
-              margin: "0 0 20px",
-              fontFamily: font.family,
-            }}
-          >
-            Find the right DSCR program for your deal.
-          </h1>
-
-          <p
-            style={{
-              fontSize: "clamp(15px,1.8vw,18px)",
-              fontWeight: 500,
-              lineHeight: 1.6,
-              color: "rgba(0,55,56,0.6)",
-              margin: "0 auto",
-              maxWidth: "52ch",
-              letterSpacing: "-0.01em",
-              fontFamily: font.family,
-            }}
-          >
-            Five quick questions about your property, credit, and cash flow. No credit pull — we map your answers to a Greenstreet program and an indicative rate range. Estimate-ok on every field.
-          </p>
+          <MotionWorkbench mode="quiz" value={`${step + 1}/${total}`} label="Questions answered" />
         </div>
       </section>
 
