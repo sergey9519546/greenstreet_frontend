@@ -111,6 +111,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
 }
 
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+import { depth } from "./theme";
 
 function portalTabFromPath(pathname: string): string | undefined {
   const clean = pathname.replace(/\/$/, "");
@@ -227,6 +228,8 @@ export default function App() {
   goToRef.current = goTo;
   const viewRef = useRef(view);
   viewRef.current = view;
+  // First body paint sets the depth ground instantly; later route changes fade.
+  const depthFirstPaint = useRef(true);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -266,14 +269,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    document.body.style.backgroundColor = "#EEEFD3";
-    if (view === "marketing") {
-      document.body.style.color = "#003738";
-    } else if (view === "portal") {
-      document.body.style.color = "#002D2E";
-    } else {
-      document.body.style.color = "#003738";
+    // Deal-depth ground: the marketing home rides the cream "browse" surface and
+    // every React app route rides the midnight "underwrite" surface. Painting
+    // BOTH grounds (html catches overscroll, body the page) with the paired ink
+    // means the marketing→app crossing fades through one tonal descent instead of
+    // cutting between two color worlds — and the cream ground stops flashing
+    // behind the dark app. Surface+ink come from the same stop so contrast can
+    // never invert mid-ramp.
+    const stop = view === "marketing" ? depth.browse : depth.underwrite;
+    const root = document.documentElement;
+    if (!depthFirstPaint.current) {
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const ease = reduce ? "none" : "background-color 600ms ease, color 600ms ease";
+      root.style.transition = ease;
+      document.body.style.transition = ease;
     }
+    root.style.backgroundColor = stop.bg;
+    document.body.style.backgroundColor = stop.bg;
+    document.body.style.color = stop.ink;
+    depthFirstPaint.current = false;
 
     const isMarketing = view === "marketing";
     if (isMarketing) {

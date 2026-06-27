@@ -125,6 +125,19 @@ export const onLight = {
   tertiary: "rgba(0,55,56,0.5)",
 } as const;
 
+// ── Deal-depth ground ramp ────────────────────────────────────────────────────
+// The page-ground tone encodes funnel stage: the cream marketing home and the
+// midnight app are two ends of ONE descent, not two separate color worlds.
+// Surface and ink are PAIRED (co-indexed) and must always be set together —
+// flipping the surface without the ink inverts contrast mid-ramp (dark ink on a
+// darkening ground = a window of unreadable text). The app is uniformly dark, so
+// today the ramp has two stops; add intermediate stops here if a lighter
+// "compare" tier of pages is ever introduced.
+export const depth = {
+  browse:     { bg: swatch.pistachio, ink: onLight.primary }, // marketing home
+  underwrite: { bg: swatch.midnight,  ink: onDark.primary  }, // the React app
+} as const;
+
 // Type ramp (px anchors). Body = base; headings clamp between these anchors.
 export const size = {
   xs: 11, sm: 13, base: 15, md: 18, lg: 22, xl: 30, "2xl": 44, "3xl": 64,
