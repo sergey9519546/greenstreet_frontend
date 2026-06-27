@@ -347,6 +347,28 @@ export function Card({ children, style, tone = "subtle", pad = scale.xl }: { chi
   return <div style={{ background: tones.bg, border: `1px solid ${tones.bd}`, borderRadius: radius.md, padding: pad, ...style }}>{children}</div>;
 }
 
+/** Cinematic brand photo band — a framed scene image (public/img/generated) with
+ *  a teal gradient that ties it into the dark ground, plus an optional caption.
+ *  Warms the data-forward pages with the on-brand image library. */
+export function ScenePhoto({ src, alt, caption, eyebrow, height = "clamp(260px,40vh,460px)", style }: { src: string; alt: string; caption?: React.ReactNode; eyebrow?: React.ReactNode; height?: string; style?: React.CSSProperties }) {
+  return (
+    <section style={{ background: dc.teal, padding: `clamp(24px,4vh,56px) ${dc.pad}`, ...style }}>
+      <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+      <div style={{ position: "relative", height, borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)" }}>
+        <img src={src} alt={alt} loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,55,56,0.10) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.80) 100%)" }} />
+        {(eyebrow || caption) && (
+          <div style={{ position: "absolute", left: "clamp(20px,3vw,40px)", right: "clamp(20px,3vw,40px)", bottom: "clamp(18px,2.6vw,30px)" }}>
+            {eyebrow && <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: tracking.caps, textTransform: "uppercase", color: onDark.secondary, marginBottom: 7 }}>{eyebrow}</div>}
+            {caption && <div style={{ fontSize: "clamp(16px,1.8vw,22px)", fontWeight: 600, letterSpacing: tracking.snug, color: "#eeefd3", maxWidth: "34ch", lineHeight: 1.25 }}>{caption}</div>}
+          </div>
+        )}
+      </div>
+      </div>
+    </section>
+  );
+}
+
 export function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   // Inline font so this works with or without DC_CSS injected (e.g. the
   // self-contained flagship page). tabular-nums keeps animated numbers from jittering.

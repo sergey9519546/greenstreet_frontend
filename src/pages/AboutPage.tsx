@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { DcShell, dc, H1, Lead } from "../design/dc";
+import { DcShell, dc, H1, Lead, ScenePhoto } from "../design/dc";
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
@@ -219,6 +219,14 @@ export default function AboutPage({
           </div>
         </div>
       </section>
+
+      <ScenePhoto
+        src="/img/generated/scenes/office-window-team.png"
+        alt="The Greenstreet underwriting team reviewing deals at a desk"
+        eyebrow="One desk, every deal"
+        caption="A broker and a quant — and the team that prices, structures, and funds each file."
+        style={{ background: dc.cream }}
+      />
 
       {/* ── VISION — two stacked 2-col blocks ────────────────────────────── */}
       <section

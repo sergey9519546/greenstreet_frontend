@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DcShell, dc, H1, Lead } from "../design/dc";
+import { DcShell, dc, H1, Lead, ScenePhoto } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
 import { radius } from "../theme";
 
@@ -328,6 +328,13 @@ export default function CareersPage({
           </div>
         </div>
       </section>
+
+      <ScenePhoto
+        src="/img/generated/scenes/two-person-meeting.png"
+        alt="Greenstreet team members working through a deal together"
+        eyebrow="Life at Greenstreet"
+        caption="Small team, high ownership — you touch the engine, not a backlog ticket."
+      />
 
       {/* ── HOW WE WORK ──────────────────────────────────────────────────────── */}
       <section
