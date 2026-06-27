@@ -264,7 +264,7 @@ export function ClaudeDscrGauge({
         </div>
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingBottom: "7%", pointerEvents: "none", zIndex: 5 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>{label}</div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(32px,4vw,48px)", fontWeight: 700, color: col, lineHeight: 0.9, textShadow: "none" }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(32px,4vw,48px)", fontWeight: 700, color: "#eeefd3", lineHeight: 0.9, textShadow: `0 2px 20px ${col}55` }}>
             {displayValue.toFixed(2)}<span style={{ fontSize: "0.48em" }}>x</span>
           </div>
         </div>
