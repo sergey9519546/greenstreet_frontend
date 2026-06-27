@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
 
 // ── Case studies data ─────────────────────────────────────────────────────────
@@ -22,6 +22,8 @@ interface Study {
   /** Illustrative composite quote — not attributed to a verified named individual */
   quote: string;
   program: string;
+  /** Brand scene image (public/img/generated/scenes) for the case panel */
+  image: string;
 }
 
 const STUDIES: Study[] = [
@@ -31,6 +33,7 @@ const STUDIES: Study[] = [
     location: "Buy-and-hold investor",
     type: "Portfolio investor",
     num: "01",
+    image: "/img/generated/scenes/office-window-team.png",
     headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
     metrics: [
       { v: "4×", k: "Throughput increase" },
@@ -53,6 +56,7 @@ const STUDIES: Study[] = [
     location: "Real estate investor",
     type: "Active investor",
     num: "02",
+    image: "/img/generated/scenes/desk-green-data.png",
     headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
     metrics: [
       { v: "Same-day", k: "Rate lock" },
@@ -75,6 +79,7 @@ const STUDIES: Study[] = [
     location: "Buy-and-hold investor",
     type: "Investor / Non-US investor",
     num: "03",
+    image: "/img/generated/scenes/broker-building-dusk.png",
     headline: "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
     metrics: [
       { v: "3", k: "Deals killed pre-appraisal" },
@@ -99,6 +104,7 @@ const AURORA_STORY = {
   location: "Portfolio operator",
   type: "Portfolio investor",
   num: "04",
+  image: "/img/generated/scenes/residential-townhomes.png",
   headline: "One blended view of 40 doors got the blanket line approved.",
   metrics: [
     { v: "$18M", k: "Blanket line approved" },
@@ -142,6 +148,10 @@ const CS_LINE_CSS = `
     animation: csFadeIn 0.4s var(--cs-ndelay, 0s) ease-out forwards;
     opacity: 0;
   }
+}
+@media(max-width:820px){
+  .cs-panel{grid-template-columns:1fr !important;gap:24px !important;}
+  .cs-panel .cs-photo{order:-1 !important;}
 }
 `;
 
@@ -239,118 +249,72 @@ function StudyRow({
   s,
   onNavigate,
   isLast,
+  index,
 }: {
   s: Study;
   onNavigate: (v: string) => void;
   isLast: boolean;
+  index: number;
 }) {
+  const [ref, shown] = useRevealOnView<HTMLDivElement>();
+  const photoLeft = index % 2 === 0;
+  // Reveal: each piece rises + fades in on scroll, staggered. Idempotent CSS
+  // transition driven off `shown` (reduced-motion + hidden-tab safe).
+  const rise = (d: number): React.CSSProperties => ({
+    opacity: shown ? 1 : 0,
+    transform: shown ? "none" : "translateY(26px)",
+    transition: `opacity .7s cubic-bezier(.22,.7,0,1) ${d}s, transform .7s cubic-bezier(.22,.7,0,1) ${d}s`,
+  });
   return (
     <div
-      className="dc-band-2"
+      ref={ref}
+      className="cs-panel"
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1.4fr",
-        gap: "clamp(28px,4vw,64px)",
-        background: dc.dark,
-        padding: "clamp(36px,4vw,56px) 0",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "clamp(28px,4.5vw,72px)",
+        alignItems: "center",
+        padding: "clamp(40px,5.5vw,80px) 0",
         borderBottom: isLast ? "none" : `1px solid ${dc.faded}`,
       }}
     >
-      {/* Left column */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          gap: 16,
-        }}
-      >
-        <div>
-          <Mono
-            style={{
-              display: "block",
-              fontSize: "clamp(40px,5.5vw,80px)",
-              fontWeight: 600,
-              letterSpacing: "-0.04em",
-              color: "rgba(238,239,211,0.12)",
-              lineHeight: 1,
-              marginBottom: 16,
-            }}
-          >
-            {s.num}
-          </Mono>
-          <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.9)", marginBottom: 14 }}>
-            {s.company}
+      {/* Photo panel — big index + client wordmark composited over the scene */}
+      <div className="cs-photo" style={{ order: photoLeft ? 0 : 1, ...rise(0) }}>
+        <div style={{ position: "relative", aspectRatio: "4 / 3", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)" }}>
+          <img
+            src={s.image}
+            alt={`${s.company} — ${s.type}`}
+            loading="lazy"
+            decoding="async"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: shown ? "scale(1)" : "scale(1.08)", transition: "transform 1.3s cubic-bezier(.2,.6,0,1)" }}
+          />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
+          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,20px)", left: "clamp(16px,1.8vw,24px)", fontSize: "clamp(34px,4.4vw,64px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.92)", lineHeight: 1 }}>{s.num}</Mono>
+          <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream }}>{s.company}</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.7)", marginTop: 3, letterSpacing: "-0.01em" }}>{s.type} · {s.location}</div>
           </div>
-          <h3
-            style={{
-              fontSize: "clamp(22px,2.4vw,34px)",
-              fontWeight: 600,
-              letterSpacing: "-0.03em",
-              color: dc.cream,
-              lineHeight: 1.1,
-              margin: 0,
-            }}
-          >
-            {s.headline}
-          </h3>
-        </div>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: "rgba(238,239,211,0.62)",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {s.company} · {s.type} · {s.location}
         </div>
       </div>
 
-      {/* Right column */}
-      <div>
-        <p
-          style={{
-            fontSize: "clamp(16px,1.3vw,20px)",
-            fontWeight: 500,
-            lineHeight: 1.6,
-            color: "rgba(238,239,211,0.72)",
-            margin: "0 0 28px",
-            letterSpacing: "-0.01em",
-          }}
-        >
+      {/* Content */}
+      <div className="cs-content" style={{ order: photoLeft ? 1 : 0 }}>
+        <h3 style={{ ...rise(0.06), fontSize: "clamp(22px,2.4vw,34px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.cream, lineHeight: 1.12, margin: "0 0 18px" }}>
+          {s.headline}
+        </h3>
+        <p style={{ ...rise(0.12), fontSize: "clamp(15px,1.2vw,19px)", fontWeight: 500, lineHeight: 1.6, color: "rgba(238,239,211,0.72)", margin: "0 0 28px", letterSpacing: "-0.01em" }}>
           {s.result}
         </p>
-
-        {/* Metrics row */}
-        <div
-          className="dc-band-3"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${s.metrics.length},auto)`,
-            gap: "clamp(20px,3vw,40px)",
-            justifyContent: "start",
-            marginBottom: 24,
-          }}
-        >
-          {s.metrics.map((m) => (
-            <MetricChip key={m.k} {...m} />
+        <div className="dc-band-3" style={{ display: "grid", gridTemplateColumns: `repeat(${s.metrics.length},auto)`, gap: "clamp(20px,3vw,44px)", justifyContent: "start", marginBottom: 28 }}>
+          {s.metrics.map((m, i) => (
+            <div key={m.k} style={rise(0.18 + i * 0.08)}>
+              <MetricChip {...m} />
+            </div>
           ))}
         </div>
-
         <button
           onClick={() => (window.history.pushState({}, "", `/case-studies/${s.slug}`), window.dispatchEvent(new PopStateEvent("popstate")))}
-          style={{
-            background: "none",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            fontSize: 14,
-            fontWeight: 700,
-            color: dc.emerald,
-            letterSpacing: "-0.01em",
-            fontFamily: dc.sans,
-          }}
+          style={{ ...rise(0.18 + s.metrics.length * 0.08), background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 14, fontWeight: 700, color: dc.emerald, letterSpacing: "-0.01em", fontFamily: dc.sans, display: "inline-flex", alignItems: "center", gap: 6 }}
         >
           Read the full scenario →
         </button>
@@ -1033,8 +997,7 @@ export default function CaseStudiesPage({
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 1,
-              background: `${dc.faded}`,
+              gap: 0,
             }}
           >
             {ALL_STUDIES.map((s, i) => (
@@ -1043,6 +1006,7 @@ export default function CaseStudiesPage({
                 s={s}
                 onNavigate={onNavigate}
                 isLast={i === ALL_STUDIES.length - 1}
+                index={i}
               />
             ))}
           </div>
