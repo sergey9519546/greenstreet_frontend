@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild src/engineWorker.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/engineWorker.cjs && esbuild src/function.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/function.cjs",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild src/engineWorker.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/engineWorker.cjs && esbuild src/function.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/function.cjs && esbuild src/serverApp.ts --bundle --platform=node --format=cjs --packages=external --outfile=api/_app.cjs",
     "start": "node dist/server.cjs",
     "lint": "tsc --noEmit",
     "test": "vitest run",
