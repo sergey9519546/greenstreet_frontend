@@ -267,7 +267,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
               {/* INPUT RAIL */}
-              <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.1)' }}>
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Property inputs</div>
                 <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 20, lineHeight: 1.5 }}>Estimates are fine — adjust any number and results update instantly.</p>
                 <div style={{ display: 'grid', gap: 24 }}>
@@ -339,7 +339,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* PITIA breakdown — relocated beneath the input rail, always visible */}
-              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.1)' }}>
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>PITIA breakdown</div>
                 <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginBottom: 14, lineHeight: 1.4 }}>The full monthly payment — principal, interest, taxes, insurance, and any HOA dues. DSCR = monthly rent ÷ this total.</p>
                 {rows.map((r, i) => (
@@ -356,7 +356,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* Matched programs — relocated beneath the input rail, always visible */}
-              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.1)' }}>
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>Matched programs</div>
                 <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginBottom: 10, lineHeight: 1.4 }}>Indicative rate offsets from today's note rate. Best-tier pricing requires DSCR ≥ 1.25 and FICO ≥ 740.</p>
                 {lenderRows.map((lr, i) => (
@@ -463,7 +463,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 )}
 
                 {/* ── TIER 2 · SUPPORTING — metrics + sensitivity + next step ── */}
-                <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(24px,2.5vw,32px)', border: '1px solid rgba(238,239,211,0.1)', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(24px,2.5vw,32px)', border: '1px solid rgba(238,239,211,0.16)', display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div className="dc-band-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
                     {[
                       { v: (cashFlow >= 0 ? '+' : '') + fmt(cashFlow), c: cashFlow >= 0 ? '#4dbd97' : '#e88a8a', l: 'monthly cash flow', s: cashFlow >= 0 ? 'rent exceeds PITIA' : 'rent falls short' },
@@ -483,7 +483,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 12, lineHeight: 1.4 }}>How much each change shifts your DSCR — green improves it, red hurts it.</p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
                       {sens.map((x, i) => (
-                        <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '13px 14px', border: '1px solid rgba(238,239,211,0.1)' }}>
+                        <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '13px 14px', border: '1px solid rgba(238,239,211,0.16)' }}>
                           <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginBottom: 5, lineHeight: 1.25 }}>{x.label}</div>
                           <Mono style={{ fontSize: 18, fontWeight: 700, color: x.color }}>{x.delta}</Mono>
                         </div>
@@ -491,7 +491,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', borderTop: '1px solid rgba(238,239,211,0.1)', paddingTop: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', borderTop: '1px solid rgba(238,239,211,0.16)', paddingTop: 20 }}>
                     <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 14, textDecoration: 'none', padding: '12px 22px', borderRadius: radius.sm, minHeight: 44 }}>
                       Find my program →
                     </a>
@@ -508,7 +508,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
           {/* ── MAX PURCHASE TAB ── */}
           {tab === 'maxprice' && (
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
-              <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.1)' }}>
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Work backwards from rent</div>
                 <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR (the ratio you want to hit — 1.25x is a strong approval threshold). We'll calculate the maximum price you can pay and still hit that ratio.</p>
                 <div style={{ display: 'grid', gap: 22 }}>
@@ -538,7 +538,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               </div>
               <div>
                 {/* Headline answer: scrub-able Claude gauge for target */}
-                <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', marginBottom: 20, border: '1px solid rgba(238,239,211,0.1)' }}>
+                <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', marginBottom: 20, border: '1px solid rgba(238,239,211,0.16)' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {target.toFixed(2)}x DSCR</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
                     <div>
@@ -551,7 +551,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <ClaudeDscrGauge value={target} size={170} min={0.75} max={1.5} label="Target" onValueChange={setTarget} />
                   </div>
                 </div>
-                <div style={{ background: CARD, borderRadius: radius.lg, padding: '24px 28px', border: '1px solid rgba(238,239,211,0.1)' }}>
+                <div style={{ background: CARD, borderRadius: radius.lg, padding: '24px 28px', border: '1px solid rgba(238,239,211,0.16)' }}>
                   {mRows.map((r, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0', borderBottom: '1px solid rgba(238,239,211,0.07)', fontSize: 14 }}>
                       <span style={{ color: 'rgba(238,239,211,0.6)', fontWeight: 500 }}>{r.label}</span>

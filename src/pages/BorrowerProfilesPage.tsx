@@ -677,7 +677,7 @@ export default function BorrowerProfilesPage({
                     alignItems: "center",
                     gap: 10,
                     padding: "8px 0",
-                    borderBottom: `1px solid rgba(238,239,211,0.1)`,
+                    borderBottom: `1px solid rgba(238,239,211,0.16)`,
                     fontSize: 13,
                     color: dc.cream,
                   }}

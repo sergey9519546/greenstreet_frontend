@@ -120,7 +120,7 @@ export default function GoLanding(p: GoLandingProps) {
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(238,239,211,0.3)" }} />
                   <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>{p.mock.dealId}</span>
                 </div>
-                <div style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: 10, background: "linear-gradient(135deg, rgba(238,239,211,0.08), rgba(238,239,211,0.02))", border: "1px solid rgba(238,239,211,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: 10, background: "linear-gradient(135deg, rgba(238,239,211,0.08), rgba(238,239,211,0.02))", border: "1px solid rgba(238,239,211,0.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Mono style={{ fontSize: "clamp(40px,6vw,72px)", fontWeight: 600, color: dc.cream, letterSpacing: "-0.04em" }}>{p.mock.bigStat}</Mono>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: `repeat(${p.mock.tiles.length},1fr)`, gap: 1, background: "rgba(238,239,211,0.12)", borderRadius: 9, overflow: "hidden", marginTop: 16 }}>

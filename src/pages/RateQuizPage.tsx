@@ -273,7 +273,7 @@ function HelperBox({ text }: { text: string }) {
         lineHeight: 1.65,
         color: "rgba(238,239,211,0.68)",
         letterSpacing: "-0.01em",
-        border: "1px solid rgba(238,239,211,0.1)",
+        border: "1px solid rgba(238,239,211,0.16)",
       }}
     >
       {text}
@@ -678,7 +678,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
           background: ${swatch.darkTeal};
           border-radius: ${radius.lg};
           padding: clamp(28px,4vw,48px);
-          border: 1px solid rgba(238,239,211,0.1);
+          border: 1px solid rgba(238,239,211,0.16);
         }
         .rq-option {
           position: relative;
@@ -1001,7 +1001,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   background: `linear-gradient(135deg, ${swatch.midnight} 0%, ${swatch.darkTeal} 100%)`,
                   borderRadius: radius.lg,
                   padding: "clamp(28px,4.5vw,52px)",
-                  border: "1px solid rgba(238,239,211,0.1)",
+                  border: "1px solid rgba(238,239,211,0.16)",
                   marginBottom: 16,
                   position: "relative",
                   overflow: "hidden",
@@ -1473,7 +1473,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
         style={{
           background: swatch.midnight,
           color: swatch.pistachio,
-          borderTop: "1px solid rgba(238,239,211,0.1)",
+          borderTop: "1px solid rgba(238,239,211,0.16)",
           padding:
             "clamp(36px,5vh,56px) clamp(1.5rem,5vw,4rem)",
         }}
@@ -1507,7 +1507,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 background: swatch.darkTeal,
                 borderRadius: radius.md,
                 padding: "22px 24px",
-                border: "1px solid rgba(238,239,211,0.1)",
+                border: "1px solid rgba(238,239,211,0.16)",
               }}
             >
               <div

@@ -260,7 +260,7 @@ export default function TaxEnginePage({
                     justifyContent: "space-between",
                     fontSize: 13,
                     padding: "8px 0",
-                    borderBottom: "1px solid rgba(238,239,211,0.1)",
+                    borderBottom: "1px solid rgba(238,239,211,0.16)",
                   }}
                 >
                   <span style={{ color: "rgba(238,239,211,0.6)" }}>{r.label}</span>
@@ -528,7 +528,7 @@ export default function TaxEnginePage({
                       background: dc.dark,
                       borderRadius: 6,
                       padding: "0 11px",
-                      border: "1px solid rgba(238,239,211,0.1)",
+                      border: "1px solid rgba(238,239,211,0.16)",
                     }}
                   >
                     {f.prefix && (
@@ -573,7 +573,7 @@ export default function TaxEnginePage({
                     background: dc.dark,
                     borderRadius: 6,
                     padding: "0 11px",
-                    border: "1px solid rgba(238,239,211,0.1)",
+                    border: "1px solid rgba(238,239,211,0.16)",
                   }}
                 >
                   <select
@@ -890,7 +890,7 @@ export default function TaxEnginePage({
                       padding: "14px 18px",
                       background: "rgba(238,239,211,0.05)",
                       borderRadius: 9,
-                      border: "1px solid rgba(238,239,211,0.1)",
+                      border: "1px solid rgba(238,239,211,0.16)",
                       fontSize: 12,
                       color: "rgba(238,239,211,0.62)",
                       lineHeight: 1.6,

@@ -187,7 +187,7 @@ function Disclosure({ label, children }: { label: string; children: React.ReactN
         </svg>
       </button>
       {open && (
-        <div style={{ padding: "16px 18px 18px", borderTop: "1px solid rgba(238,239,211,0.1)" }}>
+        <div style={{ padding: "16px 18px 18px", borderTop: "1px solid rgba(238,239,211,0.16)" }}>
           {children}
         </div>
       )}
@@ -414,7 +414,7 @@ export default function MonteCarloPage({
               value={`${pD1.toFixed(1)}%`}
               label="Break-risk paths"
             />
-            <div style={{ background: dc.dark, borderRadius: dc.r.lg, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+            <div style={{ background: dc.dark, borderRadius: dc.r.lg, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
                 Live — median DSCR across {simulations} paths
               </div>
@@ -470,7 +470,7 @@ export default function MonteCarloPage({
           <div className="mc-tool-grid" style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 32, alignItems: "start" }}>
 
             {/* ── INPUT PANEL ─────────────────────────────────────────── */}
-            <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.1)" }}>
+            <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.16)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 6 }}>
                 Simulation parameters
               </div>
@@ -488,7 +488,7 @@ export default function MonteCarloPage({
                 <SliderField label="Taxes + Insurance + HOA /mo" hint="Non-debt PITIA costs. Together with the P&I payment, this makes up the full monthly obligation." value={pitiaNonDebt} set={touch("pitiaNonDebt", setPitiaNonDebt)} min={0} max={3000} step={25} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
               </div>
 
-              <div style={{ borderTop: "1px solid rgba(238,239,211,0.1)", margin: "20px 0 20px" }} />
+              <div style={{ borderTop: "1px solid rgba(238,239,211,0.16)", margin: "20px 0 20px" }} />
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
                 Rate assumptions
               </div>
@@ -500,7 +500,7 @@ export default function MonteCarloPage({
                 <SliderField label="Long-run SOFR (θ) %" hint="Where you think rates settle over time. All paths drift toward this level." value={longRunSofr} set={touch("longRunSofr", setLongRunSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
               </div>
 
-              <div style={{ borderTop: "1px solid rgba(238,239,211,0.1)", margin: "20px 0 20px" }} />
+              <div style={{ borderTop: "1px solid rgba(238,239,211,0.16)", margin: "20px 0 20px" }} />
               <Disclosure label="Advanced parameters">
                 <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 4 }}>
                   <SliderField label="Number of simulations" hint="More paths = more precise probability. 500 is a solid default." value={simulations} set={setSimulations} min={100} max={2000} step={100} suffix="" fmt={(v) => v.toLocaleString("en-US")} />
@@ -530,7 +530,7 @@ export default function MonteCarloPage({
                   <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: pD1Color, lineHeight: 0.92, display: "block" }}>{pD1.toFixed(1)}%</Mono>
                   <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance the property can't cover its costs in some rate futures — below 5% is comfortable, above 20% is high-risk.</div>
                 </div>
-                <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: "1px solid rgba(238,239,211,0.1)" }}>
+                <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: "1px solid rgba(238,239,211,0.16)" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>P(DSCR &lt; 1.25)</div>
                   <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 0.92, display: "block" }}>{pD125.toFixed(1)}%</Mono>
                   <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance of missing the 1.25 cushion most lenders prefer — below 30% is acceptable.</div>
@@ -538,7 +538,7 @@ export default function MonteCarloPage({
               </div>
 
               {/* SOFR FAN CHART — the signature uncertainty cone */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(20px,2.5vw,28px)", border: "1px solid rgba(238,239,211,0.1)" }}>
+              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(20px,2.5vw,28px)", border: "1px solid rgba(238,239,211,0.16)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE }}>Where rates could go — {simulations} simulated SOFR paths</div>
                   <div style={{ display: "flex", gap: 14, fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
@@ -553,7 +553,7 @@ export default function MonteCarloPage({
               </div>
 
               {/* Median DSCR gauge + spread — dark */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
                 <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 24, alignItems: "center" }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>Median DSCR</div>

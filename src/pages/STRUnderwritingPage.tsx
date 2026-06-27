@@ -124,7 +124,7 @@ function MonthTable({
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
                   fontSize: 11,
-                  borderBottom: "1px solid rgba(238,239,211,0.1)",
+                  borderBottom: "1px solid rgba(238,239,211,0.16)",
                 }}
               >
                 {h}

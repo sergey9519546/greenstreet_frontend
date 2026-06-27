@@ -420,7 +420,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
           </div>
 
           {/* right — the returns journey (cumulative cash over the hold) */}
-          <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.1)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
+          <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.emerald }}>Your money over the hold</div>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(238,239,211,0.62)" }}><span style={{ width: 12, height: 3, background: dc.lemon, borderRadius: 2, display: "inline-block" }} />cumulative cash</span>
@@ -429,7 +429,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "14px 0 16px", lineHeight: 1.55 }}>
               You put <strong style={{ color: dc.cream }}>{"$" + Math.round(cashInv).toLocaleString("en-US")}</strong> down, collect cash flow each year, then the sale in year {holdYears} returns the rest. The line crossing break-even is when your capital is back — the final point is total profit.
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, borderTop: "1px solid rgba(238,239,211,0.1)", paddingTop: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, borderTop: "1px solid rgba(238,239,211,0.16)", paddingTop: 16 }}>
               {[
                 { l: "Cash-on-cash", v: coc.toFixed(1) + "%", c: dc.emerald },
                 { l: "Equity multiple", v: emStr, c: dc.cream },
@@ -474,7 +474,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 32, alignItems: "start" }}>
 
             {/* ── INPUTS ─────────────────────────────────────────────── */}
-            <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.1)" }}>
+            <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.16)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                 Deal inputs
               </div>
@@ -496,7 +496,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 <SliderField label="Monthly Rent" hint="Gross scheduled rent before vacancy." value={monthlyRent} set={touch("monthlyRent", setMonthlyRent)} min={500} max={15000} step={50} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
               </div>
 
-              <div style={{ borderTop: "1px solid rgba(238,239,211,0.1)", margin: "18px 0" }} />
+              <div style={{ borderTop: "1px solid rgba(238,239,211,0.16)", margin: "18px 0" }} />
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 14 }}>
                 Hold &amp; exit
               </div>
@@ -530,7 +530,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               <div style={{
                 background: dc.dark, borderRadius: dc.r.md, padding: "clamp(24px,3vw,40px)",
               }}>
-                <div style={{ textAlign: "center", paddingBottom: "clamp(20px,2.4vw,28px)", marginBottom: "clamp(20px,2.4vw,28px)", borderBottom: "1px solid rgba(238,239,211,0.1)" }}>
+                <div style={{ textAlign: "center", paddingBottom: "clamp(20px,2.4vw,28px)", marginBottom: "clamp(20px,2.4vw,28px)", borderBottom: "1px solid rgba(238,239,211,0.16)" }}>
                   <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>
                     Levered IRR
                   </div>
@@ -567,7 +567,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               {/* DSCR gauge — shows debt coverage quality */}
               <div ref={gaugeRef} style={{
                 background: dc.teal, borderRadius: dc.r.md, padding: "22px 24px",
-                border: "1px solid rgba(238,239,211,0.1)",
+                border: "1px solid rgba(238,239,211,0.16)",
                 display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "center",
                 opacity: gaugeShown ? 1 : 0, transform: gaugeShown ? "none" : "translateY(8px)",
                 transition: "opacity 0.4s ease, transform 0.4s ease",
@@ -588,7 +588,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               </div>
 
               {/* Sensitivity matrix */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
+              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>
                   Sensitivity table — Levered IRR
                 </div>

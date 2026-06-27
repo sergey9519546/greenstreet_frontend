@@ -63,7 +63,7 @@ export default function VacationHomesPage({
             </Lead>
             <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Run my second home →</button>
           </div>
-          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(20px,2.5vw,30px)" }}>
+          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 14 }}>Your month, split</div>
             <div style={{ display: "flex", height: 22, borderRadius: 100, overflow: "hidden", marginBottom: 8 }}>
               <div style={{ width: `${(useNights / 30) * 100}%`, background: dc.lemon, transition: "width .25s" }} />
@@ -87,7 +87,7 @@ export default function VacationHomesPage({
           <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Drag the split between nights you keep and nights you rent. The more you rent, the more your getaway offsets its own payment.</p>
           <div className="vac-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "stretch" }}>
             {/* slider + bar */}
-            <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: dc.lemon }}>{useNights} nights yours</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: BLUE }}>{rentNights} nights rented</span>
@@ -126,7 +126,7 @@ export default function VacationHomesPage({
               { t: "No second-home income docs", s: "It's a DSCR investment loan: the property's rent qualifies, so there's no DTI squeeze on top of your primary mortgage." },
               { t: "STR-aware underwriting", s: "Seasonal nightly income is modeled honestly — the number holds when the off-season hits." },
             ].map((v) => (
-              <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.1)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
+              <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>
                 <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>{v.s}</div>
               </div>

@@ -27,8 +27,8 @@ const EMBEDDED_TOOL_TABS = new Set([
 const T = {
   // Surfaces — DARK workspace ("all green"): midnight page, darker-teal cards.
   pageBg: swatch.midnight,                  // #003738 dark page
-  cardBg: "#013e3f",                         // panel slightly lifted off the page
-  cardBorder: "rgba(238,239,211,0.12)",      // light hairline on dark
+  cardBg: "#064a4c",                         // panel clearly lifted off the midnight page
+  cardBorder: "rgba(238,239,211,0.18)",      // readable border on dark
   inputBg: "rgba(238,239,211,0.06)",
   inputBorder: "rgba(238,239,211,0.2)",
   inputFocusBorder: swatch.lemon,            // lemon focus — accent pop
@@ -124,7 +124,7 @@ const TAB_LABELS: Partial<Record<DashboardTab, string>> = {
 function Card({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, ...style }}>
+      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 12px 30px -18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(238,239,211,0.06)", ...style }}>
       {children}
     </div>
   );
@@ -134,7 +134,7 @@ function Card({ children, className = "", style = {} }: { children: React.ReactN
 function WhiteCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, ...style }}>
+      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 12px 30px -18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(238,239,211,0.06)", ...style }}>
       {children}
     </div>
   );
@@ -661,7 +661,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         </nav>
 
         <div className="mt-auto flex items-center gap-2.5 px-2 pt-4"
-          style={{ borderTop: "1px solid rgba(238,239,211,0.1)" }}>
+          style={{ borderTop: "1px solid rgba(238,239,211,0.16)" }}>
           <span className="w-8 h-8 flex items-center justify-center text-[13px] font-bold shrink-0"
             style={{ background: swatch.emerald, color: swatch.midnight, borderRadius: "50%", boxShadow: "0 0 0 2px rgba(216,217,88,0.25)" }}>
             {brokerInitials}
@@ -719,7 +719,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         <div className="flex flex-1">
           {/* Desktop sidebar */}
           <aside className="hidden md:flex flex-col w-[256px] shrink-0 p-5 overflow-y-auto sticky top-0"
-            style={{ background: "#00292a", borderRight: "1px solid rgba(238,239,211,0.1)", height: "100vh" }}>
+            style={{ background: "#00292a", borderRight: "1px solid rgba(238,239,211,0.16)", height: "100vh" }}>
             <SidebarContent />
           </aside>
 

@@ -384,7 +384,7 @@ export default function SolutionsPage({
                   display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, width: "100%",
                   background: "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: dc.sans,
                   padding: "clamp(16px,2vw,22px) clamp(18px,2.4vw,26px)",
-                  borderBottom: i < arr.length - 1 ? "1px solid rgba(238,239,211,0.1)" : "none",
+                  borderBottom: i < arr.length - 1 ? "1px solid rgba(238,239,211,0.16)" : "none",
                 }}
               >
                 <div>

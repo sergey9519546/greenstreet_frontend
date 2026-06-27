@@ -74,7 +74,7 @@ export default function InvestorsPage({
               <button onClick={() => onNavigate("portfolio")} style={{ background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(238,239,211,0.5)", cursor: "pointer", padding: "14px 24px", borderRadius: radius.sm, fontFamily: font.family }}>Blend my portfolio</button>
             </div>
           </div>
-          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[{ v: doors.length, l: "doors" }, { v: blended.toFixed(2) + "x", l: "blended DSCR" }, { v: fmt$(cashFlow) + "/mo", l: "cash flow" }, { v: "∞", l: "income cap" }].map((t, i) => (
               <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "16px 14px" }}>
                 <Mono style={{ fontSize: 26, fontWeight: 700, color: i === 3 ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>
@@ -120,7 +120,7 @@ export default function InvestorsPage({
             </div>
 
             {/* portfolio summary */}
-            <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(22px,2.6vw,30px)", position: "sticky", top: 96 }}>
+            <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(22px,2.6vw,30px)", position: "sticky", top: 96 }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 16 }}>Your book, blended</div>
               <Mono style={{ fontSize: "clamp(44px,6vw,68px)", fontWeight: 700, color: dc.lemon, lineHeight: 0.9, display: "block" }}>{doors.length}</Mono>
               <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 4, marginBottom: 22 }}>doors — and no income limit on the next one</div>
@@ -146,7 +146,7 @@ export default function InvestorsPage({
               { t: "Close in your LLC", s: "Vesting in an entity is standard — keep your portfolio clean and separate from your personal credit." },
               { t: "One team, every door", s: "The same desk prices, structures, and funds each deal — no re-keying your file for every purchase." },
             ].map((v) => (
-              <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.1)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
+              <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>
                 <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>{v.s}</div>
               </div>

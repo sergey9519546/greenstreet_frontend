@@ -362,7 +362,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 36, alignItems: "start" }}
           >
             {/* ── INPUTS ── */}
-            <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 30, border: "1px solid rgba(238,239,211,0.1)" }}>
+            <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 30, border: "1px solid rgba(238,239,211,0.16)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
                 Deal &amp; borrower
               </div>
@@ -405,7 +405,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
             {/* ── RESULTS ── */}
             {!result ? (
-              <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 40, border: "1px solid rgba(238,239,211,0.1)", textAlign: "center" }}>
+              <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 40, border: "1px solid rgba(238,239,211,0.16)", textAlign: "center" }}>
                 <p style={{ color: "#e06363", fontWeight: 600 }}>Engine returned no result — check inputs.</p>
               </div>
             ) : (
@@ -418,7 +418,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     background: dc.dark,
                     borderRadius: radius.lg,
                     padding: "clamp(28px,3vw,40px)",
-                    border: "1px solid rgba(238,239,211,0.1)",
+                    border: "1px solid rgba(238,239,211,0.16)",
                   }}
                 >
                   {/* Headline answer — verdict first */}
@@ -443,7 +443,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
                   {/* Three symmetric bays: composite score · DSCR · rent vs PITIA.
                       (The big arc gauge lives once in the hero — not duplicated here.) */}
-                  <div className="ds-verdict-inner" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "clamp(16px,2.5vw,28px)", alignItems: "stretch", padding: "24px 0", borderTop: "1px solid rgba(238,239,211,0.1)", borderBottom: "1px solid rgba(238,239,211,0.1)", marginBottom: 20 }}>
+                  <div className="ds-verdict-inner" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "clamp(16px,2.5vw,28px)", alignItems: "stretch", padding: "24px 0", borderTop: "1px solid rgba(238,239,211,0.16)", borderBottom: "1px solid rgba(238,239,211,0.16)", marginBottom: 20 }}>
                     {/* Bay 1 — composite score + zone bar */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, textAlign: "center" }}>
                       <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Composite score</div>
@@ -508,7 +508,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 {/* COMPOSITE BREAKDOWN + IC MEMO — side by side (matches mockup 2-col bottom) */}
                 <div className="ds-bottom-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
                   {/* Composite factors */}
-                  <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.1)" }}>
+                  <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.16)" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
                       Score breakdown — what moved the needle
                     </div>
@@ -530,7 +530,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   </div>
 
                   {/* IC MEMO */}
-                  <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.1)" }}>
+                  <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 26, border: "1px solid rgba(238,239,211,0.16)" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                       Why — the plain-language reasons
                     </div>
@@ -548,7 +548,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
                 {/* KILL CRITERIA (when flagged) */}
                 {result.kill.criteria.length > 0 && (
-                  <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.lg, padding: 28, border: "1px solid rgba(238,239,211,0.1)" }}>
+                  <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.lg, padding: 28, border: "1px solid rgba(238,239,211,0.16)" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                       Deal issues — {result.kill.criteria.length} flagged
                     </div>
@@ -578,7 +578,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 {/* GRADE + ACQ SCORE */}
                 <div
                   className="gs-reveal ds-band-2"
-                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.1)" }}
+                  style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.16)" }}
                 >
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Return grade</div>
@@ -598,7 +598,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 </div>
 
                 {/* ENGINE FOOTNOTE */}
-                <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)", fontSize: 12, color: "rgba(238,239,211,0.62)", lineHeight: 1.6 }}>
+                <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.16)", fontSize: 12, color: "rgba(238,239,211,0.62)", lineHeight: 1.6 }}>
                   <strong style={{ color: dc.emerald }}>How PROCEED is decided: </strong>
                   The engine checks DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) above the lender minimum with a small cushion, a second rent-coverage check at 1.0x, a return grade of B or better, at least 50 basis points of rate headroom before the deal breaks, no hard blockers, and at least one eligible Greenstreet program.{" "}
                   Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting. Submit a scenario review for exact underwriting.

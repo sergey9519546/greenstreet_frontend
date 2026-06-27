@@ -306,7 +306,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 padding: "clamp(20px,2.4vw,28px)",
                 position: "sticky",
                 top: 96,
-                border: "1px solid rgba(238,239,211,0.1)",
+                border: "1px solid rgba(238,239,211,0.16)",
               }}
             >
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>

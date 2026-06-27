@@ -188,7 +188,7 @@ export default function BlogPostPage({
               display: "flex",
               alignItems: "center",
               gap: 14,
-              borderTop: "1px solid rgba(238,239,211,0.1)",
+              borderTop: "1px solid rgba(238,239,211,0.16)",
               paddingTop: 20,
               paddingBottom: "clamp(28px,4vh,48px)",
             }}

@@ -166,7 +166,7 @@ export default function NonUsInvestorsPage({
           </div>
 
           {/* home → US arc */}
-          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(20px,2.5vw,30px)" }}>
+          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 4 }}>One application · many lenders</div>
             <svg className="fn-svg" viewBox="0 0 360 178" width="100%" role="img" aria-label="Your capital travels from your country to a U.S. property and is approved">
               <defs>
@@ -221,7 +221,7 @@ export default function NonUsInvestorsPage({
           </h2>
           <div className="gs-reveal fn-fearwrap">
             {FEARS.map((f) => (
-              <div key={f.worry} className="fn-fear" style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.1)", borderRadius: radius.md, padding: "clamp(18px,2.2vw,26px) clamp(20px,2.4vw,32px)" }}>
+              <div key={f.worry} className="fn-fear" style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(18px,2.2vw,26px) clamp(20px,2.4vw,32px)" }}>
                 <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
                   <span style={{ flexShrink: 0, color: RED, fontWeight: 700, fontSize: 26, lineHeight: 1, marginTop: -2 }}>“</span>
                   <span style={{ fontSize: "clamp(16px,1.7vw,20px)", fontWeight: 600, color: "rgba(238,239,211,0.78)", letterSpacing: "-0.015em", lineHeight: 1.3 }}>{f.worry}</span>
@@ -249,7 +249,7 @@ export default function NonUsInvestorsPage({
             </h2>
           </div>
           <div className="dc-split gs-reveal" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 28, alignItems: "stretch" }}>
-            <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(20px,2.4vw,28px)", display: "grid", gap: 16, alignContent: "start" }}>
+            <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.4vw,28px)", display: "grid", gap: 16, alignContent: "start" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon }}>The property</div>
               {[
                 { l: "Monthly rent", n: num(rent, setRent, 50, "$") },
@@ -289,7 +289,7 @@ export default function NonUsInvestorsPage({
           <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Four steps. You never have to fly here.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {STEPS.map((s, i) => (
-              <div key={s.t} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.1)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", display: "flex", gap: 16 }}>
+              <div key={s.t} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", display: "flex", gap: 16 }}>
                 <Mono style={{ flexShrink: 0, fontSize: 28, fontWeight: 700, color: dc.lemon, lineHeight: 1 }}>{String(i + 1).padStart(2, "0")}</Mono>
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.02em", color: dc.cream }}>{s.t}{s.partner && partnerTag}</div>
@@ -308,7 +308,7 @@ export default function NonUsInvestorsPage({
           <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             {QUALIFY.map((q) => (
-              <div key={q.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.1)", borderRadius: radius.md, padding: "clamp(20px,2.2vw,28px)" }}>
+              <div key={q.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.2vw,28px)" }}>
                 <Mono style={{ fontSize: "clamp(24px,2.6vw,32px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{q.v}</Mono>
                 <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream, marginTop: 8 }}>{q.l}</div>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>{q.s}</div>
@@ -337,7 +337,7 @@ export default function NonUsInvestorsPage({
           <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>The questions you're Googling.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {FAQS.map((f) => (
-              <div key={f.q} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.1)", borderRadius: radius.md, padding: "clamp(18px,2vw,24px)" }}>
+              <div key={f.q} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(18px,2vw,24px)" }}>
                 <div style={{ fontSize: 16, fontWeight: 600, color: dc.cream, letterSpacing: "-0.01em", marginBottom: 8 }}>{f.q}</div>
                 <div style={{ fontSize: 14, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>{f.a}{f.partner && partnerTag}</div>
               </div>

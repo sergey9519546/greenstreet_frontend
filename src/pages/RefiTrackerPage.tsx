@@ -361,7 +361,7 @@ export default function RefiTrackerPage({
               background: dc.dark,
               borderRadius: dc.r.lg,
               padding: 26,
-              border: "1px solid rgba(238,239,211,0.1)",
+              border: "1px solid rgba(238,239,211,0.16)",
             }}
           >
             <div

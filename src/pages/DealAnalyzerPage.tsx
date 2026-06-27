@@ -334,7 +334,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* STATE RULE */}
-              <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid rgba(238,239,211,0.1)` }}>
+              <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid rgba(238,239,211,0.16)` }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>
                   State prepayment penalty rule — {stateCode || "—"}
                 </div>
