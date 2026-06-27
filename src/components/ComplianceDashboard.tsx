@@ -124,7 +124,7 @@ const TAB_LABELS: Partial<Record<DashboardTab, string>> = {
 function Card({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 12px 30px -18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(238,239,211,0.06)", ...style }}>
+      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
       {children}
     </div>
   );
@@ -134,7 +134,7 @@ function Card({ children, className = "", style = {} }: { children: React.ReactN
 function WhiteCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 12px 30px -18px rgba(0,0,0,0.6), inset 0 1px 0 rgba(238,239,211,0.06)", ...style }}>
+      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
       {children}
     </div>
   );
