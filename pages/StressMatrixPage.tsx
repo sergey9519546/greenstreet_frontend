@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
-import { DscrGauge, RiskFlame, riskFromDscr, dscrColor, MotionWorkbench } from "../design/artifacts";
+import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import BottomCTA from "../design/BottomCTA";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
@@ -344,25 +344,31 @@ export default function StressMatrixPage({
             <Btn label="Open the simulator →" href="#sm-tool" onClick={scrollToTool} />
           </div>
 
-          {/* Right: animated stress preview + mini heatmap */}
-          <div style={{ display: "grid", gap: 16 }}>
-            <MotionWorkbench
-              mode="stress"
-              value={`${stressedDSCR.toFixed(2)}x`}
-              label="Live stressed DSCR"
-            />
-            <div style={{
-              display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 5,
-              background: DARK_INK, borderRadius: dc.r.lg, padding: 14,
-            }}>
+          {/* Right: ONE cohesive live-stress card (was MotionWorkbench + heatmap) */}
+          <div style={{
+            background: DARK_INK, borderRadius: dc.r.lg, padding: "clamp(18px,2vw,26px)",
+            border: "1px solid rgba(0,55,56,0.2)", boxShadow: "0 18px 44px -26px rgba(0,55,56,0.55)",
+          }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)" }}>
+                Live stressed DSCR
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <RiskFlame level={stressRisk} size={16} />
+                <Mono style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.03em", color: ZONE_ACCENT[stressZone], lineHeight: 1 }}>
+                  {stressedDSCR.toFixed(2)}x
+                </Mono>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 5 }}>
               {previewCells.map((c, i) => (
                 <div key={i} className="sm-cell-mini" style={{ background: c.bg, color: c.ink }}>
                   {c.v}
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", marginTop: 8, textAlign: "center" }}>
-              Preview: 4 rate scenarios × 10 rent scenarios — updates live with your inputs
+            <p style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", marginTop: 13, textAlign: "center", lineHeight: 1.5 }}>
+              4 rate shocks × 10 rent changes — a live preview of the full 120-cell matrix below.
             </p>
           </div>
         </div>

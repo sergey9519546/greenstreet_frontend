@@ -1452,7 +1452,7 @@ function Step4({
 
   const roles: { val: Role; label: string; helper: string }[] = [
     { val: "investor", label: "Buy & hold investor", helper: "Long-term rental income." },
-    { val: "foreign", label: "Foreign national", helper: "Investing from outside the U.S." },
+    { val: "foreign", label: "Non-US investor", helper: "Investing from outside the U.S." },
     { val: "str", label: "STR / Airbnb host", helper: "Short-term / vacation rental." },
     { val: "vacation", label: "Second / vacation home", helper: "A second home I'll also rent." },
   ];

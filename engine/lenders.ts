@@ -125,7 +125,7 @@ const GRIFFIN_FUNDING: LenderProgram = {
   loanAmountMin: dp(65_000, 'VERIFIED_PRIMARY', 'Griffin Funding lender site', '2026-06'),
   loanAmountMax: dp(4_000_000, 'UNVERIFIED', 'Griffin site: jumbo to $4M in-house. $20M figure is UNVERIFIED — do not present as fact.', '2026-06', 'v11 FIX (AUDIT-4 #2): $20M figure is UNVERIFIED per spec Part I + Part N. $4M in-house is the verified cap.'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE', 'RURAL'],
     80,
@@ -198,7 +198,7 @@ const KIAVI: LenderProgram = {
   loanAmountMin: dp(75_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   loanAmountMax: dp(3_000_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'VERIFIED_SECONDARY', 'SSN required, no ITIN', '2026-06', 'SSN required; ITIN not available'),
+  nonUsInvestorAllowed: dp(false, 'VERIFIED_SECONDARY', 'SSN required, no ITIN', '2026-06', 'SSN required; ITIN not available'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE'],
     80,
@@ -269,7 +269,7 @@ const VISIO_LENDING: LenderProgram = {
   loanAmountMin: dp(75_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(2_000_000, 'VERIFIED_PRIMARY', 'Spec Part I June 2026 (line 691): "~$75K-$2M". Previous $5M figure was from 3rd-party review and overstated per v11 spec.', '2026-06', 'v11.1 FIX (AUDIT-10 issue 5): Reverted from $5M to $2M per spec. The $5M figure was based on stale 3rd-party reviews that conflict with the v11 spec.'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDOTEL'],
     80,
@@ -336,7 +336,7 @@ const LIMA_ONE_CAPITAL: LenderProgram = {
   loanAmountMin: dp(75_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(2_000_000, 'VERIFIED_PRIMARY', 'Spec Part I June 2026 (line 686): "To $2M/80% LTV". Previous $5M figure was from 3rd-party review and overstated per v11 spec.', '2026-06', 'v11.1 FIX (AUDIT-10 issue 7): Reverted from $5M to $2M per spec. v5.0 had $3M+; v7 raised to $5M based on stale 3rd-party reviews; v11 spec confirms $2M cap.'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE', 'CONDOTEL'],
     80,
@@ -403,7 +403,7 @@ const DEFI_MORTGAGE: LenderProgram = {
   loanAmountMin: dp(75_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   loanAmountMax: dp(2_500_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE'],
     85,
@@ -467,7 +467,7 @@ const EASY_STREET_CAPITAL: LenderProgram = {
   loanAmountMin: dp(50_000, 'VERIFIED_PRIMARY', 'Easy Street Capital lender site', '2026-06'),
   loanAmountMax: dp(3_000_000, 'VERIFIED_PRIMARY', 'Easy Street Capital lender site', '2026-06'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDOTEL'],
     80,
@@ -530,7 +530,7 @@ const NEW_SILVER: LenderProgram = {
   loanAmountMin: dp(150_000, 'VERIFIED_PRIMARY', 'New Silver help center', '2026-06'),
   loanAmountMax: dp(3_000_000, 'VERIFIED_PRIMARY', 'New Silver help center', '2026-06'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE'],
     80,
@@ -581,7 +581,7 @@ const DEEPHAVEN_MORTGAGE: LenderProgram = {
   maxLTV: dp(90, 'VERIFIED_PRIMARY', 'Deephaven Mortgage site — up to 90% LTV with no MI advertised (corrected from v5.0 80%); 80% standard, 75% first-time investors', '2026-06', 'Advertises up to 90% LTV with no MI; standard 80%, first-time investors 75%'),
   minDSCR: dp(0.75, 'VERIFIED_PRIMARY', 'Deephaven Mortgage site — DSCR <1.0 down to 0.75x tier (reconfirm current availability)', '2026-06', '0.75x min tier — older source, reconfirm'),
   noRatioAvailable: dp(true, 'UNVERIFIED', 'No-ratio at ~65% LTV reported', '2026-06', 'No-ratio at ~65% LTV — UNVERIFIED, verify'),
-  reserveRule: dp('3mo up to $1M; 6mo over $1M; 6mo for DSCR<1; 12mo for foreign nationals; gift funds OK with conditions', 'VERIFIED_PRIMARY', 'Deephaven Mortgage site — gift funds can be used for down payment, closing costs, and reserves with documented minimum borrower contribution', '2026-06', 'Gift funds accepted for reserves with conditions (corrected from v5.0 "gift funds not accepted")'),
+  reserveRule: dp('3mo up to $1M; 6mo over $1M; 6mo for DSCR<1; 12mo for non-US investors; gift funds OK with conditions', 'VERIFIED_PRIMARY', 'Deephaven Mortgage site — gift funds can be used for down payment, closing costs, and reserves with documented minimum borrower contribution', '2026-06', 'Gift funds accepted for reserves with conditions (corrected from v5.0 "gift funds not accepted")'),
   strPolicy: {
     lenderId: 'deephaven',
     allowed: true,
@@ -596,7 +596,7 @@ const DEEPHAVEN_MORTGAGE: LenderProgram = {
   loanAmountMin: dp(100_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   loanAmountMax: dp(3_500_000, 'VERIFIED_PRIMARY', 'Deephaven Mortgage site — $3.5M max (corrected from v5.0 $3M+)', '2026-06'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'UNVERIFIED', 'ITIN program reported', '2026-06', 'ITIN program — UNVERIFIED, verify'),
+  nonUsInvestorAllowed: dp(true, 'UNVERIFIED', 'ITIN program reported', '2026-06', 'ITIN program — UNVERIFIED, verify'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE'],
     80,
@@ -614,7 +614,7 @@ const DEEPHAVEN_MORTGAGE: LenderProgram = {
     'Hard prepay standard',
     'DSCR formula varies: GROSS_PITIA for amortizing, GROSS_ITIA for IO',
   ],
-  notes: 'DSCR formula: GROSS_PITIA for amortizing, GROSS_ITIA for IO. Lower-of lease/1007; higher lease allowed with receipts. DSCR down to 0.75. Reserves: 3mo up to $1M, 6mo over $1M, 6mo for DSCR<1, 12mo for foreign nationals. No-ratio at ~65% LTV [UNVERIFIED]. ITIN program [UNVERIFIED]. Hard prepay standard.',
+  notes: 'DSCR formula: GROSS_PITIA for amortizing, GROSS_ITIA for IO. Lower-of lease/1007; higher lease allowed with receipts. DSCR down to 0.75. Reserves: 3mo up to $1M, 6mo over $1M, 6mo for DSCR<1, 12mo for non-US investors. No-ratio at ~65% LTV [UNVERIFIED]. ITIN program [UNVERIFIED]. Hard prepay standard.',
   provenanceDetails: [
     { claim: 'Max LTV up to 90% advertised (no MI); 80% standard, 75% first-time investors', provenance: 'VERIFIED_PRIMARY', source: 'Deephaven site', date: '2026-06' },
     { claim: 'DSCR <1.0 down to 0.75x tier (reconfirm current availability)', provenance: 'VERIFIED_PRIMARY', source: 'Deephaven site', date: '2026-06' },
@@ -663,7 +663,7 @@ const ANGEL_OAK: LenderProgram = {
   loanAmountMin: dp(150_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   loanAmountMax: dp(3_000_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE'],
     80,
@@ -734,7 +734,7 @@ const COREVEST: LenderProgram = {
   loanAmountMin: dp(2_000_000, 'UNVERIFIED', 'Market pattern — institutional minimum', '2026-06'),
   loanAmountMax: dp(50_000_000, 'UNVERIFIED', 'Market pattern — $50M+ for large portfolios', '2026-06'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE'],
     75,
@@ -796,7 +796,7 @@ const RCN_CAPITAL: LenderProgram = {
   loanAmountMin: dp(75_000, 'UNVERIFIED', 'Market pattern', '2026-06'),
   loanAmountMax: dp(2_500_000, 'VERIFIED_PRIMARY', 'RCN Capital published guidelines', '2026-06'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE'],
     80,
@@ -875,7 +875,7 @@ const AMERICAN_HERITAGE: LenderProgram = {
   loanAmountMin: dp(100_000, 'VERIFIED_PRIMARY', 'Spec Part I — $100K minimum', '2026-06'),
   loanAmountMax: dp(3_000_000, 'VERIFIED_PRIMARY', 'Spec Part I — $3M maximum (standard); jumbo on exception', '2026-06', '$3M standard cap; jumbo to $5M with executive approval [UNVERIFIED]'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'VERIFIED_SECONDARY', 'Spec Part I — foreign national program available with ITIN + 25% down', '2026-06', 'Foreign national: 75% max LTV, ITIN accepted, 12mo reserves'),
+  nonUsInvestorAllowed: dp(true, 'VERIFIED_SECONDARY', 'Spec Part I — non-US investor program available with ITIN + 25% down', '2026-06', 'Non-US investor: 75% max LTV, ITIN accepted, 12mo reserves'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE'],
     85,
@@ -886,14 +886,14 @@ const AMERICAN_HERITAGE: LenderProgram = {
   rateAdjustment: 0.125, // modest premium vs anchor lenders
   rateSheetDate: '2026-06',
 
-  bestFor: ['higher LTV at 760+ FICO', 'STR with documented 12-month history', 'Invest Star no-ratio program', 'foreign national borrowers'],
+  bestFor: ['higher LTV at 760+ FICO', 'STR with documented 12-month history', 'Invest Star no-ratio program', 'non-US investor borrowers'],
   cautions: [
     '12mo PITIA reserves required when DSCR<1.0 — most restrictive in matrix',
     'STR income capped at lower of 75% projected or 100% documented',
     'LTV tiers step down sharply below 720 FICO',
     'Confirm Invest Star program availability (specialty product)',
   ],
-  notes: 'American Heritage is a spec-verified anchor lender (Part I, June 2026). Invest Star no-ratio specialty program for borrowers needing higher LTV / lower FICO. STR income uses conservative "lower-of" rule: 75% of AirDNA projection OR 100% of 12-month documented history. Foreign national program available with ITIN + 25% down. Reserve rule is the most conditional in the matrix: 12 months PITIA when DSCR < 1.0 (vs 6 months at/above 1.0). LTV tiers: 85%@760+, 80%@720-759, 75%@700-719, 70%@680-699, 65%@660-679. Counterparty continuity flag: STABLE (score 65, no known disruptions).',
+  notes: 'American Heritage is a spec-verified anchor lender (Part I, June 2026). Invest Star no-ratio specialty program for borrowers needing higher LTV / lower FICO. STR income uses conservative "lower-of" rule: 75% of AirDNA projection OR 100% of 12-month documented history. Non-US investor program available with ITIN + 25% down. Reserve rule is the most conditional in the matrix: 12 months PITIA when DSCR < 1.0 (vs 6 months at/above 1.0). LTV tiers: 85%@760+, 80%@720-759, 75%@700-719, 70%@680-699, 65%@660-679. Counterparty continuity flag: STABLE (score 65, no known disruptions).',
   provenanceDetails: [
     { claim: '660 FICO minimum (720+ best pricing)', provenance: 'VERIFIED_PRIMARY', source: 'Spec Part I June 2026', date: '2026-06' },
     { claim: '85% LTV at 760+ FICO (tiered down)', provenance: 'VERIFIED_PRIMARY', source: 'Spec Part I June 2026', date: '2026-06' },
@@ -904,7 +904,7 @@ const AMERICAN_HERITAGE: LenderProgram = {
     { claim: 'STR min DSCR 1.00', provenance: 'VERIFIED_PRIMARY', source: 'Spec Part I June 2026', date: '2026-06' },
     { claim: 'STR max LTV 75%', provenance: 'VERIFIED_PRIMARY', source: 'Spec Part I June 2026', date: '2026-06' },
     { claim: 'Invest Star no-ratio program (70% LTV, 700 FICO)', provenance: 'VERIFIED_SECONDARY', source: 'Spec Part I June 2026 + lender site', date: '2026-06' },
-    { claim: 'Foreign national: 75% LTV, ITIN, 12mo reserves', provenance: 'VERIFIED_SECONDARY', source: 'Spec Part I June 2026', date: '2026-06' },
+    { claim: 'Non-US investor: 75% LTV, ITIN, 12mo reserves', provenance: 'VERIFIED_SECONDARY', source: 'Spec Part I June 2026', date: '2026-06' },
     { claim: 'Counterparty continuity: STABLE (score 65)', provenance: 'VERIFIED_PRIMARY', source: 'Spec Part I June 2026', date: '2026-06' },
     { claim: 'Loan range $100K-$3M (jumbo $5M exception)', provenance: 'VERIFIED_PRIMARY', source: 'Spec Part I June 2026', date: '2026-06' },
     { claim: 'Non-warrantable condo accepted at 75% LTV', provenance: 'VERIFIED_PRIMARY', source: 'Spec Part I June 2026', date: '2026-06' },
@@ -916,7 +916,7 @@ const AMERICAN_HERITAGE: LenderProgram = {
 // LENDER 13: A&D MORTGAGE (Confidence: 70)
 // v11.2: Added — major Non-QM/DSCR lender, formerly Genesis Capital.
 // Large-volume originator with broad product range including
-// DSCR, Non-QM, Bank Statement, and Foreign National programs.
+// DSCR, Non-QM, Bank Statement, and Non-US Investor programs.
 // ============================================================
 
 const AD_MORTGAGE: LenderProgram = {
@@ -950,7 +950,7 @@ const AD_MORTGAGE: LenderProgram = {
   loanAmountMin: dp(100_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(3_500_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — $3.5M standard; jumbo on exception', '2026-06'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — foreign national program available with ITIN + 30% down', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — non-US investor program available with ITIN + 30% down', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE'],
     80,
@@ -961,14 +961,14 @@ const AD_MORTGAGE: LenderProgram = {
   rateAdjustment: 0.125,
   rateSheetDate: '2026-06',
 
-  bestFor: ['foreign national borrowers', 'non-QM + DSCR under one roof', 'broader product mix'],
+  bestFor: ['non-US investor borrowers', 'non-QM + DSCR under one roof', 'broader product mix'],
   cautions: [
     'Confidence score 70 — verify current guidelines directly before quoting',
     'Cash-out refi limited to 75% LTV',
     'No-ratio program caps at 70% LTV',
     'CONDOTEL not supported',
   ],
-  notes: 'A&D Mortgage (formerly Genesis Capital) is a major Non-QM/DSCR originator. Offers DSCR, Bank Statement, Foreign National, and traditional Non-QM products under one roof — useful for borrowers needing multiple program options. STR supported with AirDNA projection at 75% max LTV and 25% haircut. Foreign national program available with ITIN + 30% down payment. No-ratio specialty program available at 70% LTV. Standard prepay structures include 321, 54321, and soft prepay. Confidence score 70 reflects 3rd-party verified status — direct lender confirmation recommended for current rate sheets.',
+  notes: 'A&D Mortgage (formerly Genesis Capital) is a major Non-QM/DSCR originator. Offers DSCR, Bank Statement, Non-US Investor, and traditional Non-QM products under one roof — useful for borrowers needing multiple program options. STR supported with AirDNA projection at 75% max LTV and 25% haircut. Non-US investor program available with ITIN + 30% down payment. No-ratio specialty program available at 70% LTV. Standard prepay structures include 321, 54321, and soft prepay. Confidence score 70 reflects 3rd-party verified status — direct lender confirmation recommended for current rate sheets.',
   provenanceDetails: [
     { claim: '660 FICO minimum (DSCR program)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '80% LTV standard; 75% for cash-out refi', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
@@ -976,7 +976,7 @@ const AD_MORTGAGE: LenderProgram = {
     { claim: 'No-ratio program at 70% LTV max', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '6mo PITIA reserves standard; 9mo for cash-out/sub-1.0 DSCR', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'STR: 75% of AirDNA projection, 25% haircut, 75% max LTV', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
-    { claim: 'Foreign national: ITIN + 30% down payment', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
+    { claim: 'Non-US investor: ITIN + 30% down payment', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Loan range $100K-$3.5M (jumbo on exception)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Prepay options: NONE, 321, 54321, SOFT_PREPAY', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'All 50 states + DC', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
@@ -1020,7 +1020,7 @@ const LENDINGONE: LenderProgram = {
   loanAmountMin: dp(75_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(2_000_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — $2M standard cap', '2026-06'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern — verify directly', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern — verify directly', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'RURAL'],
     80,
@@ -1090,7 +1090,7 @@ const CIVIC_FINANCIAL: LenderProgram = {
   loanAmountMin: dp(200_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(5_000_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — $5M standard; portfolio/blanket to $20M', '2026-06', 'Portfolio/blanket loans to $20M available for 5+ property bundles'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — foreign national program with ITIN + 25% down', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — non-US investor program with ITIN + 25% down', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE', 'MIXED_USE'],
     80,
@@ -1108,7 +1108,7 @@ const CIVIC_FINANCIAL: LenderProgram = {
     'Loan minimum $200K (not for small balance)',
     'Yield maintenance PPP can be costly in early years',
   ],
-  notes: 'Civic Financial Services is an institutional DSCR originator with deep capital markets access — strong for jumbo loans ($5M+) and portfolio/blanket lending (5+ properties, up to $20M aggregate). Broader property type acceptance than most peers: 5+ unit and mixed-use both supported at 70% LTV. STR supported but capped at 70% LTV (more restrictive than peers). No-ratio program at 65% LTV max. Foreign national program with ITIN + 25% down. Confidence score 72 reflects 3rd-party verified status with institutional product depth.',
+  notes: 'Civic Financial Services is an institutional DSCR originator with deep capital markets access — strong for jumbo loans ($5M+) and portfolio/blanket lending (5+ properties, up to $20M aggregate). Broader property type acceptance than most peers: 5+ unit and mixed-use both supported at 70% LTV. STR supported but capped at 70% LTV (more restrictive than peers). No-ratio program at 65% LTV max. Non-US investor program with ITIN + 25% down. Confidence score 72 reflects 3rd-party verified status with institutional product depth.',
   provenanceDetails: [
     { claim: '660 FICO minimum', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '80% LTV standard', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
@@ -1117,7 +1117,7 @@ const CIVIC_FINANCIAL: LenderProgram = {
     { claim: '6mo PITIA standard; 12mo for jumbo/portfolio', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'STR: 75% of AirDNA, 25% haircut, 70% max LTV', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Loan range $200K-$5M (portfolio to $20M)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
-    { claim: 'Foreign national: ITIN + 25% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
+    { claim: 'Non-US investor: ITIN + 25% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Property types: SFR, 2-4 unit, condo (incl non-warrantable), 5+ unit, mixed-use', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Prepay options: NONE, 321, 54321, 4321, YIELD_MAINTENANCE', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
   ],
@@ -1160,7 +1160,7 @@ const FINANCE_OF_AMERICA: LenderProgram = {
   loanAmountMin: dp(100_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(3_000_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — $3M standard cap', '2026-06'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — foreign national program with ITIN + 25% down', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — non-US investor program with ITIN + 25% down', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE', 'RURAL'],
     80,
@@ -1186,7 +1186,7 @@ const FINANCE_OF_AMERICA: LenderProgram = {
     { claim: 'No-ratio program at 65% LTV max', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '6mo PITIA standard; 9mo for sub-1.0 DSCR', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'STR: 75% of AirDNA, 25% haircut, 75% max LTV', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
-    { claim: 'Foreign national: ITIN + 25% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
+    { claim: 'Non-US investor: ITIN + 25% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Loan range $100K-$3M', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Prepay options: NONE, 321, 54321, SOFT_PREPAY', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'All 50 states + DC', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
@@ -1230,7 +1230,7 @@ const BROADMARK_CAPITAL: LenderProgram = {
   loanAmountMin: dp(150_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(5_000_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — $5M standard; jumbo on exception', '2026-06'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — foreign national program with ITIN + 30% down', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — non-US investor program with ITIN + 30% down', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE', 'RURAL'],
     75,
@@ -1248,7 +1248,7 @@ const BROADMARK_CAPITAL: LenderProgram = {
     'Yield maintenance PPP can be costly in early years',
     'Broadmark brand now part of Ready Capital — confirm current program guidelines',
   ],
-  notes: 'Broadmark (acquired by Ready Capital in 2023) is a Seattle-based capital provider with strong bridge + DSCR takeout combo programs. Differentiated by accepting 5+ unit and mixed-use properties at 65% LTV (most peers reject these property types). STR supported with AirDNA at 70% max LTV (more restrictive than peers). No-ratio program at 65% LTV. Foreign national program with ITIN + 30% down. Bridge-to-DSCR pipeline allows investors to use Broadmark bridge for acquisition/rehab, then refinance into DSCR with the same lender — reducing friction. Confidence score 70 reflects 3rd-party verified status; post-acquisition program details may have shifted under Ready Capital ownership.',
+  notes: 'Broadmark (acquired by Ready Capital in 2023) is a Seattle-based capital provider with strong bridge + DSCR takeout combo programs. Differentiated by accepting 5+ unit and mixed-use properties at 65% LTV (most peers reject these property types). STR supported with AirDNA at 70% max LTV (more restrictive than peers). No-ratio program at 65% LTV. Non-US investor program with ITIN + 30% down. Bridge-to-DSCR pipeline allows investors to use Broadmark bridge for acquisition/rehab, then refinance into DSCR with the same lender — reducing friction. Confidence score 70 reflects 3rd-party verified status; post-acquisition program details may have shifted under Ready Capital ownership.',
   provenanceDetails: [
     { claim: '660 FICO minimum (DSCR program)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '75% LTV standard; 80% on exception', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
@@ -1256,7 +1256,7 @@ const BROADMARK_CAPITAL: LenderProgram = {
     { claim: 'No-ratio program at 65% LTV max', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '6mo PITIA standard; 9mo for sub-1.0 DSCR or bridge-to-DSCR takeout', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'STR: 75% of AirDNA, 25% haircut, 70% max LTV', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
-    { claim: 'Foreign national: ITIN + 30% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
+    { claim: 'Non-US investor: ITIN + 30% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Loan range $150K-$5M (jumbo on exception)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '5+ unit and mixed-use accepted at 65% LTV', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Prepay options: NONE, 321, 54321, YIELD_MAINTENANCE', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
@@ -1302,7 +1302,7 @@ const PARK_PLACE_FINANCE: LenderProgram = {
   loanAmountMin: dp(75_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(3_000_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — $3M standard cap', '2026-06'),
   entityAllowed: ['INDIVIDUAL', 'LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(false, 'UNVERIFIED', 'Market pattern — verify directly', '2026-06'),
+  nonUsInvestorAllowed: dp(false, 'UNVERIFIED', 'Market pattern — verify directly', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE', 'RURAL'],
     80,
@@ -1318,7 +1318,7 @@ const PARK_PLACE_FINANCE: LenderProgram = {
     'Confidence score 68 — verify current guidelines directly',
     '5+ unit and mixed-use not supported',
     'CONDOTEL not supported',
-    'Foreign national availability UNVERIFIED',
+    'Non-US investor availability UNVERIFIED',
   ],
   notes: 'Park Place Finance is an Austin, TX-based DSCR lender with strong TX/SE market coverage (TX, FL, GA, NC, SC, TN, OK, AR, LA). Competitive pricing on standard files — typically 10-25bps below national peers on pristine DSCR ≥ 1.20 profiles. STR supported with AirDNA projection at 75% max LTV. One of the few DSCR lenders that accepts individual vesting without requiring entity structure. Soft prepay option available (less common — provides more flexibility than hard prepay). No-ratio program at 70% LTV. Confidence score 68 reflects 3rd-party verified status with some details UNVERIFIED.',
   provenanceDetails: [
@@ -1333,7 +1333,7 @@ const PARK_PLACE_FINANCE: LenderProgram = {
     { claim: 'Prepay options: NONE, 321, 54321, SOFT_PREPAY', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Individual vesting accepted (no entity required)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'TX/SE regional strength — competitive pricing', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
-    { claim: 'Foreign national UNVERIFIED — do not assume', provenance: 'UNVERIFIED', source: 'No reliable source', date: '2026-06' },
+    { claim: 'Non-US investor UNVERIFIED — do not assume', provenance: 'UNVERIFIED', source: 'No reliable source', date: '2026-06' },
   ],
 };
 
@@ -1359,7 +1359,7 @@ const STRATTON_CAPITAL: LenderProgram = {
   maxLTV: dp(80, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — 80% LTV purchase; 75% cash-out refi', '2026-06'),
   minDSCR: dp(0.75, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — 0.75 DSCR minimum', '2026-06'),
   noRatioAvailable: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — no-ratio program at 65% LTV max', '2026-06'),
-  reserveRule: dp('6 months PITIA standard; 12 months for sub-1.0 DSCR or foreign national', 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
+  reserveRule: dp('6 months PITIA standard; 12 months for sub-1.0 DSCR or non-US investor', 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   strPolicy: {
     lenderId: 'stratton',
     allowed: true,
@@ -1374,7 +1374,7 @@ const STRATTON_CAPITAL: LenderProgram = {
   loanAmountMin: dp(100_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026', '2026-06'),
   loanAmountMax: dp(3_000_000, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — $3M standard; $5M jumbo on exception', '2026-06'),
   entityAllowed: ['LLC', 'S_CORP', 'C_CORP', 'TRUST'] as EntityType[],
-  foreignNationalAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — foreign national program with ITIN + 25% down', '2026-06'),
+  nonUsInvestorAllowed: dp(true, 'VERIFIED_SECONDARY', '3rd-party review, 2026 — non-US investor program with ITIN + 25% down', '2026-06'),
   propertyTypeRules: ptRules(
     ['SFR', '2-4_UNIT', 'CONDO_WARRANTABLE', 'CONDO_NON_WARRANTABLE'],
     80,
@@ -1385,7 +1385,7 @@ const STRATTON_CAPITAL: LenderProgram = {
   rateAdjustment: 0.20,
   rateSheetDate: '2026-06',
 
-  bestFor: ['Non-QM specialist (DSCR is one of many products)', 'wholesale/broker channel', 'foreign national borrowers', 'soft prepay flexibility'],
+  bestFor: ['Non-QM specialist (DSCR is one of many products)', 'wholesale/broker channel', 'non-US investor borrowers', 'soft prepay flexibility'],
   cautions: [
     'AK and HI not served',
     'Confidence score 67 — verify current guidelines directly',
@@ -1393,15 +1393,15 @@ const STRATTON_CAPITAL: LenderProgram = {
     'STR capped at 70% LTV (more restrictive than peers)',
     '12mo reserves required for sub-1.0 DSCR (more conservative than peers)',
   ],
-  notes: 'Stratton Capital is a Non-QM specialist with a strong wholesale/broker channel. DSCR is one of multiple Non-QM offerings (Bank Statement, Foreign National, ITIN, Asset Qualifier, etc.). Useful for borrowers who may need to pivot between program types based on profile. STR supported with AirDNA at 70% max LTV (more restrictive than peers). No-ratio program at 65% LTV. Foreign national program with ITIN + 25% down. Soft prepay option available for borrowers prioritizing early-exit flexibility. More conservative reserve requirements than peers (12mo for sub-1.0 DSCR vs 9mo industry norm). Confidence score 67 reflects 3rd-party verified status with some details UNVERIFIED.',
+  notes: 'Stratton Capital is a Non-QM specialist with a strong wholesale/broker channel. DSCR is one of multiple Non-QM offerings (Bank Statement, Non-US Investor, ITIN, Asset Qualifier, etc.). Useful for borrowers who may need to pivot between program types based on profile. STR supported with AirDNA at 70% max LTV (more restrictive than peers). No-ratio program at 65% LTV. Non-US investor program with ITIN + 25% down. Soft prepay option available for borrowers prioritizing early-exit flexibility. More conservative reserve requirements than peers (12mo for sub-1.0 DSCR vs 9mo industry norm). Confidence score 67 reflects 3rd-party verified status with some details UNVERIFIED.',
   provenanceDetails: [
     { claim: '660 FICO minimum for DSCR', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '80% LTV purchase; 75% cash-out refi', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '0.75 DSCR minimum', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'No-ratio program at 65% LTV max', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
-    { claim: '6mo PITIA standard; 12mo for sub-1.0 DSCR or foreign national', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
+    { claim: '6mo PITIA standard; 12mo for sub-1.0 DSCR or non-US investor', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'STR: 75% of AirDNA, 25% haircut, 70% max LTV', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
-    { claim: 'Foreign national: ITIN + 25% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
+    { claim: 'Non-US investor: ITIN + 25% down', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Loan range $100K-$3M (jumbo $5M on exception)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: '48 states (excludes AK, HI)', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
     { claim: 'Prepay options: NONE, 321, 54321, 4321, SOFT_PREPAY', provenance: 'VERIFIED_SECONDARY', source: '3rd-party review, 2026', date: '2026-06' },
@@ -1570,7 +1570,7 @@ function estimateReserveMonthsForLender(
 
   // Borrower overlay
   if (borrower.experience === 'FIRST_TIME') months += 3;
-  if (borrower.isForeignNational) months += 6;
+  if (borrower.isNonUsInvestor) months += 6;
   if (loan.ltv > 80) months += 1;
 
   // CA overlay for Griffin
@@ -1757,9 +1757,9 @@ export function matchLenders(
       ineligibleReasons.push('STR strategy not supported');
     }
 
-    // ── 9. Foreign national check ──
-    if (borrower.isForeignNational && !lender.foreignNationalAllowed.value) {
-      ineligibleReasons.push('Foreign national / ITIN not accepted');
+    // ── 9. Non-US investor check ──
+    if (borrower.isNonUsInvestor && !lender.nonUsInvestorAllowed.value) {
+      ineligibleReasons.push('Non-US investor / ITIN not accepted');
     }
 
     // ── 10. First-time investor overlay for Deephaven ──

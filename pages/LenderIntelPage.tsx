@@ -35,7 +35,7 @@ type ScoredProgram = {
   maxLoan: number;
   isSTR: boolean;
   multiFamily: boolean;
-  foreignNational: boolean;
+  nonUsInvestor: boolean;
   features: string[];
   checks: { ok: boolean; label: string }[];
   passed: number;
@@ -577,7 +577,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                             ★ 5+ units
                           </span>
                         )}
-                        {p.foreignNational && (
+                        {p.nonUsInvestor && (
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: "rgba(238,239,211,0.5)", background: "rgba(238,239,211,0.08)", borderRadius: radius.sm, padding: "4px 8px" }}>
                             ★ FN
                           </span>

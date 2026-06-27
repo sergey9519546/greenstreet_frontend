@@ -38,7 +38,7 @@ export const NAV_MENUS: NavMenu[] = [
     path: "/solutions",
     items: [
       { label: "Real Estate Investors", view: "investors", path: "/investors" },
-      { label: "Foreign Nationals", view: "foreign-nationals", path: "/foreign-nationals" },
+      { label: "Non-US Investors", view: "non-us-investors", path: "/non-us-investors" },
       { label: "STR & Airbnb Hosts", view: "str-hosts", path: "/str-airbnb" },
       { label: "Vacation & Second Homes", view: "vacation-homes", path: "/vacation-homes" },
       { label: "Borrower Profiles", view: "borrower-profiles", path: "/borrower-profiles" },

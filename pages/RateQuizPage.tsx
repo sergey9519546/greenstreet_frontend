@@ -134,7 +134,7 @@ const QUESTIONS: QuizQuestion[] = [
         v: "b",
       },
       {
-        label: "Foreign national or ITIN borrower",
+        label: "Non-US investor or ITIN borrower",
         hint: "global program",
         v: "g",
       },
@@ -177,7 +177,7 @@ function deriveResult(answers: string[]): ResultData {
     program = "Greenstreet DSCR Global";
     rate = "7.50% – 8.25%";
     note =
-      "Foreign national / ITIN program. Passport plus alternative credit, 30% down minimum, loans to $3M.";
+      "Non-US investor / ITIN program. Passport plus alternative credit, 30% down minimum, loans to $3M.";
     ltv = "Up to 70%";
     fico = "Alt credit";
     dscrMin = "1.00x";
@@ -233,7 +233,7 @@ function deriveResult(answers: string[]): ResultData {
   // What drove the result — plain language
   const verdictLines: { driven: string; why: string }[] = [];
   if (who === "g") {
-    verdictLines.push({ driven: "Borrower type", why: "Foreign national / ITIN — dedicated global program applies." });
+    verdictLines.push({ driven: "Borrower type", why: "Non-US investor / ITIN — dedicated global program applies." });
   }
   if (cov === "c") {
     verdictLines.push({ driven: "Cash flow (DSCR)", why: "Sub-1.0 coverage requires compensating factors." });

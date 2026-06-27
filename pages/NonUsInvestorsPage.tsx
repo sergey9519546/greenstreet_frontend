@@ -3,7 +3,7 @@ import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font } from "../theme";
 import BottomCTA from "../design/BottomCTA";
 
-// ── Who-We-Serve: Foreign National Investors ──────────────────────────────────
+// ── Who-We-Serve: Non-US Investor Investors ──────────────────────────────────
 // Bespoke dark page. Conversion core = the "Yes, you can" fear-grid. Positioning:
 // broker CHOICE (one application → best of many DSCR lenders) + human concierge.
 // [PARTNER] rows are tagged "via partner" so nothing overpromises a capability we
@@ -11,6 +11,9 @@ import BottomCTA from "../design/BottomCTA";
 
 const BLUE = "#7ec8d3"; // sky — cross-border / data accent
 const RED = "#ff6b6b";
+// Hero flight-path arc — shared by the SVG paths AND the CSS offset-path packet,
+// so the comet always rides the exact curve the arc draws.
+const ARC = "M40 132 C 120 30, 240 30, 320 132";
 
 const pf = (r: number) => {
   if (r === 0) return 0;
@@ -56,7 +59,7 @@ const FAQS = [
   { q: "Long-term and short-term (Airbnb) rentals — both?", a: "Both. STR is underwritten on real projected nightly income (ADR × occupancy), not optimistic guesses." },
 ];
 
-export default function ForeignNationalsPage({
+export default function NonUsInvestorsPage({
   onBack: _onBack,
   onNavigate,
 }: {
@@ -64,7 +67,7 @@ export default function ForeignNationalsPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "Foreign National DSCR Loans | Greenstreet Finance";
+    document.title = "Non-US Investor DSCR Loans | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -105,20 +108,34 @@ export default function ForeignNationalsPage({
   return (
     <DcShell onNavigate={onNavigate} accent={dc.teal} navLinks={navLinks} cta={{ label: "Check your buying power →", view: "dscr-calculator" }}>
       <style>{`
-        /* one-shot hero arc choreography — above the fold, never loops */
-        @keyframes fnDraw{from{stroke-dashoffset:340;}to{stroke-dashoffset:0;}}
-        @keyframes fnPop{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}
-        @keyframes fnStamp{0%{transform:scale(0) rotate(-12deg);opacity:0;}70%{transform:scale(1.12) rotate(3deg);}100%{transform:scale(1) rotate(0);opacity:1;}}
-        .fn-arc{stroke-dasharray:340;animation:fnDraw 1.15s ease-out .15s both;}
-        .fn-dot{transform-box:fill-box;transform-origin:center;animation:fnPop .42s cubic-bezier(.2,1.25,.4,1) both;}
-        .fn-dot.a{animation-delay:.5s;} .fn-dot.b{animation-delay:1.05s;}
-        .fn-stamp{transform-box:fill-box;transform-origin:center;animation:fnStamp .5s ease-out 1.3s both;}
+        /* ── hero "global capital flight path" (loops ~3.6s) ──
+           Capital launches from your country, flies the arc to a U.S. property,
+           and an approval seal thuds in on arrival. Pure CSS; the base arc is
+           always solid so the composition still reads when paused / reduced. */
+        @keyframes fnFlow   { to { stroke-dashoffset:-32; } }
+        @keyframes fnFly    { 0%{offset-distance:0%;opacity:0} 5%{opacity:1} 52%{offset-distance:100%;opacity:1} 60%{offset-distance:100%;opacity:0} 100%{offset-distance:100%;opacity:0} }
+        @keyframes fnLaunch { 0%{transform:scale(.5);opacity:.6} 26%{transform:scale(2.6);opacity:0} 100%{opacity:0} }
+        @keyframes fnLand   { 0%,50%{transform:scale(.4);opacity:0} 56%{opacity:.6} 82%{transform:scale(2.7);opacity:0} 100%{opacity:0} }
+        @keyframes fnStampIn{ 0%,50%{transform:scale(0) rotate(-20deg);opacity:0} 58%{transform:scale(1.2) rotate(5deg);opacity:1} 66%{transform:scale(.94) rotate(-1deg)} 74%,92%{transform:scale(1) rotate(0);opacity:1} 100%{transform:scale(1) rotate(0);opacity:0} }
+        @keyframes fnPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.16)} }
+        .fn-svg   { display:block; overflow:visible; margin:6px 0 4px; }
+        .fn-flow  { stroke-dasharray:5 11; opacity:.85; animation:fnFlow 1.05s linear infinite; }
+        .fn-packet{ offset-path:path('${ARC}'); offset-rotate:auto; offset-distance:0%; animation:fnFly 3.6s cubic-bezier(.5,0,.5,1) .3s infinite; }
+        .fn-stampG{ transform-box:fill-box; transform-origin:center; animation:fnStampIn 3.6s ease-out .3s infinite; }
+        .fn-dot   { transform-box:fill-box; transform-origin:center; }
+        .fn-dot.b { animation:fnPulse 3.6s ease-in-out .3s infinite; }
+        .fn-launch{ transform-box:fill-box; transform-origin:center; animation:fnLaunch 3.6s ease-out .3s infinite; }
+        .fn-land  { transform-box:fill-box; transform-origin:center; animation:fnLand 3.6s ease-out .3s infinite; }
         .fn-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.01em;color:rgba(238,239,211,.85);background:rgba(238,239,211,.07);border:1px solid rgba(238,239,211,.16);border-radius:100px;padding:7px 14px;}
         .fn-chip b{color:#7ec8d3;}
         .fn-fearwrap{display:grid;gap:12px;}
         .fn-fear{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);gap:20px;align-items:center;}
         @media(max-width:760px){.fn-fear{grid-template-columns:1fr !important;gap:10px;}}
-        @media(prefers-reduced-motion:reduce){.fn-arc,.fn-dot,.fn-stamp{animation:none !important;stroke-dashoffset:0 !important;opacity:1 !important;transform:none !important;}}
+        @media(prefers-reduced-motion:reduce){
+          .fn-flow,.fn-packet,.fn-stampG,.fn-dot,.fn-launch,.fn-land{animation:none !important;}
+          .fn-packet,.fn-launch,.fn-land{display:none !important;}
+          .fn-stampG{opacity:1 !important;transform:none !important;}
+        }
       `}</style>
       {/* ── HERO ── */}
       <section style={{ position: "relative", background: dc.teal, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
@@ -126,7 +143,7 @@ export default function ForeignNationalsPage({
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.08fr 0.92fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24 }}>
-              Foreign National Program
+              Non-US Investor Program
             </div>
             <H1 style={{ margin: "0 0 16px", maxWidth: "13ch" }}>Own U.S. property from anywhere.</H1>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
@@ -151,13 +168,37 @@ export default function ForeignNationalsPage({
           {/* home → US arc */}
           <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(20px,2.5vw,30px)" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 4 }}>One application · many lenders</div>
-            <svg viewBox="0 0 360 170" width="100%" style={{ display: "block", overflow: "visible", margin: "6px 0 4px" }} role="img" aria-label="Your country to U.S. property">
-              <path className="fn-arc" d="M40 132 C 120 30, 240 30, 320 132" fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" />
+            <svg className="fn-svg" viewBox="0 0 360 178" width="100%" role="img" aria-label="Your capital travels from your country to a U.S. property and is approved">
+              <defs>
+                <linearGradient id="fnTail" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stopColor={dc.lemon} stopOpacity="0" />
+                  <stop offset="1" stopColor={dc.lemon} stopOpacity="0.95" />
+                </linearGradient>
+              </defs>
+              {/* arc — solid base + animated flowing dashes (live route) */}
+              <path d={ARC} fill="none" stroke="rgba(126,200,211,0.22)" strokeWidth="2.6" strokeLinecap="round" />
+              <path className="fn-flow" d={ARC} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" />
+              {/* endpoints + launch / landing ripples */}
+              <circle className="fn-launch" cx="40" cy="132" r="8" fill="none" stroke={dc.lemon} strokeWidth="2" />
+              <circle className="fn-land" cx="320" cy="132" r="8" fill="none" stroke={dc.emerald} strokeWidth="2" />
               <circle className="fn-dot a" cx="40" cy="132" r="8" fill={dc.lemon} />
               <circle className="fn-dot b" cx="320" cy="132" r="8" fill={dc.emerald} />
-              <text x="40" y="156" textAnchor="middle" fill="rgba(238,239,211,0.6)" fontSize="11" fontFamily={font.family} fontWeight={600}>Your country</text>
-              <text x="320" y="156" textAnchor="middle" fill="rgba(238,239,211,0.6)" fontSize="11" fontFamily={font.family} fontWeight={600}>U.S. property</text>
-              <g className="fn-stamp" transform="translate(174,46)"><rect x="-16" y="-12" width="32" height="24" rx="4" fill={dc.lemon} /><text x="0" y="5" textAnchor="middle" fill={dc.dark} fontSize="13" fontWeight={800} fontFamily={font.family}>★</text></g>
+              <text x="40" y="158" textAnchor="middle" fill="rgba(238,239,211,0.6)" fontSize="11" fontFamily={font.family} fontWeight={600}>Your country</text>
+              <text x="320" y="158" textAnchor="middle" fill="rgba(238,239,211,0.6)" fontSize="11" fontFamily={font.family} fontWeight={600}>U.S. property</text>
+              {/* flying capital comet (head + tapered tail, rides the arc) */}
+              <g className="fn-packet">
+                <line x1="0" y1="0" x2="-24" y2="0" stroke="url(#fnTail)" strokeWidth="3.6" strokeLinecap="round" />
+                <circle r="4.6" fill={dc.lemon} />
+                <circle r="1.8" fill="#fff" fillOpacity="0.9" />
+              </g>
+              {/* approval seal — thuds in when the capital lands */}
+              <g transform="translate(180,52)">
+                <g className="fn-stampG">
+                  <circle r="21" fill="rgba(77,189,151,0.14)" stroke={dc.emerald} strokeWidth="2" strokeDasharray="3 4" />
+                  <circle r="15" fill="none" stroke={dc.emerald} strokeWidth="1" strokeOpacity="0.5" />
+                  <path d="M-8 0 L-2.5 6.5 L9 -7.5" fill="none" stroke={dc.emerald} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </g>
+              </g>
             </svg>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
               {[{ v: dscr.toFixed(2) + "x", l: "DSCR" }, { v: "75%", l: "max LTV" }, { v: go ? "GO" : "—", l: "verdict" }].map((t, i) => (
@@ -230,7 +271,7 @@ export default function ForeignNationalsPage({
               </div>
               <Mono style={{ fontSize: "clamp(52px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 0.9 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "44ch" }}>
-                {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the foreign-national program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
+                {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
                 <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 2 }}>LTV (cap ≈75%)</div></div>

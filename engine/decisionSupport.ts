@@ -516,13 +516,13 @@ export function computeDealKillCheck(
     });
   }
 
-  // ── WARNING 7: Foreign national ──
-  if (borrower.isForeignNational) {
+  // ── WARNING 7: Non-US investor ──
+  if (borrower.isNonUsInvestor) {
     criteria.push({
-      criterion: 'Foreign national borrower',
+      criterion: 'Non-US investor borrower',
       triggered: true,
       severity: 'WARNING',
-      detail: 'Foreign nationals face +75 bps rate adjustment and +6 months reserve requirements.',
+      detail: 'Non-US investors face +75 bps rate adjustment and +6 months reserve requirements.',
       action: 'Confirm SSN/ITIN path with lender. Budget for additional reserves and higher pricing.',
     });
   }

@@ -6,7 +6,7 @@ export type PageView =
   | "state-laws"
   | "deal-analyzer"
   | "borrower-profiles"
-  | "foreign-nationals"
+  | "non-us-investors"
   | "str-hosts"
   | "vacation-homes"
   | "portfolio-builders"
@@ -54,7 +54,8 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/brokers": "brokers",
   "/investors": "investors",
   "/borrower-profiles": "borrower-profiles",
-  "/foreign-nationals": "foreign-nationals",
+  "/non-us-investors": "non-us-investors",      // canonical
+  "/foreign-nationals": "non-us-investors",    // legacy alias — keep so old links/SEO don't 404
   "/str-airbnb": "str-hosts",
   "/vacation-homes": "vacation-homes",
   "/portfolio-builders": "portfolio", // page removed — old links land on the Portfolio tool

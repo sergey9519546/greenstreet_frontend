@@ -179,8 +179,8 @@ function termAdjustment(term: string): number {
   }
 }
 
-function foreignNationalAdjustment(isForeignNational: boolean): number {
-  return isForeignNational ? 75 : 0;
+function nonUsInvestorAdjustment(isNonUsInvestor: boolean): number {
+  return isNonUsInvestor ? 75 : 0;
 }
 
 function decliningMarketAdjustment(isDecliningMarket: boolean): number {
@@ -628,7 +628,7 @@ export function estimateRate(
     armRateAdjustment(loan.armType) +
     ioRateAdjustment(loan.ioPeriod) +
     termAdjustment(loan.term) +
-    foreignNationalAdjustment(borrower.isForeignNational) +
+    nonUsInvestorAdjustment(borrower.isNonUsInvestor) +
     decliningMarketAdjustment(isDecliningMarket);
 
   const rate = BASE_RATE_ANCHOR + totalBps / 100;
@@ -994,7 +994,7 @@ function estimateReserveMonths(
   // Overlays
   if (strategy === 'STR') months += 3;
   if (borrower.experience === 'FIRST_TIME') months += 3;
-  if (borrower.isForeignNational) months += 6;
+  if (borrower.isNonUsInvestor) months += 6;
   if (loan.ltv > 80) months += 1;
 
   // Cap at 12 (15 is stress ceiling only)

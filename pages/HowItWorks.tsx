@@ -23,7 +23,7 @@ const STEPS = [
   {
     icon: "§",
     title: "Let the right program find you",
-    body: "Seven Greenstreet programs — from high-LTV (how the loan compares to property value) DSCR to no-ratio, multi-family, and foreign national — are ranked by fit the moment the file lands. No portal-hopping or re-keying.",
+    body: "Seven Greenstreet programs — from high-LTV (how the loan compares to property value) DSCR to no-ratio, multi-family, and non-US investor — are ranked by fit the moment the file lands. No portal-hopping or re-keying.",
   },
   {
     icon: "⊕",

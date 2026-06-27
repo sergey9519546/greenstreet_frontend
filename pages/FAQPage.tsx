@@ -58,7 +58,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "What credit score do I need?",
-    a: "Greenstreet's Core program requires 660+. The Flex program goes to 640 with compensating factors. Going from 660 to 740+ can save 0.75–1.50% in rate and unlock the Premier tier. ITIN borrowers and foreign nationals without a U.S. Social Security Number qualify on the Global program.",
+    a: "Greenstreet's Core program requires 660+. The Flex program goes to 640 with compensating factors. Going from 660 to 740+ can save 0.75–1.50% in rate and unlock the Premier tier. ITIN borrowers and non-US investors without a U.S. Social Security Number qualify on the Global program.",
     src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
   },
   {
@@ -70,7 +70,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "How much cash do I need to keep in the bank after closing?",
-    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). At DSCR 1.25 or above: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add extra months for: short-term rentals (+3), condos (+3), credit score below 680 (+3), first-time investors (+3), loans above $1M (+6), foreign nationals (+6). These stack. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
+    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). At DSCR 1.25 or above: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add extra months for: short-term rentals (+3), condos (+3), credit score below 680 (+3), first-time investors (+3), loans above $1M (+6), non-US investors (+6). These stack. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
     src: "Greenstreet reserveEngine.ts · 5-overlay model",
   },
   {
@@ -81,8 +81,8 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   },
   {
     group: "Qualification",
-    q: "Can a foreign national or ITIN borrower get a DSCR loan?",
-    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Foreign nationals with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
+    q: "Can a non-US investor or ITIN borrower get a DSCR loan?",
+    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Non-US investors with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
     src: "Greenstreet Global program matrix · FIRPTA IRC §897 · Q2 2026",
     cta: { label: "See if your file qualifies →", action: "qualify" },
   },

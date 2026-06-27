@@ -73,7 +73,7 @@ const STUDIES: Study[] = [
     slug: "quintero-co",
     company: "Quintero & Co.",
     location: "Buy-and-hold investor",
-    type: "Investor / Foreign national",
+    type: "Investor / Non-US investor",
     num: "03",
     headline: "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
     metrics: [
@@ -86,9 +86,9 @@ const STUDIES: Study[] = [
     solution:
       "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit and funds in-house.",
     result:
-      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A foreign-national ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
+      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A non-US investor ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
     quote:
-      "Foreign-national ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
+      "Non-US investor ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
     program: "DSCR Global",
   },
 ];

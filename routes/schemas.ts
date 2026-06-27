@@ -51,7 +51,7 @@ export const DealRequestSchema = z.object({
   isCondotel:   z.boolean().optional(),
   isNonWarrantable: z.boolean().optional(),
   isRural:      z.boolean().optional(),
-  isForeignNational: z.boolean().optional(),
+  isNonUsInvestor: z.boolean().optional(),
   isUSCitizenOrPR:   z.boolean().optional(),
   isFirstResponder:  z.boolean().optional(),
 });
