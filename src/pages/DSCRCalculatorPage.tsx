@@ -188,9 +188,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         .calc-field:focus-within { border-color: ${LEMON}; outline: 2px solid ${LEMON}; outline-offset: 1px; border-radius: ${radius.sm}; }
         .calc-field:hover:not(:focus-within) { border-color: rgba(238,239,211,0.5); }
         .gsr { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: rgba(238,239,211,0.16); outline: none; cursor: pointer; }
-        .gsr::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: ${LEMON}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; transition: transform .15s; }
+        .gsr::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: ${swatch.emerald}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; transition: transform .15s; }
         .gsr::-webkit-slider-thumb:hover { transform: scale(1.16); }
-        .gsr::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: ${LEMON}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; }
+        .gsr::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: ${swatch.emerald}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; }
         .gsr:focus-visible { outline: 2px solid ${LEMON}; outline-offset: 4px; }
         .gs-dot-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 34px 34px; pointer-events: none; }
         @keyframes gsBar { from { width: 0; } }
@@ -206,7 +206,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         <div className="gs-dot-grid"></div>
         <div id="gs-hero-inner" className="dc-hero" style={{ position: 'relative', width: '100%', maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.08fr 0.92fr', gap: 'clamp(32px,5vw,72px)', alignItems: 'center' }}>
           <div id="gs-hero-content">
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: LEMON, padding: '7px 14px', borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', padding: '6px 13px', borderRadius: 100, marginBottom: 24 }}>
               DSCR Engine · Deterministic core
             </div>
             <H1 style={{ fontSize: 'clamp(46px,7vw,108px)', lineHeight: 0.93, letterSpacing: '-0.045em', marginBottom: 26, color: PISTACHIO }}>
@@ -444,7 +444,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <p style={{ fontSize: 13.5, fontWeight: 500, color: 'rgba(238,239,211,0.65)', margin: '0 0 14px', lineHeight: 1.55, maxWidth: '62ch' }}>
                     Most DSCR shops quote a rate. A cost-segregation study reclassifies ~25% of the building into 5/7/15-year property that takes 100% bonus depreciation under OBBBA — roughly {fmt(yr1Shelter)} of first-year deductions on this deal. After-tax return is where serious investors actually decide.
                   </p>
-                  <a href="/tools/tax-engine" onClick={(e) => { e.preventDefault(); onNavigate?.('tax-engine'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: radius.sm, minHeight: 44 }}>
+                  <a href="/tools/tax-engine" onClick={(e) => { e.preventDefault(); onNavigate?.('tax-engine'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: swatch.emerald, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: radius.sm, minHeight: 44 }}>
                     See your after-tax IRR →
                   </a>
                   <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', margin: '12px 0 0', lineHeight: 1.45 }}>
@@ -492,7 +492,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', borderTop: '1px solid rgba(238,239,211,0.16)', paddingTop: 20 }}>
-                    <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 14, textDecoration: 'none', padding: '12px 22px', borderRadius: radius.sm, minHeight: 44 }}>
+                    <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: swatch.emerald, color: MIDNIGHT, fontWeight: 700, fontSize: 14, textDecoration: 'none', padding: '12px 22px', borderRadius: radius.sm, minHeight: 44 }}>
                       Find my program →
                     </a>
                     <button onClick={() => (window as any).openQualify?.()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.5)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 14, fontFamily: font.family, padding: '12px 20px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}>
