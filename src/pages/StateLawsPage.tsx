@@ -135,7 +135,8 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
 
       {/* HERO — rain-forest, single column (distinct from the dark tool heroes) */}
       <section style={{ background: RAIN, color: dc.cream, padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`, overflow: "hidden" }}>
-        <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+        <div id="gs-hero-content" className="dc-hero" style={{ maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,64px)", alignItems: "center" }}>
+          <div>
           <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product / 50-State Rule Engine</div>
           <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>
             Prepayment penalty rules, all fifty states.
@@ -154,6 +155,28 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
             </div>
             <div style={{ flex: 1, minWidth: 220, maxWidth: 320 }}>
               <input className="sl-input" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state — type CA, TX, NJ…" />
+            </div>
+          </div>
+          </div>
+          {/* Right: 50-state risk-zone breakdown */}
+          <div style={{ background: "rgba(0,55,56,0.4)", border: "1px solid rgba(238,239,211,0.16)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>50-state risk zones</div>
+            <div style={{ display: "flex", height: 12, borderRadius: 999, overflow: "hidden", marginBottom: 18 }}>
+              {([0, 1, 2, 3] as Tier[]).map((t) => counts[t] > 0 ? (
+                <div key={t} style={{ width: `${(counts[t] / 50) * 100}%`, background: TIER_COLORS[t] }} />
+              ) : null)}
+            </div>
+            <div style={{ display: "grid", gap: 11 }}>
+              {([0, 1, 2, 3] as Tier[]).map((t) => (
+                <div key={t} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ width: 12, height: 12, borderRadius: 4, background: TIER_COLORS[t], flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.78)", flex: 1 }}>{TIER_LABELS[t]}</span>
+                  <Mono style={{ fontSize: 17, fontWeight: 700, color: dc.cream }}>{counts[t]}</Mono>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(238,239,211,0.12)", fontSize: 12, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>
+              Click any state on the map below for its exact prepay rule, usury cap, and pricing impact.
             </div>
           </div>
         </div>

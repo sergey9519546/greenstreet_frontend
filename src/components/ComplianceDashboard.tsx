@@ -461,7 +461,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     return (
       <>
         <SiteNav onNavigate={handleSiteNavigate} />
-        <div className="min-h-screen flex items-center justify-center p-4" style={{ background: T.pageBg }}>
+        <div className="flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 74px)", background: T.pageBg }}>
           <div className="max-w-md w-full p-8" style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.lg }}>
             <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold mb-6 transition"
               style={{ color: T.muted }}
