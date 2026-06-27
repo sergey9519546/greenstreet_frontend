@@ -89,3 +89,43 @@ export const themes = {
 
 export const radius = { sm: "8px", md: "12px", lg: "16px", pill: "999px" } as const;
 export const space = { section: "clamp(56px, 8vw, 128px)", gutter: "clamp(1.5rem, 4vw, 4rem)" } as const;
+
+// ── Design-system scales (Phase 0) — the single vocabulary for spacing, tracking,
+// text-opacity, and type. Pages must pull from these instead of inlining one-off
+// px/em values (the audit found 74 letter-spacings, 39 font-sizes, 30 gaps in use).
+
+// 4px spacing scale — use for gap / padding / margin.
+export const scale = {
+  xs: "4px", sm: "8px", md: "12px", lg: "16px", xl: "24px",
+  "2xl": "32px", "3xl": "48px", "4xl": "64px", "5xl": "96px",
+} as const;
+
+// Letter-spacing tokens — only these five. Display tight, body snug/normal,
+// labels wide, eyebrows caps.
+export const tracking = {
+  tight: "-0.03em",   // display / big mono numbers
+  snug: "-0.015em",   // headings, dense UI
+  normal: "0em",      // body
+  wide: "0.04em",     // small labels
+  caps: "0.08em",     // uppercase eyebrows
+} as const;
+
+// Text-opacity ladder on the dark (teal) ground — AA-considered. Replaces the
+// ad-hoc 0.5/0.55/0.56/0.6/0.78 sprawl. `secondary` is the AA-safe body-dim.
+export const onDark = {
+  primary: "#eeefd3",
+  dim: "rgba(238,239,211,0.85)",
+  secondary: "rgba(238,239,211,0.62)",
+  tertiary: "rgba(238,239,211,0.5)",   // large/secondary text only
+  faint: "rgba(238,239,211,0.38)",     // decorative dividers, never body
+} as const;
+export const onLight = {
+  primary: "#003738",
+  secondary: "rgba(0,55,56,0.66)",
+  tertiary: "rgba(0,55,56,0.5)",
+} as const;
+
+// Type ramp (px anchors). Body = base; headings clamp between these anchors.
+export const size = {
+  xs: 11, sm: 13, base: 15, md: 18, lg: 22, xl: 30, "2xl": 44, "3xl": 64,
+} as const;

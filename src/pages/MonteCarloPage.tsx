@@ -639,20 +639,8 @@ export default function MonteCarloPage({
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <a
-                href="/rate-quiz"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
-              >
-                Get my rate →
-              </a>
-              <a
-                href="/tools/stress-matrix"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("stress-matrix"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
-              >
-                Stress matrix →
-              </a>
+              <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
+              <Btn label="Stress matrix" variant="secondary" href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.("stress-matrix"); }} />
             </div>
           </div>
         </div>

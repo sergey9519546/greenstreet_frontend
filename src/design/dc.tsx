@@ -14,7 +14,7 @@ import React, { useRef, useState, useEffect, useContext, createContext } from "r
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius } from "../theme";
+import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius, scale, tracking, onDark, onLight, size as typeScale } from "../theme";
 import { SiteNav, SiteFooter } from "./SiteShell";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -97,6 +97,12 @@ export const dc = {
   maxW: 1728,
   pad: "clamp(1.1rem, 2.4vw, 1.25rem)",
   r: radius,
+  // Phase-0 scales (single vocabulary — see theme.ts)
+  scale,          // spacing: dc.scale.lg etc.
+  tracking,       // letter-spacing tokens
+  ink: onDark,    // text-on-dark opacity ladder (AA-considered)
+  inkLight: onLight,
+  type: typeScale, // px ramp anchors
 } as const;
 
 // View → canonical path (kept in sync with resolve.ts ROUTE_MAP) so DcNav links
@@ -266,11 +272,13 @@ export const H4 = mk("h4", "u-text-style-h4");
 export const Lead = mk("p", "u-text-style-large");   // section description / lead
 export const Body = mk("p", "u-text-style-h6");       // base body copy
 
-/** Webflow primary/secondary button (lemon-lime fill, arrow) — matches home. */
-export function Btn({ label, onClick, href, variant = "primary", style }: { label: string; onClick?: (e: React.MouseEvent) => void; href?: string; variant?: "primary" | "secondary"; style?: React.CSSProperties }) {
-  // Explicit lemon/dark styling so the label is always high-contrast, regardless
-  // of which Webflow variant CSS would otherwise tint it (teal-on-teal was unreadable).
+/** Canonical CTA button — lemon fill (primary) / ghost (secondary), arrow.
+ *  ONE spec: radius `sm` (8px), weight 700, tracking `snug`, sizes sm/md/lg.
+ *  Use this everywhere instead of inlining lemon buttons (the audit found the
+ *  same CTA at 6/8/9px radius and weight 500/600/700 across pages). */
+export function Btn({ label, onClick, href, variant = "primary", size = "md", arrow = true, style }: { label: string; onClick?: (e: React.MouseEvent) => void; href?: string; variant?: "primary" | "secondary"; size?: "sm" | "md" | "lg"; arrow?: boolean; style?: React.CSSProperties }) {
   const dark = variant === "secondary";
+  const S = { sm: { pad: "10px 18px", fs: 14, mh: 40, ic: 16 }, md: { pad: "13px 24px", fs: 15, mh: 46, ic: 18 }, lg: { pad: "16px 30px", fs: 16, mh: 52, ic: 20 } }[size];
   return (
     <div
       className="btn_main_wrap"
@@ -281,20 +289,53 @@ export function Btn({ label, onClick, href, variant = "primary", style }: { labe
         background: dark ? "transparent" : LEMON,
         color: dark ? PISTACHIO : MIDNIGHT,
         border: dark ? `1.5px solid ${PISTACHIO}55` : "none",
-        borderRadius: 8, padding: "13px 24px", minHeight: 44, ...style,
+        borderRadius: radius.sm, padding: S.pad, minHeight: S.mh, ...style,
       }}
     >
       <div className="g_clickable_wrap" style={{ display: "contents" }}>
         <a className="g_clickable_link w-inline-block" {...(href !== undefined ? { href } : {})} onClick={onClick}><span className="g_clickable_text u-sr-only">{label}</span></a>
       </div>
-      <div className="btn_main_text" style={{ color: "inherit", fontWeight: 700, fontSize: 15, letterSpacing: "-0.01em" }}>{label}</div>
-      <div className="btn-arrow-wrap" style={{ display: "inline-flex", color: "inherit" }}>
-        <div className="btn_main_icon w-embed" style={{ width: 18, height: 18 }}>
-          <svg fill="none" height="100%" viewBox="0 0 24 25" width="100%" xmlns="http://www.w3.org/2000/svg"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path></svg>
+      <div className="btn_main_text" style={{ color: "inherit", fontWeight: 700, fontSize: S.fs, letterSpacing: tracking.snug }}>{label}</div>
+      {arrow && (
+        <div className="btn-arrow-wrap" style={{ display: "inline-flex", color: "inherit" }}>
+          <div className="btn_main_icon w-embed" style={{ width: S.ic, height: S.ic }}>
+            <svg fill="none" height="100%" viewBox="0 0 24 25" width="100%" xmlns="http://www.w3.org/2000/svg"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path></svg>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
+}
+
+// ── Primitives (Phase 0) — Eyebrow / Stat / Card. Replace the inline repeats of
+// these patterns so the type, tracking, opacity, and radius come from tokens.
+
+/** Uppercase section label. One spec: 12px / 700 / caps tracking. */
+export function Eyebrow({ children, color = LEMON, style }: { children: React.ReactNode; color?: string; style?: React.CSSProperties }) {
+  return <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: tracking.caps, textTransform: "uppercase", color, ...style }}>{children}</div>;
+}
+
+/** Mono figure + label (+ optional sub). The canonical "stat" used under heroes
+ *  and in result cards — one type/tracking/opacity spec instead of per-page copies. */
+export function Stat({ value, label, sub, color = PISTACHIO, align = "left" }: { value: React.ReactNode; label: React.ReactNode; sub?: React.ReactNode; color?: string; align?: "left" | "center" }) {
+  return (
+    <div style={{ textAlign: align }}>
+      <Mono style={{ fontSize: 22, fontWeight: 700, color, display: "block", lineHeight: 1 }}>{value}</Mono>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: tracking.wide, textTransform: "uppercase", color: onDark.secondary, marginTop: 5 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: onDark.tertiary, marginTop: 2, lineHeight: 1.4 }}>{sub}</div>}
+    </div>
+  );
+}
+
+/** Surface card on the dark ground. `tone` controls fill + a readable border
+ *  (the audit flagged 0.1 borders as too faint to separate cards from the bg). */
+export function Card({ children, style, tone = "subtle", pad = scale.xl }: { children: React.ReactNode; style?: React.CSSProperties; tone?: "subtle" | "raised" | "solid"; pad?: string }) {
+  const tones = {
+    subtle: { bg: "rgba(238,239,211,0.05)", bd: "rgba(238,239,211,0.14)" },
+    raised: { bg: swatch.darkTeal, bd: "rgba(238,239,211,0.16)" },
+    solid: { bg: MIDNIGHT, bd: "rgba(238,239,211,0.12)" },
+  }[tone];
+  return <div style={{ background: tones.bg, border: `1px solid ${tones.bd}`, borderRadius: radius.md, padding: pad, ...style }}>{children}</div>;
 }
 
 export function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
