@@ -87,6 +87,13 @@ export const dc = {
   rain: RAINFOREST,        // #006565
   teal: swatch.darkTeal,   // #004041
   emerald: swatch.emerald, // #4dbd97
+  // Semantic accent split (W4 — ration the brand color). Lemon is RESERVED for
+  // the ONE live/primary action per view (the changing CountUp number, the
+  // primary Btn). Everything that used to be decorated with lemon — eyebrows,
+  // slider thumbs, focus rings, static chips — now uses `accent` (emerald) so
+  // lemon stays scarce and keeps its punch on the thing that actually matters.
+  liveInk: LEMON,          // the changing number / the single primary action
+  accent: swatch.emerald,  // supporting accent for de-lemoned chrome
   faded: FADED,            // #00373880
   white: "#fff",
   mono: font.mono,
@@ -126,9 +133,9 @@ export const DC_CSS = `
 /* number boxes are wheel-scrubbable (see useWheelScrub) — signal it on hover */
 input[type="number"]{cursor:ns-resize;}
 .gs-range{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:999px;background:rgba(238,239,211,0.18);outline:none;cursor:pointer;}
-.gs-range::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${LEMON};cursor:pointer;transition:transform .15s;}
+.gs-range::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${swatch.emerald};cursor:pointer;transition:transform .15s;}
 .gs-range::-webkit-slider-thumb:hover{transform:scale(1.18);}
-.gs-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${LEMON};cursor:pointer;}
+.gs-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${swatch.emerald};cursor:pointer;}
 .gs-dot-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.055) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;}
 /* Dotted texture on every section's green background, sitewide — cream dots are
    invisible on light surfaces, subtle on all the green shades. !important layers
@@ -286,9 +293,11 @@ export function Btn({ label, onClick, href, variant = "primary", size = "md", ar
       onClick={onClick}
       style={{
         display: "inline-flex", alignItems: "center", gap: 9, cursor: "pointer",
-        background: dark ? "transparent" : LEMON,
-        color: dark ? PISTACHIO : MIDNIGHT,
-        border: dark ? `1.5px solid ${PISTACHIO}55` : "none",
+        // primary = reserved lemon action; secondary = solid emerald (legible on
+        // both the cream and midnight grounds — was a low-contrast cream ghost).
+        background: dark ? swatch.emerald : LEMON,
+        color: MIDNIGHT,
+        border: "none",
         borderRadius: radius.sm, padding: S.pad, minHeight: S.mh, ...style,
       }}
     >
@@ -311,7 +320,7 @@ export function Btn({ label, onClick, href, variant = "primary", size = "md", ar
 // these patterns so the type, tracking, opacity, and radius come from tokens.
 
 /** Uppercase section label. One spec: 12px / 700 / caps tracking. */
-export function Eyebrow({ children, color = LEMON, style }: { children: React.ReactNode; color?: string; style?: React.CSSProperties }) {
+export function Eyebrow({ children, color = onDark.secondary, style }: { children: React.ReactNode; color?: string; style?: React.CSSProperties }) {
   return <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: tracking.caps, textTransform: "uppercase", color, ...style }}>{children}</div>;
 }
 
