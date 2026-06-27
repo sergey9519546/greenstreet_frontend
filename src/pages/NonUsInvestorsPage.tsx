@@ -354,7 +354,7 @@ export default function NonUsInvestorsPage({
       {/* ── COMPLIANCE FOOTER ── */}
       <section style={{ background: dc.dark, color: "rgba(238,239,211,0.56)", padding: `28px ${dc.pad} 40px`, borderTop: "1px solid rgba(238,239,211,0.08)" }}>
         <p style={{ maxWidth: dc.maxW, margin: "0 auto", fontSize: 12, lineHeight: 1.6 }}>
-          Estimates only — not a loan commitment, approval, or offer of credit. For business-purpose, non-owner-occupied investment property. DSCR loan terms, rates, and eligibility vary by lender, property, and country of residence and change without notice. {"{TODO: state licensing disclosures}"}
+          Estimates only — not a loan commitment, approval, or offer of credit. For business-purpose, non-owner-occupied investment property. DSCR loan terms, rates, and eligibility vary by lender, property, and country of residence and change without notice.
         </p>
       </section>
     </DcShell>

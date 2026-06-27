@@ -119,11 +119,8 @@ const AURORA_STORY = {
 const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
 
 // Logo map — only logos that exist under /img/logos/
-const LOGOS: Record<string, string> = {
-  "vela-capital": "/img/logos/cs-vela-capital.png",
-  "northshore-non-qm": "/img/logos/cs-northshore-nonqm.png",
-  "quintero-co": "/img/logos/cs-quintero-co.png",
-};
+// Client wordmarks render as styled text (no logo image assets exist for these
+// reference clients) — keeps the cards clean with no broken images.
 
 // ── CSS for SVG stroke-draw animation ────────────────────────────────────────
 const CS_LINE_CSS = `
@@ -282,20 +279,9 @@ function StudyRow({
           >
             {s.num}
           </Mono>
-          {LOGOS[s.slug] && (
-            <img
-              src={LOGOS[s.slug]}
-              alt={`${s.company} logo`}
-              style={{
-                display: "block",
-                height: 32,
-                width: "auto",
-                marginBottom: 14,
-                opacity: 0.85,
-                filter: "brightness(0) invert(1)",
-              }}
-            />
-          )}
+          <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.9)", marginBottom: 14 }}>
+            {s.company}
+          </div>
           <h3
             style={{
               fontSize: "clamp(22px,2.4vw,34px)",
@@ -440,20 +426,9 @@ function StudyDetail({
             >
               {s.type} · {s.location}
             </div>
-            {LOGOS[s.slug] && (
-              <img
-                src={LOGOS[s.slug]}
-                alt={`${s.company} logo`}
-                style={{
-                  display: "block",
-                  height: 36,
-                  width: "auto",
-                  marginBottom: 20,
-                  opacity: 0.9,
-                  filter: "brightness(0) invert(1)",
-                }}
-              />
-            )}
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.92)", marginBottom: 20 }}>
+              {s.company}
+            </div>
             <H1 style={{ margin: "0 0 24px", maxWidth: "22ch" }}>
               {s.headline}
             </H1>

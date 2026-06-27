@@ -439,7 +439,7 @@ export default function STRUnderwritingPage({
             >
               Live STR engine
             </div>
-            <h2
+            <h1
               style={{
                 fontSize: "clamp(30px,3.8vw,52px)",
                 fontWeight: 600,
@@ -455,7 +455,7 @@ export default function STRUnderwritingPage({
               ) : (
                 <CountUp value={bestDSCR} decimals={2} suffix="x" style={{ color: vColor }} />
               )}
-            </h2>
+            </h1>
             <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
               {bestDSCR === null
                 ? "Enter your deal details to see the underwritten DSCR."

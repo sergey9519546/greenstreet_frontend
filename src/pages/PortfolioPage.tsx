@@ -219,7 +219,7 @@ export default function PortfolioPage({
               Live portfolio aggregator
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap", marginBottom: 10 }}>
-              <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
+              <h1 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
                 Blended DSCR{" "}
                 {rows.length === 0 ? (
                   <Mono style={{ color: "rgba(238,239,211,0.3)" }}>—</Mono>
@@ -229,7 +229,7 @@ export default function PortfolioPage({
                 {rows.length > 0 && (
                   <>{" "}across {rows.length} door{rows.length !== 1 ? "s" : ""}</>
                 )}
-              </h2>
+              </h1>
               {/* DscrGauge artifact — headline DSCR for the blended book */}
               {rows.length > 0 && (
                 <DscrGauge value={agg.blend} size={80} label={false} />

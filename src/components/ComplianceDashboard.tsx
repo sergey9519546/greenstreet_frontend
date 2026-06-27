@@ -472,9 +472,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             <div className="text-center mb-8">
               <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3 font-extrabold text-2xl"
                 style={{ background: "rgba(216,217,88,0.14)", color: swatch.lemon, borderRadius: radius.md, border: "1px solid rgba(216,217,88,0.32)" }}>G</div>
-              <h3 className="font-bold tracking-tight text-2xl" style={{ color: T.ink, letterSpacing: "-0.03em" }}>
+              <h1 className="font-bold tracking-tight text-2xl" style={{ color: T.ink, letterSpacing: "-0.03em" }}>
                 INVEST<span style={{ opacity: 0.45 }}>GO</span>
-              </h3>
+              </h1>
               <p className="text-xs mt-1.5" style={{ color: T.muted }}>
                 {requestedTool
                   ? `${requestedTool} is part of the InvestGO workspace. Sign in or try demo mode.`
