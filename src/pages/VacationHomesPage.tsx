@@ -56,7 +56,7 @@ export default function VacationHomesPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>The getaway that pays for itself.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
               Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nights you let — so your escape carries part of its own payment.
@@ -110,7 +110,7 @@ export default function VacationHomesPage({
               <div style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", marginTop: 12, lineHeight: 1.5 }}>
                 {fmt$(income)} rental income offsets {offsetPct}% of the {fmt$(pay)} payment. {paysForItself ? "The income covers the loan — you own a getaway at no monthly cost." : `You'd carry ${fmt$(net)} a month and keep ${useNights} nights for yourself.`}
               </div>
-              <button onClick={() => onNavigate("dscr-calculator")} style={{ marginTop: 20, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Price this as a loan →</button>
+              <button onClick={() => onNavigate("dscr-calculator")} style={{ marginTop: 20, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Price this as a loan →</button>
             </div>
           </div>
         </div>

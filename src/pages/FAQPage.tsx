@@ -446,8 +446,9 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               textTransform: "uppercase",
               padding: "4px 10px",
               borderRadius: 999,
-              background: dc.lemon,
-              color: dc.dark,
+              background: "rgba(238,239,211,0.06)",
+              border: "1px solid rgba(238,239,211,0.18)",
+              color: "rgba(238,239,211,0.62)",
             }}
           >
             Reviewed

@@ -64,7 +64,7 @@ export default function InvestorsPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24 }}>For Real Estate Investors</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Real Estate Investors</div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>Scale past the income ceiling.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
               Conventional lenders cap how many doors you own by your debt-to-income. DSCR doesn't — every property qualifies on its own rent. Buy the next one, and the one after that.
@@ -130,7 +130,7 @@ export default function InvestorsPage({
                   <Mono style={{ fontSize: 16, fontWeight: 700, color: r.c }}>{r.v}</Mono>
                 </div>
               ))}
-              <button onClick={() => onNavigate("portfolio")} style={{ width: "100%", marginTop: 18, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Underwrite the whole book →</button>
+              <button onClick={() => onNavigate("portfolio")} style={{ width: "100%", marginTop: 18, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Underwrite the whole book →</button>
             </div>
           </div>
         </div>

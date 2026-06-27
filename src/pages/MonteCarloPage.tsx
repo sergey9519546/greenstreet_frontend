@@ -390,8 +390,8 @@ export default function MonteCarloPage({
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
-              textTransform: "uppercase", color: dc.dark,
-              background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24,
+              textTransform: "uppercase", color: "rgba(238,239,211,0.62)",
+              background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24,
             }}>
               Monte Carlo · Vasicek SOFR · <span data-count={simulations}>{simulations}</span> paths
             </div>

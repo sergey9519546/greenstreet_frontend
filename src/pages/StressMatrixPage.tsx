@@ -256,10 +256,10 @@ export default function StressMatrixPage({
         .gs-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;
           border-radius:3px;outline:none;cursor:pointer;background:#003738;}
         .gs-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
-          border-radius:50%;background:${LEMON};border:2px solid #003738;cursor:pointer;
+          border-radius:50%;background:#4dbd97;border:2px solid #003738;cursor:pointer;
           transition:transform .12s,box-shadow .12s;}
         .gs-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
-          background:${LEMON};border:2px solid #003738;cursor:pointer;}
+          background:#4dbd97;border:2px solid #003738;cursor:pointer;}
         .gs-slider:hover::-webkit-slider-thumb{transform:scale(1.2);box-shadow:0 0 0 4px rgba(216,217,88,.22);}
         /* Accordion */
         .sm-accord-btn{background:none;border:none;cursor:pointer;padding:0;text-align:left;width:100%;
@@ -316,7 +316,7 @@ export default function StressMatrixPage({
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
-              color: DARK_INK, background: LEMON, padding: "7px 14px", borderRadius: 100, marginBottom: 24,
+              color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24,
             }}>
               Stress Matrix · 12×10 grid · 5 zones
             </div>
@@ -324,7 +324,7 @@ export default function StressMatrixPage({
               See every stress scenario in one view.
             </H1>
             <div style={{
-              fontSize: 15, fontWeight: 500, color: DARK_INK, background: LEMON,
+              fontSize: 15, fontWeight: 500, color: "rgba(238,239,211,0.82)", background: "rgba(238,239,211,0.05)", border: "1px solid rgba(238,239,211,0.16)",
               borderRadius: 8, padding: "10px 14px", maxWidth: "48ch",
               margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em", display: "inline-block",
             }}>

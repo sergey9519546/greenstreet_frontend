@@ -569,8 +569,9 @@ export default function BrokersPage({
                 textTransform: "uppercase" as const,
                 padding: "5px 11px",
                 borderRadius: dc.r.pill,
-                background: dc.lemon,
-                color: dc.dark,
+                background: "rgba(238,239,211,0.06)",
+                border: "1px solid rgba(238,239,211,0.18)",
+                color: "rgba(238,239,211,0.62)",
               }}
             >
               Reviewed

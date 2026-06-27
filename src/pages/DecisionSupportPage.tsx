@@ -305,8 +305,9 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.dark,
-                background: dc.lemon,
+                color: "rgba(238,239,211,0.62)",
+                background: "rgba(238,239,211,0.06)",
+                border: "1px solid rgba(238,239,211,0.18)",
                 borderRadius: 100,
                 padding: "7px 14px",
                 marginBottom: 24,
@@ -494,7 +495,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         : "Greenstreet can review what's blocking the deal and explore alternative structures — including sub-1.0 programs or global DSCR options."}
                     </p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 13, textDecoration: "none", padding: "10px 18px", borderRadius: radius.sm, minHeight: 44 }}>
+                      <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 13, textDecoration: "none", padding: "10px 18px", borderRadius: radius.sm, minHeight: 44 }}>
                         Get my rate →
                       </a>
                       <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1.5px solid rgba(238,239,211,0.5)", color: "rgba(238,239,211,0.8)", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "10px 16px", borderRadius: radius.sm, minHeight: 44 }}>

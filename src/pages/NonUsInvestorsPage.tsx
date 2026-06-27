@@ -142,7 +142,7 @@ export default function NonUsInvestorsPage({
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.08fr 0.92fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>
               Non-US Investor Program
             </div>
             <H1 style={{ margin: "0 0 16px", maxWidth: "13ch" }}>Own U.S. property from anywhere.</H1>
@@ -234,7 +234,7 @@ export default function NonUsInvestorsPage({
             ))}
           </div>
           <div style={{ marginTop: 28 }}>
-            <button onClick={() => onNavigate("dscr-calculator")} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Find out what you qualify for →</button>
+            <button onClick={() => onNavigate("dscr-calculator")} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Find out what you qualify for →</button>
           </div>
         </div>
       </section>
