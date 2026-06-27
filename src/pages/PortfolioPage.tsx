@@ -235,7 +235,7 @@ export default function PortfolioPage({
                 <DscrGauge value={agg.blend} size={80} label={false} />
               )}
             </div>
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
               {rows.length === 0
                 ? "Add your first property to see the blended DSCR."
                 : agg.blend >= 1.25
@@ -270,7 +270,7 @@ export default function PortfolioPage({
             })().map(({ label, hint, node }) => (
               <div key={label} style={{ background: dc.dark, padding: 26 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>{label}</div>
-                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginBottom: 8, lineHeight: 1.3 }}>{hint}</div>
+                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 8, lineHeight: 1.3 }}>{hint}</div>
                 {node}
               </div>
             ))}
@@ -296,7 +296,7 @@ export default function PortfolioPage({
                         style={{
                           padding: "12px 14px",
                           fontSize: 11,
-                          color: "rgba(238,239,211,0.56)",
+                          color: "rgba(238,239,211,0.62)",
                           textAlign: i >= 2 && i < 9 ? "right" : "left",
                           fontWeight: 700,
                           letterSpacing: "0.03em",
@@ -312,7 +312,7 @@ export default function PortfolioPage({
                 <tbody>
                   {computed.length === 0 && (
                     <tr>
-                      <td colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(238,239,211,0.56)", fontSize: 14, fontWeight: 500 }}>
+                      <td colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(238,239,211,0.62)", fontSize: 14, fontWeight: 500 }}>
                         No properties yet — add one to see your blended DSCR.
                       </td>
                     </tr>
@@ -346,7 +346,7 @@ export default function PortfolioPage({
                         <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <input className="pf-in" aria-label="Monthly rent" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.5)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
+                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.62)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
                           {c.ltv.toFixed(0)}%
                         </td>
                         <td style={{ padding: "11px 14px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
@@ -411,7 +411,7 @@ export default function PortfolioPage({
               }}
             >
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>DSCR distribution</div>
-              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", margin: "0 0 12px", lineHeight: 1.4 }}>
+              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.4 }}>
                 How your properties are spread across DSCR buckets. Red bars = lenders may decline; green = comfortable approval zone.
               </p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, alignItems: "end" }}>
@@ -423,7 +423,7 @@ export default function PortfolioPage({
                   { label: "SAFE",       range: "≥ 1.5",     count: buckets.safe,        color: dc.emerald, riskLevel: "none" as const },
                 ].map((b, i) => (
                   <div key={b.label} style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 4 }}>{b.label}</div>
+                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{b.label}</div>
                     {/* RiskFlame — weak-DSCR holdings indicator */}
                     <div style={{ marginBottom: 4, minHeight: 18 }}>
                       {b.count > 0 && b.riskLevel !== "none" && (
@@ -445,7 +445,7 @@ export default function PortfolioPage({
                       />
                     </div>
                     <Mono style={{ display: "block", fontSize: 22, fontWeight: 700, color: b.color, lineHeight: 1 }}>{b.count}</Mono>
-                    <div style={{ fontSize: 9, color: "rgba(238,239,211,0.56)", marginTop: 3 }}>{b.range}</div>
+                    <div style={{ fontSize: 9, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{b.range}</div>
                   </div>
                 ))}
               </div>
@@ -461,7 +461,7 @@ export default function PortfolioPage({
               }}
             >
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Geographic spread</div>
-              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", margin: "0 0 12px", lineHeight: 1.4 }}>
+              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.4 }}>
                 Concentration by state. Over 50% in one state (red) can limit blanket-loan options — Greenstreet's underwriters prefer diversified books.
               </p>
               {geoConc.slice(0, 5).map((g, i) => {
@@ -487,7 +487,7 @@ export default function PortfolioPage({
                   </div>
                 );
               })}
-              {geoConc.length === 0 && <p style={{ color: "rgba(238,239,211,0.56)", fontSize: 13 }}>No data.</p>}
+              {geoConc.length === 0 && <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 13 }}>No data.</p>}
             </div>
           </div>
 
@@ -503,7 +503,7 @@ export default function PortfolioPage({
               }}
             >
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Refinance opportunities</div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 12px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.5 }}>
                 These properties may benefit from a rate-and-term refinance based on estimated current rates. "REFINANCE NOW" means seasoning (the minimum time a loan must be held before refinancing) is complete. "MONITOR" means the seasoning period is still running.
               </p>
               {portfolioResult.refiOpportunities.map((r) => {
@@ -522,7 +522,7 @@ export default function PortfolioPage({
                   >
                     <div>
                       <div style={{ color: dc.cream, fontWeight: 700, fontSize: 14 }}>{r.propertyId}</div>
-                      <div style={{ color: "rgba(238,239,211,0.5)", fontSize: 11, marginTop: 3 }}>
+                      <div style={{ color: "rgba(238,239,211,0.62)", fontSize: 11, marginTop: 3 }}>
                         Save ${r.monthlySavings.toFixed(0)}/mo · {r.currentRate.toFixed(2)}% → {r.projectedRate.toFixed(2)}%
                         {r.seasoningMonthsRemaining > 0 ? ` · ${r.seasoningMonthsRemaining} mo seasoning left` : ""}
                       </div>
@@ -535,7 +535,7 @@ export default function PortfolioPage({
           )}
 
           {/* Disclaimer */}
-          <p style={{ color: "rgba(238,239,211,0.56)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+          <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
             Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Submit a scenario review for exact underwriting.
           </p>
         </div>
@@ -610,7 +610,7 @@ export default function PortfolioPage({
                   textDecoration: "none",
                   padding: "14px 28px",
                   borderRadius: dc.r.md,
-                  border: "1.5px solid rgba(238,239,211,0.28)",
+                  border: "1.5px solid rgba(238,239,211,0.5)",
                   whiteSpace: "nowrap",
                 }}
               >

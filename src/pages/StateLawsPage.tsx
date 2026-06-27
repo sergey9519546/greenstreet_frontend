@@ -127,7 +127,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
         .sl-cell:hover{transform:scale(1.09);}
         .sl-cell:focus-visible{outline-color:#d8d958;}
         .sl-input{width:100%;border:1px solid rgba(238,239,211,0.25);background:rgba(238,239,211,0.08);outline:none;color:#eeefd3;font-family:${dc.sans};font-size:15px;letter-spacing:-0.01em;border-radius:8px;padding:12px 14px;}
-        .sl-input::placeholder{color:rgba(238,239,211,0.5);}
+        .sl-input::placeholder{color:rgba(238,239,211,0.62);}
         .sl-input:focus-visible{outline:2px solid rgba(238,239,211,0.8);outline-offset:2px;}
         .us-state{transition:fill .15s, filter .15s, stroke .12s, stroke-width .12s;}
         .us-state:focus-visible{stroke:#d8d958 !important;stroke-width:2.5px !important;}
@@ -233,7 +233,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                   ...(sel.threshold ? [{ k: "Key threshold to know", v: sel.threshold, color: "#eeefd3", weight: 600 as const }] : []),
                 ].map((row) => (
                   <div key={row.k}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 4 }}>{row.k}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{row.k}</div>
                     <div style={{ fontSize: 15, fontWeight: row.weight, color: row.color, lineHeight: 1.5, letterSpacing: "-0.01em" }}>{row.v}</div>
                   </div>
                 ))}

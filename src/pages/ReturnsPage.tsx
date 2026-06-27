@@ -100,7 +100,7 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)" }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
           {label}
         </span>
         <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.cream }}>
@@ -109,7 +109,7 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
       </div>
       <input className="gs-range" aria-label={label} type="range" min={min} max={max} step={step} value={value} onChange={(e) => set(+e.target.value)} />
       {hint && (
-        <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 4, lineHeight: 1.4 }}>
+        <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>
           {hint}
         </span>
       )}
@@ -171,7 +171,7 @@ function IrrBar({ heightPct, gradient, label, valLabel, valColor, flex = 1 }: {
       <div style={{ position: "absolute", top: 0, left: "50%", transform: "translate(-50%, -120%)", fontSize: 11, fontWeight: 700, color: valColor, whiteSpace: "nowrap", paddingBottom: 6 }}>
         {valLabel}
       </div>
-      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.5)", textAlign: "center", fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "center", fontWeight: 500 }}>{label}</div>
     </div>
   );
 }
@@ -228,8 +228,8 @@ function ReturnsJourney({ pts }: { pts: JPoint[] }) {
   const fmtk = (v: number) => (v < 0 ? "-$" : "$") + Math.abs(Math.round(v / 1000)) + "k";
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Cumulative return over the hold period">
-      <line x1={padL} x2={W - padR} y1={Y(0)} y2={Y(0)} stroke="rgba(238,239,211,0.28)" strokeWidth="1" strokeDasharray="4 5" />
-      <text x={W - padR} y={Y(0) - 6} textAnchor="end" fill="rgba(238,239,211,0.4)" fontSize="10" fontFamily="'JetBrains Mono',monospace">break-even $0</text>
+      <line x1={padL} x2={W - padR} y1={Y(0)} y2={Y(0)} stroke="rgba(238,239,211,0.5)" strokeWidth="1" strokeDasharray="4 5" />
+      <text x={W - padR} y={Y(0) - 6} textAnchor="end" fill="rgba(238,239,211,0.5)" fontSize="10" fontFamily="'JetBrains Mono',monospace">break-even $0</text>
       <path d={area} fill={up ? "rgba(77,189,151,0.16)" : "rgba(255,107,107,0.16)"} />
       <path d={line} fill="none" stroke={up ? dc.lemon : RED} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
       {pts.map((p, i) => (
@@ -239,7 +239,7 @@ function ReturnsJourney({ pts }: { pts: JPoint[] }) {
         </g>
       ))}
       <text x={X(0) + 6} y={Y(pts[0].cum) + 16} textAnchor="start" fill={RED} fontSize="11" fontWeight={700} fontFamily="'JetBrains Mono',monospace">{fmtk(pts[0].cum)} down</text>
-      <text x={X(last.year)} y={Y(last.cum) - 22} textAnchor="end" fill="rgba(238,239,211,0.5)" fontSize="9" fontFamily="'JetBrains Mono',monospace">exit · total</text>
+      <text x={X(last.year)} y={Y(last.cum) - 22} textAnchor="end" fill="rgba(238,239,211,0.62)" fontSize="9" fontFamily="'JetBrains Mono',monospace">exit · total</text>
       <text x={X(last.year)} y={Y(last.cum) - 8} textAnchor="end" fill={up ? dc.lemon : RED} fontSize="14" fontWeight={800} fontFamily="'JetBrains Mono',monospace">{fmtk(last.cum)}</text>
     </svg>
   );
@@ -396,14 +396,14 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             {/* headline IRR badge — visible in hero */}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 16, background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: dc.r.md, padding: "18px 24px", marginBottom: 24 }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 4 }}>Levered IRR</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Levered IRR</div>
                 <Mono style={{ fontSize: "clamp(40px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.95, display: "block" }}>
                   {irrStr}
                 </Mono>
               </div>
               <div style={{ width: 1, height: 48, background: "rgba(238,239,211,0.15)" }} />
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 4 }}>Verdict</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Verdict</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.06em", color: irrColor }}>{verdictLabel}</span>
                   <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={18} />
@@ -413,7 +413,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             <Lead style={{ color: "rgba(238,239,211,0.65)", maxWidth: "46ch", margin: "0 0 20px" }}>
               Cash-on-cash return (yearly cash flow as a % of the cash you put in), IRR (the annualized return on your equity, accounting for the full exit), and equity multiple — from day one through the sale.
             </Lead>
-            <p style={{ color: "rgba(238,239,211,0.56)", fontSize: 13, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+            <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 13, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
               Tip: adjust inputs on the left. The IRR updates live. Then check the sensitivity table to see if the deal still works under slower rent growth or an earlier exit.
             </p>
             <Btn label="Run the returns engine ↓" href="#rt-tool" onClick={scrollToTool} />
@@ -423,7 +423,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
           <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.1)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.emerald }}>Your money over the hold</div>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(238,239,211,0.5)" }}><span style={{ width: 12, height: 3, background: dc.lemon, borderRadius: 2, display: "inline-block" }} />cumulative cash</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(238,239,211,0.62)" }}><span style={{ width: 12, height: 3, background: dc.lemon, borderRadius: 2, display: "inline-block" }} />cumulative cash</span>
             </div>
             <ReturnsJourney pts={journeyPts} />
             <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "14px 0 16px", lineHeight: 1.55 }}>
@@ -437,7 +437,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               ].map((m) => (
                 <div key={m.l}>
                   <Mono style={{ fontSize: 20, fontWeight: 700, color: m.c, display: "block", lineHeight: 1 }}>{m.v}</Mono>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginTop: 5 }}>{m.l}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{m.l}</div>
                 </div>
               ))}
             </div>
@@ -478,7 +478,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                 Deal inputs
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 18px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 18px", lineHeight: 1.5 }}>
                 Drag any slider — the IRR and sensitivity table update instantly.
               </p>
 
@@ -497,7 +497,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               </div>
 
               <div style={{ borderTop: "1px solid rgba(238,239,211,0.1)", margin: "18px 0" }} />
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 14 }}>
                 Hold &amp; exit
               </div>
               <div style={hl("holdYears")}>
@@ -531,7 +531,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 background: dc.dark, borderRadius: dc.r.md, padding: "clamp(24px,3vw,40px)",
               }}>
                 <div style={{ textAlign: "center", paddingBottom: "clamp(20px,2.4vw,28px)", marginBottom: "clamp(20px,2.4vw,28px)", borderBottom: "1px solid rgba(238,239,211,0.1)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>
                     Levered IRR
                   </div>
                   <Mono style={{ fontSize: "clamp(56px,8vw,104px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.9, display: "block" }}>
@@ -557,8 +557,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                       <Mono style={{ fontSize: "clamp(16px,1.8vw,22px)", fontWeight: 600, letterSpacing: "-0.02em", color: r.color, display: "block" }}>
                         {r.val}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 3 }}>{r.label}</div>
-                      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.56)", marginTop: 2, lineHeight: 1.3 }}>{r.hint}</div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{r.label}</div>
+                      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.3 }}>{r.hint}</div>
                     </div>
                   ))}
                 </div>
@@ -592,16 +592,16 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>
                   Sensitivity table — Levered IRR
                 </div>
-                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                   How your IRR changes under different hold periods (rows) and rent-growth rates (columns). Teal cells (≥14%) are strong; amber is acceptable; red needs work. Your current inputs are the base case.
                 </p>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380, fontFamily: dc.mono }}>
                     <thead>
                       <tr>
-                        <th style={{ padding: "5px 10px", fontSize: 10, color: "rgba(238,239,211,0.56)", textAlign: "left", fontWeight: 500 }}>Hold</th>
+                        <th style={{ padding: "5px 10px", fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "left", fontWeight: 500 }}>Hold</th>
                         {growths.map((gr) => (
-                          <th key={gr} style={{ padding: "5px 10px", fontSize: 10, color: "rgba(238,239,211,0.56)", textAlign: "right", fontWeight: 500 }}>
+                          <th key={gr} style={{ padding: "5px 10px", fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "right", fontWeight: 500 }}>
                             +{gr}% rent growth
                           </th>
                         ))}
@@ -635,7 +635,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                   ].map((l) => (
                     <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <div style={{ width: 12, height: 12, background: l.color, border: `1.5px solid ${l.border}`, borderRadius: 2 }} />
-                      <span style={{ fontSize: 11, color: "rgba(238,239,211,0.55)", fontWeight: 500 }}>{l.label}</span>
+                      <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>{l.label}</span>
                     </div>
                   ))}
                 </div>
@@ -656,7 +656,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                     <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)", gap: 12 }}>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream }}>{row.label}</div>
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 2, lineHeight: 1.4 }}>{row.hint}</div>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.4 }}>{row.hint}</div>
                       </div>
                       <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.lemon, whiteSpace: "nowrap" }}>{row.val}</Mono>
                     </div>
@@ -665,7 +665,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               </Disclosure>
 
               {/* Disclaimer */}
-              <p style={{ color: "rgba(238,239,211,0.56)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
+              <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
                 Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Submit a scenario review for exact underwriting.
               </p>
             </div>

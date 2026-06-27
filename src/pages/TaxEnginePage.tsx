@@ -326,7 +326,7 @@ export default function TaxEnginePage({
               <span style={{ color: irrColor }}>{afterTaxStr}</span>
               {" "}· pre-tax {preTaxStr} · drag {dragStr}
             </h2>
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
               {!hasResult
                 ? "Adjust inputs to see your after-tax return."
                 : afterTaxIRR >= 0.1
@@ -368,7 +368,7 @@ export default function TaxEnginePage({
               >
                 Deal &amp; Tax profile
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 16px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 16px", lineHeight: 1.5 }}>
                 Deal numbers at the top; your personal tax situation below. Estimates are fine — numbers update live.
               </p>
 
@@ -514,13 +514,13 @@ export default function TaxEnginePage({
                       fontWeight: 600,
                       letterSpacing: "0.04em",
                       textTransform: "uppercase",
-                      color: "rgba(238,239,211,0.55)",
+                      color: "rgba(238,239,211,0.62)",
                       marginBottom: 3,
                     }}
                   >
                     {f.label}
                   </span>
-                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
                   <div
                     style={{
                       display: "flex",
@@ -532,7 +532,7 @@ export default function TaxEnginePage({
                     }}
                   >
                     {f.prefix && (
-                      <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>
+                      <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
                         {f.prefix}
                       </span>
                     )}
@@ -545,7 +545,7 @@ export default function TaxEnginePage({
                       style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
                     />
                     {f.suffix && (
-                      <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>
+                      <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
                         {f.suffix}
                       </span>
                     )}
@@ -562,7 +562,7 @@ export default function TaxEnginePage({
                     fontWeight: 600,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: "rgba(238,239,211,0.55)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 5,
                   }}
                 >
@@ -670,7 +670,7 @@ export default function TaxEnginePage({
                       style={{
                         fontSize: 14,
                         fontWeight: 500,
-                        color: "rgba(238,239,211,0.55)",
+                        color: "rgba(238,239,211,0.62)",
                         marginTop: 16,
                         letterSpacing: "-0.01em",
                       }}
@@ -700,7 +700,7 @@ export default function TaxEnginePage({
                     >
                       Tax breakdown — where the money goes
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                       Green = tax benefit that improves your return. Red = tax cost that reduces it. The difference between pre-tax and after-tax IRR is your total tax drag.
                     </p>
                     {(
@@ -782,7 +782,7 @@ export default function TaxEnginePage({
                     >
                       Year-by-year cash flow — before and after taxes
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.5 }}>
                       Pre-Tax = net operating income minus debt service. Dep. = depreciation deduction (reduces your taxable income each year). Fed+St Tax = federal plus state tax owed. After-Tax = what you actually keep. Green = positive; red = negative cash flow that year.
                     </p>
                     <div style={{ overflowX: "auto" }}>
@@ -802,7 +802,7 @@ export default function TaxEnginePage({
                                   style={{
                                     padding: "5px 8px",
                                     fontSize: 10,
-                                    color: "rgba(238,239,211,0.56)",
+                                    color: "rgba(238,239,211,0.62)",
                                     textAlign: "right",
                                     fontWeight: 500,
                                     fontFamily: dc.mono,
@@ -824,7 +824,7 @@ export default function TaxEnginePage({
                                   style={{
                                     padding: "6px 8px",
                                     fontSize: 12,
-                                    color: "rgba(238,239,211,0.5)",
+                                    color: "rgba(238,239,211,0.62)",
                                     textAlign: "right",
                                     fontFamily: dc.mono,
                                   }}
@@ -892,7 +892,7 @@ export default function TaxEnginePage({
                       borderRadius: 9,
                       border: "1px solid rgba(238,239,211,0.1)",
                       fontSize: 12,
-                      color: "rgba(238,239,211,0.5)",
+                      color: "rgba(238,239,211,0.62)",
                       lineHeight: 1.6,
                     }}
                   >

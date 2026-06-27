@@ -265,7 +265,7 @@ export default function BrokersPage({
                 style={{
                   fontSize: 12,
                   fontWeight: 500,
-                  color: "rgba(238,239,211,0.5)",
+                  color: "rgba(238,239,211,0.62)",
                   letterSpacing: "-0.01em",
                 }}
               >

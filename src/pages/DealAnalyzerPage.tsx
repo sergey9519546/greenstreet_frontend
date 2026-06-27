@@ -186,14 +186,14 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   { label: "Debt yield", val: debtYield.toFixed(2) + "%" },
                 ].map((cell) => (
                   <div key={cell.label} style={{ background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 4 }}>{cell.label}</div>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{cell.label}</div>
                     <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.cream, lineHeight: 1 }}>{cell.val}</Mono>
                   </div>
                 ))}
               </div>
               <div style={{ width: "100%", height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
               <div style={{ width: "100%", background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 4 }}>Cash flow / mo</div>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Cash flow / mo</div>
                 <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>
                   {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
                 </Mono>
@@ -338,11 +338,11 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>
                   State prepayment penalty rule — {stateCode || "—"}
                 </div>
-                <p style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", margin: "0 0 10px", lineHeight: 1.4 }}>
+                <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "0 0 10px", lineHeight: 1.4 }}>
                   A prepayment penalty is a fee some loans charge if you pay off or refinance early. Some states restrict or ban them, which affects lender participation and pricing.
                 </p>
                 <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.75)", margin: "0 0 6px", lineHeight: 1.5 }}>{sa.ppp}</p>
-                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", margin: 0 }}>{sa.extra}</p>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: 0 }}>{sa.extra}</p>
               </div>
 
               {/* MATCHED PROGRAMS */}

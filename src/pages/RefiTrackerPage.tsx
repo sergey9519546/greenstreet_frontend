@@ -315,7 +315,7 @@ export default function RefiTrackerPage({
                 >
                   {result ? Math.round(score) : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   readiness / 100
                 </div>
               </div>
@@ -331,7 +331,7 @@ export default function RefiTrackerPage({
                 >
                   {result && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   break-even
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function RefiTrackerPage({
                 >
                   {result ? fmt$(result.cashOutMaxAmount) : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   cash-out capacity
                 </div>
               </div>
@@ -438,7 +438,7 @@ export default function RefiTrackerPage({
                 display: "flex",
                 justifyContent: "space-between",
                 fontSize: 11,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 marginTop: 8,
                 fontFamily: dc.mono,
               }}
@@ -450,7 +450,7 @@ export default function RefiTrackerPage({
             {/* Live driver — drag the refi rate, watch the crossover move */}
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(238,239,211,0.12)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 9 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
                   Projected refi rate
                 </span>
                 <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.emerald }}>
@@ -467,7 +467,7 @@ export default function RefiTrackerPage({
                 aria-label="Projected refi rate"
                 style={{ width: "100%", accentColor: dc.emerald, cursor: "pointer" }}
               />
-              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 5, fontFamily: dc.mono }}>
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 5, fontFamily: dc.mono }}>
                 {noBreakeven
                   ? "no break-even at this rate — savings never recoup the cost"
                   : `break-even ≈ month ${Math.round(beMonths)} · drag to move it`}
@@ -579,7 +579,7 @@ export default function RefiTrackerPage({
                     }}
                   >
                     {f.prefix && (
-                      <span style={{ color: "rgba(238,239,211,0.56)" }}>{f.prefix}</span>
+                      <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.prefix}</span>
                     )}
                     <input
                       className="rt-num"
@@ -590,11 +590,11 @@ export default function RefiTrackerPage({
                       style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
                     />
                     {f.suffix && (
-                      <span style={{ color: "rgba(238,239,211,0.56)" }}>{f.suffix}</span>
+                      <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.suffix}</span>
                     )}
                   </div>
                   {f.hint && (
-                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 4, lineHeight: 1.45, letterSpacing: 0 }}>
+                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.45, letterSpacing: 0 }}>
                       {f.hint}
                     </span>
                   )}
@@ -747,7 +747,7 @@ export default function RefiTrackerPage({
                         </span>
                       </div>
                       {"sub" in r && r.sub && (
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>
                       )}
                     </div>
                   ))
@@ -837,7 +837,7 @@ export default function RefiTrackerPage({
                         </div>
                         <p
                           style={{
-                            color: "rgba(238,239,211,0.5)",
+                            color: "rgba(238,239,211,0.62)",
                             fontSize: 12,
                             margin: "6px 0 0",
                             lineHeight: 1.5,
@@ -849,7 +849,7 @@ export default function RefiTrackerPage({
                     );
                   })
                 ) : (
-                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.56)", padding: "8px 0" }}>
+                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", padding: "8px 0" }}>
                     Enter inputs above to see factor breakdown.
                   </div>
                 )}
@@ -864,7 +864,7 @@ export default function RefiTrackerPage({
                   borderRadius: 10,
                   border: "1px solid rgba(238,239,211,0.12)",
                   fontSize: 12,
-                  color: "rgba(238,239,211,0.56)",
+                  color: "rgba(238,239,211,0.62)",
                   lineHeight: 1.6,
                 }}
               >

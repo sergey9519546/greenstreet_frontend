@@ -35,7 +35,7 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
           {label}
         </span>
         <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.lemon }}>
@@ -53,7 +53,7 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
         onChange={(e) => set(+e.target.value)}
       />
       {hint && (
-        <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 4, lineHeight: 1.4 }}>
+        <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>
           {hint}
         </span>
       )}
@@ -114,11 +114,11 @@ function DscrSpreadBar({ p10, median, p90, animate }: { p10: number; median: num
       </div>
       {/* threshold legend */}
       <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
-        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.56)", display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
           <span style={{ width: 8, height: 2, background: RED, display: "inline-block", borderRadius: 1 }} />
           1.0 = break-even
         </span>
-        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.56)", display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
           <span style={{ width: 8, height: 2, background: dc.emerald, display: "inline-block", borderRadius: 1 }} />
           1.25 = lender comfort zone
         </span>
@@ -160,7 +160,7 @@ function ProbCard({
       }}>
         {value}
       </Mono>
-      <div style={{ fontSize: 12, fontWeight: 500, color: dark ? "rgba(238,239,211,0.5)" : "rgba(0,55,56,0.5)", marginTop: 10, lineHeight: 1.45 }}>
+      <div style={{ fontSize: 12, fontWeight: 500, color: dark ? "rgba(238,239,211,0.62)" : "rgba(0,55,56,0.5)", marginTop: 10, lineHeight: 1.45 }}>
         {sub}
       </div>
     </div>
@@ -220,7 +220,7 @@ function SofrFanChart({ points, longRun }: { points: FanPoint[]; longRun: number
       {gridY.map((v) => (
         <g key={v}>
           <line x1={padL} x2={W - padR} y1={Y(v)} y2={Y(v)} stroke="rgba(238,239,211,0.08)" strokeWidth="1" />
-          <text x={padL - 8} y={Y(v) + 3} textAnchor="end" fill="rgba(238,239,211,0.4)" fontSize="10" fontFamily={dc.mono}>{v.toFixed(1)}%</text>
+          <text x={padL - 8} y={Y(v) + 3} textAnchor="end" fill="rgba(238,239,211,0.5)" fontSize="10" fontFamily={dc.mono}>{v.toFixed(1)}%</text>
         </g>
       ))}
       {/* long-run θ */}
@@ -415,7 +415,7 @@ export default function MonteCarloPage({
               label="Break-risk paths"
             />
             <div style={{ background: dc.dark, borderRadius: dc.r.lg, padding: 24, border: "1px solid rgba(238,239,211,0.1)" }}>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
                 Live — median DSCR across {simulations} paths
               </div>
               {/* Gauge centered */}
@@ -424,11 +424,11 @@ export default function MonteCarloPage({
               </div>
               <div style={{ display: "flex", justifyContent: "space-around" }}>
                 <div style={{ textAlign: "center" }}>
-                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", display: "block" }}>P10 (worst 10%)</Mono>
+                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", display: "block" }}>P10 (worst 10%)</Mono>
                   <Mono style={{ fontSize: 18, fontWeight: 700, color: dscrP10 < 1.0 ? RED : dc.emerald }}>{result ? dscrP10.toFixed(2) + "x" : "—"}</Mono>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", display: "block" }}>P90 (best 10%)</Mono>
+                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", display: "block" }}>P90 (best 10%)</Mono>
                   <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.emerald }}>{result ? dscrP90.toFixed(2) + "x" : "—"}</Mono>
                 </div>
               </div>
@@ -474,7 +474,7 @@ export default function MonteCarloPage({
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 6 }}>
                 Simulation parameters
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", margin: "0 0 20px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 20px", lineHeight: 1.5 }}>
                 Drag the sliders — results update live.
               </p>
 
@@ -489,7 +489,7 @@ export default function MonteCarloPage({
               </div>
 
               <div style={{ borderTop: "1px solid rgba(238,239,211,0.1)", margin: "20px 0 20px" }} />
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
                 Rate assumptions
               </div>
 
@@ -507,11 +507,11 @@ export default function MonteCarloPage({
                   <SliderField label="Horizon (years)" hint="Match your planned hold period." value={horizonYears} set={setHorizonYears} min={1} max={30} step={1} suffix="yr" fmt={(v) => v.toString()} />
                   <div style={{ marginBottom: 4 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>Random seed</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Random seed</span>
                       <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.lemon }}>{seed}</Mono>
                     </div>
                     <input className="gs-range" aria-label="Random seed" type="range" min={1} max={999} step={1} value={seed} onChange={(e) => setSeed(+e.target.value)} />
-                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 4, lineHeight: 1.4 }}>Controls which specific paths are drawn. Different seeds give similar but not identical results.</span>
+                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>Controls which specific paths are drawn. Different seeds give similar but not identical results.</span>
                   </div>
                 </div>
               </Disclosure>
@@ -528,12 +528,12 @@ export default function MonteCarloPage({
                     <RiskFlame level={riskLevel} size={16} />
                   </div>
                   <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: pD1Color, lineHeight: 0.92, display: "block" }}>{pD1.toFixed(1)}%</Mono>
-                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.55)", marginTop: 12, lineHeight: 1.5 }}>chance the property can't cover its costs in some rate futures — below 5% is comfortable, above 20% is high-risk.</div>
+                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance the property can't cover its costs in some rate futures — below 5% is comfortable, above 20% is high-risk.</div>
                 </div>
                 <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: "1px solid rgba(238,239,211,0.1)" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>P(DSCR &lt; 1.25)</div>
                   <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 0.92, display: "block" }}>{pD125.toFixed(1)}%</Mono>
-                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.55)", marginTop: 12, lineHeight: 1.5 }}>chance of missing the 1.25 cushion most lenders prefer — below 30% is acceptable.</div>
+                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance of missing the 1.25 cushion most lenders prefer — below 30% is acceptable.</div>
                 </div>
               </div>
 
@@ -541,12 +541,12 @@ export default function MonteCarloPage({
               <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(20px,2.5vw,28px)", border: "1px solid rgba(238,239,211,0.1)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE }}>Where rates could go — {simulations} simulated SOFR paths</div>
-                  <div style={{ display: "flex", gap: 14, fontSize: 11, color: "rgba(238,239,211,0.5)" }}>
+                  <div style={{ display: "flex", gap: 14, fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 14, height: 3, background: BLUE, borderRadius: 2, display: "inline-block" }} />mean</span>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 14, height: 9, background: BLUE, opacity: 0.22, borderRadius: 2, display: "inline-block" }} />P10–P90</span>
                   </div>
                 </div>
-                <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                   The cone widens as uncertainty grows. When it sits well above θ (your long-run rate), the model sees rates staying elevated — a riskier ARM.
                 </p>
                 <SofrFanChart points={fanPoints} longRun={longRunSofr} />
@@ -558,7 +558,7 @@ export default function MonteCarloPage({
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>Median DSCR</div>
                     <DscrGauge value={Math.max(0.5, Math.min(2.0, dscrMedian || 1.0))} size={130} />
-                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", marginTop: 6, lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 6, lineHeight: 1.4 }}>
                       {dscrMedian >= 1.25 ? "Comfortable cushion" : dscrMedian >= 1.0 ? "Thin margin — watch for rate rises" : "Below break-even in median scenario"}
                     </div>
                   </div>
@@ -566,7 +566,7 @@ export default function MonteCarloPage({
                     <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 4 }}>
                       DSCR outcome spread
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", margin: "0 0 4px", lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 4px", lineHeight: 1.5 }}>
                       P10–P90 range of DSCR across all paths. Healthy = P10 above 1.0, median above 1.25.
                     </p>
                     <div ref={spreadRef}>
@@ -579,7 +579,7 @@ export default function MonteCarloPage({
               {/* Full distribution — progressive disclosure */}
               <Disclosure label="Full distribution · P10 / Median / P90 / Min / Max">
                 <div>
-                  <p style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.5 }}>
                     P10 = worst 10% of outcomes. A deal is robust when even P10 stays above 1.0. Min shows the single worst path — outlier scenarios are real but rare.
                   </p>
                   {result ? (

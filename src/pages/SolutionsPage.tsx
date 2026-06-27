@@ -51,7 +51,7 @@ const SEGMENTS: Segment[] = [
     view: "borrower-profiles",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
-    panelBody: "rgba(238,239,211,0.55)",
+    panelBody: "rgba(238,239,211,0.62)",
     gridline: "rgba(238,239,211,0.12)",
     statBg: dc.teal,
     dscrPreview: 1.18,
@@ -389,7 +389,7 @@ export default function SolutionsPage({
               >
                 <div>
                   <div style={{ fontSize: "clamp(16px,1.5vw,19px)", fontWeight: 600, letterSpacing: "-0.02em", color: dc.cream }}>{a.label}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.02em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginTop: 3 }}>{a.tag}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.02em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{a.tag}</div>
                 </div>
                 <span style={{ fontSize: 18, color: dc.lemon, flexShrink: 0 }}>→</span>
               </button>
@@ -512,7 +512,7 @@ export default function SolutionsPage({
                 fontWeight: 700,
                 letterSpacing: "0.04em",
                 textTransform: "uppercase" as const,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 marginBottom: 4,
               }}
             >

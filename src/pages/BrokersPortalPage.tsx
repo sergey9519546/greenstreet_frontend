@@ -109,7 +109,7 @@ export default function BrokersPortalPage({
                 fontSize: 13,
                 fontWeight: 500,
                 letterSpacing: "-0.01em",
-                color: "rgba(238,239,211,0.5)",
+                color: "rgba(238,239,211,0.62)",
                 marginBottom: 20,
               }}
             >
@@ -249,7 +249,7 @@ export default function BrokersPortalPage({
                   textAlign: "center",
                   fontSize: 13,
                   fontWeight: 500,
-                  color: "rgba(238,239,211,0.5)",
+                  color: "rgba(238,239,211,0.62)",
                   marginTop: 6,
                   letterSpacing: "-0.01em",
                 }}

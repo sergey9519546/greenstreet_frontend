@@ -71,14 +71,14 @@ export default function InvestorsPage({
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Run my next deal →</button>
-              <button onClick={() => onNavigate("portfolio")} style={{ background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(238,239,211,0.28)", cursor: "pointer", padding: "14px 24px", borderRadius: radius.sm, fontFamily: font.family }}>Blend my portfolio</button>
+              <button onClick={() => onNavigate("portfolio")} style={{ background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(238,239,211,0.5)", cursor: "pointer", padding: "14px 24px", borderRadius: radius.sm, fontFamily: font.family }}>Blend my portfolio</button>
             </div>
           </div>
           <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[{ v: doors.length, l: "doors" }, { v: blended.toFixed(2) + "x", l: "blended DSCR" }, { v: fmt$(cashFlow) + "/mo", l: "cash flow" }, { v: "∞", l: "income cap" }].map((t, i) => (
               <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "16px 14px" }}>
                 <Mono style={{ fontSize: 26, fontWeight: 700, color: i === 3 ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginTop: 6 }}>{t.l}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{t.l}</div>
               </div>
             ))}
           </div>
@@ -101,12 +101,12 @@ export default function InvestorsPage({
                 const past = i + 1 > DTI_CEILING;
                 return (
                   <div key={i} className="inv-door" style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: `${Math.min(i, 8) * 26}px`, background: dc.teal, border: `1px solid ${ok ? "rgba(77,189,151,0.35)" : "rgba(255,107,107,0.35)"}`, borderRadius: radius.md, padding: "14px 18px" }}>
-                    <Mono style={{ fontSize: 18, fontWeight: 700, color: past ? dc.emerald : "rgba(238,239,211,0.4)", width: 34 }}>{String(i + 1).padStart(2, "0")}</Mono>
+                    <Mono style={{ fontSize: 18, fontWeight: 700, color: past ? dc.emerald : "rgba(238,239,211,0.5)", width: 34 }}>{String(i + 1).padStart(2, "0")}</Mono>
                     <div style={{ fontSize: 13, color: "rgba(238,239,211,0.6)" }}>
                       rent {numIn(d.rent, (v) => setDoor(i, "rent", v), 50, "Door rent")} · pay {numIn(d.pay, (v) => setDoor(i, "pay", v), 50, "Door payment")}
                     </div>
                     <Mono style={{ marginLeft: "auto", fontSize: 18, fontWeight: 700, color: ok ? dc.emerald : RED }}>{ds.toFixed(2)}x</Mono>
-                    <button onClick={() => removeDoor(i)} aria-label="remove door" style={{ background: "none", border: "none", color: "rgba(238,239,211,0.56)", cursor: "pointer", fontSize: 18, lineHeight: 1, fontFamily: font.family }}>×</button>
+                    <button onClick={() => removeDoor(i)} aria-label="remove door" style={{ background: "none", border: "none", color: "rgba(238,239,211,0.62)", cursor: "pointer", fontSize: 18, lineHeight: 1, fontFamily: font.family }}>×</button>
                   </div>
                 );
               })}
@@ -123,7 +123,7 @@ export default function InvestorsPage({
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(22px,2.6vw,30px)", position: "sticky", top: 96 }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 16 }}>Your book, blended</div>
               <Mono style={{ fontSize: "clamp(44px,6vw,68px)", fontWeight: 700, color: dc.lemon, lineHeight: 0.9, display: "block" }}>{doors.length}</Mono>
-              <div style={{ fontSize: 13, color: "rgba(238,239,211,0.55)", marginTop: 4, marginBottom: 22 }}>doors — and no income limit on the next one</div>
+              <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 4, marginBottom: 22 }}>doors — and no income limit on the next one</div>
               {[{ l: "Blended DSCR", v: blended.toFixed(2) + "x", c: blended >= 1.0 ? dc.emerald : RED }, { l: "Total cash flow", v: fmt$(cashFlow) + "/mo", c: cashFlow >= 0 ? dc.emerald : RED }, { l: "Gross rent", v: fmt$(totalRent) + "/mo", c: dc.cream }].map((r) => (
                 <div key={r.l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
                   <span style={{ fontSize: 13, color: "rgba(238,239,211,0.6)" }}>{r.l}</span>

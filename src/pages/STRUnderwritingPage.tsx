@@ -48,7 +48,7 @@ function Field({
           fontWeight: 600,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
-          color: "rgba(238,239,211,0.5)",
+          color: "rgba(238,239,211,0.62)",
           marginBottom: 3,
         }}
       >
@@ -59,7 +59,7 @@ function Field({
           style={{
             display: "block",
             fontSize: 11,
-            color: "rgba(238,239,211,0.56)",
+            color: "rgba(238,239,211,0.62)",
             marginBottom: 5,
             lineHeight: 1.4,
           }}
@@ -69,7 +69,7 @@ function Field({
       )}
       <div className="str-field">
         {prefix && (
-          <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 13 }}>{prefix}</span>
+          <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 13 }}>{prefix}</span>
         )}
         <input
           className="str-num"
@@ -80,7 +80,7 @@ function Field({
           style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
         />
         {suffix && (
-          <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 13 }}>{suffix}</span>
+          <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 13 }}>{suffix}</span>
         )}
       </div>
     </label>
@@ -119,7 +119,7 @@ function MonthTable({
                 style={{
                   padding: "6px 10px",
                   textAlign: h === "Mo" ? "left" : "right",
-                  color: "rgba(238,239,211,0.56)",
+                  color: "rgba(238,239,211,0.62)",
                   fontWeight: 600,
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
@@ -155,7 +155,7 @@ function MonthTable({
                   style={{
                     padding: "6px 10px",
                     textAlign: "right",
-                    color: "rgba(238,239,211,0.5)",
+                    color: "rgba(238,239,211,0.62)",
                     borderBottom: "1px solid rgba(238,239,211,0.07)",
                   }}
                 >
@@ -256,7 +256,7 @@ function SeasonalityBars({
             <div
               style={{
                 fontSize: 8,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 marginTop: 3,
                 textAlign: "center",
                 letterSpacing: 0,
@@ -456,7 +456,7 @@ export default function STRUnderwritingPage({
                 <CountUp value={bestDSCR} decimals={2} suffix="x" style={{ color: vColor }} />
               )}
             </h1>
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
               {bestDSCR === null
                 ? "Enter your deal details to see the underwritten DSCR."
                 : bestDSCR >= 1.25
@@ -498,7 +498,7 @@ export default function STRUnderwritingPage({
               >
                 STR assumptions
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 14px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                 Estimates are fine — numbers update live. LTR lease rent is used as a fallback if STR income does not qualify.
               </p>
 
@@ -511,7 +511,7 @@ export default function STRUnderwritingPage({
                     fontWeight: 600,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: "rgba(238,239,211,0.5)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 5,
                   }}
                 >
@@ -585,7 +585,7 @@ export default function STRUnderwritingPage({
                       >
                         {fmt(grossAnnual)}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>
                         gross annual
                       </div>
                     </div>
@@ -601,7 +601,7 @@ export default function STRUnderwritingPage({
                       >
                         {fmt(uwMonthly)}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>
                         underwritten /mo
                       </div>
                     </div>
@@ -617,7 +617,7 @@ export default function STRUnderwritingPage({
                       >
                         {dscrStr}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>
                         underwritten DSCR
                       </div>
                     </div>
@@ -625,7 +625,7 @@ export default function STRUnderwritingPage({
 
                   {/* ── THREE WORLDS ───────────────────────────────────── */}
                   <div style={{ marginBottom: 2 }}>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 8px", lineHeight: 1.5 }}>
                       Lenders evaluate STRs using three qualifying scenarios. The tool picks the best one that applies (marked "Selected"). World 1 uses the long-term lease rate. World 2 uses your projected STR average. World 3 uses documented historical income.
                     </p>
                   </div>
@@ -678,7 +678,7 @@ export default function STRUnderwritingPage({
                               fontWeight: 600,
                               letterSpacing: "0.05em",
                               textTransform: "uppercase",
-                              color: "rgba(238,239,211,0.5)",
+                              color: "rgba(238,239,211,0.62)",
                               marginBottom: 8,
                             }}
                           >
@@ -699,7 +699,7 @@ export default function STRUnderwritingPage({
                             style={{
                               fontSize: 11,
                               fontWeight: 500,
-                              color: "rgba(238,239,211,0.5)",
+                              color: "rgba(238,239,211,0.62)",
                               marginTop: 5,
                             }}
                           >
@@ -749,7 +749,7 @@ export default function STRUnderwritingPage({
                       <p
                         style={{
                           fontSize: 12,
-                          color: "rgba(238,239,211,0.5)",
+                          color: "rgba(238,239,211,0.62)",
                           margin: "0 0 16px",
                           lineHeight: 1.5,
                         }}
@@ -766,15 +766,15 @@ export default function STRUnderwritingPage({
                       <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(224,99,99,0.2)", border: "1px solid #e06363" }} />
-                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(216,217,88,0.2)", border: `1px solid ${dc.lemon}` }} />
-                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Qualifies (1.0–1.24x)</span>
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>Qualifies (1.0–1.24x)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(77,189,151,0.2)", border: `1px solid ${dc.emerald}` }} />
-                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Peak (≥ 1.25x)</span>
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>Peak (≥ 1.25x)</span>
                         </div>
                       </div>
 
@@ -888,7 +888,7 @@ export default function STRUnderwritingPage({
                       borderRadius: dc.r.md,
                       border: "1px solid rgba(238,239,211,0.08)",
                       fontSize: 12,
-                      color: "rgba(238,239,211,0.5)",
+                      color: "rgba(238,239,211,0.62)",
                       lineHeight: 1.6,
                     }}
                   >
@@ -907,7 +907,7 @@ export default function STRUnderwritingPage({
           </div>
 
           {/* Disclaimer */}
-          <p style={{ color: "rgba(238,239,211,0.56)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+          <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
             Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Submit a scenario review for exact underwriting.
           </p>
         </div>

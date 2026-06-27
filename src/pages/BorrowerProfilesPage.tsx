@@ -1008,7 +1008,7 @@ export default function BorrowerProfilesPage({
               Run the DSCR Calculator
             </button>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", marginTop: 16 }}>
+          <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 16 }}>
             Preliminary estimate only — not a commitment to lend. Submit a scenario review for full pre-qualification.
           </p>
         </div>

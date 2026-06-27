@@ -248,7 +248,7 @@ export function DcNav({
 
 export function DcFooter({ bg = MIDNIGHT }: { bg?: string } = {}) {
   return (
-    <footer style={{ background: bg, color: "rgba(238,239,211,0.55)", padding: `48px ${dc.pad}` }}>
+    <footer style={{ background: bg, color: "rgba(238,239,211,0.62)", padding: `48px ${dc.pad}` }}>
       <div style={{ maxWidth: dc.maxW, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO }}>Greenstreet</div>
         <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
@@ -487,11 +487,11 @@ export function HeroProof({
             <div className="hp-panel" style={{ display: "grid", gap: 14 }}>
               <div className="hp-input-grid">
                 <div style={{ background: "rgba(238,239,211,0.08)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: radius.md, padding: "13px 14px" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.5)", fontWeight: 800, marginBottom: 6 }}>Rent input</div>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>Rent input</div>
                   <Mono style={{ color: PISTACHIO, fontSize: 20, fontWeight: 800 }}>{leftInput}</Mono>
                 </div>
                 <div style={{ background: "rgba(238,239,211,0.08)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: radius.md, padding: "13px 14px" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.5)", fontWeight: 800, marginBottom: 6 }}>PITIA load</div>
+                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>PITIA load</div>
                   <Mono style={{ color: PISTACHIO, fontSize: 20, fontWeight: 800 }}>{rightInput}</Mono>
                 </div>
               </div>

@@ -239,7 +239,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             style={{
               fontSize: 13,
               fontWeight: 500,
-              color: "rgba(238,239,211,0.5)",
+              color: "rgba(238,239,211,0.62)",
               marginBottom: 20,
               letterSpacing: "-0.01em",
             }}
@@ -252,7 +252,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
           <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "50ch", margin: "0 0 20px" }}>
             A DSCR loan qualifies on the property's rent — not your income or tax returns. Every question below covers how that works, what you need to qualify, and what to watch out for.
           </Lead>
-          <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.56)", margin: 0, letterSpacing: "-0.01em" }}>
+          <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: 0, letterSpacing: "-0.01em" }}>
             Last reviewed {AS_OF} · sources shown inline with each answer.
           </p>
         </div>

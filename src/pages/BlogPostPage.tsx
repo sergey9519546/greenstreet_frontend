@@ -159,7 +159,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "-0.01em",
               }}
             >
@@ -213,7 +213,7 @@ export default function BlogPostPage({
               <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em", color: dc.cream }}>
                 {authorName}
               </div>
-              <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", letterSpacing: "-0.01em" }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", letterSpacing: "-0.01em" }}>
                 {authorMeta.role}
               </div>
             </div>
@@ -290,7 +290,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: "clamp(11px,0.9vw,13px)",
                 fontWeight: 600,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "0.09em",
                 textTransform: "uppercase" as const,
               }}
@@ -314,7 +314,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: "clamp(12px,0.95vw,14px)",
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "-0.01em",
                 textAlign: "center",
               }}
@@ -356,7 +356,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: 11,
                 fontWeight: 600,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase" as const,
               }}
@@ -367,7 +367,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: 12,
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "-0.01em",
               }}
             >

@@ -520,7 +520,7 @@ export default function AboutPage({
                     style={{
                       fontSize: 14,
                       fontWeight: 500,
-                      color: "rgba(238,239,211,0.55)",
+                      color: "rgba(238,239,211,0.62)",
                       marginTop: 2,
                       letterSpacing: "-0.01em",
                     }}
@@ -700,7 +700,7 @@ export default function AboutPage({
                   fontWeight: 600,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase" as const,
-                  color: "rgba(238,239,211,0.56)",
+                  color: "rgba(238,239,211,0.62)",
                 }}
               >
                 Austin, Texas · Est. 2026

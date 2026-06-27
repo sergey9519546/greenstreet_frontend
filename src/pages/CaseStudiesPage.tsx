@@ -223,7 +223,7 @@ function MetricChip({ v, k }: StudyMetric) {
         style={{
           fontSize: 12,
           fontWeight: 500,
-          color: "rgba(238,239,211,0.5)",
+          color: "rgba(238,239,211,0.62)",
           marginTop: 3,
           letterSpacing: "-0.01em",
         }}
@@ -299,7 +299,7 @@ function StudyRow({
           style={{
             fontSize: 13,
             fontWeight: 500,
-            color: "rgba(238,239,211,0.5)",
+            color: "rgba(238,239,211,0.62)",
             letterSpacing: "-0.01em",
           }}
         >
@@ -403,7 +403,7 @@ function StudyDetail({
                 cursor: "pointer",
                 fontSize: 13,
                 fontWeight: 600,
-                color: "rgba(238,239,211,0.5)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "-0.01em",
                 fontFamily: dc.sans,
                 marginBottom: 24,
@@ -839,7 +839,7 @@ export default function CaseStudiesPage({
               style={{
                 fontSize: 11,
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 lineHeight: 1.5,
                 letterSpacing: "-0.01em",
               }}
@@ -1017,7 +1017,7 @@ export default function CaseStudiesPage({
               style={{
                 fontSize: 12,
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.56)",
+                color: "rgba(238,239,211,0.62)",
                 margin: 0,
                 lineHeight: 1.5,
                 letterSpacing: "-0.01em",

@@ -50,9 +50,9 @@ export default function STRHostsPage({
 
   const numIn = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
     <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>{pre}</span>}
+      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
       <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)} style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>{suf}</span>}
+      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
     </div>
   );
 
@@ -88,13 +88,13 @@ export default function STRHostsPage({
               {monthly.map((v, i) => (
                 <g key={i}>
                   <circle cx={X(i)} cy={Y(v)} r={i === worstIdx ? 5 : 3} fill={i === worstIdx ? RED : BLUE} stroke={dc.dark} strokeWidth="1.5" />
-                  <text x={X(i)} y={H - 8} textAnchor="middle" fill="rgba(238,239,211,0.4)" fontSize="9" fontFamily={dc.mono}>{MONTHS[i]}</text>
+                  <text x={X(i)} y={H - 8} textAnchor="middle" fill="rgba(238,239,211,0.5)" fontSize="9" fontFamily={dc.mono}>{MONTHS[i]}</text>
                 </g>
               ))}
             </svg>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: holds ? dc.emerald : RED, display: "block" }}>{worstDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 3 }}>worst-month DSCR</div></div>
-              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 3 }}>year-round avg</div></div>
+              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: holds ? dc.emerald : RED, display: "block" }}>{worstDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>worst-month DSCR</div></div>
+              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>year-round avg</div></div>
             </div>
           </div>
         </div>
@@ -110,9 +110,9 @@ export default function STRHostsPage({
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.1)", padding: "clamp(20px,2.4vw,28px)", display: "grid", gap: 16, alignContent: "start" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE }}>The listing</div>
               {[{ l: "Average nightly rate (ADR)", n: numIn(adr, setAdr, 5, "$") }, { l: "Occupancy", n: numIn(occ, setOcc, 1, "", "%") }, { l: "Monthly payment (PITIA)", n: numIn(pay, setPay, 50, "$") }].map((f) => (
-                <label key={f.l}><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 6 }}>{f.l}</span>{f.n}</label>
+                <label key={f.l}><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>{f.l}</span>{f.n}</label>
               ))}
-              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", lineHeight: 1.5 }}>Seasonality models a summer-peak market. Real underwriting uses your market's AirDNA history.</div>
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Seasonality models a summer-peak market. Real underwriting uses your market's AirDNA history.</div>
             </div>
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${holds ? "rgba(77,189,151,0.4)" : "rgba(255,107,107,0.4)"}`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: holds ? dc.emerald : RED, marginBottom: 6 }}>{holds ? "Holds the slow months" : "Breaks in the off-season"}</div>
@@ -121,9 +121,9 @@ export default function STRHostsPage({
                 Worst month ({["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][worstIdx]}) brings {fmt$(worst)} against a {fmt$(pay)} payment. {holds ? "Even the trough covers the loan — that's a fundable STR." : "The trough falls short — lower the loan, or we underwrite to the months that do clear."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
-                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: BLUE, display: "block" }}>{fmt$(annualAvg)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)" }}>avg month</div></div>
-                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: dc.cream, display: "block" }}>{fmt$(peak)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)" }}>peak month</div></div>
-                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: dc.lemon, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)" }}>annual DSCR</div></div>
+                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: BLUE, display: "block" }}>{fmt$(annualAvg)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>avg month</div></div>
+                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: dc.cream, display: "block" }}>{fmt$(peak)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>peak month</div></div>
+                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: dc.lemon, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>annual DSCR</div></div>
               </div>
             </div>
           </div>

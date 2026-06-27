@@ -35,9 +35,9 @@ export default function VacationHomesPage({
 
   const numIn = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
     <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>{pre}</span>}
+      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
       <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)} style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>{suf}</span>}
+      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
     </div>
   );
 
@@ -69,12 +69,12 @@ export default function VacationHomesPage({
               <div style={{ width: `${(useNights / 30) * 100}%`, background: dc.lemon, transition: "width .25s" }} />
               <div style={{ width: `${(rentNights / 30) * 100}%`, background: BLUE, transition: "width .25s" }} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
               <span><b style={{ color: dc.lemon }}>{useNights}</b> nights yours</span>
               <span><b style={{ color: BLUE }}>{rentNights}</b> nights rented</span>
             </div>
             <Mono style={{ fontSize: "clamp(30px,4vw,44px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{paysForItself ? "Pays for itself" : fmt$(net) + "/mo"}</Mono>
-            <div style={{ fontSize: 13, color: "rgba(238,239,211,0.55)", marginTop: 6 }}>{paysForItself ? `rental income covers the ${fmt$(pay)} payment` : `your carry after ${fmt$(income)} rental income`}</div>
+            <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{paysForItself ? `rental income covers the ${fmt$(pay)} payment` : `your carry after ${fmt$(income)} rental income`}</div>
           </div>
         </div>
       </section>
@@ -97,10 +97,10 @@ export default function VacationHomesPage({
                 <div style={{ width: `${(rentNights / 30) * 100}%`, background: BLUE, display: "flex", alignItems: "center", justifyContent: "center", color: dc.dark, fontWeight: 700, fontSize: 12, transition: "width .25s" }}>{rentNights > 3 ? "EARN" : ""}</div>
               </div>
               <input className="gs-range" aria-label="Rented nights per month" type="range" min={0} max={28} step={1} value={rentNights} onChange={(e) => setRentNights(+e.target.value)} style={{ width: "100%" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 6 }}><span>keep it all</span><span>rent most of it</span></div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 6 }}><span>keep it all</span><span>rent most of it</span></div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 24 }}>
-                <label><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 6 }}>Nightly rate</span>{numIn(adr, setAdr, 5, "$")}</label>
-                <label><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 6 }}>Monthly payment</span>{numIn(pay, setPay, 50, "$")}</label>
+                <label><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>Nightly rate</span>{numIn(adr, setAdr, 5, "$")}</label>
+                <label><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>Monthly payment</span>{numIn(pay, setPay, 50, "$")}</label>
               </div>
             </div>
             {/* result */}

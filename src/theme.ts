@@ -117,7 +117,7 @@ export const onDark = {
   dim: "rgba(238,239,211,0.85)",
   secondary: "rgba(238,239,211,0.62)",
   tertiary: "rgba(238,239,211,0.5)",   // large/secondary text only
-  faint: "rgba(238,239,211,0.38)",     // decorative dividers, never body
+  faint: "rgba(238,239,211,0.4)",      // decorative dividers, never body
 } as const;
 export const onLight = {
   primary: "#003738",

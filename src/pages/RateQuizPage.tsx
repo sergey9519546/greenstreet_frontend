@@ -365,7 +365,7 @@ function OptionRow({
         style={{
           fontSize: 12,
           fontWeight: 500,
-          color: selected ? "rgba(0,55,56,0.6)" : "rgba(238,239,211,0.5)",
+          color: selected ? "rgba(0,55,56,0.6)" : "rgba(238,239,211,0.62)",
           letterSpacing: "-0.005em",
           whiteSpace: "nowrap",
           flexShrink: 0,
@@ -393,7 +393,7 @@ function StatTile({ label, val }: { label: string; val: string }) {
           fontWeight: 700,
           letterSpacing: "0.06em",
           textTransform: "uppercase" as const,
-          color: "rgba(238,239,211,0.56)",
+          color: "rgba(238,239,211,0.62)",
           marginBottom: 6,
         }}
       >
@@ -859,7 +859,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
-                  color: "rgba(238,239,211,0.5)",
+                  color: "rgba(238,239,211,0.62)",
                   letterSpacing: "0.03em",
                   textTransform: "uppercase" as const,
                   marginBottom: 20,
@@ -920,7 +920,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       marginTop: 24,
                       background: "none",
                       border: "none",
-                      color: "rgba(238,239,211,0.5)",
+                      color: "rgba(238,239,211,0.62)",
                       fontFamily: font.family,
                       fontWeight: 600,
                       fontSize: 14,
@@ -1075,7 +1075,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,
-                        color: "rgba(238,239,211,0.56)",
+                        color: "rgba(238,239,211,0.62)",
                         marginBottom: 6,
                       }}
                     >
@@ -1099,7 +1099,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         fontSize: 13,
                         fontWeight: 500,
                         lineHeight: 1.55,
-                        color: "rgba(238,239,211,0.55)",
+                        color: "rgba(238,239,211,0.62)",
                         margin: 0,
                         maxWidth: "42ch",
                       }}
@@ -1120,7 +1120,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                           fontWeight: 700,
                           letterSpacing: "0.06em",
                           textTransform: "uppercase" as const,
-                          color: "rgba(238,239,211,0.56)",
+                          color: "rgba(238,239,211,0.62)",
                           marginBottom: 8,
                         }}
                       >
@@ -1138,7 +1138,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase" as const,
-                    color: "rgba(238,239,211,0.56)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 10,
                   }}
                 >
@@ -1184,7 +1184,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         <span
                           style={{
                             fontSize: 13,
-                            color: "rgba(238,239,211,0.55)",
+                            color: "rgba(238,239,211,0.62)",
                           }}
                         >
                           {" "}
@@ -1202,7 +1202,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase" as const,
-                    color: "rgba(238,239,211,0.56)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 10,
                   }}
                 >
@@ -1289,7 +1289,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 <p
                   style={{
                     fontSize: 11,
-                    color: "rgba(238,239,211,0.56)",
+                    color: "rgba(238,239,211,0.62)",
                     margin: "8px 0 28px",
                     lineHeight: 1.5,
                   }}
@@ -1335,7 +1335,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       justifyContent: "center",
                       gap: 8,
                       background: "transparent",
-                      border: `1.5px solid rgba(238,239,211,0.28)`,
+                      border: `1.5px solid rgba(238,239,211,0.5)`,
                       color: swatch.pistachio,
                       fontFamily: font.family,
                       fontWeight: 600,
@@ -1354,7 +1354,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     style={{
                       background: "none",
                       border: "none",
-                      color: "rgba(238,239,211,0.56)",
+                      color: "rgba(238,239,211,0.62)",
                       fontFamily: font.family,
                       fontWeight: 500,
                       fontSize: 14,
@@ -1390,7 +1390,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     style={{
                       fontSize: 12,
                       fontWeight: 600,
-                      color: "rgba(238,239,211,0.5)",
+                      color: "rgba(238,239,211,0.62)",
                       display: "flex",
                       alignItems: "center",
                       gap: 5,
@@ -1439,7 +1439,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "rgba(238,239,211,0.5)",
+                    color: "rgba(238,239,211,0.62)",
                     display: "flex",
                     alignItems: "center",
                     gap: 5,

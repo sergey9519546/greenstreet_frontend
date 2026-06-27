@@ -35,7 +35,7 @@ const T = {
   // Typography — cream on dark
   ink: swatch.pistachio,
   muted: "rgba(238,239,211,0.72)",
-  faint: "rgba(238,239,211,0.55)",
+  faint: "rgba(238,239,211,0.62)",
   // Sidebar — a touch darker than the page so it reads as a panel
   sidebarBg: "#00292a",
   sidebarText: swatch.pistachio,
@@ -160,7 +160,7 @@ function GhostBtn({ children, onClick, className = "" }:
   return (
     <button type="button" onClick={onClick}
       className={`inline-flex items-center justify-center gap-1.5 font-semibold text-xs transition-colors ${className}`}
-      style={{ color: swatch.pistachio, background: "transparent", padding: "9px 16px", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.28)" }}
+      style={{ color: swatch.pistachio, background: "transparent", padding: "9px 16px", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.5)" }}
       onMouseEnter={e => { e.currentTarget.style.background = "rgba(238,239,211,0.08)"; }}
       onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
       {children}
@@ -605,7 +605,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(238,239,211,0.06)"; }}
           onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
           {active && <span style={{ position: "absolute", left: 0, top: 9, bottom: 9, width: 3, borderRadius: 99, background: swatch.lemon }} />}
-          <span style={{ color: active ? swatch.lemon : "rgba(238,239,211,0.5)", display: "flex", alignItems: "center" }}>{icon}</span>
+          <span style={{ color: active ? swatch.lemon : "rgba(238,239,211,0.62)", display: "flex", alignItems: "center" }}>{icon}</span>
           <span className="flex-1">{label}</span>
           {count !== undefined && count > 0 && (
             <span className="text-[10px] px-1.5 py-0.5 font-bold"
@@ -617,7 +617,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
       );
     };
     const SectionLabel = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-      <div className={`text-[10px] font-bold uppercase tracking-[0.1em] px-3 mb-2 ${className}`} style={{ color: "rgba(238,239,211,0.4)" }}>{children}</div>
+      <div className={`text-[10px] font-bold uppercase tracking-[0.1em] px-3 mb-2 ${className}`} style={{ color: "rgba(238,239,211,0.5)" }}>{children}</div>
     );
     return (
       <>
@@ -668,13 +668,13 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           </span>
           <div className="overflow-hidden">
             <div className="text-[13px] font-semibold truncate" style={{ color: swatch.pistachio }}>{brokerDisplayName}</div>
-            <div className="text-[11px] truncate" style={{ color: "rgba(238,239,211,0.55)" }}>{brokerMarket}</div>
+            <div className="text-[11px] truncate" style={{ color: "rgba(238,239,211,0.62)" }}>{brokerMarket}</div>
           </div>
           <button onClick={logoutUser} className="ml-auto p-1.5 transition shrink-0"
-            style={{ color: "rgba(238,239,211,0.55)", borderRadius: radius.sm }}
+            style={{ color: "rgba(238,239,211,0.62)", borderRadius: radius.sm }}
             title="Sign Out"
             onMouseEnter={e => { e.currentTarget.style.background = "rgba(238,239,211,0.1)"; e.currentTarget.style.color = swatch.pistachio; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(238,239,211,0.55)"; }}>
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(238,239,211,0.62)"; }}>
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>

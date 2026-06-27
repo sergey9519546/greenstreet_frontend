@@ -75,7 +75,7 @@ function VerdictGauge({ composite }: { composite: number }) {
         <text x="252" y="170" fill="rgba(77,189,151,0.95)"   fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">GO</text>
 
         {/* Composite score centred below pivot */}
-        <text x="140" y="168" fill="rgba(238,239,211,0.55)" fontSize="13" fontFamily="'JetBrains Mono',monospace" textAnchor="middle" fontWeight="600">
+        <text x="140" y="168" fill="rgba(238,239,211,0.62)" fontSize="13" fontFamily="'JetBrains Mono',monospace" textAnchor="middle" fontWeight="600">
           {composite}/100
         </text>
       </svg>
@@ -269,7 +269,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         .ds-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
         .ds-field{display:flex;align-items:center;background:${swatch.darkTeal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 13px;transition:border-color .15s;}
         .ds-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;}
-        .ds-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.38);}
+        .ds-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.5);}
         @media(max-width:991px){.ds-tool-grid{grid-template-columns:1fr !important;} .dc-hero{grid-template-columns:1fr !important;} .ds-verdict-inner{grid-template-columns:1fr !important;} .ds-bottom-2{grid-template-columns:1fr !important;} }
         @media(max-width:767px){.ds-band-2{grid-template-columns:1fr !important;}}
       `}</style>
@@ -351,7 +351,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
               </span>{" "}
               · composite {heroComposite}/100
             </h2>
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
               The composite score (0–100) weights DSCR coverage, leverage, estimated return, credit, and liquidity. A score above 66 typically clears underwriting.
             </p>
           </div>
@@ -366,7 +366,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
                 Deal &amp; borrower
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 18px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 18px", lineHeight: 1.5 }}>
                 Estimates are fine — the engine re-runs live as you type.
               </p>
 
@@ -381,14 +381,14 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 { label: "Monthly HOA",    hint: "HOA dues per month. Enter 0 if none.", value: hoa, set: setHoa, step: 25, prefix: "$", suffix: "" },
               ] as const).map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: 16 }}>
-                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                     {f.label}
                   </span>
-                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginBottom: 5, lineHeight: 1.4 }}>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>
                     {f.hint}
                   </span>
                   <div className="ds-field" style={{ display: "flex", alignItems: "center" }}>
-                    {f.prefix && <span style={{ color: "rgba(238,239,211,0.56)" }}>{f.prefix}</span>}
+                    {f.prefix && <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.prefix}</span>}
                     <input
                       className="ds-in"
                       type="number"
@@ -397,7 +397,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                       onChange={(e) => (f.set as (n: number) => void)(+e.target.value)}
                       style={{ padding: "12px 7px", fontSize: 16, fontWeight: 600 }}
                     />
-                    {f.suffix && <span style={{ color: "rgba(238,239,211,0.56)" }}>{f.suffix}</span>}
+                    {f.suffix && <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.suffix}</span>}
                   </div>
                 </label>
               ))}
@@ -446,9 +446,9 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   <div className="ds-verdict-inner" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "clamp(16px,2.5vw,28px)", alignItems: "stretch", padding: "24px 0", borderTop: "1px solid rgba(238,239,211,0.1)", borderBottom: "1px solid rgba(238,239,211,0.1)", marginBottom: 20 }}>
                     {/* Bay 1 — composite score + zone bar */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, textAlign: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)" }}>Composite score</div>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Composite score</div>
                       <Mono style={{ fontSize: "clamp(40px,4.6vw,60px)", fontWeight: 700, letterSpacing: "-0.03em", color: verdictColor(result.verdict.verdict), lineHeight: 1 }}>
-                        {result.composite}<span style={{ fontSize: "0.42em", color: "rgba(238,239,211,0.5)" }}>/100</span>
+                        {result.composite}<span style={{ fontSize: "0.42em", color: "rgba(238,239,211,0.62)" }}>/100</span>
                       </Mono>
                       <div style={{ width: "100%", maxWidth: 210 }}>
                         <div style={{ position: "relative", height: 10, borderRadius: 999, background: "linear-gradient(90deg,#ff6b6b 0 33%,#d8d958 33% 66%,#4dbd97 66% 100%)" }}>
@@ -461,22 +461,22 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     </div>
                     {/* Bay 2 — DSCR gauge */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)" }}>DSCR</div>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>DSCR</div>
                       <DscrGauge value={result.deal.dscr} size={138} />
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <RiskFlame level={riskFromDscr(result.deal.dscr)} size={16} />
-                        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", fontWeight: 500 }}>
+                        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>
                           {result.deal.dscr >= 1.25 ? "strong cushion" : result.deal.dscr >= 1.0 ? "qualifies" : "sub-1.0"}
                         </span>
                       </div>
                     </div>
                     {/* Bay 3 — rent vs PITIA balance */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)" }}>Rent vs PITIA</div>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Rent vs PITIA</div>
                       <BalanceScale rent={monthlyRent} payment={result.deal.monthlyPITIA.total} size={150} />
                       <div style={{ display: "flex", justifyContent: "space-between", width: "100%", maxWidth: 210 }}>
-                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.56)" }}>${Math.round(monthlyRent).toLocaleString()} rent</span>
-                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.56)" }}>${Math.round(result.deal.monthlyPITIA.total).toLocaleString()} PITIA</span>
+                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)" }}>${Math.round(monthlyRent).toLocaleString()} rent</span>
+                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)" }}>${Math.round(result.deal.monthlyPITIA.total).toLocaleString()} PITIA</span>
                       </div>
                     </div>
                   </div>
@@ -497,11 +497,11 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                       <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 13, textDecoration: "none", padding: "10px 18px", borderRadius: radius.sm, minHeight: 44 }}>
                         Get my rate →
                       </a>
-                      <a href="/deal-analyzer" onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1.5px solid rgba(238,239,211,0.28)", color: "rgba(238,239,211,0.8)", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "10px 16px", borderRadius: radius.sm, minHeight: 44 }}>
+                      <a href="/deal-analyzer" onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1.5px solid rgba(238,239,211,0.5)", color: "rgba(238,239,211,0.8)", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "10px 16px", borderRadius: radius.sm, minHeight: 44 }}>
                         Full deal analyzer →
                       </a>
                     </div>
-                    <p style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", margin: "10px 0 0" }}>Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.</p>
+                    <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "10px 0 0" }}>Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.</p>
                   </div>
                 </div>
 
@@ -512,7 +512,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
                       Score breakdown — what moved the needle
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 14px", lineHeight: 1.4 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.4 }}>
                       Each factor is scored 0–100. Green = strong; yellow = marginal; red = needs attention. The percentage in each label is how much weight it carries in the composite.
                     </p>
                     {result.factors.map((f) => (
@@ -524,7 +524,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         <div style={{ height: 6, borderRadius: 3, background: "rgba(238,239,211,0.1)", overflow: "hidden" }}>
                           <div style={{ height: "100%", width: f.pct, background: f.color, borderRadius: 3 }} />
                         </div>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 5 }}>{f.note}</div>
+                        <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{f.note}</div>
                       </div>
                     ))}
                   </div>
@@ -534,7 +534,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                       Why — the plain-language reasons
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 14px", lineHeight: 1.4 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.4 }}>
                       ✓ = passing · ~ = borderline · ✕ = fix required
                     </p>
                     {result.memo.map((m, i) => (
@@ -552,7 +552,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                       Deal issues — {result.kill.criteria.length} flagged
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.56)", margin: "0 0 14px", lineHeight: 1.4 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.4 }}>
                       BLOCKER = must resolve before any lender will proceed. WARNING = worth addressing; may be offset by compensating factors. Each item includes a suggested action.
                     </p>
                     {result.kill.criteria.map((k, i) => {
@@ -565,8 +565,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                               {k.severity}
                             </span>
                           </div>
-                          <p style={{ color: "rgba(238,239,211,0.55)", fontSize: 12, margin: "0 0 2px" }}>{k.detail}</p>
-                          <p style={{ color: "rgba(238,239,211,0.55)", fontSize: 12, margin: 0 }}>
+                          <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, margin: "0 0 2px" }}>{k.detail}</p>
+                          <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, margin: 0 }}>
                             <strong style={{ color: dc.emerald }}>Action: </strong>{k.action}
                           </p>
                         </div>
@@ -582,23 +582,23 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 >
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Return grade</div>
-                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginBottom: 10 }}>A = 10%+ IRR proxy · D = below 4%</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>A = 10%+ IRR proxy · D = below 4%</div>
                     <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade), lineHeight: 1 }}>
                       {result.grade}
                     </Mono>
                   </div>
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Acquisition score</div>
-                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginBottom: 10 }}>75+ = strong buy · 60–74 = conditional · below 60 = restructure</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>75+ = strong buy · 60–74 = conditional · below 60 = restructure</div>
                     <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? "#e6b84d" : "#e06363", lineHeight: 1 }}>
                       {Math.round(result.acq.score)}
                     </Mono>
-                    <div style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", marginTop: 4 }}>{result.acq.band}</div>
+                    <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>{result.acq.band}</div>
                   </div>
                 </div>
 
                 {/* ENGINE FOOTNOTE */}
-                <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)", fontSize: 12, color: "rgba(238,239,211,0.55)", lineHeight: 1.6 }}>
+                <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)", fontSize: 12, color: "rgba(238,239,211,0.62)", lineHeight: 1.6 }}>
                   <strong style={{ color: dc.emerald }}>How PROCEED is decided: </strong>
                   The engine checks DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) above the lender minimum with a small cushion, a second rent-coverage check at 1.0x, a return grade of B or better, at least 50 basis points of rate headroom before the deal breaks, no hard blockers, and at least one eligible Greenstreet program.{" "}
                   Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting. Submit a scenario review for exact underwriting.

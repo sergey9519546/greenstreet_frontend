@@ -118,7 +118,7 @@ export default function GoLanding(p: GoLandingProps) {
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: dc.lemon }} />
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(238,239,211,0.3)" }} />
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(238,239,211,0.3)" }} />
-                  <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)" }}>{p.mock.dealId}</span>
+                  <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>{p.mock.dealId}</span>
                 </div>
                 <div style={{ width: "100%", aspectRatio: "4 / 3", borderRadius: 10, background: "linear-gradient(135deg, rgba(238,239,211,0.08), rgba(238,239,211,0.02))", border: "1px solid rgba(238,239,211,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Mono style={{ fontSize: "clamp(40px,6vw,72px)", fontWeight: 600, color: dc.cream, letterSpacing: "-0.04em" }}>{p.mock.bigStat}</Mono>
@@ -127,7 +127,7 @@ export default function GoLanding(p: GoLandingProps) {
                   {p.mock.tiles.map((t) => (
                     <div key={t.l} style={{ background: dc.teal, padding: 14, textAlign: "center" }}>
                       <Mono style={{ fontSize: 22, fontWeight: 600, color: t.accent ? dc.lemon : dc.cream, letterSpacing: "-0.03em" }}>{t.v}</Mono>
-                      <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 3 }}>{t.l}</div>
+                      <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{t.l}</div>
                     </div>
                   ))}
                 </div>
@@ -139,10 +139,10 @@ export default function GoLanding(p: GoLandingProps) {
         {/* ── TRUST STRIP (no competitor logos — we are the lender) ─────────────── */}
         <section style={{ background: dc.dark, padding: `0 ${dc.pad} clamp(48px,6vh,72px)` }}>
           <div style={{ maxWidth: dc.maxW, margin: "0 auto", borderTop: "1px solid rgba(238,239,211,0.12)", paddingTop: 34, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)" }}>{p.trustLabel}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>{p.trustLabel}</span>
             <div style={{ display: "flex", gap: "clamp(20px,3vw,44px)", alignItems: "center", flexWrap: "wrap" }}>
               {p.trustItems.map((s) => (
-                <span key={s} style={{ fontSize: "clamp(15px,1.6vw,19px)", fontWeight: 600, letterSpacing: "-0.02em", color: "rgba(238,239,211,0.55)" }}>{s}</span>
+                <span key={s} style={{ fontSize: "clamp(15px,1.6vw,19px)", fontWeight: 600, letterSpacing: "-0.02em", color: "rgba(238,239,211,0.62)" }}>{s}</span>
               ))}
             </div>
           </div>
@@ -181,7 +181,7 @@ export default function GoLanding(p: GoLandingProps) {
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 14 }}>{p.scenariosEyebrow}</div>
               <h2 style={{ fontSize: "clamp(30px,4.4vw,60px)", fontWeight: 600, lineHeight: 1.0, letterSpacing: "-0.04em", margin: 0, color: dc.cream, maxWidth: "18ch" }}>{p.scenariosTitle}</h2>
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(238,239,211,0.56)", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>Scroll →</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(238,239,211,0.62)", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>Scroll →</div>
           </div>
           <div style={{ padding: "0 0 clamp(56px,7vh,96px)" }}>
             <div id="go-track" style={{ display: "flex", gap: 24, padding: `0 ${dc.pad}`, overflowX: "auto" }}>

@@ -88,10 +88,10 @@ export default function NonUsInvestorsPage({
 
   const num = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
     <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>{pre}</span>}
+      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
       <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)}
         style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px", letterSpacing: "-0.02em" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.56)", fontSize: 14 }}>{suf}</span>}
+      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
     </div>
   );
 
@@ -160,7 +160,7 @@ export default function NonUsInvestorsPage({
             <button onClick={() => onNavigate("book-demo")} style={{ marginTop: 14, background: "none", border: "none", cursor: "pointer", fontFamily: font.family, color: BLUE, fontWeight: 600, fontSize: 14, padding: 0 }}>
               Prefer to talk? Message a DSCR specialist on WhatsApp →
             </button>
-            <div style={{ marginTop: 22, fontSize: 12, color: "rgba(238,239,211,0.5)", letterSpacing: "0.01em" }}>
+            <div style={{ marginTop: 22, fontSize: 12, color: "rgba(238,239,211,0.62)", letterSpacing: "0.01em" }}>
               No SSN required · Passport accepted · Close remotely · Powered by multiple U.S. DSCR lenders
             </div>
           </div>
@@ -204,7 +204,7 @@ export default function NonUsInvestorsPage({
               {[{ v: dscr.toFixed(2) + "x", l: "DSCR" }, { v: "75%", l: "max LTV" }, { v: go ? "GO" : "—", l: "verdict" }].map((t, i) => (
                 <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 8px", textAlign: "center" }}>
                   <Mono style={{ fontSize: 20, fontWeight: 700, color: i === 2 ? vColor : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginTop: 5 }}>{t.l}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{t.l}</div>
                 </div>
               ))}
             </div>
@@ -258,11 +258,11 @@ export default function NonUsInvestorsPage({
                 { l: "Note rate %", n: num(rate, setRate, 0.125, "", "%") },
               ].map((f) => (
                 <label key={f.l} style={{ display: "block" }}>
-                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 6 }}>{f.l}</span>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>{f.l}</span>
                   {f.n}
                 </label>
               ))}
-              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", lineHeight: 1.5 }}>Scroll over any field to adjust. Taxes &amp; insurance estimated into the payment.</div>
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Scroll over any field to adjust. Taxes &amp; insurance estimated into the payment.</div>
             </div>
             <div style={{ background: dc.dark, borderRadius: radius.lg, border: `1px solid ${vColor}55`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, background: `${vColor}22`, border: `1px solid ${vColor}`, borderRadius: 100, padding: "6px 14px", marginBottom: 18 }}>
@@ -274,9 +274,9 @@ export default function NonUsInvestorsPage({
                 {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
-                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 2 }}>LTV (cap ≈75%)</div></div>
-                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{fmt$(loan)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 2 }}>loan amount</div></div>
-                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: BLUE, display: "block" }}>$0</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 2 }}>income docs</div></div>
+                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>LTV (cap ≈75%)</div></div>
+                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{fmt$(loan)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>loan amount</div></div>
+                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: BLUE, display: "block" }}>$0</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>income docs</div></div>
               </div>
             </div>
           </div>
@@ -311,11 +311,11 @@ export default function NonUsInvestorsPage({
               <div key={q.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.1)", borderRadius: radius.md, padding: "clamp(20px,2.2vw,28px)" }}>
                 <Mono style={{ fontSize: "clamp(24px,2.6vw,32px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{q.v}</Mono>
                 <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream, marginTop: 8 }}>{q.l}</div>
-                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", marginTop: 2 }}>{q.s}</div>
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>{q.s}</div>
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 13, color: "rgba(238,239,211,0.5)", margin: "16px 0 0", maxWidth: "70ch", lineHeight: 1.5 }}>
+          <p style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", margin: "16px 0 0", maxWidth: "70ch", lineHeight: 1.5 }}>
             Single-family, 2–4 units, and many condos — long-term and short-term (Airbnb) rentals. Illustrative ranges; your numbers, taxes, insurance, and the lender decide the real figure.
           </p>
         </div>
@@ -326,7 +326,7 @@ export default function NonUsInvestorsPage({
         <div className="gs-reveal" style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Why us, not a faceless platform</div>
           <p style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.3, margin: 0, color: dc.cream }}>
-            A platform gives you <span style={{ color: "rgba(238,239,211,0.55)" }}>their</span> loan. We give you the <span style={{ color: dc.lemon }}>best</span> loan — one application in front of multiple U.S. lenders, including the ones most comfortable with where you live. A real person, in your language, from your first question to the keys.
+            A platform gives you <span style={{ color: "rgba(238,239,211,0.62)" }}>their</span> loan. We give you the <span style={{ color: dc.lemon }}>best</span> loan — one application in front of multiple U.S. lenders, including the ones most comfortable with where you live. A real person, in your language, from your first question to the keys.
           </p>
         </div>
       </section>
@@ -352,7 +352,7 @@ export default function NonUsInvestorsPage({
       ]} />
 
       {/* ── COMPLIANCE FOOTER ── */}
-      <section style={{ background: dc.dark, color: "rgba(238,239,211,0.56)", padding: `28px ${dc.pad} 40px`, borderTop: "1px solid rgba(238,239,211,0.08)" }}>
+      <section style={{ background: dc.dark, color: "rgba(238,239,211,0.62)", padding: `28px ${dc.pad} 40px`, borderTop: "1px solid rgba(238,239,211,0.08)" }}>
         <p style={{ maxWidth: dc.maxW, margin: "0 auto", fontSize: 12, lineHeight: 1.6 }}>
           Estimates only — not a loan commitment, approval, or offer of credit. For business-purpose, non-owner-occupied investment property. DSCR loan terms, rates, and eligibility vary by lender, property, and country of residence and change without notice.
         </p>
