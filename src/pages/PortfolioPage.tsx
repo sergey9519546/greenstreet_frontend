@@ -327,7 +327,7 @@ export default function PortfolioPage({
                             style={{ width: 138, background: "transparent", border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 600, fontSize: 14, padding: "7px 9px", outline: "none" }} />
                         </td>
                         <td style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
-                          <select value={c.propertyType} onChange={(e) => edit(c.id, "propertyType", e.target.value)}
+                          <select aria-label="Property type" value={c.propertyType} onChange={(e) => edit(c.id, "propertyType", e.target.value)}
                             style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 500, fontSize: 13, padding: "7px 7px", outline: "none", cursor: "pointer" }}>
                             {["SFR", "2-4 unit", "Duplex", "Triplex", "4-plex", "5+ unit", "Condo", "Townhome", "STR / Airbnb"].map((t) => (
                               <option key={t} value={t} style={{ color: "#003738" }}>{t}</option>
@@ -335,16 +335,16 @@ export default function PortfolioPage({
                           </select>
                         </td>
                         <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
+                          <input className="pf-in" aria-label="Property value" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
                         </td>
                         <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
+                          <input className="pf-in" aria-label="Loan balance" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
                         </td>
                         <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
+                          <input className="pf-in" aria-label="Note rate" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
                         </td>
                         <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
+                          <input className="pf-in" aria-label="Monthly rent" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
                         </td>
                         <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.5)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
                           {c.ltv.toFixed(0)}%

@@ -44,6 +44,7 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
       </div>
       <input
         className="gs-range"
+        aria-label={label}
         type="range"
         min={min}
         max={max}
@@ -509,7 +510,7 @@ export default function MonteCarloPage({
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>Random seed</span>
                       <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.lemon }}>{seed}</Mono>
                     </div>
-                    <input className="gs-range" type="range" min={1} max={999} step={1} value={seed} onChange={(e) => setSeed(+e.target.value)} />
+                    <input className="gs-range" aria-label="Random seed" type="range" min={1} max={999} step={1} value={seed} onChange={(e) => setSeed(+e.target.value)} />
                     <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 4, lineHeight: 1.4 }}>Controls which specific paths are drawn. Different seeds give similar but not identical results.</span>
                   </div>
                 </div>

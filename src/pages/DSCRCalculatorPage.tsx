@@ -276,7 +276,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Down payment — sets your LTV (loan ÷ value)</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{down}% · {fmt(price * down / 100)}</Mono>
                     </div>
-                    <input className="gsr" type="range" step="5" min="20" max="50" value={down} onChange={e => setDown(+e.target.value)} style={{ width: '100%' }} />
+                    <input className="gsr" aria-label="Down payment percent" type="range" step="5" min="20" max="50" value={down} onChange={e => setDown(+e.target.value)} style={{ width: '100%' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.56)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
                   </div>
                   <div>
@@ -284,7 +284,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Interest rate — drives P&amp;I payment</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{rate.toFixed(3)}%</Mono>
                     </div>
-                    <input className="gsr" type="range" step="0.125" min="4" max="12" value={rate} onChange={e => setRate(+e.target.value)} style={{ width: '100%' }} />
+                    <input className="gsr" aria-label="Interest rate" type="range" step="0.125" min="4" max="12" value={rate} onChange={e => setRate(+e.target.value)} style={{ width: '100%' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.56)', marginTop: 4 }}><span>4%</span><span>12%</span></div>
                   </div>
                   <label style={{ display: 'block' }}>

@@ -96,7 +96,7 @@ export default function VacationHomesPage({
                 <div style={{ width: `${(useNights / 30) * 100}%`, background: dc.lemon, display: "flex", alignItems: "center", justifyContent: "center", color: dc.dark, fontWeight: 700, fontSize: 12, transition: "width .25s" }}>{useNights > 3 ? "USE" : ""}</div>
                 <div style={{ width: `${(rentNights / 30) * 100}%`, background: BLUE, display: "flex", alignItems: "center", justifyContent: "center", color: dc.dark, fontWeight: 700, fontSize: 12, transition: "width .25s" }}>{rentNights > 3 ? "EARN" : ""}</div>
               </div>
-              <input className="gs-range" type="range" min={0} max={28} step={1} value={rentNights} onChange={(e) => setRentNights(+e.target.value)} style={{ width: "100%" }} />
+              <input className="gs-range" aria-label="Rented nights per month" type="range" min={0} max={28} step={1} value={rentNights} onChange={(e) => setRentNights(+e.target.value)} style={{ width: "100%" }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 6 }}><span>keep it all</span><span>rent most of it</span></div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 24 }}>
                 <label><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 6 }}>Nightly rate</span>{numIn(adr, setAdr, 5, "$")}</label>

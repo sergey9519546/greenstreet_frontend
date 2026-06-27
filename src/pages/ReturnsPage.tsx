@@ -107,7 +107,7 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
           {prefix}{display}{suffix}
         </Mono>
       </div>
-      <input className="gs-range" type="range" min={min} max={max} step={step} value={value} onChange={(e) => set(+e.target.value)} />
+      <input className="gs-range" aria-label={label} type="range" min={min} max={max} step={step} value={value} onChange={(e) => set(+e.target.value)} />
       {hint && (
         <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.56)", marginTop: 4, lineHeight: 1.4 }}>
           {hint}

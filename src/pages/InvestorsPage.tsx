@@ -42,8 +42,8 @@ export default function InvestorsPage({
   const addDoor = () => setDoors((ds) => [...ds, { rent: 2600, pay: 2050 }]);
   const removeDoor = (i: number) => setDoors((ds) => (ds.length > 1 ? ds.filter((_, j) => j !== i) : ds));
 
-  const numIn = (v: number, set: (n: number) => void, step: number) => (
-    <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)}
+  const numIn = (v: number, set: (n: number) => void, step: number, label = "amount") => (
+    <input type="number" aria-label={label} step={step} value={v} onChange={(e) => set(+e.target.value)}
       style={{ width: 78, border: "none", borderBottom: "1.5px solid rgba(238,239,211,0.25)", background: "none", outline: "none", color: dc.cream, fontFamily: dc.mono, fontWeight: 700, fontSize: 15, padding: "2px 2px", letterSpacing: "-0.02em" }} />
   );
 
@@ -103,7 +103,7 @@ export default function InvestorsPage({
                   <div key={i} className="inv-door" style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: `${Math.min(i, 8) * 26}px`, background: dc.teal, border: `1px solid ${ok ? "rgba(77,189,151,0.35)" : "rgba(255,107,107,0.35)"}`, borderRadius: radius.md, padding: "14px 18px" }}>
                     <Mono style={{ fontSize: 18, fontWeight: 700, color: past ? dc.emerald : "rgba(238,239,211,0.4)", width: 34 }}>{String(i + 1).padStart(2, "0")}</Mono>
                     <div style={{ fontSize: 13, color: "rgba(238,239,211,0.6)" }}>
-                      rent {numIn(d.rent, (v) => setDoor(i, "rent", v), 50)} · pay {numIn(d.pay, (v) => setDoor(i, "pay", v), 50)}
+                      rent {numIn(d.rent, (v) => setDoor(i, "rent", v), 50, "Door rent")} · pay {numIn(d.pay, (v) => setDoor(i, "pay", v), 50, "Door payment")}
                     </div>
                     <Mono style={{ marginLeft: "auto", fontSize: 18, fontWeight: 700, color: ok ? dc.emerald : RED }}>{ds.toFixed(2)}x</Mono>
                     <button onClick={() => removeDoor(i)} aria-label="remove door" style={{ background: "none", border: "none", color: "rgba(238,239,211,0.56)", cursor: "pointer", fontSize: 18, lineHeight: 1, fontFamily: font.family }}>×</button>
