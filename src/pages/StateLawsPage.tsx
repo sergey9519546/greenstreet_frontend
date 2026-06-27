@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
 import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
 
@@ -238,12 +238,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => onNavigate("dscr-calculator")}
-                style={{ marginTop: 24, width: "100%", background: dc.lemon, color: dc.dark, border: "none", borderRadius: 6, padding: "12px 0", fontSize: 14, fontWeight: 600, fontFamily: dc.sans, cursor: "pointer" }}
-              >
-                Price a deal in {sel.code} →
-              </button>
+              <Btn label={`Price a deal in ${sel.code}`} size="sm" onClick={() => onNavigate("dscr-calculator")} style={{ width: "100%", justifyContent: "center", marginTop: 24 }} />
             </div>
           </div>
         </div>

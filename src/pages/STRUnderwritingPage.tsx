@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { DcShell, dc, Mono, CountUp } from "../design/dc";
+import { DcShell, dc, Mono, CountUp, Btn } from "../design/dc";
 import { radius } from "../theme";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
 import type { PropertyInputs } from "../engine/types";
@@ -935,20 +935,8 @@ export default function STRUnderwritingPage({
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <a
-                href="/rate-quiz"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
-              >
-                Get my rate →
-              </a>
-              <a
-                href="/lender-intel"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
-              >
-                Browse STR programs
-              </a>
+              <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
+              <Btn label="Browse STR programs" variant="secondary" arrow={false} href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} />
             </div>
           </div>
         </div>

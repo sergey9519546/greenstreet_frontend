@@ -420,12 +420,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               Check whether your property qualifies and see your preliminary program match in minutes. No commitment required.
             </p>
           </div>
-          <button
-            onClick={() => (window as any).openQualify?.()}
-            style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "13px 26px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em", flexShrink: 0 }}
-          >
-            See if your deal qualifies →
-          </button>
+          <Btn label="See if your deal qualifies" onClick={() => (window as any).openQualify?.()} style={{ flexShrink: 0 }} />
         </div>
 
         {/* Freshness signal */}
