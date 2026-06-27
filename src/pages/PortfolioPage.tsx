@@ -182,7 +182,7 @@ export default function PortfolioPage({
       accent={PF_ACCENT}
       navLinks={[
         { label: "DSCR Calc",     view: "dscr-calculator" },
-        { label: "Deal Analyzer", view: "deal-analyzer" },
+        { label: "Programs",      view: "lender-intel" },
         { label: "ARM Reset",     view: "arm-reset" },
       ]}
       cta={{ label: "Build portfolio →", onClick: scrollToTool }}

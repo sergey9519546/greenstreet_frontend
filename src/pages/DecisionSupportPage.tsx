@@ -259,7 +259,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc",     view: "dscr-calculator" },
-        { label: "Deal Analyzer", view: "deal-analyzer" },
+        { label: "Programs",      view: "lender-intel" },
       ]}
       cta={{ label: "Get the verdict →", onClick: scrollToTool }}
     >
@@ -497,8 +497,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                       <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 13, textDecoration: "none", padding: "10px 18px", borderRadius: radius.sm, minHeight: 44 }}>
                         Get my rate →
                       </a>
-                      <a href="/deal-analyzer" onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1.5px solid rgba(238,239,211,0.5)", color: "rgba(238,239,211,0.8)", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "10px 16px", borderRadius: radius.sm, minHeight: 44 }}>
-                        Full deal analyzer →
+                      <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1.5px solid rgba(238,239,211,0.5)", color: "rgba(238,239,211,0.8)", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "10px 16px", borderRadius: radius.sm, minHeight: 44 }}>
+                        See matching programs →
                       </a>
                     </div>
                     <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "10px 0 0" }}>Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.</p>

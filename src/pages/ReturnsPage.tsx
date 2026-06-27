@@ -690,7 +690,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
               <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
-              <Btn label="Full deal analyzer" variant="secondary" arrow={false} href="/deal-analyzer" onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }} />
+              <Btn label="See matching programs" variant="secondary" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} />
             </div>
           </div>
         </div>

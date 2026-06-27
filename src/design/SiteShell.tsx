@@ -254,7 +254,7 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Product</h3>
               <div className="footer_group_list u-grid-column-2">
                 <a className="footer_link_wrap w-inline-block" href="/dscr-calculator" onClick={go("dscr-calculator")}><div className="footer_link_text u-weight-bold">DSCR Calculator</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/deal-analyzer" onClick={go("deal-analyzer")}><div className="footer_link_text u-weight-bold">Deal Analyzer</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/decision-support" onClick={go("decision-support")}><div className="footer_link_text u-weight-bold">Decision Support</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={go("lender-intel")}><div className="footer_link_text u-weight-bold">Our DSCR Programs</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={go("state-laws")}><div className="footer_link_text u-weight-bold">State Regulations</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">DSCR Borrower Profiles</div></a>

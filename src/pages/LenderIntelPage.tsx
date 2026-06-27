@@ -682,8 +682,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 Get my rate →
               </a>
               <a
-                href="/deal-analyzer"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }}
+                href="/dscr-calculator"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -701,7 +701,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   minHeight: 44,
                 }}
               >
-                Full deal analyzer
+                Run the DSCR calculator
               </a>
             </div>
           </div>

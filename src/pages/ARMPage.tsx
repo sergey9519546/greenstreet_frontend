@@ -152,7 +152,7 @@ export default function ARMPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc",     view: "dscr-calculator" },
-        { label: "Deal Analyzer", view: "deal-analyzer" },
+        { label: "Programs",      view: "lender-intel" },
         { label: "Portfolio",     view: "portfolio" },
       ]}
       cta={{ label: "Model the reset →", onClick: scrollToTool }}
