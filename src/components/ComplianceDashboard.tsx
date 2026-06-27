@@ -815,7 +815,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         {/* Right column */}
                         <div className="flex flex-col gap-4">
                           {/* Compliance status */}
-                          <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: `1px solid ${swatch.midnight}`, borderRadius: radius.md }}>
+                          <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: "1px solid rgba(238,239,211,0.16)", boxShadow: "inset 0 1px 0 rgba(238,239,211,0.06)", borderRadius: radius.md }}>
                             <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance</div>
                             {([
                               { label: "17a-4 WORM archive", status: "Active" },
