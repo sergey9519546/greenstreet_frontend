@@ -446,7 +446,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   <div className="ds-verdict-inner" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "clamp(16px,2.5vw,28px)", alignItems: "stretch", padding: "24px 0", borderTop: "1px solid rgba(238,239,211,0.1)", borderBottom: "1px solid rgba(238,239,211,0.1)", marginBottom: 20 }}>
                     {/* Bay 1 — composite score + zone bar */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, textAlign: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Composite score</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Composite score</div>
                       <Mono style={{ fontSize: "clamp(40px,4.6vw,60px)", fontWeight: 700, letterSpacing: "-0.03em", color: verdictColor(result.verdict.verdict), lineHeight: 1 }}>
                         {result.composite}<span style={{ fontSize: "0.42em", color: "rgba(238,239,211,0.62)" }}>/100</span>
                       </Mono>
@@ -454,14 +454,14 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         <div style={{ position: "relative", height: 10, borderRadius: 999, background: "linear-gradient(90deg,#ff6b6b 0 33%,#d8d958 33% 66%,#4dbd97 66% 100%)" }}>
                           <div style={{ position: "absolute", top: "50%", left: `${Math.max(2, Math.min(98, result.composite))}%`, transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: dc.cream, border: `3px solid ${verdictColor(result.verdict.verdict)}`, boxShadow: "0 2px 7px rgba(0,0,0,0.45)" }} />
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontSize: 9, fontFamily: dc.mono, letterSpacing: "0.04em", color: "rgba(238,239,211,0.45)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontSize: 11, fontFamily: dc.mono, letterSpacing: "0.04em", color: "rgba(238,239,211,0.45)" }}>
                           <span>NO-GO</span><span>COND</span><span>GO</span>
                         </div>
                       </div>
                     </div>
                     {/* Bay 2 — DSCR gauge */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>DSCR</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>DSCR</div>
                       <DscrGauge value={result.deal.dscr} size={138} />
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <RiskFlame level={riskFromDscr(result.deal.dscr)} size={16} />
@@ -472,11 +472,11 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     </div>
                     {/* Bay 3 — rent vs PITIA balance */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Rent vs PITIA</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Rent vs PITIA</div>
                       <BalanceScale rent={monthlyRent} payment={result.deal.monthlyPITIA.total} size={150} />
                       <div style={{ display: "flex", justifyContent: "space-between", width: "100%", maxWidth: 210 }}>
-                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)" }}>${Math.round(monthlyRent).toLocaleString()} rent</span>
-                        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)" }}>${Math.round(result.deal.monthlyPITIA.total).toLocaleString()} PITIA</span>
+                        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>${Math.round(monthlyRent).toLocaleString()} rent</span>
+                        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>${Math.round(result.deal.monthlyPITIA.total).toLocaleString()} PITIA</span>
                       </div>
                     </div>
                   </div>
@@ -561,7 +561,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                             <span style={{ fontWeight: 600, fontSize: 14, color: dc.cream }}>{k.criterion}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: `${kc}22`, color: kc, border: `1px solid ${kc}` }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: `${kc}22`, color: kc, border: `1px solid ${kc}` }}>
                               {k.severity}
                             </span>
                           </div>

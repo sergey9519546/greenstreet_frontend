@@ -686,7 +686,7 @@ export default function BlogPostPage({
                       marginBottom: 10,
                     }}
                   >
-                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
                       {r.tag}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.45)" }}>{r.date}</span>

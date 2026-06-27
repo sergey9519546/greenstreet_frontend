@@ -123,7 +123,7 @@ function MonthTable({
                   fontWeight: 600,
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
-                  fontSize: 10,
+                  fontSize: 11,
                   borderBottom: "1px solid rgba(238,239,211,0.1)",
                 }}
               >
@@ -674,7 +674,7 @@ export default function STRUnderwritingPage({
                         >
                           <div
                             style={{
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: 600,
                               letterSpacing: "0.05em",
                               textTransform: "uppercase",
@@ -708,7 +708,7 @@ export default function STRUnderwritingPage({
                           {isBest && (
                             <div
                               style={{
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: 700,
                                 letterSpacing: "0.06em",
                                 textTransform: "uppercase",

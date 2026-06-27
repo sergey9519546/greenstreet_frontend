@@ -487,11 +487,11 @@ export function HeroProof({
             <div className="hp-panel" style={{ display: "grid", gap: 14 }}>
               <div className="hp-input-grid">
                 <div style={{ background: "rgba(238,239,211,0.08)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: radius.md, padding: "13px 14px" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>Rent input</div>
+                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>Rent input</div>
                   <Mono style={{ color: PISTACHIO, fontSize: 20, fontWeight: 800 }}>{leftInput}</Mono>
                 </div>
                 <div style={{ background: "rgba(238,239,211,0.08)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: radius.md, padding: "13px 14px" }}>
-                  <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>PITIA load</div>
+                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>PITIA load</div>
                   <Mono style={{ color: PISTACHIO, fontSize: 20, fontWeight: 800 }}>{rightInput}</Mono>
                 </div>
               </div>
@@ -540,7 +540,7 @@ export function HeroProof({
               <div className="hp-logic-grid">
                 {["DSCR floor", "LTV band", "State rule"].map((label, i) => (
                   <div key={label} style={{ borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.12)", padding: "9px 10px", background: i === 0 ? "rgba(216,217,88,0.12)" : "rgba(238,239,211,0.06)" }}>
-                    <div style={{ fontSize: 10, color: "rgba(238,239,211,0.48)", fontWeight: 700, marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.48)", fontWeight: 700, marginBottom: 4 }}>{label}</div>
                     <div style={{ fontSize: 13, color: PISTACHIO, fontWeight: 800 }}>{i === 0 ? "passes" : i === 1 ? "75%" : "screened"}</div>
                   </div>
                 ))}
@@ -548,7 +548,7 @@ export function HeroProof({
             </div>
             {chip && (
               <div className="hp-chip" style={{ background: MINT_BG, borderRadius: radius.md, padding: "14px 16px", border: "1px solid rgba(0,55,56,0.12)", minWidth: 118 }}>
-                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 4 }}>Verdict</div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 4 }}>Verdict</div>
                 <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: "0.06em", textTransform: "uppercase", color: chip.color }}>{chip.label}</div>
               </div>
             )}

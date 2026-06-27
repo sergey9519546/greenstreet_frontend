@@ -915,7 +915,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
                 <div style={{ padding: "clamp(20px,2.4vw,28px)", display: "flex", flexDirection: "column", flex: 1 }}>
                   {/* Tag pill + date on same row */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
                       {p.tag}
                     </span>
                     <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.45)", letterSpacing: "-0.01em" }}>{p.date}</span>
@@ -928,7 +928,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
                   </p>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ width: 28, height: 28, borderRadius: "50%", background: dc.rain, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: dc.cream, letterSpacing: "-0.01em" }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: dc.cream, letterSpacing: "-0.01em" }}>
                         {p.author === "Greenstreet" ? "GS" : p.author.split(" ").map((n: string) => n[0]).join("")}
                       </span>
                     </span>

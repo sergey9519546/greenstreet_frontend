@@ -389,7 +389,7 @@ function StatTile({ label, val }: { label: string; val: string }) {
     >
       <div
         style={{
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 700,
           letterSpacing: "0.06em",
           textTransform: "uppercase" as const,
@@ -1071,7 +1071,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   <div style={{ flex: "1 1 220px" }}>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,
@@ -1116,7 +1116,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     >
                       <div
                         style={{
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: 700,
                           letterSpacing: "0.06em",
                           textTransform: "uppercase" as const,
@@ -1134,7 +1134,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {/* What drove this result */}
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase" as const,
@@ -1198,7 +1198,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {/* Program stat grid */}
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase" as const,
@@ -1235,7 +1235,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   >
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,

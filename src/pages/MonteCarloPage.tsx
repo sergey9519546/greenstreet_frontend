@@ -108,17 +108,17 @@ function DscrSpreadBar({ p10, median, p90, animate }: { p10: number; median: num
       </div>
       {/* labels */}
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
-        <span style={{ fontSize: 10, color: p10Color, fontWeight: 700, fontFamily: dc.mono }}>P10 {p10.toFixed(2)}x</span>
-        <span style={{ fontSize: 10, color: dc.cream, fontWeight: 700, fontFamily: dc.mono }}>Med {median.toFixed(2)}x</span>
-        <span style={{ fontSize: 10, color: dc.emerald, fontWeight: 700, fontFamily: dc.mono }}>P90 {p90.toFixed(2)}x</span>
+        <span style={{ fontSize: 11, color: p10Color, fontWeight: 700, fontFamily: dc.mono }}>P10 {p10.toFixed(2)}x</span>
+        <span style={{ fontSize: 11, color: dc.cream, fontWeight: 700, fontFamily: dc.mono }}>Med {median.toFixed(2)}x</span>
+        <span style={{ fontSize: 11, color: dc.emerald, fontWeight: 700, fontFamily: dc.mono }}>P90 {p90.toFixed(2)}x</span>
       </div>
       {/* threshold legend */}
       <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
-        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
           <span style={{ width: 8, height: 2, background: RED, display: "inline-block", borderRadius: 1 }} />
           1.0 = break-even
         </span>
-        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
           <span style={{ width: 8, height: 2, background: dc.emerald, display: "inline-block", borderRadius: 1 }} />
           1.25 = lender comfort zone
         </span>

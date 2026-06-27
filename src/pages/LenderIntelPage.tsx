@@ -245,8 +245,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 ].map((m) => (
                   <div key={m.label} style={{ background: "rgba(238,239,211,0.07)", borderRadius: radius.sm, padding: "10px 8px", textAlign: "center" }}>
                     <Mono style={{ display: "block", fontSize: 18, fontWeight: 700, color: dc.cream, lineHeight: 1 }}>{m.val}</Mono>
-                    <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", marginTop: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{m.label}</div>
-                    {m.note && <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", marginTop: 1 }}>{m.note}</div>}
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{m.label}</div>
+                    {m.note && <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 1 }}>{m.note}</div>}
                   </div>
                 ))}
               </div>
@@ -518,7 +518,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                         </span>
                         <span
                           style={{
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: 700,
                             letterSpacing: "0.05em",
                             textTransform: "uppercase",
@@ -610,7 +610,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           lineHeight: 1,
                         }}
                       />
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                         fit score (higher = more room above minimums)
                       </div>
                     </div>

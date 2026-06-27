@@ -1315,11 +1315,11 @@ function Step3({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: 10, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 2 }}>
+              <div style={{ fontSize: 11, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 2 }}>
                 {m.k}
               </div>
               <div style={{ fontSize: 15, fontFamily: font.mono, fontWeight: 700, color: swatch.midnight }}>{m.v}</div>
-              <div style={{ fontSize: 10, color: swatch.rainforest, marginTop: 2, opacity: 0.7 }}>{m.sub}</div>
+              <div style={{ fontSize: 11, color: swatch.rainforest, marginTop: 2, opacity: 0.7 }}>{m.sub}</div>
             </div>
           ))}
         </div>

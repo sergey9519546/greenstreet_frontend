@@ -423,7 +423,7 @@ export default function PortfolioPage({
                   { label: "SAFE",       range: "≥ 1.5",     count: buckets.safe,        color: dc.emerald, riskLevel: "none" as const },
                 ].map((b, i) => (
                   <div key={b.label} style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{b.label}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{b.label}</div>
                     {/* RiskFlame — weak-DSCR holdings indicator */}
                     <div style={{ marginBottom: 4, minHeight: 18 }}>
                       {b.count > 0 && b.riskLevel !== "none" && (
@@ -445,7 +445,7 @@ export default function PortfolioPage({
                       />
                     </div>
                     <Mono style={{ display: "block", fontSize: 22, fontWeight: 700, color: b.color, lineHeight: 1 }}>{b.count}</Mono>
-                    <div style={{ fontSize: 9, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{b.range}</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{b.range}</div>
                   </div>
                 ))}
               </div>

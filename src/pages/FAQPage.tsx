@@ -440,7 +440,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
         >
           <span
             style={{
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               letterSpacing: "0.12em",
               textTransform: "uppercase",

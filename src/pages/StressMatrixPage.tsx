@@ -172,7 +172,7 @@ export default function StressMatrixPage({
       borderRadius: 4,
       background: bg,
       color: ink,
-      fontSize: 10.5,
+      fontSize: 11,
       fontWeight: 700,
       fontFamily: dc.mono,
       textAlign: "center",
@@ -448,15 +448,15 @@ export default function StressMatrixPage({
               {/* Zone counts */}
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(238,239,211,0.10)" }}>
                 <div>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>SAFE</div>
+                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>SAFE</div>
                   <Mono style={{ fontSize: 18, fontWeight: 600, color: EMERALD }}>{safeCount}</Mono>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>DEAL BREAK</div>
+                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>DEAL BREAK</div>
                   <Mono style={{ fontSize: 18, fontWeight: 600, color: "#ff6b6b" }}>{breakCount}</Mono>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>TOTAL</div>
+                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>TOTAL</div>
                   <Mono style={{ fontSize: 18, fontWeight: 600, color: "rgba(238,239,211,0.7)" }}>{totalCells}</Mono>
                 </div>
               </div>
@@ -558,7 +558,7 @@ export default function StressMatrixPage({
                     flex: 1, background: "rgba(238,239,211,0.04)", borderRadius: dc.r.sm,
                     padding: "16px 18px", border: "1px solid rgba(238,239,211,0.10)",
                   }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 8 }}>
                       Base case (no stress)
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -596,7 +596,7 @@ export default function StressMatrixPage({
                                                                       "rgba(238,239,211,0.10)"}`,
                     transition: "background 0.3s, border-color 0.3s",
                   }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 8, display: "flex", gap: 8, alignItems: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 8, display: "flex", gap: 8, alignItems: "center" }}>
                       Stressed scenario
                       <RiskFlame level={stressRisk} size={14} />
                     </div>
@@ -692,9 +692,9 @@ export default function StressMatrixPage({
                           <table style={{ borderCollapse: "separate", borderSpacing: 2, minWidth: 580 }}>
                             <thead>
                               <tr>
-                                <th style={{ padding: "4px 8px", fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "left", fontFamily: dc.mono, fontWeight: 500 }}>bps</th>
+                                <th style={{ padding: "4px 8px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "left", fontFamily: dc.mono, fontWeight: 500 }}>bps</th>
                                 {result.rentAxis.map((rp) => (
-                                  <th key={rp} style={{ padding: "4px 3px", fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "center", fontFamily: dc.mono, fontWeight: 500 }}>
+                                  <th key={rp} style={{ padding: "4px 3px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "center", fontFamily: dc.mono, fontWeight: 500 }}>
                                     {rp > 0 ? "+" : ""}{rp}%
                                   </th>
                                 ))}
@@ -708,7 +708,7 @@ export default function StressMatrixPage({
                                 return (
                                   <tr key={ri}>
                                     <td style={{
-                                      padding: "2px 8px", fontSize: 10,
+                                      padding: "2px 8px", fontSize: 11,
                                       color: isBaseRow ? LEMON : "rgba(238,239,211,0.5)",
                                       fontFamily: dc.mono, fontWeight: isBaseRow ? 700 : 500, whiteSpace: "nowrap",
                                     }}>
@@ -776,7 +776,7 @@ export default function StressMatrixPage({
                               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: dc.mono, color: dscrColor(hoverCell.dscr), letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 5, transition: "color 0.2s" }}>
                                 {hoverCell.dscr.toFixed(2)}x
                               </div>
-                              <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ZONE_ACCENT[hoverCell.zone], padding: "2px 0" }}>
+                              <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ZONE_ACCENT[hoverCell.zone], padding: "2px 0" }}>
                                 {zoneLabel(hoverCell.zone)}
                               </div>
                               <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 5, lineHeight: 1.4 }}>
@@ -802,23 +802,23 @@ export default function StressMatrixPage({
                             >×</button>
 
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Rate shock</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Rate shock</div>
                               <Mono style={{ fontSize: 20, fontWeight: 700, color: CREAM }}>{pinned.rateBps >= 0 ? "+" : ""}{pinned.rateBps} bps</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Rent shock</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Rent shock</div>
                               <Mono style={{ fontSize: 20, fontWeight: 700, color: CREAM }}>{pinned.rentPct >= 0 ? "+" : ""}{pinned.rentPct.toFixed(0)}%</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Stressed DSCR</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Stressed DSCR</div>
                               <Mono style={{ fontSize: 28, fontWeight: 700, color: LEMON, letterSpacing: "-0.03em" }}>{pinned.dscr.toFixed(2)}x</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>vs. Base DSCR</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>vs. Base DSCR</div>
                               <Mono style={{ fontSize: 20, fontWeight: 700, color: dscrColor(baseDSCR) }}>{baseDSCR.toFixed(2)}x</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Risk zone</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Risk zone</div>
                               <div style={{ fontSize: 15, fontWeight: 700, color: ZONE_ACCENT[pinned.zone] }}>{zoneLabel(pinned.zone)}</div>
                               <div style={{ marginTop: 4 }}><RiskFlame level={riskFromDscr(pinned.dscr)} size={16} /></div>
                             </div>
@@ -932,10 +932,10 @@ function SliderField({
         title={glossLabel}
       />
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, alignItems: "center" }}>
-        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", lineHeight: 1.4 }} title={glossLabel}>
+        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.4 }} title={glossLabel}>
           {glossLabel.length > 42 ? glossLabel.slice(0, 42) + "…" : glossLabel}
         </span>
-        <Mono style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", fontVariantNumeric: "tabular-nums", flexShrink: 0, marginLeft: 6 }}>
+        <Mono style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontVariantNumeric: "tabular-nums", flexShrink: 0, marginLeft: 6 }}>
           {displaySub}
         </Mono>
       </div>

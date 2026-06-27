@@ -633,7 +633,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
           </span>
           <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.05 }}>
             <span style={{ color: swatch.pistachio, fontWeight: 800, fontSize: 16, letterSpacing: "-0.03em" }}>Greenstreet</span>
-            <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 800, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" }}>InvestGO Workspace</span>
+            <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 800, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>InvestGO Workspace</span>
           </span>
         </button>
 

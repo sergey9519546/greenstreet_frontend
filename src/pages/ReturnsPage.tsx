@@ -171,7 +171,7 @@ function IrrBar({ heightPct, gradient, label, valLabel, valColor, flex = 1 }: {
       <div style={{ position: "absolute", top: 0, left: "50%", transform: "translate(-50%, -120%)", fontSize: 11, fontWeight: 700, color: valColor, whiteSpace: "nowrap", paddingBottom: 6 }}>
         {valLabel}
       </div>
-      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "center", fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "center", fontWeight: 500 }}>{label}</div>
     </div>
   );
 }
@@ -437,7 +437,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               ].map((m) => (
                 <div key={m.l}>
                   <Mono style={{ fontSize: 20, fontWeight: 700, color: m.c, display: "block", lineHeight: 1 }}>{m.v}</Mono>
-                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{m.l}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{m.l}</div>
                 </div>
               ))}
             </div>
@@ -558,7 +558,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                         {r.val}
                       </Mono>
                       <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{r.label}</div>
-                      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.3 }}>{r.hint}</div>
+                      <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.3 }}>{r.hint}</div>
                     </div>
                   ))}
                 </div>
@@ -599,9 +599,9 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                   <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380, fontFamily: dc.mono }}>
                     <thead>
                       <tr>
-                        <th style={{ padding: "5px 10px", fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "left", fontWeight: 500 }}>Hold</th>
+                        <th style={{ padding: "5px 10px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "left", fontWeight: 500 }}>Hold</th>
                         {growths.map((gr) => (
-                          <th key={gr} style={{ padding: "5px 10px", fontSize: 10, color: "rgba(238,239,211,0.62)", textAlign: "right", fontWeight: 500 }}>
+                          <th key={gr} style={{ padding: "5px 10px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "right", fontWeight: 500 }}>
                             +{gr}% rent growth
                           </th>
                         ))}
@@ -611,7 +611,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                       {holds.map((h) => (
                         <tr key={h} style={{ borderTop: "1px solid rgba(238,239,211,0.08)" }}>
                           <td style={{ padding: "8px 10px", fontSize: 12, color: dc.cream, fontWeight: 600 }}>
-                            {h}yr{h === holdYears ? <span style={{ color: dc.lemon, marginLeft: 4, fontSize: 10 }}>← you</span> : ""}
+                            {h}yr{h === holdYears ? <span style={{ color: dc.lemon, marginLeft: 4, fontSize: 11 }}>← you</span> : ""}
                           </td>
                           {growths.map((gr) => {
                             const r = calcIRR({ ...irrOpts, holdYears: h, rentGrowth: gr }) * 100;

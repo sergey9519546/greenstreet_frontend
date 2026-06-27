@@ -127,7 +127,7 @@ export default function GoLanding(p: GoLandingProps) {
                   {p.mock.tiles.map((t) => (
                     <div key={t.l} style={{ background: dc.teal, padding: 14, textAlign: "center" }}>
                       <Mono style={{ fontSize: 22, fontWeight: 600, color: t.accent ? dc.lemon : dc.cream, letterSpacing: "-0.03em" }}>{t.v}</Mono>
-                      <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{t.l}</div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{t.l}</div>
                     </div>
                   ))}
                 </div>

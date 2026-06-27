@@ -801,7 +801,7 @@ export default function TaxEnginePage({
                                   key={h}
                                   style={{
                                     padding: "5px 8px",
-                                    fontSize: 10,
+                                    fontSize: 11,
                                     color: "rgba(238,239,211,0.62)",
                                     textAlign: "right",
                                     fontWeight: 500,

@@ -313,7 +313,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <label style={{ display: 'block' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Taxes /yr</span>
-                        <button type="button" onClick={() => { if (taxAuto) { setTax(estTax); setTaxAuto(false); } else { setTaxAuto(true); } }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: taxAuto ? '#4dbd97' : 'rgba(238,239,211,0.45)' }}>
+                        <button type="button" onClick={() => { if (taxAuto) { setTax(estTax); setTaxAuto(false); } else { setTaxAuto(true); } }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: taxAuto ? '#4dbd97' : 'rgba(238,239,211,0.45)' }}>
                           {taxAuto ? '● Auto reset' : 'Manual'}
                         </button>
                       </div>
@@ -426,7 +426,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   {/* Niche / risk-discipline flag — honest about the hardest profile */}
                   {dscr < 1.0 && down < 25 && (
                     <div style={{ marginTop: 20, background: 'rgba(230,184,77,0.08)', border: '1px solid rgba(230,184,77,0.3)', borderLeft: '3px solid #e6b84d', borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e6b84d', marginBottom: 4 }}>Hardest profile to place</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e6b84d', marginBottom: 4 }}>Hardest profile to place</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.5 }}>
                         Sub-1.0 coverage at {100 - down}% LTV is the file that burns lender relationships. We&apos;ll be straight with you: lift the down payment or rent until it clears, or look at a sub-1.0 program with reserves — we don&apos;t chase deals that don&apos;t pencil.
                       </p>
