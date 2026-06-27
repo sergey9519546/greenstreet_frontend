@@ -39,7 +39,7 @@ export type DscrProgram = {
   maxLoan: number;
   isSTR: boolean;
   multiFamily: boolean;     // 5+ units eligible
-  foreignNational: boolean;
+  nonUsInvestor: boolean;
   reserves: string;
   features: string[];
   grid: DscrTierGrid[];
@@ -83,7 +83,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     name: "Greenstreet Maple",
     tagline: "Maximum leverage — up to 85% LTV",
     minFICO: 620, dscrFloor: 0.75, noRatio: true, maxLTV: 85, maxLoan: 3_000_000,
-    isSTR: true, multiFamily: false, foreignNational: true,
+    isSTR: true, multiFamily: false, nonUsInvestor: true,
     reserves: "FICO < 620: 12 mo · otherwise per loan size",
     features: ["85% LTV at 720 FICO", "ITIN tiers", "No-ratio option", "2-4 unit to 80%", "Non-warrantable condo"],
     grid: [
@@ -129,7 +129,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     name: "Greenstreet Oak",
     tagline: "No-ratio & credit-event friendly",
     minFICO: 660, dscrFloor: 0.75, noRatio: true, maxLTV: 85, maxLoan: 3_000_000,
-    isSTR: true, multiFamily: false, foreignNational: false,
+    isSTR: true, multiFamily: false, nonUsInvestor: false,
     reserves: "≤ $500k: 3 mo · ≤ $2M: 6 mo · > $2M: 12 mo",
     features: ["True no-ratio (no DSCR min)", "Recent credit events OK", "Small balance from $100k", "Condotel"],
     grid: [
@@ -185,7 +185,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     name: "Greenstreet Birch",
     tagline: "Broadest box, including multi-family",
     minFICO: 620, dscrFloor: 0, noRatio: true, maxLTV: 80, maxLoan: 3_000_000,
-    isSTR: true, multiFamily: true, foreignNational: false,
+    isSTR: true, multiFamily: true, nonUsInvestor: false,
     reserves: "≤ $1M: 3 mo · ≤ $2M: 6 mo · > $2M: 12 mo",
     features: ["DSCR below 0.75 considered", "Multi-family (1.10 DSCR)", "New construction", "STR to 80% LTV", "ITIN"],
     grid: [
@@ -239,7 +239,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     name: "Greenstreet Cedar",
     tagline: "Biggest loans, tier-priced to $3.5M",
     minFICO: 640, dscrFloor: 0.75, noRatio: false, maxLTV: 80, maxLoan: 3_500_000,
-    isSTR: true, multiFamily: false, foreignNational: false,
+    isSTR: true, multiFamily: false, nonUsInvestor: false,
     reserves: "2 mo · > $1.5M: 6 mo · > $2.5M: 12 mo",
     features: ["Loans to $3.5M", "Granular FICO/LTV pricing", "Vacant-property refi", "Cash-in-hand to $1M"],
     grid: [
@@ -291,9 +291,9 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     name: "Greenstreet Aspen",
     tagline: "The everyday 1-4 unit DSCR loan",
     minFICO: 640, dscrFloor: 0.75, noRatio: false, maxLTV: 80, maxLoan: 2_500_000,
-    isSTR: true, multiFamily: false, foreignNational: true,
+    isSTR: true, multiFamily: false, nonUsInvestor: true,
     reserves: "≤ $1M: 3 mo · > $1M: 6 mo",
-    features: ["SFR, PUD, 2-4 unit, condo", "Foreign national to $1.5M", "STR (1.15 DSCR, 720)", "Fixed + ARM + I/O"],
+    features: ["SFR, PUD, 2-4 unit, condo", "Non-US investor to $1.5M", "STR (1.15 DSCR, 720)", "Fixed + ARM + I/O"],
     grid: [
       {
         label: "≥ 1.00",
@@ -337,9 +337,9 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     name: "Greenstreet Willow",
     tagline: "Standard DSCR with FN & condotel paths",
     minFICO: 660, dscrFloor: 0.80, noRatio: false, maxLTV: 80, maxLoan: 3_000_000,
-    isSTR: true, multiFamily: false, foreignNational: true,
+    isSTR: true, multiFamily: false, nonUsInvestor: true,
     reserves: "≤65% LTV: 0 mo · < $1M: 3 mo · $1M–$1.5M: 6 mo · > $1.5M: 9 mo",
-    features: ["Foreign national to 70% LTV", "Condotel program", "First-time investor (75%)", "I/O at 700+ FICO"],
+    features: ["Non-US investor to 70% LTV", "Condotel program", "First-time investor (75%)", "I/O at 700+ FICO"],
     grid: [
       {
         // Note: main grid is FICO-only; loan amount overlays apply:
@@ -371,7 +371,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     name: "Greenstreet Magnolia",
     tagline: "The widest property box — 5-9 units & more",
     minFICO: 660, dscrFloor: 1.00, noRatio: false, maxLTV: 80, maxLoan: 3_000_000,
-    isSTR: true, multiFamily: true, foreignNational: true,
+    isSTR: true, multiFamily: true, nonUsInvestor: true,
     reserves: "≤ $2M: 6 mo · > $2M: 12 mo",
     features: ["5-9 units", "Mixed-use & commercial-zoned", "Agricultural, co-op, leasehold", "1/2/3/5-yr PPP options"],
     grid: [

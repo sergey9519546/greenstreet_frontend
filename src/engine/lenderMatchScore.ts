@@ -20,7 +20,7 @@
 //   RESERVE_BURDEN        : 15%  — fewer months of reserves wins
 //   PROVENANCE_CONFIDENCE : 15%  — VERIFIED_PRIMARY + confidence score
 //   LTV_FIT               : 15%  — sweet-spot 65-70% LTV
-//   FLEXIBILITY           : 10%  — no-ratio, foreign national, STR, prepay menu
+//   FLEXIBILITY           : 10%  — no-ratio, non-US investor, STR, prepay menu
 //
 // TIER CLASSIFICATION
 // ───────────────────
@@ -422,7 +422,7 @@ function computeLTVFit(
 
 // ============================================================
 // FACTOR 6: FLEXIBILITY (10%)
-// No-ratio, foreign national, STR support, prepay menu, entity support.
+// No-ratio, non-US investor, STR support, prepay menu, entity support.
 // ============================================================
 
 function computeFlexibility(
@@ -446,10 +446,10 @@ function computeFlexibility(
     }
   }
 
-  // Foreign national support
-  if (lender.foreignNationalAllowed.value === true) {
+  // Non-US investor support
+  if (lender.nonUsInvestorAllowed.value === true) {
     score += 20;
-    components.push('+20 foreign national');
+    components.push('+20 non-US investor');
   }
 
   // STR support (extra weight if strategy is STR)

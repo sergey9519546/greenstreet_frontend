@@ -6,7 +6,7 @@ import { RiskFlame, DscrGauge, riskFromDscr } from "../design/artifacts";
 // ── Jump-nav config ───────────────────────────────────────────────────────────
 const SEGMENTS = [
   { id: "buy-hold", label: "Buy-and-Hold" },
-  { id: "foreign-nationals", label: "Foreign Nationals" },
+  { id: "non-us-investors", label: "Non-US Investors" },
   { id: "str-airbnb", label: "STR / Airbnb" },
   { id: "vacation", label: "Vacation Homes" },
   { id: "portfolio", label: "Portfolio Builders" },
@@ -408,9 +408,9 @@ export default function BorrowerProfilesPage({
       </SegSection>
 
       {/* ══════════════════════════════════════════════════════════════
-          SEGMENT 2 — Foreign Nationals
+          SEGMENT 2 — Non-US Investors
       ══════════════════════════════════════════════════════════════ */}
-      <SegSection id="foreign-nationals" label="Segment 02 · Foreign Nationals" bg={dc.mintBg}>
+      <SegSection id="non-us-investors" label="Segment 02 · Non-US Investors" bg={dc.mintBg}>
         <div className="bp-seg-grid">
           <div>
             <IsThisYou text="You live outside the US, have no US credit file, and want to buy US rental property through an LLC." />
@@ -423,13 +423,13 @@ export default function BorrowerProfilesPage({
                 margin: "0 0 14px",
               }}
             >
-              Foreign Nationals{" "}
+              Non-US Investors{" "}
               <RiskFlame level="high" size={28} />
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
               Greenstreet's DSCR Global program is a no-ratio DSCR product — meaning income is not documented or used in underwriting at all. Qualification rests entirely on the property's rent-to-PITIA ratio, your passport ID, and a larger down payment.
               <br /><br />
-              <em>Foreign national</em> = non-US-citizen / non-permanent-resident investor with no ITIN or US-bureau credit file.
+              <em>Non-US investor</em> = non-US-citizen / non-permanent-resident investor with no ITIN or US-bureau credit file.
             </p>
 
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>

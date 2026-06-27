@@ -27,7 +27,7 @@ const routeModules = {
   PortfolioPage: () => import("./pages/PortfolioPage"),
   DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
   BorrowerProfilesPage: () => import("./pages/BorrowerProfilesPage"),
-  ForeignNationalsPage: () => import("./pages/ForeignNationalsPage"),
+  NonUsInvestorsPage: () => import("./pages/NonUsInvestorsPage"),
   STRHostsPage: () => import("./pages/STRHostsPage"),
   VacationHomesPage: () => import("./pages/VacationHomesPage"),
   PortfolioBuildersPage: () => import("./pages/PortfolioBuildersPage"),
@@ -70,7 +70,7 @@ const STRUnderwritingPage = lazy(routeModules.STRUnderwritingPage);
 const PortfolioPage = lazy(routeModules.PortfolioPage);
 const DealAnalyzerPage = lazy(routeModules.DealAnalyzerPage);
 const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
-const ForeignNationalsPage = lazy(routeModules.ForeignNationalsPage);
+const NonUsInvestorsPage = lazy(routeModules.NonUsInvestorsPage);
 const STRHostsPage = lazy(routeModules.STRHostsPage);
 const VacationHomesPage = lazy(routeModules.VacationHomesPage);
 const PortfolioBuildersPage = lazy(routeModules.PortfolioBuildersPage);
@@ -140,7 +140,7 @@ function viewToPath(view: PageView): string {
     case "state-laws":        return "/state-laws";
     case "deal-analyzer":     return "/deal-analyzer";
     case "borrower-profiles": return "/borrower-profiles";
-    case "foreign-nationals": return "/foreign-nationals";
+    case "non-us-investors": return "/non-us-investors";
     case "str-hosts":         return "/str-airbnb";
     case "vacation-homes":    return "/vacation-homes";
     case "portfolio-builders": return "/portfolio-builders";
@@ -356,8 +356,8 @@ export default function App() {
         return <DealAnalyzerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "borrower-profiles":
         return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
-      case "foreign-nationals":
-        return <ForeignNationalsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "non-us-investors":
+        return <NonUsInvestorsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "str-hosts":
         return <STRHostsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "vacation-homes":

@@ -53,7 +53,7 @@ export interface DealRequest {
   experience?: InvestorExperience;
   existingFinancedProperties?: number;
   availableReserves?: number;
-  isForeignNational?: boolean;
+  isNonUsInvestor?: boolean;
   isUSCitizenOrPR?: boolean;
   isFirstResponder?: boolean;
 
@@ -131,11 +131,11 @@ export function buildEngineInputs(req: DealRequest): EngineInputs {
     experience: req.experience ?? 'EXPERIENCED',
     existingFinancedProperties: req.existingFinancedProperties ?? 1,
     entityType: req.entityType ?? 'LLC',
-    isUSCitizenOrPR: req.isUSCitizenOrPR ?? !(req.isForeignNational ?? false),
+    isUSCitizenOrPR: req.isUSCitizenOrPR ?? !(req.isNonUsInvestor ?? false),
     availableReserves: req.availableReserves ?? 0,
     reserveAssets: [],
     isFirstResponder: req.isFirstResponder ?? false,
-    isForeignNational: req.isForeignNational ?? false,
+    isNonUsInvestor: req.isNonUsInvestor ?? false,
   };
 
   const loan: LoanStructure = {

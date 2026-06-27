@@ -108,12 +108,12 @@ function computeOverlays(
     });
   }
 
-  // Foreign national: +6 months (audit req #h)
-  if (borrower.isForeignNational) {
+  // Non-US investor: +6 months (audit req #h)
+  if (borrower.isNonUsInvestor) {
     adjustments.push({
-      factor: 'Foreign National',
+      factor: 'Non-US Investor',
       monthsAdded: 6,
-      reason: 'Foreign nationals require +6 months US-account reserves',
+      reason: 'Non-US investors require +6 months US-account reserves',
       capped: false,
     });
   }

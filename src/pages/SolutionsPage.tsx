@@ -3,7 +3,7 @@ import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 
 // ── Audience segments ─────────────────────────────────────────────────────────
-// Audience: real estate investors, foreign nationals, STR/Airbnb, portfolio
+// Audience: real estate investors, non-US investors, STR/Airbnb, portfolio
 // builders. We ARE the lender AND the broker — direct to investors.
 interface Segment {
   tag: string;
@@ -46,7 +46,7 @@ const SEGMENTS: Segment[] = [
     tag: "Short-term & vacation rental investors",
     title: "STR income counts. Full stop.",
     desc:
-      "Airbnb gross revenue or vacation-rental income qualifies under our STR program — we use actual platform data, not hypothetical long-term-lease assumptions. Foreign nationals qualify too: passport + alternative credit, no SSN required. Every file runs Dual-Track DSCR: lender qualifying (Track 1) and investor cash-flow survival (Track 2) in one pass.",
+      "Airbnb gross revenue or vacation-rental income qualifies under our STR program — we use actual platform data, not hypothetical long-term-lease assumptions. Non-US investors qualify too: passport + alternative credit, no SSN required. Every file runs Dual-Track DSCR: lender qualifying (Track 1) and investor cash-flow survival (Track 2) in one pass.",
     cta: "Explore STR & global programs →",
     view: "borrower-profiles",
     panelBg: dc.dark,
@@ -57,7 +57,7 @@ const SEGMENTS: Segment[] = [
     dscrPreview: 1.18,
     stats: [
       { v: "STR", k: "income accepted" },
-      { v: "Global", k: "foreign national program" },
+      { v: "Global", k: "non-US investor program" },
       { v: "Dual-Track", k: "DSCR analysis" },
       { v: "3 min", k: "ITIN approval path" },
     ],
@@ -373,7 +373,7 @@ export default function SolutionsPage({
             {[
               { label: "Buy-and-hold investors", tag: "DSCR", view: "investors" },
               { label: "STR & Airbnb hosts", tag: "Nightly income", view: "str-hosts" },
-              { label: "Foreign nationals", tag: "No US credit", view: "foreign-nationals" },
+              { label: "Non-US investors", tag: "No US credit", view: "non-us-investors" },
               { label: "Vacation & second homes", tag: "Use + rent", view: "vacation-homes" },
               { label: "Portfolio builders", tag: "Blended DSCR", view: "portfolio-builders" },
             ].map((a, i, arr) => (

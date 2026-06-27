@@ -1395,19 +1395,19 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                       { label: "Track 2 DSCR",    value: `${opt.track2DSCR.toFixed(2)}x` },
                                     ].map(({ label, value }) => (
                                       <div key={label} className="flex justify-between text-xs">
-                                        <span style={{ color: isBest ? `${swatch.pistachio}80` : T.muted }}>{label}</span>
-                                        <span className="font-mono font-semibold" style={{ color: isBest ? swatch.pistachio : T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</span>
+                                        <span style={{ color: isBest ? "rgba(0,55,56,0.55)" : T.muted }}>{label}</span>
+                                        <span className="font-mono font-semibold" style={{ color: isBest ? swatch.midnight : T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</span>
                                       </div>
                                     ))}
                                   </div>
                                   {opt.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 pt-2 mt-2" style={{ borderTop: `1px solid ${isBest ? swatch.pistachio + "18" : T.cardBorder}` }}>
+                                    <div className="flex flex-wrap gap-1 pt-2 mt-2" style={{ borderTop: `1px solid ${isBest ? "rgba(0,55,56,0.12)" : T.cardBorder}` }}>
                                       {opt.tags.slice(0, 3).map(tag => (
                                         <span key={tag} className="text-[10px] px-1.5 py-0.5 font-semibold"
                                           style={{
                                             borderRadius: radius.sm,
-                                            background: isBest ? `${swatch.pistachio}12` : T.inputBg,
-                                            color: isBest ? swatch.pistachio : T.muted,
+                                            background: isBest ? "rgba(0,55,56,0.07)" : T.inputBg,
+                                            color: isBest ? "rgba(0,55,56,0.7)" : T.muted,
                                           }}>
                                           {tag}
                                         </span>
@@ -1579,8 +1579,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             {auditLogs.map(log => (
                               <button key={log.id} onClick={() => setSelectedLog(log)} className="w-full text-left transition"
                                 style={{
-                                  background: selectedLog?.id === log.id ? "rgba(216,217,88,0.12)" : T.inputBg,
-                                  border: `1px solid ${selectedLog?.id === log.id ? "rgba(216,217,88,0.42)" : T.cardBorder}`,
+                                  background: selectedLog?.id === log.id ? "rgba(238,239,211,0.1)" : T.inputBg,
+                                  border: `1px solid ${selectedLog?.id === log.id ? "rgba(238,239,211,0.3)" : T.cardBorder}`,
                                   borderRadius: radius.md,
                                   padding: "14px 16px",
                                 }}>

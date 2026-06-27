@@ -368,6 +368,10 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
       navLinks={[{ label: "DSCR", view: "dscr-calculator" }, { label: "Monte Carlo", view: "monte-carlo" }]}
       cta={{ label: "Compute IRR →", onClick: scrollToTool }}
     >
+      <style>{`
+        @media(max-width:640px){ .rt-metric-grid{grid-template-columns:1fr 1fr !important;} }
+        @media(max-width:400px){ .rt-metric-grid{grid-template-columns:1fr !important;} }
+      `}</style>
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section style={{
         position: "relative", background: dc.dark, color: dc.cream,
@@ -522,23 +526,25 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             {/* ── RESULTS ────────────────────────────────────────────── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-              {/* Big IRR card */}
+              {/* Big IRR card — centered headline + symmetric metric grid */}
               <div style={{
                 background: dc.dark, borderRadius: dc.r.md, padding: "clamp(24px,3vw,40px)",
-                display: "grid", gridTemplateColumns: "auto 1fr", gap: 24, alignItems: "center",
               }}>
-                <div style={{ textAlign: "center" }}>
-                  <Mono style={{ fontSize: "clamp(64px,8vw,108px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.9, display: "block" }}>
+                <div style={{ textAlign: "center", paddingBottom: "clamp(20px,2.4vw,28px)", marginBottom: "clamp(20px,2.4vw,28px)", borderBottom: "1px solid rgba(238,239,211,0.1)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.56)", marginBottom: 6 }}>
+                    Levered IRR
+                  </div>
+                  <Mono style={{ fontSize: "clamp(56px,8vw,104px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.9, display: "block" }}>
                     {irrStr}
                   </Mono>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: irrColor }}>
                       {verdictLabel}
                     </span>
                     <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={16} />
                   </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="rt-metric-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                   {[
                     { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Year 1 cash flow ÷ cash invested. Good: ≥8%" },
                     { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream, hint: "IRR if you paid all cash — no loan" },

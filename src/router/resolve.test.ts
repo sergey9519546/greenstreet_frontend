@@ -21,7 +21,7 @@ const CANONICAL: Record<string, PageView> = {
   '/lender-intel': 'lender-intel',
   '/state-laws': 'state-laws',
   '/borrower-profiles': 'borrower-profiles',
-  '/foreign-nationals': 'foreign-nationals',
+  '/non-us-investors': 'non-us-investors',
   '/brokers': 'brokers',
   '/investors': 'investors',
   '/faq': 'faq',
@@ -78,6 +78,9 @@ describe('resolveRoute — documented intentional aliases', () => {
   });
   it('/partnerships → portal (old Partnerships page lands on dashboard)', () => {
     expect(resolveRoute('/partnerships')).toBe('portal');
+  });
+  it('/foreign-nationals → non-us-investors (legacy slug; audience page renamed)', () => {
+    expect(resolveRoute('/foreign-nationals')).toBe('non-us-investors');
   });
   it('/privacy-policy and /terms-of-service both resolve to legal', () => {
     expect(resolveRoute('/privacy-policy')).toBe('legal');

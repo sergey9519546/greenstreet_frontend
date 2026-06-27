@@ -9,7 +9,7 @@ import { dc } from "../design/dc";
 const FEATURES: ProductFeature[] = [
   { title: "Deterministic engine", body: "One DSCR math on every deal — Track 1 qualifying and Track 2 real cash-flow, computed the same way every time. No black box." },
   { title: "50-state rule map", body: "Prepayment, usury and licensing rules for all 50 states, applied automatically before you lock — no surprises at close." },
-  { title: "Program match", body: "Seven DSCR programs ranked by fit the moment the file lands — high-LTV, no-ratio, multi-family, short-term rental and foreign national." },
+  { title: "Program match", body: "Seven DSCR programs ranked by fit the moment the file lands — high-LTV, no-ratio, multi-family, short-term rental and non-US investor." },
   { title: "Stress built in", body: "Rate, rent and vacancy shocks run on every deal, with a 120-cell stress matrix one click away. Know what breaks it before you commit." },
   { title: "After-tax returns", body: "Full depreciation stack, IRR and cash-on-cash — the real net return, not a rough estimate or a marketing number." },
   { title: "Funded direct", body: "We are the lender. One file, one decision, funded direct — no broker portals, no middlemen, no re-keying numbers." },

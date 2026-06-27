@@ -46,7 +46,7 @@ export interface BorrowerProfile {
   availableReserves: number;
   reserveAssets: ReserveAsset[];
   isFirstResponder: boolean;
-  isForeignNational: boolean;
+  isNonUsInvestor: boolean;
 }
 
 export type InvestorExperience = 'FIRST_TIME' | 'EXPERIENCED' | 'VETERAN';
@@ -531,7 +531,7 @@ export interface LenderProgram {
   loanAmountMin: LenderDataPoint<number>;
   loanAmountMax: LenderDataPoint<number>;
   entityAllowed: EntityType[];
-  foreignNationalAllowed: LenderDataPoint<boolean>;
+  nonUsInvestorAllowed: LenderDataPoint<boolean>;
   propertyTypeRules: Record<PropertyType, { allowed: boolean; maxLTV: number }>;
   dscrFormulaMethod: DSCRFormulaMethod;
   vacancyTreatment: 'NONE' | 'ZERO_TO_FIVE_PCT_2_4UNIT' | 'OTHER';
@@ -1339,7 +1339,7 @@ export type LenderScoreFactorKey =
   | 'RESERVE_BURDEN'         // 15% weight — fewer months of reserves wins
   | 'PROVENANCE_CONFIDENCE'  // 15% weight — VERIFIED_PRIMARY + confidence score
   | 'LTV_FIT'                // 15% weight — distance from max LTV (sweet spot)
-  | 'FLEXIBILITY'            // 10% weight — no-ratio, foreign national, STR, IO options
+  | 'FLEXIBILITY'            // 10% weight — no-ratio, non-US investor, STR, IO options
   ;
 
 export type LenderScoreTier =

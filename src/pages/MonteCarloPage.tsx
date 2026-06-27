@@ -520,7 +520,7 @@ export default function MonteCarloPage({
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
               {/* Headline probabilities — P(<1.0) dominant lemon, P(<1.25) secondary blue */}
-              <div className="mc-prob-grid" style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: 18 }}>
+              <div className="mc-prob-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "stretch" }}>
                 <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: `1px solid ${pD1Color}44` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon }}>P(DSCR &lt; 1.0)</div>
@@ -531,7 +531,7 @@ export default function MonteCarloPage({
                 </div>
                 <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: "1px solid rgba(238,239,211,0.1)" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>P(DSCR &lt; 1.25)</div>
-                  <Mono style={{ fontSize: "clamp(38px,5vw,64px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 0.92, display: "block" }}>{pD125.toFixed(1)}%</Mono>
+                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 0.92, display: "block" }}>{pD125.toFixed(1)}%</Mono>
                   <div style={{ fontSize: 13, color: "rgba(238,239,211,0.55)", marginTop: 12, lineHeight: 1.5 }}>chance of missing the 1.25 cushion most lenders prefer — below 30% is acceptable.</div>
                 </div>
               </div>

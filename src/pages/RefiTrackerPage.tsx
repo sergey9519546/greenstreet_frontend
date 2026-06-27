@@ -81,7 +81,7 @@ export default function RefiTrackerPage({
         availableReserves: 0,
         reserveAssets: [],
         isFirstResponder: false,
-        isForeignNational: false,
+        isNonUsInvestor: false,
       };
       const analysis = analyzeRefi(
         property,

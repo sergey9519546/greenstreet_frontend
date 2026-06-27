@@ -214,7 +214,7 @@ export default function BrokersPage({
                 {[
                   { label: "1–4 Unit Standard", spec: "≥1.00x DSCR" },
                   { label: "Portfolio / Blanket", spec: "to $25M" },
-                  { label: "Foreign National", spec: "30%+ down" },
+                  { label: "Non-US Investor", spec: "30%+ down" },
                   { label: "STR / Airbnb", spec: "ADR × occ" },
                   { label: "Sub-1.0", spec: "≥0.75x DSCR" },
                 ].map((row) => (
