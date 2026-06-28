@@ -401,126 +401,78 @@ function StudyDetail({
     window.scrollTo(0, 0);
   }, [s.slug]);
 
+  const reduce = typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cover: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" };
+
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      navLinks={[
-        { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Case Studies", view: "case-studies" },
-        { label: "Portfolio", view: "portfolio" },
-      ]}
-      cta={{ label: "Run a deal →", view: "dscr-calculator" }}
-    >
-      {/* Detail hero */}
+    <DcShell onNavigate={onNavigate}>
+      <style>{`@media (max-width: 860px){ .cs-detail-grid{ grid-template-columns:1fr !important; } .cs-detail-media{ order:-1; } }`}</style>
+
+      {/* Detail hero — leads with the SAME 16:9 media panel + MetricChip metrics
+          as the case-studies list, on the dark ground (was a light mintBg bar). */}
       <section
         style={{
           background: dc.dark,
           color: dc.cream,
-          padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`,
+          padding: `clamp(40px,6vh,72px) ${dc.pad} clamp(40px,6vh,72px)`,
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div id="gs-hero-content">
-            <button
-              onClick={onBack}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "rgba(238,239,211,0.62)",
-                letterSpacing: "-0.01em",
-                fontFamily: dc.sans,
-                marginBottom: 24,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              ← All case studies
-            </button>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 16,
-              }}
-            >
-              {s.type} · {s.location}
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.92)", marginBottom: 20 }}>
-              {s.company}
-            </div>
-            <H1 style={{ margin: "0 0 24px", maxWidth: "22ch" }}>
-              {s.headline}
-            </H1>
-          </div>
-        </div>
-      </section>
-
-      {/* Metrics bar */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(32px,4vw,48px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="dc-band-3"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: `repeat(${s.metrics.length}, 1fr)`,
-            gap: 1,
-            background: "rgba(0,55,56,0.08)",
-            borderRadius: dc.r.md,
-            overflow: "hidden",
-            border: `1px solid ${dc.faded}`,
-          }}
-        >
-          {s.metrics.map((m, i) => (
-            <div
-              key={m.k}
-              style={{
-                background: dc.mintBg,
-                padding: "clamp(20px,2.5vw,32px)",
-                textAlign: "center",
-                borderRight:
-                  i < s.metrics.length - 1
-                    ? `1px solid ${dc.faded}`
-                    : "none",
-              }}
-            >
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(28px,3.2vw,44px)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.03em",
-                  color: dc.rain,
-                }}
-              >
-                {m.v}
-              </Mono>
+          <button
+            onClick={onBack}
+            style={{
+              background: "none", border: "none", padding: 0, cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: "rgba(238,239,211,0.62)",
+              letterSpacing: "-0.01em", fontFamily: dc.sans, marginBottom: 28,
+              display: "inline-flex", alignItems: "center", gap: 6,
+            }}
+          >
+            ← All case studies
+          </button>
+          <div
+            id="gs-hero-content"
+            className="cs-detail-grid"
+            style={{ display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(28px,4.5vw,64px)", alignItems: "center" }}
+          >
+            {/* Copy + metrics */}
+            <div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap", marginBottom: 16, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <span style={{ color: dc.emerald }}>{s.company}</span>
+                <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 600 }}>·</span>
+                <span style={{ color: "rgba(238,239,211,0.55)", fontWeight: 600 }}>{s.type}</span>
+                <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 600 }}>·</span>
+                <span style={{ color: "rgba(238,239,211,0.55)", fontWeight: 600 }}>{s.location}</span>
+              </div>
+              <H1 style={{ margin: "0 0 28px", maxWidth: "20ch" }}>
+                {s.headline}
+              </H1>
               <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "rgba(0,55,56,0.6)",
-                  marginTop: 4,
-                  letterSpacing: "-0.01em",
-                }}
+                className="dc-band-3"
+                style={{ display: "grid", gridTemplateColumns: `repeat(${s.metrics.length},auto)`, gap: "clamp(20px,3vw,44px)", justifyContent: "start" }}
               >
-                {m.k}
+                {s.metrics.map((m) => (
+                  <MetricChip key={m.k} {...m} />
+                ))}
               </div>
             </div>
-          ))}
+
+            {/* 16:9 media panel — the study's animated explainer (poster fallback) */}
+            <div className="cs-detail-media">
+              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
+                {s.video && !reduce ? (
+                  <video
+                    poster={s.poster}
+                    autoPlay muted loop playsInline preload="metadata"
+                    src={s.video}
+                    aria-label={`${s.company} — ${s.type}, animated`}
+                    style={cover}
+                  />
+                ) : (
+                  <img src={s.poster || s.image} alt={`${s.company} — ${s.type}`} style={cover} />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -568,9 +520,9 @@ function StudyDetail({
           {/* Illustrative quote */}
           <div
             style={{
-              padding: "18px 28px",
+              padding: "20px 28px",
               margin: "40px 0",
-              background: dc.mintBg,
+              background: "rgba(238,239,211,0.05)",
               borderRadius: `0 ${dc.r.sm} ${dc.r.sm} 0`,
               border: `1px solid ${dc.faded}`,
               borderLeft: `3px solid ${dc.lemon}`,
@@ -582,7 +534,7 @@ function StudyDetail({
                 fontStyle: "italic",
                 fontWeight: 500,
                 lineHeight: 1.45,
-                color: dc.dark,
+                color: dc.cream,
                 margin: "0 0 12px",
               }}
             >
@@ -592,7 +544,7 @@ function StudyDetail({
               style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: dc.rain,
+                color: dc.emerald,
                 fontStyle: "normal",
               }}
             >
