@@ -734,7 +734,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                 padding: "18px clamp(16px, 3vw, 36px)",
               }}>
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: swatch.lemon }}>Workspace</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "rgba(238,239,211,0.55)" }}>Workspace</div>
                 <div className="font-bold mt-0.5" style={{ fontSize: "clamp(18px, 2vw, 24px)", letterSpacing: "-0.03em", color: T.ink }}>
                   {viewTitle[activeTab] ?? "Dashboard"}
                 </div>
@@ -816,7 +816,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         <div className="flex flex-col gap-4">
                           {/* Compliance status */}
                           <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: "1px solid rgba(238,239,211,0.16)", boxShadow: "inset 0 1px 0 rgba(238,239,211,0.06)", borderRadius: radius.md }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: "rgba(238,239,211,0.55)" }}>Compliance</div>
                             {([
                               { label: "17a-4 WORM archive", status: "Active" },
                               { label: "IC memos generated", status: "6 / 6" },
