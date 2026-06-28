@@ -2442,6 +2442,8 @@ document.addEventListener('DOMContentLoaded', function() {
 .gs-lead-sel.is-empty{color:rgba(238,239,211,0.4);font-weight:500;}
 .gs-lead-match{display:none;align-items:center;gap:9px;margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(77,189,151,0.13);border:1px solid rgba(77,189,151,0.34);font-size:12.5px;font-weight:600;color:#eeefd3;}
 .gs-lead-match.is-on{display:flex;}
+.gs-lead-step2{display:none;margin-top:9px;}
+.gs-lead-step2.is-on{display:block;}
 .gs-lead-match svg{flex-shrink:0;}
 .gs-lead-match b{color:#8fe9c6;font-weight:800;}
 .gs-lead-cta{width:100%;margin-top:12px;background:#d8d958;color:#003738;border:none;border-radius:9px;padding:13px 16px;font-size:15px;font-weight:800;letter-spacing:-.01em;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .08s;}
@@ -2488,23 +2490,25 @@ document.addEventListener('DOMContentLoaded', function() {
       '<div class="gs-lead-eyebrow"><span class="gs-lead-dot"></span>Instant pre-qual · 30 sec</div>'+
       '<div class="gs-lead-title">See which DSCR program fits.</div>'+
       '<div class="gs-lead-fields">'+
-        '<input class="gs-lead-in" id="gsl-name" type="text" placeholder="Full name" autocomplete="name"/>'+
-        '<input class="gs-lead-in" id="gsl-email" type="email" placeholder="Work email" autocomplete="email"/>'+
         '<div class="gs-lead-2col">'+
           '<select class="gs-lead-sel is-empty" id="gsl-fico"><option value="" disabled selected>Credit score</option><option value="740+">740+</option><option value="700-739">700–739</option><option value="660-699">660–699</option><option value="<660">Below 660</option></select>'+
-          '<select class="gs-lead-sel is-empty" id="gsl-prop"><option value="" disabled selected>Property</option><option value="sfr">Single-family</option><option value="2-4unit">2–4 unit</option><option value="multi">5+ unit</option><option value="str">Short-term rental</option></select>'+
+          '<select class="gs-lead-sel is-empty" id="gsl-prop"><option value="" disabled selected>Property type</option><option value="sfr">Single-family</option><option value="2-4unit">2–4 unit</option><option value="multi">5+ unit</option><option value="str">Short-term rental</option></select>'+
         '</div>'+
       '</div>'+
       '<div class="gs-lead-match" id="gsl-match"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.2" fill="#4dbd97"/><path d="M5 8.2l2 2 4-4.4" stroke="#003738" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Likely fit: <b id="gsl-prog"></b></span></div>'+
-      '<button class="gs-lead-cta" type="button">See my rate <span aria-hidden="true">→</span></button>'+
-      '<div class="gs-lead-trust"><span>No credit pull</span><i></i><span>No SSN</span><i></i><span>50-state rules</span></div>'+
-      '<div class="gs-lead-err" id="gsl-err"></div>';
+      '<div class="gs-lead-step2" id="gsl-step2">'+
+        '<input class="gs-lead-in" id="gsl-email" type="email" placeholder="Work email" autocomplete="email"/>'+
+        '<button class="gs-lead-cta" type="button">See my rate <span aria-hidden="true">→</span></button>'+
+        '<div class="gs-lead-err" id="gsl-err"></div>'+
+      '</div>'+
+      '<div class="gs-lead-trust"><span>No credit pull</span><i></i><span>No SSN</span><i></i><span>50-state rules</span></div>';
     wrap.appendChild(card);
     var fico=card.querySelector("#gsl-fico"),prop=card.querySelector("#gsl-prop"),matchRow=card.querySelector("#gsl-match"),progEl=card.querySelector("#gsl-prog");
+    var step2=card.querySelector("#gsl-step2");
     function updateMatch(){
       var p=programFor(fico.value,prop.value);
-      if(p){progEl.textContent="Greenstreet "+p;if(!matchRow.classList.contains("is-on")){matchRow.classList.add("is-on");if(window.gsap){window.gsap.from(matchRow,{y:6,opacity:0,duration:.32,ease:"power2.out"});}}}
-      else{matchRow.classList.remove("is-on");}
+      if(p){progEl.textContent="Greenstreet "+p;if(!matchRow.classList.contains("is-on")){matchRow.classList.add("is-on");step2.classList.add("is-on");if(window.gsap){window.gsap.from([matchRow,step2],{y:7,opacity:0,duration:.34,ease:"power2.out",stagger:.07});}}}
+      else{matchRow.classList.remove("is-on");step2.classList.remove("is-on");}
     }
     [fico,prop].forEach(function(s){s.addEventListener("change",function(){s.classList.toggle("is-empty",!s.value);updateMatch();});});
     var cta=card.querySelector(".gs-lead-cta"),err=card.querySelector("#gsl-err");
@@ -2512,7 +2516,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var email=card.querySelector("#gsl-email").value.trim();
       if(!/.+@.+\..+/.test(email)){err.textContent="Enter a valid work email to continue.";card.querySelector("#gsl-email").focus();return;}
       err.textContent="";cta.textContent="Taking you in…";
-      var p=new URLSearchParams({source:"home_hero",name:card.querySelector("#gsl-name").value.trim(),email:email,fico:fico.value,property:prop.value,program:programFor(fico.value,prop.value)||""});
+      var p=new URLSearchParams({source:"home_hero",email:email,fico:fico.value,property:prop.value,program:programFor(fico.value,prop.value)||""});
       window.location.href="/book-demo?"+p.toString();
     }
     cta.onclick=go;
