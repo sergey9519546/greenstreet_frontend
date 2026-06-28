@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView, CountUp } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
 
 // ── Case studies data ─────────────────────────────────────────────────────────
@@ -128,88 +128,109 @@ const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
 // Client wordmarks render as styled text (no logo image assets exist for these
 // reference clients) — keeps the cards clean with no broken images.
 
-// ── CSS for SVG stroke-draw animation ────────────────────────────────────────
-const CS_LINE_CSS = `
-@keyframes csLineDraw {
-  from { stroke-dashoffset: var(--cs-len); }
-  to   { stroke-dashoffset: 0; }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cs-anim-active .cs-line {
-    animation: csLineDraw var(--cs-dur, 1.1s) var(--cs-delay, 0s) cubic-bezier(.22,.68,0,1.2) forwards;
-  }
-}
-@keyframes csFadeIn {
-  from { opacity: 0; transform: scale(0.7); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cs-anim-active .cs-node {
-    animation: csFadeIn 0.4s var(--cs-ndelay, 0s) ease-out forwards;
-    opacity: 0;
-  }
-}
+// ── Page CSS — responsive grids + animated meter fills ───────────────────────
+const CS_PAGE_CSS = `
 @media(max-width:820px){
   .cs-panel{grid-template-columns:1fr !important;gap:24px !important;}
   .cs-panel .cs-photo{order:-1 !important;}
 }
+@media(max-width:760px){
+  .dt-grid{grid-template-columns:1fr !important;}
+}
+.dt-fill{transition:width 1.15s cubic-bezier(.22,.7,0,1);}
+@media(prefers-reduced-motion:reduce){.dt-fill{transition:none !important;}}
 `;
 
-// ── Animated SVG line diagram ─────────────────────────────────────────────────
-function PriceMatchProveDiagram() {
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          el.classList.add("cs-anim-active");
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.25 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
+// ── Aggregate scoreboard (hero) — the four scenarios summed, counting up on
+//    scroll. Real proof, not a decorative diagram. ──────────────────────────────
+const AGG: { value: number; prefix?: string; suffix?: string; group?: boolean; label: string; sub: string }[] = [
+  { value: 14800, prefix: "$", group: true, label: "Hard costs killed at the desk", sub: "deals walked before a dollar of diligence" },
+  { value: 4, suffix: "×", label: "Throughput, same team", sub: "25 min → 6 min per file" },
+  { value: 3, label: "Bad deals stopped pre-appraisal", sub: "Track 2 caught what Track 1 passed" },
+];
+function AggregateScoreboard() {
+  const [ref, shown] = useRevealOnView<HTMLDivElement>();
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
-      <style>{CS_LINE_CSS}</style>
-      <svg
-        viewBox="0 0 480 480"
-        style={{ width: "100%", display: "block" }}
-        fill="none"
-        aria-hidden="true"
-      >
-        <path className="cs-line" d="M 208,60 C 80,60 80,240 80,240" stroke={dc.dark} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.1s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 272,60 C 400,60 400,240 400,240" stroke={dc.dark} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.2s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 208,240 C 80,240 80,420 80,420" stroke={dc.rain} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.6s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 272,240 C 400,240 400,420 400,420" stroke={dc.rain} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.7s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 240,92 L 240,208" stroke={dc.dark} strokeWidth="2" strokeDasharray="8 4"
-          style={{ "--cs-len": "116px", "--cs-dur": "0.7s", "--cs-delay": "0.45s", strokeDashoffset: 116 } as React.CSSProperties} />
-        <path className="cs-line" d="M 240,272 L 240,388" stroke={dc.rain} strokeWidth="2" strokeDasharray="8 4"
-          style={{ "--cs-len": "116px", "--cs-dur": "0.7s", "--cs-delay": "0.95s", strokeDashoffset: 116 } as React.CSSProperties} />
-        <circle cx="80" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
-        <circle cx="400" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
-        <circle cx="80" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
-        <circle cx="400" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
-        <circle className="cs-node" cx="240" cy="60" r="32" fill={dc.dark}
-          style={{ "--cs-ndelay": "0.05s" } as React.CSSProperties} />
-        <circle className="cs-node" cx="240" cy="240" r="32" fill={dc.rain}
-          style={{ "--cs-ndelay": "0.5s" } as React.CSSProperties} />
-        <circle className="cs-node" cx="240" cy="420" r="32" fill={dc.lemon}
-          style={{ "--cs-ndelay": "1.05s" } as React.CSSProperties} />
-        <text x="240" y="65" textAnchor="middle" fill={dc.lemon} fontFamily={dc.mono} fontSize="12" fontWeight="700">01</text>
-        <text x="240" y="245" textAnchor="middle" fill={dc.cream} fontFamily={dc.mono} fontSize="12" fontWeight="700">02</text>
-        <text x="240" y="425" textAnchor="middle" fill={dc.dark} fontFamily={dc.mono} fontSize="12" fontWeight="700">03</text>
-      </svg>
+    <div
+      ref={ref}
+      style={{
+        background: dc.teal,
+        borderRadius: dc.r.lg,
+        border: `1px solid ${dc.faded}`,
+        boxShadow: "0 18px 50px -30px rgba(0,0,0,0.55)",
+        padding: "clamp(28px,3.4vw,44px)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "clamp(18px,2.2vw,26px)",
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>
+        Across all four scenarios
+      </div>
+      {AGG.map((a, i) => (
+        <div
+          key={a.label}
+          style={{
+            paddingBottom: i < AGG.length - 1 ? "clamp(16px,2vw,22px)" : 0,
+            borderBottom: i < AGG.length - 1 ? `1px solid ${dc.faded}` : "none",
+            opacity: shown ? 1 : 0,
+            transform: shown ? "none" : "translateY(14px)",
+            transition: `opacity .6s ease ${0.1 + i * 0.12}s, transform .6s cubic-bezier(.22,.7,0,1) ${0.1 + i * 0.12}s`,
+          }}
+        >
+          <Mono style={{ display: "block", fontSize: "clamp(34px,4.4vw,54px)", fontWeight: 700, letterSpacing: "-0.035em", color: dc.lemon, lineHeight: 1 }}>
+            <CountUp value={shown ? a.value : 0} prefix={a.prefix} suffix={a.suffix} group={a.group} duration={1.1} />
+          </Mono>
+          <div style={{ fontSize: 15, fontWeight: 600, color: dc.cream, marginTop: 8, letterSpacing: "-0.01em" }}>{a.label}</div>
+          <div style={{ fontSize: 12.5, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 3, letterSpacing: "-0.01em" }}>{a.sub}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Dual-Track proof — the through-line of every scenario. One file, two DSCRs:
+//    Track 1 is what the lender funds on; Track 2 is whether the deal survives.
+//    Meters fill + verdicts resolve on scroll (reduced-motion safe). ─────────────
+const DT_MIN = 0.5, DT_MAX = 2.0;
+const dtPct = (v: number) => Math.max(0, Math.min(100, ((v - DT_MIN) / (DT_MAX - DT_MIN)) * 100));
+function DualTrackProof() {
+  const [ref, shown] = useRevealOnView<HTMLDivElement>();
+  const tracks = [
+    { name: "Track 1 · Lender-qualifying DSCR", v: 1.18, color: dc.emerald, verdict: "Funds", note: "Rent covers the note. Most desks stop reading here." },
+    { name: "Track 2 · Investor-survival DSCR", v: 0.98, color: "#e0635f", verdict: "Stops", note: "Price in a 12% vacancy and the same deal goes underwater." },
+  ];
+  return (
+    <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: "clamp(26px,3vw,40px)" }}>
+      {tracks.map((t, i) => (
+        <div
+          key={t.name}
+          style={{
+            opacity: shown ? 1 : 0,
+            transform: shown ? "none" : "translateY(18px)",
+            transition: `opacity .6s ease ${i * 0.18}s, transform .6s cubic-bezier(.22,.7,0,1) ${i * 0.18}s`,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
+            <div style={{ fontSize: "clamp(13px,1.2vw,15px)", fontWeight: 700, color: dc.dark, letterSpacing: "-0.01em" }}>{t.name}</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+              <Mono style={{ fontSize: "clamp(22px,2.4vw,30px)", fontWeight: 700, color: t.color, letterSpacing: "-0.03em" }}>
+                <CountUp value={shown ? t.v : 0} decimals={2} suffix="x" duration={1.15} />
+              </Mono>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: t.color, background: `${t.color}22`, border: `1px solid ${t.color}55`, borderRadius: 999, padding: "4px 11px" }}>{t.verdict}</span>
+            </div>
+          </div>
+          {/* meter with a break-even tick at 1.00 */}
+          <div style={{ position: "relative", height: 12, borderRadius: 999, background: "rgba(0,55,56,0.1)" }}>
+            <div className="dt-fill" style={{ position: "absolute", inset: "0 auto 0 0", width: shown ? `${dtPct(t.v)}%` : "0%", background: t.color, borderRadius: 999 }} />
+            <div style={{ position: "absolute", left: `${dtPct(1.0)}%`, top: -3, bottom: -3, width: 2, background: "rgba(0,55,56,0.5)", transform: "translateX(-1px)", borderRadius: 2 }} />
+          </div>
+          <div style={{ position: "relative", height: 16, marginTop: 5 }}>
+            <span style={{ position: "absolute", left: `${dtPct(1.0)}%`, transform: "translateX(-50%)", fontSize: 10.5, fontWeight: 600, color: "rgba(0,55,56,0.55)", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>1.00 break-even</span>
+          </div>
+          <p style={{ fontSize: "clamp(13px,1.1vw,15px)", fontWeight: 500, lineHeight: 1.5, color: "rgba(0,55,56,0.62)", margin: "8px 0 0", letterSpacing: "-0.01em" }}>{t.note}</p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -667,6 +688,7 @@ export default function CaseStudiesPage({
       ]}
       cta={{ label: "Run a deal →", view: "dscr-calculator" }}
     >
+      <style>{CS_PAGE_CSS}</style>
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section
         style={{
@@ -705,7 +727,7 @@ export default function CaseStudiesPage({
                   fontWeight: 700,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase" as const,
-                  color: dc.lemon,
+                  color: "rgba(238,239,211,0.6)",
                   marginBottom: 20,
                 }}
               >
@@ -735,86 +757,12 @@ export default function CaseStudiesPage({
             </div>
           </div>
 
-          {/* Right: outcome panel */}
-          <div
-            style={{
-              background: dc.teal,
-              borderRadius: dc.r.lg,
-              border: `1px solid ${dc.faded}`,
-              padding: "clamp(28px,3.5vw,48px)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 28,
-              minHeight: "clamp(280px,38vh,440px)",
-              justifyContent: "space-between",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-              }}
-            >
-              Illustrative outcomes
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              {[
-                { label: "Throughput improvement", value: "4×" },
-                { label: "Hard costs avoided", value: "$14,800" },
-                { label: "Same-day rate lock", value: "Yes" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
-                    borderBottom: `1px solid ${dc.faded}`,
-                    paddingBottom: 14,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "rgba(238,239,211,0.6)",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                  <Mono
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: dc.cream,
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    {item.value}
-                  </Mono>
-                </div>
-              ))}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: "rgba(238,239,211,0.62)",
-                lineHeight: 1.5,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Illustrative composite figures. See individual scenarios below.
-            </div>
-          </div>
+          {/* Right: animated aggregate scoreboard */}
+          <AggregateScoreboard />
         </div>
       </section>
 
-      {/* ── HOW GREENSTREET WORKS band ────────────────────────────────────── */}
+      {/* ── THE PATTERN: DUAL-TRACK PROOF ─────────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
@@ -822,14 +770,18 @@ export default function CaseStudiesPage({
           borderTop: `4px solid ${dc.dark}`,
         }}
       >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            style={{
-              marginBottom: "clamp(32px,4vw,56px)",
-              paddingBottom: 20,
-              borderBottom: "1px solid rgba(0,55,56,0.15)",
-            }}
-          >
+        <div
+          className="dt-grid"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "clamp(40px,5vw,80px)",
+            alignItems: "center",
+          }}
+        >
+          <div>
             <div
               style={{
                 fontSize: 11,
@@ -837,111 +789,58 @@ export default function CaseStudiesPage({
                 letterSpacing: "0.1em",
                 textTransform: "uppercase" as const,
                 color: dc.rain,
-                marginBottom: 12,
+                marginBottom: 16,
               }}
             >
-              How Greenstreet works
+              The pattern behind every win
             </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.4vw,46px)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                color: dc.dark,
+                lineHeight: 1.08,
+                margin: "0 0 20px",
+              }}
+            >
+              One number gets you the loan. The other tells you whether to take it.
+            </h2>
             <p
               style={{
-                color: "rgba(0,55,56,0.65)",
-                fontSize: "clamp(15px,1.3vw,17px)",
+                fontSize: "clamp(15px,1.3vw,18px)",
                 fontWeight: 500,
-                margin: 0,
-                maxWidth: "58ch",
                 lineHeight: 1.6,
+                color: "rgba(0,55,56,0.68)",
+                margin: "0 0 24px",
+                maxWidth: "46ch",
               }}
             >
-              Three steps: price the deal in under a minute, surface the right
-              Greenstreet program, then prove every number with a traceable
-              source. No phone calls required to get started.
+              Every scenario below turns on the same move: Greenstreet runs{" "}
+              <strong style={{ color: dc.dark, fontWeight: 700 }}>two DSCRs on one file</strong>.
+              Track 1 is what the lender funds on. Track 2 prices in vacancy,
+              management, and CapEx — whether the deal actually survives. When they
+              disagree, Track 2 is the reason a deal got stopped before it cost a dollar.
             </p>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "clamp(240px,40%,480px) 1fr",
-              gap: "clamp(36px,5vw,72px)",
-              alignItems: "center",
-            }}
-          >
-            <PriceMatchProveDiagram />
-
             <div
               style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "clamp(28px,3.5vw,48px)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                fontSize: 12,
+                fontWeight: 600,
+                color: dc.rain,
+                background: "rgba(0,55,56,0.06)",
+                border: "1px solid rgba(0,55,56,0.14)",
+                borderRadius: 999,
+                padding: "8px 16px",
+                letterSpacing: "-0.01em",
               }}
             >
-              {[
-                {
-                  step: "Price",
-                  stepColor: dc.dark,
-                  heading: "Price the deal like you already know the answer.",
-                  body: "Enter seven numbers. Get DSCR (rent ÷ full monthly payment), PITIA (the total monthly cost of the loan), cash flow, and a program match — in under a minute.",
-                },
-                {
-                  step: "Match",
-                  stepColor: dc.rain,
-                  heading: "Surface the right program before you commit.",
-                  body: "Greenstreet's program matrix ranks product fit by FICO floors, LTV (loan-to-value — the loan amount as a share of the property's value) caps, and state rules — no cold calls, no portal re-entry.",
-                },
-                {
-                  step: "Prove",
-                  stepColor: "#9a7b00",
-                  heading: "Prove every number with a cited source.",
-                  body: "Investment-committee memo, state rule, stress matrix — all traceable to a statute. No black box, no LLM math.",
-                },
-              ].map((item) => (
-                <div key={item.step}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase" as const,
-                      color: item.stepColor,
-                      marginBottom: 8,
-                      opacity:
-                        item.step === "Price"
-                          ? 0.55
-                          : item.step === "Match"
-                          ? 0.75
-                          : 1,
-                    }}
-                  >
-                    {item.step}
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "clamp(20px,2.2vw,30px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.03em",
-                      margin: "0 0 10px",
-                      lineHeight: 1.1,
-                      color: dc.dark,
-                    }}
-                  >
-                    {item.heading}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "clamp(14px,1.2vw,17px)",
-                      fontWeight: 500,
-                      lineHeight: 1.55,
-                      color: "rgba(0,55,56,0.65)",
-                      margin: 0,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {item.body}
-                  </p>
-                </div>
-              ))}
+              Same property · same week · one application
             </div>
           </div>
+          <DualTrackProof />
         </div>
       </section>
 
