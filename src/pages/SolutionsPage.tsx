@@ -375,7 +375,7 @@ export default function SolutionsPage({
               { label: "STR & Airbnb hosts", tag: "Nightly income", view: "str-hosts" },
               { label: "Non-US investors", tag: "No US credit", view: "non-us-investors" },
               { label: "Vacation & second homes", tag: "Use + rent", view: "vacation-homes" },
-              { label: "Portfolio builders", tag: "Blended DSCR", view: "portfolio-builders" },
+              { label: "Portfolio builders", tag: "Blended DSCR", view: "portfolio" },
             ].map((a, i, arr) => (
               <button
                 key={a.view}

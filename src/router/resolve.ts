@@ -9,7 +9,6 @@ export type PageView =
   | "non-us-investors"
   | "str-hosts"
   | "vacation-homes"
-  | "portfolio-builders"
   | "brokers"
   | "brokers-partner"
   | "investors"

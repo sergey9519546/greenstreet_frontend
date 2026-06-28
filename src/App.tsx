@@ -30,7 +30,6 @@ const routeModules = {
   NonUsInvestorsPage: () => import("./pages/NonUsInvestorsPage"),
   STRHostsPage: () => import("./pages/STRHostsPage"),
   VacationHomesPage: () => import("./pages/VacationHomesPage"),
-  PortfolioBuildersPage: () => import("./pages/PortfolioBuildersPage"),
   BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
   InvestorsPage: () => import("./pages/InvestorsPage"),
   AboutPage: () => import("./pages/AboutPage"),
@@ -73,7 +72,6 @@ const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
 const NonUsInvestorsPage = lazy(routeModules.NonUsInvestorsPage);
 const STRHostsPage = lazy(routeModules.STRHostsPage);
 const VacationHomesPage = lazy(routeModules.VacationHomesPage);
-const PortfolioBuildersPage = lazy(routeModules.PortfolioBuildersPage);
 const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
 const InvestorsPage = lazy(routeModules.InvestorsPage);
 const AboutPage = lazy(routeModules.AboutPage);
@@ -144,7 +142,6 @@ function viewToPath(view: PageView): string {
     case "non-us-investors": return "/non-us-investors";
     case "str-hosts":         return "/str-airbnb";
     case "vacation-homes":    return "/vacation-homes";
-    case "portfolio-builders": return "/portfolio-builders";
     case "brokers":           return "/brokers";
     case "brokers-partner":   return "/partnerships";
     case "investors":         return "/investors";
@@ -376,8 +373,6 @@ export default function App() {
         return <STRHostsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "vacation-homes":
         return <VacationHomesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
-      case "portfolio-builders":
-        return <PortfolioBuildersPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers":
         return <BrokersPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers-partner":
