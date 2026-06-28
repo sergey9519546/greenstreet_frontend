@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy } from "../engine/stressMatrix";
+import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy, computeDualTrackDSCR } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import BottomCTA from "../design/BottomCTA";
@@ -230,6 +230,9 @@ export default function StressMatrixPage({
   // the deal can absorb before its DSCR drops below 1.00). Uses the same lender
   // basis as the gauge: rent-after-rent-shock (pre-vacancy) ÷ stressed PITIA.
   const breakEvenVac    = computeBreakEvenVacancy(monthlyRent * (1 + rentChangePct / 100), stressedPITIA);
+  // Dual-track at the current stressed state: lender (gross rent ÷ PITIA) vs
+  // investor survival (after the modeled vacancy + management + maintenance).
+  const dualTrack       = computeDualTrackDSCR(monthlyRent * (1 + rentChangePct / 100), stressedPITIA, { vacancyPct });
 
   // Cell styles
   function cellStyle(zone: StressRiskZone, isBase: boolean, isHovered: boolean): React.CSSProperties {
@@ -710,6 +713,40 @@ export default function StressMatrixPage({
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* ── Dual-track: lender (Track 1) vs investor survival (Track 2),
+                       with the "Qualifies but Dangerous" flag (DSCR spec) ── */}
+                <div style={{
+                  marginTop: 16,
+                  background: dualTrack.qualifiesButDangerous ? "rgba(224,99,99,0.10)" : "rgba(238,239,211,0.04)",
+                  border: `1px solid ${dualTrack.qualifiesButDangerous ? "rgba(224,99,99,0.42)" : "rgba(238,239,211,0.10)"}`,
+                  borderRadius: dc.r.sm, padding: "14px 18px",
+                  transition: "background .3s, border-color .3s",
+                }}>
+                  <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Lender · Track 1</div>
+                      <Mono style={{ fontSize: 20, fontWeight: 700, color: dualTrack.track1 >= 1.0 ? EMERALD : ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track1.toFixed(2)}x</Mono>
+                    </div>
+                    <span style={{ color: "rgba(238,239,211,0.3)", fontSize: 18, lineHeight: 1 }}>→</span>
+                    <div>
+                      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Investor net · Track 2</div>
+                      <Mono style={{ fontSize: 20, fontWeight: 700, color: dualTrack.track2 >= 1.0 ? EMERALD : ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track2.toFixed(2)}x</Mono>
+                    </div>
+                    {dualTrack.qualifiesButDangerous && (
+                      <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 800, color: ZONE_ACCENT.DEAL_BREAK, letterSpacing: "-0.01em" }}>
+                        <RiskFlame level="high" size={16} /> Qualifies but dangerous
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "9px 0 0", lineHeight: 1.5 }}>
+                    {dualTrack.qualifiesButDangerous ? (
+                      <>The lender approves on gross rent (<strong style={{ color: dc.cream }}>{dualTrack.track1.toFixed(2)}x</strong>), but after vacancy, management, and maintenance the deal nets <strong style={{ color: ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track2.toFixed(2)}x</strong> — below 1.00. It clears underwriting and still loses money every month. This is the gap Track 2 exists to catch.</>
+                    ) : (
+                      <>Track 1 is what the lender qualifies on; Track 2 is what you actually net after vacancy, management, and maintenance. {dualTrack.track2 >= 1.0 ? "Both clear — the deal survives in reality, not just on paper." : "Track 2 below 1.0 means thin real-world cash flow even where the lender is comfortable."}</>
+                    )}
+                  </p>
                 </div>
 
                 {/* ── Break-even vacancy — how much occupancy loss the deal

@@ -99,6 +99,48 @@ export function computeBreakEvenVacancy(
 }
 
 // ============================================================
+// DUAL-TRACK DSCR + "QUALIFIES BUT DANGEROUS"
+// ============================================================
+
+/**
+ * The product's core split, for a single scenario:
+ *  • Track 1 (lender)  = gross rent ÷ PITIA — what the lender qualifies on.
+ *  • Track 2 (investor)= NOI ÷ PITIA after vacancy + management + maintenance —
+ *    what the investor actually nets. Matches computeStressMatrix's per-cell math.
+ *
+ * The "Qualifies but Dangerous" flag (DSCR improvement spec, [High]): a deal the
+ * lender approves (Track 1 ≥ 1.00) that loses money in reality (Track 2 < 1.00)
+ * with a wide gap (Track1 − Track2 > 0.20). This is the trap Track 2 catches.
+ *
+ * @param grossMonthlyRent  Monthly rent after any rent shock, before vacancy
+ * @param monthlyPITIA      Full monthly payment
+ * @param opts              Operating haircuts (defaults: vacancy 8, mgmt 8, maint 5)
+ */
+export function computeDualTrackDSCR(
+  grossMonthlyRent: number,
+  monthlyPITIA: number,
+  opts: { vacancyPct?: number; managementPct?: number; maintenancePct?: number } = {},
+): { track1: number; track2: number; delta: number; qualifiesButDangerous: boolean } {
+  if (grossMonthlyRent <= 0 || monthlyPITIA <= 0) {
+    return { track1: 0, track2: 0, delta: 0, qualifiesButDangerous: false };
+  }
+  const vac = (opts.vacancyPct ?? 8) / 100;
+  const mgmt = (opts.managementPct ?? 8) / 100;
+  const maint = (opts.maintenancePct ?? 5) / 100;
+  const track1 = grossMonthlyRent / monthlyPITIA;
+  // NOI = gross × (1 − vacancy) − gross × mgmt − gross × maint  (mgmt/maint on gross)
+  const noi = grossMonthlyRent * Math.max(0, 1 - vac - mgmt - maint);
+  const track2 = noi / monthlyPITIA;
+  const delta = track1 - track2;
+  return {
+    track1: Math.round(track1 * 1000) / 1000,
+    track2: Math.round(track2 * 1000) / 1000,
+    delta: Math.round(delta * 1000) / 1000,
+    qualifiesButDangerous: track1 >= 1.0 && track2 < 1.0 && delta > 0.2,
+  };
+}
+
+// ============================================================
 // MAIN ENTRY POINT
 // ============================================================
 
