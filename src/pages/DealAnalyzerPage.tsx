@@ -171,7 +171,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       >
         <div className="gs-dot-grid" />
         <div
-          className="da-hero-grid"
+          className="da-hero-grid dc-hero"
           style={{
             position: "relative",
             width: "100%",
@@ -247,7 +247,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           </div>
 
           {/* Grid: inputs + results */}
-          <div className="da-tool-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "clamp(280px,30vw,400px) 1fr", gap: 36, alignItems: "start" }}>
+          <div className="da-tool-grid gs-reveal dc-split" style={{ display: "grid", gridTemplateColumns: "clamp(280px,30vw,400px) 1fr", gap: 36, alignItems: "start" }}>
 
             {/* ── INPUTS ── */}
             <div style={{ background: swatch.white, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid ${swatch.midnightFaded}` }}>

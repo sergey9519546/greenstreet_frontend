@@ -24,6 +24,10 @@ const renderNavLabel = (label: string) => label === INVESTGO_TEXT ? INVESTGO_LAB
 // aria-expanded + .w--open; greenboard's `:has(> .w-dropdown-toggle[aria-expanded
 // ="true"]) > .w-dropdown-list` rule does the grid-rows reveal, same as the home.
 const NAV_DD_CSS = `
+.burger-line{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .2s ease;}
+.burger-wrap[aria-expanded="true"] .burger-line.top{transform:translateY(6px) rotate(45deg);}
+.burger-wrap[aria-expanded="true"] .burger-line.middle{opacity:0;transform:scaleX(0);}
+.burger-wrap[aria-expanded="true"] .burger-line.bottom{transform:translateY(-6px) rotate(-45deg);}
 .gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
 /* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
    opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
@@ -51,7 +55,18 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const openNow = (label: string) => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; } setOpenMenu(label); };
   const scheduleClose = (label: string) => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = window.setTimeout(() => setOpenMenu((cur) => (cur === label ? null : cur)), 400); };
 
+  const navRef = useRef<HTMLElement | null>(null);
   const closeAll = () => { setMenuOpen(false); setOpenMenu(null); };
+
+  // Close mobile menu when user taps outside the nav.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
   const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); closeAll(); };
   const goPath = (p: string) => (e: React.MouseEvent) => { e.preventDefault(); window.history.pushState({}, "", p); window.dispatchEvent(new PopStateEvent("popstate")); closeAll(); };
   const nav = (it: NavItem) => it.view ? go(it.view) : goPath(it.path);
@@ -73,7 +88,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduce) return;
     gsap.fromTo(mobileRef.current, { y: -12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" });
-    gsap.fromTo(mobileRef.current.children, { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.26, stagger: 0.03, ease: "power2.out", delay: 0.05, clearProps: "all" });
+    gsap.fromTo(mobileRef.current.children, { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.26, stagger: 0.03, ease: "power2.out", delay: 0.05, clearProps: "transform,opacity" });
   }, [menuOpen]);
 
   // The toggle chevron (greenboard rotates it -180° when aria-expanded).
@@ -154,7 +169,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     <>
       <style>{NAV_DD_CSS}</style>
       <style>{NAV_SYNC_CSS}</style>
-      <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO }}>
+      <nav ref={navRef} className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
@@ -189,7 +204,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               </a>
             </div>
           </div>
-          <button type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <button type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: 44, minWidth: 44, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <div className="burger-line top" aria-hidden="true"></div>
             <div className="burger-line middle" aria-hidden="true"></div>
             <div className="burger-line bottom" aria-hidden="true"></div>
@@ -197,21 +212,21 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         </div>
       </div>
       {menuOpen && (
-        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "6px", zIndex: 49, maxHeight: "80vh", overflowY: "auto" }}>
-          <a href="/investgo" className="nav-link" onClick={go("portal")} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
+        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", bottom: "auto", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "8px 24px 20px", gap: 0, zIndex: 49, maxHeight: "calc(100vh - 64px)", overflowY: "auto" }}>
+          <a href="/investgo" className="nav-link" onClick={go("portal")} style={{ fontWeight: 700, padding: "12px 0", display: "block" }}>{INVESTGO_LABEL}</a>
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>
-              <a href={m.path} className="gs-mnav-section" onClick={go(m.view)} style={{ textDecoration: "none" }}>{m.label}</a>
+              <a href={m.path} className="gs-mnav-section" onClick={go(m.view)} style={{ textDecoration: "none", padding: "12px 0 2px", display: "block" }}>{m.label}</a>
               {m.items.map((it, i) => (
-                <a key={i} href={it.path} className="nav-link" onClick={nav(it)} style={{ paddingLeft: 8 }}>{renderNavLabel(it.label)}</a>
+                <a key={i} href={it.path} className="nav-link" onClick={nav(it)} style={{ padding: "10px 0 10px 12px", display: "block" }}>{renderNavLabel(it.label)}</a>
               ))}
             </React.Fragment>
           ))}
           {NAV_STANDALONE_LINKS.map((it) => (
-            <a key={it.label} href={it.path} className="nav-link" onClick={nav(it)}>{renderNavLabel(it.label)}</a>
+            <a key={it.label} href={it.path} className="nav-link" onClick={nav(it)} style={{ padding: "12px 0", display: "block" }}>{renderNavLabel(it.label)}</a>
           ))}
-          <a href="/investgo" className="nav-link" onClick={go("portal")}>Login</a>
-          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")}>Book a demo</a>
+          <a href="/investgo" className="nav-link" onClick={go("portal")} style={{ padding: "12px 0", display: "block" }}>Login</a>
+          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "14px 12px", fontWeight: 700, marginTop: 10, display: "block" }} onClick={go("book-demo")}>Book a demo</a>
         </div>
       )}
       </nav>

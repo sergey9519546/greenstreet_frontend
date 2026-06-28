@@ -181,7 +181,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div id="gs-hero-content" className="li-hero-grid" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
+          <div id="gs-hero-content" className="li-hero-grid dc-hero" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
             {/* Left: copy + chips */}
             <div>
               <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginBottom: 20, letterSpacing: "-0.01em" }}>

@@ -147,6 +147,12 @@ input[type="number"]{cursor:ns-resize;}
 @media (max-width: 991px){
   .dc-hero{grid-template-columns:1fr !important;gap:40px !important;}
   .dc-band-3,.dc-band-2,.dc-split{grid-template-columns:1fr !important;}
+  .dc-band-4{grid-template-columns:repeat(2,1fr) !important;}
+  .da-metrics-3{grid-template-columns:repeat(2,1fr) !important;}
+}
+@media (max-width: 640px){
+  .dc-band-4{grid-template-columns:1fr !important;}
+  .da-metrics-3{grid-template-columns:repeat(2,1fr) !important;}
 }
 @media (max-width: 640px){
   .hp-card{min-height:680px !important;aspect-ratio:auto !important;}
@@ -403,7 +409,7 @@ export function HeroProof({
   const stateRef = useRef<HTMLDivElement>(null);
   const gapRef = useRef<HTMLDivElement>(null);
   const gapNumRef = useRef<HTMLSpanElement>(null);
-  const t2NumRef = useRef<HTMLSpanElement>(null);
+  const t2NumRef = useRef<HTMLSpanElement>(null);
   const fmtNum = valueFmt || ((n: number) => n.toFixed(2) + "x");
 
   const CORAL = "#e0635f";
@@ -441,7 +447,7 @@ export function HeroProof({
     if (prefersReducedMotion()) {
       paint(t1);
       setState(t1 >= 1 ? "Lender — qualifies" : "Below the 1.00 floor", zoneColor(t1));
-      if (hasDual) { setGapText(t1, track2Num as number); if (gapRef.current) gsap.set(gapRef.current, { autoAlpha: 1, y: 0 }); }
+      if (hasDual) { setGapText(t1, track2Num as number); if (gapRef.current) gsap.set(gapRef.current, { autoAlpha: 1, y: 0 }); }
       return;
     }
     paint(0);
@@ -457,7 +463,7 @@ export function HeroProof({
               onUpdate: () => { paint(proxy.d); setGapText(t1, proxy.d); } }, "<0.1")
         .to(proxy, { d: t1, duration: 0.9, ease: "power2.inOut", onUpdate: () => paint(proxy.d),
               onComplete: () => { setState("Lender qualifies — but the investor doesn't", verdictColor); setGapText(t1, track2Num as number); } }, "+=0.7");
-    }
+    }
     return () => tl.kill();
   }, { scope: proofRef, dependencies: [] }); // mount only — see the change effect below
 
