@@ -1538,8 +1538,11 @@ export function computeQualifyingRentForLender(
     return Math.max(mtrNet, ltrFallback);
   }
 
-  // LTR: lower of lease and market — no vacancy for NONE treatment
-  const lowerRent = Math.min(property.leaseRent, property.marketRent);
+  // LTR: lower of lease and market — no vacancy for NONE treatment.
+  // Kiavi nuance: uses 110% of market rent in the lesser-of, which can lift the
+  // qualifying rent when market supports it (documented Kiavi program rule).
+  const effectiveMarket = lender.id === 'kiavi' ? property.marketRent * 1.10 : property.marketRent;
+  const lowerRent = Math.min(property.leaseRent, effectiveMarket);
   if (lender.vacancyTreatment === 'ZERO_TO_FIVE_PCT_2_4UNIT' && property.unitCount > 1) {
     return lowerRent * 0.95;
   }
