@@ -6,8 +6,8 @@
 // Extracted from PageShell so DcShell (every tool/content page) can reuse them.
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
-import { PISTACHIO, MIDNIGHT, LEMON, FADED, MINT_BG } from "../theme";
-import { INVESTGO_TEXT, NAV_MENUS, NAV_STANDALONE_LINKS, type NavItem, type NavMenu } from "./navModel";
+import { PISTACHIO, MIDNIGHT, LEMON, FADED } from "../theme";
+import { INVESTGO_TEXT, NAV_MENUS, NAV_STANDALONE_LINKS, NAV_SYNC_CSS, type NavItem, type NavMenu } from "./navModel";
 
 const INVESTGO_LABEL = (
   <>INVEST<span style={{ opacity: 0.5 }}>GO</span></>
@@ -15,54 +15,33 @@ const INVESTGO_LABEL = (
 
 const renderNavLabel = (label: string) => label === INVESTGO_TEXT ? INVESTGO_LABEL : label;
 
+// Inner-page nav dropdown = the SAME component as the Webflow home's. The panel
+// markup + classes (.nav_dropdown_component / .w-dropdown-toggle /
+// .nav_dropdown_mega_wrap / .nav_dropdown_link / .nav_dropdown_text.u-text-style-h4
+// / .nav_dropdown_link_icon_wrap) are styled entirely by the globally loaded
+// greenboard CSS, plus NAV_SYNC_CSS for the 4-col grid — so it is pixel-identical
+// to the home. We only drive open/close from React state by flipping
+// aria-expanded + .w--open; greenboard's `:has(> .w-dropdown-toggle[aria-expanded
+// ="true"]) > .w-dropdown-list` rule does the grid-rows reveal, same as the home.
 const NAV_DD_CSS = `
-.gs-dd-wrap{position:static;}
-.gs-dd-panel{position:absolute;top:calc(100% + 12px);left:0;min-width:240px;background:${PISTACHIO};border:1px solid ${FADED};border-radius:12px;padding:8px;display:flex;flex-direction:column;z-index:60;}
-.gs-dd-panel.is-mega{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;min-width:430px;}
-.gs-dd-panel::before{content:"";position:absolute;top:-12px;left:0;right:0;height:12px;}
-.gs-dd-item{display:block;padding:10px 13px;border-radius:8px;color:${MIDNIGHT};font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background-color .2s ease,box-shadow .2s ease;}
-.gs-dd-item:hover,.gs-dd-item:focus-visible{background:${MINT_BG};outline:none;}
-.gs-dd-item.is-active{background:${MINT_BG};box-shadow:inset 3px 0 0 ${LEMON};}
-.gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:none;border:none;font-family:inherit;position:relative;}
-.gs-dd-caret{transition:transform .18s ease;}
-.gs-dd-wrap.is-open .gs-dd-caret{transform:rotate(180deg);}
-/* Active section / current page = the mint hover pill (matches the home's
-   .nav-link:has(.w--current){background:card}). The original nav has NO
-   underline — the lemon ::after line was a React-only addition; removed. */
-.gs-site-nav .gs-dd-toggle.is-active .nav-link-background,
-.gs-site-nav .nav-link.is-current .nav-link-background{opacity:1;}
 .gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
 /* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
    opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
    nav-link must be the positioned containing block so the pill anchors to it. */
 .gs-site-nav .nav-link{position:relative;}
-.gs-site-nav .nav-link .nav_links_text,.gs-site-nav .nav-link .gs-dd-caret{position:relative;z-index:2;}
+.gs-site-nav .nav-link .nav_links_text{position:relative;z-index:2;}
 .gs-site-nav .nav-link:hover .nav-link-background,
 .gs-site-nav .nav-link:focus-visible .nav-link-background{opacity:1;}
+.gs-site-nav .nav-link.is-current .nav-link-background{opacity:1;}
 .gs-site-nav .nav-btn{transition:filter .2s ease,transform .1s ease;}
 .gs-site-nav .nav-btn:hover{filter:brightness(1.08);}
 .gs-site-nav .nav-btn:active{transform:translateY(1px);}
-/* ── Mega dropdown — matches the Webflow home mega (full-width card grid) ── */
-.gs-dd-wrap.is-open .gs-dd-toggle .nav-link-background{opacity:1;}
-.gs-mega{position:absolute;top:100%;left:0;right:0;z-index:60;background:${PISTACHIO};border-top:1px solid ${FADED};border-radius:0 0 16px 16px;}
-.gs-mega::before{content:"";position:absolute;top:-14px;left:0;right:0;height:14px;}
-.gs-mega-inner{padding:16px 0 26px;}
-.gs-mega-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
-.gs-mega-card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:20px;min-height:116px;padding:16px 18px;border-radius:14px;background:${MINT_BG};color:${MIDNIGHT};text-decoration:none;transition:background-color .18s ease,color .18s ease;}
-.gs-mega-card:hover,.gs-mega-card:focus-visible{background:${LEMON};color:${MIDNIGHT};outline:none;}
-.gs-mega-card.is-current{background:${LEMON};color:${MIDNIGHT};}
-.gs-mega-title{font-size:18px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
-.gs-mega-arrow{align-self:flex-end;flex-shrink:0;}
-.gs-mega-feature{grid-row:span 2;grid-column:1;min-height:auto;background:${MIDNIGHT};color:${PISTACHIO};}
-.gs-mega-feature:hover,.gs-mega-feature:focus-visible{background:${MIDNIGHT};color:${PISTACHIO};}
-.gs-mega-logo{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
-@media (max-width:991px){.gs-mega{display:none !important;}}
+.gs-site-nav .w-dropdown-toggle{cursor:pointer;}
 `;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const panelRef = useRef<HTMLDivElement | null>(null);
   const mobileRef = useRef<HTMLDivElement | null>(null);
   const closeTimer = useRef<number | null>(null);
   const path = typeof window !== "undefined" ? (window.location.pathname.replace(/\/$/, "") || "/") : "/";
@@ -77,7 +56,6 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const goPath = (p: string) => (e: React.MouseEvent) => { e.preventDefault(); window.history.pushState({}, "", p); window.dispatchEvent(new PopStateEvent("popstate")); closeAll(); };
   const nav = (it: NavItem) => it.view ? go(it.view) : goPath(it.path);
   const itemActive = (it: NavItem) => !!it.path && it.path !== "/" && path === it.path.replace(/\/$/, "");
-  const menuActive = (m: NavMenu) => path === m.path || m.items.some(itemActive);
 
   // Esc closes any open dropdown.
   useEffect(() => {
@@ -86,17 +64,8 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // GSAP: premium dropdown open (panel slide+fade, then staggered items).
-  // Reduced-motion safe — skips entirely and leaves the panel fully visible.
-  useEffect(() => {
-    if (!openMenu || !panelRef.current) return;
-    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-    // Transform-only (no opacity-from-0): if the rAF ticker is ever throttled the
-    // panel still ends VISIBLE — a stuck few-px slide is fine, an invisible menu is not.
-    gsap.fromTo(panelRef.current, { y: -10 }, { y: 0, duration: 0.3, ease: "power2.out", clearProps: "transform" });
-    gsap.fromTo(panelRef.current.querySelectorAll(".gs-mega-card"), { y: -8 }, { y: 0, duration: 0.28, stagger: 0.03, ease: "power2.out", delay: 0.04, clearProps: "transform" });
-  }, [openMenu]);
+  // The mega panel open/close is the greenboard grid-rows reveal (CSS, driven by
+  // aria-expanded + .w--open below) — identical to the home, so no JS animation here.
 
   // GSAP: mobile menu open (slide+fade, then staggered links). Reduced-motion safe.
   useEffect(() => {
@@ -107,63 +76,76 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     gsap.fromTo(mobileRef.current.children, { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.26, stagger: 0.03, ease: "power2.out", delay: 0.05, clearProps: "all" });
   }, [menuOpen]);
 
-  const caret = (
-    <svg className="gs-dd-caret" width="11" height="11" viewBox="0 0 12 8" fill="none" aria-hidden="true">
-      <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  // The toggle chevron (greenboard rotates it -180° when aria-expanded).
+  const navCaret = (
+    <svg aria-hidden="true" className="nav_links_svg" fill="none" viewBox="0 0 47 24" width="100%" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 1L23.5 23L46 1" stroke="currentColor" strokeWidth="0.1rem" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 
-  const arrow = (
-    <svg className="gs-mega-arrow" width="17" height="17" viewBox="0 0 24 25" fill="none" aria-hidden="true">
-      <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor" />
-    </svg>
+  // The card corner-arrow button icon (matches homeNavSync's ARROW_SVG exactly).
+  const cardIcon = (
+    <div className="nav_dropdown_link_icon_wrap">
+      <div className="nav_dropdown_link_icon w-embed">
+        <svg aria-hidden="true" fill="none" height="100%" viewBox="0 0 14 14" width="100%" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.99964 11.5002L8.98714 10.5127L11.7871 7.68769H0.412109V6.31269H11.7871L8.98714 3.48769L9.99964 2.50019L14.4996 7.00019L9.99964 11.5002Z" fill="currentColor" />
+        </svg>
+      </div>
+    </div>
   );
 
+  // Renders ONE primary menu as the exact Webflow home mega-dropdown: a hover-
+  // opened .nav_dropdown_component whose .w-dropdown-list (.nav_dropdown_mega_wrap)
+  // greenboard reveals via aria-expanded. The cards are byte-for-byte what
+  // homeNavSync builds on the home, so the two dropdowns are the same component.
   const renderMenu = (m: NavMenu) => {
-    // First item is the INVESTGO portal -> render as the tall dark feature card
-    // (matches the home mega); the rest fill the 4-col card grid beside it.
+    const open = openMenu === m.label;
     const hasFeature = !!m.items[0]?.feature;
     const feature = hasFeature ? m.items[0] : null;
     const cards = hasFeature ? m.items.slice(1) : m.items;
     return (
       <div
         key={m.label}
-        className={`gs-dd-wrap${openMenu === m.label ? " is-open" : ""}`}
+        className="nav_dropdown_component w-dropdown"
+        data-delay="400"
+        data-hover="true"
         onMouseEnter={() => openNow(m.label)}
         onMouseLeave={() => scheduleClose(m.label)}
       >
-        <a
-          className={`nav-link gs-dd-toggle w-inline-block${menuActive(m) ? " is-active" : ""}`}
-          href={m.path}
+        <div
+          className={`nav-link w-dropdown-toggle${open ? " w--open" : ""}`}
           aria-haspopup="true"
-          aria-expanded={openMenu === m.label}
-          onClick={go(m.view)}
+          aria-expanded={open}
           onFocus={() => openNow(m.label)}
         >
+          <a className="w-inline-block" href={m.path} onClick={go(m.view)}>
+            <div className="nav_links_text">{m.label}</div>
+          </a>
+          {navCaret}
           <div className="nav-link-background" aria-hidden="true" />
-          <div className="nav_links_text">{m.label}</div>
-          {caret}
-        </a>
-        {openMenu === m.label && (
-          <div ref={panelRef} className="gs-mega" role="menu" aria-label={m.label}>
-            <div className="gs-mega-inner">
-              <div className="gs-mega-grid">
-                {feature && (
-                  <a className="gs-mega-card gs-mega-feature" href={feature.path} onClick={nav(feature)}>
-                    <div className="gs-mega-logo">{renderNavLabel(feature.label)}</div>
-                    {arrow}
-                  </a>
-                )}
-                {cards.map((it, i) => (
-                  <a key={i} role="menuitem" className={`gs-mega-card${itemActive(it) ? " is-current" : ""}`} href={it.path} onClick={nav(it)}>
-                    <div className="gs-mega-title">{renderNavLabel(it.label)}</div>
-                    {arrow}
-                  </a>
-                ))}
+        </div>
+        <nav className={`nav_dropdown_mega_wrap is-desktop w-dropdown-list${open ? " w--open" : ""}`} role="menu" aria-label={m.label}>
+          <div className="nav_dropdown_mega_content is-desktop">
+            <div className="nav_dropdown_mega_scroll is-desktop">
+              <div className="nav_dropdown_mega_contain is-desktop">
+                <div className="nav_dropdown_mega_layout is-desktop gs-nav-synced">
+                  {feature && (
+                    <a className="nav_dropdown_link is-desktop u-theme-dark gs-nav-feature w-inline-block" href={feature.path} onClick={nav(feature)}>
+                      <div className="nav_dropdown_text_logo w-embed">INVEST<span style={{ opacity: 0.5 }}>GO</span></div>
+                      {cardIcon}
+                    </a>
+                  )}
+                  {cards.map((it, i) => (
+                    <a key={i} role="menuitem" className={`nav_dropdown_link is-desktop w-inline-block${itemActive(it) ? " w--current" : ""}`} href={it.path} onClick={nav(it)}>
+                      <div className="nav_dropdown_text u-text-style-h4">{renderNavLabel(it.label)}</div>
+                      {cardIcon}
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        )}
+        </nav>
       </div>
     );
   };
@@ -171,6 +153,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   return (
     <>
       <style>{NAV_DD_CSS}</style>
+      <style>{NAV_SYNC_CSS}</style>
       <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
@@ -181,9 +164,9 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           </a>
           <div className="nav-links-contain" hide-t="">
             <div className="nav-links-wrap">
-              <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")}
-                style={{ display: "inline-flex", alignItems: "center", background: "transparent", border: `1.5px solid ${MIDNIGHT}`, borderRadius: 8, padding: "10px 18px", whiteSpace: "nowrap" }}>
-                <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>{INVESTGO_LABEL}</div>
+              <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")}>
+                <div className="nav-link-background" aria-hidden="true" />
+                <div className="nav_links_text font-go">{INVESTGO_LABEL}</div>
               </a>
 
               {renderMenu(NAV_MENUS[0])}

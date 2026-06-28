@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AnimatedCard, AnimatedButton } from "./PageShell";
+import { AnimatedCard, AnimatedButton } from "../components/PremiumUI";
 import { swatch, radius } from "../theme";
 
 // Blue "how it works" band — recreation of greenboard.com's step_tab scroll motion,

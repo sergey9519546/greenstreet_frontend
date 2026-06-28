@@ -65,3 +65,33 @@ export const NAV_MENUS: NavMenu[] = [
 // "Partnerships" retired from primary nav. INVESTGO is the prominent button
 // rendered directly in SiteNav (see SiteShell), so there are no standalone links.
 export const NAV_STANDALONE_LINKS: NavItem[] = [];
+
+// Shared mega-dropdown grid CSS — applied to BOTH the Webflow home nav (rebuilt
+// by marketing/homeNavSync) and the React SiteNav (design/SiteShell). Keeping it
+// here (one source) guarantees the inner-page dropdown is pixel-identical to the
+// home's: same 4-col card grid, same span-2 INVESTGO feature card, same logo type.
+// Everything else (card fill, padding, radius, hover, the panel surface) comes
+// from the globally loaded greenboard CSS via the .nav_dropdown_* classes.
+export const NAV_SYNC_CSS = `
+.nav_dropdown_mega_layout.is-desktop.gs-nav-synced{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:.875rem !important;
+  align-items:stretch !important;
+}
+.nav_dropdown_mega_layout.is-desktop.gs-nav-synced .nav_dropdown_link{
+  min-height:7.1rem;
+  border-radius:.875rem;
+}
+.nav_dropdown_mega_layout.is-desktop.gs-nav-synced .nav_dropdown_link.gs-nav-feature{
+  grid-row:span 2;
+  min-height:auto;
+}
+.nav_dropdown_mega_layout.is-desktop.gs-nav-synced .nav_dropdown_text_logo{
+  font-family:"Outfit Variable",Outfit,Arial,sans-serif;
+  font-size:1.625rem;
+  font-weight:700;
+  letter-spacing:-.02em;
+  line-height:1;
+}
+`;
