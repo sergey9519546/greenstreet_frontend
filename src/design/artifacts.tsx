@@ -10,14 +10,14 @@
 // off the VALUE (never a page-load from()), and fully reduced-motion safe.
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { swatch } from "../theme";
+import { swatch, risk } from "../theme";
 
 const LEMON = swatch.lemon;
 const EMERALD = swatch.emerald;
 const MIDNIGHT = swatch.midnight;
 const RAIN = swatch.rainforest;
-const ORANGE = "#e6b84d";
-const RED = "#e06363";
+const ORANGE = risk.warning;
+const RED = risk.danger;
 
 // Inject the shared keyframes/transitions once.
 let _injected = false;

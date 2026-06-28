@@ -25,6 +25,20 @@ export const LEMON = swatch.lemon;
 export const FADED = swatch.midnightFaded;
 export const DARK_TEAL = swatch.darkTeal;
 
+// Semantic risk ramp — the ONE danger/warn system (see project_risk_color_system).
+// Risk states pull from here; never reintroduce the old bright coral #ff6b6b or
+// orange #f97316. Data-series colors (sky-blue #7ec8d3 for rates) are separate.
+export const risk = {
+  positive: swatch.emerald, // #4dbd97 — pass / safe
+  caution: swatch.lemon,    // #d8d958 — watch / marginal
+  warning: "#e6b84d",       // amber — fragile / sub-threshold
+  danger: "#e06363",        // red — break / high-risk
+  warningBg: "rgba(230,184,77,0.10)",
+  warningBorder: "rgba(230,184,77,0.30)",
+  dangerBg: "rgba(224,99,99,0.10)",
+  dangerBorder: "rgba(224,99,99,0.30)",
+} as const;
+
 export const font = {
   family: '"Outfit Variable", Arial, sans-serif',
   mono: '"JetBrains Mono", ui-monospace, monospace',

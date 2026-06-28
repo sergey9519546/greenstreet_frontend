@@ -14,7 +14,7 @@ import React, { useRef, useState, useEffect, useContext, createContext } from "r
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius, scale, tracking, onDark, onLight, size as typeScale } from "../theme";
+import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius, scale, tracking, onDark, onLight, risk, size as typeScale } from "../theme";
 import { SiteNav, SiteFooter } from "./SiteShell";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -94,6 +94,7 @@ export const dc = {
   // lemon stays scarce and keeps its punch on the thing that actually matters.
   liveInk: LEMON,          // the changing number / the single primary action
   accent: swatch.emerald,  // supporting accent for de-lemoned chrome
+  risk,                    // semantic risk ramp (risk.danger/.warning/.caution/.positive + tints)
   faded: FADED,            // #00373880
   white: "#fff",
   mono: font.mono,
