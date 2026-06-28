@@ -98,7 +98,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   // Total cost of ownership — show-the-math: where the real operating costs go.
   const tco = computeTcoDscr({ grossRent: rent, principalAndInterest: pAndI, propertyTax: taxYr / 12, insurance: ins / 12, hoa, depreciableBasis: price * 0.8 });
   const cashFlow = rent - pitia;
-  const noi = (rent * 0.92 * 12) - taxYr - ins;
+  // NOI = EGI − full OpEx (CRE standard) — net the TCO opex (vacancy + mgmt +
+  // maint + capex), not just 8% vacancy, before taxes + insurance. Otherwise
+  // cap rate is overstated (~21% of rent).
+  const noi = rent * 12 * (1 - tco.rate.total) - taxYr - ins;
   const capRate = noi / price * 100;
 
   // ── After-tax wedge — year-one depreciation shelter (cost-seg + 100% bonus) ──
