@@ -2497,22 +2497,19 @@ document.addEventListener('DOMContentLoaded', function() {
         '</div>'+
       '</div>'+
       '<div class="gs-lead-match" id="gsl-match"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.2" fill="#4dbd97"/><path d="M5 8.2l2 2 4-4.4" stroke="#003738" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Likely fit: <b id="gsl-prog"></b></span></div>'+
-      '<div class="gs-lead-step2" id="gsl-step2">'+
-        '<div class="gs-lead-2col" style="margin-bottom:8px;">'+
-          '<input class="gs-lead-in" id="gsl-name" type="text" placeholder="First name" autocomplete="given-name"/>'+
-          '<input class="gs-lead-in" id="gsl-email" type="email" placeholder="Email" autocomplete="email"/>'+
-        '</div>'+
-        '<button class="gs-lead-cta" type="button">See my rate <span aria-hidden="true">→</span></button>'+
-        '<div class="gs-lead-err" id="gsl-err"></div>'+
+      '<div class="gs-lead-2col" style="margin-top:10px;margin-bottom:8px;">'+
+        '<input class="gs-lead-in" id="gsl-name" type="text" placeholder="First name" autocomplete="given-name"/>'+
+        '<input class="gs-lead-in" id="gsl-email" type="email" placeholder="Email" autocomplete="email"/>'+
       '</div>'+
+      '<button class="gs-lead-cta" type="button">See my rate <span aria-hidden="true">→</span></button>'+
+      '<div class="gs-lead-err" id="gsl-err"></div>'+
       '<div class="gs-lead-trust"><span>No credit pull</span><i></i><span>No SSN</span><i></i><span>50-state rules</span></div>';
     wrap.appendChild(card);
     var fico=card.querySelector("#gsl-fico"),prop=card.querySelector("#gsl-prop"),matchRow=card.querySelector("#gsl-match"),progEl=card.querySelector("#gsl-prog");
-    var step2=card.querySelector("#gsl-step2");
     function updateMatch(){
       var p=programFor(fico.value,prop.value);
-      if(p){progEl.textContent="Greenstreet "+p;if(!matchRow.classList.contains("is-on")){matchRow.classList.add("is-on");step2.classList.add("is-on");if(window.gsap){window.gsap.from([matchRow,step2],{y:7,opacity:0,duration:.34,ease:"power2.out",stagger:.07});}}}
-      else{matchRow.classList.remove("is-on");step2.classList.remove("is-on");}
+      if(p){progEl.textContent="Greenstreet "+p;if(!matchRow.classList.contains("is-on")){matchRow.classList.add("is-on");if(window.gsap){window.gsap.from(matchRow,{y:7,opacity:0,duration:.34,ease:"power2.out"});}}}
+      else{matchRow.classList.remove("is-on");}
     }
     [fico,prop].forEach(function(s){s.addEventListener("change",function(){s.classList.toggle("is-empty",!s.value);updateMatch();});});
     var cta=card.querySelector(".gs-lead-cta"),err=card.querySelector("#gsl-err");
