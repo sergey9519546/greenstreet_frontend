@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DcShell, dc, Mono, H1, Lead, useRevealOnView } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
+import ComplianceNote from "../design/ComplianceNote";
 import { RiskFlame, DscrGauge, riskFromDscr } from "../design/artifacts";
 
 // ── Jump-nav config ───────────────────────────────────────────────────────────
@@ -318,6 +319,12 @@ export default function BorrowerProfilesPage({
           >
             DSCR (Debt-Service Coverage Ratio) loans qualify on what the property earns — not your W-2. Greenstreet is the direct lender: no broker markup, no middleman, one underwriting desk. Pick your investor segment below.
           </Lead>
+
+          <div style={{ maxWidth: 720, margin: "0 0 28px" }}>
+            <ComplianceNote tone="verify">
+              The program specs below are illustrative examples, not a rate sheet or commitment to lend. Verify current rates, LTV caps, DSCR minimums, FICO bands, reserves, entity rules, and foreign-national eligibility with a Greenstreet specialist before relying on them.
+            </ComplianceNote>
+          </div>
 
           {/* ── Jump-nav ── */}
           <nav aria-label="Jump to investor segment" className="bp-jumpnav">
