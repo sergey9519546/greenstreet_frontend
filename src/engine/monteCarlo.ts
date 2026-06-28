@@ -1,9 +1,14 @@
 // ============================================================
-// DSCR Loan Command Center v7.0 — Monte Carlo Risk Engine
-// Dual-Track, Math-Verified
-// Models: rent volatility, vacancy, maintenance shocks,
-// tax/insurance inflation, ARM rate changes
+// DSCR Monte Carlo Risk Engine — v8 (regime-switching, calibrated)
 // ============================================================
+// Phase 4 recalibration per GAP_MONTE_CARLO_CALIBRATION.md:
+//   - 2-state regime-switching Markov chain (normal / stress)
+//   - Correlated rent / vacancy / rate shocks (Cholesky of the FRED-verified
+//     correlation matrix: rent↔vacancy −0.48, rent↔rate +0.44)
+//   - CIR short-rate (non-negative, vol scales with level) for ARM resets
+//   - State-calibrated insurance regime (FL/LA high, CA/TX moderate, else low)
+//   - Track 2 opex from the TCO single source (tcoDscr.ts)
+// API + output shape preserved (adds two optional fields).
 
 import type {
   PropertyInputs,
@@ -16,9 +21,9 @@ import type {
   RiskItem,
 } from './types';
 import { calculatePI } from './engine';
-import { computeTcoRate, mapToTcoType } from './tcoDscr';
+import { computeTcoRate, mapToTcoType, type TcoPropertyAge, type TcoMarketType } from './tcoDscr';
 
-// Seeded PRNG (Mulberry32) — deterministic for reproducibility
+// Seeded PRNG (Mulberry32) — deterministic.
 function mulberry32(seed: number): () => number {
   return function () {
     let t = (seed += 0x6d2b79f5);
@@ -28,11 +33,60 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function normalRandom(rng: () => number, mean: number, std: number): number {
-  const u1 = rng();
+/** Standard normal via Box-Muller. */
+function stdNormal(rng: () => number): number {
+  const u1 = rng() || 1e-9;
   const u2 = rng();
-  const z = Math.sqrt(-2.0 * Math.log(u1 || 0.0001)) * Math.cos(2.0 * Math.PI * u2);
-  return mean + z * std;
+  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+
+// ── Calibration (GAP_MONTE_CARLO_CALIBRATION) ──────────────────────────────
+// Monthly regime transition: normal→stress 0.03, stress→normal 0.15.
+const P_NORMAL_TO_STRESS = 0.03;
+const P_STRESS_TO_NORMAL = 0.15;
+// Rent annual drift by regime; stress amplifies σ ×1.5.
+const RENT_MU_NORMAL = 0.035;
+const RENT_MU_STRESS = -0.025;
+const STRESS_SIGMA_MULT = 1.5;
+// Vacancy Ornstein-Uhlenbeck (annual reversion 0.7, σ 1.5pp), bounded.
+const VAC_MEAN = 0.08;
+const VAC_REVERSION = 0.7;
+const VAC_SIGMA = 0.015;
+// CIR short rate: a=0.5, b=3.5%, σ=0.75%/yr.
+const CIR_A = 0.5;
+const CIR_B = 0.035;
+const CIR_SIGMA = 0.0075;
+
+// Lower-Cholesky of corr[(rent, vacancy, rate)] =
+//   [[1, -0.48, 0.44], [-0.48, 1, -0.30], [0.44, -0.30, 1]]
+// Precomputed (see GAP_MONTE_CARLO_CALIBRATION §6).
+const L21 = -0.48, L22 = 0.8773;
+const L31 = 0.44, L32 = -0.1012, L33 = 0.8923;
+
+/** Annual rent σ by property profile (Zillow ZORI ranges). */
+function rentSigmaAnnual(unitCount: number, isSTR: boolean, isMTR: boolean): number {
+  if (isSTR) return 0.15;
+  if (isMTR) return 0.08;
+  if (unitCount >= 5) return 0.03;
+  if (unitCount >= 2) return 0.04;
+  return 0.05; // SFR
+}
+
+/** State insurance regime: annual growth + post-cat jump probability/size. */
+function insuranceProfile(state: string): { muAnnual: number; jumpProb: number; jumpMin: number; jumpMax: number } {
+  const s = (state || '').toUpperCase();
+  if (s === 'FL' || s === 'LA') return { muAnnual: 0.08, jumpProb: 0.05, jumpMin: 0.30, jumpMax: 0.80 };
+  if (s === 'TX') return { muAnnual: 0.06, jumpProb: 0.03, jumpMin: 0.20, jumpMax: 0.50 };
+  if (s === 'CA' || s === 'CO' || s === 'OK') return { muAnnual: 0.05, jumpProb: 0.03, jumpMin: 0.15, jumpMax: 0.40 };
+  return { muAnnual: 0.04, jumpProb: 0.01, jumpMin: 0.10, jumpMax: 0.25 };
+}
+
+function tcoAgeFromYear(yearBuilt: number): TcoPropertyAge {
+  const age = new Date().getFullYear() - (yearBuilt || 2000);
+  if (age <= 5) return 'NEW';
+  if (age <= 15) return 'AVERAGE';
+  if (age <= 30) return 'AGING';
+  return 'OLD';
 }
 
 export function runMonteCarlo(
@@ -40,7 +94,7 @@ export function runMonteCarlo(
   loan: LoanStructure,
   strategy: RentalStrategy,
   dscrResult: DSCRResult,
-  simulations: number = 2500
+  simulations: number = 2500,
 ): MonteCarloResult {
   const rng = mulberry32(42);
   const isSTR = strategy === 'STR';
@@ -51,172 +105,139 @@ export function runMonteCarlo(
   const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
   const termMonths = termYears * 12;
   const baseReserves = dscrResult.cashToClose.reserveRequirement;
-
-  // Rent volatility — STR much more volatile than LTR
-  const rentVolatilityStd = isSTR ? 0.15 : isMTR ? 0.08 : 0.04;
-
-  // Track 2 opex from the TCO single-source (property-type aware, incl. CapEx).
-  // Vacancy stays a per-month Bernoulli draw below (the MC vacancy model;
-  // Phase 4 recalibrates it). Management + maintenance + CapEx are the
-  // deterministic opex haircut.
-  const tcoRate = computeTcoRate({ propertyType: mapToTcoType(property.unitCount, isSTR) });
-  const vacancyPctMonthly = 0.08;
-  const managementPct = tcoRate.management;
-  const maintenancePct = tcoRate.maintenance + tcoRate.capex;
-
-  // Maintenance shock (one-off major repairs)
-  const maintenanceShockProbMonthly = 0.015; // ~18% annualized
-  const maintenanceMin = 500;
-  const maintenanceMax = 8000;
-
-  // Tax / Insurance inflation (annualized)
-  const taxShockProb = 0.05;       // 5% chance of 5% tax hike
-  const taxShockPct = 0.05;
-  const insuranceInflation = 0.08; // 8%/yr baseline inflation
-
-  // ARM rate change — modeled as rate delta, properly recomputes P&I
   const isARM = loan.armType !== 'FIXED';
-  const armRateStd = 0.0075;       // 75 bps std dev on annual ARM adjustment
+
+  const rentSigmaMo = rentSigmaAnnual(property.unitCount, isSTR, isMTR) / Math.sqrt(12);
+  const ins = insuranceProfile(property.state);
+  const marketType: TcoMarketType = property.isDecliningMarket ? 'SLOW' : 'NORMAL';
+  const tcoRate = computeTcoRate({
+    propertyType: mapToTcoType(property.unitCount, isSTR),
+    propertyAge: tcoAgeFromYear(property.yearBuilt),
+    marketType,
+  });
+  // Non-vacancy opex (vacancy is modeled stochastically below).
+  const opexNonVac = tcoRate.management + tcoRate.maintenance + tcoRate.capex;
+
+  const maintenanceShockProbMonthly = 0.015;
+  const baseFlood = (property.floodInsurance || 0) / 12;
 
   const annualCashFlows: number[] = [];
   const dscrValues: number[] = [];
-  const track2DscrValues: number[] = [];
   const reserveCurves: number[][] = [];
-
   let dscrAbove1Count = 0;
+  let track2Below1Count = 0;
   let negCashFlowCount = 0;
+  let totalStressMonths = 0;
 
   for (let sim = 0; sim < simulations; sim++) {
-    // Annual rent adjustment (Track 1 — gross, no vacancy)
-    const rentChange = normalRandom(rng, 0, rentVolatilityStd);
-    let currentRent = baseRent * (1 + rentChange);
-    if (currentRent < 0) currentRent = 0;
+    let regimeStress = false;
+    let rent = baseRent;
+    let vacancy = VAC_MEAN;
+    let rate = dscrResult.solvedRate / 100;       // decimal
+    let monthlyTax = property.annualTaxes / 12;
+    let monthlyIns = property.annualInsurance / 12;
+    let pi = dscrResult.monthlyPITIA.principalAndInterest;
 
-    // Tax/insurance shocks (annualized)
-    let currentTaxes = property.annualTaxes / 12;
-    let currentInsurance = property.annualInsurance / 12;
-    if (rng() < taxShockProb) currentTaxes *= (1 + taxShockPct);
-    currentInsurance *= (1 + insuranceInflation);
-
-    // ARM rate adjustment — properly recompute P&I at new rate
-    let currentRate = dscrResult.solvedRate;
-    let currentPI = dscrResult.monthlyPITIA.principalAndInterest;
-    if (isARM) {
-      const rateDelta = normalRandom(rng, 0, armRateStd);
-      currentRate = Math.max(0.02, dscrResult.solvedRate + rateDelta);
-      currentPI = calculatePI(baseLoanAmount, currentRate, termMonths);
-    }
-
-    // Simulate 12 months of Track 2 cash flow (with vacancy, mgmt, maint)
     let yearCashFlow = 0;
     let reserves = baseReserves;
     const reserveCurve: number[] = [];
 
     for (let month = 1; month <= 12; month++) {
-      // Vacancy shock — Track 2 reality
-      let effectiveRent = currentRent;
-      if (rng() < vacancyPctMonthly) effectiveRent = 0;
+      // 1. Regime transition (Markov).
+      regimeStress = regimeStress
+        ? rng() > P_STRESS_TO_NORMAL
+        : rng() < P_NORMAL_TO_STRESS;
+      if (regimeStress) totalStressMonths++;
+      const sigMult = regimeStress ? STRESS_SIGMA_MULT : 1;
 
-      // Maintenance shock (one-off)
-      let maintenanceShock = 0;
-      if (rng() < maintenanceShockProbMonthly) {
-        maintenanceShock = maintenanceMin + rng() * (maintenanceMax - maintenanceMin);
+      // 2. Correlated factor draws (rent, vacancy, rate).
+      const z1 = stdNormal(rng), z2 = stdNormal(rng), z3 = stdNormal(rng);
+      const fRent = z1;
+      const fVac = L21 * z1 + L22 * z2;
+      const fRate = L31 * z1 + L32 * z2 + L33 * z3;
+
+      // 3. Rent — regime drift + correlated shock.
+      const rentMuMo = (regimeStress ? RENT_MU_STRESS : RENT_MU_NORMAL) / 12;
+      rent = Math.max(0, rent * (1 + rentMuMo + rentSigmaMo * sigMult * fRent));
+
+      // 4. Vacancy — OU toward 8%, correlated (negatively) with rent.
+      vacancy += (VAC_REVERSION / 12) * (VAC_MEAN - vacancy) + (VAC_SIGMA / Math.sqrt(12)) * sigMult * fVac;
+      vacancy = Math.min(0.30, Math.max(0.02, vacancy));
+
+      // 5. Rate — CIR (non-negative), only matters for ARMs.
+      if (isARM) {
+        const dr = CIR_A * (CIR_B - rate) / 12 + CIR_SIGMA * Math.sqrt(Math.max(rate, 0)) * (fRate / Math.sqrt(12));
+        rate = Math.max(0.0002, rate + dr);
+        pi = calculatePI(baseLoanAmount, rate * 100, termMonths);
       }
 
-      const monthlyPITIA = currentPI + currentTaxes + currentInsurance + property.hoa + (property.floodInsurance || 0) / 12;
-      // Track 2 cash flow: effective rent (after vacancy) less ongoing mgmt + maintenance % less PITIA less one-off maint shock
-      const cashFlow =
-        effectiveRent
-        - effectiveRent * managementPct    // ongoing management fee on collected rent
-        - effectiveRent * maintenancePct   // ongoing routine maintenance
-        - monthlyPITIA
-        - maintenanceShock;
+      // 6. Insurance — state regime growth + occasional post-cat jump.
+      monthlyIns *= (1 + ins.muAnnual / 12);
+      if (rng() < ins.jumpProb / 12) {
+        monthlyIns *= (1 + ins.jumpMin + rng() * (ins.jumpMax - ins.jumpMin));
+      }
+      // 7. Tax — modest drift + rare reassessment bump.
+      monthlyTax *= (1 + 0.03 / 12);
+      if (rng() < 0.02 / 12) monthlyTax *= 1.15;
+
+      // 8. Cash flow (Track 2: effective rent after vacancy − opex − PITIA − shock).
+      const effectiveRent = rent * (1 - vacancy);
+      let maintenanceShock = 0;
+      if (rng() < maintenanceShockProbMonthly) maintenanceShock = 500 + rng() * 7500;
+      const monthlyPITIA = pi + monthlyTax + monthlyIns + property.hoa + baseFlood;
+      const cashFlow = effectiveRent - effectiveRent * opexNonVac - monthlyPITIA - maintenanceShock;
 
       yearCashFlow += cashFlow;
-      reserves += cashFlow;
-      if (reserves < 0) reserves = 0;
+      reserves = Math.max(0, reserves + cashFlow);
       reserveCurve.push(reserves);
     }
 
     annualCashFlows.push(yearCashFlow);
 
-    // Track 1 DSCR (qualification — gross rent, no vacancy)
-    const simPITIA = currentPI + currentTaxes + currentInsurance + property.hoa + (property.floodInsurance || 0) / 12;
-    const simTrack1DSCR = simPITIA > 0 ? currentRent / simPITIA : 0;
-    dscrValues.push(simTrack1DSCR);
-
-    // Track 2 DSCR (investor survival — with vacancy/mgmt/maint)
-    const netIncome = currentRent * (1 - vacancyPctMonthly - managementPct - maintenancePct);
-    const simTrack2DSCR = simPITIA > 0 ? netIncome / simPITIA : 0;
-    track2DscrValues.push(simTrack2DSCR);
-
-    if (simTrack1DSCR >= 1.0) dscrAbove1Count++;
+    // Year-end DSCR snapshots.
+    const endPITIA = pi + monthlyTax + monthlyIns + property.hoa + baseFlood;
+    const track1 = endPITIA > 0 ? rent / endPITIA : 0;
+    const track2 = endPITIA > 0 ? (rent * (1 - vacancy - opexNonVac)) / endPITIA : 0;
+    dscrValues.push(track1);
+    if (track1 >= 1.0) dscrAbove1Count++;
+    if (track2 < 1.0) track2Below1Count++;
     if (yearCashFlow < 0) negCashFlowCount++;
-
     reserveCurves.push(reserveCurve);
   }
 
-  // Percentiles
+  // Percentiles.
   const sortedCF = [...annualCashFlows].sort((a, b) => a - b);
   const pct = (p: number) => sortedCF[Math.min(simulations - 1, Math.floor(simulations * p))];
-  const p10 = pct(0.10);
-  const p25 = pct(0.25);
-  const p50 = pct(0.50);
-  const p75 = pct(0.75);
-  const p90 = pct(0.90);
 
-  // Reserve depletion curve
+  // Reserve depletion curve.
   const reserveDepletionCurve: ReserveDepletionPoint[] = [];
-  for (let month = 0; month < 12; month++) {
-    const monthReserves = reserveCurves.map(c => c[month]).sort((a, b) => a - b);
+  for (let m = 0; m < 12; m++) {
+    const r = reserveCurves.map((c) => c[m]).sort((a, b) => a - b);
     reserveDepletionCurve.push({
-      month: month + 1,
-      p10Reserve: monthReserves[Math.floor(simulations * 0.10)],
-      p50Reserve: monthReserves[Math.floor(simulations * 0.50)],
-      p90Reserve: monthReserves[Math.floor(simulations * 0.90)],
+      month: m + 1,
+      p10Reserve: r[Math.floor(simulations * 0.10)],
+      p50Reserve: r[Math.floor(simulations * 0.50)],
+      p90Reserve: r[Math.floor(simulations * 0.90)],
     });
   }
 
-  // DSCR distribution (20-bin histogram)
-  const dscrBins = 20;
+  // DSCR distribution (20-bin histogram).
   const dscrMin = Math.min(...dscrValues);
   const dscrMax = Math.max(...dscrValues);
-  const binWidth = (dscrMax - dscrMin) / dscrBins || 1;
-  const dscrDist: DSCRDistributionPoint[] = [];
-  for (let i = 0; i < dscrBins; i++) {
+  const binWidth = (dscrMax - dscrMin) / 20 || 1;
+  const dscrDistribution: DSCRDistributionPoint[] = [];
+  for (let i = 0; i < 20; i++) {
     const binStart = dscrMin + i * binWidth;
-    const binCenter = binStart + binWidth / 2;
-    const count = dscrValues.filter(d => d >= binStart && d < binStart + binWidth).length;
-    dscrDist.push({ dscr: Math.round(binCenter * 100) / 100, probability: count / simulations });
+    const count = dscrValues.filter((d) => d >= binStart && d < binStart + binWidth).length;
+    dscrDistribution.push({ dscr: Math.round((binStart + binWidth / 2) * 100) / 100, probability: count / simulations });
   }
 
-  // Key risks — ranked by probability × impact
   const keyRisks: RiskItem[] = [
-    {
-      risk: 'DSCR < 1.0 (qualification failure)',
-      probability: 1 - dscrAbove1Count / simulations,
-      impact: 1.0,
-    },
-    {
-      risk: 'Negative Annual Cash Flow (Track 2)',
-      probability: negCashFlowCount / simulations,
-      impact: 0.7,
-    },
-    {
-      risk: 'Rent Decline >10%',
-      probability: dscrValues.filter(d => d < dscrResult.dscr * 0.9).length / simulations,
-      impact: 0.8,
-    },
-    {
-      risk: 'Insurance Spike >15%',
-      probability: 0.12,
-      impact: 0.4,
-    },
-    {
-      risk: 'Major Maintenance ($3K+)',
-      probability: 0.15,
-      impact: 0.3,
-    },
+    { risk: 'DSCR < 1.0 (qualification failure)', probability: 1 - dscrAbove1Count / simulations, impact: 1.0 },
+    { risk: 'Investor-survival DSCR < 1.0 (Track 2)', probability: track2Below1Count / simulations, impact: 0.8 },
+    { risk: 'Negative Annual Cash Flow', probability: negCashFlowCount / simulations, impact: 0.7 },
+    { risk: 'Recession regime persistence', probability: totalStressMonths / (simulations * 12), impact: 0.6 },
+    { risk: 'Insurance post-catastrophe spike', probability: ins.jumpProb, impact: 0.5 },
   ];
   keyRisks.sort((a, b) => b.probability * b.impact - a.probability * a.impact);
 
@@ -224,9 +245,11 @@ export function runMonteCarlo(
     simulations,
     probabilityDSCRAbove1_0: dscrAbove1Count / simulations,
     probabilityNegativeCashFlow: negCashFlowCount / simulations,
-    expectedAnnualCashFlow: { p10, p25, p50, p75, p90 },
+    expectedAnnualCashFlow: { p10: pct(0.10), p25: pct(0.25), p50: pct(0.50), p75: pct(0.75), p90: pct(0.90) },
     reserveDepletionCurve,
-    dscrDistribution: dscrDist,
+    dscrDistribution,
     keyRisks,
+    probabilityTrack2Below1: track2Below1Count / simulations,
+    avgTimeInStressPct: totalStressMonths / (simulations * 12),
   };
 }

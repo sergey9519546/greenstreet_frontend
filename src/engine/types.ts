@@ -592,6 +592,9 @@ export interface MonteCarloResult {
   reserveDepletionCurve: ReserveDepletionPoint[];
   dscrDistribution: DSCRDistributionPoint[];
   keyRisks: RiskItem[];
+  // Phase 4 (regime-switching recalibration) — optional, non-breaking.
+  probabilityTrack2Below1?: number;   // P(investor-survival DSCR < 1.0)
+  avgTimeInStressPct?: number;        // avg fraction of months in the stress regime
 }
 
 // v11.9 — Monte Carlo ARM/SOFR rate-path simulator (Vasicek mean-reverting process)
