@@ -331,12 +331,12 @@ export default function PortfolioPage({
             style={{
               background: dc.dark,
               borderRadius: dc.r.lg,
-              overflow: "hidden",
+              overflow: "clip",
               marginBottom: 16,
               border: `1px solid ${dc.faded}`,
             }}
           >
-            <div style={{ overflowX: "auto" }}>
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
                 <thead>
                   <tr>

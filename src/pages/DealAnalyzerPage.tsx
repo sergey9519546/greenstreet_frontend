@@ -152,7 +152,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
         .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:${swatch.pistachio} !important;}
         footer{color:rgba(0,55,56,0.55) !important;}
         footer div[style]{color:${dc.dark} !important;}
-        @media (max-width: 991px) { .da-tool-grid { grid-template-columns: 1fr !important; } .da-hero-grid { grid-template-columns: 1fr !important; } .da-verdict-grid { grid-template-columns: 1fr !important; } .da-metrics-3 { grid-template-columns: 1fr 1fr !important; } }
+        @media (max-width: 991px) { .da-tool-grid { grid-template-columns: 1fr !important; } .da-hero-grid { grid-template-columns: 1fr !important; } .da-verdict-grid { grid-template-columns: 1fr !important; } .da-metrics-3 { grid-template-columns: 1fr 1fr !important; } .da-verdict-badge { display: none !important; } }
         @media (max-width: 767px) { .da-metrics-3 { grid-template-columns: 1fr !important; } }
         @media (max-width: 479px) { .da-band-3 { grid-template-columns: 1fr !important; } }
       `}</style>
@@ -225,7 +225,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
             </div>
             {/* floating verdict badge */}
-            <div style={{ position: "absolute", bottom: -16, left: -12, background: dc.lemon, borderRadius: 10, padding: "16px 20px", zIndex: 2 }}>
+            <div className="da-verdict-badge" style={{ position: "absolute", bottom: -16, left: -12, background: dc.lemon, borderRadius: 10, padding: "16px 20px", zIndex: 2 }}>
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 3 }}>Deal verdict</div>
               <Mono style={{ display: "block", fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor, marginTop: 3 }}>{vLabel}</div>
