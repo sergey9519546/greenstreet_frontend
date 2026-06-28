@@ -134,6 +134,7 @@ export interface DSCRTrack {
   vacancyApplied: number;      // percent
   managementApplied: number;   // percent
   maintenanceApplied: number;  // percent
+  capexApplied?: number;       // percent (TCO CapEx reserve; Track 2 only)
   netRentAfterDeductions: number;
   monthlyCashFlow: number;     // net rent - PITIA
   passes: boolean;

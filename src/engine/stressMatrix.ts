@@ -37,6 +37,8 @@ import type {
   StressBreakEvenPoint,
 } from './types';
 import { calculatePI } from './engine';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
+import type { TcoPropertyType, TcoPropertyAge, TcoMarketType } from './tcoDscr';
 
 // ============================================================
 // AXIS CONFIGURATION
@@ -119,17 +121,23 @@ export function computeBreakEvenVacancy(
 export function computeDualTrackDSCR(
   grossMonthlyRent: number,
   monthlyPITIA: number,
-  opts: { vacancyPct?: number; managementPct?: number; maintenancePct?: number } = {},
+  opts: { vacancyPct?: number; propertyType?: TcoPropertyType; propertyAge?: TcoPropertyAge; marketType?: TcoMarketType; isSelfManaged?: boolean } = {},
 ): { track1: number; track2: number; delta: number; qualifiesButDangerous: boolean } {
   if (grossMonthlyRent <= 0 || monthlyPITIA <= 0) {
     return { track1: 0, track2: 0, delta: 0, qualifiesButDangerous: false };
   }
-  const vac = (opts.vacancyPct ?? 8) / 100;
-  const mgmt = (opts.managementPct ?? 8) / 100;
-  const maint = (opts.maintenancePct ?? 5) / 100;
+  // Track 2 opex from the TCO single-source (property-type/age/market + CapEx).
+  // vacancyPct, when supplied (e.g. the Stress Matrix slider), overrides the
+  // table vacancy; management/maintenance/capex come from the TCO table.
+  const rate = computeTcoRate({
+    propertyType: opts.propertyType,
+    propertyAge: opts.propertyAge,
+    marketType: opts.marketType,
+    isSelfManaged: opts.isSelfManaged,
+    vacancyOverridePct: opts.vacancyPct,
+  });
   const track1 = grossMonthlyRent / monthlyPITIA;
-  // NOI = gross × (1 − vacancy) − gross × mgmt − gross × maint  (mgmt/maint on gross)
-  const noi = grossMonthlyRent * Math.max(0, 1 - vac - mgmt - maint);
+  const noi = grossMonthlyRent * Math.max(0, 1 - rate.total);
   const track2 = noi / monthlyPITIA;
   const delta = track1 - track2;
   return {
@@ -244,10 +252,9 @@ export function computeStressMatrix(
     property.hoa +
     property.floodInsurance / 12;
 
-  // Track 2 haircut assumptions (per strategy)
-  const vacancyPct = 8;
-  const managementPct = 8;
-  const maintenancePct = 5;
+  // Track 2 opex from the TCO single-source — property-type/age/market + CapEx.
+  // Replaces the legacy flat 8% vac + 8% mgmt + 5% maint.
+  const tcoRate = computeTcoRate({ propertyType: mapToTcoType(property.unitCount, strategy === 'STR') });
 
   // Build absolute rate axis
   const rateAxis: number[] = RATE_OFFSETS_BPS.map(bps => {
@@ -287,11 +294,8 @@ export function computeStressMatrix(
       // Track 1: Lender Qualification DSCR (qualifyingRent / PITIA, no haircuts)
       const track1DSCR = pitiaMonthly > 0 ? adjustedRent / pitiaMonthly : 0;
 
-      // Track 2: Investor Survival DSCR (after vacancy+mgmt+maint)
-      const netRent = adjustedRent * (1 - vacancyPct / 100);
-      const management = adjustedRent * managementPct / 100;
-      const maintenance = adjustedRent * maintenancePct / 100;
-      const noiMonthly = netRent - management - maintenance;
+      // Track 2: Investor Survival DSCR (after the TCO opex haircut)
+      const noiMonthly = adjustedRent * Math.max(0, 1 - tcoRate.total);
       const track2DSCR = pitiaMonthly > 0 ? noiMonthly / pitiaMonthly : 0;
 
       const monthlyCashFlow = noiMonthly - pitiaMonthly;
@@ -373,9 +377,7 @@ export function computeStressMatrix(
   const basePI = calculatePI(loanAmount, baseRate, termMonths);
   const basePITIA = basePI + monthlyFixed;
   const baseTrack1DSCR = basePITIA > 0 ? qualifyingRent / basePITIA : 0;
-  const baseNOI = qualifyingRent * (1 - vacancyPct / 100)
-    - qualifyingRent * managementPct / 100
-    - qualifyingRent * maintenancePct / 100;
+  const baseNOI = qualifyingRent * Math.max(0, 1 - tcoRate.total);
   const baseTrack2DSCR = basePITIA > 0 ? baseNOI / basePITIA : 0;
 
   // Summary

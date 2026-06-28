@@ -37,7 +37,7 @@ describe("computeBreakEvenVacancy", () => {
 // "Qualifies but Dangerous" — the lender approves a deal that loses money.
 describe("computeDualTrackDSCR", () => {
   it("trap: lender qualifies (Track1≥1.0) but investor loses money (Track2<1.0) → flagged", () => {
-    // rent 2400 / PITIA 2300 → Track1 1.043; Track2 = 2400*0.79/2300 = 0.824; delta 0.219 > 0.2
+    // rent 2400 / PITIA 2300 → Track1 1.043; Track2 = 2400*(1-0.28 TCO)/2300 = 0.751; delta 0.292 > 0.2
     const r = computeDualTrackDSCR(2400, 2300);
     expect(r.track1).toBeGreaterThanOrEqual(1.0);
     expect(r.track2).toBeLessThan(1.0);
@@ -57,10 +57,16 @@ describe("computeDualTrackDSCR", () => {
     expect(r.qualifiesButDangerous).toBe(false);
   });
 
-  it("Track 2 matches the engine haircut (gross × (1 - vac - mgmt - maint))", () => {
-    const r = computeDualTrackDSCR(3000, 2000, { vacancyPct: 8, managementPct: 8, maintenancePct: 5 });
+  it("Track 2 uses the TCO haircut (SFR 28% default, incl CapEx)", () => {
+    const r = computeDualTrackDSCR(3000, 2000);
     expect(r.track1).toBeCloseTo(1.5, 3);          // 3000/2000
-    expect(r.track2).toBeCloseTo(1.185, 3);        // 3000*0.79/2000
+    expect(r.track2).toBeCloseTo(1.08, 3);         // 3000*(1-0.28)/2000
+  });
+
+  it("vacancy override (Stress Matrix slider) raises the TCO haircut", () => {
+    // vacancy 15% + SFR mgmt8+maint8+capex5 (21%) = 36% → Track2 = 3000*0.64/2000
+    const r = computeDualTrackDSCR(3000, 2000, { vacancyPct: 15 });
+    expect(r.track2).toBeCloseTo(0.96, 2);
   });
 
   it("degenerate inputs guarded", () => {

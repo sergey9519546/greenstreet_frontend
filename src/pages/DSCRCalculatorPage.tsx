@@ -4,6 +4,7 @@ import { PISTACHIO, MIDNIGHT, LEMON, font, swatch, radius } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeLossScenarios } from "../engine/lossFraming";
+import { computeTcoDscr } from "../engine/tcoDscr";
 import BottomCTA from "../design/BottomCTA";
 
 interface Props {
@@ -90,6 +91,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const dual = computeDualTrackDSCR(rent, pitia);
   // Loss-framed downside scenarios — concrete $ out-of-pocket, not abstract ratios.
   const lossScenarios = computeLossScenarios({ monthlyRent: rent, monthlyPITIA: pitia, monthlyTax: taxYr / 12, monthlyInsurance: ins / 12 });
+  // Total cost of ownership — show-the-math: where the real operating costs go.
+  const tco = computeTcoDscr({ grossRent: rent, principalAndInterest: pAndI, propertyTax: taxYr / 12, insurance: ins / 12, hoa, depreciableBasis: price * 0.8 });
   const cashFlow = rent - pitia;
   const noi = (rent * 0.92 * 12) - taxYr - ins;
   const capRate = noi / price * 100;
@@ -473,6 +476,33 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         </div>
                       ))}
                     </div>
+                  </div>
+                </div>
+
+                {/* ── TCO show-the-math — where the real operating costs go (Behavioral §9) ── */}
+                <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(20px,2.4vw,28px)', border: '1px solid rgba(238,239,211,0.12)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON }}>Real-cost coverage — total cost of ownership</span>
+                    <span style={{ fontSize: 12, color: 'rgba(238,239,211,0.55)' }}>break-even rent {fmt(tco.breakEvenRent)}/mo</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 14 }}>
+                    {[
+                      { l: 'Lender (standard)', v: tco.standardDSCR },
+                      { l: 'After real costs', v: tco.tcoDSCR },
+                      { l: 'After tax shield', v: tco.afterTaxTcoDSCR },
+                    ].map((m) => (
+                      <div key={m.l}>
+                        <div style={{ fontSize: 10.5, color: 'rgba(238,239,211,0.5)', marginBottom: 3, letterSpacing: '0.02em' }}>{m.l}</div>
+                        <Mono style={{ fontSize: 'clamp(18px,2vw,22px)', fontWeight: 700, color: m.v >= 1.0 ? '#4dbd97' : '#e06363' }}>{m.v.toFixed(2)}x</Mono>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 12.5, color: 'rgba(238,239,211,0.62)', lineHeight: 1.5 }}>
+                    <span>Vacancy {fmt(tco.components.vacancy)}</span><span style={{ opacity: 0.4 }}>·</span>
+                    <span>Mgmt {fmt(tco.components.management)}</span><span style={{ opacity: 0.4 }}>·</span>
+                    <span>Maint {fmt(tco.components.maintenance)}</span><span style={{ opacity: 0.4 }}>·</span>
+                    <span>CapEx {fmt(tco.components.capex)}</span><span style={{ opacity: 0.4 }}>·</span>
+                    <span style={{ color: 'rgba(238,239,211,0.85)', fontWeight: 600 }}>−{fmt(tco.components.total)}/mo real operating costs the lender ignores</span>
                   </div>
                 </div>
 

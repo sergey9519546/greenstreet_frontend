@@ -11,6 +11,7 @@ import type {
   PortfolioAnalysis,
   RefiOpportunity,
 } from './types';
+import { computeTcoRate } from './tcoDscr';
 
 export function analyzePortfolio(
   existingProperties: PortfolioProperty[],
@@ -45,12 +46,12 @@ export function analyzePortfolio(
   const totalPITIA = allProperties.reduce((sum, p) => sum + p.monthlyPITIA, 0);
   const totalRent = allProperties.reduce((sum, p) => sum + p.monthlyRent, 0);
 
-  // NOI = Gross - vacancy - mgmt - maint (Track 2 income model)
+  // NOI = Gross less the TCO operating-cost haircut (vacancy + mgmt + maint +
+  // CapEx). Portfolio-level default = SFR/average/normal (28%); single source of
+  // truth in tcoDscr.ts. Replaces the legacy flat 8/8/5.
+  const tcoTotal = computeTcoRate({ propertyType: 'SFR' }).total;
   const totalNOI = allProperties.reduce((sum, p) => {
-    const vacancyPct = 0.08;
-    const mgmtPct = 0.08;
-    const maintPct = 0.05;
-    const net = p.monthlyRent * (1 - vacancyPct - mgmtPct - maintPct);
+    const net = p.monthlyRent * (1 - tcoTotal);
     return sum + net * 12;
   }, 0);
 

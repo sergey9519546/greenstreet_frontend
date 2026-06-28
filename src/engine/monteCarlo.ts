@@ -16,6 +16,7 @@ import type {
   RiskItem,
 } from './types';
 import { calculatePI } from './engine';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
 
 // Seeded PRNG (Mulberry32) — deterministic for reproducibility
 function mulberry32(seed: number): () => number {
@@ -54,10 +55,14 @@ export function runMonteCarlo(
   // Rent volatility — STR much more volatile than LTR
   const rentVolatilityStd = isSTR ? 0.15 : isMTR ? 0.08 : 0.04;
 
-  // Vacancy parameters (Track 2 reality, not Track 1 qualification)
+  // Track 2 opex from the TCO single-source (property-type aware, incl. CapEx).
+  // Vacancy stays a per-month Bernoulli draw below (the MC vacancy model;
+  // Phase 4 recalibrates it). Management + maintenance + CapEx are the
+  // deterministic opex haircut.
+  const tcoRate = computeTcoRate({ propertyType: mapToTcoType(property.unitCount, isSTR) });
   const vacancyPctMonthly = 0.08;
-  const managementPct = 0.08;
-  const maintenancePct = 0.05;
+  const managementPct = tcoRate.management;
+  const maintenancePct = tcoRate.maintenance + tcoRate.capex;
 
   // Maintenance shock (one-off major repairs)
   const maintenanceShockProbMonthly = 0.015; // ~18% annualized

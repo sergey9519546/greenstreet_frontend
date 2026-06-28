@@ -33,6 +33,7 @@ import type {
   TripleRate,
   DSCRFormulaMethod,
 } from './types';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
 
 // ============================================================
 // SECTION 5.2: CORRECTED PAYMENT FACTOR CALCULATION
@@ -231,12 +232,9 @@ export function getDSCRGradient(dscr: number): DSCRGradient {
 // NEVER blend. ALWAYS display side-by-side.
 // ============================================================
 
-// Track 2 default expense rates
-const TRACK2_LT_VACANCY_PCT = 8;
-const TRACK2_STR_VACANCY_PCT = 8;
-const TRACK2_MTR_VACANCY_PCT = 8;
-const TRACK2_MANAGEMENT_PCT = 8;
-const TRACK2_MAINTENANCE_PCT = 5;
+// Track 2 expense rates now come from tcoDscr.ts (property-type/age/market
+// aware, CapEx broken out) — see buildTrack2. The legacy flat 8/8/5 constants
+// were removed in the TCO reconciliation.
 
 // STR haircut for Track 1 qualification
 const STR_QUALIFYING_HAIRCUT_PCT = 20; // ~20% standard haircut
@@ -345,17 +343,19 @@ function buildTrack2(
   grossRent: number,
   pitia: number,
   strategy: RentalStrategy,
+  unitCount: number,
 ): DSCRTrack {
-  const vacancyPct = strategy === 'STR'
-    ? TRACK2_STR_VACANCY_PCT
-    : strategy === 'MTR'
-    ? TRACK2_MTR_VACANCY_PCT
-    : TRACK2_LT_VACANCY_PCT;
+  // TCO operating-cost haircut — property-type/age/market aware, single source
+  // of truth in tcoDscr.ts. Replaces the legacy flat 8% vac + 8% mgmt + 5% maint
+  // (no CapEx). STR → condotel bucket; multi by unit count.
+  const tcoType = mapToTcoType(unitCount, strategy === 'STR');
+  const rate = computeTcoRate({ propertyType: tcoType });
+  const vacancyPct = rate.vacancy * 100;
+  const mgmtPct = rate.management * 100;
+  const maintPct = rate.maintenance * 100;
+  const capexPct = rate.capex * 100;
 
-  const afterVacancy = grossRent * (1 - vacancyPct / 100);
-  const management = grossRent * (TRACK2_MANAGEMENT_PCT / 100);
-  const maintenance = grossRent * (TRACK2_MAINTENANCE_PCT / 100);
-  const netIncome = afterVacancy - management - maintenance;
+  const netIncome = grossRent * (1 - rate.total);
   const dscr = pitia > 0 ? netIncome / pitia : 0;
   const monthlyCashFlow = netIncome - pitia;
 
@@ -364,11 +364,12 @@ function buildTrack2(
     dscr: Math.round(dscr * 1000) / 1000,
     gradient: getDSCRGradient(dscr),
     qualifyingRent: grossRent,
-    rentSource: `Gross less ${vacancyPct}% vacancy, ${TRACK2_MANAGEMENT_PCT}% mgmt, ${TRACK2_MAINTENANCE_PCT}% maint`,
+    rentSource: `Gross less ${vacancyPct.toFixed(0)}% vacancy, ${mgmtPct.toFixed(0)}% mgmt, ${maintPct.toFixed(0)}% maint, ${capexPct.toFixed(0)}% capex (TCO ${(rate.total * 100).toFixed(0)}%)`,
     formulaMethod: 'GROSS_PITIA',
-    vacancyApplied: vacancyPct,
-    managementApplied: TRACK2_MANAGEMENT_PCT,
-    maintenanceApplied: TRACK2_MAINTENANCE_PCT,
+    vacancyApplied: Math.round(vacancyPct * 10) / 10,
+    managementApplied: Math.round(mgmtPct * 10) / 10,
+    maintenanceApplied: Math.round(maintPct * 10) / 10,
+    capexApplied: Math.round(capexPct * 10) / 10,
     netRentAfterDeductions: netIncome,
     monthlyCashFlow,
     passes: dscr >= 1.0,
@@ -916,7 +917,7 @@ export function solveDSCR(
     : qualifyingRent;            // LTR: min(lease, market) = actual income
 
   const track1 = buildTrack1(qualifyingRent, rentSource, pitia.total, formulaMethod, pitia.itia ?? null, haircutApplied, pitia.principalAndInterest);
-  const track2 = buildTrack2(track2GrossRent, pitia.total, strategy);
+  const track2 = buildTrack2(track2GrossRent, pitia.total, strategy, property.unitCount);
   const verdict = buildVerdict(track1, track2);
   const dualTrackDSCR: DualTrackDSCR = { track1, track2, verdict };
 
