@@ -70,9 +70,6 @@ describe('resolveRoute — canonical paths round-trip', () => {
 
 describe('resolveRoute — documented intentional aliases', () => {
   // These deliberately do NOT round-trip 1:1 (pages merged / removed).
-  it('/deal-analyzer → lender-intel (Deal Analyzer merged into matcher)', () => {
-    expect(resolveRoute('/deal-analyzer')).toBe('lender-intel');
-  });
   it('/portfolio-builders → portfolio (page removed)', () => {
     expect(resolveRoute('/portfolio-builders')).toBe('portfolio');
   });

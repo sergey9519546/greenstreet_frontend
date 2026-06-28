@@ -65,7 +65,7 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/dscr-calculator": "dscr-calculator",
   "/lender-intel": "lender-intel",
   "/state-laws": "state-laws",
-  "/deal-analyzer": "lender-intel", // Deal Analyzer merged into the program matcher
+  "/deal-analyzer": "deal-analyzer", // full-underwrite tool (distinct from the lender-intel matcher)
   "/decision-support": "decision-support",
 
   // Content pages
