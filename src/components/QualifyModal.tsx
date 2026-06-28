@@ -1930,6 +1930,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       },
       page: typeof window !== "undefined" ? window.location.pathname : "/",
       createdAt: new Date().toISOString(),
+      submittedAt: new Date(), // Firestore rules require this field (as Timestamp)
       // (lead persists to Firestore `leads` below; CRM/email sync is a future add)
     };
 

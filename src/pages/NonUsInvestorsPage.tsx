@@ -3,7 +3,7 @@ import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font } from "../theme";
 import BottomCTA from "../design/BottomCTA";
 import { assessForeignNationalEligibility, type FnIdType } from "../engine/fnEngine";
-import { calculateFIRPTAImpact } from "../engine/firpta";
+import { calculateFIRPTAImpact, nraEstateTaxNote } from "../engine/firpta";
 
 // ── Who-We-Serve: Non-US Investor Investors ──────────────────────────────────
 // Bespoke dark page. Conversion core = the "Yes, you can" fear-grid. Positioning:
@@ -89,6 +89,7 @@ export default function NonUsInvestorsPage({
   };
   const fnElig = assessForeignNationalEligibility(fnProfile);
   const firpta = calculateFIRPTAImpact({ salePrice: price, adjustedBasis: price * 0.85, state: "TX", isUsResident: false });
+  const nraEstate = nraEstateTaxNote(price);
   const loan = price * (1 - downPct / 100);
   const pAndI = loan * pf(rate / 100);
   const pitia = pAndI + (price * 0.011) / 12 + (price * 0.005) / 12; // est. taxes + insurance
@@ -368,6 +369,9 @@ export default function NonUsInvestorsPage({
                 )}
                 <div style={{ marginTop: 18, borderTop: "1px solid rgba(238,239,211,0.12)", paddingTop: 16, fontSize: 13, color: "rgba(238,239,211,0.66)", lineHeight: 1.55 }}>
                   <strong style={{ color: dc.cream }}>At sale (FIRPTA):</strong> 15% of the gross sale price is withheld — ≈{fmt$(firpta.federalWithholdingAmount)} on a {fmt$(price)} sale.{firpta.withholdingCertificateRecommended ? ` Apply for a withholding certificate (Form 8288-B) to free up the excess over the ~${fmt$(firpta.estimatedTaxOnGain)} actually owed on the gain.` : ""} Refinancing (rate-term or cash-out) is not a sale — no FIRPTA.
+                </div>
+                <div style={{ marginTop: 14, borderTop: "1px solid rgba(238,239,211,0.12)", paddingTop: 16, fontSize: 13, color: "rgba(238,239,211,0.66)", lineHeight: 1.55 }}>
+                  <strong style={{ color: BLUE }}>Estate-tax exposure:</strong> non-resident aliens get only a $60,000 U.S. estate-tax exemption (vs $13.99M for citizens) — so ≈{fmt$(nraEstate.exposedValue)} of a {fmt$(price)} property is exposed, up to ≈{fmt$(nraEstate.estTaxAt40)} at the 40% rate if the owner passes while holding it personally. Holding through a properly structured entity can change the situs analysis — plan this with a cross-border tax advisor.
                 </div>
                 <div style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", marginTop: 10 }}>Screening guidance, not legal or tax advice. Entity vesting (U.S. LLC) required.</div>
               </div>

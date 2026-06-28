@@ -4,6 +4,7 @@ import { DcShell, dc, Mono, CountUp, H1, Lead } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import TrueCostComparator from "../components/TrueCostComparator";
 
 interface Props {
   onBack?: () => void;
@@ -626,6 +627,17 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             indicative only; FICO &times; LTV pricing grids determine final terms. Not a rate lock or credit
             approval.
           </p>
+        </div>
+      </section>
+
+      {/* ── TRUE COST OF CAPITAL COMPARATOR ── */}
+      <section className="gs-reveal" style={{ background: dc.cream, padding: `clamp(56px,7vw,88px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div style={{ marginBottom: 28, maxWidth: "62ch" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Beyond the rate</div>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: 0, color: dc.dark, lineHeight: 1.05 }}>Two lenders, two rates — which actually costs less?</h2>
+          </div>
+          <TrueCostComparator accent={dc.rain} />
         </div>
       </section>
 

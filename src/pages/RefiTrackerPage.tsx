@@ -3,6 +3,8 @@ import { DcShell, dc, Mono, H1, H2, Lead, Btn, useRevealOnView } from "../design
 import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzeRefi } from "../engine/refiTracker";
 import { computeSecondLienDscr } from "../engine/secondLienDscr";
+import { computeRefiProceedsGap } from "../engine/refiProceeds";
+import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenantCheck";
 import { radius, font } from "../theme";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
@@ -52,12 +54,30 @@ export default function RefiTrackerPage({
   // ── 2nd-lien / HELOC: tap equity WITHOUT refinancing the 1st lien ──
   const [secondAmount, setSecondAmount] = useState(50000);
   const [secondRate, setSecondRate] = useState(10.5);
+  // ── Sprint 2 debt tests: DSCR maintenance covenant + day-one in-place rent ──
+  const [covenantDscr, setCovenantDscr] = useState(1.20);
+  const [inPlaceRent, setInPlaceRent] = useState(3000);
   const currentValue = Math.round(purchasePrice * (1 + (projectedAppreciation / 100) * (monthsOwned / 12)));
   const firstLienPITIA = currentPayment + (annualTaxes + annualInsurance) / 12 + hoa;
   const secondLien = computeSecondLienDscr({
     monthlyRent, firstLienPITIA, firstLienBalance: currentBalance,
     propertyValue: currentValue, secondLienAmount: secondAmount, secondLienRate: secondRate,
   });
+  // Refi-proceeds gap at maturity/reset: can a new loan (capped by BOTH the
+  // rate-term LTV AND the DSCR floor) retire the current balance? + binding label.
+  const refiGap = computeRefiProceedsGap({
+    propertyValue: currentValue,
+    currentBalance,
+    qualifyingRent: monthlyRent,
+    escrowsMonthly: (annualTaxes + annualInsurance) / 12 + hoa,
+    newRate: projectedRate,
+  });
+  // Maintenance-covenant test on the current loan + day-one (in-place rent) vs
+  // stabilized (market rent) lease-up risk. Stabilized = current rent ÷ current PITIA.
+  const stabilizedDSCR = firstLienPITIA > 0 ? monthlyRent / firstLienPITIA : 0;
+  const dayOneDSCR = firstLienPITIA > 0 ? inPlaceRent / firstLienPITIA : 0;
+  const covenant = assessDscrCovenant(stabilizedDSCR, covenantDscr);
+  const dayOne = assessDayOneVsStabilized(dayOneDSCR, stabilizedDSCR);
 
   // ── Engine ──
   const result = useMemo(() => {
@@ -925,6 +945,75 @@ export default function RefiTrackerPage({
           </div>
           <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5, maxWidth: "72ch" }}>
             Best when your 1st lien is below market and carries a prepay penalty. Max draw is the lesser of the CLTV room and what combined DSCR supports. Illustrative — exact terms by lender.
+          </p>
+        </div>
+      </section>
+
+      {/* ── REFINANCE AT MATURITY — proceeds gap + debt covenants (Sprint 2) ── */}
+      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Refinance at maturity / ARM reset</div>
+          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "22ch" }}>When the loan comes due, can the property refinance out?</H2>
+          <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "64ch", margin: "0 0 26px" }}>
+            At a balloon maturity or ARM reset the new loan is capped by <strong style={{ color: dc.cream }}>both</strong> the 75% rate-term LTV and the DSCR floor — whichever binds first. If it can't cover the existing balance, you bring cash to close (the proceeds gap).
+          </Lead>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+            {[
+              { l: "DSCR covenant (maintenance)", v: covenantDscr, set: setCovenantDscr, step: 0.05, suf: "x", pre: "" },
+              { l: "In-place rent now (day-one)", v: inPlaceRent, set: setInPlaceRent, step: 50, pre: "$", suf: "" },
+            ].map((f) => (
+              <label key={f.l} style={{ display: "block" }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)", marginBottom: 6 }}>{f.l}</span>
+                <div style={{ display: "inline-flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
+                  {f.pre && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.pre}</span>}
+                  <input type="number" step={f.step} value={f.v} onChange={(e) => f.set(+e.target.value)} style={{ width: 150, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
+                  {f.suf && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.suf}</span>}
+                </div>
+              </label>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }} className="dc-band-4">
+            {[
+              { v: fmt$(refiGap.maxNewLoan), l: `max new loan · ${refiGap.bindingConstraint}-bound`, c: dc.lemon },
+              refiGap.canRetireBalance
+                ? { v: fmt$(refiGap.cashOutAvailable), l: "cash-out available", c: dc.emerald }
+                : { v: fmt$(refiGap.proceedsGap), l: "cash to close (gap)", c: "#e06363" },
+              { v: fmt$(refiGap.newPayment), l: "new P&I / mo", c: dc.cream },
+              { v: refiGap.canRetireBalance ? "CLEARS" : "SHORT", l: `vs ${fmt$(currentBalance)} balance`, c: refiGap.canRetireBalance ? dc.emerald : "#e06363" },
+            ].map((s) => (
+              <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
+                <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 8 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* debt-test flags */}
+          <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+            {!refiGap.canRetireBalance && (
+              <div style={{ background: "rgba(224,99,99,0.1)", border: "1px solid rgba(224,99,99,0.4)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e0635f", marginBottom: 4 }}>Refi proceeds gap · {refiGap.bindingConstraint}-constrained</div>
+                <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>
+                  A new loan tops out at {fmt$(refiGap.maxNewLoan)} — {fmt$(refiGap.proceedsGap)} short of the {fmt$(currentBalance)} balance. You'd bring that cash to close, or negotiate an extension/paydown. The {refiGap.bindingConstraint === "LTV" ? "value (LTV)" : "rent (DSCR)"} is the binding limit.
+                </p>
+              </div>
+            )}
+            {covenant.status !== "OK" && (
+              <div style={{ background: covenant.status === "BREACH" ? "rgba(224,99,99,0.1)" : "rgba(230,184,77,0.1)", border: `1px solid ${covenant.status === "BREACH" ? "rgba(224,99,99,0.4)" : "rgba(230,184,77,0.4)"}`, borderLeft: `3px solid ${covenant.status === "BREACH" ? "#e06363" : "#e6b84d"}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: covenant.status === "BREACH" ? "#e0635f" : "#e6b84d", marginBottom: 4 }}>DSCR covenant · {covenant.status}</div>
+                <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{covenant.note}</p>
+              </div>
+            )}
+            {dayOne.leaseUpRisk && (
+              <div style={{ background: "rgba(230,184,77,0.1)", border: "1px solid rgba(230,184,77,0.4)", borderLeft: "3px solid #e6b84d", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e6b84d", marginBottom: 4 }}>Day-one vs stabilized · lease-up risk</div>
+                <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{dayOne.note}</p>
+              </div>
+            )}
+          </div>
+
+          <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5, maxWidth: "72ch" }}>
+            Max new loan = lesser of the 75% rate-term LTV and what the DSCR floor (1.00x) supports at the projected {projectedRate}% rate. Covenant test uses current rent ÷ current PITIA. Illustrative — exact terms by lender.
           </p>
         </div>
       </section>

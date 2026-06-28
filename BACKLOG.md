@@ -22,15 +22,18 @@
 
 ## A. QUICK WINS — engine built + tested, just not surfaced (highest ROI)
 
-### A1. Rent-integrity / deviation-alert flag
+> ✅ A1, A2, A3 all SHIPPED (skills-validation session, cont.). tsc clean · 220 tests ·
+> `vite build` ✓ · live-verified in preview. Details on each below.
+
+### A1. Rent-integrity / deviation-alert flag — ✅ DONE
 - Engine: `src/engine/rentIntegrity.ts` → `assessRentIntegrity({leaseRent, marketRent, strProjectedRent, strDocumentedRent})` → `{leaseVsMarketPct, strDivergencePct, score, disposition (CLEAR|REVIEW|ELEVATED), flags[]}`. Tested (`rentIntegrity.test.ts`). **Used by 0 pages.**
 - Do: surface on the Deal Analyzer (or a tool exposing both lease + market rent). Show a flag when stated rent is >10% over the 1007/market rent, or STR projection ≫ documented. On-brand: the behavioral "you're overestimating rent" honesty.
 
-### A2. True Cost of Capital + choice architecture
+### A2. True Cost of Capital + choice architecture — ✅ DONE (new `src/components/TrueCostComparator.tsx`, surfaced on LenderIntelPage; borrower-quote comparator — lenders carry no points/fees so per-lender fabrication was avoided per the caution)
 - Engine: `src/engine/trueCostOfCapital.ts` → `computeTrueCost` / `compareTrueCost` (all-in cost over a hold = interest + points/fees + prepay − paydown; reuses `loanOptimizer` prepay). Tested. **Used by 0 pages.**
 - Do: a loan-comparison view on `RateQuizPage.tsx` or `LenderIntelPage.tsx` — rank by total cost (not rate), single "Recommended" default, cap to ≤3, "you pay $X for the lower rate" framing. CAUTION: use real per-lender rate/prepay data (lenders carry `prepayOptions`); don't fabricate fees.
 
-### A3. NRA estate-tax note
+### A3. NRA estate-tax note — ✅ DONE (card on NonUsInvestorsPage, after the FIRPTA block)
 - Engine: `src/engine/firpta.ts` → `nraEstateTaxNote(propertyValue)` → exposed value + 40% est. tax ($60K NRA exemption). **Used by 0 pages.**
 - Do: surface on `NonUsInvestorsPage.tsx` near the FIRPTA block (already wired). One small card.
 
@@ -40,7 +43,14 @@
 See `00_engine/research/SKILLS_VALIDATION_ULTRAPLAN.md`. Sprint 1 (cash-on-cash) + the
 negative-leverage flag are DONE. Remaining:
 
-### B1. Sprint 2 — debt & leverage (real value)
+### B1. Sprint 2 — debt & leverage (real value) — ✅ DONE
+> Engines: new `src/engine/refiProceeds.ts` (`computeRefiProceedsGap` — max new loan =
+> min(LTV, DSCR) + binding-constraint label + proceeds gap/cash-out) and
+> `src/engine/covenantCheck.ts` (`assessDscrCovenant` maintenance test +
+> `assessDayOneVsStabilized` lease-up flag). 10 new tests (230 total). Surfaced in a new
+> "Refinance at maturity" section on `RefiTrackerPage.tsx` (proceeds-gap band + 3 flags).
+> tsc clean. NOTE: `vite build` blocked this session by host commit-memory exhaustion
+> (tailwind-oxide Rust abort) — env, not code; verify build after a session restart.
 - **Refi-proceeds-gap** (cre-capital-markets skill): at maturity/ARM reset, can the
   property refi enough to retire the existing balance? max new loan (cash-out LTV cap
   AND DSCR-constrained) vs current balance → gap = cash needed to close. Surface on

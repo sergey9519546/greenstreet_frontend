@@ -5,6 +5,7 @@ import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/arti
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeTcoRate } from "../engine/tcoDscr";
 import { assessLeverage } from "../engine/leverageCheck";
+import { assessRentIntegrity } from "../engine/rentIntegrity";
 
 interface Props {
   onBack?: () => void;
@@ -26,6 +27,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const [price, setPrice] = useState(425000);
   const [down, setDown] = useState(25);
   const [rent, setRent] = useState(3000);
+  const [marketRent, setMarketRent] = useState(3000);
   const [rate, setRate] = useState(7.0);
   const [tax, setTax] = useState(5000);
   const [ins, setIns] = useState(2000);
@@ -59,6 +61,10 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   // Dual-track: the dscr above is Track 1 (lender). Track 2 nets out typical
   // vacancy + management + maintenance — flags deals that qualify yet lose money.
   const dual = computeDualTrackDSCR(rent, pitia);
+  // Rent integrity (behavioral honesty): if the stated/lease rent runs above
+  // the appraiser's 1007 market rent, lenders underwrite to the LOWER figure —
+  // the qualifying DSCR will likely use market rent, not the stated number.
+  const rentCheck = assessRentIntegrity({ leaseRent: rent, marketRent });
 
   // --- Verdict ---
   let vLabel = "DEAL BREAK";
@@ -269,6 +275,15 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 </label>
               ))}
 
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Market Rent — 1007 (optional)</span>
+                <div className="da-field">
+                  <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>$</span>
+                  <input className="da-num" type="number" step={100} value={marketRent} onChange={(e) => setMarketRent(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
+                </div>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 6, lineHeight: 1.4 }}>The appraiser's market rent. If your stated rent sits well above it, lenders underwrite to the lower figure.</span>
+              </label>
+
               <label style={{ display: "block", marginBottom: 0 }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>State (2-letter)</span>
                 <div className="da-field">
@@ -323,6 +338,19 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                         {lev.state === "NEGATIVE" ? "Negative leverage" : "Positive leverage"} · {lev.loanConstantPct.toFixed(1)}% debt vs {lev.capRatePct.toFixed(1)}% cap
                       </div>
                       <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>{lev.note}</p>
+                    </div>
+                  )}
+
+                  {/* Rent integrity (behavioral honesty) — stated rent well above
+                      the appraiser's 1007 market rent; lenders use the lower figure. */}
+                  {rentCheck.disposition !== "CLEAR" && (
+                    <div style={{ marginTop: 12, background: rentCheck.disposition === "ELEVATED" ? "rgba(224,99,99,0.07)" : "rgba(230,184,77,0.1)", border: `1px solid ${rentCheck.disposition === "ELEVATED" ? "rgba(224,99,99,0.3)" : "rgba(230,184,77,0.4)"}`, borderLeft: `3px solid ${rentCheck.disposition === "ELEVATED" ? "#e06363" : "#e6b84d"}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: rentCheck.disposition === "ELEVATED" ? "#e06363" : "#b8901f", marginBottom: 4 }}>
+                        Rent above market · stated {fmt(rent)} vs {fmt(marketRent)} market (+{rentCheck.leaseVsMarketPct.toFixed(0)}%)
+                      </div>
+                      {rentCheck.flags.map((fl, i) => (
+                        <p key={i} style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: i === 0 ? 0 : "6px 0 0", lineHeight: 1.5 }}>{fl}</p>
+                      ))}
                     </div>
                   )}
                 </div>
