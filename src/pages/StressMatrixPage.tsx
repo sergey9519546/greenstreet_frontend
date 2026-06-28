@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
@@ -70,6 +71,28 @@ interface PinnedCell {
   zone: StressRiskZone;
 }
 
+// ── Guided "what-if" presets ──────────────────────────────────────────────────
+// One-click stress stories: each names a real investor fear and snaps the four
+// sliders (rate / rent / vacancy / tax) to that scenario. Clicking animates the
+// sliders there so the gauge + verdict visibly react — the "guided" half of the
+// simulation (the sliders alone are the free-form sandbox).
+interface StressPreset {
+  id: string;
+  label: string;
+  sub: string;
+  rate: number;   // rate offset, bps
+  rent: number;   // rent change, %
+  vac: number;    // vacancy, %
+  tax: number;    // tax & insurance bump, %
+}
+const PRESETS: StressPreset[] = [
+  { id: "calm",      label: "Calm baseline",    sub: "No shock — your deal as underwritten",       rate: 0,   rent: 0,   vac: 5,  tax: 0  },
+  { id: "rate",      label: "Rate spike",       sub: "Fed hikes — your rate jumps +200 bps",       rate: 200, rent: 0,   vac: 5,  tax: 0  },
+  { id: "soft",      label: "Soft rental market", sub: "Rents dip 10% · vacancy doubles to 10%",   rate: 0,   rent: -10, vac: 10, tax: 0  },
+  { id: "recession", label: "2008-style shock", sub: "Rent −15% · rate +150 bps · vacancy 15%",    rate: 150, rent: -15, vac: 15, tax: 0  },
+  { id: "tax",       label: "Tax reassessment", sub: "County re-bills — taxes & insurance +25%",    rate: 0,   rent: 0,   vac: 5,  tax: 25 },
+];
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  MAIN PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -100,6 +123,45 @@ export default function StressMatrixPage({
   const [rentChangePct, setRentChangePct] = useState(0);    // −25 … +20 %
   const [vacancyPct,    setVacancyPct]    = useState(5);    // 0 … 30 % vacancy loss
   const [taxBumpPct,    setTaxBumpPct]    = useState(0);    // 0 … 40 % tax/ins increase
+
+  // ── Guided preset state ───────────────────────────────────────────────────
+  const [activePreset, setActivePreset] = useState<string>("calm");
+  const presetTween = useRef<gsap.core.Tween | null>(null);
+
+  // Animate the four sliders to a preset so the gauge + verdict visibly react.
+  // Reduced-motion: snap straight to the values. Manual slider moves clear the
+  // active preset (handled by the wrapped setters below).
+  const applyPreset = useCallback((p: StressPreset) => {
+    setActivePreset(p.id);
+    presetTween.current?.kill();
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setRateOffsetBps(p.rate); setRentChangePct(p.rent); setVacancyPct(p.vac); setTaxBumpPct(p.tax);
+      return;
+    }
+    const obj = { rate: rateOffsetBps, rent: rentChangePct, vac: vacancyPct, tax: taxBumpPct };
+    presetTween.current = gsap.to(obj, {
+      rate: p.rate, rent: p.rent, vac: p.vac, tax: p.tax,
+      duration: 0.7, ease: "power2.out",
+      onUpdate: () => {
+        setRateOffsetBps(Math.round(obj.rate));
+        setRentChangePct(Math.round(obj.rent));
+        setVacancyPct(Math.round(obj.vac));
+        setTaxBumpPct(Math.round(obj.tax));
+      },
+      onComplete: () => {
+        setRateOffsetBps(p.rate); setRentChangePct(p.rent); setVacancyPct(p.vac); setTaxBumpPct(p.tax);
+      },
+    });
+  }, [rateOffsetBps, rentChangePct, vacancyPct, taxBumpPct]);
+
+  // Wrapped setters for the manual sliders — any hand-move drops the preset chip
+  // highlight (you're now off-script) and cancels an in-flight preset animation.
+  const manual = (setter: (v: number) => void) => (v: number) => {
+    presetTween.current?.kill();
+    setActivePreset("");
+    setter(v);
+  };
 
   // ── Matrix state ──────────────────────────────────────────────────────────
   const [showFullMatrix, setShowFullMatrix] = useState(false);
@@ -228,13 +290,6 @@ export default function StressMatrixPage({
   const deltaColor = dscrDelta > 0.05 ? EMERALD : dscrDelta < -0.05 ? "#ff6b6b" : LEMON;
   const deltaArrow = dscrDelta > 0.01 ? "↑" : dscrDelta < -0.01 ? "↓" : "→";
 
-  // ── Slider reset
-  const resetSliders = () => {
-    setRateOffsetBps(0);
-    setRentChangePct(0);
-    setVacancyPct(5);
-    setTaxBumpPct(0);
-  };
 
   return (
     <DcShell
@@ -261,6 +316,9 @@ export default function StressMatrixPage({
         .gs-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
           background:#4dbd97;border:2px solid #003738;cursor:pointer;}
         .gs-slider:hover::-webkit-slider-thumb{transform:scale(1.2);box-shadow:0 0 0 4px rgba(216,217,88,.22);}
+        /* Guided preset chips */
+        .sm-preset:hover{border-color:rgba(216,217,88,0.5) !important;}
+        .sm-preset[aria-pressed="true"]:hover{filter:brightness(1.05);}
         /* Accordion */
         .sm-accord-btn{background:none;border:none;cursor:pointer;padding:0;text-align:left;width:100%;
           display:flex;align-items:center;justify-content:space-between;}
@@ -324,7 +382,7 @@ export default function StressMatrixPage({
               See every stress scenario in one view.
             </H1>
             <div style={{
-              fontSize: 15, fontWeight: 500, color: "rgba(238,239,211,0.82)", background: "rgba(238,239,211,0.05)", border: "1px solid rgba(238,239,211,0.16)",
+              fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.82)", background: "rgba(0,55,56,0.04)", border: "1px solid rgba(0,55,56,0.12)",
               borderRadius: 8, padding: "10px 14px", maxWidth: "48ch",
               margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em", display: "inline-block",
             }}>
@@ -482,7 +540,7 @@ export default function StressMatrixPage({
                     </p>
                   </div>
                   <button
-                    onClick={resetSliders}
+                    onClick={() => applyPreset(PRESETS[0])}
                     style={{
                       background: "rgba(216,217,88,0.12)", border: "1px solid rgba(216,217,88,0.25)",
                       borderRadius: 6, color: LEMON, fontSize: 11, fontWeight: 600,
@@ -492,6 +550,40 @@ export default function StressMatrixPage({
                   >
                     Reset
                   </button>
+                </div>
+
+                {/* ── Guided preset chips — one-click "what-if" stories ──── */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 9 }}>
+                    Try a scenario
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {PRESETS.map((p) => {
+                      const on = activePreset === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => applyPreset(p)}
+                          aria-pressed={on}
+                          className="sm-preset"
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 7,
+                            background: on ? LEMON : "rgba(238,239,211,0.05)",
+                            color: on ? DARK_INK : "rgba(238,239,211,0.82)",
+                            border: `1px solid ${on ? LEMON : "rgba(238,239,211,0.14)"}`,
+                            borderRadius: 100, padding: "8px 15px", cursor: "pointer",
+                            fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.01em",
+                            transition: "background 0.18s, color 0.18s, border-color 0.18s",
+                          }}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(238,239,211,0.6)", marginTop: 9, minHeight: 16, lineHeight: 1.5 }}>
+                    {PRESETS.find((p) => p.id === activePreset)?.sub || "Custom scenario — sliders set by hand."}
+                  </div>
                 </div>
 
                 {/* Sliders grid */}
@@ -506,7 +598,7 @@ export default function StressMatrixPage({
                     min={-150} max={300} step={25}
                     displayValue={`${rateOffsetBps >= 0 ? "+" : ""}${rateOffsetBps} bps`}
                     displaySub={`→ ${(baseRate + rateOffsetBps / 100).toFixed(3)}%`}
-                    onChange={setRateOffsetBps}
+                    onChange={manual(setRateOffsetBps)}
                     accentColor={rateOffsetBps > 100 ? "#f97316" : rateOffsetBps > 0 ? LEMON : EMERALD}
                     fillPct={(rateOffsetBps - (-150)) / (300 - (-150)) * 100}
                   />
@@ -517,7 +609,7 @@ export default function StressMatrixPage({
                     min={-25} max={20} step={5}
                     displayValue={`${rentChangePct >= 0 ? "+" : ""}${rentChangePct}%`}
                     displaySub={`→ $${Math.round(monthlyRent * (1 + rentChangePct / 100)).toLocaleString()}/mo`}
-                    onChange={setRentChangePct}
+                    onChange={manual(setRentChangePct)}
                     accentColor={rentChangePct < -10 ? "#f97316" : rentChangePct < 0 ? LEMON : EMERALD}
                     fillPct={(rentChangePct - (-25)) / (20 - (-25)) * 100}
                   />
@@ -528,7 +620,7 @@ export default function StressMatrixPage({
                     min={0} max={30} step={5}
                     displayValue={`${vacancyPct}%`}
                     displaySub={`−$${Math.round(monthlyRent * (1 + rentChangePct / 100) * vacancyPct / 100).toLocaleString()}/mo lost`}
-                    onChange={setVacancyPct}
+                    onChange={manual(setVacancyPct)}
                     accentColor={vacancyPct > 15 ? "#f97316" : vacancyPct > 5 ? LEMON : EMERALD}
                     fillPct={vacancyPct / 30 * 100}
                   />
@@ -539,7 +631,7 @@ export default function StressMatrixPage({
                     min={0} max={40} step={5}
                     displayValue={`+${taxBumpPct}%`}
                     displaySub={`→ $${Math.round((annualTaxes + annualInsurance) * (1 + taxBumpPct / 100) / 12).toLocaleString()}/mo`}
-                    onChange={setTaxBumpPct}
+                    onChange={manual(setTaxBumpPct)}
                     accentColor={taxBumpPct > 20 ? "#f97316" : taxBumpPct > 0 ? LEMON : EMERALD}
                     fillPct={taxBumpPct / 40 * 100}
                   />
@@ -743,7 +835,9 @@ export default function StressMatrixPage({
                                           <div className="sm-cell" style={cellStyle(cell.riskZone, isBaseCell, isHovered)}>
                                             {cell.track1DSCR.toFixed(2)}
                                             {isDanger && !isBaseCell && !isHovered && (
-                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>🔥</span>
+                                              <span style={{ position: "absolute", top: 1, right: 2, lineHeight: 0, display: "inline-flex" }}>
+                                                <RiskFlame level={riskFromDscr(cell.track1DSCR)} size={9} />
+                                              </span>
                                             )}
                                           </div>
                                         </td>
