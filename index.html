@@ -2458,12 +2458,12 @@ document.addEventListener('DOMContentLoaded', function() {
    overflows + clips into the next section. Lift it up + right-align so it sits
    fully inside the hero (desktop). Mobile keeps normal flow. */
 @media(min-width:992px){
-  /* Center the card vertically on the hero's right content edge — robust to
-     card height + headline length (the old translateY-from-bottom hack floated
-     it top-heavy). */
+  /* Top-align the card with the hero headline so the hero reads as a balanced
+     two-column block (copy left, card right) instead of a card floating in the
+     middle of the photo. Small right inset so it isn't edge-flush. */
   .hero_wrap .hero_layout{position:relative;}
   .hero_wrap .hero_content_bottom{position:static !important;}
-  .hero_wrap .hero_form_wrap{position:absolute;top:50%;right:0;left:auto;transform:translateY(-50%);margin:0 !important;z-index:6;display:block;width:auto;}
+  .hero_wrap .hero_form_wrap{position:absolute;top:clamp(28px,4.5vh,52px);right:clamp(0px,1.2vw,22px);left:auto;transform:none;margin:0 !important;z-index:6;display:block;width:auto;}
 }
 </style>
 <script id="gs-lead-js">
