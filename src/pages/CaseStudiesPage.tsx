@@ -315,7 +315,7 @@ function StudyRow({
     >
       {/* Photo panel — big index + client wordmark composited over the scene */}
       <div className="cs-photo" style={{ order: photoLeft ? 0 : 1, ...rise(0) }}>
-        <div style={{ position: "relative", aspectRatio: "4 / 3", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)" }}>
+        <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
           {s.video && !reduce ? (
             // Hyperframes animated explainer — loops muted; src attaches only on
             // reveal (lazy), poster shows until it paints; reduced-motion falls
@@ -340,17 +340,28 @@ function StudyRow({
               style={mediaStyle}
             />
           )}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
-          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,20px)", left: "clamp(16px,1.8vw,24px)", fontSize: "clamp(34px,4.4vw,64px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.92)", lineHeight: 1 }}>{s.num}</Mono>
-          <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream }}>{s.company}</div>
-            <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.7)", marginTop: 3, letterSpacing: "-0.01em" }}>{s.type} · {s.location}</div>
-          </div>
+          {/* The animation is self-contained; for the static photo fallback only,
+              keep the legibility gradient + the client wordmark. */}
+          {!(s.video && !reduce) && (
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
+          )}
+          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,22px)", left: "clamp(16px,1.8vw,26px)", fontSize: "clamp(28px,3.4vw,50px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.88)", lineHeight: 1, textShadow: "0 2px 16px rgba(0,26,24,0.6)" }}>{s.num}</Mono>
+          {!(s.video && !reduce) && (
+            <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream }}>{s.company}</div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.7)", marginTop: 3, letterSpacing: "-0.01em" }}>{s.type} · {s.location}</div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Content */}
       <div className="cs-content" style={{ order: photoLeft ? 1 : 0 }}>
+        <div style={{ ...rise(0.02), display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap", marginBottom: 14, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <span style={{ color: dc.emerald }}>{s.company}</span>
+          <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 600 }}>·</span>
+          <span style={{ color: "rgba(238,239,211,0.55)", fontWeight: 600 }}>{s.type}</span>
+        </div>
         <h3 style={{ ...rise(0.06), fontSize: "clamp(22px,2.4vw,34px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.cream, lineHeight: 1.12, margin: "0 0 18px" }}>
           {s.headline}
         </h3>
