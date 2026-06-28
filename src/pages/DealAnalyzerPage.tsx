@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
+import { computeDualTrackDSCR } from "../engine/stressMatrix";
 
 interface Props {
   onBack?: () => void;
@@ -40,6 +41,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const capRate = (noi / price) * 100;
   const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
   const ltv = 100 - down;
+  // Dual-track: the dscr above is Track 1 (lender). Track 2 nets out typical
+  // vacancy + management + maintenance — flags deals that qualify yet lose money.
+  const dual = computeDualTrackDSCR(rent, pitia);
 
   // --- Verdict ---
   let vLabel = "DEAL BREAK";
@@ -281,6 +285,20 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", margin: 0, lineHeight: 1.5, padding: "10px 14px", background: `${verdictBorder}18`, borderRadius: radius.sm, border: `1px solid ${verdictBorder}44` }}>
                     <strong style={{ color: "rgba(0,55,56,0.75)" }}>Next step: </strong>{nextStep}
                   </p>
+
+                  {/* Dual-track "Qualifies but Dangerous": clears the lender (Track 1)
+                      but loses money after operating costs (Track 2 < 1.0). */}
+                  {dual.qualifiesButDangerous && (
+                    <div style={{ marginTop: 12, background: "rgba(224,99,99,0.07)", border: "1px solid rgba(224,99,99,0.3)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <RiskFlame level="high" size={15} />
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e06363" }}>Qualifies but dangerous</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>
+                        Clears the lender at <strong style={{ color: dc.dark }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: "#e06363" }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal loses money each month.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Visual artifacts row */}
