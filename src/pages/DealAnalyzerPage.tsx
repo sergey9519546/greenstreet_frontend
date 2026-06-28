@@ -4,6 +4,7 @@ import { swatch, radius } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeTcoRate } from "../engine/tcoDscr";
+import { assessLeverage } from "../engine/leverageCheck";
 
 interface Props {
   onBack?: () => void;
@@ -46,6 +47,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const noi = rent * 12 * (1 - tcoTotal) - tax - ins;
   const capRate = (noi / price) * 100;
   const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
+  // Positive vs negative leverage (RIDGE debt-tool): does the asset out-yield
+  // the debt? Loan constant = annual P&I ÷ loan, vs the going-in cap rate.
+  const lev = assessLeverage(piMo * 12, loan, noi, price);
   const ltv = 100 - down;
   // Dual-track: the dscr above is Track 1 (lender). Track 2 nets out typical
   // vacancy + management + maintenance — flags deals that qualify yet lose money.
@@ -303,6 +307,17 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                       <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>
                         Clears the lender at <strong style={{ color: dc.dark }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: "#e06363" }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal loses money each month.
                       </p>
+                    </div>
+                  )}
+
+                  {/* Positive vs negative leverage (RIDGE debt-tool) — does the
+                      asset out-yield the debt? */}
+                  {lev.state !== "NEUTRAL" && (
+                    <div style={{ marginTop: 12, background: lev.state === "NEGATIVE" ? "rgba(230,184,77,0.1)" : "rgba(77,189,151,0.1)", border: `1px solid ${lev.state === "NEGATIVE" ? "rgba(230,184,77,0.4)" : "rgba(77,189,151,0.4)"}`, borderLeft: `3px solid ${lev.state === "NEGATIVE" ? "#e6b84d" : dc.emerald}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: lev.state === "NEGATIVE" ? "#b8901f" : "#1f7a5a", marginBottom: 4 }}>
+                        {lev.state === "NEGATIVE" ? "Negative leverage" : "Positive leverage"} · {lev.loanConstantPct.toFixed(1)}% debt vs {lev.capRatePct.toFixed(1)}% cap
+                      </div>
+                      <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>{lev.note}</p>
                     </div>
                   )}
                 </div>
