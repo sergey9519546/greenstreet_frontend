@@ -24,6 +24,9 @@ interface Study {
   program: string;
   /** Brand scene image (public/img/generated/scenes) for the case panel */
   image: string;
+  /** Hyperframes animated explainer loop + its poster frame (reduced-motion). */
+  video?: string;
+  poster?: string;
 }
 
 const STUDIES: Study[] = [
@@ -34,6 +37,8 @@ const STUDIES: Study[] = [
     type: "Portfolio investor",
     num: "01",
     image: "/img/generated/scenes/underwriting-desk-velocity.png",
+    video: "/video/scenes/cs-vela.mp4",
+    poster: "/video/scenes/cs-vela-poster.jpg",
     headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
     metrics: [
       { v: "4×", k: "Throughput increase" },
@@ -57,6 +62,8 @@ const STUDIES: Study[] = [
     type: "Active investor",
     num: "02",
     image: "/img/generated/scenes/desk-green-data.png",
+    video: "/video/scenes/cs-northshore.mp4",
+    poster: "/video/scenes/cs-northshore-poster.jpg",
     headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
     metrics: [
       { v: "Same-day", k: "Rate lock" },
@@ -80,6 +87,8 @@ const STUDIES: Study[] = [
     type: "Investor / Non-US investor",
     num: "03",
     image: "/img/generated/scenes/broker-building-dusk.png",
+    video: "/video/scenes/cs-quintero.mp4",
+    poster: "/video/scenes/cs-quintero-poster.jpg",
     headline: "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
     metrics: [
       { v: "3", k: "Deals killed pre-appraisal" },
@@ -105,6 +114,8 @@ const AURORA_STORY = {
   type: "Portfolio investor",
   num: "04",
   image: "/img/generated/scenes/residential-townhomes.png",
+  video: "/video/scenes/cs-aurora.mp4",
+  poster: "/video/scenes/cs-aurora-poster.jpg",
   headline: "One blended view of 40 doors got the blanket line approved.",
   metrics: [
     { v: "$18M", k: "Blanket line approved" },
@@ -286,6 +297,9 @@ function StudyRow({
     transform: shown ? "none" : "translateY(26px)",
     transition: `opacity .7s cubic-bezier(.22,.7,0,1) ${d}s, transform .7s cubic-bezier(.22,.7,0,1) ${d}s`,
   });
+  const reduce = typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Shared cover style for the panel media (img or video), with the parallax settle.
+  const mediaStyle: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: shown ? "scale(1)" : "scale(1.08)", transition: "transform 1.3s cubic-bezier(.2,.6,0,1)" };
   return (
     <div
       ref={ref}
@@ -302,13 +316,30 @@ function StudyRow({
       {/* Photo panel — big index + client wordmark composited over the scene */}
       <div className="cs-photo" style={{ order: photoLeft ? 0 : 1, ...rise(0) }}>
         <div style={{ position: "relative", aspectRatio: "4 / 3", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)" }}>
-          <img
-            src={s.image}
-            alt={`${s.company} — ${s.type}`}
-            loading="lazy"
-            decoding="async"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: shown ? "scale(1)" : "scale(1.08)", transition: "transform 1.3s cubic-bezier(.2,.6,0,1)" }}
-          />
+          {s.video && !reduce ? (
+            // Hyperframes animated explainer — loops muted; src attaches only on
+            // reveal (lazy), poster shows until it paints; reduced-motion falls
+            // through to the static poster <img> below.
+            <video
+              poster={s.poster}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="none"
+              aria-label={`${s.company} — ${s.type}, animated`}
+              {...(shown ? { src: s.video } : {})}
+              style={mediaStyle}
+            />
+          ) : (
+            <img
+              src={s.poster || s.image}
+              alt={`${s.company} — ${s.type}`}
+              loading="lazy"
+              decoding="async"
+              style={mediaStyle}
+            />
+          )}
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
           <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,20px)", left: "clamp(16px,1.8vw,24px)", fontSize: "clamp(34px,4.4vw,64px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.92)", lineHeight: 1 }}>{s.num}</Mono>
           <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
