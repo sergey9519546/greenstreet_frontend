@@ -2497,7 +2497,10 @@ document.addEventListener('DOMContentLoaded', function() {
       '</div>'+
       '<div class="gs-lead-match" id="gsl-match"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.2" fill="#4dbd97"/><path d="M5 8.2l2 2 4-4.4" stroke="#003738" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Likely fit: <b id="gsl-prog"></b></span></div>'+
       '<div class="gs-lead-step2" id="gsl-step2">'+
-        '<input class="gs-lead-in" id="gsl-email" type="email" placeholder="Work email" autocomplete="email"/>'+
+        '<div class="gs-lead-2col" style="margin-bottom:8px;">'+
+          '<input class="gs-lead-in" id="gsl-name" type="text" placeholder="First name" autocomplete="given-name"/>'+
+          '<input class="gs-lead-in" id="gsl-email" type="email" placeholder="Email" autocomplete="email"/>'+
+        '</div>'+
         '<button class="gs-lead-cta" type="button">See my rate <span aria-hidden="true">→</span></button>'+
         '<div class="gs-lead-err" id="gsl-err"></div>'+
       '</div>'+
@@ -2513,13 +2516,16 @@ document.addEventListener('DOMContentLoaded', function() {
     [fico,prop].forEach(function(s){s.addEventListener("change",function(){s.classList.toggle("is-empty",!s.value);updateMatch();});});
     var cta=card.querySelector(".gs-lead-cta"),err=card.querySelector("#gsl-err");
     function go(){
+      var name=card.querySelector("#gsl-name").value.trim();
       var email=card.querySelector("#gsl-email").value.trim();
-      if(!/.+@.+\..+/.test(email)){err.textContent="Enter a valid work email to continue.";card.querySelector("#gsl-email").focus();return;}
+      if(!name){err.textContent="Enter your first name to continue.";card.querySelector("#gsl-name").focus();return;}
+      if(!/.+@.+\..+/.test(email)){err.textContent="Enter a valid email to continue.";card.querySelector("#gsl-email").focus();return;}
       err.textContent="";cta.textContent="Taking you in…";
-      var p=new URLSearchParams({source:"home_hero",email:email,fico:fico.value,property:prop.value,program:programFor(fico.value,prop.value)||""});
+      var p=new URLSearchParams({source:"home_hero",name:name,email:email,fico:fico.value,property:prop.value,program:programFor(fico.value,prop.value)||""});
       window.location.href="/book-demo?"+p.toString();
     }
     cta.onclick=go;
+    card.querySelector("#gsl-name").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();card.querySelector("#gsl-email").focus();}});
     card.querySelector("#gsl-email").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();go();}});
     if(window.gsap){window.gsap.from(card,{y:16,opacity:0,duration:.5,ease:"power2.out"});}
   }
