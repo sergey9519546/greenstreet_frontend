@@ -116,7 +116,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       };
       const inputs = buildEngineInputs(req);
       const deal = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
-      const cashInvested = purchasePrice - deal.loanAmount;
+      const cashInvested = purchasePrice - deal.loanAmount + purchasePrice * 0.03; // down + ~3% closing costs
       const annualCashFlow =
         deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12;
       const year1CoC =

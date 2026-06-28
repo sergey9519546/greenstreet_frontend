@@ -92,6 +92,8 @@ const PRESETS: StressPreset[] = [
   { id: "soft",      label: "Soft rental market", sub: "Rents dip 10% · vacancy doubles to 10%",   rate: 0,   rent: -10, vac: 10, tax: 0  },
   { id: "recession", label: "2008-style shock", sub: "Rent −15% · rate +150 bps · vacancy 15%",    rate: 150, rent: -15, vac: 15, tax: 0  },
   { id: "tax",       label: "Tax reassessment", sub: "County re-bills — taxes & insurance +25%",    rate: 0,   rent: 0,   vac: 5,  tax: 25 },
+  { id: "covid",    label: "COVID-style shock", sub: "STR/LTR vacancy surge — rent −12% · vacancy 20%", rate: 0, rent: -12, vac: 20, tax: 5  },
+  { id: "fl_ins",   label: "FL insurance crisis", sub: "Insurance spike +50% · rent −5% pressure",   rate: 50,  rent: -5,  vac: 8,  tax: 50 },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════

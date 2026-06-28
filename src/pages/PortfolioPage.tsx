@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, CountUp, useRevealOnView } from "../design/dc";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
-import { analyzePortfolio } from "../engine/portfolio";
+import { analyzePortfolio, computePortfolioHealthScore } from "../engine/portfolio";
 import { buildEngineInputs } from "../engine/inputs";
 
 // Portfolio page uses pistachio nav (matching its mockup body color)
@@ -140,6 +140,12 @@ export default function PortfolioPage({
     return Array.from(m.entries()).map(([state, count]) => ({ state, count, pct: tot > 0 ? (count / tot) * 100 : 0 })).sort((a, b) => b.pct - a.pct);
   }, [portfolioResult]);
 
+  // ── Portfolio health score ────────────────────────────────────────────────
+  const healthScore = useMemo(() => {
+    if (!portfolioResult || rows.length === 0) return null;
+    return computePortfolioHealthScore(portfolioResult);
+  }, [portfolioResult, rows.length]);
+
   // ── DSCR buckets ──────────────────────────────────────────────────────────
   const buckets = useMemo(() => {
     let dealBreak = 0, fragile = 0, marginal = 0, comfortable = 0, safe = 0;
@@ -275,6 +281,50 @@ export default function PortfolioPage({
               </div>
             ))}
           </div>
+
+          {/* Portfolio Health Score */}
+          {healthScore !== null && (
+            <div
+              style={{
+                background: dc.dark,
+                borderRadius: dc.r.sm,
+                padding: "20px 24px",
+                marginBottom: 16,
+                border: `1px solid ${dc.faded}`,
+                display: "flex",
+                alignItems: "center",
+                gap: 24,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ flexShrink: 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Portfolio Health</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                  <span style={{ fontSize: 48, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: healthScore.color }}>{healthScore.score}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: healthScore.color, letterSpacing: "0.06em" }}>{healthScore.label}</span>
+                </div>
+              </div>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                {/* Score bar */}
+                <div style={{ height: 8, background: "rgba(238,239,211,0.1)", borderRadius: 4, overflow: "hidden", marginBottom: 10 }}>
+                  <div style={{ height: "100%", width: `${healthScore.score}%`, background: healthScore.color, borderRadius: 4, transition: "width 0.6s ease" }} />
+                </div>
+                {/* Breakdown pills */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {[
+                    { label: "DSCR",          pts: healthScore.breakdown.dscrPts,          max: 40 },
+                    { label: "Concentration", pts: healthScore.breakdown.concentrationPts, max: 20 },
+                    { label: "Cash Flow",     pts: healthScore.breakdown.cashFlowPts,      max: 20 },
+                    { label: "Reserves",      pts: healthScore.breakdown.reservePts,       max: 20 },
+                  ].map(({ label, pts, max }) => (
+                    <div key={label} style={{ fontSize: 11, fontWeight: 600, color: pts === max ? dc.lemon : pts === 0 ? "#e06363" : "#e6b84d", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "3px 8px", letterSpacing: "0.03em" }}>
+                      {label} {pts}/{max}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Inline-editable property table */}
           <div
