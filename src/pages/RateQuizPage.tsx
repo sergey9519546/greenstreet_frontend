@@ -640,35 +640,6 @@ export default function RateQuizPage({ onNavigate }: Props) {
           border-radius: ${radius.sm};
         }
         .qw-pill { display: none !important; }
-        .rq-command-panel {
-          align-self: stretch;
-          background: ${swatch.darkTeal};
-          color: ${swatch.pistachio};
-          border-radius: ${radius.lg};
-          padding: clamp(18px,2.2vw,28px);
-          border: 1px solid rgba(238,239,211,0.12);
-          display: grid;
-          gap: 18px;
-          overflow: hidden;
-          position: relative;
-        }
-        .rq-command-panel:before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background-image: radial-gradient(rgba(238,239,211,.07) 1px, transparent 1px);
-          background-size: 24px 24px;
-          pointer-events: none;
-        }
-        .rq-command-panel > * { position: relative; z-index: 1; }
-        .rq-command-kicker { font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; color: ${swatch.lemon}; }
-        .rq-command-main { display: flex; align-items: baseline; gap: 10px; }
-        .rq-command-main span { color: rgba(238,239,211,.62); font-size: 13px; font-weight: 800; }
-        .rq-command-gates { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
-        .rq-command-gate { height: 8px; border-radius: 999px; background: rgba(238,239,211,.13); overflow: hidden; }
-        .rq-command-gate.is-filled { background: ${swatch.lemon}; }
-        .rq-command-labels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; font-size: 10px; font-weight: 800; color: rgba(238,239,211,.45); text-transform: uppercase; letter-spacing: .05em; }
-        .rq-command-note { font-size: 12px; line-height: 1.35; color: rgba(238,239,211,.5); max-width: 36ch; }
         .rq-workspace {
           display: block;
           max-width: 720px;
@@ -875,6 +846,24 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   position: "relative",
                 }}
               >
+                {/* Linear progress — one clear, animated indicator at the top of
+                    the card (the strip below is a live file-read, not progress). */}
+                <div aria-hidden="true" style={{ display: "flex", gap: 6, marginBottom: 24 }}>
+                  {QUESTIONS.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        flex: 1,
+                        height: 4,
+                        borderRadius: 99,
+                        background:
+                          i < step ? swatch.emerald : i === step ? swatch.lemon : "rgba(238,239,211,0.14)",
+                        transition: "background .3s ease",
+                      }}
+                    />
+                  ))}
+                </div>
+
                 {/* Question heading */}
                 <h2
                   style={{
@@ -998,7 +987,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
               {/* Main result card — dark */}
               <div
                 style={{
-                  background: `linear-gradient(135deg, ${swatch.midnight} 0%, ${swatch.darkTeal} 100%)`,
+                  background: swatch.darkTeal,
                   borderRadius: radius.lg,
                   padding: "clamp(28px,4.5vw,52px)",
                   border: "1px solid rgba(238,239,211,0.16)",
