@@ -33,7 +33,7 @@ const STUDIES: Study[] = [
     location: "Buy-and-hold investor",
     type: "Portfolio investor",
     num: "01",
-    image: "/img/generated/scenes/office-window-team.png",
+    image: "/img/generated/scenes/underwriting-desk-velocity.png",
     headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
     metrics: [
       { v: "4×", k: "Throughput increase" },
