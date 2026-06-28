@@ -5,6 +5,7 @@ import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } fro
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeLossScenarios } from "../engine/lossFraming";
 import { computeTcoDscr } from "../engine/tcoDscr";
+import { estimateAnnualInsurance } from "../engine/insuranceEstimate";
 import BottomCTA from "../design/BottomCTA";
 
 interface Props {
@@ -80,6 +81,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   // default — quoting off the seller's stale bill silently overstates DSCR.
   const effTaxRate = EFF_TAX_RATE[stateCode] ?? DEFAULT_EFF_TAX;
   const estTax = Math.round(price * effTaxRate);
+  // Insurance auto-estimate by state risk (investor property) — investors
+  // systematically underestimate this, the other silent DSCR killer.
+  const estIns = estimateAnnualInsurance(stateCode, price, { isInvestor: true });
   const taxYr = taxAuto ? estTax : tax;
   const loan = price * (1 - down / 100);
   const pAndI = loan * pf(rate / 100);
@@ -339,6 +343,11 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         <span style={{ color: 'rgba(238,239,211,0.62)', fontSize: 13 }}>$</span>
                         <input className="gs-num" type="number" step="100" value={ins} onChange={e => setIns(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
+                      {Math.abs(ins - estIns) > 50 && (
+                        <button type="button" onClick={() => setIns(estIns)} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 600, color: LEMON, textAlign: 'left' as const }}>
+                          Use est. ${estIns.toLocaleString()}/yr · {stateCode} risk
+                        </button>
+                      )}
                     </label>
                   </div>
                   {taxAuto && (
