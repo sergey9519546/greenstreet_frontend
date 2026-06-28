@@ -1,0 +1,694 @@
+[
+  {
+    "label": "home mobile menu open",
+    "url": "/",
+    "active": {
+      "tag": "body",
+      "text": ":root { --site--max-width: min(var(--site--width), 100vw); --container--main: calc(var(--site--max-w",
+      "aria": ""
+    },
+    "dialogs": [],
+    "expanded": [],
+    "visibleMenus": [],
+    "validity": [
+      {
+        "placeholder": "",
+        "type": "select",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 55,
+          "y": 716,
+          "w": 124,
+          "h": 43
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "select",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 187,
+          "y": 716,
+          "w": 124,
+          "h": 43
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 86,
+          "y": 8511,
+          "w": 155,
+          "h": 46
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 86,
+          "y": 8620,
+          "w": 155,
+          "h": 46
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 79,
+          "y": 8705,
+          "w": 154,
+          "h": 46
+        }
+      }
+    ],
+    "screenshot": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\interaction-screenshots\\home-mobile-menu-open.png"
+  },
+  {
+    "label": "react mobile menu open tax",
+    "url": "/tools/tax-engine",
+    "active": {
+      "tag": "body",
+      "text": ":root { --site--max-width: min(var(--site--width), 100vw); --container--main: calc(var(--site--max-w",
+      "aria": ""
+    },
+    "dialogs": [],
+    "expanded": [
+      {
+        "tag": "button",
+        "text": "",
+        "controls": "mobile-nav",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      }
+    ],
+    "visibleMenus": [
+      {
+        "id": "mobile-nav",
+        "cls": "menu-mobile-wrap",
+        "text": "INVESTGOProductINVESTGODSCR CalculatorFind Your ProgramBuy-or-Pass DecisionTax EngineReturns & IRRMonte Carlo SimulatorStress MatrixARM Reset RiskPortfolio BuilderWho We ServeReal Estate InvestorsNon-US InvestorsSTR & Airbnb HostsVacation & Second HomesBorrower ProfilesCustomer S",
+        "rect": {
+          "x": 0,
+          "y": 96,
+          "w": 320,
+          "h": 41
+        }
+      }
+    ],
+    "validity": [
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 1702,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 1796,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 1891,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 1985,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2079,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2174,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2268,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2363,
+          "w": 452,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2473,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2583,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2677,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2787,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "select",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2863,
+          "w": 452,
+          "h": 39
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "checkbox",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 45,
+          "y": 2919,
+          "w": 16,
+          "h": 16
+        }
+      }
+    ],
+    "screenshot": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\interaction-screenshots\\tax-mobile-menu-open.png"
+  },
+  {
+    "label": "qualify modal open",
+    "url": "/tools/tax-engine",
+    "active": {
+      "tag": "input",
+      "text": "",
+      "aria": ""
+    },
+    "dialogs": [
+      {
+        "text": "Step 1 of 4✕See if your rental deal qualifies — in 60 secondsNo credit pull · no obligation · instant DSCR estimateWhat do you want to do with this property?PurchaseRate & term refiCash-out refiAre you buying it, refinancing for a better ra",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 1000
+        }
+      }
+    ],
+    "expanded": [],
+    "visibleMenus": [],
+    "validity": [
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 1702,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 1796,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 1891,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 1985,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2079,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2174,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2268,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2363,
+          "w": 452,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2473,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 64,
+          "y": 2583,
+          "w": 444,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2677,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2787,
+          "w": 443,
+          "h": 40
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "select",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 57,
+          "y": 2863,
+          "w": 452,
+          "h": 39
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "checkbox",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 45,
+          "y": 2919,
+          "w": 16,
+          "h": 16
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 34,
+          "y": 722,
+          "w": 252,
+          "h": 42
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": false,
+        "validation": "Please enter a valid value. The two nearest valid values are 315000 and 320000.",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 34,
+          "y": 856,
+          "w": 252,
+          "h": 42
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 34,
+          "y": 1007,
+          "w": 252,
+          "h": 42
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "number",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 34,
+          "y": 1189,
+          "w": 252,
+          "h": 42
+        }
+      },
+      {
+        "placeholder": "",
+        "type": "checkbox",
+        "required": false,
+        "valid": true,
+        "validation": "",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 34,
+          "y": 1335,
+          "w": 16,
+          "h": 16
+        }
+      }
+    ],
+    "screenshot": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\interaction-screenshots\\qualify-modal-open.png"
+  },
+  {
+    "label": "investgo empty submit",
+    "url": "/investgo",
+    "active": {
+      "tag": "input",
+      "text": "",
+      "aria": ""
+    },
+    "dialogs": [],
+    "expanded": [],
+    "visibleMenus": [],
+    "validity": [
+      {
+        "placeholder": "you@email.com",
+        "type": "email",
+        "required": true,
+        "valid": false,
+        "validation": "Please fill out this field.",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 49,
+          "y": 645,
+          "w": 222,
+          "h": 46
+        }
+      },
+      {
+        "placeholder": "Password",
+        "type": "password",
+        "required": true,
+        "valid": false,
+        "validation": "Please fill out this field.",
+        "ariaInvalid": "",
+        "rect": {
+          "x": 49,
+          "y": 691,
+          "w": 222,
+          "h": 46
+        }
+      }
+    ],
+    "screenshot": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\interaction-screenshots\\investgo-empty-submit.png"
+  },
+  {
+    "label": "desktop product dropdown hover",
+    "url": "/products",
+    "active": {
+      "tag": "body",
+      "text": ":root { --site--max-width: min(var(--site--width), 100vw); --container--main: calc(var(--site--max-w",
+      "aria": ""
+    },
+    "dialogs": [],
+    "expanded": [
+      {
+        "tag": "div",
+        "text": "Product",
+        "controls": "",
+        "rect": {
+          "x": 611,
+          "y": 16,
+          "w": 145,
+          "h": 64
+        }
+      }
+    ],
+    "visibleMenus": [
+      {
+        "id": "",
+        "cls": "nav_dropdown_mega_wrap is-desktop w-dropdown-list w--open",
+        "text": "INVESTGODSCR CalculatorFind Your ProgramBuy-or-Pass DecisionTax EngineReturns & IRRMonte Carlo SimulatorStress MatrixARM Reset RiskPortfolio Builder",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 511
+        }
+      }
+    ],
+    "validity": [],
+    "screenshot": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\interaction-screenshots\\desktop-product-dropdown-hover.png"
+  }
+]

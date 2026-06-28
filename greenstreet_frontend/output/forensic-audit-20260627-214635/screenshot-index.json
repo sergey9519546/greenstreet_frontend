@@ -1,0 +1,5469 @@
+[
+  {
+    "route": "/",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\home-320.png",
+    "h1": "DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation rentals.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 81
+        }
+      },
+      {
+        "tag": "p",
+        "text": "⎋ Greenstreet Finance announces InvestGO — the unified DSCR loan platform",
+        "rect": {
+          "x": 16,
+          "y": 8,
+          "w": 288,
+          "h": 65
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.INVESTGO",
+        "rect": {
+          "x": 16,
+          "y": 117,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation renta",
+        "rect": {
+          "x": 36,
+          "y": 197,
+          "w": 248,
+          "h": 173
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 36,
+          "y": 573,
+          "w": 192,
+          "h": 23
+        }
+      },
+      {
+        "tag": "select",
+        "text": "Credit score740+700–739660–699Below 660",
+        "rect": {
+          "x": 55,
+          "y": 716,
+          "w": 124,
+          "h": 43
+        }
+      },
+      {
+        "tag": "select",
+        "text": "Property typeSingle-family2–4 unit5+ unitShort-term rental",
+        "rect": {
+          "x": 187,
+          "y": 716,
+          "w": 124,
+          "h": 43
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/products",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\products-320.png",
+    "h1": "The DSCR Engine",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "The DSCR Engine",
+        "rect": {
+          "x": 18,
+          "y": 231,
+          "w": 285,
+          "h": 104
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Eleven tools for DSCR rental-loan underwriting — from a 60-second deal check to a full after-tax ret",
+        "rect": {
+          "x": 18,
+          "y": 359,
+          "w": 285,
+          "h": 182
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/products/platform",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\products-platform-320.png",
+    "h1": "One system. Every DSCR workflow.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "One system. Every DSCR workflow.",
+        "rect": {
+          "x": 18,
+          "y": 219,
+          "w": 285,
+          "h": 126
+        }
+      },
+      {
+        "tag": "p",
+        "text": "INVESTGO replaces scattered spreadsheets and stale rate sheets with a single engine — price, stress-",
+        "rect": {
+          "x": 18,
+          "y": 367,
+          "w": 285,
+          "h": 128
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Start a deal →",
+        "rect": {
+          "x": 18,
+          "y": 526,
+          "w": 169,
+          "h": 56
+        }
+      },
+      {
+        "tag": "button",
+        "text": "See the programs",
+        "rect": {
+          "x": 18,
+          "y": 597,
+          "w": 190,
+          "h": 56
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Everything you need, nothing you don't.",
+        "rect": {
+          "x": 18,
+          "y": 828,
+          "w": 285,
+          "h": 66
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/solutions",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\solutions-320.png",
+    "h1": "Built for real estate investors.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Built for real estate investors.",
+        "rect": {
+          "x": 18,
+          "y": 231,
+          "w": 285,
+          "h": 156
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Greenstreet is the lender — no middlemen, no broker portals. Every product runs off the same determi",
+        "rect": {
+          "x": 18,
+          "y": 405,
+          "w": 285,
+          "h": 99
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Buy-and-hold investorsDSCR→",
+        "rect": {
+          "x": 19,
+          "y": 545,
+          "w": 283,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "STR & Airbnb hostsNightly income→",
+        "rect": {
+          "x": 19,
+          "y": 619,
+          "w": 283,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Non-US investorsNo US credit→",
+        "rect": {
+          "x": 19,
+          "y": 692,
+          "w": 283,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Vacation & second homesUse + rent→",
+        "rect": {
+          "x": 19,
+          "y": 766,
+          "w": 283,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Portfolio buildersBlended DSCR→",
+        "rect": {
+          "x": 19,
+          "y": 840,
+          "w": 283,
+          "h": 73
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/rate-quiz",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\rate-quiz-320.png",
+    "h1": "Find the right DSCR program for your deal.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Find the right DSCR program for your deal.",
+        "rect": {
+          "x": 24,
+          "y": 184,
+          "w": 272,
+          "h": 50
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Five questions about property, credit, and cash flow. No credit pull — estimate-ok on every field.",
+        "rect": {
+          "x": 24,
+          "y": 244,
+          "w": 272,
+          "h": 63
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "What type of property are you financing?",
+        "rect": {
+          "x": 53,
+          "y": 401,
+          "w": 214,
+          "h": 48
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/investgo",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\investgo-320.png",
+    "h1": "INVESTGO",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Back to site",
+        "rect": {
+          "x": 49,
+          "y": 341,
+          "w": 83,
+          "h": 16
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 49,
+          "y": 441,
+          "w": 222,
+          "h": 32
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Every DSCR engine and calculation in one place. Sign in to start pricing deals.",
+        "rect": {
+          "x": 49,
+          "y": 479,
+          "w": 222,
+          "h": 32
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Try demo mode — no account needed",
+        "rect": {
+          "x": 49,
+          "y": 543,
+          "w": 222,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Sign in with Google",
+        "rect": {
+          "x": 49,
+          "y": 593,
+          "w": 222,
+          "h": 46
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 49,
+          "y": 695,
+          "w": 222,
+          "h": 46
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 49,
+          "y": 741,
+          "w": 222,
+          "h": 46
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Access Engine",
+        "rect": {
+          "x": 49,
+          "y": 795,
+          "w": 222,
+          "h": 44
+        }
+      },
+      {
+        "tag": "button",
+        "text": "New here? Create account",
+        "rect": {
+          "x": 89,
+          "y": 861,
+          "w": 143,
+          "h": 16
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/dscr-calculator",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\dscr-calculator-320.png",
+    "h1": "Know if yourrental coversthe loan.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Know if yourrental coversthe loan.",
+        "rect": {
+          "x": 24,
+          "y": 227,
+          "w": 272,
+          "h": 260
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Enter price, rent, rate, taxes and insurance. Get your DSCR (whether the property's rent can cover t",
+        "rect": {
+          "x": 24,
+          "y": 513,
+          "w": 272,
+          "h": 120
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Open the calculator ↓",
+        "rect": {
+          "x": 24,
+          "y": 667,
+          "w": 210,
+          "h": 52
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Find my program →",
+        "rect": {
+          "x": 24,
+          "y": 733,
+          "w": 186,
+          "h": 54
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/lender-intel",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\lender-intel-320.png",
+    "h1": "Which programs fit your deal?",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Which programs fit your deal?",
+        "rect": {
+          "x": 24,
+          "y": 211,
+          "w": 272,
+          "h": 208
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Enter your FICO score, LTV (how the loan amount compares to the property value — lower means more eq",
+        "rect": {
+          "x": 24,
+          "y": 443,
+          "w": 272,
+          "h": 223
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How to use: adjust the deal box on the left. Cards re-rank live. Match count updates at the top. Aim",
+        "rect": {
+          "x": 24,
+          "y": 681,
+          "w": 272,
+          "h": 84
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/state-laws",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\state-laws-320.png",
+    "h1": "Prepayment penalty rules, all fifty states.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Prepayment penalty rules, all fifty states.",
+        "rect": {
+          "x": 18,
+          "y": 211,
+          "w": 285,
+          "h": 208
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Also shows the usury cap — the maximum interest rate a lender can legally charge. In most states, bu",
+        "rect": {
+          "x": 18,
+          "y": 619,
+          "w": 285,
+          "h": 120
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 18,
+          "y": 837,
+          "w": 285,
+          "h": 46
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/tools/tax-engine",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-tax-engine-320.png",
+    "h1": "What does this property really earn after taxes?",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "What does this property really earn after taxes?",
+        "rect": {
+          "x": 18,
+          "y": 229,
+          "w": 285,
+          "h": 260
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Most return calculators ignore taxes. This one doesn't. Enter your deal and tax profile and see: you",
+        "rect": {
+          "x": 18,
+          "y": 517,
+          "w": 285,
+          "h": 161
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IR",
+        "rect": {
+          "x": 18,
+          "y": 698,
+          "w": 285,
+          "h": 105
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Open the tax engine →",
+        "rect": {
+          "x": 18,
+          "y": 835,
+          "w": 224,
+          "h": 56
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/tools/portfolio",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-portfolio-320.png",
+    "h1": "Blended DSCR 1.14x across 4 doors",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Blended DSCR 1.14x across 4 doors",
+        "rect": {
+          "x": 24,
+          "y": 177,
+          "w": 272,
+          "h": 60
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Blended DSCR of 1.14x qualifies but is close to the minimum. Consider improving cash-flow on weaker ",
+        "rect": {
+          "x": 24,
+          "y": 319,
+          "w": 272,
+          "h": 90
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/tools/str-underwriting",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-str-underwriting-320.png",
+    "h1": "Underwritten DSCR 1.06x",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Underwritten DSCR 1.06x",
+        "rect": {
+          "x": 24,
+          "y": 177,
+          "w": 272,
+          "h": 60
+        }
+      },
+      {
+        "tag": "p",
+        "text": "DSCR of 1.06x qualifies but is close to the minimum. Check the month-by-month table below — if off-s",
+        "rect": {
+          "x": 24,
+          "y": 247,
+          "w": 272,
+          "h": 135
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Estimates are fine — numbers update live. LTR lease rent is used as a fallback if STR income does no",
+        "rect": {
+          "x": 53,
+          "y": 463,
+          "w": 388,
+          "h": 36
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 66,
+          "y": 534,
+          "w": 362,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 73,
+          "y": 627,
+          "w": 355,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 66,
+          "y": 721,
+          "w": 354,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 66,
+          "y": 816,
+          "w": 354,
+          "h": 40
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/blog",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\blog-320.png",
+    "h1": "Practical guides for DSCR investors.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Practical guides for DSCR investors.",
+        "rect": {
+          "x": 18,
+          "y": 209,
+          "w": 285,
+          "h": 208
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Plain-language articles on qualifying, structuring, and closing investment property loans — with the",
+        "rect": {
+          "x": 18,
+          "y": 433,
+          "w": 285,
+          "h": 79
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Featured · May 12, 2026Why we put no LLM in the number path — and never willDeterminism is a feature",
+        "rect": {
+          "x": 18,
+          "y": 555,
+          "w": 285,
+          "h": 698
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Why we put no LLM in the number path — and never will",
+        "rect": {
+          "x": 54,
+          "y": 624,
+          "w": 213,
+          "h": 76
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Determinism is a feature. Here's how Greenstreet keeps every figure auditable while still using AI w",
+        "rect": {
+          "x": 54,
+          "y": 715,
+          "w": 213,
+          "h": 124
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/case-studies",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\case-studies-320.png",
+    "h1": "What changed when investors ran their deals through Greenstreet.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "What changed when investors ran their deals through Greenstreet.",
+        "rect": {
+          "x": 18,
+          "y": 211,
+          "w": 288,
+          "h": 416
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Four illustrative scenarios — faster decisions, avoided appraisal costs, and deals caught before the",
+        "rect": {
+          "x": 18,
+          "y": 651,
+          "w": 288,
+          "h": 99
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Price your deal now →",
+        "rect": {
+          "x": 18,
+          "y": 782,
+          "w": 225,
+          "h": 46
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/legal",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\legal-320.png",
+    "h1": "Terms, privacy, and the fine print.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Terms, privacy, and the fine print.",
+        "rect": {
+          "x": 24,
+          "y": 211,
+          "w": 272,
+          "h": 208
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not",
+        "rect": {
+          "x": 24,
+          "y": 437,
+          "w": 272,
+          "h": 120
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Disclosures",
+        "rect": {
+          "x": 24,
+          "y": 584,
+          "w": 103,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Privacy Policy",
+        "rect": {
+          "x": 135,
+          "y": 584,
+          "w": 118,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Terms of Service",
+        "rect": {
+          "x": 24,
+          "y": 630,
+          "w": 133,
+          "h": 38
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/non-us-investors",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\non-us-investors-320.png",
+    "h1": "Own U.S. property from anywhere.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Own U.S. property from anywhere.",
+        "rect": {
+          "x": 18,
+          "y": 238,
+          "w": 285,
+          "h": 208
+        }
+      },
+      {
+        "tag": "p",
+        "text": "DSCR loans for international investors. We qualify the property's rent — not your paycheck — and gui",
+        "rect": {
+          "x": 18,
+          "y": 555,
+          "w": 285,
+          "h": 120
+        }
+      },
+      {
+        "tag": "button",
+        "text": "See how much you can borrow — 60 sec, no credit pull →",
+        "rect": {
+          "x": 18,
+          "y": 704,
+          "w": 285,
+          "h": 71
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Prefer to talk? Message a DSCR specialist on WhatsApp →",
+        "rect": {
+          "x": 18,
+          "y": 789,
+          "w": 285,
+          "h": 38
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/str-airbnb",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\str-airbnb-320.png",
+    "h1": "We underwrite the slow months.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "We underwrite the slow months.",
+        "rect": {
+          "x": 18,
+          "y": 238,
+          "w": 285,
+          "h": 208
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Short-term rental income swings with the season. We underwrite it the way it actually behaves — ADR ",
+        "rect": {
+          "x": 18,
+          "y": 464,
+          "w": 285,
+          "h": 120
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Underwrite my STR →",
+        "rect": {
+          "x": 18,
+          "y": 614,
+          "w": 198,
+          "h": 48
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/vacation-homes",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\vacation-homes-320.png",
+    "h1": "The getaway that pays for itself.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "The getaway that pays for itself.",
+        "rect": {
+          "x": 18,
+          "y": 238,
+          "w": 285,
+          "h": 208
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nig",
+        "rect": {
+          "x": 18,
+          "y": 464,
+          "w": 285,
+          "h": 99
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Run my second home →",
+        "rect": {
+          "x": 18,
+          "y": 594,
+          "w": 208,
+          "h": 48
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/support",
+    "width": 320,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\support-320.png",
+    "h1": "Answers when you're mid-deal.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 16,
+          "y": 36,
+          "w": 246,
+          "h": 24
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 278,
+          "y": 16,
+          "w": 32,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Answers when you're mid-deal.",
+        "rect": {
+          "x": 18,
+          "y": 219,
+          "w": 285,
+          "h": 84
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Self-serve guides, a full FAQ and a direct line to the Greenstreet team — so a question never stalls",
+        "rect": {
+          "x": 18,
+          "y": 325,
+          "w": 285,
+          "h": 77
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Browse the FAQ →",
+        "rect": {
+          "x": 18,
+          "y": 433,
+          "w": 200,
+          "h": 56
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Book a demo",
+        "rect": {
+          "x": 18,
+          "y": 504,
+          "w": 155,
+          "h": 56
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Find the answer, fast.",
+        "rect": {
+          "x": 18,
+          "y": 735,
+          "w": 285,
+          "h": 33
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How DSCR qualifying works, what each tool does, and how to price your first deal in minutes — no sig",
+        "rect": {
+          "x": 42,
+          "y": 868,
+          "w": 237,
+          "h": 90
+        }
+      }
+    ],
+    "scrollWidth": 320,
+    "clientWidth": 320
+  },
+  {
+    "route": "/",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\home-768.png",
+    "h1": "DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation rentals.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 768,
+          "h": 38
+        }
+      },
+      {
+        "tag": "p",
+        "text": "⎋ Greenstreet Finance announces InvestGO — the unified DSCR loan platform",
+        "rect": {
+          "x": 118,
+          "y": 8,
+          "w": 532,
+          "h": 22
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.INVESTGO",
+        "rect": {
+          "x": 17,
+          "y": 71,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation renta",
+        "rect": {
+          "x": 37,
+          "y": 154,
+          "w": 693,
+          "h": 120
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 37,
+          "y": 670,
+          "w": 192,
+          "h": 23
+        }
+      },
+      {
+        "tag": "select",
+        "text": "Credit score740+700–739660–699Below 660",
+        "rect": {
+          "x": 56,
+          "y": 797,
+          "w": 177,
+          "h": 43
+        }
+      },
+      {
+        "tag": "select",
+        "text": "Property typeSingle-family2–4 unit5+ unitShort-term rental",
+        "rect": {
+          "x": 241,
+          "y": 797,
+          "w": 177,
+          "h": 43
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/products",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\products-768.png",
+    "h1": "The DSCR Engine",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "The DSCR Engine",
+        "rect": {
+          "x": 18,
+          "y": 231,
+          "w": 731,
+          "h": 62
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Eleven tools for DSCR rental-loan underwriting — from a 60-second deal check to a full after-tax ret",
+        "rect": {
+          "x": 18,
+          "y": 317,
+          "w": 552,
+          "h": 102
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/products/platform",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\products-platform-768.png",
+    "h1": "One system. Every DSCR workflow.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "One system. Every DSCR workflow.",
+        "rect": {
+          "x": 18,
+          "y": 219,
+          "w": 487,
+          "h": 97
+        }
+      },
+      {
+        "tag": "p",
+        "text": "INVESTGO replaces scattered spreadsheets and stale rate sheets with a single engine — price, stress-",
+        "rect": {
+          "x": 18,
+          "y": 338,
+          "w": 490,
+          "h": 77
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Start a deal →",
+        "rect": {
+          "x": 18,
+          "y": 446,
+          "w": 169,
+          "h": 56
+        }
+      },
+      {
+        "tag": "button",
+        "text": "See the programs",
+        "rect": {
+          "x": 202,
+          "y": 446,
+          "w": 190,
+          "h": 56
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Everything you need, nothing you don't.",
+        "rect": {
+          "x": 18,
+          "y": 678,
+          "w": 446,
+          "h": 74
+        }
+      },
+      {
+        "tag": "p",
+        "text": "One DSCR math on every deal — Track 1 qualifying and Track 2 real cash-flow, computed the same way e",
+        "rect": {
+          "x": 42,
+          "y": 852,
+          "w": 683,
+          "h": 45
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/solutions",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\solutions-768.png",
+    "h1": "Built for real estate investors.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Built for real estate investors.",
+        "rect": {
+          "x": 18,
+          "y": 231,
+          "w": 656,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Greenstreet is the lender — no middlemen, no broker portals. Every product runs off the same determi",
+        "rect": {
+          "x": 18,
+          "y": 374,
+          "w": 506,
+          "h": 60
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Buy-and-hold investorsDSCR→",
+        "rect": {
+          "x": 19,
+          "y": 474,
+          "w": 729,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "STR & Airbnb hostsNightly income→",
+        "rect": {
+          "x": 19,
+          "y": 548,
+          "w": 729,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Non-US investorsNo US credit→",
+        "rect": {
+          "x": 19,
+          "y": 622,
+          "w": 729,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Vacation & second homesUse + rent→",
+        "rect": {
+          "x": 19,
+          "y": 696,
+          "w": 729,
+          "h": 74
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Portfolio buildersBlended DSCR→",
+        "rect": {
+          "x": 19,
+          "y": 769,
+          "w": 729,
+          "h": 73
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/rate-quiz",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\rate-quiz-768.png",
+    "h1": "Find the right DSCR program for your deal.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Find the right DSCR program for your deal.",
+        "rect": {
+          "x": 48,
+          "y": 168,
+          "w": 672,
+          "h": 26
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Five questions about property, credit, and cash flow. No credit pull — estimate-ok on every field.",
+        "rect": {
+          "x": 189,
+          "y": 204,
+          "w": 389,
+          "h": 42
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "What type of property are you financing?",
+        "rect": {
+          "x": 70,
+          "y": 343,
+          "w": 628,
+          "h": 25
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/investgo",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\investgo-768.png",
+    "h1": "INVESTGO",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Back to site",
+        "rect": {
+          "x": 193,
+          "y": 349,
+          "w": 83,
+          "h": 16
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 193,
+          "y": 449,
+          "w": 382,
+          "h": 32
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Every DSCR engine and calculation in one place. Sign in to start pricing deals.",
+        "rect": {
+          "x": 193,
+          "y": 487,
+          "w": 382,
+          "h": 16
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Try demo mode — no account needed",
+        "rect": {
+          "x": 193,
+          "y": 535,
+          "w": 382,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Sign in with Google",
+        "rect": {
+          "x": 193,
+          "y": 585,
+          "w": 382,
+          "h": 46
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 193,
+          "y": 687,
+          "w": 382,
+          "h": 46
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 193,
+          "y": 733,
+          "w": 382,
+          "h": 46
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Access Engine",
+        "rect": {
+          "x": 193,
+          "y": 787,
+          "w": 382,
+          "h": 44
+        }
+      },
+      {
+        "tag": "button",
+        "text": "New here? Create account",
+        "rect": {
+          "x": 313,
+          "y": 853,
+          "w": 143,
+          "h": 16
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/dscr-calculator",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\dscr-calculator-768.png",
+    "h1": "Know if yourrental coversthe loan.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Know if yourrental coversthe loan.",
+        "rect": {
+          "x": 31,
+          "y": 227,
+          "w": 707,
+          "h": 186
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Enter price, rent, rate, taxes and insurance. Get your DSCR (whether the property's rent can cover t",
+        "rect": {
+          "x": 31,
+          "y": 439,
+          "w": 529,
+          "h": 81
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Open the calculator ↓",
+        "rect": {
+          "x": 31,
+          "y": 554,
+          "w": 210,
+          "h": 54
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Find my program →",
+        "rect": {
+          "x": 254,
+          "y": 554,
+          "w": 186,
+          "h": 54
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/lender-intel",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\lender-intel-768.png",
+    "h1": "Which programs fit your deal?",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Which programs fit your deal?",
+        "rect": {
+          "x": 31,
+          "y": 211,
+          "w": 615,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Enter your FICO score, LTV (how the loan amount compares to the property value — lower means more eq",
+        "rect": {
+          "x": 31,
+          "y": 359,
+          "w": 598,
+          "h": 123
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How to use: adjust the deal box on the left. Cards re-rank live. Match count updates at the top. Aim",
+        "rect": {
+          "x": 31,
+          "y": 498,
+          "w": 707,
+          "h": 42
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/state-laws",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\state-laws-768.png",
+    "h1": "Prepayment penalty rules, all fifty states.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Prepayment penalty rules, all fifty states.",
+        "rect": {
+          "x": 18,
+          "y": 211,
+          "w": 656,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Also shows the usury cap — the maximum interest rate a lender can legally charge. In most states, bu",
+        "rect": {
+          "x": 18,
+          "y": 463,
+          "w": 621,
+          "h": 60
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 323,
+          "y": 554,
+          "w": 320,
+          "h": 46
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/tools/tax-engine",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-tax-engine-768.png",
+    "h1": "What does this property really earn after taxes?",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "What does this property really earn after taxes?",
+        "rect": {
+          "x": 18,
+          "y": 229,
+          "w": 731,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Most return calculators ignore taxes. This one doesn't. Enter your deal and tax profile and see: you",
+        "rect": {
+          "x": 18,
+          "y": 381,
+          "w": 552,
+          "h": 81
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IR",
+        "rect": {
+          "x": 18,
+          "y": 482,
+          "w": 731,
+          "h": 42
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Open the tax engine →",
+        "rect": {
+          "x": 18,
+          "y": 556,
+          "w": 224,
+          "h": 56
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/tools/portfolio",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-portfolio-768.png",
+    "h1": "Blended DSCR 1.14x across 4 doors",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Blended DSCR 1.14x across 4 doors",
+        "rect": {
+          "x": 31,
+          "y": 188,
+          "w": 459,
+          "h": 30
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Blended DSCR of 1.14x qualifies but is close to the minimum. Consider improving cash-flow on weaker ",
+        "rect": {
+          "x": 31,
+          "y": 237,
+          "w": 707,
+          "h": 45
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 42,
+          "y": 899,
+          "w": 138,
+          "h": 35
+        }
+      },
+      {
+        "tag": "select",
+        "text": "SFR2-4 unitDuplexTriplex4-plex5+ unitCondoTownhomeSTR / Airbnb",
+        "rect": {
+          "x": 200,
+          "y": 900,
+          "w": 110,
+          "h": 34
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/tools/str-underwriting",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-str-underwriting-768.png",
+    "h1": "Underwritten DSCR 1.06x",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Underwritten DSCR 1.06x",
+        "rect": {
+          "x": 31,
+          "y": 179,
+          "w": 707,
+          "h": 30
+        }
+      },
+      {
+        "tag": "p",
+        "text": "DSCR of 1.06x qualifies but is close to the minimum. Check the month-by-month table below — if off-s",
+        "rect": {
+          "x": 31,
+          "y": 219,
+          "w": 707,
+          "h": 68
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Estimates are fine — numbers update live. LTR lease rent is used as a fallback if STR income does no",
+        "rect": {
+          "x": 60,
+          "y": 368,
+          "w": 649,
+          "h": 18
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 73,
+          "y": 420,
+          "w": 623,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 80,
+          "y": 513,
+          "w": 615,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 73,
+          "y": 607,
+          "w": 614,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 73,
+          "y": 702,
+          "w": 614,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 80,
+          "y": 796,
+          "w": 615,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 80,
+          "y": 891,
+          "w": 615,
+          "h": 40
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/blog",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\blog-768.png",
+    "h1": "Practical guides for DSCR investors.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Practical guides for DSCR investors.",
+        "rect": {
+          "x": 18,
+          "y": 209,
+          "w": 731,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Plain-language articles on qualifying, structuring, and closing investment property loans — with the",
+        "rect": {
+          "x": 18,
+          "y": 349,
+          "w": 598,
+          "h": 39
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Featured · May 12, 2026Why we put no LLM in the number path — and never willDeterminism is a feature",
+        "rect": {
+          "x": 18,
+          "y": 431,
+          "w": 731,
+          "h": 573
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Why we put no LLM in the number path — and never will",
+        "rect": {
+          "x": 54,
+          "y": 500,
+          "w": 659,
+          "h": 25
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Determinism is a feature. Here's how Greenstreet keeps every figure auditable while still using AI w",
+        "rect": {
+          "x": 54,
+          "y": 541,
+          "w": 503,
+          "h": 50
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/case-studies",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\case-studies-768.png",
+    "h1": "What changed when investors ran their deals through Greenstreet.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "What changed when investors ran their deals through Greenstreet.",
+        "rect": {
+          "x": 18,
+          "y": 211,
+          "w": 731,
+          "h": 186
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Four illustrative scenarios — faster decisions, avoided appraisal costs, and deals caught before the",
+        "rect": {
+          "x": 18,
+          "y": 421,
+          "w": 460,
+          "h": 81
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Price your deal now →",
+        "rect": {
+          "x": 18,
+          "y": 534,
+          "w": 225,
+          "h": 46
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/legal",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\legal-768.png",
+    "h1": "Terms, privacy, and the fine print.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Terms, privacy, and the fine print.",
+        "rect": {
+          "x": 31,
+          "y": 211,
+          "w": 707,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not",
+        "rect": {
+          "x": 31,
+          "y": 353,
+          "w": 621,
+          "h": 60
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Disclosures",
+        "rect": {
+          "x": 31,
+          "y": 440,
+          "w": 103,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Privacy Policy",
+        "rect": {
+          "x": 142,
+          "y": 440,
+          "w": 118,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Terms of Service",
+        "rect": {
+          "x": 267,
+          "y": 440,
+          "w": 133,
+          "h": 38
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Estimates, not advice",
+        "rect": {
+          "x": 31,
+          "y": 581,
+          "w": 220,
+          "h": 35
+        }
+      },
+      {
+        "tag": "a",
+        "text": "How figures are produced",
+        "rect": {
+          "x": 31,
+          "y": 616,
+          "w": 220,
+          "h": 35
+        }
+      },
+      {
+        "tag": "a",
+        "text": "State rule data",
+        "rect": {
+          "x": 31,
+          "y": 651,
+          "w": 220,
+          "h": 35
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Privacy",
+        "rect": {
+          "x": 31,
+          "y": 686,
+          "w": 220,
+          "h": 35
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Program information",
+        "rect": {
+          "x": 31,
+          "y": 721,
+          "w": 220,
+          "h": 35
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Limitation of liability",
+        "rect": {
+          "x": 31,
+          "y": 755,
+          "w": 220,
+          "h": 35
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "1. Estimates, not advice",
+        "rect": {
+          "x": 332,
+          "y": 792,
+          "w": 373,
+          "h": 83
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/non-us-investors",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\non-us-investors-768.png",
+    "h1": "Own U.S. property from anywhere.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Own U.S. property from anywhere.",
+        "rect": {
+          "x": 18,
+          "y": 238,
+          "w": 533,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "DSCR loans for international investors. We qualify the property's rent — not your paycheck — and gui",
+        "rect": {
+          "x": 18,
+          "y": 431,
+          "w": 575,
+          "h": 60
+        }
+      },
+      {
+        "tag": "button",
+        "text": "See how much you can borrow — 60 sec, no credit pull →",
+        "rect": {
+          "x": 18,
+          "y": 520,
+          "w": 428,
+          "h": 50
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Prefer to talk? Message a DSCR specialist on WhatsApp →",
+        "rect": {
+          "x": 18,
+          "y": 585,
+          "w": 363,
+          "h": 19
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/str-airbnb",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\str-airbnb-768.png",
+    "h1": "We underwrite the slow months.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "We underwrite the slow months.",
+        "rect": {
+          "x": 18,
+          "y": 238,
+          "w": 615,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Short-term rental income swings with the season. We underwrite it the way it actually behaves — ADR ",
+        "rect": {
+          "x": 18,
+          "y": 380,
+          "w": 552,
+          "h": 60
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Underwrite my STR →",
+        "rect": {
+          "x": 18,
+          "y": 470,
+          "w": 198,
+          "h": 48
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/vacation-homes",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\vacation-homes-768.png",
+    "h1": "The getaway that pays for itself.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "The getaway that pays for itself.",
+        "rect": {
+          "x": 18,
+          "y": 238,
+          "w": 574,
+          "h": 124
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nig",
+        "rect": {
+          "x": 18,
+          "y": 380,
+          "w": 552,
+          "h": 60
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Run my second home →",
+        "rect": {
+          "x": 18,
+          "y": 470,
+          "w": 208,
+          "h": 48
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/support",
+    "width": 768,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\support-768.png",
+    "h1": "Answers when you're mid-deal.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 17,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "button",
+        "text": "",
+        "rect": {
+          "x": 328,
+          "y": 16,
+          "w": 422,
+          "h": 64
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Answers when you're mid-deal.",
+        "rect": {
+          "x": 18,
+          "y": 219,
+          "w": 487,
+          "h": 97
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Self-serve guides, a full FAQ and a direct line to the Greenstreet team — so a question never stalls",
+        "rect": {
+          "x": 18,
+          "y": 338,
+          "w": 490,
+          "h": 51
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Browse the FAQ →",
+        "rect": {
+          "x": 18,
+          "y": 421,
+          "w": 200,
+          "h": 56
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Book a demo",
+        "rect": {
+          "x": 233,
+          "y": 421,
+          "w": 155,
+          "h": 56
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Find the answer, fast.",
+        "rect": {
+          "x": 18,
+          "y": 653,
+          "w": 446,
+          "h": 37
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How DSCR qualifying works, what each tool does, and how to price your first deal in minutes — no sig",
+        "rect": {
+          "x": 42,
+          "y": 790,
+          "w": 683,
+          "h": 45
+        }
+      }
+    ],
+    "scrollWidth": 768,
+    "clientWidth": 768
+  },
+  {
+    "route": "/",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\home-1440.png",
+    "h1": "DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation rentals.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 1440,
+          "h": 38
+        }
+      },
+      {
+        "tag": "p",
+        "text": "⎋ Greenstreet Finance announces InvestGO — the unified DSCR loan platform",
+        "rect": {
+          "x": 454,
+          "y": 8,
+          "w": 532,
+          "h": 22
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.INVESTGO",
+        "rect": {
+          "x": 19,
+          "y": 71,
+          "w": 462,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 599,
+          "y": 54,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 794,
+          "y": 70,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 952,
+          "y": 70,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1304,
+          "y": 54,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1359,
+          "y": 57,
+          "w": 62,
+          "h": 57
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation renta",
+        "rect": {
+          "x": 40,
+          "y": 155,
+          "w": 960,
+          "h": 186
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 40,
+          "y": 825,
+          "w": 192,
+          "h": 23
+        }
+      },
+      {
+        "tag": "select",
+        "text": "Credit score740+700–739660–699Below 660",
+        "rect": {
+          "x": 1019,
+          "y": 764,
+          "w": 177,
+          "h": 43
+        }
+      },
+      {
+        "tag": "select",
+        "text": "Property typeSingle-family2–4 unit5+ unitShort-term rental",
+        "rect": {
+          "x": 1204,
+          "y": 764,
+          "w": 177,
+          "h": 43
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Verified pricing across a full suite of DSCR programs. Qualify on the property's rent, not your payc",
+        "rect": {
+          "x": 40,
+          "y": 891,
+          "w": 672,
+          "h": 142
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/products",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\products-1440.png",
+    "h1": "The DSCR Engine",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "The DSCR Engine",
+        "rect": {
+          "x": 20,
+          "y": 312,
+          "w": 829,
+          "h": 77
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Eleven tools for DSCR rental-loan underwriting — from a 60-second deal check to a full after-tax ret",
+        "rect": {
+          "x": 20,
+          "y": 426,
+          "w": 573,
+          "h": 106
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/products/platform",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\products-platform-1440.png",
+    "h1": "One system. Every DSCR workflow.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "One system. Every DSCR workflow.",
+        "rect": {
+          "x": 20,
+          "y": 223,
+          "w": 887,
+          "h": 176
+        }
+      },
+      {
+        "tag": "p",
+        "text": "INVESTGO replaces scattered spreadsheets and stale rate sheets with a single engine — price, stress-",
+        "rect": {
+          "x": 20,
+          "y": 421,
+          "w": 623,
+          "h": 97
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Start a deal →",
+        "rect": {
+          "x": 20,
+          "y": 550,
+          "w": 169,
+          "h": 56
+        }
+      },
+      {
+        "tag": "button",
+        "text": "See the programs",
+        "rect": {
+          "x": 203,
+          "y": 550,
+          "w": 190,
+          "h": 56
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Everything you need, nothing you don't.",
+        "rect": {
+          "x": 20,
+          "y": 783,
+          "w": 766,
+          "h": 128
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/solutions",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\solutions-1440.png",
+    "h1": "Built for real estate investors.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Built for real estate investors.",
+        "rect": {
+          "x": 20,
+          "y": 321,
+          "w": 697,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Greenstreet is the lender — no middlemen, no broker portals. Every product runs off the same determi",
+        "rect": {
+          "x": 20,
+          "y": 503,
+          "w": 526,
+          "h": 62
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Buy-and-hold investorsDSCR→",
+        "rect": {
+          "x": 790,
+          "y": 196,
+          "w": 629,
+          "h": 90
+        }
+      },
+      {
+        "tag": "button",
+        "text": "STR & Airbnb hostsNightly income→",
+        "rect": {
+          "x": 790,
+          "y": 286,
+          "w": 629,
+          "h": 90
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Non-US investorsNo US credit→",
+        "rect": {
+          "x": 790,
+          "y": 376,
+          "w": 629,
+          "h": 90
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Vacation & second homesUse + rent→",
+        "rect": {
+          "x": 790,
+          "y": 465,
+          "w": 629,
+          "h": 90
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Portfolio buildersBlended DSCR→",
+        "rect": {
+          "x": 790,
+          "y": 555,
+          "w": 629,
+          "h": 89
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/rate-quiz",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\rate-quiz-1440.png",
+    "h1": "Find the right DSCR program for your deal.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Find the right DSCR program for your deal.",
+        "rect": {
+          "x": 384,
+          "y": 168,
+          "w": 672,
+          "h": 80
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Five questions about property, credit, and cash flow. No credit pull — estimate-ok on every field.",
+        "rect": {
+          "x": 489,
+          "y": 258,
+          "w": 461,
+          "h": 50
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "What type of property are you financing?",
+        "rect": {
+          "x": 409,
+          "y": 421,
+          "w": 622,
+          "h": 37
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/investgo",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\investgo-1440.png",
+    "h1": "INVESTGO",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Back to site",
+        "rect": {
+          "x": 529,
+          "y": 349,
+          "w": 83,
+          "h": 16
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 529,
+          "y": 449,
+          "w": 382,
+          "h": 32
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Every DSCR engine and calculation in one place. Sign in to start pricing deals.",
+        "rect": {
+          "x": 529,
+          "y": 487,
+          "w": 382,
+          "h": 16
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Try demo mode — no account needed",
+        "rect": {
+          "x": 529,
+          "y": 535,
+          "w": 382,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Sign in with Google",
+        "rect": {
+          "x": 529,
+          "y": 585,
+          "w": 382,
+          "h": 46
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 529,
+          "y": 687,
+          "w": 382,
+          "h": 46
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 529,
+          "y": 733,
+          "w": 382,
+          "h": 46
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/dscr-calculator",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\dscr-calculator-1440.png",
+    "h1": "Know if yourrental coversthe loan.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Know if yourrental coversthe loan.",
+        "rect": {
+          "x": 60,
+          "y": 227,
+          "w": 674,
+          "h": 232
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Enter price, rent, rate, taxes and insurance. Get your DSCR (whether the property's rent can cover t",
+        "rect": {
+          "x": 60,
+          "y": 485,
+          "w": 550,
+          "h": 84
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Open the calculator ↓",
+        "rect": {
+          "x": 60,
+          "y": 603,
+          "w": 210,
+          "h": 54
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Find my program →",
+        "rect": {
+          "x": 284,
+          "y": 603,
+          "w": 186,
+          "h": 54
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/lender-intel",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\lender-intel-1440.png",
+    "h1": "Which programs fit your deal?",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Which programs fit your deal?",
+        "rect": {
+          "x": 48,
+          "y": 211,
+          "w": 700,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Enter your FICO score, LTV (how the loan amount compares to the property value — lower means more eq",
+        "rect": {
+          "x": 48,
+          "y": 389,
+          "w": 621,
+          "h": 128
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How to use: adjust the deal box on the left. Cards re-rank live. Match count updates at the top. Aim",
+        "rect": {
+          "x": 48,
+          "y": 533,
+          "w": 700,
+          "h": 42
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "4 of 7 programs fit this deal",
+        "rect": {
+          "x": 20,
+          "y": 876,
+          "w": 1400,
+          "h": 50
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/state-laws",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\state-laws-1440.png",
+    "h1": "Prepayment penalty rules, all fifty states.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Prepayment penalty rules, all fifty states.",
+        "rect": {
+          "x": 20,
+          "y": 211,
+          "w": 735,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Also shows the usury cap — the maximum interest rate a lender can legally charge. In most states, bu",
+        "rect": {
+          "x": 20,
+          "y": 493,
+          "w": 645,
+          "h": 62
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 356,
+          "y": 601,
+          "w": 320,
+          "h": 46
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Click any state to see full prepayment penalty rules, usury cap, and pricing impact. Hover to previe",
+        "rect": {
+          "x": 20,
+          "y": 809,
+          "w": 1400,
+          "h": 20
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/tools/tax-engine",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-tax-engine-1440.png",
+    "h1": "What does this property really earn after taxes?",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "What does this property really earn after taxes?",
+        "rect": {
+          "x": 20,
+          "y": 229,
+          "w": 730,
+          "h": 232
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Most return calculators ignore taxes. This one doesn't. Enter your deal and tax profile and see: you",
+        "rect": {
+          "x": 20,
+          "y": 489,
+          "w": 573,
+          "h": 84
+        }
+      },
+      {
+        "tag": "p",
+        "text": "How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IR",
+        "rect": {
+          "x": 20,
+          "y": 593,
+          "w": 730,
+          "h": 42
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Open the tax engine →",
+        "rect": {
+          "x": 20,
+          "y": 667,
+          "w": 224,
+          "h": 56
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/tools/portfolio",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-portfolio-1440.png",
+    "h1": "Blended DSCR 1.14x across 4 doors",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Blended DSCR 1.14x across 4 doors",
+        "rect": {
+          "x": 48,
+          "y": 217,
+          "w": 796,
+          "h": 52
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Blended DSCR of 1.14x qualifies but is close to the minimum. Consider improving cash-flow on weaker ",
+        "rect": {
+          "x": 48,
+          "y": 279,
+          "w": 1344,
+          "h": 23
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 59,
+          "y": 593,
+          "w": 138,
+          "h": 35
+        }
+      },
+      {
+        "tag": "select",
+        "text": "SFR2-4 unitDuplexTriplex4-plex5+ unitCondoTownhomeSTR / Airbnb",
+        "rect": {
+          "x": 286,
+          "y": 594,
+          "w": 110,
+          "h": 34
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 511,
+          "y": 598,
+          "w": 68,
+          "h": 30
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 637,
+          "y": 598,
+          "w": 68,
+          "h": 30
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 758,
+          "y": 598,
+          "w": 56,
+          "h": 30
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/tools/str-underwriting",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\tools-str-underwriting-1440.png",
+    "h1": "Underwritten DSCR 1.06x",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Underwritten DSCR 1.06x",
+        "rect": {
+          "x": 48,
+          "y": 217,
+          "w": 1344,
+          "h": 52
+        }
+      },
+      {
+        "tag": "p",
+        "text": "DSCR of 1.06x qualifies but is close to the minimum. Check the month-by-month table below — if off-s",
+        "rect": {
+          "x": 48,
+          "y": 279,
+          "w": 1344,
+          "h": 45
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Estimates are fine — numbers update live. LTR lease rent is used as a fallback if STR income does no",
+        "rect": {
+          "x": 77,
+          "y": 405,
+          "w": 222,
+          "h": 54
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 90,
+          "y": 494,
+          "w": 196,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 97,
+          "y": 587,
+          "w": 189,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 90,
+          "y": 697,
+          "w": 188,
+          "h": 40
+        }
+      },
+      {
+        "tag": "input",
+        "text": "",
+        "rect": {
+          "x": 90,
+          "y": 806,
+          "w": 188,
+          "h": 40
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/blog",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\blog-1440.png",
+    "h1": "Practical guides for DSCR investors.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Practical guides for DSCR investors.",
+        "rect": {
+          "x": 20,
+          "y": 209,
+          "w": 1019,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Plain-language articles on qualifying, structuring, and closing investment property loans — with the",
+        "rect": {
+          "x": 20,
+          "y": 379,
+          "w": 621,
+          "h": 40
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Featured · May 12, 2026Why we put no LLM in the number path — and never willDeterminism is a feature",
+        "rect": {
+          "x": 20,
+          "y": 463,
+          "w": 1400,
+          "h": 351
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Why we put no LLM in the number path — and never will",
+        "rect": {
+          "x": 78,
+          "y": 553,
+          "w": 655,
+          "h": 80
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Determinism is a feature. Here's how Greenstreet keeps every figure auditable while still using AI w",
+        "rect": {
+          "x": 78,
+          "y": 649,
+          "w": 503,
+          "h": 50
+        }
+      },
+      {
+        "tag": "button",
+        "text": "All",
+        "rect": {
+          "x": 20,
+          "y": 878,
+          "w": 49,
+          "h": 36
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Lending",
+        "rect": {
+          "x": 77,
+          "y": 878,
+          "w": 80,
+          "h": 36
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/case-studies",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\case-studies-1440.png",
+    "h1": "What changed when investors ran their deals through Greenstreet.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "What changed when investors ran their deals through Greenstreet.",
+        "rect": {
+          "x": 20,
+          "y": 211,
+          "w": 664,
+          "h": 309
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Four illustrative scenarios — faster decisions, avoided appraisal costs, and deals caught before the",
+        "rect": {
+          "x": 20,
+          "y": 559,
+          "w": 478,
+          "h": 84
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Price your deal now →",
+        "rect": {
+          "x": 20,
+          "y": 675,
+          "w": 199,
+          "h": 46
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/legal",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\legal-1440.png",
+    "h1": "Terms, privacy, and the fine print.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Terms, privacy, and the fine print.",
+        "rect": {
+          "x": 180,
+          "y": 211,
+          "w": 917,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not",
+        "rect": {
+          "x": 180,
+          "y": 383,
+          "w": 645,
+          "h": 62
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Disclosures",
+        "rect": {
+          "x": 180,
+          "y": 473,
+          "w": 103,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Privacy Policy",
+        "rect": {
+          "x": 291,
+          "y": 473,
+          "w": 118,
+          "h": 38
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Terms of Service",
+        "rect": {
+          "x": 417,
+          "y": 473,
+          "w": 133,
+          "h": 38
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Estimates, not advice",
+        "rect": {
+          "x": 180,
+          "y": 646,
+          "w": 220,
+          "h": 35
+        }
+      },
+      {
+        "tag": "a",
+        "text": "How figures are produced",
+        "rect": {
+          "x": 180,
+          "y": 680,
+          "w": 220,
+          "h": 35
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/non-us-investors",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\non-us-investors-1440.png",
+    "h1": "Own U.S. property from anywhere.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Own U.S. property from anywhere.",
+        "rect": {
+          "x": 20,
+          "y": 238,
+          "w": 662,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "DSCR loans for international investors. We qualify the property's rent — not your paycheck — and gui",
+        "rect": {
+          "x": 20,
+          "y": 461,
+          "w": 597,
+          "h": 62
+        }
+      },
+      {
+        "tag": "button",
+        "text": "See how much you can borrow — 60 sec, no credit pull →",
+        "rect": {
+          "x": 20,
+          "y": 553,
+          "w": 428,
+          "h": 50
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Prefer to talk? Message a DSCR specialist on WhatsApp →",
+        "rect": {
+          "x": 20,
+          "y": 617,
+          "w": 363,
+          "h": 19
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Every reason you think you can't — answered.",
+        "rect": {
+          "x": 20,
+          "y": 880,
+          "w": 686,
+          "h": 107
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/str-airbnb",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\str-airbnb-1440.png",
+    "h1": "We underwrite the slow months.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "We underwrite the slow months.",
+        "rect": {
+          "x": 20,
+          "y": 252,
+          "w": 697,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Short-term rental income swings with the season. We underwrite it the way it actually behaves — ADR ",
+        "rect": {
+          "x": 20,
+          "y": 425,
+          "w": 573,
+          "h": 62
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Underwrite my STR →",
+        "rect": {
+          "x": 20,
+          "y": 517,
+          "w": 198,
+          "h": 48
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "The deal has to survive February — not just July.",
+        "rect": {
+          "x": 20,
+          "y": 785,
+          "w": 634,
+          "h": 100
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Set your nightly rate and occupancy — scroll over the fields. Months under the lemon line don't cove",
+        "rect": {
+          "x": 20,
+          "y": 895,
+          "w": 608,
+          "h": 48
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/vacation-homes",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\vacation-homes-1440.png",
+    "h1": "The getaway that pays for itself.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "The getaway that pays for itself.",
+        "rect": {
+          "x": 20,
+          "y": 238,
+          "w": 697,
+          "h": 154
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nig",
+        "rect": {
+          "x": 20,
+          "y": 411,
+          "w": 573,
+          "h": 62
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Run my second home →",
+        "rect": {
+          "x": 20,
+          "y": 503,
+          "w": 208,
+          "h": 48
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Slide the month. Watch it pay you back.",
+        "rect": {
+          "x": 20,
+          "y": 757,
+          "w": 634,
+          "h": 100
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Drag the split between nights you keep and nights you rent. The more you rent, the more your getaway",
+        "rect": {
+          "x": 20,
+          "y": 867,
+          "w": 608,
+          "h": 48
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  },
+  {
+    "route": "/support",
+    "width": 1440,
+    "status": 200,
+    "file": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\greenstreet_frontend\\output\\forensic-audit-20260627-214635\\screenshots\\support-1440.png",
+    "h1": "Answers when you're mid-deal.",
+    "top": [
+      {
+        "tag": "a",
+        "text": "Greenstreet Finance.",
+        "rect": {
+          "x": 19,
+          "y": 34,
+          "w": 295,
+          "h": 29
+        }
+      },
+      {
+        "tag": "a",
+        "text": "INVESTGO",
+        "rect": {
+          "x": 447,
+          "y": 16,
+          "w": 152,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Product",
+        "rect": {
+          "x": 642,
+          "y": 32,
+          "w": 62,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Who We Serve",
+        "rect": {
+          "x": 800,
+          "y": 32,
+          "w": 113,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Resources",
+        "rect": {
+          "x": 1009,
+          "y": 32,
+          "w": 78,
+          "h": 32
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Login",
+        "rect": {
+          "x": 1152,
+          "y": 16,
+          "w": 105,
+          "h": 64
+        }
+      },
+      {
+        "tag": "a",
+        "text": "Book a demo",
+        "rect": {
+          "x": 1269,
+          "y": 26,
+          "w": 152,
+          "h": 44
+        }
+      },
+      {
+        "tag": "h1",
+        "text": "Answers when you're mid-deal.",
+        "rect": {
+          "x": 20,
+          "y": 223,
+          "w": 887,
+          "h": 176
+        }
+      },
+      {
+        "tag": "p",
+        "text": "Self-serve guides, a full FAQ and a direct line to the Greenstreet team — so a question never stalls",
+        "rect": {
+          "x": 20,
+          "y": 421,
+          "w": 623,
+          "h": 65
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Browse the FAQ →",
+        "rect": {
+          "x": 20,
+          "y": 518,
+          "w": 200,
+          "h": 56
+        }
+      },
+      {
+        "tag": "button",
+        "text": "Book a demo",
+        "rect": {
+          "x": 234,
+          "y": 518,
+          "w": 155,
+          "h": 56
+        }
+      },
+      {
+        "tag": "h2",
+        "text": "Find the answer, fast.",
+        "rect": {
+          "x": 20,
+          "y": 750,
+          "w": 766,
+          "h": 64
+        }
+      }
+    ],
+    "scrollWidth": 1440,
+    "clientWidth": 1440
+  }
+]
