@@ -331,9 +331,7 @@ export default function CareersPage({
 
       <ScenePhoto
         src="/img/generated/scenes/two-person-meeting.png"
-        video="/video/scenes/careers-engine.mp4"
-        poster="/video/scenes/careers-engine-poster.jpg"
-        alt="A small team, each owning a module of the underwriting engine"
+        alt="Greenstreet team members working through a deal together"
         eyebrow="Life at Greenstreet"
         caption="Small team, high ownership — you touch the engine, not a backlog ticket."
       />

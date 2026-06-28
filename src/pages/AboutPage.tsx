@@ -222,9 +222,7 @@ export default function AboutPage({
 
       <ScenePhoto
         src="/img/generated/scenes/office-window-team.png"
-        video="/video/scenes/about-one-desk.mp4"
-        poster="/video/scenes/about-one-desk-poster.jpg"
-        alt="One desk: a deal priced, structured, and funded without a handoff"
+        alt="The Greenstreet underwriting team reviewing deals at a desk"
         eyebrow="One desk, every deal"
         caption="A broker and a quant — and the team that prices, structures, and funds each file."
         style={{ background: dc.cream }}
