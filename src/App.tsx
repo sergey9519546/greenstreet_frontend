@@ -174,6 +174,28 @@ function viewToPath(view: PageView): string {
   }
 }
 
+const QUALIFY_WIDGET_EXCLUDED_VIEWS: ReadonlySet<PageView> = new Set([
+  "portal",
+  "external",
+  "legal",
+  "rate-quiz",
+  "book-demo",
+  "dscr-calculator",
+  "lender-intel",
+  "state-laws",
+  "deal-analyzer",
+  "refi-tracker",
+  "arm-reset",
+  "monte-carlo",
+  "returns",
+  "tax-engine",
+  "stress-matrix",
+  "decision-support",
+  "str-underwriting",
+  "portfolio",
+  "portfolio-builders",
+]);
+
 export default function App() {
   const [view, setView] = useState<PageView>(() => {
     if (typeof window !== "undefined") {
@@ -430,14 +452,15 @@ export default function App() {
     return <>{renderPage()}</>;
   }
 
+  const showQualifyWidget = !QUALIFY_WIDGET_EXCLUDED_VIEWS.has(view);
+
   return (
     <ErrorBoundary>
       <div className="font-sans antialiased text-slate-800">
         <Suspense fallback={null}>
           <PageRenderer />
         </Suspense>
-        {/* QualifyWidget overlays marketing + tool views — never the logged-in portal */}
-        {view !== "portal" && <QualifyWidget />}
+        {showQualifyWidget && <QualifyWidget />}
       </div>
     </ErrorBoundary>
   );

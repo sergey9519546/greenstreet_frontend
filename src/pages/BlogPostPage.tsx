@@ -555,7 +555,7 @@ export default function BlogPostPage({
               color: dc.cream,
             }}
           >
-            See if your deal qualifies.
+            Check a preliminary scenario.
           </h2>
           <p
             style={{
@@ -566,9 +566,8 @@ export default function BlogPostPage({
               letterSpacing: "-0.02em",
             }}
           >
-            Enter your property's rent, purchase price, and loan amount — get a DSCR
-            (whether the property's rent can cover the loan payment), a rate estimate, and a program match in under a minute.
-            No W-2s, no tax returns, no commitment.
+            Enter your property's rent, purchase price, and loan amount to model DSCR
+            (whether the property's rent can cover the loan payment). Pricing, program fit, and documentation require specialist review.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
             <button
@@ -589,7 +588,7 @@ export default function BlogPostPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              See if your deal qualifies →
+              Request scenario review →
             </button>
             <a
               href="/dscr-calculator"

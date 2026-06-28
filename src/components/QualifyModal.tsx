@@ -15,7 +15,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
-import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange } from "../engine";
+import { quickDscrEstimate, qualify, fmtUsd } from "../engine";
 import type {
   QuickDscrTier,
   QualifyPropertyType as PropertyType,
@@ -81,8 +81,8 @@ function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
 }
 
 // ─── Engine-backed DSCR helpers ───────────────────────────────────────────────
-// The modal delegates all math to quickDscrEstimate (uses 0.5% ins, 1.2% tax,
-// 75% LTV, 360-mo term — matches the rest of the product).
+// The modal delegates DSCR math to quickDscrEstimate. Displayed product terms
+// still need the active Greenstreet product sheet before they can be quoted.
 
 function dscrColor(dscr: number): string {
   if (dscr >= 1.25) return swatch.emerald;
@@ -101,18 +101,18 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
 } {
   const purposeContext: Record<Purpose, { strong: string; borderline: string; low: string }> = {
     purchase: {
-      strong: "For a purchase at this DSCR, you're in a strong position to move forward.",
-      borderline: "Purchases at this DSCR can close — a specialist will confirm the program and structure.",
-      low: "Some purchase programs allow sub-1.0 DSCR with compensating factors like reserves or lower LTV.",
+      strong: "For a purchase at this DSCR, the scenario is worth a specialist review.",
+      borderline: "Purchases at this DSCR may need tighter structure, reserve review, or a lower loan amount.",
+      low: "A lower DSCR scenario needs product-sheet verification and compensating-factor review.",
     },
     "rate-term": {
-      strong: "Rate & term refinances at this DSCR typically qualify at standard pricing.",
-      borderline: "This DSCR meets the floor for a rate & term refi. A specialist can confirm the best available term.",
+      strong: "A rate-and-term refinance at this DSCR is worth checking against the current matrix.",
+      borderline: "This DSCR may be workable for a rate-and-term refinance after program review.",
       low: "At this DSCR level, a rate & term refi may require compensating factors. A specialist can review your full picture.",
     },
     "cash-out": {
-      strong: "Cash-out refinances at this DSCR are generally well-supported — your cushion helps.",
-      borderline: "Cash-out refinances at this DSCR are workable. LTV and FICO will affect final approval.",
+      strong: "A cash-out refinance at this DSCR has more room in the scenario, but overlays still matter.",
+      borderline: "Cash-out refinances at this DSCR need LTV, FICO, reserve, and program review.",
       low: "Cash-out refinances require more cushion. A specialist can look at reducing the cash-out amount or LTV to hit threshold.",
     },
   };
@@ -123,28 +123,28 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
     case "LIKELY_QUALIFIES":
       return {
         tier: "Strong",
-        headline: "This deal looks solid",
-        detail: "Your DSCR clears our standard threshold. You're in a good position to move forward.",
+        headline: "This scenario looks strong enough to review",
+        detail: "Your modeled DSCR has room above the estimated payment. Program fit, pricing, and eligibility still require underwriting review.",
         purposeNote: ctx?.strong ?? "",
-        nextStep: "Share your contact details and a Greenstreet specialist will send you a full scenario review — typically within one business day.",
+        nextStep: "Share your contact details and a Greenstreet specialist will review program fit, pricing assumptions, and required documentation.",
         color: swatch.emerald,
       };
     case "BORDERLINE":
       return {
-        tier: "Qualifies",
-        headline: "This deal meets the standard floor",
-        detail: "Your DSCR is at or above the 1.0x minimum. A specialist can confirm terms and get you to closing.",
+        tier: "Review",
+        headline: "This deal is close enough for review",
+        detail: "Your modeled DSCR covers the estimated payment, but final outcome depends on product thresholds, verified rent, reserves, credit, and state rules.",
         purposeNote: ctx?.borderline ?? "",
-        nextStep: "A Greenstreet specialist can confirm which programs fit and lock you into terms.",
+        nextStep: "A Greenstreet specialist can confirm which programs may fit after reviewing the full scenario.",
         color: swatch.rainforest,
       };
     case "SPECIALIST_REQUIRED":
       return {
         tier: "Borderline",
         headline: "This deal may work with the right structure",
-        detail: "Your DSCR is just below the standard 1.0x floor, but there are programs that accommodate this range — especially with strong credit or reserves.",
-        purposeNote: ctx?.low ?? "A Greenstreet specialist can explore sub-1.0 programs and structuring options — this is not a dead end.",
-        nextStep: "A Greenstreet specialist can explore sub-1.0 programs and structuring options. This is not a dead end.",
+        detail: "Your modeled DSCR is below 1.0x. A specialist needs to check whether product guidelines, reserves, or a lower loan amount change the result.",
+        purposeNote: ctx?.low ?? "A Greenstreet specialist can explore whether any current programs or structuring options apply.",
+        nextStep: "A Greenstreet specialist can explore whether current programs or structuring options apply.",
         color: "#b8a820",
       };
     case "UNLIKELY":
@@ -152,33 +152,12 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
       return {
         tier: "Below Threshold",
         headline: "This deal needs restructuring",
-        detail: "Your current numbers are below standard DSCR floors, but there may be paths forward — lower LTV, higher rent, or a different structure.",
+        detail: "Your current numbers are below a clean DSCR scenario. A lower loan amount, verified higher rent, or different structure may be required.",
         purposeNote: ctx?.low ?? "A specialist can assess whether a restructured deal changes the picture.",
-        nextStep: "A Greenstreet specialist can walk through what adjustments would change the outcome. No commitment required.",
+        nextStep: "A Greenstreet specialist can walk through what adjustments would change the model. No commitment required.",
         color: "#c25b4e",
       };
   }
-}
-
-function estimateRate(
-  baseDSCR: number,
-  ficoBand: FicoBand | null,
-  purpose: Purpose | null
-): string {
-  let base = 6.5;
-  // FICO adjustments
-  if (ficoBand === "under-680") base += 1.25;
-  else if (ficoBand === "680-719") base += 0.75;
-  else if (ficoBand === "720-759") base += 0.25;
-  // else 760+ stays at base
-  // Purpose adjustments
-  if (purpose === "cash-out") base += 0.375;
-  else if (purpose === "rate-term") base += 0.0;
-  // DSCR adjustment — sub-1.0 carries a spread
-  if (baseDSCR < 1.0) base += 0.5;
-  const lo = (base - 0.125).toFixed(2);
-  const hi = (base + 0.25).toFixed(2);
-  return `${lo}% – ${hi}%`;
 }
 
 // ─── US States ────────────────────────────────────────────────────────────────
@@ -658,7 +637,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        See if your rental deal qualifies — in 60 seconds
+        Check a preliminary DSCR scenario
       </h2>
       <p
         style={{
@@ -668,7 +647,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        No credit pull &middot; no obligation &middot; instant DSCR estimate
+        No hard credit pull at this step &middot; product terms verified by specialist review
       </p>
 
       {/* Loan purpose — first question, sets context for all results */}
@@ -702,7 +681,7 @@ function Step1({
 
       <FieldGroup
         label="Property type"
-        helper="DSCR loans (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) are available for most rental property types. Short-term rentals and 5–8 unit buildings have specialty programs with higher down-payment requirements."
+        helper="DSCR loans model whether the property's rent can cover the loan payment. Property type can affect eligibility, documentation, down payment, reserves, and pricing."
         error={attempted && !data.propertyType ? "Please select a property type." : undefined}
       >
         <div role="group" aria-label="Property type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -745,7 +724,7 @@ function Step1({
           type="number"
           value={data.loanAmount}
           min={0}
-          step={5000}
+          step={250}
           onChange={(e) => onChange({ loanAmount: Number(e.target.value) })}
           className="qm-input"
           style={
@@ -763,8 +742,8 @@ function Step1({
               {data.propertyValue > 0 ? `${(ltv * 100).toFixed(0)}%` : "—"}
             </strong>
             {ltv > 0.8 && data.propertyValue > 0
-              ? " — above 80%, which may limit programs. Try reducing the loan amount."
-              : ". Most DSCR programs cap around 75–80% LTV."}
+              ? " — higher leverage may limit programs. Try reducing the loan amount."
+              : ". Product LTV caps and pricing require current product-sheet verification."}
           </p>
         )}
       </div>
@@ -804,7 +783,7 @@ function Step1({
           style={inputStyle}
         />
         <p style={helperStyle}>
-          Your best guess at the note rate — used to estimate your monthly payment (PITIA). An estimate is fine; a specialist will confirm the real rate for your deal. Current DSCR rates typically run 6.5%–8.5% depending on credit and LTV.
+          Your best guess at the note rate, used only to estimate the monthly payment. A specialist must verify current pricing from the active rate sheet before any quote is issued.
         </p>
       </div>
 
@@ -1031,7 +1010,7 @@ function Step2({
 
       <FieldGroup
         label="Your credit score range (estimate)"
-        helper="We don't pull your credit here — a rough range is all we need. Your score affects your rate tier and minimum down payment. Higher score = lower rate."
+        helper="We do not run a hard credit pull here. A rough range helps route the scenario; final pricing and minimum down payment depend on verified credit and current product guidelines."
         error={attempted && !data.ficoBand ? "Please select a credit score range." : undefined}
       >
         <div
@@ -1053,7 +1032,7 @@ function Step2({
 
       <FieldGroup
         label="Who will be on the loan?"
-        helper="Many DSCR loans close in the name of an LLC or entity rather than a person — both are fine. Some states require an entity. This affects title and liability, not your rate."
+        helper="Entity and individual vesting rules vary by product and state. This affects title, documentation, compliance review, and possibly pricing."
         error={attempted && !data.borrowerType ? "Please choose how you'll borrow." : undefined}
       >
         <div role="group" aria-label="Borrower type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1067,7 +1046,7 @@ function Step2({
 
       <FieldGroup
         label="How many rental properties do you currently own?"
-        helper="Experience can unlock better programs and lower reserve requirements — but first-time investors qualify too. There's no wrong answer."
+        helper="Experience can affect program fit and reserve overlays. First-time investors may still be reviewable depending on product guidelines."
         error={attempted && !data.experience ? "Please pick a range." : undefined}
       >
         <div role="group" aria-label="Investor experience" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1148,7 +1127,6 @@ function Step3({
   const dscr = estimate.dscr;
   const col = dscrColor(dscr);
   const verdict = dscrVerdict(estimate.tier, step2.purpose);
-  const rate = estimateRate(dscr, step2.ficoBand, step2.purpose);
   const q = qualify(buildQualifyInput(step1, step2));
   const topLever = q.levers[0];
 
@@ -1348,7 +1326,7 @@ function Step3({
             marginBottom: 4,
           }}
         >
-          Indicative rate range
+          Pricing status
         </div>
         <div
           style={{
@@ -1360,12 +1338,12 @@ function Step3({
             marginBottom: 4,
           }}
         >
-          {rate}
+          [VERIFY: current rate sheet]
         </div>
         <p style={{ fontSize: 12, color: swatch.rainforest, margin: 0 }}>
           Based on credit {step2.ficoBand ?? "range"},{" "}
           {step2.purpose ? purposeLabel[step2.purpose].toLowerCase() : "your loan type"},{" "}
-          {step2.state || "your state"}. A specialist will confirm the exact rate for your deal.
+          {step2.state || "your state"}. A specialist must verify pricing, product fit, and state eligibility before quoting.
         </p>
       </div>
 
@@ -1412,7 +1390,7 @@ function Step3({
 
       {/* (e) Preliminary disclaimer */}
       <p style={{ fontSize: 11, color: swatch.rainforest, opacity: 0.65, marginBottom: 20, lineHeight: 1.5 }}>
-        Preliminary estimate — not a commitment to lend or a credit decision. Subject to full underwriting review.
+        Preliminary model only — not a loan approval, commitment to lend, rate quote, or credit decision. Subject to product-sheet verification, documentation, state eligibility, and full underwriting review.
       </p>
 
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -1498,8 +1476,7 @@ function Step4({
         Where should we send your scenario review?
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        A Greenstreet specialist will review your exact numbers and follow up
-        within one business day. Your information is used only to prepare your quote — no spam, no credit pull.
+        A Greenstreet specialist will review your numbers and follow up with the next review step. Your information is used to prepare the scenario review; no hard credit pull is performed at this step.
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1695,7 +1672,7 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.55,
         }}
       >
-        A Greenstreet specialist will review your numbers, check program fit, and send you a full scenario write-up — typically within one business day. No obligation.
+        A Greenstreet specialist will review your numbers, check program fit, and send you a scenario response after the required product, documentation, and state checks. No obligation.
       </p>
       <p
         style={{
@@ -1706,8 +1683,7 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.5,
         }}
       >
-        This is not a loan approval or commitment to lend. Your quote will be
-        based on a full review of your scenario.
+        This is not a loan approval, rate quote, or commitment to lend. Any pricing or terms must come from a full review of your scenario.
       </p>
 
       <div
@@ -1885,7 +1861,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     // Use engine math for the persisted payload (matches the displayed result)
     const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
     const verdict = dscrVerdict(estimate.tier);
-    const rateEstimate = estimateRate(estimate.dscr, step2.ficoBand, step2.purpose);
+    const rateEstimate = "[VERIFY: current rate sheet]";
     const q = qualify(buildQualifyInput(step1, step2));
 
     const payload = {
@@ -1918,7 +1894,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         dscr: q.dscr,
         outcome: q.outcome,
         reasons: q.reasons,
-        rateRange: fmtRateRange(q.rateLow, q.rateHigh),
+        rateRange: "[VERIFY: current rate sheet]",
         needsHumanReview: q.needsHumanReview,
       },
       // consent record (TCPA/ECOA audit)

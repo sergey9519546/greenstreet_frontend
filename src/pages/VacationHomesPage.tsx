@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font } from "../theme";
 import BottomCTA from "../design/BottomCTA";
+import ComplianceNote from "../design/ComplianceNote";
 
 // ── Who-We-Serve: Vacation & Second Homes ─────────────────────────────────────
 // Signature: the Use-vs-Earn slider — split the month between nights you keep and
-// nights you rent; watch the rental income offset your payment. The getaway that
-// pays for itself.
+// nights you rent; show a hybrid rental-use scenario without promising cash flow.
 
 const BLUE = "#7ec8d3";
 const fmt$ = (n: number) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
@@ -57,10 +57,15 @@ export default function VacationHomesPage({
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
-            <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>The getaway that pays for itself.</H1>
+            <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>The vacation home has to work as a rental.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
-              Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nights you let — so your escape carries part of its own payment.
+              DSCR is a better fit for hybrid vacation homes than pure personal-use second homes. Keep some weeks, rent the rest, and model whether the rental-income scenario can support the payment before a lender reviews it.
             </Lead>
+            <div style={{ marginBottom: 22, maxWidth: 620 }}>
+              <ComplianceNote tone="verify">
+                A purely personal-use vacation home is a weak DSCR fit because it does not generate qualifying rental income. This model is preliminary and does not guarantee bookings, income, qualification, or approval.
+              </ComplianceNote>
+            </div>
             <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Run my second home →</button>
           </div>
           <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)" }}>
@@ -73,8 +78,8 @@ export default function VacationHomesPage({
               <span><b style={{ color: dc.lemon }}>{useNights}</b> nights yours</span>
               <span><b style={{ color: BLUE }}>{rentNights}</b> nights rented</span>
             </div>
-            <Mono style={{ fontSize: "clamp(30px,4vw,44px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{paysForItself ? "Pays for itself" : fmt$(net) + "/mo"}</Mono>
-            <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{paysForItself ? `rental income covers the ${fmt$(pay)} payment` : `your carry after ${fmt$(income)} rental income`}</div>
+            <Mono style={{ fontSize: "clamp(30px,4vw,44px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{paysForItself ? "Covers in scenario" : fmt$(net) + "/mo"}</Mono>
+            <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{paysForItself ? `modeled rental income covers the ${fmt$(pay)} estimated payment` : `modeled carry after ${fmt$(income)} rental income`}</div>
           </div>
         </div>
       </section>
@@ -83,8 +88,8 @@ export default function VacationHomesPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Use vs. earn</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>Slide the month. Watch it pay you back.</h2>
-          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Drag the split between nights you keep and nights you rent. The more you rent, the more your getaway offsets its own payment.</p>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>Slide the month. Model the hybrid use.</h2>
+          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Drag the split between nights you keep and nights you rent. The output is an educational rental-income scenario, not a promise that bookings or qualification will hold.</p>
           <div className="vac-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "stretch" }}>
             {/* slider + bar */}
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -105,10 +110,10 @@ export default function VacationHomesPage({
             </div>
             {/* result */}
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${paysForItself ? "rgba(77,189,151,0.4)" : "rgba(238,239,211,0.1)"}`, padding: "clamp(24px,3vw,36px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: paysForItself ? dc.emerald : BLUE, marginBottom: 8 }}>{paysForItself ? "It pays for itself" : "Your monthly carry"}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: paysForItself ? dc.emerald : BLUE, marginBottom: 8 }}>{paysForItself ? "Covers in scenario" : "Modeled monthly carry"}</div>
               <Mono style={{ fontSize: "clamp(40px,6vw,72px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, lineHeight: 0.9 }}>{paysForItself ? "$0" : fmt$(net)}</Mono>
               <div style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", marginTop: 12, lineHeight: 1.5 }}>
-                {fmt$(income)} rental income offsets {offsetPct}% of the {fmt$(pay)} payment. {paysForItself ? "The income covers the loan — you own a getaway at no monthly cost." : `You'd carry ${fmt$(net)} a month and keep ${useNights} nights for yourself.`}
+                {fmt$(income)} modeled rental income offsets {offsetPct}% of the {fmt$(pay)} estimated payment. {paysForItself ? "The scenario clears the payment before underwriting review." : `The scenario leaves ${fmt$(net)} in monthly carry and ${useNights} personal-use nights.`}
               </div>
               <button onClick={() => onNavigate("dscr-calculator")} style={{ marginTop: 20, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Price this as a loan →</button>
             </div>
@@ -122,9 +127,9 @@ export default function VacationHomesPage({
           <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>A second home, financed like the asset it is.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
             {[
-              { t: "Qualify on the rental nights", s: "We underwrite the income from the nights you let — not your salary. Use it yourself the rest of the year." },
-              { t: "No second-home income docs", s: "It's a DSCR investment loan: the property's rent qualifies, so there's no DTI squeeze on top of your primary mortgage." },
-              { t: "STR-aware underwriting", s: "Seasonal nightly income is modeled honestly — the number holds when the off-season hits." },
+              { t: "Hybrid use, not pure personal use", s: "A DSCR path needs a rental-income story. If you never rent the home, this is usually the wrong financing fit." },
+              { t: "Property-cash-flow focus", s: "The analysis starts with rent and payment assumptions, then moves to lender documentation and underwriting." },
+              { t: "STR-aware review", s: "Seasonality, local legality, approved data, and documentation determine whether the rental scenario can be used." },
             ].map((v) => (
               <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>
@@ -136,8 +141,8 @@ export default function VacationHomesPage({
       </section>
 
       <BottomCTA onNavigate={onNavigate} cards={[
-        { bg: dc.lemon, fg: dc.dark, blurb: "Price your second home as a DSCR loan — 60 seconds, no credit pull.", title: "Run my second home", view: "dscr-calculator" },
-        { bg: dc.mintBg, fg: dc.dark, blurb: "Renting it short-term? Underwrite the nightly income honestly.", title: "Underwrite the STR income", view: "str-underwriting" },
+        { bg: dc.lemon, fg: dc.dark, blurb: "Run a preliminary hybrid-use rental scenario before a lender reviews income, legality, and documentation.", title: "Model the hybrid use", view: "dscr-calculator" },
+        { bg: dc.mintBg, fg: dc.dark, blurb: "Renting it short-term? Review the STR income scenario with clear source and underwriting assumptions.", title: "Review STR income", view: "str-underwriting" },
       ]} />
     </DcShell>
   );

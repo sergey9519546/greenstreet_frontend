@@ -144,8 +144,8 @@ export default function BrokersPage({
             >
               Greenstreet is the broker and the lender — direct to you. Five tools
               price, qualify, and stress-test your DSCR rental deal — no income
-              docs, no income tax returns, no middleman. Price a deal in under 60
-              seconds, then we fund it in-house.
+              docs, no income tax returns, no middleman. Run a preliminary
+              scenario, then request a product-sheet-backed review.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Btn
@@ -171,7 +171,7 @@ export default function BrokersPage({
                   minHeight: 44,
                 }}
               >
-                See my rate in 5 questions →
+                Get preliminary program direction →
               </button>
             </div>
           </div>
@@ -212,11 +212,11 @@ export default function BrokersPage({
                 }}
               >
                 {[
-                  { label: "1–4 Unit Standard", spec: "≥1.00x DSCR" },
-                  { label: "Portfolio / Blanket", spec: "to $25M" },
-                  { label: "Non-US Investor", spec: "30%+ down" },
-                  { label: "STR / Airbnb", spec: "ADR × occ" },
-                  { label: "Sub-1.0", spec: "≥0.75x DSCR" },
+                  { label: "1–4 Unit Standard", spec: "[VERIFY]" },
+                  { label: "Portfolio / Blanket", spec: "[VERIFY]" },
+                  { label: "Non-US Investor", spec: "[VERIFY]" },
+                  { label: "STR / Airbnb", spec: "[VERIFY]" },
+                  { label: "Exception review", spec: "[VERIFY]" },
                 ].map((row) => (
                   <div
                     key={row.label}
@@ -269,7 +269,7 @@ export default function BrokersPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                In-house underwriting · direct
+                Terms require current product-sheet verification
               </span>
               <span
                 style={{
@@ -508,7 +508,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              See my rate in 5 questions →
+              Request scenario review →
             </button>
             {/* Secondary: transparent + FADED border, per contract */}
             <button
@@ -528,7 +528,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              Get a rate in 5 questions →
+              Check preliminary fit →
             </button>
           </div>
         </div>

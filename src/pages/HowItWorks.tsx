@@ -211,9 +211,9 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
             themeName="dark"
             onClick={onCTA}
           >
-            See my rate in 5 questions
+            Request scenario review
           </AnimatedButton>
-          <span style={{ fontSize: "14px", color: ICE, opacity: 0.7 }}>No email. No signup. No credit check. Just the number.</span>
+          <span style={{ fontSize: "14px", color: ICE, opacity: 0.7 }}>No hard credit pull at this step. Product terms require specialist review.</span>
         </div>
       </div>
     </section>

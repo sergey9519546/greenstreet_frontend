@@ -100,30 +100,30 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const headroomBps = Math.round((beRate - rate) * 100);
 
   // ── Verdict ─────────────────────────────────────────────────────────────────
-  let verdictLabel = 'BELOW FLOOR';
+  let verdictLabel = 'SHORTFALL';
   let zoneColor    = '#e06363';
   let zoneChipBg   = 'rgba(224,99,99,0.12)';
-  let verdictText  = 'Most lenders require DSCR ≥ 0.75. Restructure the deal or decline.';
-  let verdictHeadline = 'Rent doesn\'t cover the payment — restructure or decline.';
+  let verdictText  = 'The modeled rent does not support the payment. Restructure the scenario before relying on it.';
+  let verdictHeadline = 'Rent does not cover the modeled payment.';
 
   if (dscr >= 1.20) {
-    verdictLabel = 'GREEN DEAL';
+    verdictLabel = 'STRONG';
     zoneColor    = '#4dbd97';
     zoneChipBg   = 'rgba(77,189,151,0.12)';
-    verdictText  = 'Strong cushion. Qualifies with most DSCR lenders at standard pricing.';
-    verdictHeadline = 'Strong coverage — qualifies at standard pricing.';
+    verdictText  = 'Strong cushion in this scenario. Pricing and product fit still require verification.';
+    verdictHeadline = 'Strong modeled coverage.';
   } else if (dscr >= 1.00) {
-    verdictLabel = 'QUALIFIES';
+    verdictLabel = 'REVIEW';
     zoneColor    = '#d8d958';
     zoneChipBg   = 'rgba(216,217,88,0.12)';
-    verdictText  = 'Meets the 1.00 floor. Verify lender minimums and compensating factors.';
-    verdictHeadline = 'Meets the qualifying floor — check program minimums.';
+    verdictText  = 'Covers the modeled payment. Verify product thresholds, reserves, credit, and state rules.';
+    verdictHeadline = 'Reviewable modeled coverage.';
   } else if (dscr >= 0.75) {
     verdictLabel = 'SUB-1.0';
     zoneColor    = '#e6b84d';
     zoneChipBg   = 'rgba(230,184,77,0.12)';
-    verdictText  = 'Some lenders accept 0.75+ with strong FICO, reserves, or a lower LTV.';
-    verdictHeadline = 'Below 1.0 — sub-1.0 programs may still apply.';
+    verdictText  = 'Below 1.0x. Any review path depends on current product guidelines and compensating factors.';
+    verdictHeadline = 'Below 1.0 — specialist review required.';
   }
 
   const riskLevel = riskFromDscr(dscr);
@@ -510,7 +510,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Work backwards from rent</div>
-                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR (the ratio you want to hit — 1.25x is a strong approval threshold). We'll calculate the maximum price you can pay and still hit that ratio.</p>
+                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR. We'll calculate the maximum price you can pay and still hit that modeled coverage target. Product thresholds require verification.</p>
                 <div style={{ display: 'grid', gap: 22 }}>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Monthly rent</span>
@@ -559,7 +559,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     </div>
                   ))}
                   <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 14, lineHeight: 1.4 }}>
-                    Preliminary estimate — not a commitment to lend. Subject to full underwriting, appraisal and credit approval.
+                    Preliminary estimate — not a commitment to lend, approval, or rate quote. Subject to full underwriting, appraisal, credit review, and product-sheet verification.
                   </p>
                 </div>
               </div>

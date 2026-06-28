@@ -677,7 +677,7 @@ export default function ProductsPage({
                 textAlign: "left" as const,
               }}
             >
-              See my rate in 5 questions →
+              Request scenario review →
             </button>
             <button
               onClick={() => onNavigate("dscr-calculator")}

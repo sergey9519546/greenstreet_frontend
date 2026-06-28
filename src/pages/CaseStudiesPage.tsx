@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView, CountUp } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
+import ComplianceNote from "../design/ComplianceNote";
 
 // ── Case studies data ─────────────────────────────────────────────────────────
 interface StudyMetric {
@@ -52,7 +53,7 @@ const STUDIES: Study[] = [
     result:
       "Decision time dropped from 25 minutes to 6 per file. The team scaled 4× without adding a single underwriter.",
     quote:
-      "Greenstreet surfaced a 1.11x DSCR pass and had us rate-locked fast. We stopped running parallel Excel models the same week.",
+      "Greenstreet surfaced the DSCR scenario and review path quickly. We stopped running parallel Excel models the same week.",
     program: "DSCR 1-4 Standard",
   },
   {
@@ -64,9 +65,9 @@ const STUDIES: Study[] = [
     image: "/img/generated/scenes/desk-green-data.png",
     video: "/video/scenes/cs-northshore.mp4",
     poster: "/video/scenes/cs-northshore-poster.jpg",
-    headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
+    headline: "Fast scenario review — and Track 2 caught the deal that should have died.",
     metrics: [
-      { v: "Same-day", k: "Rate lock" },
+      { v: "[VERIFY]", k: "Review timing" },
       { v: "12%", k: "Vacancy gap caught by Track 2" },
       { v: "1", k: "Application, multiple programs checked" },
     ],
@@ -75,7 +76,7 @@ const STUDIES: Study[] = [
     solution:
       "One file runs through Greenstreet and routes across programs in a single pass. Dual-Track DSCR runs automatically on every file, so a vacancy gap that would sink a deal surfaces before any money is committed.",
     result:
-      "Same-day rate lock on clean files. On one file that sailed through Track 1 at 1.18x, Track 2 caught a 12% effective vacancy gap and killed it at the desk — before appraisal, before earnest money.",
+      "A fast review on clean files. On one scenario that looked workable on Track 1 at 1.18x, Track 2 caught a 12% effective vacancy gap and killed it at the desk — before appraisal, before earnest money.",
     quote:
       "Dual-Track saved a deal our own analysis would have waved through. Track 2 caught a 12% vacancy gap before it ever cost us money.",
     program: "DSCR Multi / 1-4",
@@ -93,16 +94,16 @@ const STUDIES: Study[] = [
     metrics: [
       { v: "3", k: "Deals killed pre-appraisal" },
       { v: "$14,800", k: "Hard costs avoided" },
-      { v: "3 min", k: "ITIN approval on Global program" },
+      { v: "[VERIFY]", k: "ITIN review timing" },
     ],
     challenge:
       "Discovering deals were marginal only after the appraisal was ordered. On paper the rent covered the payment. In reality, vacancy and management quietly pushed properties underwater on Track 2. Paying $3,000–7,000 per appraisal to get bad news that could have arrived on day one.",
     solution:
-      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit and funds in-house.",
+      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN or foreign-national borrowers, documentation, country eligibility, KYC/AML, OFAC, and product fit require specialist review.",
     result:
-      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A non-US investor ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
+      "Three deals that would have failed post-appraisal were killed pre-appraisal, avoiding modeled hard costs. A non-US investor ITIN scenario that previously took a week to route received a faster specialist review path.",
     quote:
-      "Non-US investor ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
+      "Non-US investor ITIN routing used to take a week. Greenstreet gave us a clearer review path — and Track 2 stopped us from buying three appraisals we'd have regretted.",
     program: "DSCR Global",
   },
 ];
@@ -116,18 +117,18 @@ const AURORA_STORY = {
   image: "/img/generated/scenes/residential-townhomes.png",
   video: "/video/scenes/cs-aurora.mp4",
   poster: "/video/scenes/cs-aurora-poster.jpg",
-  headline: "One blended view of 40 doors got the blanket line approved.",
+  headline: "One blended view of 40 doors supported the blanket-line review.",
   metrics: [
-    { v: "$18M", k: "Blanket line approved" },
+    { v: "[VERIFY]", k: "Blanket line reviewed" },
     { v: "1.11x", k: "Blended DSCR" },
-    { v: "1 wk", k: "To approval" },
+    { v: "[VERIFY]", k: "Review timing" },
   ],
   challenge:
     "Submitting properties one at a time with no consolidated view. Each property evaluated in isolation — the portfolio's true debt-service strength was invisible to Greenstreet's underwriters.",
   solution:
     "The portfolio tool showed blended DSCR (combined rent ÷ combined payments across all 40 properties), aggregate equity, and weighted rate in a single view — the same format a blanket underwriter builds when evaluating your book.",
   result:
-    "The blanket line was approved in a week. No more one-at-a-time submissions.",
+    "The blanket-line scenario moved through review as one consolidated package. No more one-at-a-time submissions.",
   quote:
     "One blended view replaced a spreadsheet stack that took two days to compile. The underwriter saw exactly what they needed.",
   program: "DSCR Portfolio / Blanket",
@@ -196,6 +197,9 @@ function AggregateScoreboard() {
           <div style={{ fontSize: 12.5, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 3, letterSpacing: "-0.01em" }}>{a.sub}</div>
         </div>
       ))}
+      <div style={{ fontSize: 11.5, lineHeight: 1.45, color: "rgba(238,239,211,0.56)", borderTop: `1px dashed ${dc.faded}`, paddingTop: 14 }}>
+        Metrics are scenario outcomes and require source records, customer permission, and methodology notes before use as verified customer proof. [VERIFY]
+      </div>
     </div>
   );
 }
@@ -375,6 +379,9 @@ function StudyRow({
             </div>
           ))}
         </div>
+        <div style={{ ...rise(0.18 + s.metrics.length * 0.08), fontSize: 11.5, lineHeight: 1.45, color: "rgba(238,239,211,0.56)", margin: "-12px 0 20px" }}>
+          Metric verification required: source record, date range, customer permission, and calculation method. [VERIFY]
+        </div>
         <button
           onClick={() => (window.history.pushState({}, "", `/case-studies/${s.slug}`), window.dispatchEvent(new PopStateEvent("popstate")))}
           style={{ ...rise(0.18 + s.metrics.length * 0.08), background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 14, fontWeight: 700, color: dc.emerald, letterSpacing: "-0.01em", fontFamily: dc.sans, display: "inline-flex", alignItems: "center", gap: 6 }}
@@ -522,6 +529,11 @@ function StudyDetail({
             </div>
           ))}
         </div>
+        <div style={{ maxWidth: dc.maxW, margin: "14px auto 0" }}>
+          <ComplianceNote tone="source">
+            Outcome metrics on this case study require a source record, customer permission, measurement period, and methodology note before use as verified public proof. Treat as scenario copy until verified.
+          </ComplianceNote>
+        </div>
       </section>
 
       {/* Body */}
@@ -596,7 +608,7 @@ function StudyDetail({
                 fontStyle: "normal",
               }}
             >
-              — {s.company} team · {s.program}
+              Illustrative composite quote · {s.company} · {s.program}
             </div>
           </div>
 
@@ -620,7 +632,7 @@ function StudyDetail({
                 marginBottom: 12,
               }}
             >
-              See if your deal qualifies
+              Request scenario review
             </div>
             <p
               style={{
@@ -631,7 +643,7 @@ function StudyDetail({
                 margin: "0 0 20px",
               }}
             >
-              Enter your property's rent and loan details — get a preliminary DSCR estimate, Greenstreet program match, and rate range in under a minute. No W-2s or tax returns required.
+              Enter property and loan details for a preliminary DSCR scenario. Final pricing, documentation, and program eligibility require product-sheet verification and underwriting review.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
               {/* Dominant lemon CTA */}
@@ -653,7 +665,7 @@ function StudyDetail({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Price my deal now →
+                Request review →
               </button>
               {/* Secondary — transparent + 1.5px FADED */}
               <button
@@ -787,9 +799,10 @@ export default function CaseStudiesPage({
                   margin: "0 0 32px",
                 }}
               >
-                Four illustrative scenarios — faster decisions, avoided appraisal
-                costs, and deals caught before they failed. Each shows the
-                situation, what we did, and the measurable outcome.
+                Four scenario narratives showing faster decisions, avoided
+                diligence costs, and deals caught before they failed. Metrics
+                require source records and customer permission before being used
+                as verified public proof.
               </Lead>
               {/* Dominant lemon CTA */}
               <Btn

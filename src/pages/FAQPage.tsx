@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
+import ComplianceNote from "../design/ComplianceNote";
 
 const AS_OF = "Jun 25, 2026";
+const PRODUCT_VERIFY = "[VERIFY: current Greenstreet product sheet]";
+const LEGAL_REVIEW = "[LEGAL REVIEW]";
 
 // Source attribution per answer — refreshed 2026-06-25.
 // Each `src` is the primary source a curious reader (or AI search engine) can verify.
@@ -12,7 +15,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "The basics",
     q: "Do I need to show my income or tax returns to qualify?",
-    a: "No. A DSCR (Debt Service Coverage Ratio — whether the property's rent can cover the loan payment) loan qualifies on what the property earns, not what you earn. The lender divides the property's gross monthly rent by its total monthly PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues). A DSCR at or above 1.0 means rent covers the payment. No W-2s, no pay stubs, no employment history required.",
+    a: `DSCR loans focus on the property's rent coverage instead of the borrower's W-2 income, but documentation requirements still vary by program, entity, state, credit, property type, and underwriting overlay. Publish exact income-documentation rules only from the current product sheet. ${PRODUCT_VERIFY}`,
     src: "12 CFR 1026.43 · TILA / Reg Z QM rules",
     cta: { label: "Estimate your DSCR →", action: "calculator" },
   },
@@ -38,14 +41,14 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "The basics",
     q: "What rate should I realistically expect?",
-    a: `Rates change with market conditions — these are indicative as of ${AS_OF}. A strong file (740+ FICO, LTV (how the loan amount compares to the property value) at or below 75%, DSCR at or above 1.0, prepayment penalty accepted) runs approximately 6.50–7.00% on a 30-year fixed — roughly 50–125bps above conforming. Most files land 6.85–7.50%. Weaker files (sub-1.0 DSCR, short-term rental, FICO below 680) run 7.50–9.50%. ARM (adjustable-rate mortgage — the rate is fixed for a few years, then resets periodically) options start lower; check the reset cap structure carefully. Confirm current pricing with your Greenstreet rep before making any decisions.`,
-    src: "Freddie Mac PMMS · wk of Jun 18, 2026 · Greenstreet rate-tier model",
+    a: `Pricing changes with market conditions and file attributes. Credit band, leverage, DSCR, property type, state, prepayment-penalty option, reserves, loan size, and lender overlays can all move pricing. Do not rely on an online estimate as a quote. Current rates, fees, points, APR/payment assumptions, and program availability must be verified against Greenstreet's active rate sheet as of ${AS_OF}. ${PRODUCT_VERIFY}`,
+    src: "Current Greenstreet rate sheet required before publication · Freddie Mac PMMS may be used only as market context",
   },
   {
     group: "The basics",
     q: "How quickly can I close?",
-    a: "Faster than a conventional loan. Greenstreet targets 14–21 days on clean files and 21–30 days on complex ones. The process is streamlined because there is no income verification — just the appraisal (which includes the Form 1007 rent estimate), property documents, and a credit pull.",
-    src: "Lender-published turn times · Apr 2026 sweep",
+    a: `Closing speed depends on the appraisal, title, insurance, entity documents, borrower documentation, state requirements, and underwriting conditions. Greenstreet should publish only verified turn-time targets from the current operations/product sheet. Until then, treat any timeline as an estimate, not a promise. ${PRODUCT_VERIFY}`,
+    src: "Greenstreet operations/product sheet required",
   },
   // ── GROUP: Qualification ──────────────────────────────────────────────────────
   {
@@ -58,20 +61,20 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "What credit score do I need?",
-    a: "Greenstreet's Core program requires 660+. The Flex program goes to 640 with compensating factors. Going from 660 to 740+ can save 0.75–1.50% in rate and unlock the Premier tier. ITIN borrowers and non-US investors without a U.S. Social Security Number qualify on the Global program.",
-    src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
+    a: `Minimum credit bands and alternative-credit paths vary by program, property type, leverage, DSCR, borrower profile, and lender overlay. Do not publish a FICO floor, tier name, or rate savings claim until it is tied to the active product sheet. Non-US investor and ITIN paths require separate documentation, KYC/AML, OFAC, eligible-country, and lender-overlay review. ${PRODUCT_VERIFY} ${LEGAL_REVIEW}`,
+    src: "Current Greenstreet product sheet required",
   },
   {
     group: "Qualification",
     q: "How much do I need to put down?",
-    a: "The standard minimum is 20% down (80% LTV — how the loan amount compares to the property value). Greenstreet prices its best rates at 75% LTV (25% down). A strong file (740+ FICO, DSCR at or above 1.0, SFR purchase) accesses the Premier tier at that level. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
-    src: "Greenstreet lender matrix · Apr 2026",
+    a: `Down payment and maximum LTV are program-specific. Property type, occupancy/rental model, borrower profile, country/ITIN status, state, DSCR, loan size, and reserves can all change the required equity. Publish exact down-payment or LTV statements only from the active product sheet. ${PRODUCT_VERIFY}`,
+    src: "Current Greenstreet product sheet required",
   },
   {
     group: "Qualification",
     q: "How much cash do I need to keep in the bank after closing?",
-    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). At DSCR 1.25 or above: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add extra months for: short-term rentals (+3), condos (+3), credit score below 680 (+3), first-time investors (+3), loans above $1M (+6), non-US investors (+6). These stack. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
-    src: "Greenstreet reserveEngine.ts · 5-overlay model",
+    a: `Reserve requirements are months of mortgage payments kept in the bank after closing. The exact requirement depends on DSCR, leverage, credit band, experience, property type, loan size, state, borrower residency/country status, and lender overlays. Retirement, business, foreign, and crypto assets may be treated differently by program. Publish exact reserve months only from the current product sheet. ${PRODUCT_VERIFY}`,
+    src: "Current Greenstreet reserve/product sheet required",
   },
   {
     group: "Qualification",
@@ -82,41 +85,41 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "Can a non-US investor or ITIN borrower get a DSCR loan?",
-    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Non-US investors with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
-    src: "Greenstreet Global program matrix · FIRPTA IRC §897 · Q2 2026",
-    cta: { label: "See if your file qualifies →", action: "qualify" },
+    a: `Sometimes. DSCR qualification is property-cash-flow based, which can make it a viable path for some ITIN and foreign-national investors, but it is not universal. Eligibility depends on eligible country, sanctions/OFAC screening, KYC/AML and funds-source review, documentation, state scope, entity structure, reserves, property type, and lender overlays. FIRPTA and cross-border tax issues should be reviewed with a qualified CPA or attorney. ${PRODUCT_VERIFY} ${LEGAL_REVIEW}`,
+    src: "Current Greenstreet foreign-national product sheet required · FIRPTA IRC §897 legal/CPA review required",
+    cta: { label: "Request file review →", action: "qualify" },
   },
   {
     group: "Qualification",
     q: "What happens after I prequalify — what are the steps to close?",
-    a: "Six steps: (1) Soft file review (Day 1–2): Greenstreet confirms program fit — property type, DSCR range, FICO tier, entity structure, reserves. (2) Term sheet (Day 2–4): indicative rate range, fees, reserve requirement, prepay options — not a commitment. (3) Formal application + appraisal ordered (Day 3–5): you complete the application and pay the appraisal deposit; the 1007 rent schedule is part of the appraisal. (4) Document submission (Day 5–10): submit the full doc package in parallel with the appraisal. (5) Underwriting (Day 12–20 after appraisal returns): DSCR verified at the locked rate, title reviewed, conditions issued. (6) Clear to close → closing → funding: 3-business-day CD delivery period required by federal law. Total target: 21–30 business days on a clean file. The appraisal is the critical path — order it as early as possible.",
+    a: `The path is generally: preliminary scenario review, product-fit check, term-sheet or scenario discussion if available, application, appraisal, document collection, underwriting, conditions, closing disclosure, closing, and funding. Timing depends on appraisal, title, insurance, entity documents, reserves, state rules, and underwriting conditions. Publish exact cycle-time claims only from current operations data. ${PRODUCT_VERIFY}`,
     src: "Greenstreet close-process SOP · TRID 3-day CD rule (12 CFR 1026.19)",
   },
   {
     group: "Qualification",
     q: "How can I improve my DSCR before applying?",
-    a: "Four levers: (1) Buy down the rate: each 0.25% rate reduction saves ~$15–17/month per $100K of loan. On a $400K loan, buying down 0.50% saves ~$130/month in P&I. Points cost roughly 1% of loan per 0.25% of rate reduction. (2) Switch to interest-only (IO): IO eliminates the principal component, saving roughly $250–350/month on a $400K loan at current rates. Requires 720+ FICO, ≤75% LTV on most programs. (3) Raise the qualifying rent: provide the appraiser with comparable rental data before the inspection; sign a market-rate lease before closing (if vacant); or use documented 12-month STR history if the property is STR-eligible. (4) Increase the down payment: going from 80% to 75% LTV on a $400K deal reduces P&I by ~$85/month AND unlocks the better LTV rate tier, saving an additional 0.25–0.50%. Levers 2 and 4 combined can often take a 0.92x DSCR to 1.10x+ without touching the rent.",
-    src: "Greenstreet engine.ts IO model · LTV pricing matrix · Q2 2026",
+    a: `Four general levers can improve DSCR: lower the loan amount, lower the rate/payment structure if an eligible program allows it, document stronger qualifying rent, or reduce expenses that are included in the payment. Exact payment changes, point costs, IO eligibility, FICO bands, LTV tiers, and DSCR outcomes must be modeled from verified program assumptions, not generic examples. ${PRODUCT_VERIFY}`,
+    src: "Current Greenstreet product sheet and engine assumptions required",
     cta: { label: "Model the impact on your deal →", action: "calculator" },
   },
   {
     group: "Qualification",
     q: "What is the deal-break rate?",
-    a: "The deal-break rate is the interest rate at which DSCR falls to exactly 1.00x — the lender's hard floor. Below 1.00x, the deal won't qualify. The headroom between your offered rate and the deal-break rate (in basis points) tells you how much rate shock the deal can absorb before it fails — useful for ARM reset modeling and refinance planning. Greenstreet's Deal Analyzer surfaces both numbers on every solve.",
+    a: `The deal-break rate is a modeling input: the rate at which the scenario DSCR reaches a selected coverage target. It helps show sensitivity, but it is not a lender floor, approval threshold, or rate quote unless verified against the current product sheet. ${PRODUCT_VERIFY}`,
     src: "Greenstreet engine.ts · dealBreakRate + rateHeadroomBps",
   },
   // ── GROUP: Rental income & property ──────────────────────────────────────────
   {
     group: "Rental income & property",
     q: "Does the property need to have a tenant already?",
-    a: "No. A significant share of DSCR loans close without a signed lease. Lenders use Form 1007 market rent from the appraisal — the appraiser's estimate of what the property would rent for — as the qualifying figure. If you do have a lease, the lender uses the lower of the lease rent and the 1007 rent. Vacant properties and new acquisitions are fine.",
+    a: `Sometimes. Some DSCR programs may use appraiser market rent when there is no signed lease, but the controlling rent figure, documentation, vacancy treatment, and property-type limits are product-specific. Verify before relying on vacant-property or new-acquisition assumptions. ${PRODUCT_VERIFY}`,
     src: "Verus/S&P 2025 DSCR securitization data · Fannie Mae 1007",
   },
   {
     group: "Rental income & property",
     q: "Can I use a DSCR loan for an Airbnb or short-term rental?",
-    a: "Yes, but short-term rental income is qualified more conservatively. Lenders use the lowest of: (1) Form 1007 long-term rental appraisal, (2) AirDNA projected income × 70–80%, or (3) documented 12-month platform payout history × 70–80%. If you don't have 12 months of STR history, the 1007 long-term rent controls — which can be significantly lower than your Airbnb projection. Short-term rental properties also require 3 extra months of reserves (mortgage payments kept in the bank after closing). Greenstreet pre-checks STR legality in all 50 states before matching you to a program.",
-    src: "50-state STR matrix · Q2 2026 · Minut 2026 + state statutes",
+    a: `Some DSCR programs consider short-term rental income, but qualifying income is program-specific and more conservative than host dashboards. Lenders may require long-term market rent, lender-approved STR market data, documented platform history, local STR legality review, and additional reserves. Exact haircuts, data sources, and eligibility rules require current STR product-sheet verification. ${PRODUCT_VERIFY} ${LEGAL_REVIEW}`,
+    src: "Current STR product sheet and state/local STR legality review required",
   },
   {
     group: "Rental income & property",
@@ -133,8 +136,8 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Rental income & property",
     q: "How do lenders calculate qualifying income on a short-term rental?",
-    a: "Lenders use the lowest of three figures: (1) Form 1007 long-term market rent — the appraiser's estimate for the property rented unfurnished on a standard lease. This is the floor and controls if you have no STR history. (2) AirDNA projected income × 70–80% — the market estimate, reduced for vacancy and seasonality. (3) Documented 12-month STR gross revenue × 70–80% — only available with full platform payout statements for all 12 months. If the property has never operated as a short-term rental, you qualify on the 1007 long-term rent regardless of what Airbnb projects. Short-term rental adds 3 extra months to the reserves requirement.",
-    src: "50-state STR matrix · Q2 2026 · AirDNA methodology · Greenstreet STR program overlays",
+    a: `Qualifying STR income depends on the specific lender program. Common inputs can include appraiser market rent, lender-approved STR market data, and documented platform history, but the controlling figure, haircut, reserve overlay, and documentation rules must come from the active STR product sheet. Do not rely on Airbnb screenshots or generic revenue estimates as qualifying income. ${PRODUCT_VERIFY}`,
+    src: "Current STR product sheet and approved STR data-source methodology required",
   },
   {
     group: "Rental income & property",
@@ -147,7 +150,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Refinance",
     q: "Can I refinance a DSCR loan after I close?",
-    a: "Yes. Both a rate & term refinance (replace your current loan to change the rate or term, without taking cash out) and a cash-out refinance (replace your loan with a larger one and take the difference in cash) are available on DSCR investment properties. Both require the property to re-qualify on DSCR at the new rate and new loan amount.",
+    a: `Sometimes. Rate-term and cash-out refinances are product-specific and depend on property type, state, seasoning, DSCR, credit, leverage, occupancy, title, reserves, and current guidelines. The property must be reviewed at the new loan amount and payment. ${PRODUCT_VERIFY}`,
     src: "Greenstreet refi program matrix · Q2 2026",
   },
   {
@@ -159,8 +162,8 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Refinance",
     q: "How much equity can I pull out on a cash-out refinance?",
-    a: "Most DSCR programs cap cash-out refinances at 75% LTV (how the loan amount compares to the property value — lower means more equity). Some programs go to 70% on larger loans, short-term rental properties, or lower credit scores. Rate & term refinances are generally allowed up to 80% LTV. The DSCR must qualify at the new, higher loan balance — if rates have risen since purchase, the higher payment may push DSCR below the qualifying floor.",
-    src: "Greenstreet refi program matrix · Q2 2026",
+    a: `Cash-out and rate-term refinance leverage caps vary by program, property type, loan size, DSCR, credit band, state, seasoning, and lender overlay. The property must re-qualify at the new loan amount and payment. Publish exact cash-out or rate-term LTV caps only from the active refinance product sheet. ${PRODUCT_VERIFY}`,
+    src: "Current Greenstreet refinance product sheet required",
   },
   {
     group: "Refinance",
@@ -173,14 +176,14 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Compliance & regulatory",
     q: "What changed in 2026 for DSCR loans?",
-    a: "Three regulatory shifts: (1) §1071 small-business data collection threshold raised to 1,000 originations/year, effective May 1, 2026. (2) HOEPA thresholds refreshed for 2026. (3) MN HF 3437 effective Aug 1, 2026 makes business-purpose DSCR loans legal in Minnesota with full PPPs. None of these change the DSCR math — they change the paperwork.",
-    src: "FR 2026-08494 · 91 FR 23530 · HOEPA 12 CFR 1026.32(a) · MN HF 3437 (2026)",
+    a: `Regulatory content changes quickly and should be treated as a legal-review item before publication. Any Section 1071, HOEPA, state prepayment-penalty, or Minnesota DSCR statement needs a current citation, effective date, and licensing/compliance review. These items may affect paperwork, state availability, pricing structure, or disclosures depending on the file. ${LEGAL_REVIEW}`,
+    src: "Current legal/compliance citation pack required",
   },
   {
     group: "Compliance & regulatory",
     q: "How does OBBBA affect DSCR deal returns?",
-    a: "OBBBA makes 100% bonus depreciation permanent (investors can shelter Year-1 taxable income via cost segregation) and raises §179 to $2.56M for 2026. The QBI deduction is raised to 23% and made permanent. For a $400K deal, expect roughly $12K–$20K of Year-1 depreciation shield depending on land/building split — actual outcome depends on your tax situation. Consult a CPA; Greenstreet's Tax Engine models this with OBBBA defaults.",
-    src: "OBBBA 2025 · IRC §168(k) · IRC §179 · Greenstreet taxEngine.ts",
+    a: `Tax-law content should not be presented as personalized tax advice. Any OBBBA, depreciation, Section 179, QBI, or cost-segregation claim needs current legal/tax citation review. Actual tax outcome depends on ownership structure, use, basis allocation, income, passive-activity rules, and the investor's broader tax situation. Consult a qualified CPA or tax attorney. ${LEGAL_REVIEW}`,
+    src: "Current tax/legal citation pack required",
   },
 ];
 
@@ -250,11 +253,16 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             DSCR loan questions — answered in plain language.
           </H1>
           <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "50ch", margin: "0 0 20px" }}>
-            A DSCR loan qualifies on the property's rent — not your income or tax returns. Every question below covers how that works, what you need to qualify, and what to watch out for.
+            A DSCR loan is primarily reviewed around the property's rent coverage, but product terms, documentation, state rules, credit, reserves, and underwriting overlays still matter. Items below are educational until verified.
           </Lead>
           <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: 0, letterSpacing: "-0.01em" }}>
-            Last reviewed {AS_OF} · sources shown inline with each answer.
+            Verification status shown inline · product terms require the current Greenstreet product sheet.
           </p>
+          <div style={{ marginTop: 22, maxWidth: 620 }}>
+            <ComplianceNote tone="verify">
+              Rate, LTV, down-payment, reserves, STR, foreign-national, tax, and legal answers are not quotes, approvals, or legal/tax advice. Items marked `[VERIFY]` or `[LEGAL REVIEW]` must be checked before publication or borrower reliance.
+            </ComplianceNote>
+          </div>
         </div>
       </section>
 
@@ -417,10 +425,10 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               Ready to run your deal?
             </div>
             <p style={{ color: "rgba(238,239,211,0.75)", fontSize: 15, margin: 0, lineHeight: 1.5, maxWidth: "44ch" }}>
-              Check whether your property qualifies and see your preliminary program match in minutes. No commitment required.
+              Check whether your property appears to fit a DSCR program and request a specialist review. No commitment required.
             </p>
           </div>
-          <Btn label="See if your deal qualifies" onClick={() => (window as any).openQualify?.()} style={{ flexShrink: 0 }} />
+          <Btn label="Request scenario review" onClick={() => (window as any).openQualify?.()} style={{ flexShrink: 0 }} />
         </div>
 
         {/* Freshness signal */}
@@ -451,10 +459,10 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               color: "rgba(238,239,211,0.62)",
             }}
           >
-            Reviewed
+            Verification status
           </span>
           <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
-            All answers reviewed {AS_OF} · sources inline · next review Jul 22, 2026
+            Educational answers refreshed {AS_OF}; current product terms and legal/tax claims still require source verification before borrower reliance.
           </span>
         </div>
       </section>
@@ -504,7 +512,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               marginRight: "auto",
             }}
           >
-            Check whether your deal qualifies — or talk to a DSCR specialist directly. Most questions answered the same business day.
+            Check whether your deal appears to fit a DSCR path, or talk to a specialist directly. Product terms require verification before borrower reliance.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
             <button
@@ -525,7 +533,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 letterSpacing: "-0.01em",
               }}
             >
-              See if your deal qualifies →
+              Request scenario review →
             </button>
             <a
               href="/book-demo"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font } from "../theme";
 import BottomCTA from "../design/BottomCTA";
+import ComplianceNote from "../design/ComplianceNote";
 
 // ── Who-We-Serve: STR & Airbnb Hosts ──────────────────────────────────────────
 // Signature: the 12-Month Revenue Ribbon — real seasonal income (ADR × occupancy),
@@ -74,8 +75,13 @@ export default function STRHostsPage({
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For STR &amp; Airbnb Hosts</div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "15ch" }}>We underwrite the slow months.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
-              Short-term rental income swings with the season. We underwrite it the way it actually behaves — ADR × occupancy, month by month — not the peak-week screenshot. The number holds at closing.
+              Short-term rental income swings with the season. This page models a preliminary ADR × occupancy scenario so you can see the slow months before a lender reviews documentation, market data, and local STR legality.
             </Lead>
+            <div style={{ marginBottom: 22, maxWidth: 620 }}>
+              <ComplianceNote tone="verify">
+                STR income projections are not qualifying income, not a guarantee, and not a loan approval. Final qualifying income depends on lender-approved data, documentation, state/local legality, appraisal, and underwriting overlays.
+              </ComplianceNote>
+            </div>
             <button onClick={() => onNavigate("str-underwriting")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Underwrite my STR →</button>
           </div>
           <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(18px,2.2vw,26px)" }}>
@@ -105,20 +111,20 @@ export default function STRHostsPage({
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>The revenue ribbon</div>
           <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>The deal has to survive February — not just July.</h2>
-          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Set your nightly rate and occupancy — scroll over the fields. Months under the lemon line don't cover the payment. We qualify on the trough, so there's no surprise at closing.</p>
+          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Set a nightly-rate and occupancy scenario. Months under the lemon line do not cover the estimated payment. Final underwriting may use different data, haircuts, reserve overlays, or a lower qualifying income figure.</p>
           <div className="str-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 28, alignItems: "stretch" }}>
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.4vw,28px)", display: "grid", gap: 16, alignContent: "start" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE }}>The listing</div>
               {[{ l: "Average nightly rate (ADR)", n: numIn(adr, setAdr, 5, "$") }, { l: "Occupancy", n: numIn(occ, setOcc, 1, "", "%") }, { l: "Monthly payment (PITIA)", n: numIn(pay, setPay, 50, "$") }].map((f) => (
                 <label key={f.l}><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>{f.l}</span>{f.n}</label>
               ))}
-              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Seasonality models a summer-peak market. Real underwriting uses your market's AirDNA history.</div>
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Illustrative seasonality only. Real underwriting requires approved market data, documentation, and local STR legality review. [VERIFY: source]</div>
             </div>
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${holds ? "rgba(77,189,151,0.4)" : "rgba(255,107,107,0.4)"}`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: holds ? dc.emerald : RED, marginBottom: 6 }}>{holds ? "Holds the slow months" : "Breaks in the off-season"}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: holds ? dc.emerald : RED, marginBottom: 6 }}>{holds ? "Covers in this scenario" : "Shortfall in this scenario"}</div>
               <Mono style={{ fontSize: "clamp(48px,7vw,84px)", fontWeight: 700, color: holds ? dc.emerald : RED, lineHeight: 0.9 }}>{worstDSCR.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "46ch" }}>
-                Worst month ({["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][worstIdx]}) brings {fmt$(worst)} against a {fmt$(pay)} payment. {holds ? "Even the trough covers the loan — that's a fundable STR." : "The trough falls short — lower the loan, or we underwrite to the months that do clear."}
+                Worst month ({["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][worstIdx]}) brings {fmt$(worst)} against a {fmt$(pay)} estimated payment. {holds ? "The scenario appears strong enough for review, but final qualifying income must be verified." : "The trough falls short under these assumptions; review lower leverage, stronger documentation, or a different rental-income basis."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
                 <div><Mono style={{ fontSize: 20, fontWeight: 700, color: BLUE, display: "block" }}>{fmt$(annualAvg)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>avg month</div></div>
@@ -136,9 +142,9 @@ export default function STRHostsPage({
           <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>STR income, underwritten honestly.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
             {[
-              { t: "Real ADR × occupancy", s: "Market data, not a host's best week. The number is the one a lender will actually fund." },
-              { t: "Seasonally stress-tested", s: "We check the trough month and a rate rise before you commit — no off-season surprise." },
-              { t: "Long-term fallback", s: "If the STR number is thin, we can qualify on the long-term lease instead — whichever is stronger." },
+              { t: "ADR × occupancy scenario", s: "Useful for screening, but final income must come from lender-approved market data, documentation, or appraisal inputs." },
+              { t: "Seasonality exposed early", s: "The tool highlights the trough month before you spend time on a weak STR scenario." },
+              { t: "Alternative income basis", s: "Some files may use long-term market rent or documented STR history, depending on program rules and underwriting." },
             ].map((v) => (
               <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>

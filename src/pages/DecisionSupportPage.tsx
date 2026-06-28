@@ -204,7 +204,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       const composite  = Math.round(dscrScore * 0.30 + levScore * 0.18 + ficoScore * 0.14 + irrScore * 0.20 + liqScore * 0.10);
 
       const factors = [
-        { label: "DSCR coverage (30%)", v: dscrScore, note: `${deal.dscr.toFixed(2)}x — ${deal.dscr >= 1.25 ? "comfortable" : deal.dscr >= 1.0 ? "qualifies" : "sub-1.0"}` },
+        { label: "DSCR coverage (30%)", v: dscrScore, note: `${deal.dscr.toFixed(2)}x — ${deal.dscr >= 1.25 ? "comfortable scenario" : deal.dscr >= 1.0 ? "review range" : "below 1.0"}` },
         { label: "Leverage (18%)",      v: levScore,  note: `${100 - downPct}% LTV` },
         { label: "Est. 5-yr return proxy (20%)", v: irrScore,  note: `${(afterTaxIRR * 100).toFixed(1)}% (proxy, not true IRR)` },
         { label: "Borrower credit (14%)", v: ficoScore, note: `${fico} FICO` },
@@ -220,12 +220,12 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         deal.dscr >= 1.25
           ? { mark: "✓", color: MINT, text: `DSCR ${deal.dscr.toFixed(2)}x sits comfortably above the 1.25x comfort line.` }
           : deal.dscr >= 1.0
-          ? { mark: "~", color: YLW,  text: `DSCR ${deal.dscr.toFixed(2)}x qualifies but leaves thin cushion against rate or vacancy shock.` }
-          : { mark: "✕", color: RED,  text: `DSCR ${deal.dscr.toFixed(2)}x is below 1.0 — most lenders require compensating factors or decline.` }
+          ? { mark: "~", color: YLW,  text: `DSCR ${deal.dscr.toFixed(2)}x covers the modeled payment but leaves thin cushion against rate or vacancy shock.` }
+          : { mark: "✕", color: RED,  text: `DSCR ${deal.dscr.toFixed(2)}x is below 1.0 — any review path requires current product guidelines and compensating factors.` }
       );
       memo.push(
         (100 - downPct) <= 75
-          ? { mark: "✓", color: MINT, text: `${100 - downPct}% LTV is within standard DSCR program limits.` }
+          ? { mark: "✓", color: MINT, text: `${100 - downPct}% LTV is within the modeled guideline range; verify against the product sheet.` }
           : { mark: "~", color: YLW,  text: `${100 - downPct}% LTV pushes pricing add-ons and narrows the lender shortlist.` }
       );
       memo.push(
@@ -235,8 +235,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       );
       memo.push(
         matched.length > 0
-          ? { mark: "✓", color: MINT, text: `${matched.length} Greenstreet program${matched.length > 1 ? "s" : ""} eligible at this LTV and FICO.` }
-          : { mark: "✕", color: RED,  text: "No programs match current LTV and FICO — restructure down payment or score." }
+          ? { mark: "✓", color: MINT, text: `${matched.length} modeled Greenstreet program${matched.length > 1 ? "s" : ""} may fit at this LTV and FICO; verify current guidelines.` }
+          : { mark: "✕", color: RED,  text: "No modeled programs match current LTV and FICO — restructure or verify whether current guidelines differ." }
       );
 
       return { deal, verdict, kill, acq, grade, year1CoC, track2DSCR, afterTaxIRR, composite, factors, memo, matched };
@@ -373,10 +373,10 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
               {([
                 { label: "Purchase Price", hint: "What you're paying for the property.", value: purchasePrice, set: setPurchasePrice, step: 5000,  prefix: "$", suffix: "" },
-                { label: "Down Payment",   hint: "Your cash in — higher down = lower LTV (how the loan amount compares to the property value; lower = more equity = better terms) = stronger approval odds.", value: downPct, set: setDownPct, step: 1, prefix: "", suffix: "%" },
+                { label: "Down Payment",   hint: "Your cash in. Higher down lowers LTV and may improve review strength, but terms require product-sheet verification.", value: downPct, set: setDownPct, step: 1, prefix: "", suffix: "%" },
                 { label: "Note Rate",      hint: "The interest rate on the loan. Estimate is fine — use today's market rate.", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%" },
                 { label: "Monthly Rent",   hint: "Expected gross rent. For vacant properties, use market-comparable rent — an estimate is fine.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
-                { label: "FICO Score",     hint: "Your credit score. Affects which programs you qualify for. 620 minimum for most DSCR programs; 740+ unlocks best pricing.", value: fico, set: setFico, step: 5, prefix: "", suffix: "" },
+                { label: "FICO Score",     hint: "Your credit score affects program fit and pricing. Minimum bands and pricing tiers require current product-sheet verification.", value: fico, set: setFico, step: 5, prefix: "", suffix: "" },
                 { label: "Annual Taxes",   hint: "Property taxes per year. Find on the county assessor site — estimate is fine.", value: annualTaxes, set: setAnnualTaxes, step: 250, prefix: "$", suffix: "" },
                 { label: "Annual Ins.",    hint: "Homeowners insurance per year. Budget $1,500–$3,000 if unknown.", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$", suffix: "" },
                 { label: "Monthly HOA",    hint: "HOA dues per month. Enter 0 if none.", value: hoa, set: setHoa, step: 25, prefix: "$", suffix: "" },
@@ -489,14 +489,14 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     </div>
                     <p style={{ fontSize: 13, color: "rgba(238,239,211,0.65)", margin: "0 0 12px", lineHeight: 1.5 }}>
                       {result.verdict.verdict === "PROCEED"
-                        ? "Your deal clears underwriting checks. Get a formal rate quote and term sheet from Greenstreet."
+                        ? "Your scenario clears the modeled checks. Request product-sheet verification and underwriting review from Greenstreet."
                         : result.verdict.verdict === "RESTRUCTURE"
                         ? "A Greenstreet specialist can walk through the IC memo items with you and identify the fastest path to a clean file."
                         : "Greenstreet can review what's blocking the deal and explore alternative structures — including sub-1.0 programs or global DSCR options."}
                     </p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                       <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 13, textDecoration: "none", padding: "10px 18px", borderRadius: radius.sm, minHeight: 44 }}>
-                        Get my rate →
+                        Request review →
                       </a>
                       <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "transparent", border: "1.5px solid rgba(238,239,211,0.5)", color: "rgba(238,239,211,0.8)", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "10px 16px", borderRadius: radius.sm, minHeight: 44 }}>
                         See matching programs →

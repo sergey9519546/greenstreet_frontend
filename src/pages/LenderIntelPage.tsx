@@ -232,7 +232,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16 }}>
                 <RiskFlame level={riskFromDscr(dscr)} size={18} />
                 <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dscrColor(dscr) }}>
-                  {dscr >= 1.25 ? "strong" : dscr >= 1.0 ? "qualifies" : dscr >= 0.75 ? "sub-1.0 only" : "below floor"}
+                  {dscr >= 1.25 ? "strong scenario" : dscr >= 1.0 ? "review range" : dscr >= 0.75 ? "below 1.0 review" : "shortfall"}
                 </span>
               </div>
 
@@ -360,7 +360,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   Deal DSCR
                 </span>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>Rent ÷ monthly payment. 1.25x is the typical strong-approval threshold. Don't know it? Use the DSCR Calculator first.</span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>Rent divided by monthly payment. Higher coverage usually creates more review cushion, but thresholds require product-sheet verification.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -679,7 +679,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   minHeight: 44,
                 }}
               >
-                Get my rate →
+                Request review →
               </a>
               <a
                 href="/dscr-calculator"

@@ -63,9 +63,9 @@ const QUESTIONS: QuizQuestion[] = [
     group: "Credit",
     q: "What's your approximate credit score?",
     education:
-      "We don't pull your credit here — a range is enough. Your score affects your rate tier and the minimum down payment required. Higher score = lower rate.",
+      "We don't pull your credit here — a range is enough for a preliminary program direction. Actual pricing and minimum down payment must be verified against the current product sheet.",
     opts: [
-      { label: "740 or above", hint: "best rate tier", v: "a" },
+      { label: "740 or above", hint: "strong-credit review", v: "a" },
       { label: "700–739", hint: "strong — near-best pricing", v: "b" },
       { label: "660–699", hint: "standard programs available", v: "c" },
       { label: "620–659", hint: "flexible — more down needed", v: "d" },
@@ -77,12 +77,12 @@ const QUESTIONS: QuizQuestion[] = [
     group: "Down payment",
     q: "How much are you putting down?",
     education:
-      "LTV (loan-to-value — lower means more equity and better terms) = 100% minus your down payment. A 25% down payment = 75% LTV. Most DSCR programs require at least 20% down (80% LTV). Putting more down lowers your rate and opens more programs.",
+      "LTV (loan-to-value — lower means more equity) = 100% minus your down payment. Leverage and down-payment requirements vary by program, property type, state, borrower profile, and current lender overlays.",
     opts: [
-      { label: "35% or more", hint: "≤65% LTV — best rate tier", v: "a" },
-      { label: "25–34%", hint: "66–75% LTV — strong", v: "b" },
-      { label: "20–24%", hint: "76–80% LTV — standard floor", v: "c" },
-      { label: "Less than 20%", hint: ">80% LTV — limited programs", v: "d" },
+      { label: "35% or more", hint: "lower leverage", v: "a" },
+      { label: "25–34%", hint: "lower leverage scenario", v: "b" },
+      { label: "20–24%", hint: "higher leverage scenario", v: "c" },
+      { label: "Less than 20%", hint: "specialist review likely", v: "d" },
     ],
   },
   {
@@ -162,60 +162,60 @@ interface ResultData {
 
 function deriveResult(answers: string[]): ResultData {
   let program = "Greenstreet DSCR 1-4 — Standard";
-  let rate = "6.75% – 7.25%";
+  let rate = "[VERIFY: current rate sheet]";
   let note =
-    "The everyday DSCR loan. 620+ FICO, up to 80% LTV, loans to $4M, 30-year fixed.";
-  let ltv = "Up to 80%";
-  let fico = "620+";
-  let dscrMin = "1.00x";
-  let term = "30-yr fixed";
+    "Preliminary program direction only. Current rate, leverage, minimum credit band, loan size, and term must be verified against Greenstreet's active product sheet before this is shown as an offer.";
+  let ltv = "[VERIFY]";
+  let fico = "[VERIFY]";
+  let dscrMin = "[VERIFY]";
+  let term = "[VERIFY]";
   let tier: "BEST" | "GOOD" | "WEAK" = "GOOD";
 
   const [type, credit, down, cov, who] = answers;
 
   if (who === "g") {
     program = "Greenstreet DSCR Global";
-    rate = "7.50% – 8.25%";
+    rate = "[VERIFY: foreign-national product sheet]";
     note =
-      "Non-US investor / ITIN program. Passport plus alternative credit, 30% down minimum, loans to $3M.";
-    ltv = "Up to 70%";
-    fico = "Alt credit";
-    dscrMin = "1.00x";
+      "Possible non-US investor / ITIN program path. Eligibility depends on eligible country, KYC/AML, OFAC screening, documentation, reserves, entity structure, state scope, and lender overlays.";
+    ltv = "[VERIFY]";
+    fico = "Alt-credit review";
+    dscrMin = "[VERIFY]";
     tier = "WEAK";
   } else if (cov === "c") {
     program = "Greenstreet DSCR Sub-1.0";
-    rate = "7.25% – 8.00%";
+    rate = "[VERIFY: current product sheet]";
     note =
-      "For deals below 1.0x DSCR with compensating factors — reserves, low LTV, or strong credit.";
-    ltv = "Up to 70%";
-    fico = "680+";
-    dscrMin = "0.75x";
+      "Possible exception-path review for deals below standard DSCR coverage. Compensating factors and reserve requirements must be verified by underwriting.";
+    ltv = "[VERIFY]";
+    fico = "[VERIFY]";
+    dscrMin = "[VERIFY]";
     tier = "WEAK";
   } else if (type === "multi") {
     program = "Greenstreet DSCR Multi-Family";
-    rate = "6.99% – 7.50%";
+    rate = "[VERIFY: current product sheet]";
     note =
-      "5+ unit and mixed-use. Blanket and portfolio structures available.";
-    ltv = "Up to 75%";
-    fico = "660+";
-    dscrMin = "1.10x";
+      "Potential multi-family or portfolio review. Property type, unit count, mixed-use exposure, state, leverage, and sponsor profile must be verified.";
+    ltv = "[VERIFY]";
+    fico = "[VERIFY]";
+    dscrMin = "[VERIFY]";
     tier = "GOOD";
   } else if (type === "str") {
     program = "Greenstreet DSCR — STR";
-    rate = "7.10% – 7.75%";
+    rate = "[VERIFY: STR product sheet]";
     note =
-      "Short-term rental program. Underwrites documented or projected ADR×occupancy with a haircut.";
-    ltv = "Up to 75%";
-    fico = "680+";
-    dscrMin = "1.00x";
+      "Potential short-term-rental program review. Qualifying income depends on lender-approved documentation, market data, local STR legality, and underwriting overlays.";
+    ltv = "[VERIFY]";
+    fico = "[VERIFY]";
+    dscrMin = "[VERIFY]";
     tier = "GOOD";
   } else if (credit === "a" && (down === "a" || down === "b")) {
     program = "Greenstreet DSCR 1-4 — Best Tier";
-    rate = "6.25% – 6.75%";
-    note = "Lowest rate tier. 740+ FICO, ≤75% LTV, three months reserves.";
-    ltv = "Up to 75%";
-    fico = "740+";
-    dscrMin = "1.25x";
+    rate = "[VERIFY: current rate sheet]";
+    note = "Potential strongest-file tier. Pricing, leverage, credit band, reserve requirements, and DSCR floor must be verified against the active product sheet before quoting.";
+    ltv = "[VERIFY]";
+    fico = "[VERIFY]";
+    dscrMin = "[VERIFY]";
     tier = "BEST";
   }
 
@@ -227,25 +227,24 @@ function deriveResult(answers: string[]): ResultData {
   ];
 
   // Derive a numeric DSCR estimate for the gauge (based on coverage answer)
-  const dscrEstimate: number | null =
-    cov === "a" ? 1.35 : cov === "b" ? 1.12 : cov === "c" ? 0.88 : 1.12;
+  const dscrEstimate: number | null = null;
 
   // What drove the result — plain language
   const verdictLines: { driven: string; why: string }[] = [];
   if (who === "g") {
-    verdictLines.push({ driven: "Borrower type", why: "Non-US investor / ITIN — dedicated global program applies." });
+    verdictLines.push({ driven: "Borrower type", why: "Non-US investor / ITIN path requires eligible-country, KYC/AML, OFAC, documentation, and lender overlay review." });
   }
   if (cov === "c") {
-    verdictLines.push({ driven: "Cash flow (DSCR)", why: "Sub-1.0 coverage requires compensating factors." });
+    verdictLines.push({ driven: "Cash flow (DSCR)", why: "Below-standard coverage requires underwriting review and verified compensating factors." });
   }
   if (type === "multi") {
     verdictLines.push({ driven: "Property type", why: "5+ unit / mixed-use triggers the multifamily program." });
   }
   if (type === "str") {
-    verdictLines.push({ driven: "Property type", why: "STR income is underwritten with a documented ADR haircut." });
+    verdictLines.push({ driven: "Property type", why: "STR income requires approved documentation, market data, and local legality review." });
   }
   if (tier === "BEST") {
-    verdictLines.push({ driven: "Credit + down payment", why: "740+ FICO and ≤75% LTV put you in the best-rate tier." });
+    verdictLines.push({ driven: "Credit + leverage", why: "Strong credit and lower leverage may improve program fit, subject to current product guidelines." });
   }
   if (verdictLines.length === 0) {
     verdictLines.push({ driven: "Overall profile", why: "Solid across credit, LTV, and cash flow — standard program." });
@@ -434,9 +433,9 @@ function UnderwritePreview({
   const derived = deriveResult(liveAnswers);
   // No number without an input: DSCR read stays "—" until the coverage question is answered
   const dscrText =
-    covAnswered && derived.dscrValue !== null ? `${derived.dscrValue.toFixed(2)}x` : "—";
+    covAnswered && derived.dscrValue !== null ? `${derived.dscrValue.toFixed(2)}x` : "[VERIFY]";
   const pressure =
-    derived.tier === "BEST" ? "Low" : derived.tier === "GOOD" ? "Moderate" : "High";
+    derived.tier === "BEST" ? "Lower after review" : derived.tier === "GOOD" ? "Moderate after review" : "Higher after review";
   // Each rail reveals only once the answers that drive it exist — otherwise empty.
   const rails = [
     { label: "Program fit", value: started ? (derived.tier === "BEST" ? "Best" : derived.tier === "GOOD" ? "Standard" : "Specialty") : "—", width: started ? (derived.tier === "BEST" ? "92%" : derived.tier === "GOOD" ? "68%" : "42%") : "0%" },
@@ -488,7 +487,7 @@ function UnderwritePreview({
       </div>
 
       <div className="rq-strip-note">
-        Preliminary model only. Final pricing still depends on verified credit, appraisal, reserves, state rules, and lender underwriting.
+        Preliminary direction only. Final pricing, program eligibility, leverage, reserves, and documentation depend on the current product sheet, appraisal, state rules, credit review, and lender underwriting.
       </div>
     </aside>
   );
@@ -1050,7 +1049,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   }}
                 >
                   {result.tier === "BEST"
-                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest lender selection."
+                    ? "Your profile suggests a stronger-file review path, but current pricing and terms still require product-sheet verification."
                     : result.tier === "GOOD"
                     ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match and lock your terms."
                     : "This program has tighter requirements, but it's built for your situation. Reserves, lower LTV, or stronger credit can help you qualify — a specialist can structure the deal."}
@@ -1079,7 +1078,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         marginBottom: 6,
                       }}
                     >
-                      Indicative rate range
+                      Pricing status
                     </div>
                     <Mono
                       style={{
@@ -1294,7 +1293,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     lineHeight: 1.5,
                   }}
                 >
-                  Preliminary estimate only — not a commitment to lend. Final terms subject to full underwriting, appraisal, and credit review. Self-reported credit is indicative only; no credit pull is performed.
+                  Preliminary program direction only — not a commitment to lend, not a rate quote, and not an approval. Final terms are subject to product-sheet verification, full underwriting, appraisal, credit review, state scope, and lender overlays. Self-reported credit is indicative only; no credit pull is performed here.
                 </p>
 
                 {/* CTAs */}

@@ -682,14 +682,14 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 Ready to move forward?
               </div>
               <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
-                Lock the numbers in. Get your rate.
+                Review the numbers before you quote them.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
-                Submit once. Greenstreet places your file in the best-fit program and funds it — no re-keying the same numbers five times.
+                Submit the scenario once so Greenstreet can verify product fit, pricing assumptions, and documentation needs.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
+              <Btn label="Request review" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
               <Btn label="See matching programs" variant="secondary" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} />
             </div>
           </div>

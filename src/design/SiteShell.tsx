@@ -154,7 +154,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
     <>
       <style>{NAV_DD_CSS}</style>
       <style>{NAV_SYNC_CSS}</style>
-      <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO }}>
+      <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: menuOpen ? 90 : 50, background: PISTACHIO }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
@@ -197,7 +197,30 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         </div>
       </div>
       {menuOpen && (
-        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "6px", zIndex: 49, maxHeight: "80vh", overflowY: "auto" }}>
+        <div
+          ref={mobileRef}
+          id="mobile-nav"
+          className="menu-mobile-wrap"
+          role="navigation"
+          aria-label="Mobile navigation"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            position: "fixed",
+            top: "96px",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: PISTACHIO,
+            borderBottom: `1px solid ${FADED}`,
+            padding: "18px 24px 28px",
+            gap: "8px",
+            zIndex: 80,
+            maxHeight: "calc(100dvh - 96px)",
+            overflowY: "auto",
+            boxShadow: "0 24px 64px rgba(0, 55, 56, 0.18)",
+          }}
+        >
           <a href="/investgo" className="nav-link" onClick={go("portal")} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>
@@ -247,8 +270,9 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
               <div className="footer_group_list">
                 <a className="footer_link_wrap w-inline-block" href="/investors" onClick={go("investors")}><div className="footer_link_text u-weight-bold">Real Estate Investors</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#non-us-investors" onClick={goPath("/borrower-profiles#non-us-investors")}><div className="footer_link_text u-weight-bold">Non-US Investors</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#str-airbnb" onClick={goPath("/borrower-profiles#str-airbnb")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/non-us-investors" onClick={go("non-us-investors")}><div className="footer_link_text u-weight-bold">Non-US Investors</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/str-airbnb" onClick={go("str-hosts")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/vacation-homes" onClick={go("vacation-homes")}><div className="footer_link_text u-weight-bold">Vacation Homes</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/rate-quiz" onClick={go("rate-quiz")}><div className="footer_link_text u-weight-bold">Rate Quiz</div></a>
               </div>
             </section>

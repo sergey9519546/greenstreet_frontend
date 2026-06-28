@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import ComplianceNote from "../design/ComplianceNote";
 
 // ── Pistachio editorial identity ───────────────────────────────────────────────
 // Accent matches mockup: #eeefd3 nav + footer, dark-ink overrides on .dc-nav
@@ -715,6 +716,12 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
             </p>
           </div>
 
+          <div style={{ marginBottom: 34 }}>
+            <ComplianceNote tone={post.tag === "Tax" || post.tag === "Compliance" ? "legal" : "verify"}>
+              This article is educational and may reference dated product, rate, tax, or state-rule examples. Verify all rates, LTV limits, down payments, DSCR thresholds, reserve requirements, STR income methods, and legal/tax claims against the current Greenstreet product sheet and appropriate professional review before relying on them.
+            </ComplianceNote>
+          </div>
+
           <ArticleBody blocks={post.body} />
 
           {/* End CTA — concrete next step */}
@@ -723,17 +730,17 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
             style={{ marginTop: 48, borderRadius: 12, border: `1px solid rgba(0,55,56,0.12)`, background: dc.mintBg, padding: "clamp(24px,3vw,36px) clamp(24px,3vw,40px)" }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 12 }}>
-              See if your deal qualifies
+              Check a scenario
             </div>
             <p style={{ color: "rgba(0,55,56,0.72)", fontSize: 15, marginBottom: 22, lineHeight: 1.6, fontWeight: 500 }}>
-              Enter your property's rent and loan details — get a DSCR estimate, a rate range, and a program match in under a minute. No commitment, no account required.
+              Enter the rent and loan details to get a preliminary DSCR scenario. Pricing, program fit, and eligibility require current product-sheet verification and underwriting review.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
               <button
                 onClick={() => (window as any).openQualify?.()}
                 style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
               >
-                See if your deal qualifies →
+                Request scenario review →
               </button>
               <button
                 onClick={() => onNavigate("dscr-calculator")}
@@ -803,7 +810,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
               Practical guides for DSCR investors.
             </H1>
             <Lead style={{ color: "rgba(0,55,56,0.6)", maxWidth: "52ch", margin: 0, fontSize: "clamp(16px,1.3vw,19px)" }}>
-              Plain-language articles on qualifying, structuring, and closing investment property loans — with the math and sources included.
+              Plain-language articles on qualifying, structuring, and closing investment property loans. Product terms and legal/tax examples require current verification before use.
             </Lead>
           </div>
         </div>

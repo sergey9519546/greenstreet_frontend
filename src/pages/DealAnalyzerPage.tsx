@@ -42,39 +42,39 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const ltv = 100 - down;
 
   // --- Verdict ---
-  let vLabel = "DEAL BREAK";
+  let vLabel = "SHORTFALL";
   let verdictColor = "#ff6b6b";
   let verdictBg = "rgba(74,21,21,0.07)";
   let verdictBorder = "#ff6b6b";
-  let verdictHeadline = "Rent doesn't cover the payment — most lenders decline at this level.";
+  let verdictHeadline = "Rent does not cover the modeled payment.";
   let verdictNote =
-    "DSCR below 0.75x — the rent doesn't come close to covering the payment. Consider a higher-rent property, more down payment, or a lower rate.";
-  let nextStep = "A Greenstreet specialist can review sub-0.75 situations and explore structuring options — don't assume it's a dead end.";
+    "This scenario needs restructuring before product fit can be assessed. Consider verified rent, lower loan amount, or different payment assumptions.";
+  let nextStep = "A Greenstreet specialist can review the scenario and identify which assumptions need verification.";
 
   if (dscr >= 1.25) {
     vLabel = "STRONG";
     verdictColor = dc.rain;
     verdictBg = "rgba(0,101,101,0.06)";
     verdictBorder = dc.rain;
-    verdictHeadline = "Strong deal — rent comfortably covers the full monthly payment.";
-    verdictNote = "DSCR ≥ 1.25x qualifies at best-tier pricing with most DSCR programs. Good cap rate and debt yield are a bonus.";
-    nextStep = "Get a rate quote — this deal should move quickly.";
+    verdictHeadline = "Strong scenario — rent covers the modeled monthly payment.";
+    verdictNote = "This scenario has DSCR cushion, but pricing and eligibility still require current product-sheet verification and underwriting review.";
+    nextStep = "Request a scenario review before quoting pricing or terms.";
   } else if (dscr >= 1.0) {
-    vLabel = "QUALIFIES";
+    vLabel = "REVIEW";
     verdictColor = dc.lemon;
     verdictBg = "rgba(216,217,88,0.10)";
     verdictBorder = dc.lemon;
-    verdictHeadline = "Qualifies — rent meets or exceeds the full monthly payment.";
-    verdictNote = "Meets the 1.0x floor. Check lender-specific minimums, reserve requirements, and compensating factors (higher FICO, lower LTV) before locking.";
-    nextStep = "Run the program matcher to confirm which lenders accept your deal at these numbers.";
+    verdictHeadline = "Covers the modeled payment.";
+    verdictNote = "This scenario may be reviewable, but product thresholds, verified rent, reserves, credit, LTV, and state rules still control the outcome.";
+    nextStep = "Run the program matcher and verify the result against current guidelines.";
   } else if (dscr >= 0.75) {
     vLabel = "SUB-1.0";
     verdictColor = "#e6b84d";
     verdictBg = "rgba(230,184,77,0.08)";
     verdictBorder = "#e6b84d";
-    verdictHeadline = "Below 1.0 — rent falls short, but sub-1.0 programs may apply.";
-    verdictNote = "Some lenders accept 0.75–1.0x with strong credit (680+), lower LTV, or extra reserves. Not a dead end — but you'll need to bring compensating factors.";
-    nextStep = "Ask your Greenstreet contact about sub-1.0 programs and what compensating factors they require.";
+    verdictHeadline = "Below 1.0 — rent falls short in this scenario.";
+    verdictNote = "A below-1.0 DSCR scenario needs product-sheet verification and compensating-factor review before it can be treated as viable.";
+    nextStep = "Ask Greenstreet which current programs, if any, can review this structure.";
   }
 
   const riskLevel = riskFromDscr(dscr);
@@ -289,7 +289,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>DSCR — rent ÷ payment</div>
                     <DscrGauge value={dscr} size={160} />
                     <div style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", textAlign: "center" }}>
-                      {dscr >= 1.25 ? "≥ 1.25x = strong approval tier" : dscr >= 1.0 ? "1.0–1.25x = qualifies, limited" : dscr >= 0.75 ? "0.75–1.0x = sub-1.0 programs only" : "< 0.75x = most lenders decline"}
+                      {dscr >= 1.25 ? "Strong modeled cushion" : dscr >= 1.0 ? "Review range" : dscr >= 0.75 ? "Below-1.0 specialist review" : "Shortfall scenario"}
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -366,7 +366,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
-            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Submit a scenario review for a formal quote.
+            Preliminary estimate — not a commitment to lend, approval, or rate quote. All outputs are indicative; final terms require full underwriting, appraisal, credit review, and product-sheet verification.
           </p>
         </div>
       </section>
@@ -384,7 +384,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
               <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.emerald, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, whiteSpace: "nowrap", minHeight: 44 }}>
-                Get my rate →
+                Request review →
               </a>
               <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, border: `1.5px solid ${swatch.midnightFaded}`, whiteSpace: "nowrap", minHeight: 44 }}>
                 Browse programs

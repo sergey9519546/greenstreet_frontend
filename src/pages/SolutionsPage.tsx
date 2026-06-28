@@ -26,8 +26,8 @@ const SEGMENTS: Segment[] = [
     tag: "Buy-and-hold investors",
     title: "Qualify on rent, not your W-2",
     desc:
-      "DSCR loans (whether the property's rent can cover the loan payment — 1.00 = break-even; higher is stronger) let you qualify purely on the rental income your property generates. No tax returns, no employment history, no income docs. Greenstreet underwrites the deal — one file, one decision, one lender relationship.",
-    cta: "Price my rental deal →",
+      "DSCR loans model whether the property's rent can cover the loan payment. Personal income is not the center of the file the way it is on conventional mortgages, but product terms, documentation, state eligibility, and underwriting still control the result.",
+    cta: "Check a rental scenario →",
     view: "dscr-calculator",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
@@ -36,18 +36,18 @@ const SEGMENTS: Segment[] = [
     statBg: dc.cream,
     dscrPreview: 1.32,
     stats: [
-      { v: "<60s", k: "to a priced deal" },
-      { v: "0", k: "income docs required" },
+      { v: "Fast", k: "scenario model" },
+      { v: "Review", k: "documentation rules" },
       { v: "50", k: "state rule sets" },
       { v: "1", k: "lender relationship" },
     ],
   },
   {
-    tag: "Short-term & vacation rental investors",
-    title: "STR income counts. Full stop.",
+    tag: "Specialist branches",
+    title: "STR and foreign-national files need tighter review.",
     desc:
-      "Airbnb gross revenue or vacation-rental income qualifies under our STR program — we use actual platform data, not hypothetical long-term-lease assumptions. Non-US investors qualify too: passport + alternative credit, no SSN required. Every file runs Dual-Track DSCR: lender qualifying (Track 1) and investor cash-flow survival (Track 2) in one pass.",
-    cta: "Explore STR & global programs →",
+      "Short-term rental, vacation-rental, ITIN, and foreign-national files can fit DSCR only when the property cash flow, documentation, country eligibility, STR legality, KYC/AML, OFAC, and current product guidelines all line up.",
+    cta: "Review specialist branches →",
     view: "borrower-profiles",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
@@ -56,17 +56,17 @@ const SEGMENTS: Segment[] = [
     statBg: dc.teal,
     dscrPreview: 1.18,
     stats: [
-      { v: "STR", k: "income accepted" },
-      { v: "Global", k: "non-US investor program" },
+      { v: "STR", k: "source review" },
+      { v: "Global", k: "eligibility review" },
       { v: "Dual-Track", k: "DSCR analysis" },
-      { v: "3 min", k: "ITIN approval path" },
+      { v: "KYC", k: "AML/OFAC checks" },
     ],
   },
   {
     tag: "Portfolio builders",
     title: "One blended view of all your doors",
     desc:
-      "When you own 10+ properties, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket underwriter actually evaluates your book. Blanket and multi-property lines to $25M, single application.",
+      "For larger portfolios, the portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen. Blanket or multi-property structures require current product limits, collateral rules, and underwriting review.",
     cta: "Build my portfolio view →",
     view: "portfolio",
     panelBg: dc.rain,
@@ -76,7 +76,7 @@ const SEGMENTS: Segment[] = [
     statBg: dc.teal,
     dscrPreview: 1.49,
     stats: [
-      { v: "$25M", k: "blanket line capacity" },
+      { v: "[VERIFY]", k: "blanket line capacity" },
       { v: "1.49×", k: "blended DSCR example" },
       { v: "40+", k: "doors modeled" },
       { v: "1", k: "application" },
@@ -476,9 +476,8 @@ export default function SolutionsPage({
               }}
             >
               Property type, LTV (how the loan compares to the property value),
-              DSCR, FICO, and state. Get a preliminary rate tier and your matched
-              Greenstreet program in under a minute. No email, no credit pull, no
-              commitment.
+              DSCR, FICO, and state. Get preliminary program direction, then verify
+              pricing and eligibility with a specialist. No hard credit pull at this step.
             </p>
             {/* Dominant lemon CTA */}
             <button
@@ -500,7 +499,7 @@ export default function SolutionsPage({
                 minHeight: 44,
               }}
             >
-              Get my rate in 5 questions →
+              Request scenario review →
             </button>
           </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
+import ComplianceNote from "../design/ComplianceNote";
 import { computeAfterTaxIRR } from "../engine/taxEngine";
 import { calculatePI } from "../engine/engine";
 import type { TaxProfile, FilingStatus } from "../engine/types";
@@ -200,11 +201,16 @@ export default function TaxEnginePage({
               What does this property really earn after taxes?
             </H1>
             <Lead style={{ color: "rgba(0,55,56,0.72)", maxWidth: "48ch", margin: "0 0 20px" }}>
-              Most return calculators ignore taxes. This one doesn't. Enter your deal and tax profile and see: your depreciation tax shield (the annual tax saving from writing off the building), the tax bill at exit (depreciation recapture + capital gains + NIIT), and the after-tax IRR — what you actually keep.
+              Most return calculators ignore taxes. This one models after-tax scenarios, including depreciation, exit taxes, and NIIT assumptions, so you can see what needs CPA review before relying on a deal model.
             </Lead>
             <p style={{ color: "rgba(0,55,56,0.55)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
-              How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IRR to the pre-tax IRR — the gap is your tax drag. Real estate professional status (750hr + 50% test) can dramatically reduce that drag.
+              How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IRR to the pre-tax IRR, then verify tax assumptions with a qualified advisor before making an investment or loan decision.
             </p>
+            <div style={{ maxWidth: 620, margin: "0 0 26px" }}>
+              <ComplianceNote tone="legal">
+                Educational tax model only. Tax treatment, real-estate-professional status, NIIT exposure, passive-loss limits, depreciation, and exit taxes require current-law verification and CPA or tax-attorney review.
+              </ComplianceNote>
+            </div>
             {/* Dark-fill button — the lemon-fill primary would vanish on this lemon hero */}
             <a
               href="#te-tool"
@@ -331,10 +337,10 @@ export default function TaxEnginePage({
               {!hasResult
                 ? "Adjust inputs to see your after-tax return."
                 : afterTaxIRR >= 0.1
-                ? `After-tax IRR of ${afterTaxStr} is strong. The depreciation shield offsets some of the tax bill — your real return after the IRS takes its share still works.`
+                ? `After-tax IRR of ${afterTaxStr} is stronger in this scenario. Verify depreciation, exit-tax, passive-loss, and NIIT assumptions before treating the result as decision-grade.`
                 : afterTaxIRR >= 0.06
-                ? `After-tax IRR of ${afterTaxStr} is acceptable but the ${dragStr} tax drag is meaningful. Look for ways to increase the depreciation shield — a cost-segregation study or higher land allocation can help.`
-                : `After-tax IRR of ${afterTaxStr} is below the typical 6% threshold. The ${dragStr} tax drag may be larger than expected. Check whether real estate professional status (REP) applies — it can unlock passive-loss deductions that significantly improve the after-tax number.`}
+                ? `After-tax IRR of ${afterTaxStr} shows meaningful tax drag in this scenario. Review land allocation, depreciation method, and filing assumptions with a qualified tax advisor.`
+                : `After-tax IRR of ${afterTaxStr} is weak under these inputs. Do not assume real-estate-professional or passive-loss treatment applies without current-law verification and advisor review.`}
             </p>
           </div>
 
@@ -458,7 +464,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "Land %",
-                    hint: "Estimated land value as a percent of purchase price. Land is not depreciable — lower land % = larger depreciation deduction. Typical range: 15%–30%.",
+                    hint: "Estimated land value as a percent of purchase price. Land is not depreciable; allocation should be supportable and reviewed with a tax advisor.",
                     key: "landPct" as const,
                     step: 1,
                     prefix: "",
@@ -468,7 +474,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "MAGI — your income",
-                    hint: "Modified adjusted gross income. Determines whether passive-loss rules limit your deductions and whether NIIT (3.8% extra tax) applies.",
+                    hint: "Modified adjusted gross income. Used here to model passive-loss and NIIT assumptions; verify current tax thresholds with your advisor.",
                     key: "magi" as const,
                     step: 5000,
                     prefix: "$",
@@ -610,7 +616,7 @@ export default function TaxEnginePage({
                   style={{ accentColor: dc.lemon, width: 16, height: 16, marginTop: 2, flexShrink: 0 }}
                 />
                 <span style={{ fontSize: 13, color: "rgba(238,239,211,0.8)", lineHeight: 1.45 }}>
-                  <strong style={{ color: dc.lemon }}>Real estate professional status</strong> (750hr test + 50% of work time in real estate) — unlocks the ability to deduct passive losses against ordinary income. If you don't meet both tests, leave this unchecked.
+                  <strong style={{ color: dc.lemon }}>Real estate professional status</strong> is a tax classification with specific legal tests and documentation requirements. Check this only for scenario modeling after advisor review.
                 </span>
               </label>
             </div>
@@ -729,8 +735,8 @@ export default function TaxEnginePage({
                           color: dc.cream,
                         },
                         {
-                          label: "NIIT (3.8% net investment income tax) — applies if MAGI exceeds $200K single / $250K joint",
-                          val: result.niitApplies ? "Yes — adds 3.8% to investment income" : "No",
+                          label: "NIIT scenario — modeled from current input assumptions",
+                          val: result.niitApplies ? "Modeled as applying" : "Modeled as not applying",
                           color: result.niitApplies ? "#ff6b6b" : dc.emerald,
                         },
                       ] as { label: string; val: string; color: string }[]
@@ -898,7 +904,7 @@ export default function TaxEnginePage({
                     }}
                   >
                     <strong style={{ color: dc.lemon }}>Tax rules applied:</strong>{" "}
-                    IRC §167 straight-line depreciation over 27.5 years · §469 passive-activity-loss rules (limited to $25K for incomes under $100K; phased out to $150K; suspended above unless you qualify as a real estate professional) · §1250 recapture at 25% on depreciation claimed · §1(h) long-term capital gains rates · §1411 net investment income tax 3.8%.{" "}
+                    IRC §167 depreciation, §469 passive-activity-loss rules, §1250 recapture, §1(h) long-term capital gains treatment, and §1411 net investment income tax assumptions are modeled for education and require current-law verification.{" "}
                     {result.disclaimer}{" "}
                     This is a model estimate — consult a tax advisor. Not a commitment to lend. Submit a scenario review for exact underwriting.
                   </div>

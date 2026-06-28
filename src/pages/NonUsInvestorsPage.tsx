@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font } from "../theme";
 import BottomCTA from "../design/BottomCTA";
+import ComplianceNote from "../design/ComplianceNote";
 
 // ── Who-We-Serve: Non-US Investor Investors ──────────────────────────────────
 // Bespoke dark page. Conversion core = the "Yes, you can" fear-grid. Positioning:
@@ -24,39 +25,39 @@ const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
 // The fear-grid — mirror what they Google. `partner` rows need a real partner.
 const FEARS: { worry: string; answer: string; partner?: boolean }[] = [
-  { worry: "I have no U.S. credit score.", answer: "You don't need one. We qualify on the property's rent and review your financial history from your home country." },
-  { worry: "No SSN or U.S. passport.", answer: "Your home-country passport is enough." },
-  { worry: "No U.S. job or W-2 income.", answer: "Irrelevant here — a DSCR loan looks at the property, not you." },
-  { worry: "I don't have a U.S. LLC.", answer: "We set you up with a U.S. LLC + EIN — fast, fully remote.", partner: true },
-  { worry: "No U.S. bank account.", answer: "We connect you to a U.S. business account, remotely.", partner: true },
-  { worry: "Moving money across borders scares me.", answer: "Our FX partners move funds at competitive, compliant rates.", partner: true },
-  { worry: "I can't fly here to close.", answer: "You don't have to — closings are remote in most states." },
-  { worry: "Will any lender work with my country?", answer: "We shop multiple lenders to find the one comfortable with where you live." },
+  { worry: "I have no U.S. credit score.", answer: "Some DSCR programs can review alternative credit or home-country financial history, subject to lender overlays and product-sheet verification." },
+  { worry: "No SSN or U.S. passport.", answer: "Some programs may review passport-based identity and alternative documentation. KYC/AML, OFAC, eligible-country, and lender review still apply." },
+  { worry: "No U.S. job or W-2 income.", answer: "DSCR underwriting focuses on the property's rental cash flow, but borrower documentation, reserves, funds source, and sanctions screening still matter." },
+  { worry: "I don't have a U.S. LLC.", answer: "LLC and EIN setup may be available through a formation partner; entity eligibility must match the loan program and state.", partner: true },
+  { worry: "No U.S. bank account.", answer: "A U.S. business account may be available through banking partners, subject to their onboarding and compliance review.", partner: true },
+  { worry: "Moving money across borders scares me.", answer: "FX/wiring support may be available through partners, subject to funds-source, AML, and banking rules.", partner: true },
+  { worry: "I can't fly here to close.", answer: "Remote closing availability depends on state, title/settlement process, document requirements, and lender rules." },
+  { worry: "Will any lender work with my country?", answer: "Country eligibility is not universal. Sanctioned countries/persons cannot be served, and some lenders restrict jurisdictions." },
 ];
 
-const STEPS = [
-  { t: "Check your buying power", s: "60 seconds, no credit pull — see your likely loan, rate, and payment." },
-  { t: "We match you to the lender", s: "Best-fit DSCR lender for your country and deal — plus your LLC + U.S. bank if you need them.", partner: true },
-  { t: "Upload documents digitally", s: "Passport, the property, and simple financials. No fax, no mail." },
-  { t: "Close remotely", s: "~21–45 days. Then do it again for the next property." },
+const STEPS: { t: string; s: string; partner?: boolean }[] = [
+  { t: "Check preliminary program fit", s: "No hard credit pull at this step. Current loan terms require product-sheet and underwriting verification." },
+  { t: "Confirm country and compliance eligibility", s: "KYC/AML, OFAC, eligible country, funds source, entity, and state-scope review come before terms are relied on." },
+  { t: "Upload documents digitally", s: "Expect identity, property, reserves, entity, and source-of-funds documentation. Exact list varies by program." },
+  { t: "Close if the file clears underwriting", s: "Remote closing may be available depending on state, title, settlement, and lender requirements." },
 ];
 
 const QUALIFY = [
-  { v: "20–30%", l: "down payment", s: "of the purchase price" },
-  { v: "~1.0x+", l: "DSCR to qualify", s: "rent covers the payment" },
-  { v: "$100K–$2M+", l: "loan size", s: "depending on lender" },
-  { v: "6–12 mo", l: "reserves", s: "held after closing" },
+  { v: "[VERIFY]", l: "down payment", s: "current product sheet" },
+  { v: "[VERIFY]", l: "DSCR floor", s: "program-specific" },
+  { v: "[VERIFY]", l: "loan size", s: "lender-specific" },
+  { v: "[VERIFY]", l: "reserves", s: "country/file dependent" },
 ];
 
 const FAQS = [
-  { q: "Can a non-U.S. citizen really get a U.S. mortgage?", a: "Yes — no citizenship or residency required. These are business-purpose investment loans on the property's income." },
-  { q: "Do I need a U.S. credit score?", a: "No. We review your home-country financial history; the property's rent is the qualifier." },
-  { q: "How much down payment?", a: "Typically 20–30% of the purchase price." },
-  { q: "What documents do I actually need?", a: "Passport, the property / lease info, and basic financials. No U.S. tax returns or W-2s." },
-  { q: "Can I hold the property in an LLC?", a: "Yes — usually required. We help you form one through our formation partner.", partner: true },
-  { q: "Why is my rate higher than a U.S. citizen's?", a: "It's an investment, non-QM loan — that carries a premium over owner-occupied conventional. We shop lenders to keep it tight." },
-  { q: "Can I close without coming to the U.S.?", a: "Yes — remote closing is available in most states." },
-  { q: "Long-term and short-term (Airbnb) rentals — both?", a: "Both. STR is underwritten on real projected nightly income (ADR × occupancy), not optimistic guesses." },
+  { q: "Can a non-U.S. citizen really get a U.S. mortgage?", a: "Sometimes. Some business-purpose DSCR programs support foreign-national or ITIN borrowers, but eligibility depends on country, documentation, sanctions screening, state scope, and lender overlays." },
+  { q: "Do I need a U.S. credit score?", a: "Not always. Some programs may review alternative credit or home-country financial history, subject to product-sheet verification." },
+  { q: "How much down payment?", a: "Do not rely on a generic number. Down payment and LTV are program-specific and must be verified against the current product sheet." },
+  { q: "What documents do I actually need?", a: "Expect passport/identity, property/rent information, reserves, funds-source evidence, entity documents if applicable, and any lender-specific KYC/AML requirements." },
+  { q: "Can I hold the property in an LLC?", a: "Often, but entity eligibility depends on program, state, ownership, guarantor, and formation documents. Formation support may be available through a partner.", partner: true },
+  { q: "Why might pricing differ from a U.S. citizen's file?", a: "Foreign-national files can carry different documentation, reserves, credit, country, and lender-overlay requirements. Current pricing must come from the active product sheet." },
+  { q: "Can I close without coming to the U.S.?", a: "Remote closing depends on state, settlement process, title requirements, notarization, and lender rules." },
+  { q: "Long-term and short-term (Airbnb) rentals — both?", a: "Possibly. STR eligibility depends on property, local legality, approved income documentation, and lender overlay review." },
 ];
 
 export default function NonUsInvestorsPage({
@@ -83,7 +84,7 @@ export default function NonUsInvestorsPage({
   const ltv = 100 - downPct;
   const ltvOk = ltv <= 75;
   const go = dscr >= 1.0 && ltvOk;
-  const verdict = go ? "QUALIFIES" : dscr >= 1.0 ? "LOWER LTV" : "BELOW 1.0x";
+  const verdict = go ? "REVIEW FIT" : dscr >= 1.0 ? "CHECK LTV" : "CHECK DSCR";
   const vColor = go ? dc.emerald : dscr >= 1.0 ? dc.lemon : RED;
 
   const num = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
@@ -147,21 +148,26 @@ export default function NonUsInvestorsPage({
             </div>
             <H1 style={{ margin: "0 0 16px", maxWidth: "13ch" }}>Own U.S. property from anywhere.</H1>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-              <span className="fn-chip"><b>✕</b> No SSN</span>
-              <span className="fn-chip"><b>✕</b> No U.S. credit</span>
-              <span className="fn-chip"><b>✕</b> No green card</span>
+              <span className="fn-chip"><b>✓</b> Alternative documentation may apply</span>
+              <span className="fn-chip"><b>✓</b> Property-cash-flow focus</span>
+              <span className="fn-chip"><b>✓</b> Compliance review required</span>
             </div>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "50ch", margin: "0 0 30px" }}>
-              DSCR loans for international investors. We qualify the property's rent — not your paycheck — and guide you through every step, in your language, from LLC to closing. You never have to fly here.
+              DSCR loans can be a path for some international investors because underwriting centers on the property's rental cash flow. Eligibility still depends on documentation, country, KYC/AML, OFAC, state scope, lender overlays, and final underwriting.
             </Lead>
+            <div style={{ marginBottom: 22, maxWidth: 620 }}>
+              <ComplianceNote tone="legal">
+                Sanctioned countries or sanctioned persons cannot be served. Foreign-national eligibility, remote closing, entity setup, banking, FX/wiring, and FIRPTA/tax implications require product, compliance, and professional review.
+              </ComplianceNote>
+            </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <button onClick={() => onNavigate("dscr-calculator")} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "15px 26px", borderRadius: radius.sm, fontFamily: font.family }}>See how much you can borrow — 60 sec, no credit pull →</button>
+              <button onClick={() => onNavigate("dscr-calculator")} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "15px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Check preliminary program fit →</button>
             </div>
             <button onClick={() => onNavigate("book-demo")} style={{ marginTop: 14, background: "none", border: "none", cursor: "pointer", fontFamily: font.family, color: BLUE, fontWeight: 600, fontSize: 14, padding: 0 }}>
-              Prefer to talk? Message a DSCR specialist on WhatsApp →
+              Prefer to talk? Request a DSCR specialist review →
             </button>
             <div style={{ marginTop: 22, fontSize: 12, color: "rgba(238,239,211,0.62)", letterSpacing: "0.01em" }}>
-              No SSN required · Passport accepted · Close remotely · Powered by multiple U.S. DSCR lenders
+              Preliminary only · No hard credit pull at this step · Eligibility subject to KYC/AML, OFAC, state scope, and underwriting
             </div>
           </div>
 
@@ -201,7 +207,7 @@ export default function NonUsInvestorsPage({
               </g>
             </svg>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
-              {[{ v: dscr.toFixed(2) + "x", l: "DSCR" }, { v: "75%", l: "max LTV" }, { v: go ? "GO" : "—", l: "verdict" }].map((t, i) => (
+              {[{ v: dscr.toFixed(2) + "x", l: "scenario DSCR" }, { v: "[VERIFY]", l: "current LTV cap" }, { v: verdict, l: "review status" }].map((t, i) => (
                 <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 8px", textAlign: "center" }}>
                   <Mono style={{ fontSize: 20, fontWeight: 700, color: i === 2 ? vColor : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>
                   <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{t.l}</div>
@@ -245,7 +251,7 @@ export default function NonUsInvestorsPage({
           <div className="gs-reveal" style={{ marginBottom: 32, maxWidth: "62ch" }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 12 }}>Decided by the property, not your passport</div>
             <h2 style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.05, margin: 0, color: dc.cream }}>
-              Check your buying power. Notice there's no income field.
+              Check property cash flow before a specialist reviews the file.
             </h2>
           </div>
           <div className="dc-split gs-reveal" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 28, alignItems: "stretch" }}>
@@ -255,7 +261,7 @@ export default function NonUsInvestorsPage({
                 { l: "Monthly rent", n: num(rent, setRent, 50, "$") },
                 { l: "Purchase price", n: num(price, setPrice, 5000, "$") },
                 { l: "Down payment %", n: num(downPct, setDownPct, 1, "", "%") },
-                { l: "Note rate %", n: num(rate, setRate, 0.125, "", "%") },
+                { l: "Illustrative note rate %", n: num(rate, setRate, 0.125, "", "%") },
               ].map((f) => (
                 <label key={f.l} style={{ display: "block" }}>
                   <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>{f.l}</span>
@@ -271,12 +277,12 @@ export default function NonUsInvestorsPage({
               </div>
               <Mono style={{ fontSize: "clamp(52px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 0.9 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "44ch" }}>
-                {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
+                {fmt$(rent)} rent ÷ {fmt$(pitia)} estimated full payment. {go ? "The scenario appears strong enough for specialist review, but this is not an approval, term sheet, or offer of credit." : dscr >= 1.0 ? "The rent appears to cover the estimated payment; current LTV caps and foreign-national overlays still require product-sheet review." : "The scenario needs review because rent does not cover the estimated payment under these assumptions."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
-                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>LTV (cap ≈75%)</div></div>
+                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>scenario LTV</div></div>
                 <div><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{fmt$(loan)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>loan amount</div></div>
-                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: BLUE, display: "block" }}>$0</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>income docs</div></div>
+                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: BLUE, display: "block" }}>[VERIFY]</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>required docs</div></div>
               </div>
             </div>
           </div>
@@ -305,7 +311,7 @@ export default function NonUsInvestorsPage({
       <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 12 }}>What you'll likely qualify for</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Verify expectations before you rely on them.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             {QUALIFY.map((q) => (
               <div key={q.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.2vw,28px)" }}>
@@ -316,7 +322,7 @@ export default function NonUsInvestorsPage({
             ))}
           </div>
           <p style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", margin: "16px 0 0", maxWidth: "70ch", lineHeight: 1.5 }}>
-            Single-family, 2–4 units, and many condos — long-term and short-term (Airbnb) rentals. Illustrative ranges; your numbers, taxes, insurance, and the lender decide the real figure.
+            Single-family, 2–4 units, condos, long-term rentals, and STR scenarios may be eligible depending on program, state, property, documentation, and lender overlays. Verify before relying on any number.
           </p>
         </div>
       </section>
@@ -326,7 +332,7 @@ export default function NonUsInvestorsPage({
         <div className="gs-reveal" style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Why us, not a faceless platform</div>
           <p style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.025em", lineHeight: 1.3, margin: 0, color: dc.cream }}>
-            A platform gives you <span style={{ color: "rgba(238,239,211,0.62)" }}>their</span> loan. We give you the <span style={{ color: dc.lemon }}>best</span> loan — one application in front of multiple U.S. lenders, including the ones most comfortable with where you live. A real person, in your language, from your first question to the keys.
+            A platform shows one path. Greenstreet reviews the file against eligible DSCR options and the compliance boundaries that matter for country, entity, documentation, funds source, and state scope.
           </p>
         </div>
       </section>
@@ -347,14 +353,14 @@ export default function NonUsInvestorsPage({
       </section>
 
       <BottomCTA onNavigate={onNavigate} cards={[
-        { bg: dc.lemon, fg: dc.dark, blurb: "Free, 60 seconds, no credit pull. No SSN. No U.S. credit. No flight.", title: "Check your buying power", view: "dscr-calculator" },
-        { bg: dc.mintBg, fg: dc.dark, blurb: "Prefer a human? Talk to a multilingual DSCR specialist.", title: "Message a specialist", view: "book-demo" },
+        { bg: dc.lemon, fg: dc.dark, blurb: "Run a preliminary scenario before a specialist reviews product fit, country eligibility, documentation, and state scope.", title: "Check preliminary fit", view: "dscr-calculator" },
+        { bg: dc.mintBg, fg: dc.dark, blurb: "Need hand-holding? Request a DSCR specialist review for entity, banking, funds-source, and closing requirements.", title: "Talk to a specialist", view: "book-demo" },
       ]} />
 
       {/* ── COMPLIANCE FOOTER ── */}
       <section style={{ background: dc.dark, color: "rgba(238,239,211,0.62)", padding: `28px ${dc.pad} 40px`, borderTop: "1px solid rgba(238,239,211,0.08)" }}>
         <p style={{ maxWidth: dc.maxW, margin: "0 auto", fontSize: 12, lineHeight: 1.6 }}>
-          Estimates only — not a loan commitment, approval, or offer of credit. For business-purpose, non-owner-occupied investment property. DSCR loan terms, rates, and eligibility vary by lender, property, and country of residence and change without notice.
+          Estimates only — not a loan commitment, approval, term sheet, or offer of credit. For business-purpose, non-owner-occupied investment property. DSCR loan terms, rates, documentation, eligible countries, sanctions screening, state scope, and eligibility vary by lender and change without notice. Tax and legal issues require qualified professional review.
         </p>
       </section>
     </DcShell>

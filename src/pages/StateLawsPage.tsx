@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
 import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
+import ComplianceNote from "../design/ComplianceNote";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tier = 0 | 1 | 2 | 3; // 0 allowed, 1 threshold, 2 high-risk, 3 banned
@@ -151,12 +152,17 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
               <div><Mono data-count={50} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>50</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states mapped</div></div>
               <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#ff6b6b", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
-              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
+              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>standard review</div></div>
             </div>
             <div style={{ flex: 1, minWidth: 220, maxWidth: 320 }}>
               <input className="sl-input" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state — type CA, TX, NJ…" />
             </div>
           </div>
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <ComplianceNote tone="legal">
+              State-law output is a screening aid, not legal advice. Statutes, thresholds, licensing scope, and lender overlays must be checked against current source documents and counsel before quoting or structuring a loan.
+            </ComplianceNote>
           </div>
           {/* Right: 50-state risk-zone breakdown */}
           <div style={{ background: "rgba(0,55,56,0.4)", border: "1px solid rgba(238,239,211,0.16)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
@@ -176,7 +182,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
               ))}
             </div>
             <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(238,239,211,0.12)", fontSize: 12, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>
-              Click any state on the map below for its exact prepay rule, usury cap, and pricing impact.
+              Click any state on the map below for the current matrix entry. Verify statutes, thresholds, and lender overlays before relying on the result.
             </div>
           </div>
         </div>
