@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useCallback } from "react";
+import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
@@ -270,6 +271,41 @@ export default function MonteCarloPage({
     highlightTimer.current = setTimeout(() => setLastChanged(null), 1800);
   }, []);
 
+  // ── Guided rate-environment presets ──────────────────────────────────────
+  // One-click macro scenarios that set the two rate assumptions (today's SOFR +
+  // the long-run θ the paths revert to). Clicking animates the sliders so the
+  // probabilities, fan chart, and gauge visibly re-roll across that future.
+  const snapSofr = CURRENT_MARKET_SNAPSHOT.sofr30Day;
+  const mcPresets = useMemo(() => ([
+    { id: "today",  label: "Today's market",    sub: "Current SOFR, settling near the model's long-run mean", initial: snapSofr,       theta: DEFAULT_VASICEK_PARAMS.longRunMeanSOFR },
+    { id: "higher", label: "Higher for longer", sub: "Rates stay elevated — θ rises to 4.50%",                 initial: snapSofr,       theta: 4.5 },
+    { id: "soft",   label: "Soft landing",       sub: "The Fed cuts — rates drift down toward 2.25%",          initial: snapSofr,       theta: 2.25 },
+    { id: "shock",  label: "Rate shock",         sub: "SOFR spikes +150 bps and stays there",                  initial: snapSofr + 1.5, theta: snapSofr + 1.0 },
+  ]), [snapSofr]);
+
+  const [activePreset, setActivePreset] = useState<string>("today");
+  const presetTween = useRef<gsap.core.Tween | null>(null);
+
+  const applyPreset = useCallback((p: { id: string; initial: number; theta: number }) => {
+    setActivePreset(p.id);
+    presetTween.current?.kill();
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { setInitialSofr(p.initial); setLongRunSofr(p.theta); return; }
+    const obj = { i: initialSofr, t: longRunSofr };
+    presetTween.current = gsap.to(obj, {
+      i: p.initial, t: p.theta, duration: 0.7, ease: "power2.out",
+      onUpdate: () => { setInitialSofr(+obj.i.toFixed(2)); setLongRunSofr(+obj.t.toFixed(2)); },
+      onComplete: () => { setInitialSofr(p.initial); setLongRunSofr(p.theta); },
+    });
+  }, [initialSofr, longRunSofr]);
+
+  // Manual moves of the two rate sliders drop the preset highlight (off-script).
+  const onRateSlider = (field: string, setter: (v: number) => void) => (v: number) => {
+    presetTween.current?.kill();
+    setActivePreset("");
+    touch(field, setter)(v);
+  };
+
   // ── engine ────────────────────────────────────────────────────────────────
   const result = useMemo(() => {
     try {
@@ -364,6 +400,8 @@ export default function MonteCarloPage({
           .mc-prob-grid { grid-template-columns: 1fr !important; }
         }
         .mc-path { fill: none; stroke-linecap: round; }
+        .mc-preset:hover { border-color: rgba(216,217,88,0.5) !important; }
+        .mc-preset[aria-pressed="true"]:hover { filter: brightness(1.05); }
         .mc-card-highlight {
           transition: box-shadow 0.25s ease;
         }
@@ -398,8 +436,8 @@ export default function MonteCarloPage({
             <H1 style={{ margin: "0 0 20px" }}>
               Stress-test the deal over {simulations} futures.
             </H1>
-            <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-              This tool runs {simulations} what-if interest-rate scenarios to show the <em>range</em> of possible outcomes. Your DSCR (debt-service coverage ratio — whether the property's rent covers the loan payment; 1.00 = break-even, higher is safer) is computed at each simulated ARM (adjustable-rate mortgage) reset.
+            <div style={{ fontSize: 15, fontWeight: 500, color: "rgba(238,239,211,0.82)", background: "rgba(238,239,211,0.05)", border: "1px solid rgba(238,239,211,0.16)", borderRadius: 8, padding: "10px 14px", display: "inline-block", maxWidth: "48ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+              This tool runs {simulations} what-if interest-rate scenarios to show the <em>range</em> of possible outcomes. Your <strong>DSCR</strong> (debt-service coverage ratio — whether the property's rent covers the loan payment; 1.00 = break-even, higher is safer) is computed at each simulated ARM (adjustable-rate mortgage) reset.
             </div>
             <Lead style={{ color: "rgba(238,239,211,0.65)", maxWidth: "46ch", margin: "0 0 36px" }}>
               The headline number is the <strong style={{ color: dc.cream }}>probability your deal breaks</strong> — that DSCR falls below 1.0 in some future rate scenario. Below 5% is comfortable; above 20% needs attention.
@@ -494,10 +532,10 @@ export default function MonteCarloPage({
               </div>
 
               <div style={hl("initialSofr")}>
-                <SliderField label="Initial SOFR %" hint="Today's short-term rate index. ARM resets float off this after the fixed period ends." value={initialSofr} set={touch("initialSofr", setInitialSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
+                <SliderField label="Initial SOFR %" hint="Today's short-term rate index. ARM resets float off this after the fixed period ends." value={initialSofr} set={onRateSlider("initialSofr", setInitialSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
               </div>
               <div style={hl("longRunSofr")}>
-                <SliderField label="Long-run SOFR (θ) %" hint="Where you think rates settle over time. All paths drift toward this level." value={longRunSofr} set={touch("longRunSofr", setLongRunSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
+                <SliderField label="Long-run SOFR (θ) %" hint="Where you think rates settle over time. All paths drift toward this level." value={longRunSofr} set={onRateSlider("longRunSofr", setLongRunSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
               </div>
 
               <div style={{ borderTop: "1px solid rgba(238,239,211,0.16)", margin: "20px 0 20px" }} />
@@ -519,6 +557,43 @@ export default function MonteCarloPage({
 
             {/* ── OUTPUT PANEL ──────────────────────────────────────────── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+
+              {/* ── Guided rate-environment presets — one-click macro futures ── */}
+              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "18px 20px", border: "1px solid rgba(238,239,211,0.16)" }}>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 11 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: BLUE }}>
+                    Try a rate environment
+                  </div>
+                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.55)" }}>each re-rolls all {simulations} paths</div>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {mcPresets.map((p) => {
+                    const on = activePreset === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => applyPreset(p)}
+                        aria-pressed={on}
+                        className="mc-preset"
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 7,
+                          background: on ? dc.lemon : "rgba(238,239,211,0.05)",
+                          color: on ? dc.dark : "rgba(238,239,211,0.82)",
+                          border: `1px solid ${on ? dc.lemon : "rgba(238,239,211,0.14)"}`,
+                          borderRadius: 100, padding: "8px 15px", cursor: "pointer",
+                          fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.01em",
+                          transition: "background 0.18s, color 0.18s, border-color 0.18s",
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.6)", marginTop: 9, minHeight: 16, lineHeight: 1.5 }}>
+                  {mcPresets.find((p) => p.id === activePreset)?.sub || "Custom rate assumptions — set by hand."}
+                </div>
+              </div>
 
               {/* Headline probabilities — P(<1.0) dominant lemon, P(<1.25) secondary blue */}
               <div className="mc-prob-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "stretch" }}>
