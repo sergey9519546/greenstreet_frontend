@@ -41,7 +41,7 @@ export default function ARMPage({
   onNavigate?: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "ARM Reset Risk | Greenstreet Finance";
+    document.title = "What Happens When My ARM Resets? | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 

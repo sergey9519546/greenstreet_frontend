@@ -444,7 +444,7 @@ export default function App() {
         </Suspense>
         {/* QualifyWidget overlays marketing/persona views — not the portal or the
             tool pages (they have their own qualify CTAs). */}
-        {!QUALIFY_WIDGET_EXCLUDED_VIEWS.has(view) && <QualifyWidget />}
+        {!QUALIFY_WIDGET_EXCLUDED_VIEWS.has(view) && <QualifyWidget showTrigger={view !== "borrower-profiles"} />}
       </div>
     </ErrorBoundary>
   );

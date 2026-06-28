@@ -60,7 +60,7 @@ function ensureWidgetStyles() {
   document.head.appendChild(el);
 }
 
-export default function QualifyWidget() {
+export default function QualifyWidget({ showTrigger = true }: { showTrigger?: boolean }) {
   const [open, setOpen] = useState(false);
   const autoTriggeredRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -135,7 +135,7 @@ export default function QualifyWidget() {
   return (
     <>
       {/* Sticky pill trigger — hidden while modal is open */}
-      {!open && (
+      {!open && showTrigger && (
         <button
           onClick={openModal}
           aria-label="See if you qualify"

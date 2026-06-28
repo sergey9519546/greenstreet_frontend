@@ -54,7 +54,7 @@ function breakEvenRate(loan: number, targetPI: number): number {
 
 export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   useEffect(() => {
-    document.title = "DSCR Calculator | Greenstreet Finance";
+    document.title = "DSCR Calculator: See if Rent Covers the Loan | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -228,7 +228,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               DSCR Engine · Deterministic core
             </div>
             <H1 style={{ fontSize: 'clamp(46px,7vw,108px)', lineHeight: 0.93, letterSpacing: '-0.045em', marginBottom: 26, color: PISTACHIO }}>
-              Know if your<br/>rental covers<br/>the loan.
+              DSCR Calculator:<br/>see if rent<br/>covers the loan.
             </H1>
             <Lead style={{ color: 'rgba(238,239,211,0.68)', maxWidth: '46ch', marginBottom: 34 }}>
               Enter price, rent, rate, taxes and insurance. Get your DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) and full PITIA breakdown instantly. No black box.

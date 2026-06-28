@@ -247,8 +247,9 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
               <div className="footer_group_list">
                 <a className="footer_link_wrap w-inline-block" href="/investors" onClick={go("investors")}><div className="footer_link_text u-weight-bold">Real Estate Investors</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#non-us-investors" onClick={goPath("/borrower-profiles#non-us-investors")}><div className="footer_link_text u-weight-bold">Non-US Investors</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#str-airbnb" onClick={goPath("/borrower-profiles#str-airbnb")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/non-us-investors" onClick={go("non-us-investors")}><div className="footer_link_text u-weight-bold">Non-US Investors</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/str-airbnb" onClick={go("str-hosts")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/vacation-homes" onClick={go("vacation-homes")}><div className="footer_link_text u-weight-bold">Vacation Homes</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/rate-quiz" onClick={go("rate-quiz")}><div className="footer_link_text u-weight-bold">Rate Quiz</div></a>
               </div>
             </section>

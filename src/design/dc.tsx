@@ -224,14 +224,28 @@ export const Body = mk("p", "u-text-style-h6");       // base body copy
  *  ONE spec: radius `sm` (8px), weight 700, tracking `snug`, sizes sm/md/lg.
  *  Use this everywhere instead of inlining lemon buttons (the audit found the
  *  same CTA at 6/8/9px radius and weight 500/600/700 across pages). */
-export function Btn({ label, onClick, href, variant = "primary", size = "md", arrow = true, style }: { label: string; onClick?: (e: React.MouseEvent) => void; href?: string; variant?: "primary" | "secondary"; size?: "sm" | "md" | "lg"; arrow?: boolean; style?: React.CSSProperties }) {
+export function Btn({ label, onClick, href, variant = "primary", size = "md", arrow = true, style }: { label: string; onClick?: (e: React.MouseEvent<HTMLElement>) => void; href?: string; variant?: "primary" | "secondary"; size?: "sm" | "md" | "lg"; arrow?: boolean; style?: React.CSSProperties }) {
   const dark = variant === "secondary";
   const S = { sm: { pad: "10px 18px", fs: 14, mh: 40, ic: 16 }, md: { pad: "13px 24px", fs: 15, mh: 46, ic: 18 }, lg: { pad: "16px 30px", fs: 16, mh: 52, ic: 20 } }[size];
+  const clickable = href ? (
+    <a className="g_clickable_link w-inline-block" href={href} onClick={onClick as React.MouseEventHandler<HTMLAnchorElement>} aria-label={label}>
+      <span className="g_clickable_text u-sr-only">{label}</span>
+    </a>
+  ) : (
+    <button
+      className="g_clickable_link g_clickable_btn"
+      type="button"
+      onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
+      aria-label={label}
+      style={{ border: 0, padding: 0, background: "transparent", color: "inherit", font: "inherit" }}
+    >
+      <span className="g_clickable_text u-sr-only">{label}</span>
+    </button>
+  );
   return (
     <div
       className="btn_main_wrap"
       data-wf--btn-main--style={variant}
-      onClick={onClick}
       style={{
         display: "inline-flex", alignItems: "center", gap: 9, cursor: "pointer",
         // primary = reserved lemon action; secondary = solid emerald (legible on
@@ -243,7 +257,7 @@ export function Btn({ label, onClick, href, variant = "primary", size = "md", ar
       }}
     >
       <div className="g_clickable_wrap" style={{ display: "contents" }}>
-        <a className="g_clickable_link w-inline-block" {...(href !== undefined ? { href } : {})} onClick={onClick}><span className="g_clickable_text u-sr-only">{label}</span></a>
+        {clickable}
       </div>
       <div className="btn_main_text" style={{ color: "inherit", fontWeight: 700, fontSize: S.fs, letterSpacing: tracking.snug }}>{label}</div>
       {arrow && (

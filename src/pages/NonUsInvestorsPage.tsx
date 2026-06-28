@@ -69,7 +69,7 @@ export default function NonUsInvestorsPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "Non-US Investor DSCR Loans | Greenstreet Finance";
+    document.title = "Can Foreign Investors Get a U.S. DSCR Loan? | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -158,7 +158,7 @@ export default function NonUsInvestorsPage({
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>
               Non-US Investor Program
             </div>
-            <H1 style={{ margin: "0 0 16px", maxWidth: "13ch" }}>Own U.S. property from anywhere.</H1>
+            <H1 style={{ margin: "0 0 16px", maxWidth: "14ch" }}>Can foreign investors get a U.S. DSCR loan?</H1>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
               <span className="fn-chip"><b>✕</b> No SSN</span>
               <span className="fn-chip"><b>✕</b> No U.S. credit</span>

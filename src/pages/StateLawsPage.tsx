@@ -76,7 +76,7 @@ const RAIN = dc.rain; // #006565 — State Laws' distinct colour identity
 
 export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   useEffect(() => {
-    document.title = "State Rules | Greenstreet Finance";
+    document.title = "Prepayment Penalty Rules by State | Greenstreet Finance";
   }, []);
 
   const [selected, setSelected] = useState(() => readStateFromQuery() ?? "NJ");
@@ -139,7 +139,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
           <div>
           <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product / 50-State Rule Engine</div>
           <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>
-            Prepayment penalty rules, all fifty states.
+            Prepayment penalty rules by state.
           </H1>
           <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "54ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
             A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) is allowed in most states for business-purpose loans — but not all. This map shows where it's clear, where thresholds apply, and where lenders decline entirely. Click any state for full details.
@@ -154,7 +154,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
               <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
             </div>
             <div style={{ flex: 1, minWidth: 220, maxWidth: 320 }}>
-              <input className="sl-input" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state — type CA, TX, NJ…" />
+              <input className="sl-input" aria-label="Jump to a state" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state - type CA, TX, NJ..." />
             </div>
           </div>
           </div>
@@ -261,7 +261,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                   </div>
                 ))}
               </div>
-              <Btn label={`Price a deal in ${sel.code}`} size="sm" onClick={() => onNavigate("dscr-calculator")} style={{ width: "100%", justifyContent: "center", marginTop: 24 }} />
+              <Btn label={`Price a deal in ${sel.code}`} href="/dscr-calculator" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }} style={{ width: "100%", justifyContent: "center", marginTop: 24 }} />
             </div>
           </div>
         </div>

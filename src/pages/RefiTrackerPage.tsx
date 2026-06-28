@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
+import { DcShell, dc, Mono, H1, H2, Lead, Btn, useRevealOnView } from "../design/dc";
 import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzeRefi } from "../engine/refiTracker";
 import { computeSecondLienDscr } from "../engine/secondLienDscr";
@@ -26,7 +26,7 @@ export default function RefiTrackerPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "Refi Tracker | Greenstreet Finance";
+    document.title = "Should I Refinance My DSCR Loan? | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -891,7 +891,7 @@ export default function RefiTrackerPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Or: tap equity without refinancing</div>
-          <H1 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "20ch" }}>Keep your {currentRate}% first lien. Borrow against the equity.</H1>
+          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "20ch" }}>Keep your {currentRate}% first lien. Borrow against the equity.</H2>
           <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "62ch", margin: "0 0 26px" }}>
             A DSCR closed-end 2nd lien (the $21B market Angel Oak opened) pulls cash without touching a low-rate 1st lien or paying its prepay penalty. Qualifies on <strong style={{ color: dc.cream }}>combined</strong> DSCR = rent ÷ (1st payment + 2nd payment), CLTV ≤ 75%.
           </Lead>

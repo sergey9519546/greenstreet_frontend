@@ -323,7 +323,7 @@ export default function PortfolioPage({
                     return (
                       <tr key={c.id} className="pf-row" style={{ background: "transparent", transition: "background .12s" }}>
                         <td style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input type="text" value={c.name} onChange={(e) => edit(c.id, "name", e.target.value)} placeholder="Property name"
+                          <input type="text" aria-label={`Property name for row ${c.id}`} value={c.name} onChange={(e) => edit(c.id, "name", e.target.value)} placeholder="Property name"
                             style={{ width: 138, background: "transparent", border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 600, fontSize: 14, padding: "7px 9px", outline: "none" }} />
                         </td>
                         <td style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>

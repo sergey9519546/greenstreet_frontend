@@ -22,7 +22,7 @@ export default function STRHostsPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "STR & Airbnb DSCR Loans | Greenstreet Finance";
+    document.title = "Airbnb DSCR Loans: Qualify with Short-Term Rental Income | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -72,7 +72,7 @@ export default function STRHostsPage({
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For STR &amp; Airbnb Hosts</div>
-            <H1 style={{ margin: "0 0 18px", maxWidth: "15ch" }}>We underwrite the slow months.</H1>
+            <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>Airbnb DSCR loans that survive the slow months.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
               Short-term rental income swings with the season. We underwrite it the way it actually behaves — ADR × occupancy, month by month — not the peak-week screenshot. The number holds at closing.
             </Lead>
