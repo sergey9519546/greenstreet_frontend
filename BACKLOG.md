@@ -76,6 +76,11 @@ negative-leverage flag are DONE. Remaining:
   re-renders / memoization (esp. heavy pages). Likely real wins.
 - `vitest` coverage gaps on new modules: leverageCheck (done), secondLien, rentIntegrity,
   insuranceEstimate, trueCostOfCapital.
+- ✅ Coverage added for 6 previously-untested engines (branch `test/engine-coverage-b4`,
+  +41 tests → 271 total): firpta, taxEngine (OBBBA lock), decisionSupport.computeReturnGrade,
+  sensitivity (golden values), portfolio (+health score), reserveEngine. STILL UNTESTED:
+  armResetEngine, strUnderwriting, qualify, loanOptimizer, reassessmentEngine,
+  lenderMatchScore, irrWaterfall, refiTracker, monteCarloRatePath.
 
 ---
 
