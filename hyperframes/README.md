@@ -1,16 +1,23 @@
 # Case-study animations (HyperFrames)
 
-Editable **source** for the 4 looping motion graphics on `/case-studies`. Each
-is an authored HyperFrames composition (HTML + a paused GSAP timeline) that
-renders deterministically to MP4. These `.html` files are the source of truth;
-the shipped clips live at `public/video/scenes/cs-*.mp4` (+ `-poster.jpg`).
+The 4 looping motion graphics on `/case-studies`. Each is an authored HyperFrames
+composition (HTML + a paused GSAP timeline). **They run LIVE in the page** —
+`CaseStudiesPage` embeds each `.html` in a sandboxed `<iframe srcDoc>` and plays
+the composition's timeline (`window.__timelines.main`) on an infinite loop. They
+are **not** baked into `.mp4`. The only other shipped asset is a poster frame
+(`cs-*-poster.jpg`) used as the `prefers-reduced-motion` / loading fallback.
 
-| Source | Ships as | Story it animates |
+| Source | Scene id | Story it animates |
 |--------|----------|-------------------|
-| `cs-northshore.html` | `cs-northshore.mp4` | One file, two DSCRs — Track 1 gauge **1.18x PASS** → a "12% VACANCY" crack opens → Track 2 gauge **0.98x STOP** → lemon magnifier on the crack → **CAUGHT** |
-| `cs-vela.html` | `cs-vela.mp4` | Velocity engine — cream files feed in, exit emerald, fan to **four lanes out**; lemon stopwatch counts **25:00 → 06:00**; **4×** badge |
-| `cs-quintero.html` | `cs-quintero.mp4` | Appraisal toll — 3 folder-characters turned away by the gate + coral ✗; lemon **$0 → $14,800** counter → passport → emerald **APPROVED** |
-| `cs-aurora.html` | `cs-aurora.mp4` | 40 house icons emanate center-out into one ledger grid → blended-DSCR meter settles **1.11x** → **$18M** ribbon + emerald seal |
+| `cs-northshore.html` | `northshore` | One file, two DSCRs — Track 1 gauge **1.18x PASS** → a "12% VACANCY" crack opens → Track 2 gauge **0.98x STOP** → lemon magnifier on the crack → **CAUGHT** |
+| `cs-vela.html` | `vela` | Velocity engine — cream files feed in, exit emerald, fan to **four lanes out**; lemon stopwatch counts **25:00 → 06:00**; **4×** badge |
+| `cs-quintero.html` | `quintero` | Appraisal toll — 3 folder-characters turned away by the gate + coral ✗; lemon **$0 → $14,800** counter → passport → emerald **APPROVED** |
+| `cs-aurora.html` | `aurora` | 40 house icons emanate center-out into one ledger grid → blended-DSCR meter settles **1.11x** → **$18M** ribbon + emerald seal |
+
+> The scene id is the `scene:` field on each study in `CaseStudiesPage.tsx`
+> (`SCENE_HTML[scene]` → the imported composition). To make these play live the
+> page only adds a tiny shim to the composition: responsive `html/body/svg` + a
+> `tl.repeat(-1).play(0)`. Everything else is the authored HTML unchanged.
 
 > About / Careers bands use **photographic** scenes (`ScenePhoto`), not animation —
 > motion clashed with those editorial pages. No animation source for them.
@@ -34,22 +41,22 @@ Palette: midnight `#003738`/`#00302e`/`#012220` grounds · cream `#eeefd3` · le
 `#d8d958` (the one live/active accent) · emerald `#4dbd97` (pass) · coral `#e0635f`
 (stop).
 
-## Edit + re-render
+## Edit
 
-A reusable HyperFrames project lives at the repo-root `hf_build/cs-northshore/`
-(gitignored). To change a clip:
+The composition runs live, so just edit the `.html` in place — `npm run dev`
+hot-reloads `/case-studies` and the iframe replays the timeline. **No render
+step is needed for the site.** Keep the HyperFrames contract intact: a single
+paused timeline registered on `window.__timelines["main"]`, deterministic
+(no `Date.now()` / `Math.random()`), `class="clip"` on timed elements.
+
+If you ever want a standalone `.mp4` (e.g. for social / an email), render it with
+the HyperFrames CLI — but the site does **not** consume it:
 
 ```bash
-cp greenstreet_frontend/hyperframes/cs-<name>.html hf_build/cs-northshore/index.html
-# edit hf_build/cs-northshore/index.html (or the saved source, then re-copy)
-cd hf_build/cs-northshore
-npx hyperframes lint .
-npx hyperframes render . --skill=motion-graphics -q draft -o ./renders/out.mp4
-# then copy the render + a poster frame into public/video/scenes/, and save the
-# edited HTML back to greenstreet_frontend/hyperframes/cs-<name>.html
+cd greenstreet_frontend/hyperframes
+npx hyperframes lint cs-<name>.html
+npx hyperframes render cs-<name>.html --skill=motion-graphics -q draft -o ./out.mp4
 ```
 
-Renders are deterministic — the same source always produces the same bytes
-(verified: `cs-northshore.html` → 650,590-byte MP4, matching the shipped clip).
-The panels (`CaseStudiesPage.tsx`) load these as muted autoplay loops at **16:9**
-with the poster as the `prefers-reduced-motion` fallback.
+To refresh a poster (the reduced-motion fallback), grab a representative frame and
+save it to `public/video/scenes/cs-<name>-poster.jpg`.

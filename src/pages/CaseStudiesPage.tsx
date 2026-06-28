@@ -2,6 +2,64 @@ import React, { useEffect, useRef } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView, CountUp } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
 
+// ── Live HyperFrames scenes ───────────────────────────────────────────────────
+// The case-study explainers are authored HyperFrames HTML compositions (SVG + a
+// paused GSAP timeline). They run LIVE in the page — embedded as a sandboxed
+// iframe that plays the composition's own timeline on a seamless loop — and are
+// never baked into an .mp4. Reduced-motion shows the static poster instead.
+import velaScene from "../../hyperframes/cs-vela.html?raw";
+import northshoreScene from "../../hyperframes/cs-northshore.html?raw";
+import quinteroScene from "../../hyperframes/cs-quintero.html?raw";
+import auroraScene from "../../hyperframes/cs-aurora.html?raw";
+
+const SCENE_HTML: Record<string, string> = {
+  vela: velaScene,
+  northshore: northshoreScene,
+  quintero: quinteroScene,
+  aurora: auroraScene,
+};
+
+// Make an authored composition self-playing + responsive: fill the frame, then
+// drive the paused timeline (window.__timelines.main) on an infinite loop.
+function liveSceneDoc(html: string): string {
+  const style =
+    "<style>html,body{width:100%!important;height:100%!important;margin:0!important;overflow:hidden!important;}svg{width:100%!important;height:100%!important;display:block;}</style>";
+  const script =
+    "<script>(function(){function s(){var t=window.__timelines&&window.__timelines.main;if(!t){return setTimeout(s,40);}t.repeat(-1);t.play(0);}if(document.readyState==='complete'){s();}else{addEventListener('load',s);}})();<\/script>";
+  return html.replace("</head>", style + "</head>").replace("</body>", script + "</body>");
+}
+
+// One case-study scene: a static poster <img> base (also the reduced-motion
+// fallback) with the live composition iframe layered on top once `active`.
+function HyperframeScene({
+  sceneKey, poster, image, title, active, posterStyle,
+}: {
+  sceneKey?: string;
+  poster?: string;
+  image?: string;
+  title: string;
+  active: boolean;
+  posterStyle?: React.CSSProperties;
+}) {
+  const cover: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%" };
+  const html = sceneKey ? SCENE_HTML[sceneKey] : undefined;
+  return (
+    <>
+      <img src={poster || image} alt={title} loading="lazy" decoding="async" style={{ ...cover, objectFit: "cover", ...posterStyle }} />
+      {active && html && (
+        <iframe
+          title={title}
+          srcDoc={liveSceneDoc(html)}
+          sandbox="allow-scripts"
+          scrolling="no"
+          loading="lazy"
+          style={{ ...cover, border: "none", background: "#00302e" }}
+        />
+      )}
+    </>
+  );
+}
+
 // ── Case studies data ─────────────────────────────────────────────────────────
 interface StudyMetric {
   v: string;
@@ -24,8 +82,9 @@ interface Study {
   program: string;
   /** Brand scene image (public/img/generated/scenes) for the case panel */
   image: string;
-  /** Hyperframes animated explainer loop + its poster frame (reduced-motion). */
-  video?: string;
+  /** HyperFrames scene id — the live composition in hyperframes/cs-<id>.html
+   *  (runs in-page, never an mp4) + its poster frame (reduced-motion / loading). */
+  scene?: string;
   poster?: string;
 }
 
@@ -37,7 +96,7 @@ const STUDIES: Study[] = [
     type: "Portfolio investor",
     num: "01",
     image: "/img/generated/scenes/underwriting-desk-velocity.png",
-    video: "/video/scenes/cs-vela.mp4",
+    scene: "vela",
     poster: "/video/scenes/cs-vela-poster.jpg",
     headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
     metrics: [
@@ -62,7 +121,7 @@ const STUDIES: Study[] = [
     type: "Active investor",
     num: "02",
     image: "/img/generated/scenes/desk-green-data.png",
-    video: "/video/scenes/cs-northshore.mp4",
+    scene: "northshore",
     poster: "/video/scenes/cs-northshore-poster.jpg",
     headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
     metrics: [
@@ -87,7 +146,7 @@ const STUDIES: Study[] = [
     type: "Investor / Non-US investor",
     num: "03",
     image: "/img/generated/scenes/broker-building-dusk.png",
-    video: "/video/scenes/cs-quintero.mp4",
+    scene: "quintero",
     poster: "/video/scenes/cs-quintero-poster.jpg",
     headline: "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
     metrics: [
@@ -114,7 +173,7 @@ const AURORA_STORY = {
   type: "Portfolio investor",
   num: "04",
   image: "/img/generated/scenes/residential-townhomes.png",
-  video: "/video/scenes/cs-aurora.mp4",
+  scene: "aurora",
   poster: "/video/scenes/cs-aurora-poster.jpg",
   headline: "One blended view of 40 doors got the blanket line approved.",
   metrics: [
@@ -316,20 +375,17 @@ function StudyRow({
       {/* Photo panel — big index + client wordmark composited over the scene */}
       <div className="cs-photo" style={{ order: photoLeft ? 0 : 1, ...rise(0) }}>
         <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
-          {s.video && !reduce ? (
-            // Hyperframes animated explainer — loops muted; src attaches only on
-            // reveal (lazy), poster shows until it paints; reduced-motion falls
-            // through to the static poster <img> below.
-            <video
+          {s.scene && !reduce ? (
+            // Live HyperFrames composition — the authored HTML/GSAP runs in a
+            // sandboxed iframe (lazy: mounts only once the row reveals). Reduced
+            // motion falls through to the static poster <img> below.
+            <HyperframeScene
+              sceneKey={s.scene}
               poster={s.poster}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="none"
-              aria-label={`${s.company} — ${s.type}, animated`}
-              {...(shown ? { src: s.video } : {})}
-              style={mediaStyle}
+              image={s.image}
+              title={`${s.company} — ${s.type}, animated`}
+              active={shown}
+              posterStyle={mediaStyle}
             />
           ) : (
             <img
@@ -342,11 +398,11 @@ function StudyRow({
           )}
           {/* The animation is self-contained; for the static photo fallback only,
               keep the legibility gradient + the client wordmark. */}
-          {!(s.video && !reduce) && (
+          {!(s.scene && !reduce) && (
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
           )}
           <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,22px)", left: "clamp(16px,1.8vw,26px)", fontSize: "clamp(28px,3.4vw,50px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.88)", lineHeight: 1, textShadow: "0 2px 16px rgba(0,26,24,0.6)" }}>{s.num}</Mono>
-          {!(s.video && !reduce) && (
+          {!(s.scene && !reduce) && (
             <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
               <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream }}>{s.company}</div>
               <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.7)", marginTop: 3, letterSpacing: "-0.01em" }}>{s.type} · {s.location}</div>
@@ -459,13 +515,14 @@ function StudyDetail({
             {/* 16:9 media panel — the study's animated explainer (poster fallback) */}
             <div className="cs-detail-media">
               <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
-                {s.video && !reduce ? (
-                  <video
+                {s.scene && !reduce ? (
+                  <HyperframeScene
+                    sceneKey={s.scene}
                     poster={s.poster}
-                    autoPlay muted loop playsInline preload="metadata"
-                    src={s.video}
-                    aria-label={`${s.company} — ${s.type}, animated`}
-                    style={cover}
+                    image={s.image}
+                    title={`${s.company} — ${s.type}, animated`}
+                    active={true}
+                    posterStyle={cover}
                   />
                 ) : (
                   <img src={s.poster || s.image} alt={`${s.company} — ${s.type}`} style={cover} />
