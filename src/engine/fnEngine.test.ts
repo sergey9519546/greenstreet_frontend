@@ -55,6 +55,34 @@ describe("OFAC / country tiers", () => {
   });
 });
 
+// AML/KYC validation (from the anti-money-laundering + know-your-customer skills).
+describe("AML/KYC compliance flags", () => {
+  it("SDN screening is ALWAYS required — even for a PREFERRED country (strict liability)", () => {
+    const pref = assessForeignNationalEligibility(ITIN_MX); // MX preferred
+    expect(pref.tier).toBe("PREFERRED");
+    expect(pref.sdnScreeningRequired).toBe(true);
+    expect(pref.note).toMatch(/SDN|sanctions/i);
+  });
+
+  it("ELEVATED/RESTRICTED jurisdictions require Enhanced Due Diligence; PREFERRED does not", () => {
+    expect(assessForeignNationalEligibility({ ...ITIN_MX, countryCode: "CN" }).requiresEnhancedDueDiligence).toBe(true); // elevated
+    expect(assessForeignNationalEligibility({ ...ITIN_MX, countryCode: "RU" }).requiresEnhancedDueDiligence).toBe(true); // restricted
+    expect(assessForeignNationalEligibility(ITIN_MX).requiresEnhancedDueDiligence).toBe(false); // preferred
+  });
+
+  it("prohibited country can't lend AND still flags SDN screening", () => {
+    const ir = assessForeignNationalEligibility({ ...ITIN_MX, countryCode: "IR" });
+    expect(ir.canLend).toBe(false);
+    expect(ir.sdnScreeningRequired).toBe(true);
+  });
+
+  it("checklist includes beneficial-ownership + control-person (CDD Rule)", () => {
+    const ids = getForeignNationalDocumentChecklist(ITIN_MX).map((d) => d.id);
+    expect(ids).toContain("beneficial_ownership");
+    expect(ids).toContain("control_person_id");
+  });
+});
+
 describe("doc checklist", () => {
   it("ITIN adds passport + ITIN letter + foreign credit", () => {
     const ids = getForeignNationalDocumentChecklist(ITIN_MX).map((d) => d.id);

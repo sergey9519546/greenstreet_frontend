@@ -120,6 +120,10 @@ export function getForeignNationalDocumentChecklist(p: ForeignNationalProfile): 
     { id: 'articles_of_organization', label: 'LLC Articles of Organization', required: true },
     { id: 'operating_agreement', label: 'LLC Operating Agreement', required: true },
     { id: 'ein_letter', label: 'EIN Confirmation Letter', required: true },
+    // CDD Rule (31 CFR 1010.230): identify + verify 25%+ beneficial owners and
+    // one control person for the borrowing entity.
+    { id: 'beneficial_ownership', label: 'Beneficial-Ownership Certification (25%+ owners)', required: true },
+    { id: 'control_person_id', label: 'Control-Person ID (entity manager)', required: true },
   ];
 
   if (p.idType !== 'SSN') {
@@ -150,21 +154,32 @@ export interface FnEligibility {
   tier: CountryRiskTier;
   totalRateAddBps: number;
   maxLTV: FnMaxLTV;
+  /** OFAC strict-liability: individual SDN-list screening is ALWAYS required —
+   * the country tier is a first-pass proxy, never an OFAC clearance. */
+  sdnScreeningRequired: boolean;
+  /** ELEVATED/RESTRICTED jurisdictions trigger Enhanced Due Diligence (source
+   * of wealth, senior approval, OFAC-license check, PEP screening). */
+  requiresEnhancedDueDiligence: boolean;
   note: string;
 }
 
-/** Top-level eligibility summary. */
+/** Top-level eligibility summary (AML/KYC-aware). */
 export function assessForeignNationalEligibility(p: ForeignNationalProfile): FnEligibility {
   const tier = getCountryRiskTier(p.countryCode);
   const total = totalRateAdjustmentBps(p);
   const canLend = Number.isFinite(total);
+  const edd = tier === 'ELEVATED' || tier === 'RESTRICTED';
   return {
     canLend,
     tier,
     totalRateAddBps: canLend ? total : Infinity,
     maxLTV: calculateForeignNationalMaxLTV(p),
-    note: canLend
-      ? `${tier} country, +${total} bps over base; entity vesting required.`
-      : `OFAC-sanctioned country (${tier}) — cannot originate. Refer to compliance.`,
+    sdnScreeningRequired: true, // always — strict liability, individual-level
+    requiresEnhancedDueDiligence: canLend && edd,
+    note: !canLend
+      ? `OFAC-sanctioned country (${tier}) — cannot originate. Refer to compliance.`
+      : edd
+        ? `${tier} country, +${total} bps; entity vesting + Enhanced Due Diligence required (source of wealth, senior approval, PEP + individual SDN screening). Country tier is NOT an OFAC clearance.`
+        : `${tier} country, +${total} bps over base; entity vesting required. Individual SDN/sanctions-list screening still required (strict liability).`,
   };
 }
