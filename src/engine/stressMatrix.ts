@@ -67,6 +67,38 @@ export function classifyRiskZone(dscr: number): StressRiskZone {
 }
 
 // ============================================================
+// BREAK-EVEN VACANCY
+// ============================================================
+
+/**
+ * Break-even vacancy: the occupancy loss the deal can absorb before its DSCR
+ * falls to 1.00 — i.e. the vacancy rate at which rent no longer covers the full
+ * payment. Computed on the same lender basis as the displayed DSCR
+ * (effective rent ÷ PITIA), so the number is consistent with the gauge.
+ *
+ * Hardened per the DSCR improvement spec (Break-Even Vacancy, [High]) with a
+ * structural-failure guard: if even full occupancy can't cover the payment, the
+ * property is structurally cash-negative and break-even vacancy is 0. The naive
+ * `1 - PITIA/rent` would otherwise return a negative/meaningless value here.
+ *
+ * @param grossMonthlyRent  Monthly rent at full occupancy (after any rent shock)
+ * @param monthlyPITIA      Full monthly payment (P + I + taxes + insurance + HOA)
+ * @returns vacancyPct (0–100, 1-dp) + structurallyNegative flag
+ */
+export function computeBreakEvenVacancy(
+  grossMonthlyRent: number,
+  monthlyPITIA: number,
+): { vacancyPct: number; structurallyNegative: boolean } {
+  // Underwater at full occupancy (or non-positive inputs) → impossible without
+  // repairs/equity. Break-even vacancy is 0 and the deal is flagged.
+  if (grossMonthlyRent <= 0 || monthlyPITIA <= 0 || grossMonthlyRent <= monthlyPITIA) {
+    return { vacancyPct: 0, structurallyNegative: grossMonthlyRent <= monthlyPITIA };
+  }
+  const vBE = 1 - monthlyPITIA / grossMonthlyRent; // 0..1
+  return { vacancyPct: Math.round(vBE * 1000) / 10, structurallyNegative: false };
+}
+
+// ============================================================
 // MAIN ENTRY POINT
 // ============================================================
 

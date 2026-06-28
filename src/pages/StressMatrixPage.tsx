@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
+import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import BottomCTA from "../design/BottomCTA";
@@ -226,6 +226,10 @@ export default function StressMatrixPage({
   const stressedTaxInsMo= (annualTaxes * (1 + taxBumpPct / 100) + annualInsurance * (1 + taxBumpPct / 100)) / 12;
   const stressedPITIA   = stressedPIAmt + stressedTaxInsMo + hoa;
   const effectiveRent   = monthlyRent * (1 + rentChangePct / 100) * (1 - vacancyPct / 100);
+  // Break-even vacancy at the CURRENT stressed rate + rent (the occupancy loss
+  // the deal can absorb before its DSCR drops below 1.00). Uses the same lender
+  // basis as the gauge: rent-after-rent-shock (pre-vacancy) ÷ stressed PITIA.
+  const breakEvenVac    = computeBreakEvenVacancy(monthlyRent * (1 + rentChangePct / 100), stressedPITIA);
 
   // Cell styles
   function cellStyle(zone: StressRiskZone, isBase: boolean, isHovered: boolean): React.CSSProperties {
@@ -706,6 +710,34 @@ export default function StressMatrixPage({
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* ── Break-even vacancy — how much occupancy loss the deal
+                       absorbs before DSCR < 1.00 (hardened per DSCR spec) ── */}
+                <div style={{
+                  marginTop: 16, display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap",
+                  background: "rgba(238,239,211,0.04)", border: "1px solid rgba(238,239,211,0.10)",
+                  borderRadius: dc.r.sm, padding: "14px 18px",
+                }}>
+                  <div style={{ flexShrink: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>
+                      Break-even vacancy
+                    </div>
+                    <Mono style={{ fontSize: 26, fontWeight: 700, lineHeight: 1, color:
+                      breakEvenVac.structurallyNegative ? ZONE_ACCENT.DEAL_BREAK
+                      : breakEvenVac.vacancyPct >= 20 ? EMERALD
+                      : breakEvenVac.vacancyPct >= 10 ? LEMON
+                      : ZONE_ACCENT.FRAGILE }}>
+                      {breakEvenVac.structurallyNegative ? "—" : `${breakEvenVac.vacancyPct.toFixed(0)}%`}
+                    </Mono>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.66)", margin: 0, lineHeight: 1.5, flex: 1, minWidth: 220 }}>
+                    {breakEvenVac.structurallyNegative ? (
+                      <>Structurally cash-negative — at this rate and rent the property doesn&apos;t cover its payment even at 100% occupancy. Occupancy alone can&apos;t save it.</>
+                    ) : (
+                      <>Keeps covering the payment up to <strong style={{ color: dc.cream }}>{breakEvenVac.vacancyPct.toFixed(0)}% vacancy</strong> before DSCR drops below 1.00. You&apos;re modeling <strong style={{ color: dc.cream }}>{vacancyPct}%</strong>{vacancyPct < breakEvenVac.vacancyPct ? ` — a ${(breakEvenVac.vacancyPct - vacancyPct).toFixed(0)}-point cushion.` : " — at or past the break-even point."}</>
+                    )}
+                  </p>
                 </div>
 
                 {/* ── Plain-language verdict ─────────────────────── */}
