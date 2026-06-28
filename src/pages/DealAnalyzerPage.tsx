@@ -3,6 +3,7 @@ import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
+import { computeTcoRate } from "../engine/tcoDscr";
 
 interface Props {
   onBack?: () => void;
@@ -37,7 +38,12 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const pitia = piMo + tax / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
   const cashFlow = rent - pitia;
-  const noi = rent * 0.92 * 12 - tax - ins;
+  // NOI = EGI − full OpEx (CRE underwriting standard). The prior `rent×0.92`
+  // only haircut 8% vacancy — it omitted management, maintenance, and CapEx,
+  // overstating NOI (and thus cap rate + debt yield) by ~21% of rent. Use the
+  // TCO opex (vacancy + mgmt + maint + capex), then taxes + insurance.
+  const tcoTotal = computeTcoRate().total; // SFR/avg/normal default
+  const noi = rent * 12 * (1 - tcoTotal) - tax - ins;
   const capRate = (noi / price) * 100;
   const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
   const ltv = 100 - down;
