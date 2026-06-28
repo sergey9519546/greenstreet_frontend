@@ -50,6 +50,11 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   // Positive vs negative leverage (RIDGE debt-tool): does the asset out-yield
   // the debt? Loan constant = annual P&I ÷ loan, vs the going-in cap rate.
   const lev = assessLeverage(piMo * 12, loan, noi, price);
+  // Cash-on-cash (real-assets): annual pre-tax cash flow (NOI − debt service)
+  // ÷ cash invested (down + ~3% closing). The return on the actual cash in —
+  // negative here when the deal is in negative leverage.
+  const cashInvested = price * (down / 100) + price * 0.03;
+  const coc = cashInvested > 0 ? ((noi - piMo * 12) / cashInvested) * 100 : 0;
   const ltv = 100 - down;
   // Dual-track: the dscr above is Track 1 (lender). Track 2 nets out typical
   // vacancy + management + maintenance — flags deals that qualify yet lose money.
@@ -342,9 +347,10 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 </div>
 
                 {/* 3-metric row */}
-                <div className="da-metrics-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+                <div className="da-metrics-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
                   {[
                     { val: (cashFlow >= 0 ? "+" : "") + fmt(cashFlow), label: "cash flow / mo", sub: cashFlow >= 0 ? "positive" : "shortfall", color: cashFlow >= 0 ? dc.emerald : "#e06363" },
+                    { val: (coc >= 0 ? "+" : "") + coc.toFixed(1) + "%", label: "cash-on-cash",  sub: coc >= 6 ? "strong" : coc >= 0 ? "thin" : "negative", color: coc >= 6 ? dc.emerald : coc >= 0 ? "#e6b84d" : "#e06363" },
                     { val: capRate.toFixed(2) + "%",                    label: "cap rate",       sub: capRate >= 6 ? "healthy" : "thin",         color: capRate >= 6 ? dc.rain : "#e6b84d" },
                     { val: debtYield.toFixed(2) + "%",                  label: "debt yield",     sub: debtYield >= 10 ? "strong" : "marginal",   color: debtYield >= 10 ? dc.rain : "rgba(0,55,56,0.7)" },
                   ].map((m) => (
