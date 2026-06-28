@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, H1, H2, Lead, Btn, HeroProof, Mono } from "../design/dc";
 import { PISTACHIO, MIDNIGHT, LEMON, font, swatch, radius } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import BottomCTA from "../design/BottomCTA";
 
 interface Props {
@@ -82,6 +83,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const pAndI = loan * pf(rate / 100);
   const pitia = pAndI + taxYr / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
+  // Dual-track check: the lender DSCR above is Track 1. Track 2 nets out typical
+  // vacancy + management + maintenance — when a deal clears the lender but Track 2
+  // is below 1.0, it qualifies yet loses money (the product's core warning).
+  const dual = computeDualTrackDSCR(rent, pitia);
   const cashFlow = rent - pitia;
   const noi = (rent * 0.92 * 12) - taxYr - ins;
   const capRate = noi / price * 100;
@@ -429,6 +434,22 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e6b84d', marginBottom: 4 }}>Hardest profile to place</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.5 }}>
                         Sub-1.0 coverage at {100 - down}% LTV is the file that burns lender relationships. We&apos;ll be straight with you: lift the down payment or rent until it clears, or look at a sub-1.0 program with reserves — we don&apos;t chase deals that don&apos;t pencil.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Dual-track "Qualifies but Dangerous" — clears the lender (Track 1)
+                      but loses money after operating costs (Track 2 < 1.0). The
+                      product's core warning, surfaced on the flagship tool. */}
+                  {dual.qualifiesButDangerous && (
+                    <div style={{ marginTop: 20, background: 'rgba(224,99,99,0.09)', border: '1px solid rgba(224,99,99,0.4)', borderLeft: '3px solid #e06363', borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                        <RiskFlame level="high" size={16} />
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e06363' }}>Qualifies but dangerous</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.55 }}>
+                        This clears the lender at <strong style={{ color: '#eeefd3' }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: '#e06363' }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal still loses money each month.{' '}
+                        <a href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.('stress-matrix'); }} style={{ color: '#4dbd97', fontWeight: 600, textDecoration: 'none' }}>Pressure-test it in the Stress Matrix →</a>
                       </p>
                     </div>
                   )}
