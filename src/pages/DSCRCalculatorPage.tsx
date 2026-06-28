@@ -3,6 +3,7 @@ import { DcShell, dc, H1, H2, Lead, Btn, HeroProof, Mono } from "../design/dc";
 import { PISTACHIO, MIDNIGHT, LEMON, font, swatch, radius } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
+import { computeLossScenarios } from "../engine/lossFraming";
 import BottomCTA from "../design/BottomCTA";
 
 interface Props {
@@ -87,6 +88,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   // vacancy + management + maintenance — when a deal clears the lender but Track 2
   // is below 1.0, it qualifies yet loses money (the product's core warning).
   const dual = computeDualTrackDSCR(rent, pitia);
+  // Loss-framed downside scenarios — concrete $ out-of-pocket, not abstract ratios.
+  const lossScenarios = computeLossScenarios({ monthlyRent: rent, monthlyPITIA: pitia, monthlyTax: taxYr / 12, monthlyInsurance: ins / 12 });
   const cashFlow = rent - pitia;
   const noi = (rent * 0.92 * 12) - taxYr - ins;
   const capRate = noi / price * 100;
@@ -453,6 +456,24 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </p>
                     </div>
                   )}
+
+                  {/* Loss-framed downside — concrete $ out of pocket, not abstract ratios */}
+                  <div style={{ marginTop: 20, background: 'rgba(238,239,211,0.04)', border: '1px solid rgba(238,239,211,0.1)', borderRadius: 8, padding: '14px 16px' }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.6)', marginBottom: 10 }}>If things go wrong — what it costs you</div>
+                    <div style={{ display: 'grid', gap: 8 }}>
+                      {lossScenarios.map((s) => (
+                        <div key={s.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: 13 }}>
+                          <span style={{ color: 'rgba(238,239,211,0.8)', fontWeight: 600, minWidth: 120 }}>{s.label}</span>
+                          <Mono style={{ color: s.newDSCR >= 1.0 ? '#4dbd97' : '#e06363', fontWeight: 700 }}>{s.newDSCR.toFixed(2)}x</Mono>
+                          <span style={{ flex: 1, textAlign: 'right' as const, color: s.monthlyShortfall > 0 ? '#e06363' : 'rgba(238,239,211,0.55)' }}>
+                            {s.monthlyShortfall > 0
+                              ? `−${fmt(s.monthlyShortfall)}/mo · ${fmt(s.annualOutOfPocket)}/yr from savings`
+                              : `+${fmt(s.monthlyCashFlow)}/mo cushion`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* ── THE AFTER-TAX EDGE — led-with differentiator ── */}

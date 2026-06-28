@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeBreakEvenVacancy, computeDualTrackDSCR } from "./stressMatrix";
+import { computeBreakEvenVacancy, computeDualTrackDSCR, computeShockWaterfall } from "./stressMatrix";
 
 // Validation cases from the DSCR improvement spec (Break-Even Vacancy, [High]).
 describe("computeBreakEvenVacancy", () => {
@@ -66,5 +66,37 @@ describe("computeDualTrackDSCR", () => {
   it("degenerate inputs guarded", () => {
     expect(computeDualTrackDSCR(0, 2000).qualifiesButDangerous).toBe(false);
     expect(computeDualTrackDSCR(3000, 0).track1).toBe(0);
+  });
+});
+
+// Multi-shock waterfall (Edge §7) — each shock's marginal DSCR bite.
+describe("computeShockWaterfall", () => {
+  // Edge §7 canonical: base $2800 rent / $2546 PITIA → 1.100, then
+  // ARM +$265, tax +$200, insurance +$300, rent −10%.
+  const r = computeShockWaterfall(2800, 2546, [
+    { label: "ARM reset +1.5%", pitiaDelta: 265 },
+    { label: "Tax reassessment", pitiaDelta: 200 },
+    { label: "Insurance surge", pitiaDelta: 300 },
+    { label: "Rent −10%", rentMultiplier: 0.9 },
+  ]);
+
+  it("base and final DSCR match the worked example", () => {
+    expect(r.baseDSCR).toBeCloseTo(1.1, 2);
+    expect(r.finalDSCR).toBeCloseTo(0.761, 2); // 2520 / 3311
+  });
+
+  it("marginal deltas sum to total destruction", () => {
+    const sum = r.steps.reduce((s, st) => s + st.marginalDelta, 0);
+    expect(sum).toBeCloseTo(-(r.totalDelta), 2); // steps are negative; total is positive
+    expect(r.totalDelta).toBeCloseTo(0.339, 2);
+  });
+
+  it("first ARM shock alone pushes below 1.0", () => {
+    expect(r.steps[0].dscrAfter).toBeLessThan(1.0);
+    expect(r.steps[0].marginalDelta).toBeLessThan(0);
+  });
+
+  it("guards divide-by-zero", () => {
+    expect(computeShockWaterfall(2800, 0, []).baseDSCR).toBe(0);
   });
 });

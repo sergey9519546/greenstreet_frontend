@@ -141,6 +141,77 @@ export function computeDualTrackDSCR(
 }
 
 // ============================================================
+// MULTI-SHOCK WATERFALL
+// ============================================================
+
+export interface WaterfallShock {
+  /** e.g. "ARM reset +1.5%", "Tax reassessment", "Insurance surge", "Rent −10%". */
+  label: string;
+  /** Added to PITIA ($/mo). Use for rate/tax/insurance shocks. */
+  pitiaDelta?: number;
+  /** Multiplies rent (e.g. 0.90 for −10%). Use for rent shocks. */
+  rentMultiplier?: number;
+}
+
+export interface WaterfallStep {
+  label: string;
+  /** DSCR after this shock is applied (cumulative). */
+  dscrAfter: number;
+  /** Change in DSCR contributed by this shock alone. */
+  marginalDelta: number;
+}
+
+export interface ShockWaterfallResult {
+  baseDSCR: number;
+  steps: WaterfallStep[];
+  finalDSCR: number;
+  /** baseDSCR − finalDSCR (total destruction). */
+  totalDelta: number;
+}
+
+/**
+ * Decompose a multi-shock scenario into the marginal DSCR hit of each shock,
+ * applied in order (Edge §7 "cumulative impact waterfall"). Unlike the 2D
+ * stress matrix (which crosses two axes), this isolates *each* shock's bite so
+ * the investor sees which one breaks the deal.
+ *
+ * Shocks compound: each step starts from the running rent/PITIA of the prior.
+ */
+export function computeShockWaterfall(
+  baseRent: number,
+  basePITIA: number,
+  shocks: WaterfallShock[],
+): ShockWaterfallResult {
+  const safeDscr = (rent: number, pitia: number) => (pitia > 0 ? rent / pitia : 0);
+  const baseDSCR = safeDscr(baseRent, basePITIA);
+
+  let rent = baseRent;
+  let pitia = basePITIA;
+  let prevDSCR = baseDSCR;
+  const steps: WaterfallStep[] = [];
+
+  for (const s of shocks) {
+    if (s.rentMultiplier !== undefined) rent = rent * s.rentMultiplier;
+    if (s.pitiaDelta !== undefined) pitia = pitia + s.pitiaDelta;
+    const dscrAfter = safeDscr(rent, pitia);
+    steps.push({
+      label: s.label,
+      dscrAfter: Math.round(dscrAfter * 1000) / 1000,
+      marginalDelta: Math.round((dscrAfter - prevDSCR) * 1000) / 1000,
+    });
+    prevDSCR = dscrAfter;
+  }
+
+  const finalDSCR = prevDSCR;
+  return {
+    baseDSCR: Math.round(baseDSCR * 1000) / 1000,
+    steps,
+    finalDSCR: Math.round(finalDSCR * 1000) / 1000,
+    totalDelta: Math.round((baseDSCR - finalDSCR) * 1000) / 1000,
+  };
+}
+
+// ============================================================
 // MAIN ENTRY POINT
 // ============================================================
 

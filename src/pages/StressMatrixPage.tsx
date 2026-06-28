@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy, computeDualTrackDSCR } from "../engine/stressMatrix";
+import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy, computeDualTrackDSCR, computeShockWaterfall } from "../engine/stressMatrix";
+import type { WaterfallShock } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import BottomCTA from "../design/BottomCTA";
@@ -233,6 +234,18 @@ export default function StressMatrixPage({
   // Dual-track at the current stressed state: lender (gross rent ÷ PITIA) vs
   // investor survival (after the modeled vacancy + management + maintenance).
   const dualTrack       = computeDualTrackDSCR(monthlyRent * (1 + rentChangePct / 100), stressedPITIA, { vacancyPct });
+  // Multi-shock waterfall — decompose the active sliders into each shock's
+  // marginal DSCR bite (Edge §7), so the user sees which lever breaks the deal.
+  const shockWaterfall  = (() => {
+    const shocks: WaterfallShock[] = [];
+    const rateDelta = stressedPIAmt - basePIAmt;
+    if (Math.abs(rateDelta) > 0.5) shocks.push({ label: `Rate ${rateOffsetBps >= 0 ? "+" : ""}${(rateOffsetBps / 100).toFixed(2)}%`, pitiaDelta: rateDelta });
+    const taxDelta = stressedTaxInsMo - (baseFixed - hoa);
+    if (Math.abs(taxDelta) > 0.5) shocks.push({ label: `Tax & insurance +${taxBumpPct}%`, pitiaDelta: taxDelta });
+    if (rentChangePct !== 0) shocks.push({ label: `Rent ${rentChangePct > 0 ? "+" : ""}${rentChangePct}%`, rentMultiplier: 1 + rentChangePct / 100 });
+    if (vacancyPct !== 0) shocks.push({ label: `Vacancy ${vacancyPct}%`, rentMultiplier: 1 - vacancyPct / 100 });
+    return computeShockWaterfall(monthlyRent, basePITIA, shocks);
+  })();
 
   // Cell styles
   function cellStyle(zone: StressRiskZone, isBase: boolean, isHovered: boolean): React.CSSProperties {
@@ -776,6 +789,27 @@ export default function StressMatrixPage({
                     )}
                   </p>
                 </div>
+
+                {/* ── Multi-shock waterfall — each active lever's marginal DSCR bite ── */}
+                {shockWaterfall.steps.length > 0 && (
+                  <div style={{ marginTop: 16, background: "rgba(238,239,211,0.04)", border: "1px solid rgba(238,239,211,0.10)", borderRadius: dc.r.sm, padding: "14px 18px" }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>Where the damage comes from</div>
+                    <div style={{ display: "grid", gap: 7 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, fontSize: 12.5 }}>
+                        <span style={{ color: "rgba(238,239,211,0.7)", fontWeight: 600, minWidth: 130 }}>Base (no stress)</span>
+                        <span style={{ minWidth: 48 }} />
+                        <Mono style={{ color: dc.cream, fontWeight: 700, minWidth: 52, textAlign: "right" as const }}>{shockWaterfall.baseDSCR.toFixed(2)}x</Mono>
+                      </div>
+                      {shockWaterfall.steps.map((st, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, fontSize: 12.5 }}>
+                          <span style={{ color: "rgba(238,239,211,0.72)", minWidth: 130 }}>{st.label}</span>
+                          <Mono style={{ color: st.marginalDelta < 0 ? ZONE_ACCENT.DEAL_BREAK : EMERALD, fontWeight: 600, fontSize: 11.5, minWidth: 48, textAlign: "right" as const }}>{st.marginalDelta >= 0 ? "+" : ""}{st.marginalDelta.toFixed(2)}</Mono>
+                          <Mono style={{ color: st.dscrAfter >= 1.0 ? EMERALD : ZONE_ACCENT.DEAL_BREAK, fontWeight: 700, minWidth: 52, textAlign: "right" as const }}>{st.dscrAfter.toFixed(2)}x</Mono>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* ── Plain-language verdict ─────────────────────── */}
                 <div style={{
