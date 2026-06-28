@@ -188,6 +188,28 @@ function decliningMarketAdjustment(isDecliningMarket: boolean): number {
   return isDecliningMarket ? 25 : 0;
 }
 
+// LLPA grid additions (DSCR_PRICING_ENGINE_RESEARCH_REPORT §4.3, verified):
+// First-time-investor surcharge (+25–50 bps; some lenders waive).
+function firstTimeInvestorAdjustment(experience: string): number {
+  return experience === 'FIRST_TIME' ? 37.5 : 0;
+}
+
+// Prepay-step pricing: longer step-down trades exit flexibility for a lower
+// rate (0.125–0.375% per step). Open prepay (NONE) is the priced baseline.
+function prepayStepAdjustment(prepayType: string): number {
+  switch (prepayType) {
+    case 'NONE': return 0;            // open / most flexible — priced baseline
+    case 'SOFT_PREPAY':
+    case '321': return -12.5;
+    case '4321': return -25;
+    case '54321':
+    case '54333':
+    case 'FLAT_5':
+    case 'YIELD_MAINTENANCE': return -37.5;
+    default: return 0;
+  }
+}
+
 // ============================================================
 // DSCR GRADIENT (6 tiers)
 // ============================================================
@@ -630,7 +652,9 @@ export function estimateRate(
     ioRateAdjustment(loan.ioPeriod) +
     termAdjustment(loan.term) +
     nonUsInvestorAdjustment(borrower.isNonUsInvestor) +
-    decliningMarketAdjustment(isDecliningMarket);
+    decliningMarketAdjustment(isDecliningMarket) +
+    firstTimeInvestorAdjustment(borrower.experience) +
+    prepayStepAdjustment(loan.prepayPreference);
 
   const rate = BASE_RATE_ANCHOR + totalBps / 100;
   // AUDIT-FINAL-4: enforce hard bounds — floor 5.0% (sub-SOFR impossible),
