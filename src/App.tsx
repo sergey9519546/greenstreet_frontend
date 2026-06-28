@@ -171,6 +171,17 @@ function viewToPath(view: PageView): string {
   }
 }
 
+// Views where the floating "See if you qualify" pill is suppressed: the logged-in
+// portal, and every tool/calculator page (those carry their own prominent qualify
+// CTAs, so the overlay just clutters them). It still shows on marketing/persona
+// pages, where it's the primary conversion path.
+const QUALIFY_WIDGET_EXCLUDED_VIEWS: ReadonlySet<PageView> = new Set([
+  "portal", "external", "legal", "rate-quiz", "book-demo",
+  "dscr-calculator", "lender-intel", "state-laws", "deal-analyzer",
+  "refi-tracker", "arm-reset", "monte-carlo", "returns", "tax-engine",
+  "stress-matrix", "decision-support", "str-underwriting", "portfolio",
+]);
+
 export default function App() {
   const [view, setView] = useState<PageView>(() => {
     if (typeof window !== "undefined") {
@@ -431,8 +442,9 @@ export default function App() {
         <Suspense fallback={null}>
           <PageRenderer />
         </Suspense>
-        {/* QualifyWidget overlays marketing + tool views — never the logged-in portal */}
-        {view !== "portal" && <QualifyWidget />}
+        {/* QualifyWidget overlays marketing/persona views — not the portal or the
+            tool pages (they have their own qualify CTAs). */}
+        {!QUALIFY_WIDGET_EXCLUDED_VIEWS.has(view) && <QualifyWidget />}
       </div>
     </ErrorBoundary>
   );

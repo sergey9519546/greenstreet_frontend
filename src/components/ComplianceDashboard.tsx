@@ -463,8 +463,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         <SiteNav onNavigate={handleSiteNavigate} />
         <div className="flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 74px)", background: T.pageBg }}>
           <div className="max-w-md w-full p-8" style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.lg }}>
-            <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold mb-6 transition"
-              style={{ color: T.muted }}
+            <button type="button" onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold mb-6 transition"
+              style={{ color: T.muted, minHeight: 36, padding: "6px 0" }}
               onMouseEnter={e => e.currentTarget.style.color = swatch.lemon}
               onMouseLeave={e => e.currentTarget.style.color = T.muted}>
               <ArrowLeft className="w-3.5 h-3.5" /><span>Back to site</span>
@@ -512,18 +512,26 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             </div>
             <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }}
               className="space-y-3">
-              <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                placeholder="you@email.com"
-                className="w-full px-4 py-3 text-sm outline-none transition-colors"
-                style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
-                onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; }}
-                onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; }} />
-              <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full px-4 py-3 text-sm outline-none transition-colors font-mono"
-                style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
-                onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; }}
-                onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; }} />
+              <div>
+                <label htmlFor="investgo-email" className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5" style={{ color: T.muted }}>Email</label>
+                <input id="investgo-email" name="email" type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  autoComplete="email"
+                  className="w-full px-4 py-3 text-sm outline-none transition-colors"
+                  style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
+                  onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; }} />
+              </div>
+              <div>
+                <label htmlFor="investgo-password" className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5" style={{ color: T.muted }}>Password</label>
+                <input id="investgo-password" name="password" type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)}
+                  placeholder="Password"
+                  autoComplete={isSignUpMode ? "new-password" : "current-password"}
+                  className="w-full px-4 py-3 text-sm outline-none transition-colors font-mono"
+                  style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
+                  onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; }} />
+              </div>
               <PrimaryBtn type="submit" className="w-full mt-2">{isSignUpMode ? "Create Account" : "Access Engine"}</PrimaryBtn>
             </form>
             <div className="mt-4 text-center">
