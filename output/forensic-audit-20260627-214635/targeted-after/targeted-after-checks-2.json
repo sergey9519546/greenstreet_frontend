@@ -1,0 +1,40 @@
+{
+  "/tools/tax-engine": [],
+  "/legal": [],
+  "/rate-quiz": [],
+  "reactMenuClicked": true,
+  "reactMenu": {
+    "display": "flex",
+    "position": "fixed",
+    "opacity": "1",
+    "rect": {
+      "x": 0,
+      "y": 96,
+      "w": 320,
+      "h": 804
+    },
+    "text": "INVESTGOProductINVESTGODSCR CalculatorFind Your ProgramBuy-or-Pass DecisionTax EngineReturns & IRRMonte Carlo SimulatorS"
+  },
+  "homeClicked": true,
+  "homeMenu": {
+    "display": "flex",
+    "opacity": "1",
+    "ariaHidden": "false",
+    "bodyOpen": true,
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "w": 320,
+      "h": 900
+    },
+    "text": "Greenstreet Finance.INVESTGOINVESTGOProductINVESTGO DSCR Calculator Find Your Program Buy-or-Pass Decision Tax Engine Re"
+  },
+  "homeLead": {
+    "ficoAria": "Credit score",
+    "propAria": "Property type",
+    "emailAria": "Work email",
+    "cta": [
+      "View options →"
+    ]
+  }
+}

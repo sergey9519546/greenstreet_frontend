@@ -1,0 +1,58 @@
+{
+  "taxEngineFixedQualify": [],
+  "legalFixedQualify": [],
+  "rateQuizFixedQualify": [],
+  "reactMobileMenuClicked": true,
+  "reactMobileMenu": {
+    "display": "flex",
+    "position": "fixed",
+    "top": "96px",
+    "zIndex": "80",
+    "rect": {
+      "x": 0,
+      "y": 96,
+      "w": 320,
+      "h": 804
+    },
+    "text": "INVESTGOProductINVESTGODSCR CalculatorFind Your ProgramBuy-or-Pass DecisionTax EngineReturns & IRRMonte Carlo SimulatorStress MatrixARM Reset RiskPortfolio BuilderWho We ServeReal Estate InvestorsNon-US InvestorsSTR & Ai"
+  },
+  "investgoForm": {
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "emailAutocomplete": "email",
+    "passwordAutocomplete": "current-password",
+    "emailName": "email",
+    "passwordName": "password",
+    "backRect": {
+      "w": 83.359375,
+      "h": 36
+    }
+  },
+  "qualifyModalLoanValidity": {
+    "clicked": true,
+    "value": "318750",
+    "step": "250",
+    "valid": true,
+    "message": ""
+  },
+  "homeMobileMenu": {
+    "clicked": true,
+    "visibleBurgerCount": 1,
+    "menus": [
+      {
+        "display": "flex",
+        "opacity": "0",
+        "position": "fixed",
+        "zIndex": "900",
+        "visible": true,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 900
+        },
+        "text": "Greenstreet Finance.INVESTGOINVESTGOProductINVESTGO DSCR Calculator Find Your Program Buy-or-Pass Decision Tax Engine Returns & IRR Monte Carlo Simulator Stress"
+      }
+    ]
+  }
+}

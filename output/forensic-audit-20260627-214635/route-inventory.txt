@@ -1,0 +1,82 @@
+/ | home/marketing | real estate investor / borrower | DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation rentals. | /blog/greenstreet-go-launch / Greenstreet Finance.INVESTGO / INVESTGO
+/investgo | app/workspace | returning user / serious investor in underwriting workflow | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/investgo/analyze | app/workspace | returning user / serious investor in underwriting workflow | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/investgo/sensitivity | app/workspace | returning user / serious investor in underwriting workflow | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/investgo/optimize | app/workspace | returning user / serious investor in underwriting workflow | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/investgo/state | app/workspace | returning user / serious investor in underwriting workflow | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/investgo/history | app/workspace | returning user / serious investor in underwriting workflow | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/investgo/settings | app/workspace | returning user / serious investor in underwriting workflow | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/brokers | audience/landing | mortgage brokers / partner originators | One deal.We underwriteand fund it. | Greenstreet Finance. / INVESTGO / Product
+/investors | audience/landing | real estate investor / borrower | Scale past the income ceiling. | Greenstreet Finance. / INVESTGO / Product
+/borrower-profiles | audience/landing | real estate investor / borrower | Direct DSCR lending for every type of real estate investor. | Greenstreet Finance. / INVESTGO / Product
+/non-us-investors | audience/landing | non-US investors (secondary branch) | Own U.S. property from anywhere. | Greenstreet Finance. / INVESTGO / Product
+/foreign-nationals | audience/landing | non-US investors (secondary branch) | Own U.S. property from anywhere. | Greenstreet Finance. / INVESTGO / Product
+/str-airbnb | audience/landing | STR operators (secondary branch) | We underwrite the slow months. | Greenstreet Finance. / INVESTGO / Product
+/vacation-homes | audience/landing | hybrid vacation-home investors (secondary branch) | The getaway that pays for itself. | Greenstreet Finance. / INVESTGO / Product
+/portfolio-builders | support/content | real estate investor / borrower | Blended DSCR 1.14x across 4 doors | Greenstreet Finance. / INVESTGO / Product
+/partners | support/content | mortgage brokers / partner originators | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/dscr-calculator | support/content | active investor evaluating a deal | Know if yourrental coversthe loan. | Greenstreet Finance. / INVESTGO / Product
+/lender-intel | support/content | active investor evaluating a deal | Which programs fit your deal? | Greenstreet Finance. / INVESTGO / Product
+/state-laws | support/content | active investor evaluating a deal | Prepayment penalty rules, all fifty states. | Greenstreet Finance. / INVESTGO / Product
+/deal-analyzer | support/content | real estate investor / borrower | Which programs fit your deal? | Greenstreet Finance. / INVESTGO / Product
+/decision-support | support/content | real estate investor / borrower | Should you buy this deal? | Greenstreet Finance. / INVESTGO / Product
+/faq | support/content | real estate investor / borrower | DSCR loan questions — answered in plain language. | Greenstreet Finance. / INVESTGO / Product
+/support | support/content | real estate investor / borrower | Answers when you're mid-deal. | Greenstreet Finance. / INVESTGO / Product
+/blog | blog index | researching investor / SEO visitor | Practical guides for DSCR investors. | Greenstreet Finance. / INVESTGO / Product
+/case-studies | case study index | skeptical buyer seeking proof | What changed when investors ran their deals through Greenstreet. | Greenstreet Finance. / INVESTGO / Product
+/about | support/content | real estate investor / borrower | The DSCR underwriting platform real estate investors trust. | Greenstreet Finance. / INVESTGO / Product
+/careers | support/content | real estate investor / borrower | Build the math layer of real-estate lending. | Greenstreet Finance. / INVESTGO / Product
+/legal | legal/compliance | real estate investor / borrower | Terms, privacy, and the fine print. | Greenstreet Finance. / INVESTGO / Product
+/privacy-policy | legal/compliance | real estate investor / borrower | Privacy Policy. | Greenstreet Finance. / INVESTGO / Product
+/terms-of-service | legal/compliance | real estate investor / borrower | Terms of Service. | Greenstreet Finance. / INVESTGO / Product
+/legal/privacy-policy | legal/compliance | real estate investor / borrower | Privacy Policy. | Greenstreet Finance. / INVESTGO / Product
+/legal/terms-of-service | legal/compliance | real estate investor / borrower | Terms of Service. | Greenstreet Finance. / INVESTGO / Product
+/rate-quiz | lead capture / quiz | real estate investor / borrower | Find the right DSCR program for your deal. | Greenstreet Finance. / INVESTGO / Product
+/products | product/landing | real estate investor / borrower | The DSCR Engine | Greenstreet Finance. / INVESTGO / Product
+/products/platform | product/landing | real estate investor / borrower | One system. Every DSCR workflow. | Greenstreet Finance. / INVESTGO / Product
+/solutions | audience/landing | real estate investor / borrower | Built for real estate investors. | Greenstreet Finance. / INVESTGO / Product
+/book-demo | lead capture / quiz | real estate investor / borrower | Find the right DSCR program for your deal. | Greenstreet Finance. / INVESTGO / Product
+/partnerships | support/content | mortgage brokers / partner originators | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/tools/refi-tracker | tool/calculator | active investor evaluating a deal | Should you refi this DSCR loan yet? | Greenstreet Finance. / INVESTGO / Product
+/tools/arm-reset | tool/calculator | active investor evaluating a deal | What happens whenthe fixed period ends? | Greenstreet Finance. / INVESTGO / Product
+/tools/monte-carlo | tool/calculator | active investor evaluating a deal | Stress-test the deal over 500 futures. | Greenstreet Finance. / INVESTGO / Product
+/tools/returns | tool/calculator | active investor evaluating a deal | What will this investment actually earn? | Greenstreet Finance. / INVESTGO / Product
+/tools/tax-engine | tool/calculator | active investor evaluating a deal | What does this property really earn after taxes? | Greenstreet Finance. / INVESTGO / Product
+/tools/stress-matrix | tool/calculator | STR operators (secondary branch) | See every stress scenario in one view. | Greenstreet Finance. / INVESTGO / Product
+/tools/decision-support | tool/calculator | active investor evaluating a deal | Should you buy this deal? | Greenstreet Finance. / INVESTGO / Product
+/tools/str-underwriting | tool/calculator | STR operators (secondary branch) | Underwritten DSCR 1.06x | Greenstreet Finance. / INVESTGO / Product
+/tools/portfolio | tool/calculator | active investor evaluating a deal | Blended DSCR 1.14x across 4 doors | Greenstreet Finance. / INVESTGO / Product
+/tools/workspace | tool/calculator | active investor evaluating a deal | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/tools/deal-workspace | tool/calculator | active investor evaluating a deal | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/tools/sensitivity | tool/calculator | active investor evaluating a deal | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/tools/structure-optimizer | tool/calculator | STR operators (secondary branch) | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/tools/scenario-history | tool/calculator | active investor evaluating a deal | INVESTGO | Greenstreet Finance. / INVESTGO / Product
+/blog/greenstreet-go-launch | blog article | STR operators (secondary branch) | Greenstreet announces InvestGO, the unified DSCR loan platform | Greenstreet Finance. / INVESTGO / Product
+/blog/what-is-dscr-how-it-works | blog article | researching investor / SEO visitor | What is DSCR? The complete guide to how the ratio works and why it matters | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-pitia-breakdown-qualifying-income | blog article | researching investor / SEO visitor | PITIA breakdown: the five numbers that determine whether your DSCR deal qualifies | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-ltv-down-payment-fico | blog article | researching investor / SEO visitor | LTV, down payment, and FICO tiers: how the three dials move your DSCR rate | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-refinance-rate-term-cashout-seasoning | blog article | researching investor / SEO visitor | DSCR refinance: rate-term vs cash-out, seasoning rules, and break-even math | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-approval-issues-sub-10-fico-reserves | blog article | researching investor / SEO visitor | Six things that kill DSCR approvals — and how to fix each one before you submit | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-non-us-investors-itin | blog article | non-US investors (secondary branch) | Non-US investors and ITIN borrowers: how DSCR qualification actually works | Greenstreet Finance. / INVESTGO / Product
+/blog/obbba-2025-real-estate-tax-changes | blog article | researching investor / SEO visitor | OBBBA 2025: Three tax changes every real estate investor needs to know | Greenstreet Finance. / INVESTGO / Product
+/blog/mn-hf3437-business-purpose | blog article | researching investor / SEO visitor | MN HF 3437 enacted: DSCR loans now business-purpose in Minnesota | Greenstreet Finance. / INVESTGO / Product
+/blog/qoz-qrof-permanent-obbba | blog article | researching investor / SEO visitor | QOZ and QROF: what the OBBBA did to Opportunity Zone investing | Greenstreet Finance. / INVESTGO / Product
+/blog/section-1071-final-rule-dscr | blog article | researching investor / SEO visitor | Section 1071 is live: what DSCR lenders actually need to do | Greenstreet Finance. / INVESTGO / Product
+/blog/june-2026-rate-sheet | blog article | researching investor / SEO visitor | June 2026 DSCR rate sheet: where the 6.125% specials actually are | Greenstreet Finance. / INVESTGO / Product
+/blog/fema-rr2-coastal-dscr | blog article | researching investor / SEO visitor | FEMA Risk Rating 2.0: why coastal DSCR deals are failing at the insurance step | Greenstreet Finance. / INVESTGO / Product
+/blog/why-no-llm-number-path | blog article | researching investor / SEO visitor | Why we put no LLM in the number path — and never will | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-str-airbnb-qualifying-income | blog article | STR operators (secondary branch) | Short-term rental (STR/Airbnb) income: how DSCR lenders actually qualify it | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-loan-document-checklist | blog article | researching investor / SEO visitor | What documents do you need for a DSCR loan? The complete checklist | Greenstreet Finance. / INVESTGO / Product
+/blog/dscr-loan-process-after-prequalify | blog article | researching investor / SEO visitor | What happens after you prequalify for a DSCR loan? The step-by-step | Greenstreet Finance. / INVESTGO / Product
+/blog/how-to-improve-dscr-before-applying | blog article | researching investor / SEO visitor | How to improve your DSCR before you apply — the four levers with the math | Greenstreet Finance. / INVESTGO / Product
+/case-studies/vela-capital | case study detail | skeptical buyer seeking proof | From 25 minutes per file to 6. Same team, 4× the throughput. | Greenstreet Finance. / INVESTGO / Product
+/case-studies/northshore-non-qm | case study detail | skeptical buyer seeking proof | Same-day rate lock — and Track 2 caught the deal that should have died. | Greenstreet Finance. / INVESTGO / Product
+/case-studies/quintero-co | case study detail | skeptical buyer seeking proof | Three appraisals they never paid for. $14,800 in hard costs saved at the desk. | Greenstreet Finance. / INVESTGO / Product
+/case-studies/aurora | case study detail | skeptical buyer seeking proof | One blended view of 40 doors got the blanket line approved. | Greenstreet Finance. / INVESTGO / Product
+/tools/arm | tool/calculator | active investor evaluating a deal | What happens whenthe fixed period ends? | Greenstreet Finance. / INVESTGO / Product
+/tools/irr | tool/calculator | active investor evaluating a deal | What will this investment actually earn? | Greenstreet Finance. / INVESTGO / Product
+/tools/dscr-calculator | tool/calculator | active investor evaluating a deal | Know if yourrental coversthe loan. | Greenstreet Finance. / INVESTGO / Product
+/tools/lender-intel | tool/calculator | active investor evaluating a deal | Which programs fit your deal? | Greenstreet Finance. / INVESTGO / Product
+/tools/state-laws | tool/calculator | active investor evaluating a deal | Prepayment penalty rules, all fifty states. | Greenstreet Finance. / INVESTGO / Product
+/tools/deal-analyzer | tool/calculator | active investor evaluating a deal | Plug in 7 numbers.Get the full verdict. | Greenstreet Finance. / INVESTGO / Product
+/tools/borrower-profiles | tool/calculator | active investor evaluating a deal | Direct DSCR lending for every type of real estate investor. | Greenstreet Finance. / INVESTGO / Product

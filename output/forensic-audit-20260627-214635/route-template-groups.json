@@ -1,0 +1,420 @@
+[
+  {
+    "h": "INVESTGO",
+    "count": 14,
+    "urls": [
+      "/investgo",
+      "/investgo/analyze",
+      "/investgo/sensitivity",
+      "/investgo/optimize",
+      "/investgo/state",
+      "/investgo/history",
+      "/investgo/settings",
+      "/partners",
+      "/partnerships",
+      "/tools/workspace",
+      "/tools/deal-workspace",
+      "/tools/sensitivity",
+      "/tools/structure-optimizer",
+      "/tools/scenario-history"
+    ]
+  },
+  {
+    "h": "Which programs fit your deal?",
+    "count": 3,
+    "urls": [
+      "/lender-intel",
+      "/deal-analyzer",
+      "/tools/lender-intel"
+    ]
+  },
+  {
+    "h": "Direct DSCR lending for every type of real estate investor.",
+    "count": 2,
+    "urls": [
+      "/borrower-profiles",
+      "/tools/borrower-profiles"
+    ]
+  },
+  {
+    "h": "Own U.S. property from anywhere.",
+    "count": 2,
+    "urls": [
+      "/non-us-investors",
+      "/foreign-nationals"
+    ]
+  },
+  {
+    "h": "Blended DSCR 1.14x across 4 doors",
+    "count": 2,
+    "urls": [
+      "/portfolio-builders",
+      "/tools/portfolio"
+    ]
+  },
+  {
+    "h": "Know if yourrental coversthe loan.",
+    "count": 2,
+    "urls": [
+      "/dscr-calculator",
+      "/tools/dscr-calculator"
+    ]
+  },
+  {
+    "h": "Prepayment penalty rules, all fifty states.",
+    "count": 2,
+    "urls": [
+      "/state-laws",
+      "/tools/state-laws"
+    ]
+  },
+  {
+    "h": "Should you buy this deal?",
+    "count": 2,
+    "urls": [
+      "/decision-support",
+      "/tools/decision-support"
+    ]
+  },
+  {
+    "h": "Privacy Policy.",
+    "count": 2,
+    "urls": [
+      "/privacy-policy",
+      "/legal/privacy-policy"
+    ]
+  },
+  {
+    "h": "Terms of Service.",
+    "count": 2,
+    "urls": [
+      "/terms-of-service",
+      "/legal/terms-of-service"
+    ]
+  },
+  {
+    "h": "Find the right DSCR program for your deal.",
+    "count": 2,
+    "urls": [
+      "/rate-quiz",
+      "/book-demo"
+    ]
+  },
+  {
+    "h": "What happens whenthe fixed period ends?",
+    "count": 2,
+    "urls": [
+      "/tools/arm-reset",
+      "/tools/arm"
+    ]
+  },
+  {
+    "h": "What will this investment actually earn?",
+    "count": 2,
+    "urls": [
+      "/tools/returns",
+      "/tools/irr"
+    ]
+  },
+  {
+    "h": "DSCR loans for real estate investors — non-US investors qualify, and so do Airbnb and vacation rentals.",
+    "count": 1,
+    "urls": [
+      "/"
+    ]
+  },
+  {
+    "h": "One deal.We underwriteand fund it.",
+    "count": 1,
+    "urls": [
+      "/brokers"
+    ]
+  },
+  {
+    "h": "Scale past the income ceiling.",
+    "count": 1,
+    "urls": [
+      "/investors"
+    ]
+  },
+  {
+    "h": "We underwrite the slow months.",
+    "count": 1,
+    "urls": [
+      "/str-airbnb"
+    ]
+  },
+  {
+    "h": "The getaway that pays for itself.",
+    "count": 1,
+    "urls": [
+      "/vacation-homes"
+    ]
+  },
+  {
+    "h": "DSCR loan questions — answered in plain language.",
+    "count": 1,
+    "urls": [
+      "/faq"
+    ]
+  },
+  {
+    "h": "Answers when you're mid-deal.",
+    "count": 1,
+    "urls": [
+      "/support"
+    ]
+  },
+  {
+    "h": "Practical guides for DSCR investors.",
+    "count": 1,
+    "urls": [
+      "/blog"
+    ]
+  },
+  {
+    "h": "What changed when investors ran their deals through Greenstreet.",
+    "count": 1,
+    "urls": [
+      "/case-studies"
+    ]
+  },
+  {
+    "h": "The DSCR underwriting platform real estate investors trust.",
+    "count": 1,
+    "urls": [
+      "/about"
+    ]
+  },
+  {
+    "h": "Build the math layer of real-estate lending.",
+    "count": 1,
+    "urls": [
+      "/careers"
+    ]
+  },
+  {
+    "h": "Terms, privacy, and the fine print.",
+    "count": 1,
+    "urls": [
+      "/legal"
+    ]
+  },
+  {
+    "h": "The DSCR Engine",
+    "count": 1,
+    "urls": [
+      "/products"
+    ]
+  },
+  {
+    "h": "One system. Every DSCR workflow.",
+    "count": 1,
+    "urls": [
+      "/products/platform"
+    ]
+  },
+  {
+    "h": "Built for real estate investors.",
+    "count": 1,
+    "urls": [
+      "/solutions"
+    ]
+  },
+  {
+    "h": "Should you refi this DSCR loan yet?",
+    "count": 1,
+    "urls": [
+      "/tools/refi-tracker"
+    ]
+  },
+  {
+    "h": "Stress-test the deal over 500 futures.",
+    "count": 1,
+    "urls": [
+      "/tools/monte-carlo"
+    ]
+  },
+  {
+    "h": "What does this property really earn after taxes?",
+    "count": 1,
+    "urls": [
+      "/tools/tax-engine"
+    ]
+  },
+  {
+    "h": "See every stress scenario in one view.",
+    "count": 1,
+    "urls": [
+      "/tools/stress-matrix"
+    ]
+  },
+  {
+    "h": "Underwritten DSCR 1.06x",
+    "count": 1,
+    "urls": [
+      "/tools/str-underwriting"
+    ]
+  },
+  {
+    "h": "Greenstreet announces InvestGO, the unified DSCR loan platform",
+    "count": 1,
+    "urls": [
+      "/blog/greenstreet-go-launch"
+    ]
+  },
+  {
+    "h": "What is DSCR? The complete guide to how the ratio works and why it matters",
+    "count": 1,
+    "urls": [
+      "/blog/what-is-dscr-how-it-works"
+    ]
+  },
+  {
+    "h": "PITIA breakdown: the five numbers that determine whether your DSCR deal qualifies",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-pitia-breakdown-qualifying-income"
+    ]
+  },
+  {
+    "h": "LTV, down payment, and FICO tiers: how the three dials move your DSCR rate",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-ltv-down-payment-fico"
+    ]
+  },
+  {
+    "h": "DSCR refinance: rate-term vs cash-out, seasoning rules, and break-even math",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-refinance-rate-term-cashout-seasoning"
+    ]
+  },
+  {
+    "h": "Six things that kill DSCR approvals — and how to fix each one before you submit",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-approval-issues-sub-10-fico-reserves"
+    ]
+  },
+  {
+    "h": "Non-US investors and ITIN borrowers: how DSCR qualification actually works",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-non-us-investors-itin"
+    ]
+  },
+  {
+    "h": "OBBBA 2025: Three tax changes every real estate investor needs to know",
+    "count": 1,
+    "urls": [
+      "/blog/obbba-2025-real-estate-tax-changes"
+    ]
+  },
+  {
+    "h": "MN HF 3437 enacted: DSCR loans now business-purpose in Minnesota",
+    "count": 1,
+    "urls": [
+      "/blog/mn-hf3437-business-purpose"
+    ]
+  },
+  {
+    "h": "QOZ and QROF: what the OBBBA did to Opportunity Zone investing",
+    "count": 1,
+    "urls": [
+      "/blog/qoz-qrof-permanent-obbba"
+    ]
+  },
+  {
+    "h": "Section 1071 is live: what DSCR lenders actually need to do",
+    "count": 1,
+    "urls": [
+      "/blog/section-1071-final-rule-dscr"
+    ]
+  },
+  {
+    "h": "June 2026 DSCR rate sheet: where the 6.125% specials actually are",
+    "count": 1,
+    "urls": [
+      "/blog/june-2026-rate-sheet"
+    ]
+  },
+  {
+    "h": "FEMA Risk Rating 2.0: why coastal DSCR deals are failing at the insurance step",
+    "count": 1,
+    "urls": [
+      "/blog/fema-rr2-coastal-dscr"
+    ]
+  },
+  {
+    "h": "Why we put no LLM in the number path — and never will",
+    "count": 1,
+    "urls": [
+      "/blog/why-no-llm-number-path"
+    ]
+  },
+  {
+    "h": "Short-term rental (STR/Airbnb) income: how DSCR lenders actually qualify it",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-str-airbnb-qualifying-income"
+    ]
+  },
+  {
+    "h": "What documents do you need for a DSCR loan? The complete checklist",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-loan-document-checklist"
+    ]
+  },
+  {
+    "h": "What happens after you prequalify for a DSCR loan? The step-by-step",
+    "count": 1,
+    "urls": [
+      "/blog/dscr-loan-process-after-prequalify"
+    ]
+  },
+  {
+    "h": "How to improve your DSCR before you apply — the four levers with the math",
+    "count": 1,
+    "urls": [
+      "/blog/how-to-improve-dscr-before-applying"
+    ]
+  },
+  {
+    "h": "From 25 minutes per file to 6. Same team, 4× the throughput.",
+    "count": 1,
+    "urls": [
+      "/case-studies/vela-capital"
+    ]
+  },
+  {
+    "h": "Same-day rate lock — and Track 2 caught the deal that should have died.",
+    "count": 1,
+    "urls": [
+      "/case-studies/northshore-non-qm"
+    ]
+  },
+  {
+    "h": "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
+    "count": 1,
+    "urls": [
+      "/case-studies/quintero-co"
+    ]
+  },
+  {
+    "h": "One blended view of 40 doors got the blanket line approved.",
+    "count": 1,
+    "urls": [
+      "/case-studies/aurora"
+    ]
+  },
+  {
+    "h": "Plug in 7 numbers.Get the full verdict.",
+    "count": 1,
+    "urls": [
+      "/tools/deal-analyzer"
+    ]
+  }
+]
