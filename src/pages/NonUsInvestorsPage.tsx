@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font } from "../theme";
 import BottomCTA from "../design/BottomCTA";
+import { assessForeignNationalEligibility, type FnIdType } from "../engine/fnEngine";
+import { calculateFIRPTAImpact } from "../engine/firpta";
 
 // ── Who-We-Serve: Non-US Investor Investors ──────────────────────────────────
 // Bespoke dark page. Conversion core = the "Yes, you can" fear-grid. Positioning:
@@ -76,6 +78,17 @@ export default function NonUsInvestorsPage({
   const [price, setPrice] = useState(560000);
   const [downPct, setDownPct] = useState(25);
   const [rate, setRate] = useState(7.5);
+
+  // ── FN eligibility + FIRPTA (real engine, not marketing copy) ──
+  const [idType, setIdType] = useState<FnIdType>("PASSPORT_ONLY");
+  const [countryCode, setCountryCode] = useState("MX");
+  const [hasVisa, setHasVisa] = useState(false);
+  const fnProfile = {
+    idType, countryCode, hasUsFico: false, hasUsResidency: false,
+    visaType: hasVisa ? "E2" : undefined, entityType: "US_LLC" as const,
+  };
+  const fnElig = assessForeignNationalEligibility(fnProfile);
+  const firpta = calculateFIRPTAImpact({ salePrice: price, adjustedBasis: price * 0.85, state: "TX", isUsResident: false });
   const loan = price * (1 - downPct / 100);
   const pAndI = loan * pf(rate / 100);
   const pitia = pAndI + (price * 0.011) / 12 + (price * 0.005) / 12; // est. taxes + insurance
@@ -318,6 +331,48 @@ export default function NonUsInvestorsPage({
           <p style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", margin: "16px 0 0", maxWidth: "70ch", lineHeight: 1.5 }}>
             Single-family, 2–4 units, and many condos — long-term and short-term (Airbnb) rentals. Illustrative ranges; your numbers, taxes, insurance, and the lender decide the real figure.
           </p>
+
+          {/* ── Real eligibility + FIRPTA (engine-driven, not copy) ── */}
+          {(() => {
+            const selStyle: React.CSSProperties = { background: dc.teal, color: dc.cream, border: "1px solid rgba(238,239,211,0.22)", borderRadius: radius.sm, padding: "10px 12px", fontFamily: font.family, fontSize: 14, fontWeight: 600, minHeight: 44 };
+            const stat = (v: string, l: string, c: string) => (
+              <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.sm, padding: "16px 18px" }}>
+                <Mono style={{ fontSize: "clamp(20px,2.2vw,26px)", fontWeight: 700, color: c, display: "block", lineHeight: 1 }}>{v}</Mono>
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{l}</div>
+              </div>
+            );
+            return (
+              <div className="gs-reveal" style={{ marginTop: 28, background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(22px,2.6vw,32px)" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 16 }}>Your exact terms by profile</div>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
+                  <select aria-label="ID type" value={idType} onChange={(e) => setIdType(e.target.value as FnIdType)} style={selStyle}>
+                    <option value="ITIN">ITIN holder</option>
+                    <option value="PASSPORT_ONLY">Passport only (no SSN)</option>
+                    <option value="SSN">Have SSN</option>
+                  </select>
+                  <select aria-label="Country" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} style={selStyle}>
+                    {["MX", "BR", "CA", "GB", "DE", "AE", "CN", "NG", "RU", "IR"].map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <button onClick={() => setHasVisa((v) => !v)} style={{ ...selStyle, cursor: "pointer", color: hasVisa ? dc.emerald : "rgba(238,239,211,0.7)" }}>
+                    {hasVisa ? "✓ Has U.S. visa" : "No U.S. visa"}
+                  </button>
+                </div>
+                {fnElig.canLend ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+                    {stat(fnElig.tier, "country risk tier", fnElig.tier === "PREFERRED" ? dc.emerald : fnElig.tier === "ELEVATED" ? dc.lemon : dc.cream)}
+                    {stat(`+${fnElig.totalRateAddBps} bps`, "rate add-on over base", dc.lemon)}
+                    {stat(`${fnElig.maxLTV.purchase}% / ${fnElig.maxLTV.cashOut}%`, "max LTV — purchase / cash-out", dc.cream)}
+                  </div>
+                ) : (
+                  <div style={{ background: "rgba(224,99,99,0.1)", border: "1px solid rgba(224,99,99,0.4)", borderRadius: radius.sm, padding: "14px 16px", color: "#e0635f", fontSize: 14, fontWeight: 600 }}>{fnElig.note}</div>
+                )}
+                <div style={{ marginTop: 18, borderTop: "1px solid rgba(238,239,211,0.12)", paddingTop: 16, fontSize: 13, color: "rgba(238,239,211,0.66)", lineHeight: 1.55 }}>
+                  <strong style={{ color: dc.cream }}>At sale (FIRPTA):</strong> 15% of the gross sale price is withheld — ≈{fmt$(firpta.federalWithholdingAmount)} on a {fmt$(price)} sale.{firpta.withholdingCertificateRecommended ? ` Apply for a withholding certificate (Form 8288-B) to free up the excess over the ~${fmt$(firpta.estimatedTaxOnGain)} actually owed on the gain.` : ""} Refinancing (rate-term or cash-out) is not a sale — no FIRPTA.
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", marginTop: 10 }}>Screening guidance, not legal or tax advice. Entity vesting (U.S. LLC) required.</div>
+              </div>
+            );
+          })()}
         </div>
       </section>
 
