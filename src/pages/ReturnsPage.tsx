@@ -5,8 +5,8 @@ import type { PropertyInputs, LoanStructure } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-const RED    = "#ff6b6b";
-const ORANGE = "#f97316";
+const RED    = "#e06363";
+const ORANGE = "#e6b84d";
 
 function fmt$(n: number) {
   return "$" + Math.round(n).toLocaleString("en-US");
@@ -230,7 +230,7 @@ function ReturnsJourney({ pts }: { pts: JPoint[] }) {
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Cumulative return over the hold period">
       <line x1={padL} x2={W - padR} y1={Y(0)} y2={Y(0)} stroke="rgba(238,239,211,0.5)" strokeWidth="1" strokeDasharray="4 5" />
       <text x={W - padR} y={Y(0) - 6} textAnchor="end" fill="rgba(238,239,211,0.5)" fontSize="10" fontFamily="'JetBrains Mono',monospace">break-even $0</text>
-      <path d={area} fill={up ? "rgba(77,189,151,0.16)" : "rgba(255,107,107,0.16)"} />
+      <path d={area} fill={up ? "rgba(77,189,151,0.16)" : "rgba(224,99,99,0.16)"} />
       <path d={line} fill="none" stroke={up ? dc.lemon : RED} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
       {pts.map((p, i) => (
         <g key={i}>
@@ -459,8 +459,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             </h2>
             <div style={{
               display: "flex", alignItems: "flex-start", gap: 14,
-              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : "rgba(255,107,107,0.08)",
-              border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(255,107,107,0.2)"}`,
+              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : "rgba(224,99,99,0.08)",
+              border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(224,99,99,0.2)"}`,
               borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 660,
             }}>
               <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={20} />

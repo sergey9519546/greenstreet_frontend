@@ -8,7 +8,7 @@ import BottomCTA from "../design/BottomCTA";
 // there's no income ceiling. Conventional DTI caps you; DSCR doesn't.
 
 const BLUE = "#7ec8d3";
-const RED = "#ff6b6b";
+const RED = "#e06363";
 const fmt$ = (n: number) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
 
 type Door = { rent: number; pay: number };
@@ -100,7 +100,7 @@ export default function InvestorsPage({
                 const ok = ds >= 1.0;
                 const past = i + 1 > DTI_CEILING;
                 return (
-                  <div key={i} className="inv-door" style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: `${Math.min(i, 8) * 26}px`, background: dc.teal, border: `1px solid ${ok ? "rgba(77,189,151,0.35)" : "rgba(255,107,107,0.35)"}`, borderRadius: radius.md, padding: "14px 18px" }}>
+                  <div key={i} className="inv-door" style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: `${Math.min(i, 8) * 26}px`, background: dc.teal, border: `1px solid ${ok ? "rgba(77,189,151,0.35)" : "rgba(224,99,99,0.35)"}`, borderRadius: radius.md, padding: "14px 18px" }}>
                     <Mono style={{ fontSize: 18, fontWeight: 700, color: past ? dc.emerald : "rgba(238,239,211,0.5)", width: 34 }}>{String(i + 1).padStart(2, "0")}</Mono>
                     <div style={{ fontSize: 13, color: "rgba(238,239,211,0.6)" }}>
                       rent {numIn(d.rent, (v) => setDoor(i, "rent", v), 50, "Door rent")} · pay {numIn(d.pay, (v) => setDoor(i, "pay", v), 50, "Door payment")}

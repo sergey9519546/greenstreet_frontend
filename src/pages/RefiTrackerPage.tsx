@@ -12,9 +12,9 @@ const MINT = dc.mintBg; // #e8e9bf
 
 // Colour helpers (via dc tokens only, no local consts)
 const scoreColor = (score: number) =>
-  score >= 80 ? dc.emerald : score >= 55 ? dc.lemon : "#ff6b6b";
+  score >= 80 ? dc.emerald : score >= 55 ? dc.lemon : "#e06363";
 const factorColor = (v: number) =>
-  v >= 20 ? dc.emerald : v >= 12 ? dc.lemon : "#ff6b6b";
+  v >= 20 ? dc.emerald : v >= 12 ? dc.lemon : "#e06363";
 
 export default function RefiTrackerPage({
   onBack,
@@ -128,7 +128,7 @@ export default function RefiTrackerPage({
   ]);
 
   const score = result?.totalScore ?? 0;
-  const vColor = result ? scoreColor(score) : "#ff6b6b";
+  const vColor = result ? scoreColor(score) : "#e06363";
   const vLabel = result
     ? score >= 80
       ? "REFI READY"
@@ -391,7 +391,7 @@ export default function RefiTrackerPage({
                 id="rf-cost"
                 d="M 0,40 L 420,40"
                 fill="none"
-                stroke="#ff6b6b"
+                stroke="#e06363"
                 strokeWidth="2.5"
                 strokeDasharray="6,4"
               />
@@ -431,7 +431,7 @@ export default function RefiTrackerPage({
                 </text>
               )}
               {/* Static labels */}
-              <text x="6" y="34" fill="rgba(255,107,107,0.8)" fontSize={10} fontFamily={dc.mono}>refi cost</text>
+              <text x="6" y="34" fill="rgba(224,99,99,0.8)" fontSize={10} fontFamily={dc.mono}>refi cost</text>
               <text x="6" y="170" fill="rgba(77,189,151,0.9)" fontSize={10} fontFamily={dc.mono}>cumulative savings →</text>
             </svg>
             <div
@@ -697,7 +697,7 @@ export default function RefiTrackerPage({
                       label: "DSCR after refi",
                       sub: result.refiDSCR >= 1.0 ? "Still qualifies after the new payment." : "Caution — rent may not cover the new payment.",
                       val: result.refiDSCR.toFixed(2) + "x",
-                      color: result.refiDSCR >= 1.0 ? dc.emerald : "#ff6b6b",
+                      color: result.refiDSCR >= 1.0 ? dc.emerald : "#e06363",
                       flame: riskFromDscr(result.refiDSCR),
                     },
                     {
@@ -706,7 +706,7 @@ export default function RefiTrackerPage({
                       val:
                         (result.monthlySavings >= 0 ? "+" : "") +
                         fmt$(result.monthlySavings),
-                      color: result.monthlySavings >= 0 ? dc.emerald : "#ff6b6b",
+                      color: result.monthlySavings >= 0 ? dc.emerald : "#e06363",
                     },
                     {
                       label: "Break-even",
@@ -729,7 +729,7 @@ export default function RefiTrackerPage({
                       val: result.seasoningMet
                         ? "Met (6 mo)"
                         : `${monthsOwned}/6 mo — not yet met`,
-                      color: result.seasoningMet ? dc.emerald : "#ff6b6b",
+                      color: result.seasoningMet ? dc.emerald : "#e06363",
                     },
                   ].map((r, i) => (
                     <div
@@ -756,7 +756,7 @@ export default function RefiTrackerPage({
                   <div
                     style={{
                       fontSize: 13,
-                      color: "#ff6b6b",
+                      color: "#e06363",
                       padding: "8px 0",
                     }}
                   >

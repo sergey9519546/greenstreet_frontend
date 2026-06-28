@@ -19,16 +19,16 @@ const ZONE_COLORS: Record<StressRiskZone, { bg: string; ink: string }> = {
   SAFE:        { bg: RAIN,                        ink: CREAM   },
   COMFORTABLE: { bg: EMERALD,                     ink: DARK_INK},
   MARGINAL:    { bg: "rgba(216,217,88,0.85)",     ink: DARK_INK},
-  FRAGILE:     { bg: "rgba(249,115,22,0.85)",     ink: "#fff"  },
-  DEAL_BREAK:  { bg: "rgba(255,107,107,0.90)",    ink: "#fff"  },
+  FRAGILE:     { bg: "rgba(230,184,77,0.85)",     ink: "#fff"  },
+  DEAL_BREAK:  { bg: "rgba(224,99,99,0.90)",    ink: "#fff"  },
 };
 
 const ZONE_ACCENT: Record<StressRiskZone, string> = {
   SAFE:        RAIN,
   COMFORTABLE: EMERALD,
   MARGINAL:    "#d8d958",
-  FRAGILE:     "#f97316",
-  DEAL_BREAK:  "#ff6b6b",
+  FRAGILE:     "#e6b84d",
+  DEAL_BREAK:  "#e06363",
 };
 
 // ── Plain-English verdict copy ────────────────────────────────────────────────
@@ -287,7 +287,7 @@ export default function StressMatrixPage({
   function zoneLabel(z: StressRiskZone) { return z.replace("_", " "); }
 
   // ── DSCR change arrow color
-  const deltaColor = dscrDelta > 0.05 ? EMERALD : dscrDelta < -0.05 ? "#ff6b6b" : LEMON;
+  const deltaColor = dscrDelta > 0.05 ? EMERALD : dscrDelta < -0.05 ? "#e06363" : LEMON;
   const deltaArrow = dscrDelta > 0.01 ? "↑" : dscrDelta < -0.01 ? "↓" : "→";
 
 
@@ -511,7 +511,7 @@ export default function StressMatrixPage({
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>DEAL BREAK</div>
-                  <Mono style={{ fontSize: 18, fontWeight: 600, color: "#ff6b6b" }}>{breakCount}</Mono>
+                  <Mono style={{ fontSize: 18, fontWeight: 600, color: "#e06363" }}>{breakCount}</Mono>
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>TOTAL</div>
@@ -599,7 +599,7 @@ export default function StressMatrixPage({
                     displayValue={`${rateOffsetBps >= 0 ? "+" : ""}${rateOffsetBps} bps`}
                     displaySub={`→ ${(baseRate + rateOffsetBps / 100).toFixed(3)}%`}
                     onChange={manual(setRateOffsetBps)}
-                    accentColor={rateOffsetBps > 100 ? "#f97316" : rateOffsetBps > 0 ? LEMON : EMERALD}
+                    accentColor={rateOffsetBps > 100 ? "#e6b84d" : rateOffsetBps > 0 ? LEMON : EMERALD}
                     fillPct={(rateOffsetBps - (-150)) / (300 - (-150)) * 100}
                   />
                   <SliderField
@@ -610,7 +610,7 @@ export default function StressMatrixPage({
                     displayValue={`${rentChangePct >= 0 ? "+" : ""}${rentChangePct}%`}
                     displaySub={`→ $${Math.round(monthlyRent * (1 + rentChangePct / 100)).toLocaleString()}/mo`}
                     onChange={manual(setRentChangePct)}
-                    accentColor={rentChangePct < -10 ? "#f97316" : rentChangePct < 0 ? LEMON : EMERALD}
+                    accentColor={rentChangePct < -10 ? "#e6b84d" : rentChangePct < 0 ? LEMON : EMERALD}
                     fillPct={(rentChangePct - (-25)) / (20 - (-25)) * 100}
                   />
                   <SliderField
@@ -621,7 +621,7 @@ export default function StressMatrixPage({
                     displayValue={`${vacancyPct}%`}
                     displaySub={`−$${Math.round(monthlyRent * (1 + rentChangePct / 100) * vacancyPct / 100).toLocaleString()}/mo lost`}
                     onChange={manual(setVacancyPct)}
-                    accentColor={vacancyPct > 15 ? "#f97316" : vacancyPct > 5 ? LEMON : EMERALD}
+                    accentColor={vacancyPct > 15 ? "#e6b84d" : vacancyPct > 5 ? LEMON : EMERALD}
                     fillPct={vacancyPct / 30 * 100}
                   />
                   <SliderField
@@ -632,7 +632,7 @@ export default function StressMatrixPage({
                     displayValue={`+${taxBumpPct}%`}
                     displaySub={`→ $${Math.round((annualTaxes + annualInsurance) * (1 + taxBumpPct / 100) / 12).toLocaleString()}/mo`}
                     onChange={manual(setTaxBumpPct)}
-                    accentColor={taxBumpPct > 20 ? "#f97316" : taxBumpPct > 0 ? LEMON : EMERALD}
+                    accentColor={taxBumpPct > 20 ? "#e6b84d" : taxBumpPct > 0 ? LEMON : EMERALD}
                     fillPct={taxBumpPct / 40 * 100}
                   />
                 </div>
@@ -679,12 +679,12 @@ export default function StressMatrixPage({
                   {/* Stressed case */}
                   <div style={{
                     flex: 1,
-                    background: stressZone === "DEAL_BREAK" ? "rgba(255,107,107,0.08)" :
-                                stressZone === "FRAGILE"    ? "rgba(249,115,22,0.07)"  :
+                    background: stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.08)" :
+                                stressZone === "FRAGILE"    ? "rgba(230,184,77,0.07)"  :
                                                              "rgba(238,239,211,0.04)",
                     borderRadius: dc.r.sm, padding: "16px 18px",
-                    border: `1px solid ${stressZone === "DEAL_BREAK" ? "rgba(255,107,107,0.3)" :
-                                         stressZone === "FRAGILE"    ? "rgba(249,115,22,0.25)" :
+                    border: `1px solid ${stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.3)" :
+                                         stressZone === "FRAGILE"    ? "rgba(230,184,77,0.25)" :
                                                                       "rgba(238,239,211,0.10)"}`,
                     transition: "background 0.3s, border-color 0.3s",
                   }}>
@@ -711,8 +711,8 @@ export default function StressMatrixPage({
                 {/* ── Plain-language verdict ─────────────────────── */}
                 <div style={{
                   marginTop: 16,
-                  background: stressZone === "DEAL_BREAK" ? "rgba(255,107,107,0.09)" :
-                              stressZone === "FRAGILE"    ? "rgba(249,115,22,0.08)"  :
+                  background: stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.09)" :
+                              stressZone === "FRAGILE"    ? "rgba(230,184,77,0.08)"  :
                               stressZone === "MARGINAL"   ? "rgba(216,217,88,0.08)"  :
                                                            "rgba(77,189,151,0.08)",
                   border: `1px solid ${ZONE_ACCENT[stressZone]}33`,
@@ -759,14 +759,14 @@ export default function StressMatrixPage({
                   </div>
                   <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
                     <span style={{ fontSize: 11, fontWeight: 600, color: EMERALD }}>{passRate} pass</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#ff6b6b" }}>{breakCount} breaks</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#e06363" }}>{breakCount} breaks</span>
                   </div>
                 </button>
 
                 {showFullMatrix && (
                   <div style={{ marginTop: 20 }}>
                     {!result ? (
-                      <div style={{ padding: 32, textAlign: "center", color: "#ff6b6b", background: "rgba(255,107,107,0.08)", borderRadius: 9, border: "1px solid rgba(255,107,107,0.3)" }}>
+                      <div style={{ padding: 32, textAlign: "center", color: "#e06363", background: "rgba(224,99,99,0.08)", borderRadius: 9, border: "1px solid rgba(224,99,99,0.3)" }}>
                         Engine returned no result. Check inputs.
                       </div>
                     ) : (

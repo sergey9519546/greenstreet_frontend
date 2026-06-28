@@ -16,8 +16,8 @@ const LEMON = swatch.lemon;
 const EMERALD = swatch.emerald;
 const MIDNIGHT = swatch.midnight;
 const RAIN = swatch.rainforest;
-const ORANGE = "#f97316";
-const RED = "#ff6b6b";
+const ORANGE = "#e6b84d";
+const RED = "#e06363";
 
 // Inject the shared keyframes/transitions once.
 let _injected = false;

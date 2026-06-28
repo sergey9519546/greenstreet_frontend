@@ -19,14 +19,14 @@ const SOFR_SCENARIOS: { label: string; sofr: number; color: string }[] = [
   { label: "Bullish",  sofr: 2.59, color: dc.emerald },
   { label: "Base",     sofr: 3.59, color: dc.lemon },
   { label: "Bearish",  sofr: 4.59, color: "#ff8c42" },
-  { label: "Stress",   sofr: 5.00, color: "#ff6b6b" },
+  { label: "Stress",   sofr: 5.00, color: "#e06363" },
   { label: "Crisis",   sofr: 7.00, color: "#c0392b" },
 ];
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
 function shockColor(pct: number): string {
-  if (pct > 20) return "#ff6b6b";
+  if (pct > 20) return "#e06363";
   if (pct > 8)  return dc.lemon;
   return dc.emerald;
 }

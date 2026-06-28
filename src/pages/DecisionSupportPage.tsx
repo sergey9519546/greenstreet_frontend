@@ -13,7 +13,7 @@ import BottomCTA from "../design/BottomCTA";
 function verdictColor(v: string): string {
   if (v === "PROCEED") return dc.emerald;
   if (v === "RESTRUCTURE") return "#d8d958";
-  return "#ff6b6b";
+  return "#e06363";
 }
 function verdictBg(v: string): string {
   if (v === "PROCEED") return swatch.emerald;
@@ -33,7 +33,7 @@ function gradeColor(g: string): string {
 function factorColor(v: number): string {
   if (v >= 66) return dc.emerald;
   if (v >= 40) return "#d8d958";
-  return "#ff6b6b";
+  return "#e06363";
 }
 
 // Map composite 0-100 to needle rotation -74..+74 deg (left=NO-GO, right=GO)
@@ -59,7 +59,7 @@ function VerdictGauge({ composite }: { composite: number }) {
         aria-label={`Verdict gauge — composite score ${composite}/100`}
       >
         {/* Arc segments: NO-GO (red), CONDITIONAL (yellow), GO (green) */}
-        <path d="M 30,150 A 110,110 0 0 1 73,64"   fill="none" stroke="#ff6b6b" strokeWidth="16" strokeLinecap="round" />
+        <path d="M 30,150 A 110,110 0 0 1 73,64"   fill="none" stroke="#e06363" strokeWidth="16" strokeLinecap="round" />
         <path d="M 86,54  A 110,110 0 0 1 194,54"  fill="none" stroke="#d8d958" strokeWidth="16" strokeLinecap="round" />
         <path d="M 207,64 A 110,110 0 0 1 250,150" fill="none" stroke="#4dbd97" strokeWidth="16" strokeLinecap="round" />
 
@@ -70,7 +70,7 @@ function VerdictGauge({ composite }: { composite: number }) {
         </g>
 
         {/* Zone labels */}
-        <text x="28"  y="170" fill="rgba(255,107,107,0.85)"  fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">NO-GO</text>
+        <text x="28"  y="170" fill="rgba(224,99,99,0.85)"  fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">NO-GO</text>
         <text x="140" y="34"  fill="rgba(216,217,88,0.95)"   fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">CONDITIONAL</text>
         <text x="252" y="170" fill="rgba(77,189,151,0.95)"   fontSize="11" fontFamily="'JetBrains Mono',monospace" textAnchor="middle">GO</text>
 
@@ -214,7 +214,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       // IC memo bullets driven by real values
       const MINT = dc.emerald;
       const YLW  = "#d8d958";
-      const RED  = "#ff6b6b";
+      const RED  = "#e06363";
       const memo: { mark: string; color: string; text: string }[] = [];
       memo.push(
         deal.dscr >= 1.25
@@ -452,7 +452,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         {result.composite}<span style={{ fontSize: "0.42em", color: "rgba(238,239,211,0.62)" }}>/100</span>
                       </Mono>
                       <div style={{ width: "100%", maxWidth: 210 }}>
-                        <div style={{ position: "relative", height: 10, borderRadius: 999, background: "linear-gradient(90deg,#ff6b6b 0 33%,#d8d958 33% 66%,#4dbd97 66% 100%)" }}>
+                        <div style={{ position: "relative", height: 10, borderRadius: 999, background: "linear-gradient(90deg,#e06363 0 33%,#d8d958 33% 66%,#4dbd97 66% 100%)" }}>
                           <div style={{ position: "absolute", top: "50%", left: `${Math.max(2, Math.min(98, result.composite))}%`, transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: dc.cream, border: `3px solid ${verdictColor(result.verdict.verdict)}`, boxShadow: "0 2px 7px rgba(0,0,0,0.45)" }} />
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontSize: 11, fontFamily: dc.mono, letterSpacing: "0.04em", color: "rgba(238,239,211,0.45)" }}>

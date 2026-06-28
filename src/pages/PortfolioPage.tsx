@@ -157,7 +157,7 @@ export default function PortfolioPage({
   // ── Colors ────────────────────────────────────────────────────────────────
   const MINT   = dc.emerald;
   const YELLOW = dc.lemon;
-  const RED    = "#ff6b6b";
+  const RED    = "#e06363";
 
   const blendColor = agg.blend >= 1.25 ? MINT : agg.blend >= 1.0 ? YELLOW : RED;
   const cashColor  = agg.totCash >= 0  ? MINT : RED;

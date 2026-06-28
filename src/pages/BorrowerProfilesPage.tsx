@@ -682,7 +682,7 @@ export default function BorrowerProfilesPage({
                     color: dc.cream,
                   }}
                 >
-                  <span style={{ color: item.pass ? "#4dbd97" : "#ff6b6b", fontWeight: 800 }}>
+                  <span style={{ color: item.pass ? "#4dbd97" : "#e06363", fontWeight: 800 }}>
                     {item.pass ? "✓" : "✗"}
                   </span>
                   {item.label}

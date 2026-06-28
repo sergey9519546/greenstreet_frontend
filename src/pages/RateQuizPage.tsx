@@ -593,7 +593,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
       ? swatch.emerald
       : result?.tier === "GOOD"
       ? swatch.lemon
-      : "#f97316";
+      : "#e6b84d";
 
   const tierLabel =
     result?.tier === "BEST"
@@ -1215,8 +1215,8 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {result.tier === "WEAK" && (
                   <div
                     style={{
-                      background: "rgba(249,115,22,0.08)",
-                      border: "1px solid rgba(249,115,22,0.28)",
+                      background: "rgba(230,184,77,0.08)",
+                      border: "1px solid rgba(230,184,77,0.28)",
                       borderRadius: radius.sm,
                       padding: "14px 18px",
                       marginBottom: 20,
@@ -1228,7 +1228,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,
-                        color: "#f97316",
+                        color: "#e6b84d",
                         marginBottom: 6,
                       }}
                     >

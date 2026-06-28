@@ -47,7 +47,7 @@ const SPECIAL: Record<string, Omit<StateEntry, "code">> = {
 const ALL_CODES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 const CODE_TO_NAME: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia" };
 
-const TIER_COLORS: Record<Tier, string> = { 0: dc.emerald, 1: dc.lemon, 2: "#f97316", 3: "#ff6b6b" };
+const TIER_COLORS: Record<Tier, string> = { 0: dc.emerald, 1: dc.lemon, 2: "#e6b84d", 3: "#e06363" };
 const TIER_LABELS: Record<Tier, string> = { 0: "PPP Allowed", 1: "Threshold-Based", 2: "High-Risk", 3: "Effectively Banned" };
 const TIER_INK: Record<Tier, string> = { 0: dc.dark, 1: dc.dark, 2: dc.dark, 3: "#fff" };
 const MAP_CODES = Object.keys(US_PATHS);
@@ -150,7 +150,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
           <div style={{ display: "flex", gap: "clamp(20px,4vw,44px)", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
               <div><Mono data-count={50} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>50</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states mapped</div></div>
-              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#ff6b6b", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
+              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#e06363", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
               <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
             </div>
             <div style={{ flex: 1, minWidth: 220, maxWidth: 320 }}>

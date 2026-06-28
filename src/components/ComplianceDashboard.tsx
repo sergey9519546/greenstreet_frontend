@@ -41,8 +41,8 @@ const T = {
   sidebarText: swatch.pistachio,
   sidebarActive: "rgba(216,217,88,0.16)",    // lemon-tinted active
   // Danger / warn — dark-friendly tints
-  dangerBg: "rgba(255,107,107,0.12)",
-  dangerBorder: "rgba(255,107,107,0.32)",
+  dangerBg: "rgba(224,99,99,0.12)",
+  dangerBorder: "rgba(224,99,99,0.32)",
   dangerText: "#ff8f8f",
   warnBg: "rgba(216,217,88,0.12)",
   warnBorder: "rgba(216,217,88,0.34)",

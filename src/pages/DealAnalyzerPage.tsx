@@ -43,9 +43,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
   // --- Verdict ---
   let vLabel = "DEAL BREAK";
-  let verdictColor = "#ff6b6b";
+  let verdictColor = "#e06363";
   let verdictBg = "rgba(74,21,21,0.07)";
-  let verdictBorder = "#ff6b6b";
+  let verdictBorder = "#e06363";
   let verdictHeadline = "Rent doesn't cover the payment — most lenders decline at this level.";
   let verdictNote =
     "DSCR below 0.75x — the rent doesn't come close to covering the payment. Consider a higher-rent property, more down payment, or a lower rate.";
@@ -194,7 +194,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               <div style={{ width: "100%", height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
               <div style={{ width: "100%", background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Cash flow / mo</div>
-                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>
+                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#e06363", lineHeight: 1 }}>
                   {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
                 </Mono>
               </div>

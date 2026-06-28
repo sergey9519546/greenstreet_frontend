@@ -10,7 +10,7 @@ import BottomCTA from "../design/BottomCTA";
 // can't deliver without a formation/banking/FX partner lined up.
 
 const BLUE = "#7ec8d3"; // sky — cross-border / data accent
-const RED = "#ff6b6b";
+const RED = "#e06363";
 // Hero flight-path arc — shared by the SVG paths AND the CSS offset-path packet,
 // so the comet always rides the exact curve the arc draws.
 const ARC = "M40 132 C 120 30, 240 30, 320 132";

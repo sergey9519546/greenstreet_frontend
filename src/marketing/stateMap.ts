@@ -25,8 +25,8 @@ const SPECIAL_TIER: Record<string, Tier> = {
 const TIER_META: Record<Tier, { label: string; color: string; copy: string }> = {
   0: { label: "PPP Allowed", color: "#4dbd97", copy: "Business-purpose DSCR penalty generally clear." },
   1: { label: "Threshold-Based", color: "#d8d958", copy: "Dollar, APR, term, or structure limit needs a check." },
-  2: { label: "High-Risk", color: "#f97316", copy: "Entity structure or lender overlay matters." },
-  3: { label: "Effectively Banned", color: "#ff6b6b", copy: "Most lenders decline or require restructure." },
+  2: { label: "High-Risk", color: "#e6b84d", copy: "Entity structure or lender overlay matters." },
+  3: { label: "Effectively Banned", color: "#e06363", copy: "Most lenders decline or require restructure." },
 };
 
 const MAP_CSS = `

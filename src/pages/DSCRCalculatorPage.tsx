@@ -454,7 +454,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                 {/* ── INSURANCE GATE (high-risk markets only) ── */}
                 {insHighRisk && (
-                  <div style={{ background: 'rgba(255,107,107,0.08)', border: '1px solid rgba(255,107,107,0.3)', borderLeft: '3px solid #ff6b6b', borderRadius: '0 12px 12px 0', padding: '15px 20px' }}>
+                  <div style={{ background: 'rgba(224,99,99,0.08)', border: '1px solid rgba(224,99,99,0.3)', borderLeft: '3px solid #e06363', borderRadius: '0 12px 12px 0', padding: '15px 20px' }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#ff8a8a', marginBottom: 5 }}>Insurance gate · {stateCode}</div>
                     <p style={{ fontSize: 13.5, color: 'rgba(238,239,211,0.78)', margin: 0, lineHeight: 1.55 }}>
                       {stateCode} is a high-risk insurance market. Get a <strong style={{ color: '#eeefd3' }}>bindable quote before you commit</strong> to this deal — an unconfirmed premium here is a stop, not a footnote. It&apos;s the other silent DSCR killer, and the number above assumes coverage you can actually buy.

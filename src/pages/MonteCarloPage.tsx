@@ -6,8 +6,8 @@ import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
 
 // ─── color helpers ────────────────────────────────────────────────────────────
-const RED     = "#ff6b6b";
-const ORANGE  = "#f97316";
+const RED     = "#e06363";
+const ORANGE  = "#e6b84d";
 const YELLOW  = dc.lemon;   // warn signal — bright on the dark canvas
 const YELLOW_DARK = dc.lemon;
 const BLUE    = "#7ec8d3";  // sky-blue — the rates / SOFR / uncertainty color
@@ -493,8 +493,8 @@ export default function MonteCarloPage({
             </h2>
             <div style={{
               display: "flex", alignItems: "flex-start", gap: 14,
-              background: pD1 > 20 ? "rgba(255,107,107,0.1)" : pD1 > 5 ? "rgba(216,217,88,0.12)" : "rgba(77,189,151,0.12)",
-              border: `1px solid ${pD1 > 20 ? "rgba(255,107,107,0.3)" : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.3)"}`,
+              background: pD1 > 20 ? "rgba(224,99,99,0.1)" : pD1 > 5 ? "rgba(216,217,88,0.12)" : "rgba(77,189,151,0.12)",
+              border: `1px solid ${pD1 > 20 ? "rgba(224,99,99,0.3)" : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.3)"}`,
               borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 720,
             }}>
               <RiskFlame level={riskLevel} size={20} />
