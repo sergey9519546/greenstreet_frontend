@@ -251,8 +251,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             eyebrow="Live preview"
             value={`${dscr.toFixed(2)}x`}
             valueNum={dscr}
-            sub={`${fmt(rent)} rent ÷ ${fmt(pitia)} PITIA`}
-            chip={{ label: verdictLabel, color: zoneColor }}
+            track2Num={dual.track2}
+            sub={`${fmt(rent)} rent ÷ ${fmt(pitia)} payment`}
+            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? "#e0635f" : zoneColor }}
           />
         </div>
       </section>

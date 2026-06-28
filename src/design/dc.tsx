@@ -371,61 +371,94 @@ export function HeroProof({
   valueFmt,
   sub,
   chip,
+  track2Num,                  // investor-survival DSCR → triggers the dual-track reveal
+  costsLabel = "after vacancy · management · maintenance · capex",
 }: {
   eyebrow?: string;
   value: React.ReactNode;
-  valueNum?: number;          // when given, the KPI tweens on change
+  valueNum?: number;          // lender DSCR (Track 1) — the headline gauge value
   valueFmt?: (n: number) => string;
   sub?: React.ReactNode;
   chip?: { label: string; color: string };
+  track2Num?: number;
+  costsLabel?: string;
 }) {
   const proofRef = useRef<HTMLDivElement>(null);
-  const kpiTextRef = useRef<SVGTextElement>(null);
-  const prevNum = useRef<number | undefined>(valueNum);
+  const arcRef = useRef<SVGPathElement>(null);
+  const numRef = useRef<SVGTextElement>(null);
+  const stateRef = useRef<HTMLDivElement>(null);
+  const gapRef = useRef<HTMLDivElement>(null);
+  const gapNumRef = useRef<HTMLSpanElement>(null);
+  const t2NumRef = useRef<HTMLSpanElement>(null);
   const fmtNum = valueFmt || ((n: number) => n.toFixed(2) + "x");
-  // Interaction-driven KPI tween: animate the SVG headline number when valueNum
-  // changes (never on mount), reduced-motion safe.
-  useEffect(() => {
-    const el = kpiTextRef.current;
-    if (!el || valueNum === undefined) return;
-    const from = prevNum.current;
-    prevNum.current = valueNum;
-    if (from === undefined || from === valueNum || prefersReducedMotion()) { el.textContent = fmtNum(valueNum); return; }
-    const o = { v: from };
-    gsap.to(o, { v: valueNum, duration: 0.55, ease: "power2.out", overwrite: true, onUpdate: () => { el.textContent = fmtNum(o.v); } });
-  }, [valueNum]); // eslint-disable-line react-hooks/exhaustive-deps
-  useGSAP(
-    () => {
-      const reduce = prefersReducedMotion();
-      const root = proofRef.current;
-      if (!root || reduce) return;
 
-      const tl = gsap.timeline({ defaults: { overwrite: "auto" } });
-      tl.from(".hp-panel", { y: 18, autoAlpha: 0.88, duration: 0.55, ease: "expo.out", stagger: 0.06 }, 0.12)
-        .from(".hp-kpi", { scale: 0.94, duration: 0.72, ease: "back.out(1.25)" }, 0.18)
-        .from(".hp-bar-fill", { scaleX: 0.16, transformOrigin: "0% 50%", duration: 0.78, ease: "power3.out", stagger: 0.09 }, 0.22)
-        .fromTo(".hp-flow", { strokeDashoffset: 220 }, { strokeDashoffset: 0, duration: 1.05, ease: "circ.out", stagger: 0.08 }, 0.26)
-        .from(".hp-node", { scale: 0.72, autoAlpha: 0.65, duration: 0.42, ease: "elastic.out(1,0.55)", stagger: 0.07 }, 0.38)
-        .from(".hp-chip", { x: 14, autoAlpha: 0.9, duration: 0.46, ease: "power4.out" }, 0.48);
-
-      return () => {
-        tl.kill();
-      };
-    },
-    { scope: proofRef }
-  );
-
-  const valueText = typeof value === "string" ? value : "";
-  const subText = typeof sub === "string" ? sub : "";
-  const parts = subText.split(/\s*\+\s*|÷/).map((p) => p.trim()).filter(Boolean);
-  const leftInput = parts[0] || "Rent";
-  const rightInput = parts[1] || "PITIA";
+  const CORAL = "#e0635f";
+  const ARC_LEN = Math.PI * 110;            // semicircle gauge, r=110
+  const t1 = valueNum ?? (typeof value === "string" ? parseFloat(value) : 0);
+  const hasDual = track2Num !== undefined && track2Num < t1 - 0.001;
   const verdictColor = chip?.color || LEMON;
-  const signalBars = [
-    { label: "Income cover", width: "82%", value: "82%", color: dc.emerald },
-    { label: "Lender floor", width: "72%", value: "1.00x", color: LEMON },
-    { label: "Reserve drag", width: "28%", value: "18%", color: "#7fb7b5" },
-  ];
+  const zoneColor = (d: number) => (d >= 1.25 ? dc.emerald : d >= 1.0 ? LEMON : CORAL);
+
+  // Paint the gauge (arc fill + colour) and the headline number to a DSCR value.
+  const paint = (d: number) => {
+    const f = Math.max(0, Math.min(1, d / 2)); // 0–2.0x maps across the semicircle
+    if (arcRef.current) {
+      arcRef.current.style.strokeDashoffset = String(ARC_LEN * (1 - f));
+      arcRef.current.style.stroke = zoneColor(d);
+    }
+    if (numRef.current) {
+      numRef.current.textContent = fmtNum(d);
+      numRef.current.style.fill = zoneColor(d);
+    }
+  };
+  const setState = (txt: string, col: string) => {
+    if (stateRef.current) { stateRef.current.textContent = txt; stateRef.current.style.color = col; }
+  };
+  const setGapText = (lender: number, investor: number) => {
+    if (gapNumRef.current) gapNumRef.current.textContent = "−" + Math.max(0, lender - investor).toFixed(2) + "x";
+    if (t2NumRef.current) t2NumRef.current.textContent = fmtNum(investor);
+  };
+
+  // Mount: the reveal. Count up to the lender DSCR (qualifies), then DIP to the
+  // investor-survival DSCR (the costs the lender ignores) and recover — the drop
+  // IS the message. Rests on the lender number with the gap annotation revealed.
+  useGSAP(() => {
+    if (!proofRef.current) return;
+    if (prefersReducedMotion()) {
+      paint(t1);
+      setState(t1 >= 1 ? "Lender — qualifies" : "Below the 1.00 floor", zoneColor(t1));
+      if (hasDual) { setGapText(t1, track2Num as number); if (gapRef.current) gsap.set(gapRef.current, { autoAlpha: 1, y: 0 }); }
+      return;
+    }
+    paint(0);
+    const proxy = { d: 0 };
+    const tl = gsap.timeline();
+    tl.from(".hp-panel", { y: 16, autoAlpha: 0, duration: 0.55, ease: "expo.out", stagger: 0.07 }, 0)
+      .to(proxy, { d: t1, duration: 1.0, ease: "power2.out", onUpdate: () => paint(proxy.d),
+            onComplete: () => setState(t1 >= 1 ? "Lender — qualifies" : "Below the 1.00 floor", zoneColor(t1)) }, 0.25);
+    if (hasDual) {
+      tl.to(gapRef.current, { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, "+=0.5")
+        .to(proxy, { d: track2Num as number, duration: 0.95, ease: "power2.inOut",
+              onStart: () => setState("Investor survival — loses money", CORAL),
+              onUpdate: () => { paint(proxy.d); setGapText(t1, proxy.d); } }, "<0.1")
+        .to(proxy, { d: t1, duration: 0.9, ease: "power2.inOut", onUpdate: () => paint(proxy.d),
+              onComplete: () => { setState("Lender qualifies — but the investor doesn't", verdictColor); setGapText(t1, track2Num as number); } }, "+=0.7");
+    }
+    return () => tl.kill();
+  }, { scope: proofRef, dependencies: [] }); // mount only — see the change effect below
+
+  // Deal changes after mount: snap-tween the gauge + gap to the new numbers
+  // (no re-dip — the reveal plays once on mount, owned by useGSAP above).
+  const skipFirst = useRef(true);
+  useEffect(() => {
+    if (skipFirst.current) { skipFirst.current = false; return; }
+    if (prefersReducedMotion()) { paint(t1); if (hasDual) setGapText(t1, track2Num as number); return; }
+    const proxy = { d: parseFloat(numRef.current?.textContent || String(t1)) || t1 };
+    gsap.to(proxy, { d: t1, duration: 0.5, ease: "power2.out", overwrite: true, onUpdate: () => paint(proxy.d) });
+    setState(t1 >= 1 ? "Lender — qualifies" : "Below the 1.00 floor", zoneColor(t1));
+    if (hasDual) setGapText(t1, track2Num as number);
+  }, [t1, track2Num]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div ref={proofRef} style={{ position: "relative" }}>
       <div
@@ -437,97 +470,54 @@ export function HeroProof({
           aspectRatio: "1.08",
           borderRadius: radius.lg,
           overflow: "hidden",
-          background: `linear-gradient(135deg, ${swatch.darkTeal} 0%, #003738 54%, #002d2e 100%)`,
-          border: "1px solid rgba(238,239,211,0.18)",
-          boxShadow: "inset 0 1px 0 rgba(238,239,211,0.08)",
+          background: `linear-gradient(160deg, ${swatch.darkTeal} 0%, #003738 60%, #002a2b 100%)`,
+          border: "1px solid rgba(238,239,211,0.16)",
+          boxShadow: "inset 0 1px 0 rgba(238,239,211,0.07)",
         }}
       >
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: "radial-gradient(rgba(238,239,211,0.08) 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-            opacity: 0.55,
-          }}
-        />
-        <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateRows: "auto 1fr auto", minHeight: "100%", padding: "clamp(22px,3vw,34px)", gap: 20 }}>
+        <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateRows: "auto 1fr auto", minHeight: "100%", padding: "clamp(24px,3.2vw,38px)", gap: 18 }}>
+          {/* Header */}
           <div className="hp-panel" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: LEMON }}>{eyebrow}</div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "rgba(238,239,211,0.62)", fontSize: 12, fontWeight: 700 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: LEMON }}>{eyebrow}</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "rgba(238,239,211,0.55)", fontSize: 11.5, fontWeight: 700, letterSpacing: "0.02em" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: verdictColor, display: "inline-block" }} />
               preliminary scenario
             </div>
           </div>
 
-          <div className="hp-main-grid">
-            <div className="hp-panel" style={{ display: "grid", gap: 14 }}>
-              <div className="hp-input-grid">
-                <div style={{ background: "rgba(238,239,211,0.08)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: radius.md, padding: "13px 14px" }}>
-                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>Rent input</div>
-                  <Mono style={{ color: PISTACHIO, fontSize: 20, fontWeight: 800 }}>{leftInput}</Mono>
-                </div>
-                <div style={{ background: "rgba(238,239,211,0.08)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: radius.md, padding: "13px 14px" }}>
-                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(238,239,211,0.62)", fontWeight: 800, marginBottom: 6 }}>PITIA load</div>
-                  <Mono style={{ color: PISTACHIO, fontSize: 20, fontWeight: 800 }}>{rightInput}</Mono>
-                </div>
-              </div>
-              <div style={{ display: "grid", gap: 10 }}>
-                {signalBars.map(({ label, width, value: barValue, color }) => (
-                  <div key={label} style={{ display: "grid", gridTemplateColumns: "104px 1fr 44px", gap: 10, alignItems: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(238,239,211,0.58)" }}>{label}</div>
-                    <div style={{ height: 8, borderRadius: 99, background: "rgba(238,239,211,0.1)", overflow: "hidden" }}>
-                      <div className="hp-bar-fill" style={{ width, height: "100%", borderRadius: 99, background: color }} />
-                    </div>
-                    <Mono style={{ color: PISTACHIO, fontSize: 12, fontWeight: 800, textAlign: "right" }}>{barValue}</Mono>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* The one focal element: a DSCR gauge that tells the dual-track story */}
+          <div className="hp-panel" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+            <svg viewBox="0 0 280 168" width="min(86%, 340px)" style={{ overflow: "visible" }} role="img" aria-label={`DSCR ${typeof value === "string" ? value : ""}`}>
+              {/* track */}
+              <path d="M30 150 A110 110 0 0 1 250 150" fill="none" stroke="rgba(238,239,211,0.12)" strokeWidth="14" strokeLinecap="round" />
+              {/* the 1.00 floor tick (top-centre = 50% of the 0–2.0x sweep) */}
+              <line x1="140" y1="30" x2="140" y2="52" stroke="rgba(238,239,211,0.45)" strokeWidth="2" />
+              <text x="140" y="22" textAnchor="middle" fill="rgba(238,239,211,0.5)" fontFamily={font.family} fontSize="10" fontWeight="700">1.00 floor</text>
+              {/* animated fill */}
+              <path ref={arcRef} d="M30 150 A110 110 0 0 1 250 150" fill="none" stroke={LEMON} strokeWidth="14" strokeLinecap="round"
+                    style={{ strokeDasharray: ARC_LEN, strokeDashoffset: ARC_LEN }} />
+              {/* headline number */}
+              <text ref={numRef} x="140" y="132" textAnchor="middle" fill={LEMON} fontFamily={font.mono} fontSize="56" fontWeight="800" letterSpacing="-0.03em">{value}</text>
+              <text x="140" y="156" textAnchor="middle" fill="rgba(238,239,211,0.5)" fontFamily={font.family} fontSize="11" fontWeight="700" letterSpacing="0.04em">DSCR · rent ÷ payment</text>
+            </svg>
 
-            <div className="hp-panel" style={{ position: "relative", minHeight: 250 }}>
-              <svg viewBox="0 0 360 250" width="100%" height="100%" style={{ position: "absolute", inset: 0, overflow: "visible" }} role="img" aria-label={`DSCR preview ${valueText}`}>
-                <defs>
-                  <linearGradient id="hp-flow-grad" x1="0%" x2="100%" y1="0%" y2="0%">
-                    <stop offset="0%" stopColor={LEMON} stopOpacity="0.35" />
-                    <stop offset="55%" stopColor={dc.emerald} stopOpacity="0.92" />
-                    <stop offset="100%" stopColor={PISTACHIO} stopOpacity="0.65" />
-                  </linearGradient>
-                </defs>
-                <path className="hp-flow" d="M26 72 C82 40 116 53 156 102 C190 144 224 143 322 118" fill="none" stroke="url(#hp-flow-grad)" strokeWidth="4" strokeLinecap="round" strokeDasharray="220" />
-                <path className="hp-flow" d="M33 174 C95 183 114 151 157 126 C206 98 246 71 332 75" fill="none" stroke={LEMON} strokeOpacity="0.44" strokeWidth="3" strokeLinecap="round" strokeDasharray="220" />
-                <circle className="hp-node" cx="28" cy="72" r="10" fill={LEMON} />
-                <circle className="hp-node" cx="156" cy="104" r="13" fill={dc.emerald} />
-                <circle className="hp-node" cx="322" cy="118" r="10" fill={PISTACHIO} />
-                <circle className="hp-node" cx="33" cy="174" r="8" fill="#7fb7b5" />
-                <circle className="hp-node" cx="332" cy="75" r="8" fill={LEMON} />
-                <g className="hp-kpi">
-                  <rect x="96" y="65" width="170" height="110" rx="22" fill="rgba(0,45,46,0.94)" stroke="rgba(238,239,211,0.2)" />
-                  <text x="181" y="93" textAnchor="middle" fill={LEMON} fontFamily={font.family} fontSize="12" fontWeight="800" letterSpacing="1.2">DSCR CORE</text>
-                  <text ref={kpiTextRef} x="181" y="139" textAnchor="middle" fill={PISTACHIO} fontFamily={font.mono} fontSize="48" fontWeight="800">{valueNum !== undefined ? fmtNum(valueNum) : valueText}</text>
-                  <text x="181" y="160" textAnchor="middle" fill="rgba(238,239,211,0.58)" fontFamily={font.family} fontSize="12" fontWeight="700">rent / full payment</text>
-                </g>
-              </svg>
+            <div ref={stateRef} style={{ marginTop: 6, fontSize: 14, fontWeight: 800, letterSpacing: "-0.01em", color: LEMON }}>Lender — qualifies</div>
+
+            {/* The reveal: the gap the lender doesn't see */}
+            <div ref={gapRef} style={{ marginTop: 14, opacity: 0, transform: "translateY(8px)", background: "rgba(224,99,99,0.09)", border: "1px solid rgba(224,99,99,0.28)", borderRadius: radius.md, padding: "10px 16px", maxWidth: 360 }}>
+              <span style={{ fontSize: 12.5, color: "rgba(238,239,211,0.72)", lineHeight: 1.5 }}>
+                Investor survival <span ref={t2NumRef} style={{ color: CORAL, fontWeight: 800, fontFamily: font.mono }}>—</span> {costsLabel} · a <span ref={gapNumRef} style={{ color: CORAL, fontWeight: 800, fontFamily: font.mono }}>—</span> gap the lender doesn&apos;t see.
+              </span>
             </div>
           </div>
 
-          <div className="hp-panel hp-logic-row">
-            <div style={{ display: "grid", gap: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.48)" }}>Matched file logic</div>
-              <div className="hp-logic-grid">
-                {["DSCR floor", "LTV band", "State rule"].map((label, i) => (
-                  <div key={label} style={{ borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.12)", padding: "9px 10px", background: i === 0 ? "rgba(216,217,88,0.12)" : "rgba(238,239,211,0.06)" }}>
-                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.48)", fontWeight: 700, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 13, color: PISTACHIO, fontWeight: 800 }}>{i === 0 ? "passes" : i === 1 ? "75%" : "screened"}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Footer: real inputs (supporting) + honest verdict */}
+          <div className="hp-panel" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", fontFamily: font.mono, letterSpacing: "-0.01em" }}>{sub}</div>
             {chip && (
-              <div className="hp-chip" style={{ background: MINT_BG, borderRadius: radius.md, padding: "14px 16px", border: "1px solid rgba(0,55,56,0.12)", minWidth: 118 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 4 }}>Verdict</div>
-                <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: "0.06em", textTransform: "uppercase", color: chip.color }}>{chip.label}</div>
+              <div className="hp-chip" style={{ background: MINT_BG, borderRadius: radius.md, padding: "12px 16px", border: "1px solid rgba(0,55,56,0.12)" }}>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 3 }}>Verdict</div>
+                <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: "0.05em", textTransform: "uppercase", color: chip.color }}>{chip.label}</div>
               </div>
             )}
           </div>
