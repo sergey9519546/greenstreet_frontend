@@ -306,8 +306,11 @@ export function BalanceScale({ rent, payment, size = 220 }: { rent: number; paym
   );
 }
 
-// ── RiskFlame (Hyperflames) ──────────────────────────────────────────────────
-// intensity: "none" | "low" | "med" | "high" — 0..3 stylized flames, color-coded.
+// ── RiskMeter (exported as RiskFlame for back-compat) ────────────────────────
+// A calm 3-segment level meter — NOT cartoon flames. As coverage tightens, more
+// segments light in the risk color (lemon → amber → red); "none" is an emerald
+// all-clear check. Premium + legible at small sizes; off-segments use
+// currentColor so it reads on either a light or dark ground.
 export type RiskLevel = "none" | "low" | "med" | "high";
 export function riskFromDscr(dscr: number): RiskLevel {
   if (dscr >= 1.25) return "none";
@@ -315,25 +318,29 @@ export function riskFromDscr(dscr: number): RiskLevel {
   if (dscr >= 1.0) return "med";
   return "high";
 }
-const FLAME = "M12 2C12 6 7 7 7 12a5 5 0 0 0 10 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3-1-6-1-9z";
 export function RiskFlame({ level, size = 22 }: { level: RiskLevel; size?: number }) {
-  ensureCss();
   if (level === "none") {
     return (
-      <span title="Comfortable cushion" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: EMERALD, fontWeight: 700, fontSize: size * 0.6 }}>
+      <span title="Comfortable cushion" style={{ display: "inline-flex", alignItems: "center", color: EMERALD }}>
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke={EMERALD} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </span>
     );
   }
   const cfg = { low: { n: 1, c: LEMON }, med: { n: 2, c: ORANGE }, high: { n: 3, c: RED } }[level];
+  const segs = 3;
+  const gap = Math.max(1.5, size * 0.1);
+  const w = (size - gap * (segs - 1)) / segs;
   return (
-    <span role="img" aria-label={`${level} risk`} title={`${level} risk / stress`} style={{ display: "inline-flex", alignItems: "flex-end", gap: 1 }}>
-      {Array.from({ length: cfg.n }).map((_, i) => (
-        <svg key={i} className={`gsa-flame f${i + 1}`} width={size} height={size} viewBox="0 0 24 24" fill="none">
-          <path d={FLAME} fill={cfg.c} opacity={0.92} />
-          <path d="M12 9c0 2-2 3-2 5a2 2 0 0 0 4 0c0-1-1-2-2-5z" fill="#fff" opacity={0.45} />
-        </svg>
-      ))}
+    <span role="img" aria-label={`${level} risk`} title={`${level} risk / stress`} style={{ display: "inline-flex", alignItems: "flex-end", gap, height: size }}>
+      {Array.from({ length: segs }).map((_, i) => {
+        const on = i < cfg.n;
+        return (
+          <span
+            key={i}
+            style={{ width: w, height: size * (0.5 + i * 0.25), borderRadius: Math.max(1, w * 0.3), background: on ? cfg.c : "currentColor", opacity: on ? 1 : 0.2 }}
+          />
+        );
+      })}
     </span>
   );
 }
