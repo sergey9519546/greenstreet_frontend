@@ -78,9 +78,15 @@ negative-leverage flag are DONE. Remaining:
   insuranceEstimate, trueCostOfCapital.
 - ✅ Coverage added for 6 previously-untested engines (branch `test/engine-coverage-b4`,
   +41 tests → 271 total): firpta, taxEngine (OBBBA lock), decisionSupport.computeReturnGrade,
-  sensitivity (golden values), portfolio (+health score), reserveEngine. STILL UNTESTED:
-  armResetEngine, strUnderwriting, qualify, loanOptimizer, reassessmentEngine,
-  lenderMatchScore, irrWaterfall, refiTracker, monteCarloRatePath.
+  sensitivity (golden values), portfolio (+health score), reserveEngine.
+- ✅ Coverage added for 5 more engines (+43 tests → 314 total): qualify, armResetEngine,
+  loanOptimizer (prepay schedule/exit-cost/remaining-balance), monteCarloRatePath
+  (seed reproducibility), refiTracker (4-factor readiness). tsc clean · vite build ✓.
+- ✅ Coverage added for the final 4 untested engines (+39 tests → 353 total): strUnderwriting
+  (legality gate CLEAR/UNCERTAIN/PROHIBITED, 3-world haircuts 20%/10%, MIN-governs selection,
+  monthly seasonality), reassessmentEngine (state rules, reassessed-tax + DSCR impact),
+  lenderMatchScore (weight sum, ranking/tiers, top-3), irrWaterfall (16 Year-1 stages,
+  hold-total/exit blocks). tsc clean. **B4 engine-coverage COMPLETE — every engine now has tests.**
 
 ---
 
