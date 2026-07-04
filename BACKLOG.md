@@ -91,18 +91,25 @@ negative-leverage flag are DONE. Remaining:
 ---
 
 ## C. PRODUCT BACKLOG (net-new or low-priority)
+
+> Backlog reconciled 2026-07-04 (daily-fix run): several items below were already
+> shipped in-tree ahead of these notes — struck through with the verifying location.
+
 - **Construction/bridge DSCR** — net-new product calculator (`IMPROVE_CONSTRUCTION_BRIDGE_DSCR.md`). Engine + UI.
 - **Commercial DSCR** (NOI ÷ annual P&I) + NOI-sanity-check for 5+ unit (debt-tool / underwriting-deep-dive). We use Rent/PITIA for all; 5+ unit convention differs.
 - **Lender-rule toggles** on `DSCRCalculatorPage.tsx`: IO=ITIA, lesser-of(market,lease),
   ARM note-vs-fully-indexed qualifying rate. Engine has `calculateIOPayment` +
-  `computeLenderStressRate`; only Kiavi 110% is surfaced so far.
+  `computeLenderStressRate`; only Kiavi 110% is surfaced so far. PARTIAL: lender rows
+  now DSCR-tier-gated + "your tier" badge; self-consistent max-price (tax/ins scale with
+  solved price); HOA input (commit this session). IO/lesser-of/ARM-qual toggles still open.
 - **TCO threshold-conversion table** (1.25 std ≈ 0.90 TCO) — small explainer.
-- **Portfolio health-score** single 0–100 rollup over the existing concentration data
-  (`portfolio.ts` already has lender + geographic concentration warnings).
-- **DecisionSupport CoC fix** — `DecisionSupportPage.tsx:119` cashInvested = price − loan
-  (ignores ~3% closing costs); align with the Deal Analyzer CoC.
-- **Recession scenario cards** — StressMatrix has a "2008-style shock" preset; add
-  COVID + FL-insurance-crisis named cards each with the $ out-of-pocket outcome.
+- ~~**Portfolio health-score**~~ ✅ DONE — 0–100 rollup surfaced on `PortfolioPage.tsx:286-318`
+  with DSCR/concentration/cash-flow/reserve breakdown + colored bar. Engine tested (B4).
+- ~~**DecisionSupport CoC fix**~~ ✅ DONE — `DecisionSupportPage.tsx:119` already adds
+  `purchasePrice * 0.03` closing costs; matches Deal Analyzer (`DealAnalyzerPage.tsx:58`).
+- ~~**Recession scenario cards**~~ ✅ DONE — StressMatrix `PRESETS` already carries
+  `covid` (COVID-style shock) + `fl_ins` (FL insurance crisis) alongside the 2008 preset
+  (`StressMatrixPage.tsx:89-97`).
 - **Remaining pricing LLPA adjusters** (low value): loan-size (<$75K / >$1.5M), blanket,
   vacant-at-closing, TX 50(a)(6) cash-out. Each needs a field `estimateRate` doesn't
   carry (signature change). Keep flagship `modes.test` 6.125 lock intact (the adjuster
