@@ -95,14 +95,22 @@ negative-leverage flag are DONE. Remaining:
 > Backlog reconciled 2026-07-04 (daily-fix run): several items below were already
 > shipped in-tree ahead of these notes — struck through with the verifying location.
 
-- **Construction/bridge DSCR** — net-new product calculator (`IMPROVE_CONSTRUCTION_BRIDGE_DSCR.md`). Engine + UI.
+- **Construction/bridge DSCR** — net-new product calculator (`IMPROVE_CONSTRUCTION_BRIDGE_DSCR.md`).
+  ENGINE DONE: `src/engine/constructionBridge.ts` (`computeConstructionBridge` — LTC,
+  peak IO carry, interest-reserve on 50% avg draw, stabilized exit DSCR + takeout-retires
+  test → VIABLE/TIGHT/SHORTFALL). Tested (6). **UI still open — used by 0 pages.**
 - **Commercial DSCR** (NOI ÷ annual P&I) + NOI-sanity-check for 5+ unit (debt-tool / underwriting-deep-dive). We use Rent/PITIA for all; 5+ unit convention differs.
+  ENGINE DONE: `src/engine/commercialDscr.ts` (`computeCommercialDscr` — EGI/NOI, DSCR vs
+  1.25 floor, PASS/MARGINAL/FAIL, expense-ratio + <30% understated-opex flag). Tested (6).
+  **UI still open — used by 0 pages.**
 - **Lender-rule toggles** on `DSCRCalculatorPage.tsx`: IO=ITIA, lesser-of(market,lease),
   ARM note-vs-fully-indexed qualifying rate. Engine has `calculateIOPayment` +
   `computeLenderStressRate`; only Kiavi 110% is surfaced so far. PARTIAL: lender rows
   now DSCR-tier-gated + "your tier" badge; self-consistent max-price (tax/ins scale with
   solved price); HOA input (commit this session). IO/lesser-of/ARM-qual toggles still open.
 - **TCO threshold-conversion table** (1.25 std ≈ 0.90 TCO) — small explainer.
+  ENGINE DONE: `src/engine/tcoThreshold.ts` (`stdToTco`/`tcoToStd`/`tcoThresholdTable`,
+  `DEFAULT_RESERVE_LOAD` 0.3889 reproduces the 1.25→0.90 anchor). Tested (5). **UI explainer still open.**
 - ~~**Portfolio health-score**~~ ✅ DONE — 0–100 rollup surfaced on `PortfolioPage.tsx:286-318`
   with DSCR/concentration/cash-flow/reserve breakdown + colored bar. Engine tested (B4).
 - ~~**DecisionSupport CoC fix**~~ ✅ DONE — `DecisionSupportPage.tsx:119` already adds
