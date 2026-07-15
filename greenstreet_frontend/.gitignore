@@ -1,0 +1,11 @@
+# Ignore large data files
+data/
+99_attachments/
+airdna-project/
+perfectproperty/
+graphify-out/
+*.db
+*.csv
+*.zip
+.understand-anything/
+.superpowers/
