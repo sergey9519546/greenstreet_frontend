@@ -8,6 +8,16 @@ const OUT_ROOT = process.env.QA_OUT_DIR ?? path.resolve(".tmp", "interaction-qa"
 const STAMP = new Date().toISOString().replace(/[:.]/g, "-");
 const OUT_DIR = path.join(OUT_ROOT, STAMP);
 
+function positiveDuration(name, fallback) {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+const NAV_TIMEOUT_MS = positiveDuration("QA_NAV_TIMEOUT_MS", 20_000);
+const ROUTE_TIMEOUT_MS = positiveDuration("QA_ROUTE_TIMEOUT_MS", 45_000);
+const RUN_TIMEOUT_MS = positiveDuration("QA_RUN_TIMEOUT_MS", 10 * 60_000);
+const CLOSE_TIMEOUT_MS = positiveDuration("QA_CLOSE_TIMEOUT_MS", 5_000);
+
 const ROUTES = [
   "/",
   "/products",
@@ -75,8 +85,31 @@ function delay(ms) {
   return new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
 }
 
+async function bounded(label, operation, timeoutMs) {
+  let timer;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(operation),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function diagnostic(error, step, page) {
+  return {
+    step,
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack?.split("\n").slice(0, 8).join("\n") : undefined,
+    url: page && !page.isClosed() ? page.url() : undefined,
+  };
+}
+
 async function goto(page, route) {
-  await page.goto(new URL(route, BASE_URL).toString(), { waitUntil: "domcontentloaded", timeout: 30000 });
+  await page.goto(new URL(route, BASE_URL).toString(), { waitUntil: "domcontentloaded", timeout: NAV_TIMEOUT_MS });
   await delay(450);
 }
 
@@ -216,84 +249,187 @@ async function probeInteractions(page, route, viewportName) {
   return events;
 }
 
+async function closePage(page, summary, label) {
+  if (!page || page.isClosed()) return;
+  try {
+    await bounded(`close page ${label}`, () => page.close(), CLOSE_TIMEOUT_MS);
+  } catch (error) {
+    summary.cleanupIssues.push(diagnostic(error, `close page ${label}`, page));
+  }
+}
+
+async function closeBrowser(browser, summary) {
+  if (!browser) return;
+  const browserProcess = browser.process();
+  try {
+    await bounded("close browser", () => browser.close(), CLOSE_TIMEOUT_MS);
+  } catch (error) {
+    summary.cleanupIssues.push(diagnostic(error, "close browser"));
+    browserProcess?.kill("SIGKILL");
+  }
+}
+
 async function run() {
   await mkdir(OUT_DIR, { recursive: true });
-  const executablePath = findChrome();
-  const browser = await puppeteer.launch({
-    headless: "new",
-    executablePath,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
   const summary = {
     baseUrl: BASE_URL,
     outDir: OUT_DIR,
+    startedAt: new Date().toISOString(),
+    timeouts: { navigation: NAV_TIMEOUT_MS, route: ROUTE_TIMEOUT_MS, run: RUN_TIMEOUT_MS },
     routes: ROUTES,
     viewports: VIEWPORTS,
     failures: [],
+    cleanupIssues: [],
     results: [],
   };
+  let browser;
+  let runnerFailure;
+  let closeRequested;
+  const total = ROUTES.length * VIEWPORTS.length;
+  let completed = 0;
+
+  const requestBrowserClose = () => {
+    if (!browser) return Promise.resolve();
+    if (!closeRequested) closeRequested = closeBrowser(browser, summary);
+    return closeRequested;
+  };
+
+  const deadline = setTimeout(() => {
+    runnerFailure = new Error(`QA run exceeded the ${RUN_TIMEOUT_MS}ms global deadline`);
+    console.error(`[qa] FATAL ${runnerFailure.message}`);
+    void requestBrowserClose();
+  }, RUN_TIMEOUT_MS);
+  const interrupt = (signal) => {
+    runnerFailure = new Error(`QA interrupted by ${signal}`);
+    console.error(`[qa] FATAL ${runnerFailure.message}`);
+    void requestBrowserClose();
+  };
+  const onSigInt = () => interrupt("SIGINT");
+  const onSigTerm = () => interrupt("SIGTERM");
+  process.once("SIGINT", onSigInt);
+  process.once("SIGTERM", onSigTerm);
 
   try {
-    for (const viewport of VIEWPORTS) {
-      const page = await browser.newPage();
-      await page.setViewport(viewport);
-      const consoleIssues = [];
-      page.on("console", (msg) => {
-        if (!["error", "warning"].includes(msg.type())) return;
-        const text = msg.text();
-        if (IGNORE_CONSOLE.some((rx) => rx.test(text))) return;
-        consoleIssues.push({ type: msg.type(), text });
-      });
+    const executablePath = findChrome();
+    console.log(`[qa] Launching browser for ${total} route/viewport checks at ${BASE_URL}`);
+    browser = await bounded("launch browser", () => puppeteer.launch({
+      headless: "new",
+      executablePath,
+      timeout: NAV_TIMEOUT_MS,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    }), NAV_TIMEOUT_MS);
 
+    for (const viewport of VIEWPORTS) {
       for (const route of ROUTES) {
+        if (runnerFailure) throw runnerFailure;
+        const ordinal = completed + 1;
+        const label = `${viewport.name} ${route}`;
+        const startedAt = Date.now();
+        console.log(`[qa ${ordinal}/${total}] START ${label}`);
         const result = { route, viewport: viewport.name, errors: [], warnings: [], interactions: [] };
+        let page;
+        let step = "create-page";
         try {
-          await goto(page, route);
-          await page.screenshot({ path: path.join(OUT_DIR, `${viewport.name}-${routeSlug(route)}-default.png`), fullPage: false });
-          const state = await collectState(page);
-          result.state = state;
-          if (!state.title) result.errors.push("missing-title");
-          if (state.h1s.length !== 1) result.errors.push(`h1-count-${state.h1s.length}`);
-          if (state.horizontalOverflow) result.errors.push("horizontal-overflow");
-          if (state.invalidAnchors.length > 0) result.errors.push(`invalid-anchors-${state.invalidAnchors.length}`);
-          if (state.missingLabels.length > 0) result.errors.push(`missing-labels-${state.missingLabels.length}`);
-          if (state.tinyText.length > 30) result.warnings.push(`many-tiny-text-${state.tinyText.length}`);
-          result.interactions = await probeInteractions(page, route, viewport.name);
-          const after = await collectState(page);
-          result.afterInteraction = {
-            url: page.url(),
-            h1s: after.h1s,
-            horizontalOverflow: after.horizontalOverflow,
-            invalidAnchors: after.invalidAnchors,
-            missingLabels: after.missingLabels,
-          };
-          if (after.horizontalOverflow) result.errors.push("post-interaction-horizontal-overflow");
+          await bounded(label, async () => {
+            page = await browser.newPage();
+            page.setDefaultTimeout(NAV_TIMEOUT_MS);
+            page.setDefaultNavigationTimeout(NAV_TIMEOUT_MS);
+            await page.setViewport(viewport);
+
+            const consoleIssues = [];
+            const pageIssues = [];
+            const requestIssues = [];
+            page.on("console", (msg) => {
+              if (!["error", "warning"].includes(msg.type())) return;
+              const text = msg.text();
+              if (IGNORE_CONSOLE.some((rx) => rx.test(text))) return;
+              consoleIssues.push({ type: msg.type(), text });
+            });
+            page.on("pageerror", (error) => pageIssues.push(String(error).slice(0, 500)));
+            page.on("requestfailed", (request) => requestIssues.push({
+              url: request.url(),
+              reason: request.failure()?.errorText ?? "unknown",
+              resourceType: request.resourceType(),
+            }));
+
+            step = "navigate";
+            await goto(page, route);
+            step = "default-screenshot";
+            await page.screenshot({ path: path.join(OUT_DIR, `${viewport.name}-${routeSlug(route)}-default.png`), fullPage: false });
+            step = "collect-default-state";
+            const state = await collectState(page);
+            result.state = state;
+            if (!state.title) result.errors.push("missing-title");
+            if (state.h1s.length !== 1) result.errors.push(`h1-count-${state.h1s.length}`);
+            if (state.horizontalOverflow) result.errors.push("horizontal-overflow");
+            if (state.invalidAnchors.length > 0) result.errors.push(`invalid-anchors-${state.invalidAnchors.length}`);
+            if (state.missingLabels.length > 0) result.errors.push(`missing-labels-${state.missingLabels.length}`);
+            if (state.tinyText.length > 30) result.warnings.push(`many-tiny-text-${state.tinyText.length}`);
+            step = "probe-interactions";
+            result.interactions = await probeInteractions(page, route, viewport.name);
+            step = "collect-post-interaction-state";
+            const after = await collectState(page);
+            result.afterInteraction = {
+              url: page.url(),
+              h1s: after.h1s,
+              horizontalOverflow: after.horizontalOverflow,
+              invalidAnchors: after.invalidAnchors,
+              missingLabels: after.missingLabels,
+            };
+            if (after.horizontalOverflow) result.errors.push("post-interaction-horizontal-overflow");
+            if (consoleIssues.length > 0) {
+              result.errors.push(`console-issues-${consoleIssues.length}`);
+              result.consoleIssues = consoleIssues;
+            }
+            if (pageIssues.length > 0) {
+              result.errors.push(`page-errors-${pageIssues.length}`);
+              result.pageIssues = pageIssues;
+            }
+            if (requestIssues.length > 0) {
+              result.warnings.push(`request-failures-${requestIssues.length}`);
+              result.requestIssues = requestIssues.slice(0, 30);
+            }
+          }, ROUTE_TIMEOUT_MS);
         } catch (error) {
-          result.errors.push(String(error).slice(0, 240));
+          const details = diagnostic(error, step, page);
+          result.errors.push(`${details.step}: ${details.message}`.slice(0, 500));
+          result.diagnostic = details;
+        } finally {
+          await closePage(page, summary, label);
         }
-        if (consoleIssues.length > 0) {
-          result.errors.push(`console-issues-${consoleIssues.length}`);
-          result.consoleIssues = consoleIssues.splice(0);
-        }
+        result.durationMs = Date.now() - startedAt;
         if (result.errors.length) summary.failures.push({ route, viewport: viewport.name, errors: result.errors });
         summary.results.push(result);
+        completed += 1;
+        console.log(`[qa ${ordinal}/${total}] ${result.errors.length ? "FAIL" : "PASS"} ${label} (${result.durationMs}ms)`);
       }
-      await page.close();
     }
+  } catch (error) {
+    const details = diagnostic(error, "runner");
+    summary.fatalError = details;
+    summary.failures.push({ route: "<runner>", viewport: "n/a", errors: [details.message] });
+    console.error(`[qa] FATAL ${details.message}`);
   } finally {
-    await browser.close();
+    clearTimeout(deadline);
+    process.removeListener("SIGINT", onSigInt);
+    process.removeListener("SIGTERM", onSigTerm);
+    await requestBrowserClose();
+    summary.finishedAt = new Date().toISOString();
+    summary.completedChecks = completed;
+    await Promise.all([
+      writeFile(path.join(OUT_DIR, "interaction-qa.json"), JSON.stringify(summary, null, 2)),
+      writeFile(path.join(OUT_ROOT, "latest.json"), JSON.stringify(summary, null, 2)),
+    ]);
   }
 
-  await writeFile(path.join(OUT_DIR, "interaction-qa.json"), JSON.stringify(summary, null, 2));
-  await writeFile(path.join(OUT_ROOT, "latest.json"), JSON.stringify(summary, null, 2));
-  console.log(`Interaction QA output: ${OUT_DIR}`);
+  console.log(`[qa] Output: ${OUT_DIR}`);
   if (summary.failures.length) {
     console.error(JSON.stringify(summary.failures.slice(0, 20), null, 2));
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 
 run().catch((error) => {
-  console.error(error);
-  process.exit(1);
+  console.error(`[qa] Unhandled runner failure: ${error instanceof Error ? error.stack : String(error)}`);
+  process.exitCode = 1;
 });

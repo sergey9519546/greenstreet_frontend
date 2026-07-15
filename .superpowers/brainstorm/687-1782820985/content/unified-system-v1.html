@@ -1,0 +1,188 @@
+<style>
+  .gs-board { color:#003738; }
+  .gs-kicker { font-size:11px; letter-spacing:.11em; text-transform:uppercase; color:#3b7d79; font-weight:800; margin:0 0 8px; }
+  .gs-title { font-size:34px; line-height:1.02; letter-spacing:0; margin:0; max-width:760px; color:#003738; }
+  .gs-sub { max-width:860px; font-size:15px; line-height:1.5; color:rgba(0,55,56,.72); margin:12px 0 22px; }
+  .gs-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:18px 0 28px; }
+  .gs-stat { background:#003738; color:#eeefd3; border:1px solid rgba(0,55,56,.16); border-radius:8px; padding:14px 16px; min-height:74px; }
+  .gs-stat b { display:block; font:800 24px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color:#d9dd56; }
+  .gs-stat span { display:block; margin-top:7px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; opacity:.72; }
+  .gs-grid { display:grid; grid-template-columns:300px 1fr 290px; gap:12px; min-height:420px; }
+  .gs-panel { background:#f5f5df; border:1px solid rgba(0,55,56,.18); border-radius:8px; overflow:hidden; }
+  .gs-panel.dark { background:#003738; color:#eeefd3; }
+  .gs-panel-head { padding:14px 16px; border-bottom:1px solid rgba(0,55,56,.14); font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:850; color:#3b7d79; }
+  .gs-panel.dark .gs-panel-head { border-bottom-color:rgba(238,239,211,.16); color:#d9dd56; }
+  .gs-list { display:grid; gap:8px; padding:12px; }
+  .gs-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; padding:12px; border:1px solid rgba(0,55,56,.12); border-radius:7px; background:#eeefd3; }
+  .gs-row.active { background:#003738; color:#eeefd3; border-color:#003738; }
+  .gs-row strong { display:block; font-size:14px; }
+  .gs-row small { display:block; margin-top:3px; color:inherit; opacity:.62; font-weight:750; text-transform:uppercase; letter-spacing:.06em; }
+  .gs-main { padding:18px; display:grid; gap:14px; }
+  .gs-decision { display:grid; grid-template-columns:1fr 180px; gap:14px; align-items:stretch; }
+  .gs-h2 { font-size:40px; line-height:1; margin:0 0 10px; color:inherit; letter-spacing:0; }
+  .gs-note { font-size:14px; line-height:1.45; opacity:.76; margin:0; }
+  .gs-gauge { border:1px solid rgba(238,239,211,.2); border-radius:8px; display:grid; place-items:center; text-align:center; padding:16px; }
+  .gs-gauge b { font:900 42px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color:#d9dd56; }
+  .gs-chipline { display:flex; flex-wrap:wrap; gap:8px; }
+  .gs-chip { border:1px solid rgba(238,239,211,.2); color:#eeefd3; border-radius:999px; padding:7px 10px; font-size:11px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; background:rgba(238,239,211,.06); }
+  .gs-table { display:grid; gap:8px; }
+  .gs-table div { display:grid; grid-template-columns:110px 1fr auto; gap:12px; align-items:center; padding:10px 12px; border:1px solid rgba(238,239,211,.12); border-radius:7px; }
+  .gs-table b { color:#d9dd56; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .gs-side { padding:14px; display:grid; gap:10px; }
+  .gs-cta { background:#d9dd56; color:#003738; border-radius:7px; padding:13px 14px; font-weight:900; text-align:center; }
+  .gs-mini { border:1px solid rgba(0,55,56,.14); border-radius:7px; padding:12px; background:#eeefd3; }
+  .gs-mini strong { display:block; font-size:13px; }
+  .gs-mini span { display:block; margin-top:5px; font-size:12px; color:rgba(0,55,56,.65); }
+  .gs-screens { display:grid; gap:22px; }
+  .gs-screen-label { display:flex; justify-content:space-between; align-items:end; gap:16px; margin-top:20px; }
+  .gs-screen-label h3 { margin:0; font-size:18px; color:#003738; }
+  .gs-screen-label p { margin:0; font-size:13px; color:rgba(0,55,56,.62); }
+  .gs-bars { display:grid; gap:8px; }
+  .gs-bar { height:12px; border-radius:99px; background:rgba(238,239,211,.12); overflow:hidden; }
+  .gs-bar i { display:block; height:100%; background:#4dbd97; }
+  .gs-chart { height:130px; border:1px solid rgba(238,239,211,.14); border-radius:8px; position:relative; overflow:hidden; background:linear-gradient(180deg,rgba(238,239,211,.05),transparent); }
+  .gs-chart:before { content:""; position:absolute; left:18px; right:18px; top:52px; border-top:2px dashed #e06363; }
+  .gs-chart:after { content:""; position:absolute; left:18px; right:18px; bottom:28px; height:64px; background:linear-gradient(15deg,transparent 47%,#4dbd97 48%,#4dbd97 51%,transparent 52%); }
+  @media(max-width:900px){ .gs-strip,.gs-grid,.gs-decision{grid-template-columns:1fr;} .gs-title{font-size:28px;} }
+</style>
+
+<div class="gs-board">
+  <p class="gs-kicker">Proposed direction · unified underwriting desk</p>
+  <h2 class="gs-title">Stop designing these as landing pages. Make them three modes of one broker-grade decision system.</h2>
+  <p class="gs-sub">Shared pattern: compact title, live facts above fold, left-side inputs, center decision, right-side next action. No giant photo hero. No user-visible redesign commentary. Every page answers: what lane is this deal in, what program fits, what should happen next?</p>
+
+  <div class="gs-strip">
+    <div class="gs-stat"><b>01</b><span>Borrower lane</span></div>
+    <div class="gs-stat"><b>02</b><span>Program fit</span></div>
+    <div class="gs-stat"><b>03</b><span>Refi timing</span></div>
+    <div class="gs-stat"><b>CTA</b><span>Quote / calculate / export</span></div>
+  </div>
+
+  <div class="gs-screens">
+    <div>
+      <div class="gs-screen-label">
+        <h3>Borrower Profiles · first screen</h3>
+        <p>Profile selector + live dossier above fold.</p>
+      </div>
+      <div class="gs-grid">
+        <div class="gs-panel">
+          <div class="gs-panel-head">Borrower lane</div>
+          <div class="gs-list">
+            <div class="gs-row active"><span><strong>Buy-and-hold</strong><small>stabilized rental</small></span><b>1.25x</b></div>
+            <div class="gs-row"><span><strong>Non-US investor</strong><small>passport-led DSCR</small></span><b>70%</b></div>
+            <div class="gs-row"><span><strong>STR / Airbnb</strong><small>income haircut</small></span><b>+3mo</b></div>
+            <div class="gs-row"><span><strong>Portfolio builder</strong><small>multi-property</small></span><b>DSCR</b></div>
+          </div>
+        </div>
+        <div class="gs-panel dark">
+          <div class="gs-panel-head">Active borrower dossier</div>
+          <div class="gs-main">
+            <div class="gs-decision">
+              <div>
+                <h4 class="gs-h2">Buy-and-hold</h4>
+                <p class="gs-note">Standard rental borrower. Price cleanly when lease rent covers PITIA, reserves are sourced, vesting is clear, and state PPP risk is known before lock.</p>
+              </div>
+              <div class="gs-gauge"><b>Clean</b><span>lane status</span></div>
+            </div>
+            <div class="gs-chipline">
+              <span class="gs-chip">1.00x+ DSCR</span><span class="gs-chip">620+ FICO</span><span class="gs-chip">3-6mo reserves</span><span class="gs-chip">PPP check</span>
+            </div>
+            <div class="gs-table">
+              <div><span>Best next tool</span><strong>Lender Intel</strong><b>rank programs</b></div>
+              <div><span>Watch item</span><strong>Appraisal rent gap</strong><b>before quote</b></div>
+              <div><span>File proof</span><strong>Lease, entity docs, reserves</strong><b>required</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="gs-panel">
+          <div class="gs-panel-head">Next action</div>
+          <div class="gs-side">
+            <div class="gs-cta">Price borrower lane</div>
+            <div class="gs-mini"><strong>Export intake checklist</strong><span>Docs grouped by lane, not generic upload list.</span></div>
+            <div class="gs-mini"><strong>Open DSCR calculator</strong><span>Use current lane assumptions.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="gs-screen-label">
+        <h3>Lender Intel · first screen</h3>
+        <p>Not “which programs?” as copy. A live program ranking desk.</p>
+      </div>
+      <div class="gs-grid">
+        <div class="gs-panel">
+          <div class="gs-panel-head">Deal box</div>
+          <div class="gs-list">
+            <div class="gs-row"><span><strong>FICO</strong><small>borrower score</small></span><b>720</b></div>
+            <div class="gs-row"><span><strong>LTV needed</strong><small>loan / value</small></span><b>75%</b></div>
+            <div class="gs-row"><span><strong>Deal DSCR</strong><small>rent / payment</small></span><b>1.15x</b></div>
+            <div class="gs-row"><span><strong>State</strong><small>PPP risk</small></span><b>TX</b></div>
+          </div>
+        </div>
+        <div class="gs-panel dark">
+          <div class="gs-panel-head">Program ranking</div>
+          <div class="gs-main">
+            <div class="gs-decision">
+              <div><h4 class="gs-h2">4 of 7 fit</h4><p class="gs-note">Sort by fit confidence, not marketing order. Each row shows pass/fail gates and why file should route there.</p></div>
+              <div class="gs-gauge"><b>94</b><span>top fit score</span></div>
+            </div>
+            <div class="gs-table">
+              <div><span>01</span><strong>Greenstreet Cedar</strong><b>FITS · 94</b></div>
+              <div><span>02</span><strong>Greenstreet Aspen</strong><b>FITS · 94</b></div>
+              <div><span>03</span><strong>Greenstreet Willow</strong><b>FITS · 93</b></div>
+              <div><span>04</span><strong>Magnolia</strong><b>watch reserves</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="gs-panel">
+          <div class="gs-panel-head">Quality gates</div>
+          <div class="gs-side">
+            <div class="gs-mini"><strong>Eligible programs</strong><span>4 pass hard gates.</span></div>
+            <div class="gs-mini"><strong>Pricing risk</strong><span>Moderate: DSCR headroom thin.</span></div>
+            <div class="gs-cta">Run full match</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="gs-screen-label">
+        <h3>Refi Tracker · improved first screen</h3>
+        <p>Keep tool personality, but bring decision readout above fold.</p>
+      </div>
+      <div class="gs-grid">
+        <div class="gs-panel">
+          <div class="gs-panel-head">Current loan</div>
+          <div class="gs-list">
+            <div class="gs-row"><span><strong>Balance</strong><small>current first lien</small></span><b>$340k</b></div>
+            <div class="gs-row"><span><strong>Current rate</strong><small>P&I baseline</small></span><b>7.25%</b></div>
+            <div class="gs-row"><span><strong>Refi rate</strong><small>scenario slider</small></span><b>6.50%</b></div>
+            <div class="gs-row"><span><strong>Months owned</strong><small>seasoning</small></span><b>12</b></div>
+          </div>
+        </div>
+        <div class="gs-panel dark">
+          <div class="gs-panel-head">Refi decision</div>
+          <div class="gs-main">
+            <div class="gs-decision">
+              <div><h4 class="gs-h2">Refi ready</h4><p class="gs-note">The answer appears first: readiness, break-even, DSCR after refi, and whether cash-out is really available.</p></div>
+              <div class="gs-gauge"><b>85</b><span>readiness / 100</span></div>
+            </div>
+            <div class="gs-chart"></div>
+            <div class="gs-chipline">
+              <span class="gs-chip">53mo break-even</span><span class="gs-chip">1.21x refi DSCR</span><span class="gs-chip">$0 cash-out</span>
+            </div>
+          </div>
+        </div>
+        <div class="gs-panel">
+          <div class="gs-panel-head">Alternatives</div>
+          <div class="gs-side">
+            <div class="gs-mini"><strong>Do not refi for cash-out</strong><span>Capacity says no proceeds.</span></div>
+            <div class="gs-mini"><strong>Check 2nd lien instead</strong><span>Preserve low first lien if rate spread hurts.</span></div>
+            <div class="gs-cta">Compare refi vs 2nd</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

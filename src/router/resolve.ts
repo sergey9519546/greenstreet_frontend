@@ -1,202 +1,212 @@
-export type PageView =
-  | "marketing"
-  | "portal"
-  | "dscr-calculator"
-  | "lender-intel"
-  | "state-laws"
-  | "deal-analyzer"
-  | "borrower-profiles"
-  | "non-us-investors"
-  | "str-hosts"
-  | "vacation-homes"
-  | "brokers"
-  | "brokers-partner"
-  | "investors"
-  | "faq"
-  | "blog"
-  | "blog-post"
-  | "case-studies"
-  | "rate-quiz"
-  | "external"
-  | "refi-tracker"
-  | "arm-reset"
-  | "monte-carlo"
-  | "returns"
-  | "tax-engine"
-  | "stress-matrix"
-  | "decision-support"
-  | "str-underwriting"
-  | "portfolio"
-  | "about"
-  | "careers"
-  | "legal"
-  | "products"
-  | "platform"
-  | "support"
-  | "solutions"
-  | "book-demo";
+interface RouteDefinition {
+  readonly path: string;
+  readonly additionalPaths?: readonly string[];
+  readonly dynamic?: boolean;
+}
 
-const ROUTE_MAP: Record<string, PageView> = {
-  // Root
-  "/": "marketing",
+// This is the authoritative route contract. Components consume pathForView(),
+// the server consumes resolveRoute(), and tests exercise this same table.
+export const ROUTE_CONTRACT = {
+  marketing: { path: "/" },
+  portal: {
+    path: "/investgo",
+    additionalPaths: [
+      "/investgo/analyze",
+      "/investgo/sensitivity",
+      "/investgo/optimize",
+      "/investgo/state",
+      "/investgo/history",
+      "/investgo/settings",
+    ],
+  },
+  "dscr-calculator": { path: "/dscr-calculator" },
+  "lender-intel": { path: "/lender-intel" },
+  "state-laws": { path: "/state-laws" },
+  "deal-analyzer": { path: "/deal-analyzer" },
+  "borrower-profiles": { path: "/borrower-profiles" },
+  "non-us-investors": { path: "/non-us-investors" },
+  "str-hosts": { path: "/str-airbnb" },
+  "vacation-homes": { path: "/vacation-homes" },
+  brokers: { path: "/brokers" },
+  "brokers-partner": { path: "/partnerships" },
+  investors: { path: "/investors" },
+  faq: { path: "/faq" },
+  "how-it-works": { path: "/how-it-works" },
+  blog: { path: "/blog" },
+  "blog-post": { path: "/blog", dynamic: true },
+  "case-studies": { path: "/case-studies" },
+  "rate-quiz": { path: "/rate-quiz" },
+  "refi-tracker": { path: "/tools/refi-tracker" },
+  "arm-reset": { path: "/tools/arm-reset" },
+  "monte-carlo": { path: "/tools/monte-carlo" },
+  returns: { path: "/tools/returns" },
+  "tax-engine": { path: "/tools/tax-engine" },
+  "stress-matrix": { path: "/tools/stress-matrix" },
+  "decision-support": { path: "/tools/decision-support" },
+  "str-underwriting": { path: "/tools/str-underwriting" },
+  portfolio: { path: "/tools/portfolio" },
+  about: { path: "/about" },
+  careers: { path: "/careers" },
+  legal: {
+    path: "/legal",
+    additionalPaths: ["/legal/privacy-policy", "/legal/terms-of-service"],
+  },
+  products: { path: "/products" },
+  platform: { path: "/products/platform" },
+  support: { path: "/support" },
+  solutions: { path: "/solutions" },
+} as const satisfies Record<string, RouteDefinition>;
 
-  // Portal
-  "/investgo": "portal",
-  "/investgo/analyze": "portal",
-  "/investgo/sensitivity": "portal",
-  "/investgo/optimize": "portal",
-  "/investgo/state": "portal",
-  "/investgo/history": "portal",
-  "/investgo/settings": "portal",
+export type RoutedPageView = keyof typeof ROUTE_CONTRACT;
+export type PageView = RoutedPageView | "external" | "not-found";
 
-  // Audience pages
-  "/brokers": "brokers",
-  "/investors": "investors",
-  "/borrower-profiles": "borrower-profiles",
-  "/non-us-investors": "non-us-investors",      // canonical
-  "/foreign-nationals": "non-us-investors",    // legacy alias — keep so old links/SEO don't 404
-  "/str-airbnb": "str-hosts",
-  "/vacation-homes": "vacation-homes",
-  "/portfolio-builders": "portfolio", // page removed — old links land on the Portfolio tool
-  "/partners": "portal",
+type RouteEntry = readonly [RoutedPageView, RouteDefinition];
 
-  // Core tools (canonical paths)
-  "/dscr-calculator": "dscr-calculator",
-  "/lender-intel": "lender-intel",
-  "/state-laws": "state-laws",
-  "/deal-analyzer": "deal-analyzer", // full-underwrite tool (distinct from the lender-intel matcher)
-  "/decision-support": "decision-support",
+function isRoutedPageView(view: string): view is RoutedPageView {
+  return Object.prototype.hasOwnProperty.call(ROUTE_CONTRACT, view);
+}
 
-  // Content pages
-  "/faq": "faq",
-  "/support": "support",
-  "/blog": "blog",
-  "/case-studies": "case-studies",
-  "/about": "about",
-  "/careers": "careers",
-  "/legal": "legal",
-  "/privacy-policy": "legal",
-  "/terms-of-service": "legal",
-  "/legal/privacy-policy": "legal",
-  "/legal/terms-of-service": "legal",
-  "/rate-quiz": "rate-quiz",
-  "/products": "products",
-  "/products/platform": "platform",
-  "/solutions": "solutions",
-  "/book-demo": "book-demo",
-  "/partnerships": "portal", // old Partnerships page now lands on the INVESTGO dashboard
+// Preserve the contract's exact literal types while exposing optional route
+// metadata only for code that iterates across its heterogeneous entries.
+export function routeEntries(): readonly RouteEntry[] {
+  const entries: ReadonlyArray<readonly [string, RouteDefinition]> =
+    Object.entries(ROUTE_CONTRACT);
+  return entries.filter((entry): entry is RouteEntry => isRoutedPageView(entry[0]));
+}
 
-  // Tools routes (canonical /tools/* paths)
-  "/tools/refi-tracker": "refi-tracker",
-  "/tools/arm-reset": "arm-reset",
-  "/tools/monte-carlo": "monte-carlo",
-  "/tools/returns": "returns",
-  "/tools/tax-engine": "tax-engine",
-  "/tools/stress-matrix": "stress-matrix",
-  "/tools/decision-support": "decision-support",
-  "/tools/str-underwriting": "str-underwriting",
-  "/tools/portfolio": "portfolio",
-  "/tools/workspace": "portal",
-  "/tools/deal-workspace": "portal",
-  "/tools/sensitivity": "portal",
-  "/tools/structure-optimizer": "portal",
-  "/tools/scenario-history": "portal",
+export const PUBLIC_BLOG_SLUGS = [
+  "greenstreet-go-launch",
+  "what-is-dscr-how-it-works",
+  "dscr-pitia-breakdown-qualifying-income",
+  "dscr-ltv-down-payment-fico",
+  "dscr-refinance-rate-term-cashout-seasoning",
+  "dscr-approval-issues-sub-10-fico-reserves",
+  "dscr-non-us-investors-itin",
+  "obbba-2025-real-estate-tax-changes",
+  "mn-hf3437-business-purpose",
+  "qoz-qrof-permanent-obbba",
+  "section-1071-final-rule-dscr",
+  "june-2026-rate-sheet",
+  "fema-rr2-coastal-dscr",
+  "why-no-llm-number-path",
+  "dscr-str-airbnb-qualifying-income",
+  "dscr-loan-document-checklist",
+  "dscr-loan-process-after-prequalify",
+  "how-to-improve-dscr-before-applying",
+] as const;
+
+export const PUBLIC_CASE_STUDY_SLUGS = [
+  "vela-capital",
+  "northshore-non-qm",
+  "quintero-co",
+  "aurora",
+] as const;
+
+const BLOG_SLUGS = new Set<string>(PUBLIC_BLOG_SLUGS);
+const CASE_STUDY_SLUGS = new Set<string>(PUBLIC_CASE_STUDY_SLUGS);
+
+const ROUTE_MAP = Object.fromEntries(
+  routeEntries().flatMap(([view, definition]) => {
+    if (definition.dynamic) return [];
+    return [definition.path, ...(definition.additionalPaths ?? [])].map((routePath) => [routePath, view]);
+  }),
+) as Record<string, RoutedPageView>;
+
+export const CANONICAL_REDIRECTS: Readonly<Record<string, string>> = {
+  "/index.html": "/",
+  "/foreign-nationals": "/non-us-investors",
+  "/portfolio-builders": "/tools/portfolio",
+  "/partners": "/partnerships",
+  "/privacy-policy": "/legal/privacy-policy",
+  "/terms-of-service": "/legal/terms-of-service",
+  "/book-demo": "/rate-quiz",
+  "/decision-support": "/tools/decision-support",
+  "/tools/arm": "/tools/arm-reset",
+  "/tools/irr": "/tools/returns",
+  "/tools/dscr-calculator": "/dscr-calculator",
+  "/tools/lender-intel": "/lender-intel",
+  "/tools/state-laws": "/state-laws",
+  "/tools/deal-analyzer": "/deal-analyzer",
+  "/tools/borrower-profiles": "/borrower-profiles",
+  "/dashboard": "/investgo",
+  "/broker-portal": "/investgo",
+  "/tools/workspace": "/investgo/analyze",
+  "/tools/deal-workspace": "/investgo/analyze",
+  "/tools/sensitivity": "/investgo/sensitivity",
+  "/tools/structure-optimizer": "/investgo/optimize",
+  "/tools/scenario-history": "/investgo/history",
 };
 
-export function resolveRoute(href: string): PageView {
+const FALLBACK_ORIGIN = "http://localhost";
+
+interface ParsedHref {
+  path: string;
+  isExternal: boolean;
+}
+
+function currentOrigin(): string {
+  return typeof window !== "undefined" && window.location?.origin
+    ? window.location.origin
+    : FALLBACK_ORIGIN;
+}
+
+export function normalizePath(pathname: string): string {
+  const path = pathname.split(/[?#]/, 1)[0] || "/";
+  if (path === "/") return path;
+  return `/${path.replace(/^\/+|\/+$/g, "")}`;
+}
+
+function parseHref(href: string): ParsedHref | null {
   try {
-    const url = new URL(href, "http://localhost");
-    let path = url.pathname;
-    if (path.length > 1 && path.endsWith("/")) {
-      path = path.slice(0, -1);
-    }
-    if (ROUTE_MAP[path]) return ROUTE_MAP[path];
-    if (path.startsWith("/blog/")) {
-      const slug = path.replace("/blog/", "").replace(/\/$/, "");
-      if (slug.length > 0) return "blog-post";
-      return "blog";
-    }
-    if (path.startsWith("/case-studies/")) return "case-studies";
-    if (path.startsWith("/book-demo")) return "book-demo";
-    if (path.startsWith("/tools/")) {
-      const slug = path.replace("/tools/", "").replace(/\/$/, "");
-      if (slug === "workspace" || slug === "deal-workspace") return "portal";
-      if (slug === "sensitivity") return "portal";
-      if (slug === "structure-optimizer") return "portal";
-      if (slug === "scenario-history") return "portal";
-      if (slug === "refi-tracker") return "refi-tracker";
-      if (slug === "arm-reset" || slug === "arm") return "arm-reset";
-      if (slug === "monte-carlo") return "monte-carlo";
-      if (slug === "returns" || slug === "irr") return "returns";
-      if (slug === "tax-engine") return "tax-engine";
-      if (slug === "stress-matrix") return "stress-matrix";
-      if (slug === "decision-support") return "decision-support";
-      if (slug === "str-underwriting") return "str-underwriting";
-      if (slug === "portfolio") return "portfolio";
-      if (slug === "dscr-calculator") return "dscr-calculator";
-      if (slug === "lender-intel") return "lender-intel";
-      if (slug === "state-laws") return "state-laws";
-      if (slug === "deal-analyzer") return "deal-analyzer";
-      if (slug === "borrower-profiles") return "borrower-profiles";
-    }
-    if (url.hostname && url.hostname !== "localhost" && url.hostname !== window.location.hostname) return "external";
-    return "marketing";
+    const baseOrigin = currentOrigin();
+    const url = new URL(href, baseOrigin);
+    const isHttp = url.protocol === "http:" || url.protocol === "https:";
+    return {
+      path: normalizePath(url.pathname),
+      isExternal: !isHttp || url.origin !== baseOrigin,
+    };
   } catch {
-    return "marketing";
+    return null;
   }
 }
 
-/**
- * True when the given href (path-only) maps to a known SPA route. Used by the
- * global click interceptor in App.tsx so unknown paths (HubSpot booking,
- * external subdomains, asset files) fall through to normal browser navigation.
- */
+export function canonicalRedirectFor(pathname: string): string | null {
+  const normalized = normalizePath(pathname);
+  const alias = CANONICAL_REDIRECTS[normalized];
+  if (alias) return alias;
+  if (pathname.length > 1 && /\/$/.test(pathname.split(/[?#]/, 1)[0])) return normalized;
+  return null;
+}
+
+export function pathForView(view: PageView): string {
+  if (view === "external") return "/external";
+  if (view === "not-found") return "/404";
+  return ROUTE_CONTRACT[view].path;
+}
+
+function matchRoute(pathname: string): PageView | null {
+  const path = CANONICAL_REDIRECTS[pathname] ?? pathname;
+  const exact = ROUTE_MAP[path];
+  if (exact) return exact;
+
+  const blogMatch = path.match(/^\/blog\/([^/]+)$/);
+  if (blogMatch) return BLOG_SLUGS.has(blogMatch[1]) ? "blog-post" : null;
+
+  const caseStudyMatch = path.match(/^\/case-studies\/([^/]+)$/);
+  if (caseStudyMatch) return CASE_STUDY_SLUGS.has(caseStudyMatch[1]) ? "case-studies" : null;
+
+  return null;
+}
+
+export function resolveRoute(href: string): PageView {
+  const parsed = parseHref(href);
+  if (!parsed) return "not-found";
+  if (parsed.isExternal) return "external";
+  return matchRoute(parsed.path) ?? "not-found";
+}
+
 export function isKnownRoute(href: string): boolean {
-  let path = (() => {
-    try {
-      return new URL(href, "http://localhost").pathname;
-    } catch {
-      return "";
-    }
-  })();
-  if (!path || !path.startsWith("/")) return false;
-  if (path.length > 1 && path.endsWith("/")) {
-    path = path.slice(0, -1);
-  }
-  if (path === "/") return true;
-  if (ROUTE_MAP[path]) return true;
-  if (path.startsWith("/investgo/")) {
-    const slug = path.replace("/investgo/", "").replace(/\/$/, "");
-    return ["analyze", "sensitivity", "optimize", "state", "history", "settings"].includes(slug);
-  }
-  if (path.startsWith("/book-demo")) return true;
-  if (path.startsWith("/blog")) return true;
-  if (path.startsWith("/case-studies")) return true;
-  if (path.startsWith("/tools/")) {
-    const slug = path.replace("/tools/", "").replace(/\/$/, "");
-    return [
-      "refi-tracker",
-      "arm-reset",
-      "arm",
-      "monte-carlo",
-      "returns",
-      "irr",
-      "tax-engine",
-      "stress-matrix",
-      "decision-support",
-      "str-underwriting",
-      "portfolio",
-      "dscr-calculator",
-      "lender-intel",
-      "state-laws",
-      "deal-analyzer",
-      "borrower-profiles",
-      "workspace",
-      "deal-workspace",
-      "sensitivity",
-      "structure-optimizer",
-      "scenario-history",
-    ].includes(slug);
-  }
-  return false;
+  if (!href.startsWith("/") && !/^https?:\/\//i.test(href)) return false;
+  const parsed = parseHref(href);
+  return Boolean(parsed && !parsed.isExternal && matchRoute(parsed.path));
 }

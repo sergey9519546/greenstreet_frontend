@@ -33,6 +33,13 @@ describe("amortize / loanForPayment", () => {
     expect(amortize(0, 0.07)).toBe(0);
     expect(loanForPayment(0, 0.07)).toBe(0);
   });
+
+  it("invalid rates and terms return finite zeroes", () => {
+    expect(amortize(200_000, Number.NaN)).toBe(0);
+    expect(amortize(200_000, -0.01)).toBe(0);
+    expect(amortize(200_000, 0.06, 0)).toBe(0);
+    expect(loanForPayment(1_200, Number.POSITIVE_INFINITY)).toBe(0);
+  });
 });
 
 describe("qualify — outcomes", () => {
@@ -79,5 +86,29 @@ describe("qualify — outcomes", () => {
     const r = qualify(base);
     expect(r.minRentFloor).toBeLessThan(r.minRentStandard);
     expect(r.minRentStandard).toBeCloseTo(r.pitia * 1.1, 6);
+  });
+
+  it("sanitizes NaN and negative monetary inputs", () => {
+    const r = qualify({
+      ...base,
+      value: Number.NaN,
+      loanAmount: -210_000,
+      rent: Number.NaN,
+      taxesAnnual: Number.NaN,
+      insuranceAnnual: -1_200,
+      hoaMonthly: Number.NEGATIVE_INFINITY,
+      otherMonthly: -50,
+    });
+    for (const value of [r.ltv, r.piMonthly, r.taxesM, r.insM, r.hoaM, r.otherM, r.pitia, r.dscr]) {
+      expect(Number.isFinite(value)).toBe(true);
+      expect(value).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it("keeps both displayed rate endpoints inside policy bounds", () => {
+    const r = qualify({ ...base, ficoBand: "under-660", purpose: "cash-out", loanAmount: 270_000, rent: 1 });
+    expect(r.rateLow).toBeGreaterThanOrEqual(0.06);
+    expect(r.rateHigh).toBeLessThanOrEqual(0.12);
+    expect(r.rateLow).toBeLessThanOrEqual(r.rateHigh);
   });
 });

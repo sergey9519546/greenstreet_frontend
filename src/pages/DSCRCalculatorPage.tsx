@@ -6,6 +6,13 @@ import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeLossScenarios } from "../engine/lossFraming";
 import { computeTcoDscr } from "../engine/tcoDscr";
 import { estimateAnnualInsurance } from "../engine/insuranceEstimate";
+import {
+  MAX_ANNUAL_PROPERTY_EXPENSE,
+  MAX_CURRENCY_INPUT,
+  MAX_MONTHLY_PROPERTY_EXPENSE,
+  MAX_MONTHLY_RENT,
+  MAX_PURCHASE_PRICE,
+} from "../engine/inputs";
 import BottomCTA from "../design/BottomCTA";
 
 interface Props {
@@ -14,12 +21,17 @@ interface Props {
 }
 
 const pf = (r: number) => {
-  if (r === 0) return 0;
+  if (!Number.isFinite(r) || r <= 0) return 0;
   const m = r / 12;
-  return (m * Math.pow(1 + m, 360)) / (Math.pow(1 + m, 360) - 1);
+  const denominator = 1 - Math.pow(1 + m, -360);
+  const factor = denominator > 0 ? m / denominator : 0;
+  return Number.isFinite(factor) && factor > 0 ? factor : 0;
 };
 
-const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+const fmt = (n: number) => Number.isFinite(n) ? '$' + Math.round(n).toLocaleString('en-US') : 'Unavailable';
+const fixed = (n: number, digits: number) => Number.isFinite(n) ? n.toFixed(digits) : 'Unavailable';
+const ratio = (n: number) => Number.isFinite(n) ? `${n.toFixed(2)}x` : 'Unavailable';
+const pct = (n: number) => Number.isFinite(n) ? `${Math.min(100, Math.max(0, n)).toFixed(0)}%` : '0%';
 
 const PANEL = swatch.darkTeal;
 const CARD  = swatch.midnight;
@@ -52,27 +64,134 @@ function breakEvenRate(loan: number, targetPI: number): number {
   return ((lo + hi) / 2) * 100;
 }
 
+export interface DscrScenarioInputs {
+  price: number | null;
+  downPercent: number;
+  monthlyRent: number | null;
+  annualRatePercent: number;
+  annualTax: number | null;
+  annualInsurance: number | null;
+  monthlyHoa: number | null;
+}
+
+export interface DscrScenarioResult {
+  loan: number;
+  principalAndInterest: number;
+  pitia: number;
+  dscr: number;
+}
+
+export function parseFiniteNumberInput(raw: string, max = MAX_CURRENCY_INPUT): number | null {
+  if (raw.trim() === '') return null;
+  const value = Number(raw);
+  return Number.isFinite(value) && value <= max ? value : null;
+}
+
+export function calculateDscrScenario(inputs: DscrScenarioInputs): DscrScenarioResult | null {
+  const { price, downPercent, monthlyRent, annualRatePercent, annualTax, annualInsurance, monthlyHoa } = inputs;
+  if (
+    price === null || price <= 0 || price > MAX_PURCHASE_PRICE ||
+    monthlyRent === null || monthlyRent <= 0 || monthlyRent > MAX_MONTHLY_RENT ||
+    annualTax === null || annualTax <= 0 || annualTax > MAX_ANNUAL_PROPERTY_EXPENSE ||
+    annualInsurance === null || annualInsurance <= 0 || annualInsurance > MAX_ANNUAL_PROPERTY_EXPENSE ||
+    monthlyHoa === null || monthlyHoa < 0 || monthlyHoa > MAX_MONTHLY_PROPERTY_EXPENSE ||
+    !Number.isFinite(downPercent) || downPercent <= 0 || downPercent >= 100 ||
+    !Number.isFinite(annualRatePercent) || annualRatePercent <= 0
+  ) return null;
+
+  const loan = price * (1 - downPercent / 100);
+  const principalAndInterest = loan * pf(annualRatePercent / 100);
+  const pitia = principalAndInterest + annualTax / 12 + annualInsurance / 12 + monthlyHoa;
+  const dscr = monthlyRent / pitia;
+  if (![loan, principalAndInterest, pitia, dscr].every(Number.isFinite) || loan <= 0 || pitia <= 0 || dscr <= 0) return null;
+  return { loan, principalAndInterest, pitia, dscr };
+}
+
+type SavedDscrState = {
+  tab: 'dscr' | 'maxprice';
+  priceInput: string;
+  down: number;
+  rentInput: string;
+  rate: number;
+  taxInput: string;
+  insInput: string;
+  hoaInput: string;
+  stateCode: string;
+  taxAuto: boolean;
+  mRentInput: string;
+  mRate: number;
+  mDown: number;
+  target: number;
+};
+
+const DSCR_STATE_KEY = 'greenstreet:dscr-calculator:v2';
+
+function loadDscrState(): Partial<SavedDscrState> {
+  if (typeof window === 'undefined') return {};
+  try {
+    return JSON.parse(window.sessionStorage.getItem(DSCR_STATE_KEY) || '{}') as Partial<SavedDscrState>;
+  } catch {
+    return {};
+  }
+}
+
+function savedRange(value: unknown, fallback: number, min: number, max: number): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max ? value : fallback;
+}
+
+function amountError(raw: string, label: string, max: number, allowZero = false): string {
+  if (raw.trim() === '') return `Enter a finite ${label.toLowerCase()}.`;
+  const numericValue = Number(raw);
+  if (!Number.isFinite(numericValue)) return `Enter a finite ${label.toLowerCase()}.`;
+  if (numericValue > max) return `${label} must be ${fmt(max)} or less.`;
+  const value = parseFiniteNumberInput(raw, max)!;
+  if (allowZero ? value < 0 : value <= 0) return `${label} must be ${allowZero ? 'zero or greater' : 'greater than zero'}.`;
+  return '';
+}
+
 export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   useEffect(() => {
     document.title = "DSCR Calculator: See if Rent Covers the Loan | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
-  const [tab, setTab] = useState<'dscr'|'maxprice'>('dscr');
-  const [price, setPrice] = useState(425000);
-  const [down, setDown] = useState(25);
-  const [rent, setRent] = useState(3000);
-  const [rate, setRate] = useState(7.0);
-  const [tax, setTax] = useState(5000);
-  const [ins, setIns] = useState(2000);
-  const [hoa, setHoa] = useState(0);
-  const [stateCode, setStateCode] = useState('TX');
-  const [taxAuto, setTaxAuto] = useState(true);
+  const [saved] = useState(loadDscrState);
+  const [tab, setTab] = useState<'dscr'|'maxprice'>(saved.tab === 'maxprice' ? 'maxprice' : 'dscr');
+  const [priceInput, setPriceInput] = useState(saved.priceInput ?? '425000');
+  const [down, setDown] = useState(() => savedRange(saved.down, 25, 1, 99));
+  const [rentInput, setRentInput] = useState(saved.rentInput ?? '3000');
+  const [rate, setRate] = useState(() => savedRange(saved.rate, 7, 0.01, 30));
+  const [taxInput, setTaxInput] = useState(saved.taxInput ?? '5000');
+  const [insInput, setInsInput] = useState(saved.insInput ?? '2000');
+  const [hoaInput, setHoaInput] = useState(saved.hoaInput ?? '0');
+  const [stateCode, setStateCode] = useState(saved.stateCode && EFF_TAX_RATE[saved.stateCode] ? saved.stateCode : 'TX');
+  const [taxAuto, setTaxAuto] = useState(saved.taxAuto ?? true);
 
-  const [mRent, setMRent] = useState(3000);
-  const [mRate, setMRate] = useState(7.0);
-  const [mDown, setMDown] = useState(25);
-  const [target, setTarget] = useState(1.10);
+  const [mRentInput, setMRentInput] = useState(saved.mRentInput ?? '3000');
+  const [mRate, setMRate] = useState(() => savedRange(saved.mRate, 7, 0.01, 30));
+  const [mDown, setMDown] = useState(() => savedRange(saved.mDown, 25, 1, 99));
+  const [target, setTarget] = useState(() => savedRange(saved.target, 1.10, 0.01, 5));
+
+  useEffect(() => {
+    const snapshot: SavedDscrState = { tab, priceInput, down, rentInput, rate, taxInput, insInput, hoaInput, stateCode, taxAuto, mRentInput, mRate, mDown, target };
+    window.sessionStorage.setItem(DSCR_STATE_KEY, JSON.stringify(snapshot));
+  }, [tab, priceInput, down, rentInput, rate, taxInput, insInput, hoaInput, stateCode, taxAuto, mRentInput, mRate, mDown, target]);
+
+  const priceParsed = parseFiniteNumberInput(priceInput, MAX_PURCHASE_PRICE);
+  const rentParsed = parseFiniteNumberInput(rentInput, MAX_MONTHLY_RENT);
+  const taxParsed = parseFiniteNumberInput(taxInput, MAX_ANNUAL_PROPERTY_EXPENSE);
+  const insParsed = parseFiniteNumberInput(insInput, MAX_ANNUAL_PROPERTY_EXPENSE);
+  const hoaParsed = parseFiniteNumberInput(hoaInput, MAX_MONTHLY_PROPERTY_EXPENSE);
+  const priceError = amountError(priceInput, 'Purchase price', MAX_PURCHASE_PRICE);
+  const rentError = amountError(rentInput, 'Monthly rent', MAX_MONTHLY_RENT);
+  const taxError = taxAuto ? '' : amountError(taxInput, 'Annual taxes', MAX_ANNUAL_PROPERTY_EXPENSE);
+  const insError = amountError(insInput, 'Annual insurance', MAX_ANNUAL_PROPERTY_EXPENSE);
+  const hoaError = amountError(hoaInput, 'Monthly HOA', MAX_MONTHLY_PROPERTY_EXPENSE, true);
+  const price = priceError ? 0 : priceParsed!;
+  const rent = rentError ? 0 : rentParsed!;
+  const tax = taxError ? 0 : taxParsed!;
+  const ins = insError ? 0 : insParsed!;
+  const hoa = hoaError ? 0 : hoaParsed!;
 
   // ── Core calculations ───────────────────────────────────────────────────────
   // Property tax: estimate from the PURCHASE-YEAR reset (price × state rate) by
@@ -83,24 +202,29 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   // systematically underestimate this, the other silent DSCR killer.
   const estIns = estimateAnnualInsurance(stateCode, price, { isInvestor: true });
   const taxYr = taxAuto ? estTax : tax;
-  const loan = price * (1 - down / 100);
-  const pAndI = loan * pf(rate / 100);
-  const pitia = pAndI + taxYr / 12 + ins / 12 + hoa;
-  const dscr = pitia > 0 ? rent / pitia : 0;
+  const core = calculateDscrScenario({ price: priceError ? null : price, downPercent: down, monthlyRent: rentError ? null : rent, annualRatePercent: rate, annualTax: taxError ? null : taxYr, annualInsurance: insError ? null : ins, monthlyHoa: hoaError ? null : hoa });
+  const dscrReady = core !== null && [core.loan, core.principalAndInterest, core.pitia, core.dscr].every(Number.isFinite);
+  const invalidFields = [priceError, rentError, taxError, insError, hoaError, !core && !priceError && !rentError && !taxError && !insError && !hoaError ? 'The entered scenario produces an unavailable calculation.' : ''].filter(Boolean);
+  const loan = core?.loan ?? 0;
+  const pAndI = core?.principalAndInterest ?? 0;
+  const pitia = core?.pitia ?? 0;
+  const dscr = core?.dscr ?? 0;
   // Dual-track check: the lender DSCR above is Track 1. Track 2 nets out typical
   // vacancy + management + maintenance — when a deal clears the lender but Track 2
   // is below 1.0, it qualifies yet loses money (the product's core warning).
-  const dual = computeDualTrackDSCR(rent, pitia);
+  const dual = dscrReady ? computeDualTrackDSCR(rent, pitia) : { track1: 0, track2: 0, qualifiesButDangerous: false };
   // Loss-framed downside scenarios — concrete $ out-of-pocket, not abstract ratios.
-  const lossScenarios = computeLossScenarios({ monthlyRent: rent, monthlyPITIA: pitia, monthlyTax: taxYr / 12, monthlyInsurance: ins / 12 });
+  const lossScenarios = dscrReady ? computeLossScenarios({ monthlyRent: rent, monthlyPITIA: pitia, monthlyTax: taxYr / 12, monthlyInsurance: ins / 12 }) : [];
   // Total cost of ownership — show-the-math: where the real operating costs go.
-  const tco = computeTcoDscr({ grossRent: rent, principalAndInterest: pAndI, propertyTax: taxYr / 12, insurance: ins / 12, hoa, depreciableBasis: price * 0.8 });
+  const tco = dscrReady
+    ? computeTcoDscr({ grossRent: rent, principalAndInterest: pAndI, propertyTax: taxYr / 12, insurance: ins / 12, hoa, depreciableBasis: price * 0.8 })
+    : { rate: { total: 0 }, standardDSCR: 0, tcoDSCR: 0, afterTaxTcoDSCR: 0, breakEvenRent: 0, components: { vacancy: 0, management: 0, maintenance: 0, capex: 0, total: 0 } };
   const cashFlow = rent - pitia;
   // NOI = EGI − full OpEx (CRE standard) — net the TCO opex (vacancy + mgmt +
   // maint + capex), not just 8% vacancy, before taxes + insurance. Otherwise
   // cap rate is overstated (~21% of rent).
   const noi = rent * 12 * (1 - tco.rate.total) - taxYr - ins;
-  const capRate = noi / price * 100;
+  const capRate = dscrReady && price > 0 ? noi / price * 100 : 0;
 
   // ── After-tax wedge — year-one depreciation shelter (cost-seg + 100% bonus) ──
   // ~20% land, ~25% of the building reclassified to 5/7/15-yr property that takes
@@ -115,33 +239,31 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const beRate = targetPI > 0 ? breakEvenRate(loan, targetPI) : 0;
   const headroomBps = Math.round((beRate - rate) * 100);
 
-  // ── Verdict ─────────────────────────────────────────────────────────────────
-  let verdictLabel = 'BELOW FLOOR';
+  // Calculator checkpoints only; these are not lender eligibility or pricing tiers.
+  let verdictLabel = 'BELOW MODELED COVERAGE';
   let zoneColor    = '#e06363';
   let zoneChipBg   = 'rgba(224,99,99,0.12)';
-  let verdictText  = 'Most lenders require DSCR ≥ 0.75. Restructure the deal or decline.';
-  let verdictHeadline = 'Rent doesn\'t cover the payment — restructure or decline.';
+  let verdictText  = 'The entered rent is below 0.75x of modeled PITIA. Change assumptions and request a current program review before relying on the result.';
+  let verdictHeadline = 'Modeled rent falls well short of the entered payment.';
 
-  // 1.25 aligns with the engine's COMFORTABLE zone and the best-tier pricing gate
-  // (a 1.22x "GREEN DEAL" that can't get best-tier pricing reads as a bait).
   if (dscr >= 1.25) {
-    verdictLabel = 'GREEN DEAL';
+    verdictLabel = 'STRONG MODELED COVERAGE';
     zoneColor    = '#4dbd97';
     zoneChipBg   = 'rgba(77,189,151,0.12)';
-    verdictText  = 'Strong cushion. Qualifies with most DSCR lenders at standard pricing.';
-    verdictHeadline = 'Strong coverage — qualifies at standard pricing.';
+    verdictText  = 'This scenario has a larger rent-to-PITIA cushion. It does not determine program eligibility, pricing, or approval.';
+    verdictHeadline = 'Modeled rent has a stronger payment cushion.';
   } else if (dscr >= 1.00) {
-    verdictLabel = 'QUALIFIES';
+    verdictLabel = 'RENT COVERS PITIA';
     zoneColor    = '#d8d958';
     zoneChipBg   = 'rgba(216,217,88,0.12)';
-    verdictText  = 'Meets the 1.00 floor. Verify lender minimums and compensating factors.';
-    verdictHeadline = 'Meets the qualifying floor — check program minimums.';
+    verdictText  = 'The entered rent meets or exceeds modeled PITIA. Current program definitions and verified file data still control.';
+    verdictHeadline = 'Modeled rent covers the entered monthly payment.';
   } else if (dscr >= 0.75) {
-    verdictLabel = 'SUB-1.0';
+    verdictLabel = 'BELOW 1.00X';
     zoneColor    = '#e6b84d';
     zoneChipBg   = 'rgba(230,184,77,0.12)';
-    verdictText  = 'Some lenders accept 0.75+ with strong FICO, reserves, or a lower LTV.';
-    verdictHeadline = 'Below 1.0 — sub-1.0 programs may still apply.';
+    verdictText  = 'The entered rent does not fully cover modeled PITIA. Some structures may warrant review, but this calculator cannot determine availability.';
+    verdictHeadline = 'Modeled rent falls short of the entered payment.';
   }
 
   const riskLevel = riskFromDscr(dscr);
@@ -152,9 +274,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     const rt = o.rate ?? rate, t = o.tax ?? taxYr, i = o.ins ?? ins;
     const l = p * (1 - d / 100);
     const pit = l * pf(rt / 100) + t / 12 + i / 12 + hoa;
-    return pit > 0 ? r / pit : 0;
+    const value = pit > 0 ? r / pit : 0;
+    return Number.isFinite(value) ? value : 0;
   };
-  const sd = (v: number) => { const x = v - dscr; return (x >= 0 ? '+' : '') + x.toFixed(2); };
+  const sd = (v: number) => { const x = v - dscr; return Number.isFinite(x) ? (x >= 0 ? '+' : '') + fixed(x, 2) : 'Unavailable'; };
   const sc = (v: number) => v >= dscr ? '#4dbd97' : '#e88a8a';
   const sens = [
     { label: 'Rate −0.50%', delta: sd(dscrWith({ rate: rate - 0.5 })), color: sc(dscrWith({ rate: rate - 0.5 })) },
@@ -164,22 +287,21 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
   // ── PITIA breakdown rows ────────────────────────────────────────────────────
   const rows = [
-    { label: 'Loan amount',   val: fmt(loan),       color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, loan / price * 100).toFixed(0) + '%',          barColor: swatch.emerald },
-    { label: 'P&I monthly',   val: fmt(pAndI),      color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, pAndI / pitia * 100).toFixed(0) + '%',          barColor: '#4dbd97' },
-    { label: 'Taxes /mo',     val: fmt(taxYr / 12), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (taxYr / 12) / pitia * 100).toFixed(0) + '%',   barColor: '#9ab87b' },
-    { label: 'Insurance /mo', val: fmt(ins / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (ins / 12) / pitia * 100).toFixed(0) + '%',     barColor: '#9ab87b' },
-    ...(hoa > 0 ? [{ label: 'HOA /mo', val: fmt(hoa), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, hoa / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' }] : []),
+    { label: 'Loan amount',   val: fmt(loan),       color: 'rgba(238,239,211,0.6)', weight: 500, pct: dscrReady && price > 0 ? pct(loan / price * 100) : '0%', barColor: swatch.emerald },
+    { label: 'P&I monthly',   val: fmt(pAndI),      color: 'rgba(238,239,211,0.6)', weight: 500, pct: dscrReady && pitia > 0 ? pct(pAndI / pitia * 100) : '0%', barColor: '#4dbd97' },
+    { label: 'Taxes /mo',     val: fmt(taxYr / 12), color: 'rgba(238,239,211,0.6)', weight: 500, pct: dscrReady && pitia > 0 ? pct((taxYr / 12) / pitia * 100) : '0%', barColor: '#9ab87b' },
+    { label: 'Insurance /mo', val: fmt(ins / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: dscrReady && pitia > 0 ? pct((ins / 12) / pitia * 100) : '0%', barColor: '#9ab87b' },
+    ...(hoa > 0 ? [{ label: 'HOA /mo', val: fmt(hoa), color: 'rgba(238,239,211,0.6)', weight: 500, pct: dscrReady && pitia > 0 ? pct(hoa / pitia * 100) : '0%', barColor: '#9ab87b' }] : []),
     { label: 'Total PITIA',   val: fmt(pitia),      color: '#eeefd3',               weight: 700, pct: '100%',                                                         barColor: zoneColor },
   ];
 
-  // ── Lender rows — gated by the deal's ACTUAL DSCR so we never imply best-tier
-  // pricing on a 1.05x file (the caption's own rule: best tier needs ≥ 1.25).
-  const lenderRows = [
-    { name: 'Best tier',        req: 'needs ≥ 1.25x', ok: dscr >= 1.25, rate: Math.max(4, rate - 0.875).toFixed(3) + '%' },
-    { name: 'Standard',         req: 'needs ≥ 1.00x', ok: dscr >= 1.00, rate: Math.max(4, rate - 0.50).toFixed(3) + '%' },
-    { name: 'Sub-1.0 program',  req: 'needs ≥ 0.75x', ok: dscr >= 0.75, rate: Math.max(4, rate - 0.125).toFixed(3) + '%' },
+  // Modeled coverage checkpoints, not rate quotes, approval tiers, or lender rankings.
+  const coverageRows = [
+    { name: 'Stronger coverage checkpoint', req: 'model: 1.25x or higher', ok: dscrReady && dscr >= 1.25 },
+    { name: 'Rent covers modeled PITIA', req: 'model: 1.00x or higher', ok: dscrReady && dscr >= 1.00 },
+    { name: 'Below-1.0 review lane', req: 'model: 0.75x or higher', ok: dscrReady && dscr >= 0.75 },
   ];
-  const yourTierIdx = lenderRows.findIndex(r => r.ok);
+  const currentCoverageIdx = coverageRows.findIndex((row) => row.ok);
 
   // ── Max Purchase ─────────────────────────────────────────────────────────────
   // Self-consistent closed-form solve. Taxes and insurance SCALE with the price
@@ -190,12 +312,23 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   //   price = (rent / target) ÷ [ (1−d)·pf + taxRate/12 + insRate/12 ]
   const insPerDollar = estimateAnnualInsurance(stateCode, 1_000_000, { isInvestor: true }) / 1_000_000;
   const mDenom   = (1 - mDown / 100) * pf(mRate / 100) + effTaxRate / 12 + insPerDollar / 12;
-  const maxPITIA = mRent / target;
-  const maxPrice = mDenom > 0 ? maxPITIA / mDenom : 0;
-  const maxLoan  = maxPrice * (1 - mDown / 100);
-  const maxPI    = maxLoan * pf(mRate / 100);
-  const mTaxYr   = maxPrice * effTaxRate;
-  const mInsYr   = maxPrice * insPerDollar;
+  const mRentParsed = parseFiniteNumberInput(mRentInput, MAX_MONTHLY_RENT);
+  const mRentError = amountError(mRentInput, 'Monthly rent', MAX_MONTHLY_RENT);
+  const maxBaseReady = !mRentError && mDenom > 0 && Number.isFinite(mDenom);
+  const mRent = mRentError ? 0 : mRentParsed!;
+  const maxPITIACandidate = maxBaseReady ? mRent / target : 0;
+  const maxPriceCandidate = maxBaseReady ? maxPITIACandidate / mDenom : 0;
+  const maxLoanCandidate  = maxPriceCandidate * (1 - mDown / 100);
+  const maxPICandidate    = maxLoanCandidate * pf(mRate / 100);
+  const mTaxYrCandidate   = maxPriceCandidate * effTaxRate;
+  const mInsYrCandidate   = maxPriceCandidate * insPerDollar;
+  const maxReady = maxBaseReady && [maxPITIACandidate, maxPriceCandidate, maxLoanCandidate, maxPICandidate, mTaxYrCandidate, mInsYrCandidate].every(value => Number.isFinite(value) && value >= 0);
+  const maxPITIA = maxReady ? maxPITIACandidate : 0;
+  const maxPrice = maxReady ? maxPriceCandidate : 0;
+  const maxLoan  = maxReady ? maxLoanCandidate : 0;
+  const maxPI    = maxReady ? maxPICandidate : 0;
+  const mTaxYr   = maxReady ? mTaxYrCandidate : 0;
+  const mInsYr   = maxReady ? mInsYrCandidate : 0;
 
   const mRows = [
     { label: 'Max loan amount', val: fmt(maxLoan) },
@@ -220,24 +353,32 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         .calc-field { display:flex; align-items:center; border: 1.5px solid rgba(238,239,211,0.2); border-radius: ${radius.sm}; padding: 0 13px; background: ${PANEL}; transition: border-color .15s; }
         .calc-field:focus-within { border-color: ${LEMON}; outline: 2px solid ${LEMON}; outline-offset: 1px; border-radius: ${radius.sm}; }
         .calc-field:hover:not(:focus-within) { border-color: rgba(238,239,211,0.5); }
+        .calc-field.is-invalid { border-color: #e88a8a; }
+        .calc-error { display:block; color:#ff9b9b; font-size:11px; line-height:1.4; margin-top:6px; }
+        .calc-invalid { background:rgba(230,184,77,.09); border:1px solid rgba(230,184,77,.45); border-radius:${radius.lg}; padding:clamp(22px,3vw,32px); color:${PISTACHIO}; }
+        .calc-results-invalid > :not(.calc-invalid) { display:none !important; }
+        #gs-calc button:focus-visible, #gs-calc a:focus-visible, #gs-calc select:focus-visible, #gs-hero a:focus-visible { outline:2px solid ${LEMON}; outline-offset:3px; }
         .gsr { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: rgba(238,239,211,0.16); outline: none; cursor: pointer; }
         .gsr::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: ${swatch.emerald}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; transition: transform .15s; }
         .gsr::-webkit-slider-thumb:hover { transform: scale(1.16); }
         .gsr::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: ${swatch.emerald}; border: 3px solid ${swatch.darkTeal}; cursor: pointer; }
         .gsr:focus-visible { outline: 2px solid ${LEMON}; outline-offset: 4px; }
         .gs-dot-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 34px 34px; pointer-events: none; }
+        .dscr-section { box-sizing:border-box; width:100%; max-width:100%; }
+        .dscr-section > .dscr-section-inner { box-sizing:border-box; width:100%; min-width:0; max-width:100%; }
         @keyframes gsBar { from { width: 0; } }
         .gs-bar { animation: gsBar .8s ease-out both; }
         @media (max-width: 991px) { #gs-hero-inner { grid-template-columns: 1fr !important; gap: 40px !important; } .dc-band-3, .dc-split { grid-template-columns: 1fr !important; } .calc-panel { grid-template-columns: 1fr !important; } .bottom-trio { grid-template-columns: 1fr !important; } }
         @media (max-width: 767px) { .bottom-trio { grid-template-columns: 1fr !important; } }
-        @media (max-width: 479px) { .dscr-verdict-inner { grid-template-columns: 1fr !important; } }
+        @media (max-width: 480px) { .dscr-section { padding-left:16px !important; padding-right:16px !important; } }
+        @media (max-width: 479px) { .dscr-verdict-inner { grid-template-columns: 1fr !important; } #gs-calc [role="tablist"] { width:100%; } #gs-calc [role="tab"] { flex:1; padding-left:10px !important; padding-right:10px !important; } .calc-field { min-width:0; } }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
       `}</style>
 
       {/* ── HERO — dark bg, dot grid ── */}
-      <section id="gs-hero" style={{ position: 'relative', background: MIDNIGHT, color: PISTACHIO, overflow: 'hidden', padding: 'clamp(48px,7vh,92px) clamp(1.5rem,4vw,3rem) clamp(40px,6vh,72px)' }}>
+      <section id="gs-hero" className="dscr-section" style={{ position: 'relative', background: MIDNIGHT, color: PISTACHIO, overflow: 'hidden', padding: 'clamp(48px,7vh,92px) clamp(1.5rem,4vw,3rem) clamp(40px,6vh,72px)' }}>
         <div className="gs-dot-grid"></div>
-        <div id="gs-hero-inner" className="dc-hero" style={{ position: 'relative', width: '100%', maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.08fr 0.92fr', gap: 'clamp(32px,5vw,72px)', alignItems: 'center' }}>
+        <div id="gs-hero-inner" className="dc-hero dscr-section-inner" style={{ position: 'relative', width: '100%', maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.08fr 0.92fr', gap: 'clamp(32px,5vw,72px)', alignItems: 'center' }}>
           <div id="gs-hero-content">
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', padding: '6px 13px', borderRadius: 100, marginBottom: 24 }}>
               DSCR Engine · Deterministic core
@@ -246,7 +387,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               DSCR Calculator:<br/>see if rent<br/>covers the loan.
             </H1>
             <Lead style={{ color: 'rgba(238,239,211,0.68)', maxWidth: '46ch', marginBottom: 34 }}>
-              Enter price, rent, rate, taxes and insurance. Get your DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) and full PITIA breakdown instantly. No black box.
+              A debt service coverage ratio (DSCR) compares qualifying rental income with a modeled monthly debt payment. Enter price, rent, rate, taxes, insurance, and HOA dues to see the formula, included costs, and the assumption currently limiting the scenario.
             </Lead>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 44 }}>
               <a href="#gs-calc" onClick={scrollToCalc} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 30px', borderRadius: radius.sm, minHeight: 44 }}>
@@ -257,25 +398,47 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               </a>
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>7</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>Greenstreet programs</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>state rule sets</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>to a priced deal</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>1</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>visible formula</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>5</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>editable cost inputs</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>0</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>approval promises</div></div>
             </div>
           </div>
           <HeroProof
             eyebrow="Live preview"
-            value={`${dscr.toFixed(2)}x`}
+            value={dscrReady ? ratio(dscr) : 'Unavailable'}
             valueNum={dscr}
             track2Num={dual.track2}
-            sub={`${fmt(rent)} rent ÷ ${fmt(pitia)} payment`}
-            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? "#e0635f" : zoneColor }}
+            sub={dscrReady ? `${fmt(rent)} rent ÷ ${fmt(pitia)} payment` : 'Complete the highlighted inputs to calculate.'}
+            chip={{ label: dscrReady ? (dual.qualifiesButDangerous ? "OPERATING-COST WARNING" : verdictLabel) : 'INVALID / INCOMPLETE', color: dscrReady && dual.qualifiesButDangerous ? "#e0635f" : dscrReady ? zoneColor : '#e6b84d' }}
           />
         </div>
       </section>
 
+      <section className="dscr-section" aria-labelledby="dscr-method-title" style={{ background: '#f4f3df', color: MIDNIGHT, padding: 'clamp(34px,5vw,56px) clamp(1.5rem,4vw,3rem)' }}>
+        <div className="dscr-section-inner" style={{ maxWidth: '1320px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0,1.1fr) minmax(260px,.9fr)', gap: 'clamp(24px,4vw,56px)', alignItems: 'start' }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#26785f', marginBottom: 10 }}>Methodology · updated July 14, 2026</div>
+            <h2 id="dscr-method-title" style={{ fontSize: 'clamp(26px,3.2vw,42px)', letterSpacing: '-0.035em', lineHeight: 1.05, margin: '0 0 14px' }}>DSCR = monthly rent ÷ modeled monthly PITIA</h2>
+            <p style={{ fontSize: 16, lineHeight: 1.65, margin: '0 0 12px', color: 'rgba(0,55,56,.72)' }}>
+              This page models PITIA as principal and interest plus monthly property taxes, insurance, and HOA dues. It uses the interest rate, 30-year amortization, down payment, and costs shown on screen. A program may define qualifying rent, expenses, or the denominator differently.
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.65, margin: 0, color: 'rgba(0,55,56,.68)' }}>
+              Worked example: $2,500 rent ÷ $1,920 PITIA = 1.30x. The entered rent is 30% above the modeled payment; this is not an approval or a promise that a program uses the same inputs.
+            </p>
+          </div>
+          <div style={{ border: '1px solid rgba(0,55,56,.18)', borderRadius: 12, padding: 22, background: '#fffef3' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Scope and sources</div>
+            <p style={{ fontSize: 13, lineHeight: 1.55, margin: '0 0 10px', color: 'rgba(0,55,56,.66)' }}>Fannie Mae Form 1007 is a conventional single-family rent schedule, not a universal DSCR program rule.</p>
+            <a href="https://singlefamily.fanniemae.com/media/document/pdf/form-1007" target="_blank" rel="noreferrer" style={{ color: '#26785f', fontWeight: 700, fontSize: 13 }}>View Fannie Mae Form 1007</a>
+            <p style={{ fontSize: 13, lineHeight: 1.55, margin: '14px 0 10px', color: 'rgba(0,55,56,.66)' }}>The CFPB interpretation discusses business-purpose classification; it does not establish DSCR eligibility.</p>
+            <a href="https://www.consumerfinance.gov/rules-policy/regulations/1026/interp-3/" target="_blank" rel="noreferrer" style={{ color: '#26785f', fontWeight: 700, fontSize: 13 }}>Read the CFPB Regulation Z interpretation</a>
+          </div>
+        </div>
+      </section>
+
       {/* ── CALCULATOR — dark instrument panel ── */}
-      <section id="gs-calc" style={{ background: PANEL, padding: 'clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)', borderTop: '1px solid rgba(238,239,211,0.07)' }}>
-        <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+      <section id="gs-calc" className="dscr-section" style={{ background: PANEL, padding: 'clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)', borderTop: '1px solid rgba(238,239,211,0.07)' }}>
+        <div className="dscr-section-inner" style={{ maxWidth: '1320px', margin: '0 auto' }}>
 
           {/* Section header + tab switcher */}
           <div className="gs-reveal" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20, marginBottom: 34 }}>
@@ -316,24 +479,26 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Interest rate — drives P&amp;I payment</span>
-                      <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{rate.toFixed(3)}%</Mono>
+                      <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{fixed(rate, 3)}%</Mono>
                     </div>
                     <input className="gsr" aria-label="Interest rate" type="range" step="0.125" min="4" max="12" value={rate} onChange={e => setRate(+e.target.value)} style={{ width: '100%' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>4%</span><span>12%</span></div>
                   </div>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Purchase price</span>
-                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                    <div className={`calc-field ${priceError ? 'is-invalid' : ''}`} style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.62)' }}>$</span>
-                      <input className="gs-num" type="number" step="5000" value={price} onChange={e => setPrice(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" step="5000" max={MAX_PURCHASE_PRICE} value={priceInput} onChange={e => setPriceInput(e.target.value)} aria-invalid={Boolean(priceError)} aria-describedby={priceError ? 'dscr-price-error' : undefined} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
+                    {priceError && <span id="dscr-price-error" className="calc-error">{priceError}</span>}
                   </label>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Monthly rent</span>
-                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                    <div className={`calc-field ${rentError ? 'is-invalid' : ''}`} style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.62)' }}>$</span>
-                      <input className="gs-num" type="number" step="100" value={rent} onChange={e => setRent(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" step="100" max={MAX_MONTHLY_RENT} value={rentInput} onChange={e => setRentInput(e.target.value)} aria-invalid={Boolean(rentError)} aria-describedby={rentError ? 'dscr-rent-error' : undefined} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
+                    {rentError && <span id="dscr-rent-error" className="calc-error">{rentError}</span>}
                   </label>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>State — sets the tax reset &amp; insurance rules</span>
@@ -347,45 +512,48 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <label style={{ display: 'block' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Taxes /yr</span>
-                        <button type="button" onClick={() => { if (taxAuto) { setTax(estTax); setTaxAuto(false); } else { setTaxAuto(true); } }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: taxAuto ? '#4dbd97' : 'rgba(238,239,211,0.45)' }}>
+                        <button type="button" onClick={() => { if (taxAuto) { setTaxInput(String(estTax)); setTaxAuto(false); } else { setTaxAuto(true); } }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: taxAuto ? '#4dbd97' : 'rgba(238,239,211,0.45)' }}>
                           {taxAuto ? '● Auto reset' : 'Manual'}
                         </button>
                       </div>
-                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center', opacity: taxAuto ? 0.85 : 1 }}>
+                      <div className={`calc-field ${taxError ? 'is-invalid' : ''}`} style={{ display: 'flex', alignItems: 'center', opacity: taxAuto ? 0.85 : 1 }}>
                         <span style={{ color: 'rgba(238,239,211,0.62)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="250" value={taxAuto ? estTax : tax} disabled={taxAuto} onChange={e => setTax(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" step="250" value={taxAuto ? String(estTax) : taxInput} aria-label={taxAuto ? 'Estimated annual property taxes' : 'Annual property taxes'} disabled={taxAuto} onChange={e => setTaxInput(e.target.value)} aria-invalid={Boolean(taxError)} aria-describedby={taxError ? 'dscr-tax-error' : undefined} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
+                      {taxError && <span id="dscr-tax-error" className="calc-error">{taxError}</span>}
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Ins. /yr</span>
-                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                      <div className={`calc-field ${insError ? 'is-invalid' : ''}`} style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.62)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="100" value={ins} onChange={e => setIns(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" step="100" value={insInput} onChange={e => setInsInput(e.target.value)} aria-invalid={Boolean(insError)} aria-describedby={insError ? 'dscr-ins-error' : undefined} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
+                      {insError && <span id="dscr-ins-error" className="calc-error">{insError}</span>}
                       {Math.abs(ins - estIns) > 50 && (
-                        <button type="button" onClick={() => setIns(estIns)} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 600, color: LEMON, textAlign: 'left' as const }}>
-                          Use est. ${estIns.toLocaleString()}/yr · {stateCode} risk
+                        <button type="button" onClick={() => setInsInput(String(estIns))} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 600, color: LEMON, textAlign: 'left' as const }}>
+                          Use est. {fmt(estIns)}/yr · {stateCode} risk
                         </button>
                       )}
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>HOA /mo</span>
-                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                      <div className={`calc-field ${hoaError ? 'is-invalid' : ''}`} style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.62)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="25" min="0" value={hoa} onChange={e => setHoa(Math.max(0, +e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" step="25" min="0" max={MAX_MONTHLY_PROPERTY_EXPENSE} value={hoaInput} onChange={e => setHoaInput(e.target.value)} aria-invalid={Boolean(hoaError)} aria-describedby={hoaError ? 'dscr-hoa-error' : undefined} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
+                      {hoaError && <span id="dscr-hoa-error" className="calc-error">{hoaError}</span>}
                     </label>
                   </div>
                   {taxAuto && (
                     <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', margin: '-12px 0 0', lineHeight: 1.45 }}>
-                      Estimated at the <strong style={{ color: 'rgba(238,239,211,0.7)' }}>purchase-year reset</strong> — {(effTaxRate * 100).toFixed(2)}% of price in {stateCode}, not the seller&apos;s current bill. Tap Manual to override.
+                      Estimated at the <strong style={{ color: 'rgba(238,239,211,0.7)' }}>purchase-year reset</strong> — {fixed(effTaxRate * 100, 2)}% of price in {stateCode}, not the seller&apos;s current bill. Tap Manual to override.
                     </p>
                   )}
                 </div>
               </div>
 
               {/* PITIA breakdown — relocated beneath the input rail, always visible */}
-              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)' }}>
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)', display: dscrReady ? undefined : 'none' }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>PITIA breakdown</div>
                 <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginBottom: 14, lineHeight: 1.4 }}>The full monthly payment — principal, interest, taxes, insurance, and any HOA dues. DSCR = monthly rent ÷ this total.</p>
                 {rows.map((r, i) => (
@@ -401,24 +569,24 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 ))}
               </div>
 
-              {/* Matched programs — relocated beneath the input rail, always visible */}
-              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)' }}>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>Matched programs</div>
-                <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginBottom: 10, lineHeight: 1.4 }}>Indicative rate offsets from today's note rate. Best-tier pricing requires DSCR ≥ 1.25 and FICO ≥ 740.</p>
-                {lenderRows.map((lr, i) => (
+              {/* Coverage scenarios — relocated beneath the input rail, always visible */}
+              <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)', display: dscrReady ? undefined : 'none' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>Modeled coverage scenarios</div>
+                <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginBottom: 10, lineHeight: 1.4 }}>These checkpoints interpret this calculator's DSCR only. They are not current lender requirements, rate quotes, or an independent ranking.</p>
+                {coverageRows.map((lr, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '9px 0', borderBottom: '1px solid rgba(238,239,211,0.07)', opacity: lr.ok ? 1 : 0.45 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#eeefd3', lineHeight: 1.2 }}>
                       {lr.name}
-                      {i === yourTierIdx && (
-                        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: '#4dbd97', borderRadius: 100, padding: '2px 8px' }}>your tier</span>
+                      {i === currentCoverageIdx && (
+                        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: '#4dbd97', borderRadius: 100, padding: '2px 8px' }}>current checkpoint</span>
                       )}
                     </span>
-                    <Mono style={{ fontSize: lr.ok ? 14 : 12, fontWeight: 700, color: lr.ok ? LEMON : 'rgba(238,239,211,0.5)' }}>{lr.ok ? lr.rate : lr.req}</Mono>
+                    <Mono style={{ fontSize: lr.ok ? 14 : 12, fontWeight: 700, color: lr.ok ? LEMON : 'rgba(238,239,211,0.5)' }}>{lr.ok ? 'passes model checkpoint' : lr.req}</Mono>
                   </div>
                 ))}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
                   <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
-                    See all programs ranked by fit →
+                    Explore modeled program scenarios →
                   </a>
                 </div>
               </div>
@@ -426,7 +594,13 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* RESULTS — eyes guided top→down: verdict → the edge → supporting */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div className={dscrReady ? undefined : 'calc-results-invalid'} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {!dscrReady && (
+                  <div className="calc-invalid" role="alert" aria-live="polite">
+                    <div style={{ color: LEMON, fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>Incomplete or invalid scenario</div>
+                    <p style={{ margin: 0, lineHeight: 1.55, fontSize: 14 }}>No loan, payment, DSCR, purchase limit, or return metric is calculated until every highlighted field contains a finite valid amount. {invalidFields[0]}</p>
+                  </div>
+                )}
 
                 {/* ── TIER 1 · VERDICT (dominant) ── */}
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(28px,3vw,40px)', border: `1px solid ${zoneColor}55` }}>
@@ -456,14 +630,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         <>
                           <Mono style={{ fontSize: 'clamp(26px,3vw,38px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1, display: 'block', marginBottom: 8 }}>+{headroomBps} bps</Mono>
                           <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.7)', margin: 0, lineHeight: 1.5 }}>
-                            Rate headroom before DSCR breaks 1.00x — the deal holds until the rate reaches ~{beRate.toFixed(2)}%. That's the number that governs this file, not the rate on the sheet.
+                            Rate headroom before DSCR breaks 1.00x — the deal holds until the rate reaches ~{fixed(beRate, 2)}%. That's the number that governs this file, not the rate on the sheet.
                           </p>
                         </>
                       ) : (
                         <>
                           <Mono style={{ fontSize: 'clamp(24px,2.8vw,34px)', fontWeight: 600, color: '#e88a8a', lineHeight: 1.05, display: 'block', marginBottom: 8 }}>rent ≥ {fmt(pitia)}</Mono>
                           <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.7)', margin: 0, lineHeight: 1.5 }}>
-                            To clear the 1.00x floor: rent must reach {fmt(pitia)}/mo{beRate > 0 ? `, or the rate drop to ~${beRate.toFixed(2)}%` : ''}. Today rent covers {dscr.toFixed(2)}x.
+                            To clear the 1.00x floor: rent must reach {fmt(pitia)}/mo{beRate > 0 ? `, or the rate drop to ~${fixed(beRate, 2)}%` : ''}. Today rent covers {ratio(dscr)}.
                           </p>
                         </>
                       )}
@@ -479,7 +653,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <div style={{ marginTop: 20, background: 'rgba(230,184,77,0.08)', border: '1px solid rgba(230,184,77,0.3)', borderLeft: '3px solid #e6b84d', borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e6b84d', marginBottom: 4 }}>Hardest profile to place</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.5 }}>
-                        Sub-1.0 coverage at {100 - down}% LTV is the file that burns lender relationships. We&apos;ll be straight with you: lift the down payment or rent until it clears, or look at a sub-1.0 program with reserves — we don&apos;t chase deals that don&apos;t pencil.
+                        Below-1.0 modeled coverage at {100 - down}% LTV warrants closer scenario review. Test supportable rent, a larger down payment, or a different entered rate; current program documents still control.
                       </p>
                     </div>
                   )}
@@ -491,10 +665,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <div style={{ marginTop: 20, background: 'rgba(224,99,99,0.09)', border: '1px solid rgba(224,99,99,0.4)', borderLeft: '3px solid #e06363', borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                         <RiskFlame level="high" size={16} />
-                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e06363' }}>Qualifies but dangerous</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e06363' }}>Operating-cost coverage gap</span>
                       </div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.55 }}>
-                        This clears the lender at <strong style={{ color: '#eeefd3' }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: '#e06363' }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal still loses money each month.{' '}
+                        Gross rent divided by PITIA is <strong style={{ color: '#eeefd3' }}>{ratio(dual.track1)}</strong>, but after the separately modeled vacancy, management, and maintenance assumptions, coverage is <strong style={{ color: '#e06363' }}>{ratio(dual.track2)}</strong>. This is a cash-flow warning, not an eligibility or approval result.{' '}
                         <a href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.('stress-matrix'); }} style={{ color: '#4dbd97', fontWeight: 600, textDecoration: 'none' }}>Pressure-test it in the Stress Matrix →</a>
                       </p>
                     </div>
@@ -507,7 +681,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       {lossScenarios.map((s) => (
                         <div key={s.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: 13 }}>
                           <span style={{ color: 'rgba(238,239,211,0.8)', fontWeight: 600, minWidth: 120 }}>{s.label}</span>
-                          <Mono style={{ color: s.newDSCR >= 1.0 ? '#4dbd97' : '#e06363', fontWeight: 700 }}>{s.newDSCR.toFixed(2)}x</Mono>
+                          <Mono style={{ color: s.newDSCR >= 1.0 ? '#4dbd97' : '#e06363', fontWeight: 700 }}>{ratio(s.newDSCR)}</Mono>
                           <span style={{ flex: 1, textAlign: 'right' as const, color: s.monthlyShortfall > 0 ? '#e06363' : 'rgba(238,239,211,0.55)' }}>
                             {s.monthlyShortfall > 0
                               ? `−${fmt(s.monthlyShortfall)}/mo · ${fmt(s.annualOutOfPocket)}/yr from savings`
@@ -527,13 +701,13 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   </div>
                   <div className="dc-band-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 14 }}>
                     {[
-                      { l: 'Lender (standard)', v: tco.standardDSCR },
+                      { l: 'Gross rent / PITIA', v: tco.standardDSCR },
                       { l: 'After real costs', v: tco.tcoDSCR },
                       { l: 'After tax shield', v: tco.afterTaxTcoDSCR },
                     ].map((m) => (
                       <div key={m.l}>
                         <div style={{ fontSize: 10.5, color: 'rgba(238,239,211,0.5)', marginBottom: 3, letterSpacing: '0.02em' }}>{m.l}</div>
-                        <Mono style={{ fontSize: 'clamp(18px,2vw,22px)', fontWeight: 700, color: m.v >= 1.0 ? '#4dbd97' : '#e06363' }}>{m.v.toFixed(2)}x</Mono>
+                        <Mono style={{ fontSize: 'clamp(18px,2vw,22px)', fontWeight: 700, color: m.v >= 1.0 ? '#4dbd97' : '#e06363' }}>{ratio(m.v)}</Mono>
                       </div>
                     ))}
                   </div>
@@ -542,7 +716,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span>Mgmt {fmt(tco.components.management)}</span><span style={{ opacity: 0.4 }}>·</span>
                     <span>Maint {fmt(tco.components.maintenance)}</span><span style={{ opacity: 0.4 }}>·</span>
                     <span>CapEx {fmt(tco.components.capex)}</span><span style={{ opacity: 0.4 }}>·</span>
-                    <span style={{ color: 'rgba(238,239,211,0.85)', fontWeight: 600 }}>−{fmt(tco.components.total)}/mo real operating costs the lender ignores</span>
+                    <span style={{ color: 'rgba(238,239,211,0.85)', fontWeight: 600 }}>−{fmt(tco.components.total)}/mo modeled operating costs not included in gross-rent DSCR</span>
                   </div>
                 </div>
 
@@ -578,8 +752,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(24px,2.5vw,32px)', border: '1px solid rgba(238,239,211,0.16)', display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div className="dc-band-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
                     {[
-                      { v: (cashFlow >= 0 ? '+' : '') + fmt(cashFlow), c: cashFlow >= 0 ? '#4dbd97' : '#e88a8a', l: 'monthly cash flow', s: cashFlow >= 0 ? 'rent exceeds PITIA' : 'rent falls short' },
-                      { v: capRate.toFixed(2) + '%', c: capRate >= 4.5 ? '#4dbd97' : capRate >= 3.5 ? LEMON : '#e6b84d', l: 'cap rate — after full costs', s: 'NOI nets all opex; 4.5%+ is healthy' },
+                      { v: (cashFlow >= 0 ? '+' : '') + fmt(cashFlow), c: cashFlow >= 0 ? '#4dbd97' : '#e88a8a', l: 'rent minus PITIA / mo', s: 'before vacancy and operating costs' },
+                      { v: fixed(capRate, 2) + '%', c: capRate >= 4.5 ? '#4dbd97' : capRate >= 3.5 ? LEMON : '#e6b84d', l: 'cap rate — after full costs', s: 'NOI nets all opex; 4.5%+ is healthy' },
                       { v: (100 - down) + '%', c: '#4dbd97', l: 'LTV — loan ÷ value', s: 'lower is better; 75% standard' },
                     ].map((m, i) => (
                       <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '16px 18px', border: '1px solid rgba(238,239,211,0.08)' }}>
@@ -608,7 +782,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       Find my program →
                     </a>
                     <button onClick={() => (window as any).openQualify?.()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.5)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 14, fontFamily: font.family, padding: '12px 20px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}>
-                      Check if I qualify →
+                      Request scenario review →
                     </button>
                     <span style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', lineHeight: 1.4 }}>Preliminary estimate — not a commitment to lend.</span>
                   </div>
@@ -622,19 +796,20 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Work backwards from rent</div>
-                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR (the ratio you want to hit — 1.25x is a strong approval threshold). We'll calculate the maximum price you can pay and still hit that ratio.</p>
+                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 18, lineHeight: 1.5 }}>Enter expected rent and a user-selected DSCR checkpoint. The tool estimates the maximum price that reaches that modeled ratio; the checkpoint is not an approval threshold.</p>
                 <div style={{ display: 'grid', gap: 22 }}>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Monthly rent</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.62)' }}>$</span>
-                      <input className="gs-num" type="number" step="100" value={mRent} onChange={e => setMRent(+e.target.value)} style={{ padding: '12px 6px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" step="100" max={MAX_MONTHLY_RENT} value={mRentInput} onChange={e => setMRentInput(e.target.value)} aria-invalid={Boolean(mRentError)} aria-describedby={mRentError ? 'max-rent-error' : undefined} style={{ padding: '12px 6px', fontSize: 16, fontWeight: 600 }} />
                     </div>
+                    {mRentError && <span id="max-rent-error" className="calc-error">{mRentError}</span>}
                   </label>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Note rate</span>
-                      <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{mRate.toFixed(3)}%</Mono>
+                      <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{fixed(mRate, 3)}%</Mono>
                     </div>
                     <input className="gsr" aria-label="Note rate" type="range" step="0.125" min="4" max="12" value={mRate} onChange={e => setMRate(+e.target.value)} style={{ width: '100%' }} />
                   </div>
@@ -649,7 +824,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Target DSCR — the ratio you want to hit</span>
-                      <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{target.toFixed(2)}x</Mono>
+                      <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{ratio(target)}</Mono>
                     </div>
                     <input className="gsr" aria-label="Target DSCR" type="range" step="0.05" min="0.75" max="1.50" value={target} onChange={e => setTarget(+e.target.value)} style={{ width: '100%' }} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>0.75x</span><span>1.50x</span></div>
@@ -662,21 +837,27 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </select>
                     </div>
                     <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', margin: '8px 0 0', lineHeight: 1.45 }}>
-                      Taxes ({(effTaxRate * 100).toFixed(2)}%/yr reset) and insurance scale with the answer — a fixed guess would overstate your ceiling.
+                      Taxes ({fixed(effTaxRate * 100, 2)}%/yr reset) and insurance scale with the answer — a fixed guess would overstate your ceiling.
                     </p>
                   </label>
                 </div>
               </div>
-              <div>
+              <div className={maxReady ? undefined : 'calc-results-invalid'}>
+                {!maxReady && (
+                  <div className="calc-invalid" role="alert" aria-live="polite">
+                    <div style={{ color: LEMON, fontSize: 12, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>Incomplete or invalid scenario</div>
+                    <p style={{ margin: 0, lineHeight: 1.55, fontSize: 14 }}>{mRentError || 'The entered values produce an unavailable maximum purchase calculation.'}</p>
+                  </div>
+                )}
                 {/* Headline answer: scrub-able Claude gauge for target */}
                 <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', marginBottom: 20, border: '1px solid rgba(238,239,211,0.16)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {target.toFixed(2)}x DSCR</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {ratio(target)} DSCR</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
                     <div>
                       <Mono style={{ fontSize: 'clamp(42px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 0.95, display: 'block' }}>{fmt(maxPrice)}</Mono>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 14 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 14 }}>at {ratio(target)} target · {fixed(mRate, 3)}% · {mDown}% down</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.62)', margin: '10px 0 0', lineHeight: 1.5 }}>
-                        Pay more than this and the rent won't cover the full monthly payment at the target ratio. Use this as your bid ceiling.
+                        This is a modeled price limit under the displayed rent, rate, down-payment, tax, insurance, and target-ratio assumptions. It is not a bid recommendation or approval amount.
                       </p>
                     </div>
                     <ClaudeDscrGauge value={target} size={170} min={0.75} max={1.5} label="Target" onValueChange={setTarget} />
@@ -690,7 +871,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     </div>
                   ))}
                   <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 14, lineHeight: 1.4 }}>
-                    Preliminary estimate — not a commitment to lend. Subject to full underwriting, appraisal and credit approval.
+                    Preliminary estimate only. This does not determine eligibility, pricing, appraisal outcome, underwriting result, or approval.
                   </p>
                 </div>
               </div>

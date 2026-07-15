@@ -1,11 +1,28 @@
 import React, { useState, useMemo } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import BottomCTA from "../design/BottomCTA";
-import { computeAfterTaxIRR } from "../engine/taxEngine";
+import { computeAfterTaxIRR, TAX_MODEL_MAX_HOLD_YEARS } from "../engine/taxEngine";
 import { calculatePI } from "../engine/engine";
 import type { TaxProfile, FilingStatus } from "../engine/types";
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+const INPUT_BOUNDS: Record<string, readonly [number, number]> = {
+  purchasePrice: [10000, 50000000],
+  ltv: [0, 95],
+  rate: [0, 25],
+  monthlyRent: [0, 500000],
+  annualTaxes: [0, 1000000],
+  annualInsurance: [0, 1000000],
+  hoa: [0, 100000],
+  holdYears: [1, TAX_MODEL_MAX_HOLD_YEARS],
+  landPct: [0, 90],
+  magi: [0, 100000000],
+  stateRate: [0, 25],
+  exitPppPct: [0, 10],
+  closingCosts: [0, 5000000],
+  exitCapRate: [0.5, 25],
+  rentGrowth: [-20, 25],
+};
 
 export default function TaxEnginePage({
   onBack,
@@ -34,15 +51,29 @@ export default function TaxEnginePage({
   const [isRep, setIsRep] = useState(false);
   const [stateRate, setStateRate] = useState(5);
   const [exitPppPct, setExitPppPct] = useState(1.0);
+  const [closingCosts, setClosingCosts] = useState(12500);
+  const [exitCapRate, setExitCapRate] = useState(6.5);
+
+  const numericInputs = {
+    purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa,
+    holdYears, landPct, magi, stateRate, exitPppPct, closingCosts, exitCapRate,
+    rentGrowth,
+  };
+  const modelInputValid = Object.entries(numericInputs).every(([key, value]) => {
+    const [min, max] = INPUT_BOUNDS[key];
+    return Number.isFinite(value) && value >= min && value <= max;
+  }) && Number.isInteger(holdYears);
 
   // ── Engine ──
   const result = useMemo(() => {
+    if (!modelInputValid) return null;
     try {
       const loanAmount = purchasePrice * (ltv / 100);
       const piMonthly = calculatePI(loanAmount, rate, 360);
       const ads = piMonthly * 12;
       const annualNOI =
         monthlyRent * 12 * 0.85 - annualTaxes - annualInsurance - hoa * 12;
+      const annualCapExReserve = monthlyRent * 12 * 0.85 * 0.05;
       const pitiaMonthly =
         piMonthly + annualTaxes / 12 + annualInsurance / 12 + hoa;
       const taxProfile: TaxProfile = {
@@ -59,7 +90,7 @@ export default function TaxEnginePage({
         placedInServiceDate: "2024-01-01",
         expectedHoldYears: holdYears,
         exitSellingCostsPct: 7,
-        exitCapRatePct: 6.5,
+        exitCapRatePct: exitCapRate,
         section1031Exchange: false,
       };
       return computeAfterTaxIRR(
@@ -73,6 +104,9 @@ export default function TaxEnginePage({
         (exitPppPct / 100) * loanAmount,
         rate,
         360,
+        closingCosts,
+        rentGrowth,
+        annualCapExReserve,
       );
     } catch {
       return null;
@@ -93,6 +127,9 @@ export default function TaxEnginePage({
     isRep,
     stateRate,
     exitPppPct,
+    closingCosts,
+    exitCapRate,
+    modelInputValid,
   ]);
 
   // ── Derived display values ──
@@ -101,7 +138,7 @@ export default function TaxEnginePage({
   const drag = result?.irrImpactOfTaxes ?? 0;
 
   // Guard display: show "—" when result is null or IRR is exactly 0 (no confident value).
-  const hasResult = result !== null && afterTaxIRR !== 0;
+  const hasResult = result !== null && [afterTaxIRR, preTaxIRR, drag].every(Number.isFinite);
 
   // Engine returns IRR/drag as decimal fractions (e.g. 0.107 = 10.7%); scale to %.
   const afterTaxStr = hasResult ? (afterTaxIRR * 100).toFixed(1) + "%" : "—";
@@ -136,8 +173,10 @@ export default function TaxEnginePage({
       {/* Input-spinner suppression only */}
       <style>{`
         .te-num::-webkit-outer-spin-button,.te-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-        .te-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        .te-num{width:100%;min-width:0;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
         .te-sel{width:100%;border:none;outline:none;font-family:${dc.sans};-webkit-appearance:none;cursor:pointer;background:transparent;color:${dc.cream};letter-spacing:-0.02em;}
+        .te-field{min-width:0;}
+        @media(max-width:640px){.te-input-panel{padding:20px !important;}.te-result-row{align-items:flex-start !important;flex-direction:column;gap:4px !important;}.te-result-row span{overflow-wrap:anywhere;}}
       `}</style>
 
       {/* ── HERO — lemon field, dark ink ── */}
@@ -178,6 +217,7 @@ export default function TaxEnginePage({
         >
           <div id="gs-hero-content">
             <div
+              className="te-input-panel"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -200,10 +240,10 @@ export default function TaxEnginePage({
               What does this property really earn after taxes?
             </H1>
             <Lead style={{ color: "rgba(0,55,56,0.72)", maxWidth: "48ch", margin: "0 0 20px" }}>
-              Most return calculators ignore taxes. This one doesn't. Enter your deal and tax profile and see: your depreciation tax shield (the annual tax saving from writing off the building), the tax bill at exit (depreciation recapture + capital gains + NIIT), and the after-tax IRR — what you actually keep.
+            Enter deal and tax assumptions to model depreciation, sale-tax components, and after-tax IRR. The output is a simplified scenario, not a tax return, legal conclusion, or prediction of what you will keep.
             </Lead>
             <p style={{ color: "rgba(0,55,56,0.55)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
-              How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IRR to the pre-tax IRR — the gap is your tax drag. Real estate professional status (750hr + 50% test) can dramatically reduce that drag.
+            Compare modeled after-tax and pre-tax IRR to inspect the effect of the selected assumptions. The professional-status toggle does not determine eligibility; classification and treatment require a qualified tax professional reviewing current law and your facts.
             </p>
             {/* Dark-fill button — the lemon-fill primary would vanish on this lemon hero */}
             <a
@@ -331,10 +371,10 @@ export default function TaxEnginePage({
               {!hasResult
                 ? "Adjust inputs to see your after-tax return."
                 : afterTaxIRR >= 0.1
-                ? `After-tax IRR of ${afterTaxStr} is strong. The depreciation shield offsets some of the tax bill — your real return after the IRS takes its share still works.`
+              ? `Modeled after-tax IRR is ${afterTaxStr}, within the interface's upper comparison band. This is not a suitability or tax-planning conclusion.`
                 : afterTaxIRR >= 0.06
-                ? `After-tax IRR of ${afterTaxStr} is acceptable but the ${dragStr} tax drag is meaningful. Look for ways to increase the depreciation shield — a cost-segregation study or higher land allocation can help.`
-                : `After-tax IRR of ${afterTaxStr} is below the typical 6% threshold. The ${dragStr} tax drag may be larger than expected. Check whether real estate professional status (REP) applies — it can unlock passive-loss deductions that significantly improve the after-tax number.`}
+              ? `Modeled after-tax IRR is ${afterTaxStr}, within the interface's middle comparison band; modeled tax drag is ${dragStr}.`
+              : `Modeled after-tax IRR is ${afterTaxStr}, within the interface's lower comparison band; modeled tax drag is ${dragStr}. Review inputs with a qualified tax professional rather than treating the band as advice.`}
             </p>
           </div>
 
@@ -478,7 +518,7 @@ export default function TaxEnginePage({
                   },
                   {
                     label: "State Tax %",
-                    hint: "Your state income tax rate. Enter 0 for states with no income tax (TX, FL, etc.).",
+                hint: "The state income-tax rate you want to model. Verify the applicable rate, base, residency, sourcing, and current law for your facts.",
                     key: "stateRate" as const,
                     step: 0.5,
                     prefix: "",
@@ -495,6 +535,36 @@ export default function TaxEnginePage({
                     suffix: "%",
                     val: exitPppPct,
                     set: setExitPppPct,
+                  },
+                  {
+                    label: "Closing Costs",
+                    hint: "Cash paid at acquisition in addition to the down payment.",
+                    key: "closingCosts" as const,
+                    step: 500,
+                    prefix: "$",
+                    suffix: "",
+                    val: closingCosts,
+                    set: setClosingCosts,
+                  },
+                  {
+                    label: "Exit Cap Rate",
+                    hint: "Capitalization rate used to estimate sale value. Zero and blank values are not modeled.",
+                    key: "exitCapRate" as const,
+                    step: 0.25,
+                    prefix: "",
+                    suffix: "%",
+                    val: exitCapRate,
+                    set: setExitCapRate,
+                  },
+                  {
+                    label: "Rent Growth / yr",
+                    hint: "Annual growth assumption applied to modeled NOI and the CapEx reserve.",
+                    key: "rentGrowth" as const,
+                    step: 0.5,
+                    prefix: "",
+                    suffix: "%",
+                    val: rentGrowth,
+                    set: setRentGrowth,
                   },
                 ] as {
                   label: string;
@@ -523,6 +593,7 @@ export default function TaxEnginePage({
                   </span>
                   <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
                   <div
+                    className="te-field"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -541,8 +612,11 @@ export default function TaxEnginePage({
                       className="te-num"
                       type="number"
                       step={f.step}
-                      value={f.val}
-                      onChange={(e) => f.set(+e.target.value)}
+                      min={INPUT_BOUNDS[f.key]?.[0]}
+                      max={INPUT_BOUNDS[f.key]?.[1]}
+                      value={Number.isFinite(f.val) ? f.val : ""}
+                      aria-invalid={!Number.isFinite(f.val) || f.val < INPUT_BOUNDS[f.key][0] || f.val > INPUT_BOUNDS[f.key][1]}
+                      onChange={(e) => f.set(e.target.value === "" ? Number.NaN : Number(e.target.value))}
                       style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
                     />
                     {f.suffix && (
@@ -610,7 +684,7 @@ export default function TaxEnginePage({
                   style={{ accentColor: dc.lemon, width: 16, height: 16, marginTop: 2, flexShrink: 0 }}
                 />
                 <span style={{ fontSize: 13, color: "rgba(238,239,211,0.8)", lineHeight: 1.45 }}>
-                  <strong style={{ color: dc.lemon }}>Real estate professional status</strong> (750hr test + 50% of work time in real estate) — unlocks the ability to deduct passive losses against ordinary income. If you don't meet both tests, leave this unchecked.
+                  <strong style={{ color: dc.lemon }}>Model as qualifying for professional-status treatment</strong>. This toggle is only a scenario assumption; it does not determine eligibility or establish how any loss may be used.
                 </span>
               </label>
             </div>
@@ -628,7 +702,7 @@ export default function TaxEnginePage({
                   }}
                 >
                   <p style={{ color: "#e06363", fontWeight: 600 }}>
-                    Engine returned no result. Check inputs.
+                    Complete every input within the displayed model ranges. Hold years are capped at {TAX_MODEL_MAX_HOLD_YEARS} for this projection, and exit cap rate must be between 0.5% and 25%.
                   </p>
                 </div>
               ) : (
@@ -702,7 +776,7 @@ export default function TaxEnginePage({
                       Tax breakdown — where the money goes
                     </div>
                     <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
-                      Green = tax benefit that improves your return. Red = tax cost that reduces it. The difference between pre-tax and after-tax IRR is your total tax drag.
+                    Green represents a positive modeled effect and red a negative modeled effect. The difference between pre-tax and after-tax IRR is the model's tax-impact estimate, not a filed or professional calculation.
                     </p>
                     {(
                       [
@@ -717,26 +791,27 @@ export default function TaxEnginePage({
                           color: "#e06363",
                         },
                         {
-                          label: "§1250 recapture rate — the tax rate on depreciation you claimed (capped at 25%)",
+                      label: "Modeled depreciation-recapture rate",
                           val:
                             (result.effectiveRecaptureRate * 100).toFixed(1) + "%",
                           color: dc.lemon,
                         },
                         {
-                          label: "Long-term capital gains rate — applied to the remaining profit above your basis",
+                      label: "Modeled long-term capital-gains rate",
                           val:
                             (result.effectiveLtcgRate * 100).toFixed(1) + "%",
                           color: dc.cream,
                         },
                         {
-                          label: "NIIT (3.8% net investment income tax) — applies if MAGI exceeds $200K single / $250K joint",
-                          val: result.niitApplies ? "Yes — adds 3.8% to investment income" : "No",
+                          label: "Modeled NIIT component — calculated on the lesser of modeled net investment income or MAGI above the selected threshold",
+                          val: result.niitApplies ? "Included in modeled exit tax" : "Not included",
                           color: result.niitApplies ? "#e06363" : dc.emerald,
                         },
                       ] as { label: string; val: string; color: string }[]
                     ).map((r) => (
                       <div
                         key={r.label}
+                        className="te-result-row"
                         style={{
                           display: "flex",
                           justifyContent: "space-between",
@@ -898,9 +973,9 @@ export default function TaxEnginePage({
                     }}
                   >
                     <strong style={{ color: dc.lemon }}>Tax rules applied:</strong>{" "}
-                    IRC §167 straight-line depreciation over 27.5 years · §469 passive-activity-loss rules (limited to $25K for incomes under $100K; phased out to $150K; suspended above unless you qualify as a real estate professional) · §1250 recapture at 25% on depreciation claimed · §1(h) long-term capital gains rates · §1411 net investment income tax 3.8%.{" "}
+            The engine uses simplified assumptions for residential depreciation, passive-activity treatment, depreciation recapture, capital gains, and net-investment-income tax. It does not establish current law, eligibility, basis, filing status, deductions, or tax due.{" "}
                     {result.disclaimer}{" "}
-                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Submit a scenario review for exact underwriting.
+            Illustrative model only. Verify every rate, threshold, classification, and tax treatment with current authoritative sources and a qualified tax professional before acting.
                   </div>
                 </>
               )}

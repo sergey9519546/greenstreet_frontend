@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, CountUp, useRevealOnView } from "../design/dc";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
-import { analyzePortfolio, computePortfolioHealthScore } from "../engine/portfolio";
+import { analyzePortfolio, computePortfolioAggregates, computePortfolioHealthScore } from "../engine/portfolio";
 import { buildEngineInputs } from "../engine/inputs";
 
 // Portfolio page uses pistachio nav (matching its mockup body color)
@@ -39,11 +39,22 @@ const SEED: RawProperty[] = [
 const fmt = (n: number) =>
   (n < 0 ? "-$" : "$") + Math.round(Math.abs(n)).toLocaleString("en-US");
 
+const MAX_UI_VALUE = 1_000_000_000_000;
+
+function finiteNonNegative(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(MAX_UI_VALUE, Math.max(0, value))
+    : 0;
+}
+
 /** Monthly P&I for a 30-yr amortising loan */
 function pi(balance: number, annualRate: number): number {
-  const r = annualRate / 100 / 12;
-  if (r === 0) return balance / 360;
-  return (balance * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
+  const safeBalance = finiteNonNegative(balance);
+  const safeRate = Math.min(1000, finiteNonNegative(annualRate));
+  const r = safeRate / 100 / 12;
+  if (r === 0) return safeBalance / 360;
+  const payment = safeBalance * r / (1 - Math.pow(1 + r, -360));
+  return Number.isFinite(payment) ? Math.min(MAX_UI_VALUE, payment) : 0;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -85,35 +96,27 @@ export default function PortfolioPage({
   // ── Per-row computed ──────────────────────────────────────────────────────
   const computed = useMemo(() =>
     rows.map((p) => {
-      const piMo  = pi(p.balance, p.rate);
-      const pitia = piMo + p.pitiaExtra;
-      const dscr  = pitia > 0 ? p.rent / pitia : 0;
-      const cf    = p.rent - pitia;
-      const ltv   = p.value > 0 ? (p.balance / p.value) * 100 : 0;
-      return { ...p, piMo, pitia, dscr, cf, ltv };
+      const value = finiteNonNegative(p.value);
+      const balance = finiteNonNegative(p.balance);
+      const rate = finiteNonNegative(p.rate);
+      const rent = finiteNonNegative(p.rent);
+      const pitiaExtra = finiteNonNegative(p.pitiaExtra);
+      const piMo = pi(balance, rate);
+      const pitia = Math.min(MAX_UI_VALUE, piMo + pitiaExtra);
+      const dscr = pitia > 0 ? rent / pitia : 0;
+      const cf = rent - pitia;
+      const ltv = value > 0 ? (balance / value) * 100 : 0;
+      return { ...p, value, balance, rate, rent, pitiaExtra, piMo, pitia, dscr, cf, ltv };
     }),
     [rows]
   );
 
   // ── Portfolio aggregates (blended) ────────────────────────────────────────
-  const agg = useMemo(() => {
-    let totRent = 0, totDebt = 0, totValue = 0, totBal = 0, totCash = 0, wRateNum = 0;
-    for (const c of computed) {
-      totRent   += c.rent;
-      totDebt   += c.pitia;
-      totValue  += c.value;
-      totBal    += c.balance;
-      totCash   += c.cf;
-      wRateNum  += c.rate * c.balance;
-    }
-    const blend  = totDebt > 0 ? totRent / totDebt : 0;
-    const equity = totValue - totBal;
-    const wRate  = totBal  > 0 ? wRateNum / totBal : 0;
-    return { blend, equity, totCash, wRate, totBal };
-  }, [computed]);
+  const agg = useMemo(() => computePortfolioAggregates(computed), [computed]);
 
   // ── analyzePortfolio for rich signals ─────────────────────────────────────
   const portfolioResult = useMemo(() => {
+    if (!agg.hasProperties) return null;
     try {
       const enriched = computed.map((c) => ({
         ...c,
@@ -129,7 +132,7 @@ export default function PortfolioPage({
     } catch {
       return null;
     }
-  }, [computed]);
+  }, [agg.hasProperties, computed]);
 
   // ── Concentration lists ───────────────────────────────────────────────────
   const geoConc = useMemo(() => {
@@ -168,10 +171,10 @@ export default function PortfolioPage({
   const blendColor = agg.blend >= 1.25 ? MINT : agg.blend >= 1.0 ? YELLOW : RED;
   const cashColor  = agg.totCash >= 0  ? MINT : RED;
 
-  const blendStr  = agg.blend.toFixed(2) + "x";
-  const equityStr = fmt(agg.equity);
-  const cashStr   = (agg.totCash >= 0 ? "+" : "") + fmt(agg.totCash);
-  const wRateStr  = agg.wRate.toFixed(2) + "%";
+  const blendStr  = agg.hasProperties ? agg.blend.toFixed(2) + "x" : "—";
+  const equityStr = agg.hasProperties ? fmt(agg.equity) : "—";
+  const cashStr   = agg.hasProperties ? (agg.totCash >= 0 ? "+" : "") + fmt(agg.totCash) : "—";
+  const wRateStr  = agg.hasProperties ? agg.wRate.toFixed(2) + "%" : "—";
 
   // Distribution + spread bars reveal on scroll-in
   const [barsRef, barsShown] = useRevealOnView<HTMLDivElement>();
@@ -205,6 +208,19 @@ export default function PortfolioPage({
         footer div[style]{color:${dc.dark} !important;}
         .pf-hbar{transform-origin:bottom;}
         .pf-gbar{transform-origin:left;}
+        @media (max-width:480px){
+          #pf-tool{padding-left:12px !important;padding-right:12px !important;}
+          .pf-stats,.pf-signals{grid-template-columns:1fr !important;}
+          .pf-table-wrap{overflow:visible !important;}
+          .pf-table{display:block;min-width:0 !important;width:100% !important;}
+          .pf-table thead{display:none;}
+          .pf-table tbody{display:block;width:100%;}
+          .pf-table .pf-row{display:block;margin:10px;border:1px solid rgba(238,239,211,0.15);border-radius:10px;overflow:hidden;}
+          .pf-table .pf-row td{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px !important;text-align:right !important;}
+          .pf-table .pf-row td::before{content:attr(data-label);flex:0 0 78px;text-align:left;color:rgba(238,239,211,0.62);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+          .pf-table .pf-row input,.pf-table .pf-row select{width:min(150px,55vw) !important;max-width:100%;}
+          .pf-table .pf-empty{display:block !important;width:auto !important;}
+        }
       `}</style>
 
       {/* ── TOOL ─────────────────────────────────────────────────────────── */}
@@ -254,7 +270,7 @@ export default function PortfolioPage({
 
           {/* 4-stat strip */}
           <div
-            className="dc-band-2"
+            className="dc-band-2 pf-stats"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(4,1fr)",
@@ -268,10 +284,10 @@ export default function PortfolioPage({
             {(() => {
               const big = (color: string) => ({ display: "block" as const, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 700, letterSpacing: "-0.03em", color, lineHeight: 1 });
               return [
-                { label: "Blended DSCR",     hint: "Combined rent ÷ combined payments. 1.25+ = strong; 1.0–1.24 = qualifies; below 1.0 = fix needed.", node: rows.length === 0 ? <Mono style={big("rgba(238,239,211,0.3)")}>—</Mono> : <CountUp value={agg.blend} decimals={2} suffix="x" style={big(blendColor)} /> },
-                { label: "Total Equity",      hint: "Sum of (property value minus loan balance) across all properties.", node: <CountUp value={agg.equity} group prefix="$" style={big(dc.cream)} /> },
-                { label: "Monthly Cash Flow", hint: "Total rent minus total PITIA (full monthly payment including principal, interest, taxes, insurance, and fees) across all properties.", node: <Mono style={big(cashColor)}>{cashStr}</Mono> },
-                { label: "Weighted Rate",     hint: "Average interest rate weighted by loan balance — the blended cost of your debt.", node: <CountUp value={agg.wRate} decimals={2} suffix="%" style={big(dc.cream)} /> },
+                { label: "Blended DSCR",     hint: "Combined rent ÷ combined payments. 1.25+ = strong; 1.0–1.24 = qualifies; below 1.0 = fix needed.", node: !agg.hasProperties ? <Mono style={big("rgba(238,239,211,0.3)")}>—</Mono> : <CountUp value={agg.blend} decimals={2} suffix="x" style={big(blendColor)} /> },
+                { label: "Total Equity",      hint: "Sum of (property value minus loan balance) across all properties.", node: !agg.hasProperties ? <Mono style={big("rgba(238,239,211,0.3)")}>{equityStr}</Mono> : <CountUp value={agg.equity} group prefix="$" style={big(dc.cream)} /> },
+                { label: "Monthly Cash Flow", hint: "Total rent minus total PITIA (full monthly payment including principal, interest, taxes, insurance, and fees) across all properties.", node: <Mono style={big(agg.hasProperties ? cashColor : "rgba(238,239,211,0.3)")}>{cashStr}</Mono> },
+                { label: "Weighted Rate",     hint: "Average interest rate weighted by loan balance — the blended cost of your debt.", node: !agg.hasProperties ? <Mono style={big("rgba(238,239,211,0.3)")}>{wRateStr}</Mono> : <CountUp value={agg.wRate} decimals={2} suffix="%" style={big(dc.cream)} /> },
               ];
             })().map(({ label, hint, node }) => (
               <div key={label} style={{ background: dc.dark, padding: 26 }}>
@@ -336,8 +352,8 @@ export default function PortfolioPage({
               border: `1px solid ${dc.faded}`,
             }}
           >
-            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
+            <div className="pf-table-wrap" style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              <table className="pf-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
                 <thead>
                   <tr>
                     {["Property", "Type", "Value", "Balance", "Rate %", "Rent/mo", "LTV", "DSCR", "Cash/mo", ""].map((h, i) => (
@@ -362,7 +378,7 @@ export default function PortfolioPage({
                 <tbody>
                   {computed.length === 0 && (
                     <tr>
-                      <td colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(238,239,211,0.62)", fontSize: 14, fontWeight: 500 }}>
+                      <td className="pf-empty" colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(238,239,211,0.62)", fontSize: 14, fontWeight: 500 }}>
                         No properties yet — add one to see your blended DSCR.
                       </td>
                     </tr>
@@ -372,11 +388,11 @@ export default function PortfolioPage({
                     const cc  = c.cf >= 0 ? MINT : RED;
                     return (
                       <tr key={c.id} className="pf-row" style={{ background: "transparent", transition: "background .12s" }}>
-                        <td style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Property" style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
                           <input type="text" aria-label={`Property name for row ${c.id}`} value={c.name} onChange={(e) => edit(c.id, "name", e.target.value)} placeholder="Property name"
                             style={{ width: 138, background: "transparent", border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 600, fontSize: 14, padding: "7px 9px", outline: "none" }} />
                         </td>
-                        <td style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Type" style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
                           <select aria-label="Property type" value={c.propertyType} onChange={(e) => edit(c.id, "propertyType", e.target.value)}
                             style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 500, fontSize: 13, padding: "7px 7px", outline: "none", cursor: "pointer" }}>
                             {["SFR", "2-4 unit", "Duplex", "Triplex", "4-plex", "5+ unit", "Condo", "Townhome", "STR / Airbnb"].map((t) => (
@@ -384,22 +400,22 @@ export default function PortfolioPage({
                             ))}
                           </select>
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Value" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <input className="pf-in" aria-label="Property value" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Balance" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <input className="pf-in" aria-label="Loan balance" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Rate" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <input className="pf-in" aria-label="Note rate" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Rent / mo" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <input className="pf-in" aria-label="Monthly rent" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.62)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="LTV" style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.62)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
                           {c.ltv.toFixed(0)}%
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="DSCR" style={{ padding: "11px 14px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                             <Mono style={{ fontSize: 14, fontWeight: 700, color: rowDscrColor }}>
                               {c.dscr.toFixed(2)}x
@@ -407,11 +423,13 @@ export default function PortfolioPage({
                             {c.dscr < 1.25 && <RiskFlame level={riskFromDscr(c.dscr)} size={14} />}
                           </span>
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cc, fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Cash / mo" style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cc, fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
                           {(c.cf >= 0 ? "+" : "") + fmt(c.cf)}
                         </td>
-                        <td style={{ padding: "11px 14px", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Actions" style={{ padding: "11px 14px", borderBottom: `1px solid ${dc.faded}` }}>
                           <button
+                            type="button"
+                            aria-label={`Remove ${c.name}`}
                             onClick={() => removeRow(c.id)}
                             style={{ background: "none", border: "1px solid rgba(211,47,47,0.35)", color: "#d32f2f", borderRadius: dc.r.sm, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: dc.sans }}
                           >
@@ -448,7 +466,7 @@ export default function PortfolioPage({
           {/* ── Secondary signals ─────────────────────────────────────────── */}
           <div
             ref={barsRef}
-            className="dc-band-2"
+            className="dc-band-2 pf-signals"
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 36 }}
           >
             {/* DSCR buckets histogram */}
@@ -462,15 +480,15 @@ export default function PortfolioPage({
             >
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>DSCR distribution</div>
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.4 }}>
-                How your properties are spread across DSCR buckets. Red bars = lenders may decline; green = comfortable approval zone.
+                How entered properties are distributed across fixed model bands. Colors do not predict lender decisions or portfolio performance.
               </p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, alignItems: "end" }}>
                 {[
-                  { label: "DEAL BREAK", range: "< 0.85",   count: buckets.dealBreak,   color: RED,        riskLevel: "high" as const },
+                  { label: "LOW COVERAGE", range: "< 0.85", count: buckets.dealBreak,   color: RED,        riskLevel: "high" as const },
                   { label: "FRAGILE",    range: "0.85–1.0",  count: buckets.fragile,     color: RED,        riskLevel: "med" as const },
                   { label: "MARGINAL",   range: "1.0–1.25",  count: buckets.marginal,    color: dc.lemon,   riskLevel: "low" as const },
                   { label: "SOLID",      range: "1.25–1.5",  count: buckets.comfortable, color: dc.emerald, riskLevel: "none" as const },
-                  { label: "SAFE",       range: "≥ 1.5",     count: buckets.safe,        color: dc.emerald, riskLevel: "none" as const },
+                  { label: "HIGHER CUSHION", range: "≥ 1.5", count: buckets.safe,       color: dc.emerald, riskLevel: "none" as const },
                 ].map((b, i) => (
                   <div key={b.label} style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{b.label}</div>
@@ -512,7 +530,7 @@ export default function PortfolioPage({
             >
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Geographic spread</div>
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.4 }}>
-                Concentration by state. Over 50% in one state (red) can limit blanket-loan options — Greenstreet's underwriters prefer diversified books.
+                Concentration by state. The 30% and 50% color breaks are interface assumptions for comparing concentration, not lender limits or portfolio recommendations.
               </p>
               {geoConc.slice(0, 5).map((g, i) => {
                 const barColor = g.pct > 50 ? RED : g.pct > 30 ? dc.lemon : dc.emerald;
@@ -552,12 +570,12 @@ export default function PortfolioPage({
                 marginTop: 20,
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Refinance opportunities</div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Modeled refinance watchlist</div>
               <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.5 }}>
-                These properties may benefit from a rate-and-term refinance based on estimated current rates. "REFINANCE NOW" means seasoning (the minimum time a loan must be held before refinancing) is complete. "MONITOR" means the seasoning period is still running.
+                These flags compare stored scenario rates and seasoning assumptions. They are not current quotes, refinance recommendations, eligibility decisions, or universal seasoning rules.
               </p>
               {portfolioResult.refiOpportunities.map((r) => {
-                const action = r.seasoningMonthsRemaining <= 0 ? "REFINANCE NOW" : "MONITOR";
+                const action = r.seasoningMonthsRemaining <= 0 ? "REVIEW ASSUMPTIONS" : "MODELED SEASONING OPEN";
                 const actionColor = r.seasoningMonthsRemaining <= 0 ? dc.emerald : dc.lemon;
                 return (
                   <div
@@ -573,7 +591,7 @@ export default function PortfolioPage({
                     <div>
                       <div style={{ color: dc.cream, fontWeight: 700, fontSize: 14 }}>{r.propertyId}</div>
                       <div style={{ color: "rgba(238,239,211,0.62)", fontSize: 11, marginTop: 3 }}>
-                        Save ${r.monthlySavings.toFixed(0)}/mo · {r.currentRate.toFixed(2)}% → {r.projectedRate.toFixed(2)}%
+                        Modeled savings ${r.monthlySavings.toFixed(0)}/mo · entered {r.currentRate.toFixed(2)}% → stored scenario {r.projectedRate.toFixed(2)}%
                         {r.seasoningMonthsRemaining > 0 ? ` · ${r.seasoningMonthsRemaining} mo seasoning left` : ""}
                       </div>
                     </div>
@@ -586,7 +604,7 @@ export default function PortfolioPage({
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Submit a scenario review for exact underwriting.
+            Illustrative portfolio model only. Blended DSCR, cash flow, concentration bands, stored rates, seasoning, and refinance flags depend on entered and embedded assumptions. They are not approvals, recommendations, current quotes, or commitments to lend.
           </p>
         </div>
       </section>
@@ -614,12 +632,10 @@ export default function PortfolioPage({
                 Ready to finance your portfolio?
               </div>
               <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
-                Greenstreet underwrites your entire book — one application.
+                Review a portfolio financing scenario.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
-                Blanket and multi-property DSCR files are our specialty. No income docs,
-                no W-2s — qualify on blended rent. Bring the view you just built and
-                we'll tell you where it fits.
+                Bring the assumptions you modeled for a preliminary scenario review. Actual borrower, entity, property, income, reserve, credit, and documentation requirements vary by program.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>

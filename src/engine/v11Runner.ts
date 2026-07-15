@@ -62,6 +62,52 @@ export interface V11AnalysisResult {
   marketSnapshot: typeof CURRENT_MARKET_SNAPSHOT;
 }
 
+/**
+ * The tax engine returns IRRs as decimals. Decision support consumes decimals,
+ * while the IC memo stores presentation percentages alongside the percent-based
+ * returns-engine fields.
+ */
+export function mapIRRUnits(
+  preTaxIRRDecimal: number,
+  afterTaxIRRDecimal: number,
+): {
+  verdictPreTaxIRR: number;
+  verdictAfterTaxIRR: number;
+  memoPreTaxIRR: number;
+  memoAfterTaxIRR: number;
+} {
+  const safePreTaxIRR = Number.isFinite(preTaxIRRDecimal) ? preTaxIRRDecimal : 0;
+  const safeAfterTaxIRR = Number.isFinite(afterTaxIRRDecimal) ? afterTaxIRRDecimal : 0;
+
+  return {
+    verdictPreTaxIRR: safePreTaxIRR,
+    verdictAfterTaxIRR: safeAfterTaxIRR,
+    memoPreTaxIRR: safePreTaxIRR * 100,
+    memoAfterTaxIRR: safeAfterTaxIRR * 100,
+  };
+}
+
+/**
+ * `solveDSCR` is intentionally run with the buyer's reassessed annual tax.
+ * Reassessment impact reporting, however, accepts PITIA on the seller-tax
+ * basis and applies the tax delta itself. Replace only the tax component to
+ * recover that base and avoid applying reassessment twice.
+ */
+export function deriveSellerTaxBasePITIA(
+  reassessedPITIA: number,
+  sellerAnnualTax: number,
+  reassessedAnnualTax: number,
+): number {
+  const safeReassessedPITIA = Number.isFinite(reassessedPITIA) ? Math.max(0, reassessedPITIA) : 0;
+  const safeSellerAnnualTax = Number.isFinite(sellerAnnualTax) ? Math.max(0, sellerAnnualTax) : 0;
+  const safeReassessedAnnualTax = Number.isFinite(reassessedAnnualTax) ? Math.max(0, reassessedAnnualTax) : 0;
+
+  return Math.max(
+    0,
+    safeReassessedPITIA - (safeReassessedAnnualTax / 12) + (safeSellerAnnualTax / 12),
+  );
+}
+
 // ============================================================
 // INSURANCE GATE
 // ============================================================
@@ -248,11 +294,16 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
 
   // 2. Reassessment — reuse the precomputed reassessed tax (avoid double work)
   const reassessmentResult = reassessmentPre;
+  const sellerTaxBasePITIA = deriveSellerTaxBasePITIA(
+    dscr.monthlyPITIA.total,
+    input.sellerAnnualTax,
+    reassessmentResult.reassessedAnnualTax,
+  );
   const reassessment = computeReassessmentDSCRImpact(
     input.property.purchasePrice,
     input.property.state,
     dscr.qualifyingRent,
-    dscr.monthlyPITIA.total,
+    sellerTaxBasePITIA,
     input.sellerAnnualTax,
     reassessmentResult.reassessedAnnualTax,
   );
@@ -321,6 +372,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     prepayPenaltyAtExit,
     dscr.solvedRate, termMonths,  // v11.1 FIX (AUDIT-FINAL-7 D-1): pass rate + term for proper amortization
   );
+  const irrUnits = mapIRRUnits(afterTaxIRR.preTaxIRR, afterTaxIRR.afterTaxIRR);
 
   // 6. Cost seg viability
   const costSegViability = assessCostSegViability(
@@ -351,8 +403,8 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     track1DSCR,
     track2DSCR,
     lenderMinDSCR: 1.0, // standard floor
-    afterTaxIRR: afterTaxIRR.afterTaxIRR / 100, // convert to decimal
-    preTaxIRR: afterTaxIRR.preTaxIRR / 100,
+    afterTaxIRR: irrUnits.verdictAfterTaxIRR,
+    preTaxIRR: irrUnits.verdictPreTaxIRR,
     year1CoC: returns.year1CashOnCash / 100,
     dealBreakRate: dscr.dealBreakRate,
     solvedRate: dscr.solvedRate,
@@ -393,7 +445,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     preTaxIRR: returns.leveredIRR,
     preTaxP10: input.monteCarloP10IRR ?? returns.leveredIRR * 0.8,
     preTaxP90: input.monteCarloP90IRR ?? returns.leveredIRR * 1.2,
-    afterTaxIRR: afterTaxIRR.afterTaxIRR / 100,
+    afterTaxIRR: irrUnits.memoAfterTaxIRR,
     equityMultiple: returns.equityMultiple,
     sellerAnnualTax: input.sellerAnnualTax,
     reassessedAnnualTax: reassessment.reassessedAnnualTax,

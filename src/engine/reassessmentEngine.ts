@@ -118,7 +118,12 @@ export const STATE_REASSESSMENT_RULES: Record<string, StateReassessmentRule> = {
 // ============================================================
 
 export function getReassessmentRule(state: string): StateReassessmentRule {
-  return STATE_REASSESSMENT_RULES[state.toUpperCase()] ?? STATE_REASSESSMENT_RULES.DEFAULT;
+  const normalizedState = typeof state === 'string' ? state.trim().toUpperCase() : '';
+  return STATE_REASSESSMENT_RULES[normalizedState] ?? STATE_REASSESSMENT_RULES.DEFAULT;
+}
+
+function nonNegativeFinite(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
 }
 
 /**
@@ -146,29 +151,35 @@ export function computeReassessedTax(
   note: string;
 } {
   const rule = getReassessmentRule(state);
-  const millRate = (overrideMillRatePct ?? rule.effectiveMillRatePct) / 100;
-  const reassessedAnnualTax = Math.round(purchasePrice * millRate);
-  const deltaAnnual = reassessedAnnualTax - sellerAnnualTax;
+  const safePurchasePrice = nonNegativeFinite(purchasePrice);
+  const safeSellerAnnualTax = nonNegativeFinite(sellerAnnualTax);
+  const requestedMillRate = overrideMillRatePct === undefined
+    ? rule.effectiveMillRatePct
+    : overrideMillRatePct;
+  const effectiveMillRatePct = nonNegativeFinite(requestedMillRate);
+  const millRate = effectiveMillRatePct / 100;
+  const reassessedAnnualTax = Math.round(safePurchasePrice * millRate);
+  const deltaAnnual = reassessedAnnualTax - safeSellerAnnualTax;
   const deltaMonthly = Math.round(deltaAnnual / 12);
 
   // CA supplemental bill = the catch-up tax for the stub period from sale date to fiscal year-end
   // Approximation: 6 months average stub × delta / 12
   const supplementalBillEstimate = rule.supplementalBillExpected
-    ? Math.round((deltaAnnual / 12) * 6)  // ~6 month average stub
+    ? Math.max(0, Math.round((deltaAnnual / 12) * 6))  // ~6 month average stub
     : 0;
 
   let note: string;
   switch (rule.rule) {
     case 'CA_PROP_13':
-      note = `CA Prop 13: Purchase price ($${purchasePrice.toLocaleString()}) becomes new assessed value. ` +
-             `Seller paid $${sellerAnnualTax.toLocaleString()}/yr on prior locked basis; ` +
-             `your first-year bill = $${reassessedAnnualTax.toLocaleString()}/yr (${rule.effectiveMillRatePct}% of purchase price). ` +
+      note = `CA Prop 13: Purchase price ($${safePurchasePrice.toLocaleString()}) becomes new assessed value. ` +
+             `Seller paid $${safeSellerAnnualTax.toLocaleString()}/yr on prior locked basis; ` +
+             `your first-year bill = $${reassessedAnnualTax.toLocaleString()}/yr (${effectiveMillRatePct}% of purchase price). ` +
              `Annual increases capped at 2%. Supplemental bill (~$${supplementalBillEstimate.toLocaleString()}) arrives 3-9 months post-closing.`;
       break;
     case 'TX_MARKET_RATE':
       note = `TX: Property tax reassesses to market value (= purchase price) at sale. ` +
-             `Effective rate ~${rule.effectiveMillRatePct}% annually. ` +
-             `Seller paid $${sellerAnnualTax.toLocaleString()}/yr; new bill = $${reassessedAnnualTax.toLocaleString()}/yr. ` +
+             `Effective rate ~${effectiveMillRatePct}% annually. ` +
+             `Seller paid $${safeSellerAnnualTax.toLocaleString()}/yr; new bill = $${reassessedAnnualTax.toLocaleString()}/yr. ` +
              `Non-homestead annual cap is 10% — annual increases can be material.`;
       break;
     case 'FL_PURCHASE_RESET':
@@ -221,24 +232,28 @@ export function computeReassessmentDSCRImpact(
   reassessedAnnualTax: number,
 ): ReassessmentResult {
   const rule = getReassessmentRule(state);
-  const taxDeltaAnnual = reassessedAnnualTax - sellerAnnualTax;
+  const safeQualifyingRent = nonNegativeFinite(qualifyingRent);
+  const safeBasePITIA = nonNegativeFinite(pitiaBefore);
+  const safeSellerAnnualTax = nonNegativeFinite(sellerAnnualTax);
+  const safeReassessedAnnualTax = nonNegativeFinite(reassessedAnnualTax);
+  const taxDeltaAnnual = safeReassessedAnnualTax - safeSellerAnnualTax;
   const taxDeltaMonthly = taxDeltaAnnual / 12;
-  const pitiaAfter = pitiaBefore + taxDeltaMonthly;
+  const pitiaAfter = Math.max(0, safeBasePITIA + taxDeltaMonthly);
 
-  const dscrBefore = pitiaBefore > 0 ? qualifyingRent / pitiaBefore : 0;
-  const dscrAfter = pitiaAfter > 0 ? qualifyingRent / pitiaAfter : 0;
+  const dscrBefore = safeBasePITIA > 0 ? safeQualifyingRent / safeBasePITIA : 0;
+  const dscrAfter = pitiaAfter > 0 ? safeQualifyingRent / pitiaAfter : 0;
   const dscrImpact = dscrAfter - dscrBefore;
 
   const supplementalBillEstimate = rule.supplementalBillExpected
-    ? Math.round((taxDeltaAnnual / 12) * 6)
+    ? Math.max(0, Math.round((taxDeltaAnnual / 12) * 6))
     : 0;
 
   return {
-    sellerAnnualTax,
-    reassessedAnnualTax,
+    sellerAnnualTax: safeSellerAnnualTax,
+    reassessedAnnualTax: safeReassessedAnnualTax,
     taxDeltaAnnual,
     taxDeltaMonthly,
-    pitiaBefore: Math.round(pitiaBefore * 100) / 100,
+    pitiaBefore: Math.round(safeBasePITIA * 100) / 100,
     pitiaAfter: Math.round(pitiaAfter * 100) / 100,
     dscrBefore: Math.round(dscrBefore * 1000) / 1000,
     dscrAfter: Math.round(dscrAfter * 1000) / 1000,

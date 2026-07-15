@@ -1,727 +1,216 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
-import { gsap } from "gsap";
-import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
-import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
-import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
-import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
+import React, { useEffect, useMemo, useState } from "react";
+import { DcShell, dc } from "../design/dc";
+import { Mono } from "../components/PremiumUI";
 
-// ─── color helpers ────────────────────────────────────────────────────────────
-const RED     = "#e06363";
-const ORANGE  = "#e6b84d";
-const YELLOW  = dc.lemon;   // warn signal — bright on the dark canvas
-const YELLOW_DARK = dc.lemon;
-const BLUE    = "#7ec8d3";  // sky-blue — the rates / SOFR / uncertainty color
+type PageProps = { onBack?: () => void; onNavigate: (view: any) => void };
+type InputKey = "loan" | "rent" | "nonDebt" | "initialRate" | "longRunRate" | "volatility" | "years" | "simulations" | "seed";
+type Inputs = Record<InputKey, string>;
+type Parsed = Record<InputKey, number>;
+type SimulationResult = { belowOne: number; belowCushion: number; p10: number; median: number; p90: number; paths: number; months: number };
 
-function pColor(p: number, warnAt: number, errorAt: number): string {
-  if (p > errorAt) return RED;
-  if (p > warnAt)  return YELLOW;
-  return dc.emerald;
+const DEFAULTS: Inputs = {
+  loan: "400000",
+  rent: "3600",
+  nonDebt: "850",
+  initialRate: "7.25",
+  longRunRate: "5.5",
+  volatility: "1.25",
+  years: "5",
+  simulations: "500",
+  seed: "42",
+};
+
+const FIELDS: { key: InputKey; label: string; min: number; max: number; step: number; help: string }[] = [
+  { key: "loan", label: "Loan amount", min: 25000, max: 5000000, step: 5000, help: "Principal used for the modeled 30-year payment." },
+  { key: "rent", label: "Monthly gross rent", min: 0, max: 50000, step: 50, help: "Held constant so this tool isolates the entered rate path." },
+  { key: "nonDebt", label: "Taxes, insurance, HOA per month", min: 0, max: 20000, step: 25, help: "Monthly costs added to principal and interest." },
+  { key: "initialRate", label: "Starting rate assumption (%)", min: 0, max: 20, step: 0.05, help: "The first modeled annual note rate, not a current quote." },
+  { key: "longRunRate", label: "Long-run rate assumption (%)", min: 0, max: 20, step: 0.05, help: "The level toward which this simplified model drifts." },
+  { key: "volatility", label: "Annualized volatility assumption", min: 0, max: 10, step: 0.05, help: "Controls modeled dispersion; it is not measured market volatility." },
+  { key: "years", label: "Horizon in years", min: 1, max: 30, step: 1, help: "The period over which each path is evaluated." },
+  { key: "simulations", label: "Number of paths", min: 100, max: 2000, step: 100, help: "Technical range for responsive browser calculation." },
+  { key: "seed", label: "Random seed", min: 1, max: 999999, step: 1, help: "Makes the illustrative path set repeatable." },
+];
+
+function usePageMetadata(title: string, description: string, path: string) {
+  useEffect(() => {
+    document.title = title;
+    const setMeta = (key: string, value: string, property = false) => {
+      const attr = property ? "property" : "name";
+      let tag = document.head.querySelector("meta[" + attr + "='" + key + "']") as HTMLMetaElement | null;
+      if (!tag) { tag = document.createElement("meta"); tag.setAttribute(attr, key); document.head.appendChild(tag); }
+      tag.content = value;
+    };
+    setMeta("description", description);
+    setMeta("og:title", title, true);
+    setMeta("og:description", description, true);
+    let canonical = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = new URL(path, window.location.origin).href;
+    window.scrollTo(0, 0);
+  }, [description, path, title]);
 }
 
-// ─── slider input helper ──────────────────────────────────────────────────────
-interface SliderFieldProps {
-  label: string;
-  hint: string;
-  value: number;
-  set: (v: number) => void;
-  min: number;
-  max: number;
-  step: number;
-  prefix?: string;
-  suffix?: string;
-  fmt?: (v: number) => string;
-}
-function SliderField({ label, hint, value, set, min, max, step, prefix = "", suffix = "", fmt }: SliderFieldProps) {
-  const display = fmt ? fmt(value) : value.toString();
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
-          {label}
-        </span>
-        <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.lemon }}>
-          {prefix}{display}{suffix}
-        </Mono>
-      </div>
-      <input
-        className="gs-range"
-        aria-label={label}
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => set(+e.target.value)}
-      />
-      {hint && (
-        <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>
-          {hint}
-        </span>
-      )}
-    </div>
-  );
+function monthlyPayment(principal: number, annualRatePct: number) {
+  if (!Number.isFinite(principal) || !Number.isFinite(annualRatePct) || principal < 0 || annualRatePct < 0) return NaN;
+  if (principal === 0) return 0;
+  const rate = annualRatePct / 1200;
+  if (rate === 0) return principal / 360;
+  const factor = Math.pow(1 + rate, 360);
+  const value = principal * rate * factor / (factor - 1);
+  return Number.isFinite(value) ? value : NaN;
 }
 
-// ─── DSCR distribution bar chart ─────────────────────────────────────────────
-// Visual spread from P10 → P90 as a horizontal bar with zones.
-function DscrSpreadBar({ p10, median, p90, animate }: { p10: number; median: number; p90: number; animate: boolean }) {
-  // Map DSCR 0.5–2.0 to % position in the bar
-  const toX = (v: number) => Math.max(0, Math.min(100, ((Math.min(v, 2.0) - 0.5) / 1.5) * 100));
-  const x10 = toX(p10);
-  const xMed = toX(median);
-  const x90 = toX(p90);
-  const spread = x90 - x10;
-  const medColor = pColor(100 - median * 50, 20, 50); // rough color for median
-  const p10Color = p10 < 1.0 ? RED : p10 < 1.25 ? ORANGE : dc.emerald;
-
-  return (
-    <div style={{ position: "relative", marginTop: 8, marginBottom: 24 }}>
-      {/* track */}
-      <div style={{ position: "relative", height: 14, borderRadius: 999, background: "rgba(238,239,211,0.1)", overflow: "hidden" }}>
-        {/* spread fill */}
-        <div style={{
-          position: "absolute", top: 0, left: `${x10}%`, width: animate ? `${spread}%` : "0%",
-          height: "100%", borderRadius: 999,
-          background: p10 < 1.0
-            ? `linear-gradient(90deg, ${RED}88, ${dc.emerald}88)`
-            : `linear-gradient(90deg, ${ORANGE}66, ${dc.emerald}88)`,
-          transition: "width 0.6s cubic-bezier(0.16,1,0.3,1), left 0.6s cubic-bezier(0.16,1,0.3,1)",
-        }} />
-        {/* median tick */}
-        <div style={{
-          position: "absolute", top: 0, left: animate ? `${xMed}%` : "50%",
-          width: 3, height: "100%",
-          background: dc.cream, borderRadius: 2,
-          transition: "left 0.6s cubic-bezier(0.16,1,0.3,1)",
-        }} />
-        {/* 1.0 threshold tick */}
-        <div style={{
-          position: "absolute", top: -2, left: `${toX(1.0)}%`,
-          width: 2, height: "calc(100% + 4px)",
-          background: RED, opacity: 0.6, borderRadius: 1,
-        }} />
-        {/* 1.25 threshold tick */}
-        <div style={{
-          position: "absolute", top: -2, left: `${toX(1.25)}%`,
-          width: 2, height: "calc(100% + 4px)",
-          background: dc.emerald, opacity: 0.5, borderRadius: 1,
-        }} />
-      </div>
-      {/* labels */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
-        <span style={{ fontSize: 11, color: p10Color, fontWeight: 700, fontFamily: dc.mono }}>P10 {p10.toFixed(2)}x</span>
-        <span style={{ fontSize: 11, color: dc.cream, fontWeight: 700, fontFamily: dc.mono }}>Med {median.toFixed(2)}x</span>
-        <span style={{ fontSize: 11, color: dc.emerald, fontWeight: 700, fontFamily: dc.mono }}>P90 {p90.toFixed(2)}x</span>
-      </div>
-      {/* threshold legend */}
-      <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
-        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ width: 8, height: 2, background: RED, display: "inline-block", borderRadius: 1 }} />
-          1.0 = break-even
-        </span>
-        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ width: 8, height: 2, background: dc.emerald, display: "inline-block", borderRadius: 1 }} />
-          1.25 = lender comfort zone
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ─── P-probability card ───────────────────────────────────────────────────────
-function ProbCard({
-  title, value, color, sub, dark = false, flame,
-}: { title: string; value: string; color: string; sub: string; dark?: boolean; flame?: React.ReactNode }) {
-  const [ref, shown] = useRevealOnView<HTMLDivElement>();
-  return (
-    <div
-      ref={ref}
-      style={{
-        background: dark ? dc.dark : "#fff",
-        borderRadius: dc.r.md, padding: "clamp(22px,3vw,36px)",
-        border: dark ? "none" : "1px solid rgba(0,55,56,0.1)",
-        textAlign: "center",
-        opacity: shown ? 1 : 0,
-        transform: shown ? "none" : "translateY(10px)",
-        transition: "opacity 0.4s ease, transform 0.4s ease",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <div style={{
-          fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
-          textTransform: "uppercase", color: dark ? YELLOW_DARK : dc.rain,
-        }}>
-          {title}
-        </div>
-        {flame && <div>{flame}</div>}
-      </div>
-      <Mono style={{
-        fontSize: "clamp(48px,6vw,80px)", fontWeight: 600,
-        letterSpacing: "-0.04em", color, lineHeight: 0.95, display: "block",
-      }}>
-        {value}
-      </Mono>
-      <div style={{ fontSize: 12, fontWeight: 500, color: dark ? "rgba(238,239,211,0.62)" : "rgba(0,55,56,0.5)", marginTop: 10, lineHeight: 1.45 }}>
-        {sub}
-      </div>
-    </div>
-  );
-}
-
-// ─── collapsible details disclosure ──────────────────────────────────────────
-function Disclosure({ label, children }: { label: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div style={{ borderRadius: dc.r.sm, border: "1px solid rgba(238,239,211,0.14)", overflow: "hidden" }}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "14px 18px", background: "rgba(238,239,211,0.04)",
-          border: "none", cursor: "pointer", fontFamily: dc.sans,
-          fontSize: 12, fontWeight: 600, color: BLUE, letterSpacing: "0.04em", textTransform: "uppercase",
-        }}
-      >
-        {label}
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }}>
-          <path d="M4 6l4 4 4-4" stroke={BLUE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {open && (
-        <div style={{ padding: "16px 18px 18px", borderTop: "1px solid rgba(238,239,211,0.16)" }}>
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── SOFR fan chart — the signature Monte Carlo viz ──────────────────────────
-// Draws the cone of simulated SOFR rate paths: a P10–P90 band (sky-blue) with
-// the mean line, plus the long-run θ the paths drift toward. Built from the
-// engine's horizon percentiles (year 1/3/5/10), anchored at today's rate.
-type FanPoint = { year: number; mean: number; p10: number; p90: number };
-function SofrFanChart({ points, longRun }: { points: FanPoint[]; longRun: number }) {
-  const W = 520, H = 240, padL = 38, padR = 16, padT = 14, padB = 28;
-  if (points.length < 2) return null;
-  const xmax = Math.max(...points.map((p) => p.year)) || 1;
-  const lo = Math.min(longRun, ...points.map((p) => p.p10));
-  const hi = Math.max(longRun, ...points.map((p) => p.p90));
-  const yMin = Math.floor(lo - 0.5);
-  const yMax = Math.ceil(hi + 0.5);
-  const X = (yr: number) => padL + (yr / xmax) * (W - padL - padR);
-  const Y = (v: number) => padT + (1 - (v - yMin) / (yMax - yMin || 1)) * (H - padT - padB);
-  const top = points.map((p) => `${X(p.year).toFixed(1)},${Y(p.p90).toFixed(1)}`);
-  const bot = points.slice().reverse().map((p) => `${X(p.year).toFixed(1)},${Y(p.p10).toFixed(1)}`);
-  const band = `M ${top.join(" L ")} L ${bot.join(" L ")} Z`;
-  const meanLine = points.map((p, i) => `${i === 0 ? "M" : "L"} ${X(p.year).toFixed(1)} ${Y(p.mean).toFixed(1)}`).join(" ");
-  const gridY = [yMin, (yMin + yMax) / 2, yMax];
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Simulated SOFR rate cone over the horizon">
-      {gridY.map((v) => (
-        <g key={v}>
-          <line x1={padL} x2={W - padR} y1={Y(v)} y2={Y(v)} stroke="rgba(238,239,211,0.08)" strokeWidth="1" />
-          <text x={padL - 8} y={Y(v) + 3} textAnchor="end" fill="rgba(238,239,211,0.5)" fontSize="10" fontFamily={dc.mono}>{v.toFixed(1)}%</text>
-        </g>
-      ))}
-      {/* long-run θ */}
-      <line x1={padL} x2={W - padR} y1={Y(longRun)} y2={Y(longRun)} stroke={dc.emerald} strokeWidth="1.2" strokeDasharray="4 4" opacity="0.6" />
-      <text x={W - padR} y={Y(longRun) - 5} textAnchor="end" fill={dc.emerald} fontSize="10" fontWeight={700} fontFamily={dc.mono}>θ {longRun.toFixed(2)}%</text>
-      {/* uncertainty band */}
-      <path d={band} fill={BLUE} fillOpacity="0.16" stroke="none" />
-      <polyline points={top.join(" ")} fill="none" stroke={BLUE} strokeOpacity="0.5" strokeWidth="1.2" />
-      <polyline points={bot.join(" ")} fill="none" stroke={BLUE} strokeOpacity="0.5" strokeWidth="1.2" />
-      {/* mean path */}
-      <path d={meanLine} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      {points.map((p) => (
-        <g key={p.year}>
-          <circle cx={X(p.year)} cy={Y(p.mean)} r="3.5" fill={BLUE} stroke={dc.dark} strokeWidth="1.5" />
-          <text x={X(p.year)} y={H - 9} textAnchor="middle" fill="rgba(238,239,211,0.45)" fontSize="10" fontFamily={dc.mono}>{p.year === 0 ? "Now" : `Y${p.year}`}</text>
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-// ─── main component ───────────────────────────────────────────────────────────
-export default function MonteCarloPage({
-  onBack,
-  onNavigate,
-}: {
-  onBack: () => void;
-  onNavigate: (v: any) => void;
-}) {
-  // ── inputs ────────────────────────────────────────────────────────────────
-  const [loanAmount,    setLoanAmount]    = useState(340000);
-  const [monthlyRent,   setMonthlyRent]   = useState(3000);
-  const [pitiaNonDebt,  setPitiaNonDebt]  = useState(750);
-  const [initialSofr,   setInitialSofr]   = useState(CURRENT_MARKET_SNAPSHOT.sofr30Day);
-  const [longRunSofr,   setLongRunSofr]   = useState(DEFAULT_VASICEK_PARAMS.longRunMeanSOFR);
-  const [simulations,   setSimulations]   = useState(500);
-  const [horizonYears,  setHorizonYears]  = useState(10);
-  const [seed,          setSeed]          = useState(42);
-
-  // track last-changed field for cause→effect highlight
-  const [lastChanged, setLastChanged] = useState<string | null>(null);
-  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const touch = useCallback((field: string, setter: (v: number) => void) => (v: number) => {
-    setter(v);
-    setLastChanged(field);
-    if (highlightTimer.current) clearTimeout(highlightTimer.current);
-    highlightTimer.current = setTimeout(() => setLastChanged(null), 1800);
-  }, []);
-
-  // ── Guided rate-environment presets ──────────────────────────────────────
-  // One-click macro scenarios that set the two rate assumptions (today's SOFR +
-  // the long-run θ the paths revert to). Clicking animates the sliders so the
-  // probabilities, fan chart, and gauge visibly re-roll across that future.
-  const snapSofr = CURRENT_MARKET_SNAPSHOT.sofr30Day;
-  const mcPresets = useMemo(() => ([
-    { id: "today",  label: "Today's market",    sub: "Current SOFR, settling near the model's long-run mean", initial: snapSofr,       theta: DEFAULT_VASICEK_PARAMS.longRunMeanSOFR },
-    { id: "higher", label: "Higher for longer", sub: "Rates stay elevated — θ rises to 4.50%",                 initial: snapSofr,       theta: 4.5 },
-    { id: "soft",   label: "Soft landing",       sub: "The Fed cuts — rates drift down toward 2.25%",          initial: snapSofr,       theta: 2.25 },
-    { id: "shock",  label: "Rate shock",         sub: "SOFR spikes +150 bps and stays there",                  initial: snapSofr + 1.5, theta: snapSofr + 1.0 },
-  ]), [snapSofr]);
-
-  const [activePreset, setActivePreset] = useState<string>("today");
-  const presetTween = useRef<gsap.core.Tween | null>(null);
-
-  const applyPreset = useCallback((p: { id: string; initial: number; theta: number }) => {
-    setActivePreset(p.id);
-    presetTween.current?.kill();
-    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) { setInitialSofr(p.initial); setLongRunSofr(p.theta); return; }
-    const obj = { i: initialSofr, t: longRunSofr };
-    presetTween.current = gsap.to(obj, {
-      i: p.initial, t: p.theta, duration: 0.7, ease: "power2.out",
-      onUpdate: () => { setInitialSofr(+obj.i.toFixed(2)); setLongRunSofr(+obj.t.toFixed(2)); },
-      onComplete: () => { setInitialSofr(p.initial); setLongRunSofr(p.theta); },
-    });
-  }, [initialSofr, longRunSofr]);
-
-  // Manual moves of the two rate sliders drop the preset highlight (off-script).
-  const onRateSlider = (field: string, setter: (v: number) => void) => (v: number) => {
-    presetTween.current?.kill();
-    setActivePreset("");
-    touch(field, setter)(v);
+function seededRandom(seed: number) {
+  let state = seed >>> 0;
+  return () => {
+    state += 0x6d2b79f5;
+    let value = state;
+    value = Math.imul(value ^ value >>> 15, value | 1);
+    value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
   };
+}
 
-  // ── engine ────────────────────────────────────────────────────────────────
-  const result = useMemo(() => {
-    try {
-      const armTerms = DEFAULT_ARM_PROGRAMS["5_6_ARM"];
-      return runMonteCarloRatePath(
-        armTerms,
-        loanAmount,
-        360,
-        monthlyRent,
-        pitiaNonDebt,
-        Math.max(100, Math.min(2000, simulations)),
-        Math.max(12, Math.min(360, horizonYears * 12)),
-        seed,
-        { ...DEFAULT_VASICEK_PARAMS, longRunMeanSOFR: longRunSofr, initialSOFR: initialSofr },
-        CURRENT_MARKET_SNAPSHOT,
-      );
-    } catch {
-      return null;
+function normalSample(random: () => number) {
+  let first = random();
+  let second = random();
+  if (first <= Number.EPSILON) first = Number.EPSILON;
+  if (second <= Number.EPSILON) second = Number.EPSILON;
+  return Math.sqrt(-2 * Math.log(first)) * Math.cos(2 * Math.PI * second);
+}
+
+function percentile(sorted: number[], fraction: number) {
+  if (!sorted.length) return NaN;
+  const index = Math.max(0, Math.min(sorted.length - 1, Math.floor((sorted.length - 1) * fraction)));
+  return sorted[index];
+}
+
+function validate(values: Parsed) {
+  const errors: Partial<Record<InputKey, string>> = {};
+  FIELDS.forEach((field) => {
+    const value = values[field.key];
+    if (!Number.isFinite(value)) errors[field.key] = "Enter a finite number.";
+    else if (value < field.min || value > field.max) errors[field.key] = "Use a value from " + field.min.toLocaleString("en-US") + " to " + field.max.toLocaleString("en-US") + ".";
+  });
+  if (Number.isFinite(values.years) && !Number.isInteger(values.years)) errors.years = "Use a whole number of years.";
+  if (Number.isFinite(values.simulations) && !Number.isInteger(values.simulations)) errors.simulations = "Use a whole number of paths.";
+  if (Number.isFinite(values.seed) && !Number.isInteger(values.seed)) errors.seed = "Use a whole-number seed.";
+  return errors;
+}
+
+function runSimulation(values: Parsed): SimulationResult | null {
+  const random = seededRandom(values.seed);
+  const outcomes: number[] = [];
+  const months = values.years * 12;
+
+  for (let pathIndex = 0; pathIndex < values.simulations; pathIndex += 1) {
+    let rate = values.initialRate;
+    let minimumCoverage = Number.POSITIVE_INFINITY;
+    for (let month = 0; month < months; month += 1) {
+      const drift = (values.longRunRate - rate) * 0.06;
+      const shock = values.volatility * 0.12 * normalSample(random);
+      rate = Math.max(0, Math.min(20, rate + drift + shock));
+      const fullPayment = monthlyPayment(values.loan, rate) + values.nonDebt;
+      if (!Number.isFinite(fullPayment) || fullPayment <= 0) return null;
+      const coverage = values.rent / fullPayment;
+      if (!Number.isFinite(coverage)) return null;
+      minimumCoverage = Math.min(minimumCoverage, coverage);
     }
-  }, [loanAmount, monthlyRent, pitiaNonDebt, initialSofr, longRunSofr, simulations, horizonYears, seed]);
+    if (!Number.isFinite(minimumCoverage)) return null;
+    outcomes.push(minimumCoverage);
+  }
 
-  // ── derived values ────────────────────────────────────────────────────────
-  const pD1   = result ? result.probabilityDSCRBelow1_0  * 100 : 0;
-  const pD125 = result ? result.probabilityDSCRBelow1_25 * 100 : 0;
+  if (outcomes.length !== values.simulations) return null;
+  outcomes.sort((a, b) => a - b);
+  const belowOne = outcomes.filter((value) => value < 1).length / outcomes.length * 100;
+  const belowCushion = outcomes.filter((value) => value < 1.25).length / outcomes.length * 100;
+  const result = {
+    belowOne,
+    belowCushion,
+    p10: percentile(outcomes, 0.1),
+    median: percentile(outcomes, 0.5),
+    p90: percentile(outcomes, 0.9),
+    paths: outcomes.length,
+    months,
+  };
+  return Object.values(result).every(Number.isFinite) ? result : null;
+}
 
-  const dscrP10    = result?.dscrStats.p10    ?? 0;
-  const dscrMedian = result?.dscrStats.median ?? 0;
-  const dscrP90    = result?.dscrStats.p90    ?? 0;
-  const dscrMin    = result?.dscrStats.min    ?? 0;
-  const dscrMax    = result?.dscrStats.max    ?? 0;
+export default function MonteCarloPage({ onNavigate }: PageProps) {
+  usePageMetadata(
+    "Monte Carlo DSCR Rate-Risk Explorer | Greenstreet Finance",
+    "Run a seeded, illustrative rate-path model and review the share of modeled paths below selected DSCR levels, with transparent inputs and limitations.",
+    "/monte-carlo",
+  );
 
-  const sofrY1  = result ? result.sofrAtHorizon.year1.mean.toFixed(2)  + "%" : "—";
-  const sofrY5  = result ? result.sofrAtHorizon.year5.mean.toFixed(2)  + "%" : "—";
-  const sofrY10 = result ? result.sofrAtHorizon.year10.mean.toFixed(2) + "%" : "—";
+  const [inputs, setInputs] = useState<Inputs>(DEFAULTS);
+  const parsed = Object.fromEntries(Object.entries(inputs).map(([key, value]) => [key, Number(value)])) as Parsed;
+  const fieldErrors = validate(parsed);
+  const validationMessage = Object.values(fieldErrors).filter(Boolean).join(" ");
+  const result = useMemo(() => validationMessage ? null : runSimulation(parsed), [
+    validationMessage,
+    parsed.loan,
+    parsed.rent,
+    parsed.nonDebt,
+    parsed.initialRate,
+    parsed.longRunRate,
+    parsed.volatility,
+    parsed.years,
+    parsed.simulations,
+    parsed.seed,
+  ]);
 
-  // Fan-chart points: today's rate, then the engine's horizon percentiles.
-  const fanPoints: FanPoint[] = result
-    ? [
-        { year: 0, mean: initialSofr, p10: initialSofr, p90: initialSofr },
-        ...([1, 3, 5, 10] as const)
-          .filter((y) => y <= horizonYears)
-          .map((y) => {
-            const h = (result.sofrAtHorizon as Record<string, { mean: number; p10: number; p90: number }>)["year" + y];
-            return { year: y, mean: h.mean, p10: h.p10, p90: h.p90 };
-          })
-          .filter((p) => p.mean > 0),
-      ]
-    : [];
-
-  const pD1Color   = pColor(pD1,   5, 20);
-  const pD125Color = pColor(pD125, 30, 60);
-
-  // risk level based on pD1
-  const riskLevel = pD1 > 20 ? "high" : pD1 > 5 ? "med" : pD1 > 1 ? "low" : "none";
-
-  // headline verdict text
-  const verdictText = pD1 > 20
-    ? `High risk — ${pD1.toFixed(1)}% chance the property can't cover its own costs in some rate scenarios. Consider raising rent, reducing the loan, or choosing a fixed-rate program.`
-    : pD1 > 5
-    ? `Moderate risk — ${pD1.toFixed(1)}% chance of a coverage break. Review your long-run rate assumption and consider a lower LTV.`
-    : `Low risk — only ${pD1.toFixed(1)}% of rate paths break coverage. This deal holds up across most simulated futures.`;
-
-  // ── scroll helper ─────────────────────────────────────────────────────────
-  const scrollToTool = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const el = document.querySelector("#mc-tool");
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
-  }, []);
-
-  // ── highlight style helper ────────────────────────────────────────────────
-  const hl = (field: string): React.CSSProperties =>
-    lastChanged === field
-      ? { outline: `2px solid ${dc.lemon}`, outlineOffset: 2, borderRadius: 6, transition: "outline 0.2s" }
-      : {};
-
-  const [spreadRef, spreadShown] = useRevealOnView<HTMLDivElement>();
-
-  const navLinks = [
-    { label: "DSCR Calc",     view: "dscr-calculator" },
-    { label: "Stress Matrix", view: "stress-matrix" },
-  ];
-  const cta = { label: "Run simulation →", href: "#mc-tool", onClick: scrollToTool };
+  const setField = (key: InputKey, value: string) => setInputs((current) => ({ ...current, [key]: value }));
+  const applyPreset = (initialRate: string, longRunRate: string, volatility: string) => setInputs((current) => ({ ...current, initialRate, longRunRate, volatility }));
 
   return (
-    <DcShell onNavigate={onNavigate} accent="#004041" navLinks={navLinks} cta={cta}>
+    <DcShell onNavigate={onNavigate} accent={dc.dark} navLinks={[{ label: "Products", view: "products" }, { label: "Stress Matrix", view: "stress-matrix" }, { label: "ARM Reset", view: "arm-reset" }]} cta={{ label: "Open the model", view: "monte-carlo" }}>
       <style>{`
-        @media (max-width: 991px) {
-          .mc-3step { grid-template-columns: 1fr !important; }
-          .mc-tool-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 767px) {
-          .mc-prob-grid { grid-template-columns: 1fr !important; }
-        }
-        .mc-path { fill: none; stroke-linecap: round; }
-        .mc-preset:hover { border-color: rgba(216,217,88,0.5) !important; }
-        .mc-preset[aria-pressed="true"]:hover { filter: brightness(1.05); }
-        .mc-card-highlight {
-          transition: box-shadow 0.25s ease;
-        }
-        .mc-card-highlight.active {
-          box-shadow: 0 0 0 2px ${dc.lemon};
-        }
+        .mc-page{background:#003738;color:#eeefd3}.mc-wrap{width:min(1180px,calc(100% - 40px));margin:auto}.mc-hero{background:#0b4d4d;padding:clamp(68px,10vw,126px) 0}.mc-hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(34px,6vw,84px);align-items:center}
+        .mc-kicker{font-size:.75rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#d8d958}.mc-hero h1{font-size:clamp(2.6rem,6.7vw,5.9rem);line-height:.94;letter-spacing:-.045em;margin:18px 0 24px;max-width:13ch}.mc-lead{font-size:clamp(1.05rem,1.9vw,1.3rem);line-height:1.6;color:rgba(238,239,211,.76);max-width:64ch}
+        .mc-callout{background:#003738;border:1px solid rgba(238,239,211,.16);border-radius:12px;padding:clamp(22px,3vw,34px)}.mc-callout h2{font-size:clamp(1.5rem,2.8vw,2.3rem);line-height:1.1;margin:0 0 14px}.mc-callout p{line-height:1.65;color:rgba(238,239,211,.7);margin:0}
+        .mc-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.mc-link{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:7px;background:#d8d958;color:#003738;font-weight:800;text-decoration:none}.mc-link.secondary{background:transparent;color:#eeefd3;border:1px solid rgba(238,239,211,.34)}
+        .mc-model,.mc-method{padding:clamp(66px,8vw,110px) 0}.mc-page h2{font-size:clamp(2rem,4vw,3.8rem);line-height:1;letter-spacing:-.04em;margin:12px 0 18px}.mc-intro{color:rgba(238,239,211,.68);line-height:1.65;max-width:72ch}
+        .mc-presets{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 18px}.mc-preset{min-height:44px;border-radius:999px;padding:0 16px;background:#0b4d4d;color:#eeefd3;border:1px solid rgba(238,239,211,.25);font:inherit;font-weight:800;cursor:pointer}
+        .mc-tool{display:grid;grid-template-columns:380px 1fr;gap:18px;align-items:start}.mc-form,.mc-output{background:#0b4d4d;border:1px solid rgba(238,239,211,.15);border-radius:12px;padding:clamp(22px,3vw,32px)}.mc-form fieldset{border:0;margin:0;padding:0}.mc-form legend{font-size:1.25rem;font-weight:800;margin-bottom:20px}
+        .mc-fields{display:grid;gap:15px}.mc-field-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline}.mc-field label{font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.mc-field input{box-sizing:border-box;width:100%;min-height:46px;margin-top:6px;background:#003738;color:#eeefd3;border:1px solid rgba(238,239,211,.24);border-radius:7px;padding:10px 12px;font:inherit}.mc-field input[aria-invalid=true]{border-color:#e06363}.mc-help{display:block;color:rgba(238,239,211,.55);font-size:.78rem;line-height:1.4;margin-top:5px}.mc-field-error{display:block;color:#ffd1cb;font-size:.78rem;margin-top:5px}
+        .mc-output{min-width:0}.mc-output h3{font-size:1.35rem;margin:0 0 18px}.mc-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mc-stat{background:#003738;border:1px solid rgba(238,239,211,.12);border-radius:9px;padding:clamp(18px,3vw,26px)}.mc-value{font-size:clamp(2.4rem,6vw,5.2rem);line-height:.9;color:#d8d958}.mc-stat h4{margin:12px 0 7px}.mc-stat p{margin:0;color:rgba(238,239,211,.62);line-height:1.5;font-size:.9rem}
+        .mc-spread{margin-top:16px;background:#003738;border-radius:9px;padding:22px}.mc-spread-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.mc-spread span{display:block;color:rgba(238,239,211,.55);font-size:.78rem;margin-top:5px}.mc-note{margin-top:18px;padding:16px;border-left:4px solid #7ec8d3;background:rgba(126,200,211,.08);color:rgba(238,239,211,.7);line-height:1.6}.mc-error{color:#ffd1cb;border-left:4px solid #e06363;padding-left:16px}
+        .mc-method{background:#0b4d4d}.mc-method-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:34px}.mc-card{background:#003738;border:1px solid rgba(238,239,211,.15);border-radius:10px;padding:24px}.mc-card h3{margin:0 0 10px}.mc-card p{margin:0;color:rgba(238,239,211,.66);line-height:1.6}
+        .mc-close{background:#dfe7c5;color:#003738;padding:clamp(58px,8vw,92px) 0}.mc-close-grid{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}.mc-close p{color:rgba(0,55,56,.7);line-height:1.6;max-width:62ch}.mc-close .mc-link.secondary{color:#003738;border-color:rgba(0,55,56,.3)}
+        .mc-page a:focus-visible,.mc-page button:focus-visible,.mc-page input:focus-visible{outline:3px solid #7ec8d3;outline-offset:4px}
+        @media(max-width:820px){.mc-wrap{width:min(100% - 28px,1180px)}.mc-hero-grid,.mc-tool,.mc-method-grid,.mc-close-grid,.mc-stat-grid{grid-template-columns:1fr}.mc-actions .mc-link{width:100%}.mc-hero h1{overflow-wrap:anywhere}.mc-spread-grid{grid-template-columns:1fr}.mc-output{overflow:hidden}}
+        @media(prefers-reduced-motion:reduce){.mc-page *{scroll-behavior:auto!important;transition:none!important}}
       `}</style>
+      <div className="mc-page">
+        <header className="mc-hero"><div className="mc-wrap mc-hero-grid"><div><div className="mc-kicker">Illustrative rate-risk tool</div><h1>Explore DSCR across many modeled rate paths.</h1><p className="mc-lead">This Monte Carlo explorer generates repeatable, simplified rate scenarios from the assumptions you enter. It reports model behavior, not the probability of future rates, loss, approval, or investment performance.</p><div className="mc-actions"><a className="mc-link" href="#monte-carlo-model">Open the model</a><a className="mc-link secondary" href="#monte-carlo-method">Read the method and limits</a></div></div>
+          <aside className="mc-callout" aria-labelledby="mc-answer-heading"><h2 id="mc-answer-heading">What does the output mean?</h2><p>Each path changes the modeled rate over time, recalculates payment coverage, and records that path's lowest DSCR. The summary shows how many of those synthetic paths crossed selected coverage levels. It does not estimate actual default or loss probability.</p></aside></div></header>
 
-      {/* ── HERO ────────────────────────────────────────────────────────── */}
-      <section style={{
-        position: "relative", background: dc.teal, color: dc.cream,
-        overflow: "hidden", minHeight: "clamp(480px,60vh,760px)",
-        display: "flex", alignItems: "center",
-      }}>
-        <div className="gs-dot-grid" />
-        <div className="dc-hero" style={{
-          position: "relative", width: "100%", maxWidth: dc.maxW,
-          margin: "0 auto", padding: `clamp(48px,7vh,88px) ${dc.pad}`,
-          display: "grid", gridTemplateColumns: "1.1fr 0.9fr",
-          gap: "clamp(32px,5vw,72px)", alignItems: "center",
-        }}>
-          {/* left */}
-          <div id="gs-hero-content">
-            <div style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
-              textTransform: "uppercase", color: "rgba(238,239,211,0.62)",
-              background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24,
-            }}>
-              Monte Carlo · Vasicek SOFR · <span data-count={simulations}>{simulations}</span> paths
-            </div>
-            <H1 style={{ margin: "0 0 20px" }}>
-              Stress-test the deal over {simulations} futures.
-            </H1>
-            <div style={{ fontSize: 15, fontWeight: 500, color: "rgba(238,239,211,0.82)", background: "rgba(238,239,211,0.05)", border: "1px solid rgba(238,239,211,0.16)", borderRadius: 8, padding: "10px 14px", display: "inline-block", maxWidth: "48ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-              This tool runs {simulations} what-if interest-rate scenarios to show the <em>range</em> of possible outcomes. Your <strong>DSCR</strong> (debt-service coverage ratio — whether the property's rent covers the loan payment; 1.00 = break-even, higher is safer) is computed at each simulated ARM (adjustable-rate mortgage) reset.
-            </div>
-            <Lead style={{ color: "rgba(238,239,211,0.65)", maxWidth: "46ch", margin: "0 0 36px" }}>
-              The headline number is the <strong style={{ color: dc.cream }}>probability your deal breaks</strong> — that DSCR falls below 1.0 in some future rate scenario. Below 5% is comfortable; above 20% needs attention.
-            </Lead>
-            <Btn label="Run the simulation" href="#mc-tool" onClick={scrollToTool} />
+        <section id="monte-carlo-model" className="mc-model" aria-labelledby="mc-model-heading"><div className="mc-wrap"><div className="mc-kicker">Seeded scenario engine</div><h2 id="mc-model-heading">Set every assumption before interpreting the output.</h2><p className="mc-intro">Technical input bounds keep browser calculations finite and responsive. They are model safeguards, not loan-program limits.</p>
+          <div className="mc-presets" aria-label="Illustrative rate environment presets"><button type="button" className="mc-preset" onClick={() => applyPreset("7.25", "5.5", "1.25")}>Higher start, lower mean</button><button type="button" className="mc-preset" onClick={() => applyPreset("6.5", "6.5", "0.75")}>Stable mean</button><button type="button" className="mc-preset" onClick={() => applyPreset("6.0", "8.0", "1.75")}>Lower start, higher mean</button></div>
+          <div className="mc-tool">
+            <form className="mc-form" onSubmit={(event) => event.preventDefault()}><fieldset><legend>Simulation inputs</legend><div className="mc-fields">
+              {FIELDS.map((field) => <div className="mc-field" key={field.key}><div className="mc-field-head"><label htmlFor={"mc-" + field.key}>{field.label}</label></div><input id={"mc-" + field.key} type="number" min={field.min} max={field.max} step={field.step} value={inputs[field.key]} aria-invalid={Boolean(fieldErrors[field.key])} aria-describedby={"mc-" + field.key + "-help" + (fieldErrors[field.key] ? " mc-" + field.key + "-error" : "")} onChange={(event) => setField(field.key, event.currentTarget.value)} /><small className="mc-help" id={"mc-" + field.key + "-help"}>{field.help}</small>{fieldErrors[field.key] && <small className="mc-field-error" id={"mc-" + field.key + "-error"} role="alert">{fieldErrors[field.key]}</small>}</div>)}
+            </div></fieldset></form>
+            <output className="mc-output" aria-live="polite">
+              {validationMessage ? <div className="mc-error"><h3>Fix the highlighted inputs.</h3><p>The simulation is paused until every value is finite and within the displayed technical bounds.</p></div> : result ? <><h3>Lowest coverage observed within each modeled path</h3><div className="mc-stat-grid">
+                <article className="mc-stat"><Mono className="mc-value">{result.belowOne.toFixed(1)}%</Mono><h4>of modeled paths fell below 1.00x</h4><p>This is a share of synthetic paths, not a probability of default, loss, or an actual rate outcome.</p></article>
+                <article className="mc-stat"><Mono className="mc-value" style={{ color: dc.rain }}>{result.belowCushion.toFixed(1)}%</Mono><h4>of modeled paths fell below 1.25x</h4><p>1.25x is shown as a comparison level only. It is not represented as a current provider requirement.</p></article>
+              </div><div className="mc-spread"><h4>Distribution of path minimums</h4><div className="mc-spread-grid"><div><Mono style={{ fontSize: 25, fontWeight: 800 }}>{result.p10.toFixed(2)}x</Mono><span>10th percentile</span></div><div><Mono style={{ fontSize: 25, fontWeight: 800 }}>{result.median.toFixed(2)}x</Mono><span>median</span></div><div><Mono style={{ fontSize: 25, fontWeight: 800 }}>{result.p90.toFixed(2)}x</Mono><span>90th percentile</span></div></div></div><p className="mc-note">Calculated from {result.paths.toLocaleString("en-US")} seeded paths across {result.months.toLocaleString("en-US")} monthly steps. Rent and non-debt costs remain fixed; the loan is modeled as a 30-year amortizing payment at each path rate. Real loan reset mechanics may differ.</p></> : <div className="mc-error"><h3>The model could not produce a finite result.</h3><p>Adjust the inputs or reduce the horizon and path count. No result is displayed when a payment, coverage value, or summary statistic is non-finite.</p></div>}
+            </output>
           </div>
+        </div></section>
 
-          {/* right — live preview card */}
-          <div style={{ position: "relative", display: "grid", gap: 18 }}>
-            <MotionWorkbench
-              mode="sim"
-              value={`${pD1.toFixed(1)}%`}
-              label="Break-risk paths"
-            />
-            <div style={{ background: dc.dark, borderRadius: dc.r.lg, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
-                Live — median DSCR across {simulations} paths
-              </div>
-              {/* Gauge centered */}
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-                <DscrGauge value={Math.max(0.5, Math.min(2.0, dscrMedian || 1.2))} size={160} />
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-around" }}>
-                <div style={{ textAlign: "center" }}>
-                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", display: "block" }}>P10 (worst 10%)</Mono>
-                  <Mono style={{ fontSize: 18, fontWeight: 700, color: dscrP10 < 1.0 ? RED : dc.emerald }}>{result ? dscrP10.toFixed(2) + "x" : "—"}</Mono>
-                </div>
-                <div style={{ textAlign: "center" }}>
-                  <Mono style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", display: "block" }}>P90 (best 10%)</Mono>
-                  <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.emerald }}>{result ? dscrP90.toFixed(2) + "x" : "—"}</Mono>
-                </div>
-              </div>
-            </div>
+        <section id="monte-carlo-method" className="mc-method" aria-labelledby="mc-method-heading"><div className="mc-wrap"><div className="mc-kicker">Method and limitations</div><h2 id="mc-method-heading">Useful for sensitivity, not prediction.</h2><div className="mc-method-grid">
+          <article className="mc-card"><h3>Simplified mean reversion</h3><p>Rates drift toward the entered long-run level and receive random shocks scaled by the entered volatility. The coefficients are educational model choices, not calibrated forecasts.</p></article>
+          <article className="mc-card"><h3>Deliberately fixed inputs</h3><p>Rent and non-debt costs remain constant so the rate effect is visible. Real rent, taxes, insurance, HOA dues, vacancies, repairs, and loan balances can change.</p></article>
+          <article className="mc-card"><h3>No provider conclusion</h3><p>The model does not determine eligibility, pricing, reserves, credit, property acceptance, approval, or investment suitability. Verify the note and current terms separately.</p></article>
+        </div></div></section>
 
-          </div>
-        </div>
-      </section>
-
-      {/* ── TOOL ────────────────────────────────────────────────────────── */}
-      <section id="mc-tool" style={{
-        background: dc.dark, color: dc.cream,
-        padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)`,
-      }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-
-          {/* section headline + verdict */}
-          <div style={{ marginBottom: 40 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
-              Live Monte Carlo engine
-            </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 18px", color: dc.cream }}>
-              <Mono>{simulations}</Mono> paths · <Mono>{horizonYears}</Mono>yr horizon
-            </h2>
-            <div style={{
-              display: "flex", alignItems: "flex-start", gap: 14,
-              background: pD1 > 20 ? "rgba(224,99,99,0.1)" : pD1 > 5 ? "rgba(216,217,88,0.12)" : "rgba(77,189,151,0.12)",
-              border: `1px solid ${pD1 > 20 ? "rgba(224,99,99,0.3)" : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.3)"}`,
-              borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 720,
-            }}>
-              <RiskFlame level={riskLevel} size={20} />
-              <p style={{ fontSize: 14, fontWeight: 500, color: dc.cream, margin: 0, lineHeight: 1.5 }}>
-                {verdictText}
-              </p>
-            </div>
-          </div>
-
-          {/* two-column tool layout */}
-          <div className="mc-tool-grid" style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 32, alignItems: "start" }}>
-
-            {/* ── INPUT PANEL ─────────────────────────────────────────── */}
-            <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.16)" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 6 }}>
-                Simulation parameters
-              </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 20px", lineHeight: 1.5 }}>
-                Drag the sliders — results update live.
-              </p>
-
-              <div style={hl("loanAmount")}>
-                <SliderField label="Loan Amount" hint="Total borrowed — not the purchase price." value={loanAmount} set={touch("loanAmount", setLoanAmount)} min={50000} max={2000000} step={5000} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
-              </div>
-              <div style={hl("monthlyRent")}>
-                <SliderField label="Monthly Rent" hint="Gross rent the property generates." value={monthlyRent} set={touch("monthlyRent", setMonthlyRent)} min={500} max={10000} step={50} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
-              </div>
-              <div style={hl("pitiaNonDebt")}>
-                <SliderField label="Taxes + Insurance + HOA /mo" hint="Non-debt PITIA costs. Together with the P&I payment, this makes up the full monthly obligation." value={pitiaNonDebt} set={touch("pitiaNonDebt", setPitiaNonDebt)} min={0} max={3000} step={25} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
-              </div>
-
-              <div style={{ borderTop: "1px solid rgba(238,239,211,0.16)", margin: "20px 0 20px" }} />
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
-                Rate assumptions
-              </div>
-
-              <div style={hl("initialSofr")}>
-                <SliderField label="Initial SOFR %" hint="Today's short-term rate index. ARM resets float off this after the fixed period ends." value={initialSofr} set={onRateSlider("initialSofr", setInitialSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
-              </div>
-              <div style={hl("longRunSofr")}>
-                <SliderField label="Long-run SOFR (θ) %" hint="Where you think rates settle over time. All paths drift toward this level." value={longRunSofr} set={onRateSlider("longRunSofr", setLongRunSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
-              </div>
-
-              <div style={{ borderTop: "1px solid rgba(238,239,211,0.16)", margin: "20px 0 20px" }} />
-              <Disclosure label="Advanced parameters">
-                <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingTop: 4 }}>
-                  <SliderField label="Number of simulations" hint="More paths = more precise probability. 500 is a solid default." value={simulations} set={setSimulations} min={100} max={2000} step={100} suffix="" fmt={(v) => v.toLocaleString("en-US")} />
-                  <SliderField label="Horizon (years)" hint="Match your planned hold period." value={horizonYears} set={setHorizonYears} min={1} max={30} step={1} suffix="yr" fmt={(v) => v.toString()} />
-                  <div style={{ marginBottom: 4 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Random seed</span>
-                      <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.lemon }}>{seed}</Mono>
-                    </div>
-                    <input className="gs-range" aria-label="Random seed" type="range" min={1} max={999} step={1} value={seed} onChange={(e) => setSeed(+e.target.value)} />
-                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>Controls which specific paths are drawn. Different seeds give similar but not identical results.</span>
-                  </div>
-                </div>
-              </Disclosure>
-            </div>
-
-            {/* ── OUTPUT PANEL ──────────────────────────────────────────── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-
-              {/* ── Guided rate-environment presets — one-click macro futures ── */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "18px 20px", border: "1px solid rgba(238,239,211,0.16)" }}>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 11 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: BLUE }}>
-                    Try a rate environment
-                  </div>
-                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.55)" }}>each re-rolls all {simulations} paths</div>
-                </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {mcPresets.map((p) => {
-                    const on = activePreset === p.id;
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => applyPreset(p)}
-                        aria-pressed={on}
-                        className="mc-preset"
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 7,
-                          background: on ? dc.lemon : "rgba(238,239,211,0.05)",
-                          color: on ? dc.dark : "rgba(238,239,211,0.82)",
-                          border: `1px solid ${on ? dc.lemon : "rgba(238,239,211,0.14)"}`,
-                          borderRadius: 100, padding: "8px 15px", cursor: "pointer",
-                          fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.01em",
-                          transition: "background 0.18s, color 0.18s, border-color 0.18s",
-                        }}
-                      >
-                        {p.label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.6)", marginTop: 9, minHeight: 16, lineHeight: 1.5 }}>
-                  {mcPresets.find((p) => p.id === activePreset)?.sub || "Custom rate assumptions — set by hand."}
-                </div>
-              </div>
-
-              {/* Headline probabilities — P(<1.0) dominant lemon, P(<1.25) secondary blue */}
-              <div className="mc-prob-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "stretch" }}>
-                <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: `1px solid ${pD1Color}44` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon }}>P(DSCR &lt; 1.0)</div>
-                    <RiskFlame level={riskLevel} size={16} />
-                  </div>
-                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: pD1Color, lineHeight: 0.92, display: "block" }}>{pD1.toFixed(1)}%</Mono>
-                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance the property can't cover its costs in some rate futures — below 5% is comfortable, above 20% is high-risk.</div>
-                </div>
-                <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: "1px solid rgba(238,239,211,0.16)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>P(DSCR &lt; 1.25)</div>
-                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 0.92, display: "block" }}>{pD125.toFixed(1)}%</Mono>
-                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance of missing the 1.25 cushion most lenders prefer — below 30% is acceptable.</div>
-                </div>
-              </div>
-
-              {/* SOFR FAN CHART — the signature uncertainty cone */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(20px,2.5vw,28px)", border: "1px solid rgba(238,239,211,0.16)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE }}>Where rates could go — {simulations} simulated SOFR paths</div>
-                  <div style={{ display: "flex", gap: 14, fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 14, height: 3, background: BLUE, borderRadius: 2, display: "inline-block" }} />mean</span>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><span style={{ width: 14, height: 9, background: BLUE, opacity: 0.22, borderRadius: 2, display: "inline-block" }} />P10–P90</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
-                  The cone widens as uncertainty grows. When it sits well above θ (your long-run rate), the model sees rates staying elevated — a riskier ARM.
-                </p>
-                <SofrFanChart points={fanPoints} longRun={longRunSofr} />
-              </div>
-
-              {/* Median DSCR gauge + spread — dark */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
-                <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 24, alignItems: "center" }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>Median DSCR</div>
-                    <DscrGauge value={Math.max(0.5, Math.min(2.0, dscrMedian || 1.0))} size={130} />
-                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 6, lineHeight: 1.4 }}>
-                      {dscrMedian >= 1.25 ? "Comfortable cushion" : dscrMedian >= 1.0 ? "Thin margin — watch for rate rises" : "Below break-even in median scenario"}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 4 }}>
-                      DSCR outcome spread
-                    </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 4px", lineHeight: 1.5 }}>
-                      P10–P90 range of DSCR across all paths. Healthy = P10 above 1.0, median above 1.25.
-                    </p>
-                    <div ref={spreadRef}>
-                      <DscrSpreadBar p10={dscrP10} median={dscrMedian} p90={dscrP90} animate={spreadShown} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Full distribution — progressive disclosure */}
-              <Disclosure label="Full distribution · P10 / Median / P90 / Min / Max">
-                <div>
-                  <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.5 }}>
-                    P10 = worst 10% of outcomes. A deal is robust when even P10 stays above 1.0. Min shows the single worst path — outlier scenarios are real but rare.
-                  </p>
-                  {result ? (
-                    [
-                      { label: "P10 (worst 10%)",  val: dscrP10.toFixed(2) + "x",    color: dscrP10 < 1.0 ? RED : ORANGE },
-                      { label: "P25",               val: result.dscrStats.p25.toFixed(2) + "x", color: dc.cream },
-                      { label: "Median (P50)",      val: dscrMedian.toFixed(2) + "x",   color: dc.cream },
-                      { label: "P75",               val: result.dscrStats.p75.toFixed(2) + "x", color: dc.cream },
-                      { label: "P90 (best 10%)",    val: dscrP90.toFixed(2) + "x",    color: dc.emerald },
-                      { label: "Min (worst path)",  val: dscrMin.toFixed(2) + "x",    color: RED },
-                      { label: "Max (best path)",   val: dscrMax.toFixed(2) + "x",    color: dc.emerald },
-                    ].map((row) => (
-                      <div key={row.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(238,239,211,0.08)", fontSize: 13 }}>
-                        <span style={{ color: "rgba(238,239,211,0.6)", fontWeight: 500 }}>{row.label}</span>
-                        <Mono style={{ color: row.color, fontWeight: 700 }}>{row.val}</Mono>
-                      </div>
-                    ))
-                  ) : (
-                    <div style={{ color: RED, fontSize: 13 }}>Engine returned no result.</div>
-                  )}
-                </div>
-              </Disclosure>
-
-              {/* engine footnote */}
-              {result && (
-                <div style={{
-                  padding: "14px 18px", background: "rgba(126,200,211,0.08)",
-                  borderRadius: dc.r.sm, border: "1px solid rgba(126,200,211,0.22)",
-                  fontSize: 12, color: "rgba(238,239,211,0.6)", lineHeight: 1.6,
-                }}>
-                  <strong style={{ color: BLUE }}>Model parameters:</strong>{" "}
-                  Vasicek mean-reverting model · {result.simulations} paths × {result.horizonMonths} months.
-                  θ={result.modelParameters.longRunMeanSOFR}% (long-run mean),
-                  κ={result.modelParameters.meanReversionSpeed} (reversion speed),
-                  σ={result.modelParameters.volatility}% (volatility),
-                  r₀={result.modelParameters.initialSOFR}% (starting rate).
-                  {" "}<em>Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.</em>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── FUNNEL CTA ──────────────────────────────────────────────────── */}
-      <section style={{ background: dc.dark, padding: `clamp(56px,7vw,88px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
-                Ready to move forward?
-              </div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
-                Get a real rate on this deal.
-              </h2>
-              <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
-                Submit once. Greenstreet places your file in the best-fit program and funds it.
-              </p>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
-              <Btn label="Stress matrix" variant="secondary" href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.("stress-matrix"); }} />
-            </div>
-          </div>
-        </div>
-      </section>
-
+        <section className="mc-close" aria-labelledby="mc-close-heading"><div className="mc-wrap mc-close-grid"><div><div className="mc-kicker" style={{ color: dc.rain }}>Compare another lens</div><h2 id="mc-close-heading">Use deterministic stress tests beside stochastic paths.</h2><p>The stress matrix shows specific rent-and-rate combinations, while the ARM reset tool applies note terms you enter. Neither replaces the executed note or provider review.</p></div><div className="mc-actions"><a className="mc-link" href="/tools/stress-matrix" onClick={(event) => { event.preventDefault(); onNavigate("stress-matrix"); }}>Open the stress matrix</a><a className="mc-link secondary" href="/tools/arm-reset" onClick={(event) => { event.preventDefault(); onNavigate("arm-reset"); }}>Model ARM reset terms</a></div></div></section>
+      </div>
     </DcShell>
   );
 }
+

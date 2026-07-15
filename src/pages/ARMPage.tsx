@@ -161,6 +161,16 @@ export default function ARMPage({
       <style>{`
         .arm-in::-webkit-outer-spin-button,.arm-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .arm-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        @media (max-width:480px){
+          #ar-hero,#arm-tool{padding-left:12px !important;padding-right:12px !important;}
+          .arm-timeline{flex-direction:column;}
+          .arm-tool-grid{grid-template-columns:minmax(0,1fr) !important;gap:18px !important;}
+          .arm-input-card,.arm-result-card{padding:18px !important;min-width:0;}
+          .arm-payment-grid{grid-template-columns:1fr !important;}
+          .arm-scenario-grid{grid-template-columns:1fr 1fr !important;}
+          .arm-reset-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;}
+          .arm-reset-table{min-width:360px !important;}
+        }
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -179,6 +189,7 @@ export default function ARMPage({
         >
           {/* Eyebrow pill */}
           <div
+            className="arm-timeline"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -218,7 +229,7 @@ export default function ARMPage({
           >
             An ARM (a loan whose rate is fixed for a few years, then can adjust)
             looks cheap at first — but your payment jumps when the fixed period
-            ends. This tool shows exactly how big that jump is, and whether your
+            ends. This tool models how large that jump could be from the values entered, and whether the
             DSCR (whether the property's rent can cover the loan payment; 1.00 =
             rent exactly covers it; higher is stronger) still holds up.
           </div>
@@ -232,7 +243,7 @@ export default function ARMPage({
           >
             Enter your loan and pick a program. See the payment at first reset,
             every subsequent adjustment, and the worst-case lifetime cap — caps
-            applied exactly as written in the note.
+            applied as entered. Verify every index, margin, cap, reset date, rounding rule, and payment term against the signed note.
           </Lead>
 
           {/* ── PAYMENT-SHOCK TIMELINE — hero signature ── */}
@@ -418,7 +429,7 @@ export default function ARMPage({
             >
               Below 8% shock = manageable. 8–20% = watch carefully. Above 20% = red.
               If DSCR drops below 1.0 at reset, the property can no longer cover its own
-              costs — a deal-breaker for most investors and underwriters. A prepayment
+                costs, which may materially change the modeled cash flow. A prepayment
               penalty (a fee some loans charge if you refinance early) may also apply if
               you try to exit before the fixed period ends.
             </p>
@@ -426,7 +437,7 @@ export default function ARMPage({
 
           {/* Tool grid */}
           <div
-            className="dc-split"
+            className="dc-split arm-tool-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "300px 1fr",
@@ -436,6 +447,7 @@ export default function ARMPage({
           >
             {/* ── INPUTS ── */}
             <div
+              className="arm-input-card"
               style={{
                 background: "#002a29",
                 borderRadius: dc.r.lg,
@@ -477,6 +489,9 @@ export default function ARMPage({
                   {(["5_6_ARM", "7_6_ARM", "10_6_ARM"] as ArmType[]).map((t) => (
                     <button
                       key={t}
+                      type="button"
+                      aria-pressed={armType === t}
+                      aria-label={`${t.replace("_ARM", "").replace("_", "/")} ARM`}
                       onClick={() => setArmType(t)}
                       style={{
                         flex: 1,
@@ -595,10 +610,11 @@ export default function ARMPage({
 
             {/* ── RESULTS ── */}
             {result ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div className="arm-results" style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }}>
 
                 {/* Payment comparison tiles */}
                 <div
+                  className="arm-payment-grid"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr 1fr",
@@ -640,6 +656,7 @@ export default function ARMPage({
 
                 {/* 5-scenario table — with RiskFlame per row */}
                 <div
+                  className="arm-result-card"
                   style={{
                     background: "#002a29",
                     borderRadius: dc.r.lg,
@@ -648,10 +665,10 @@ export default function ARMPage({
                   }}
                 >
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.emerald, marginBottom: 6 }}>
-                    5 rate scenarios — does the deal survive?
+            Five illustrative rate scenarios
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginBottom: 16, letterSpacing: "-0.01em" }}>
-                    SOFR is the index your rate floats with after the fixed period. Each row shows a different SOFR future — from falling rates (Bullish) to a spike (Crisis). "Deal breaks" means DSCR (rent ÷ full payment including taxes + insurance) drops below 1.0 — the property can no longer cover its own costs. Caps are enforced exactly as in your loan note.
+            Each named row is an illustrative assumption, not a forecast. It applies a different SOFR path to the index, margin, and caps entered above. "Modeled coverage below 1.0" means entered rent is lower than the modeled payment and expenses; it does not determine default, approval, or investment suitability.
                   </div>
                   {result.scenarios.map((s) => {
                     const breaks = s.dscrAtFirst < 1.0 || s.dscrAtLast < 1.0;
@@ -667,6 +684,7 @@ export default function ARMPage({
                         }}
                       >
                         <div
+                          className="arm-scenario-grid"
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
@@ -730,7 +748,7 @@ export default function ARMPage({
                               color: "#e06363",
                             }}
                           >
-                            Deal breaks at this SOFR — DSCR drops below 1.0
+                          Modeled coverage falls below 1.0 at this SOFR assumption
                           </div>
                         )}
                       </div>
@@ -740,6 +758,7 @@ export default function ARMPage({
 
                 {/* Bearish reset schedule */}
                 <div
+                  className="arm-result-card"
                   style={{
                     background: "#002a29",
                     borderRadius: dc.r.lg,
@@ -753,8 +772,8 @@ export default function ARMPage({
                   <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginBottom: 16, letterSpacing: "-0.01em" }}>
                     Shows the Bearish scenario (SOFR +4.59%). Each reset the rate moves by at most the periodic cap — it cannot jump all at once. "Cap binding" tells you which cap is holding the rate back.
                   </div>
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 400 }}>
+                  <div className="arm-reset-scroll" style={{ overflowX: "auto" }}>
+                    <table className="arm-reset-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: 400 }}>
                       <thead>
                         <tr>
                           {["Period", "Rate", "P&I /mo", "Cap binding"].map((h, i) => (
@@ -831,7 +850,7 @@ export default function ARMPage({
                   periodic cap each subsequent reset, and lifetime cap = start rate + life cap.
                   P&amp;I re-amortizes over the remaining term at each reset.
                   CRISIS scenario hits the lifetime cap after {result.cfg.lifetimeCapPct / result.cfg.periodicCapPct + 1} consecutive upward resets.
-                  Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.
+            Illustrative model only. Results depend on the entered note terms, SOFR paths, rent, taxes, insurance, and timing. This is not a rate forecast, payoff statement, approval, or recommendation; verify the signed note and available refinance terms.
                 </div>
 
                 {/* Terminal CTA */}
@@ -850,10 +869,10 @@ export default function ARMPage({
                 >
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
-                      Ready to lock a rate before the clock runs out?
+              Want to compare a fixed-rate scenario?
                     </div>
                     <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.6)", margin: 0, maxWidth: "46ch", lineHeight: 1.5 }}>
-                      Greenstreet can refinance you into a fixed DSCR loan before your ARM resets — no income docs, qualify on rent alone.
+              Request a scenario review to compare the entered ARM assumptions with a possible fixed-rate structure. Documentation, qualification, timing, and available terms vary.
                     </p>
                   </div>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
@@ -877,7 +896,7 @@ export default function ARMPage({
                         whiteSpace: "nowrap" as const,
                       }}
                     >
-                      Get a refi rate →
+            Review my refi scenario →
                     </button>
                     {/* Secondary */}
                     <button

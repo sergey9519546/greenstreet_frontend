@@ -43,6 +43,20 @@ const WIDGET_CSS = `
   .qw-pill:active {
     transform: translateY(1px);
   }
+  .qw-pill:focus-visible {
+    outline: 3px solid ${swatch.rainforest};
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px ${swatch.pistachio}, 0 4px 16px rgba(0,55,56,0.28) !important;
+  }
+  @media (max-width: 380px) {
+    .qw-pill {
+      right: 12px !important;
+      bottom: 12px !important;
+      max-width: calc(100vw - 24px);
+      padding-left: 16px !important;
+      padding-right: 16px !important;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .qw-pill {
       transition: none !important;
@@ -138,7 +152,8 @@ export default function QualifyWidget({ showTrigger = true }: { showTrigger?: bo
       {!open && showTrigger && (
         <button
           onClick={openModal}
-          aria-label="See if you qualify"
+          aria-label="Explore a preliminary financing estimate"
+          aria-haspopup="dialog"
           className="qw-pill"
           style={{
             position: "fixed",
@@ -162,7 +177,7 @@ export default function QualifyWidget({ showTrigger = true }: { showTrigger?: bo
             // We don't add floating/pulsing motion per brand rules.
           }}
         >
-          ✓ See if you qualify
+          Explore a preliminary estimate
         </button>
       )}
 

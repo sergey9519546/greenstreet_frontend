@@ -1,105 +1,96 @@
-/**
- * Router resolution tests.
- *
- * Guards the `/tools/*` reverse-route gap: every canonical path the app links
- * to must (a) resolve to the right PageView and (b) be recognised by
- * isKnownRoute so the global click interceptor handles it as an SPA route
- * instead of a full page reload. Documented intentional aliases are pinned
- * here too, so an accidental change to one shows up as a failing expectation
- * rather than a silent redirect.
- */
-
 import { describe, it, expect } from 'vitest';
-import { resolveRoute, isKnownRoute, type PageView } from './resolve';
+import {
+  CANONICAL_REDIRECTS,
+  PUBLIC_BLOG_SLUGS,
+  PUBLIC_CASE_STUDY_SLUGS,
+  ROUTE_CONTRACT,
+  canonicalRedirectFor,
+  isKnownRoute,
+  pathForView,
+  resolveRoute,
+  routeEntries,
+} from './resolve';
 
-// Canonical path → expected view. These are the paths the app's viewToPath()
-// emits; each must round-trip back to the same view on reload / deep-link.
-const CANONICAL: Record<string, PageView> = {
-  '/': 'marketing',
-  '/investgo': 'portal',
-  '/dscr-calculator': 'dscr-calculator',
-  '/lender-intel': 'lender-intel',
-  '/state-laws': 'state-laws',
-  '/borrower-profiles': 'borrower-profiles',
-  '/non-us-investors': 'non-us-investors',
-  '/brokers': 'brokers',
-  '/investors': 'investors',
-  '/faq': 'faq',
-  '/blog': 'blog',
-  '/case-studies': 'case-studies',
-  '/rate-quiz': 'rate-quiz',
-  '/about': 'about',
-  '/careers': 'careers',
-  '/legal': 'legal',
-  '/products': 'products',
-  '/products/platform': 'platform',
-  '/solutions': 'solutions',
-  '/tools/refi-tracker': 'refi-tracker',
-  '/tools/arm-reset': 'arm-reset',
-  '/tools/monte-carlo': 'monte-carlo',
-  '/tools/returns': 'returns',
-  '/tools/tax-engine': 'tax-engine',
-  '/tools/stress-matrix': 'stress-matrix',
-  '/tools/decision-support': 'decision-support',
-  '/tools/str-underwriting': 'str-underwriting',
-  '/tools/portfolio': 'portfolio',
-};
+describe('authoritative route contract', () => {
+  for (const [view, definition] of routeEntries()) {
+    if (!definition.dynamic) {
+      it(`${definition.path} resolves to ${view}`, () => {
+        expect(resolveRoute(definition.path)).toBe(view);
+        expect(isKnownRoute(definition.path)).toBe(true);
+      });
+    }
 
-describe('resolveRoute — canonical paths round-trip', () => {
-  for (const [path, view] of Object.entries(CANONICAL)) {
-    it(`${path} → ${view}`, () => {
-      expect(resolveRoute(path)).toBe(view);
+    it(`${view} has the contract's canonical path`, () => {
+      expect(pathForView(view)).toBe(definition.path);
     });
+
+    for (const additionalPath of definition.additionalPaths ?? []) {
+      it(`${additionalPath} resolves to ${view}`, () => {
+        expect(resolveRoute(additionalPath)).toBe(view);
+        expect(isKnownRoute(additionalPath)).toBe(true);
+      });
+    }
   }
 
-  it('tolerates a trailing slash', () => {
+  it('normalizes trailing slashes, queries, and hashes', () => {
     expect(resolveRoute('/dscr-calculator/')).toBe('dscr-calculator');
-    expect(resolveRoute('/tools/portfolio/')).toBe('portfolio');
-  });
-
-  it('resolves blog and case-study detail slugs', () => {
-    expect(resolveRoute('/blog/some-post')).toBe('blog-post');
-    expect(resolveRoute('/blog')).toBe('blog');
-    expect(resolveRoute('/case-studies/some-study')).toBe('case-studies');
-  });
-
-  it('falls back to marketing for unknown internal paths', () => {
-    expect(resolveRoute('/this-route-does-not-exist')).toBe('marketing');
+    expect(resolveRoute('/tools/portfolio/?mode=stress#results')).toBe('portfolio');
+    expect(resolveRoute('/blog?utm_source=test#articles')).toBe('blog');
   });
 });
 
-describe('resolveRoute — documented intentional aliases', () => {
-  // These deliberately do NOT round-trip 1:1 (pages merged / removed).
-  it('/portfolio-builders → portfolio (page removed)', () => {
-    expect(resolveRoute('/portfolio-builders')).toBe('portfolio');
-  });
-  it('/partnerships → portal (old Partnerships page lands on dashboard)', () => {
-    expect(resolveRoute('/partnerships')).toBe('portal');
-  });
-  it('/foreign-nationals → non-us-investors (legacy slug; audience page renamed)', () => {
-    expect(resolveRoute('/foreign-nationals')).toBe('non-us-investors');
-  });
-  it('/privacy-policy and /terms-of-service both resolve to legal', () => {
-    expect(resolveRoute('/privacy-policy')).toBe('legal');
-    expect(resolveRoute('/terms-of-service')).toBe('legal');
-  });
-});
-
-describe('isKnownRoute — interceptor coverage', () => {
-  for (const path of Object.keys(CANONICAL)) {
-    it(`recognises ${path}`, () => {
-      expect(isKnownRoute(path)).toBe(true);
+describe('canonical aliases', () => {
+  for (const [alias, destination] of Object.entries(CANONICAL_REDIRECTS)) {
+    it(`${alias} redirects to ${destination}`, () => {
+      expect(canonicalRedirectFor(alias)).toBe(destination);
+      expect(resolveRoute(alias)).toBe(resolveRoute(destination));
+      expect(isKnownRoute(alias)).toBe(true);
     });
   }
 
-  it('recognises blog / case-study detail paths', () => {
-    expect(isKnownRoute('/blog/x')).toBe(true);
-    expect(isKnownRoute('/case-studies/x')).toBe(true);
+  it('/book-demo aliases the rate quiz view', () => {
+    expect(canonicalRedirectFor('/book-demo')).toBe('/rate-quiz');
+    expect(resolveRoute('/book-demo')).toBe('rate-quiz');
   });
 
-  it('rejects external / unknown and non-rooted hrefs', () => {
-    expect(isKnownRoute('/nope')).toBe(false);
-    expect(isKnownRoute('https://example.com/foo')).toBe(false);
-    expect(isKnownRoute('mailto:hi@greenstreet.com')).toBe(false);
+  it('/partnerships is the canonical broker partner route', () => {
+    expect(canonicalRedirectFor('/partnerships')).toBeNull();
+    expect(resolveRoute('/partnerships')).toBe('brokers-partner');
+  });
+});
+
+describe('bounded dynamic routes and not-found behavior', () => {
+  it('recognizes only published blog slugs', () => {
+    expect(resolveRoute(`/blog/${PUBLIC_BLOG_SLUGS[0]}`)).toBe('blog-post');
+    expect(isKnownRoute(`/blog/${PUBLIC_BLOG_SLUGS[0]}`)).toBe(true);
+    expect(resolveRoute('/blog/arbitrary-post')).toBe('not-found');
+    expect(resolveRoute('/blog/arbitrary-post/section')).toBe('not-found');
+    expect(isKnownRoute('/blog/arbitrary-post')).toBe(false);
+  });
+
+  it('recognizes only published case study slugs', () => {
+    expect(resolveRoute(`/case-studies/${PUBLIC_CASE_STUDY_SLUGS[0]}`)).toBe('case-studies');
+    expect(resolveRoute('/case-studies/arbitrary-study')).toBe('not-found');
+  });
+
+  it('returns not-found for unknown and near-prefix internal paths', () => {
+    for (const path of [
+      '/this-route-does-not-exist',
+      '/blogger',
+      '/book-demo/team',
+      '/case-studiesXYZ',
+      '/tools/portfolio-old',
+      '/investgo/settings-old',
+    ]) {
+      expect(resolveRoute(path)).toBe('not-found');
+      expect(isKnownRoute(path)).toBe(false);
+    }
+  });
+
+  it('classifies absolute external URLs without requiring window', () => {
+    expect(resolveRoute('https://example.com/blog')).toBe('external');
+    expect(resolveRoute('mailto:hi@example.com')).toBe('external');
+    expect(isKnownRoute('https://example.com/blog')).toBe(false);
+    expect(isKnownRoute('blog')).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { computeBreakEvenVacancy, computeDualTrackDSCR, computeShockWaterfall } from "./stressMatrix";
+import { computeBreakEvenRatePoint, computeBreakEvenVacancy, computeDualTrackDSCR, computeShockWaterfall, computeStressMatrix } from "./stressMatrix";
+import { computeTcoDscr } from "./tcoDscr";
 
 // Validation cases from the DSCR improvement spec (Break-Even Vacancy, [High]).
 describe("computeBreakEvenVacancy", () => {
@@ -72,6 +73,55 @@ describe("computeDualTrackDSCR", () => {
   it("degenerate inputs guarded", () => {
     expect(computeDualTrackDSCR(0, 2000).qualifiesButDangerous).toBe(false);
     expect(computeDualTrackDSCR(3000, 0).track1).toBe(0);
+  });
+
+  it("matches the canonical TCO engine formula exactly", () => {
+    const tco = computeTcoDscr({
+      grossRent: 3000,
+      principalAndInterest: 1500,
+      propertyTax: 300,
+      insurance: 150,
+      hoa: 50,
+      rateOpts: { propertyType: "SFR" },
+    });
+    const stress = computeDualTrackDSCR(3000, 2000, { propertyType: "SFR" });
+    expect(stress.track2).toBe(tco.tcoDSCR);
+  });
+});
+
+describe("break-even rate semantics", () => {
+  it("reports a negative signed cushion when the deal is already broken at base", () => {
+    const point = computeBreakEvenRatePoint(300000, 360, 500, 1000, 7);
+    expect(point.breakEvenRatePct).toBe(0);
+    expect(point.cushionBps).toBe(-700);
+    expect(Number.isFinite(point.cushionBps)).toBe(true);
+  });
+
+  it("reports positive headroom when break-even is above the base rate", () => {
+    const point = computeBreakEvenRatePoint(300000, 360, 500, 3000, 7);
+    expect(point.breakEvenRatePct).not.toBeNull();
+    expect(point.cushionBps).toBeGreaterThan(0);
+    expect(point.cushionBps).toBeLessThan(99999);
+  });
+});
+
+describe("extreme-input validation", () => {
+  it("rejects payment overflow before nonfinite PITIA or DSCR can escape", () => {
+    const property = {
+      purchasePrice: 425000, leaseRent: 3000, marketRent: 3000,
+      strProjectedRent: 0, strDocumentedRent: 0, hoa: 0,
+      annualTaxes: 5000, annualInsurance: 2000, floodInsurance: 0,
+      propertyType: "SFR", state: "TX", unitCount: 1, sqft: 1500, yearBuilt: 2000,
+      isCondotel: false, isNonWarrantable: false, isRural: false,
+      isDecliningMarket: false, hoaSTRPolicy: "UNKNOWN",
+    } as any;
+    const loan = {
+      ltv: 75, term: "30_YR", ioPeriod: "NONE", armType: "FIXED",
+      prepayPreference: "NONE", purpose: "PURCHASE", expectedHoldYears: 5,
+      points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0,
+    } as any;
+
+    expect(() => computeStressMatrix(property, loan, "LTR", Number.MAX_VALUE, 3000)).toThrow(RangeError);
   });
 });
 

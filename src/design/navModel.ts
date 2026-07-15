@@ -14,6 +14,83 @@ export type NavMenu = {
 
 export const INVESTGO_TEXT = "INVESTGO";
 
+const CANONICAL_VIEW_PATHS: Record<string, string> = {
+  marketing: "/",
+  products: "/products",
+  platform: "/products/platform",
+  portal: "/investgo",
+  "dscr-calculator": "/dscr-calculator",
+  "lender-intel": "/lender-intel",
+  "decision-support": "/tools/decision-support",
+  "tax-engine": "/tools/tax-engine",
+  returns: "/tools/returns",
+  "monte-carlo": "/tools/monte-carlo",
+  "stress-matrix": "/tools/stress-matrix",
+  "arm-reset": "/tools/arm-reset",
+  portfolio: "/tools/portfolio",
+  solutions: "/solutions",
+  investors: "/investors",
+  brokers: "/brokers",
+  "non-us-investors": "/non-us-investors",
+  "str-hosts": "/str-airbnb",
+  "vacation-homes": "/vacation-homes",
+  "borrower-profiles": "/borrower-profiles",
+  "case-studies": "/case-studies",
+  blog: "/blog",
+  "refi-tracker": "/tools/refi-tracker",
+  "state-laws": "/state-laws",
+  "rate-quiz": "/rate-quiz",
+  faq: "/faq",
+  support: "/support",
+  about: "/about",
+  careers: "/careers",
+  legal: "/legal",
+  "how-it-works": "/how-it-works",
+  "brokers-partner": "/partnerships",
+};
+
+const VIEW_ALIASES: Record<string, string> = {
+  "book-demo": "rate-quiz",
+  investgo: "portal",
+  "str-airbnb": "str-hosts",
+  partnerships: "brokers-partner",
+};
+
+const normalizePath = (path: string) => {
+  const clean = path.split(/[?#]/, 1)[0].trim();
+  if (!clean || clean === "/") return "/";
+  return `/${clean.replace(/^\/+|\/+$/g, "")}`;
+};
+
+const PATH_TO_VIEW = Object.entries(CANONICAL_VIEW_PATHS).reduce<Record<string, string>>((paths, [view, path]) => {
+  paths[normalizePath(path)] = view;
+  return paths;
+}, {});
+
+export const canonicalView = (view: string) => {
+  const raw = String(view || "marketing").trim();
+  if (raw.startsWith("/")) {
+    const path = normalizePath(raw);
+    return PATH_TO_VIEW[path] || VIEW_ALIASES[path.slice(1)] || (path === "/" ? "marketing" : path.slice(1));
+  }
+  const key = raw.split(/[?#]/, 1)[0].replace(/^\/+|\/+$/g, "") || "marketing";
+  return VIEW_ALIASES[key] || key;
+};
+
+export const pathForView = (view: string) => {
+  const canonical = canonicalView(view);
+  const knownPath = CANONICAL_VIEW_PATHS[canonical];
+  if (knownPath) return knownPath;
+  const safeSegments = canonical.split("/").filter(Boolean).map(encodeURIComponent);
+  return safeSegments.length ? `/${safeSegments.join("/")}` : "/";
+};
+
+export const labelForView = (label: string, view: string) =>
+  view === "book-demo" ? "Start the rate quiz" : label;
+
+export const viewMatchesRoute = (view: string, routeOrView: string) =>
+  canonicalView(view) === canonicalView(routeOrView);
+
 export const NAV_MENUS: NavMenu[] = [
   {
     label: "Product",
@@ -42,7 +119,8 @@ export const NAV_MENUS: NavMenu[] = [
       { label: "STR & Airbnb Hosts", view: "str-hosts", path: "/str-airbnb" },
       { label: "Vacation & Second Homes", view: "vacation-homes", path: "/vacation-homes" },
       { label: "Borrower Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
-      { label: "Customer Stories", view: "case-studies", path: "/case-studies" },
+      { label: "Mortgage Brokers", view: "brokers", path: "/brokers" },
+      { label: "Illustrative Scenarios", view: "case-studies", path: "/case-studies" },
     ],
   },
   {
@@ -53,6 +131,7 @@ export const NAV_MENUS: NavMenu[] = [
       { label: "Refi Tracker", view: "refi-tracker", path: "/tools/refi-tracker" },
       { label: "50-State Rule Map", view: "state-laws", path: "/state-laws" },
       { label: "Rate Quiz", view: "rate-quiz", path: "/rate-quiz" },
+      { label: "How It Works", view: "how-it-works", path: "/how-it-works" },
       { label: "Greenstreet Guidance", view: "blog", path: "/blog" },
       { label: "FAQ", view: "faq", path: "/faq" },
       { label: "Customer Support", view: "support", path: "/support" },
@@ -62,9 +141,9 @@ export const NAV_MENUS: NavMenu[] = [
   },
 ];
 
-// "Partnerships" retired from primary nav. INVESTGO is the prominent button
-// rendered directly in SiteNav (see SiteShell), so there are no standalone links.
-export const NAV_STANDALONE_LINKS: NavItem[] = [];
+export const NAV_STANDALONE_LINKS: NavItem[] = [
+  { label: "Partnerships", view: "brokers-partner", path: "/partnerships" },
+];
 
 // Shared mega-dropdown grid CSS — applied to BOTH the Webflow home nav (rebuilt
 // by marketing/homeNavSync) and the React SiteNav (design/SiteShell). Keeping it

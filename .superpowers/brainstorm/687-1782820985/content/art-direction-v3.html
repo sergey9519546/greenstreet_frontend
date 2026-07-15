@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greenstreet Art Direction V3</title>
+  <style>
+    :root {
+      --ink:#003738;
+      --deep:#071312;
+      --deep2:#0c2321;
+      --cream:#f4f1d8;
+      --paper:#fbf7df;
+      --lemon:#d9dd56;
+      --mint:#8fc8a6;
+      --rain:#3b7d79;
+      --clay:#c46d51;
+      --fog:rgba(244,241,216,.72);
+      --line-light:rgba(244,241,216,.14);
+      --line-dark:rgba(0,55,56,.13);
+      --curve:cubic-bezier(.32,.72,0,1);
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      background:
+        radial-gradient(circle at 18% 2%, rgba(217,221,86,.12), transparent 28%),
+        radial-gradient(circle at 84% 10%, rgba(77,189,151,.12), transparent 34%),
+        #111311;
+      color:var(--cream);
+      font-family:"Geist", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+      letter-spacing:0;
+    }
+    body:before {
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:3;
+      opacity:.045;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px);
+      background-size:3px 3px;
+      mix-blend-mode:soft-light;
+    }
+    .shell { min-height:100vh; padding:28px clamp(18px,3vw,42px) 54px; }
+    .nav {
+      width:max-content;
+      max-width:100%;
+      margin:0 auto 42px;
+      border-radius:999px;
+      padding:6px;
+      background:rgba(244,241,216,.08);
+      border:1px solid rgba(244,241,216,.14);
+      box-shadow:0 18px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.07);
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .nav b { padding:10px 14px; font-size:14px; color:var(--cream); }
+    .nav span { padding:9px 12px; border-radius:999px; color:rgba(244,241,216,.62); font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:850; }
+    .nav span.active { background:var(--cream); color:var(--ink); }
+    .intro { max-width:1500px; margin:0 auto 34px; display:grid; grid-template-columns:minmax(0,1fr) 420px; gap:32px; align-items:end; }
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(217,221,86,.24);
+      background:rgba(217,221,86,.08);
+      color:var(--lemon);
+      border-radius:999px;
+      padding:8px 11px;
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:900;
+      margin-bottom:16px;
+    }
+    h1 {
+      margin:0;
+      max-width:1000px;
+      font-size:clamp(54px,8.2vw,132px);
+      line-height:.86;
+      letter-spacing:0;
+      color:var(--cream);
+      font-weight:900;
+      text-wrap:balance;
+    }
+    .intro p { margin:0; color:rgba(244,241,216,.68); font-size:16px; line-height:1.58; }
+    .options {
+      max-width:1500px;
+      margin:0 auto;
+      display:grid;
+      gap:28px;
+    }
+    .option {
+      position:relative;
+      border-radius:34px;
+      padding:8px;
+      border:1px solid rgba(244,241,216,.13);
+      background:linear-gradient(145deg, rgba(244,241,216,.12), rgba(244,241,216,.035));
+      box-shadow:0 30px 90px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.08);
+      cursor:pointer;
+      transition:transform 900ms var(--curve), border-color 900ms var(--curve), background 900ms var(--curve);
+      will-change:transform;
+    }
+    .option:hover { transform:translateY(-6px); border-color:rgba(217,221,86,.36); }
+    .option.selected { border-color:var(--lemon); background:linear-gradient(145deg, rgba(217,221,86,.18), rgba(244,241,216,.055)); }
+    .core {
+      border-radius:26px;
+      overflow:hidden;
+      background:var(--paper);
+      color:var(--ink);
+      min-height:720px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+    }
+    .choice-label {
+      position:absolute;
+      right:24px;
+      top:24px;
+      z-index:2;
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:var(--lemon);
+      color:var(--ink);
+      font-weight:950;
+      font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+      box-shadow:0 12px 32px rgba(0,0,0,.22);
+    }
+    .direction-head {
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:24px;
+      align-items:center;
+      padding:24px 28px;
+      border-bottom:1px solid var(--line-dark);
+      background:rgba(244,241,216,.82);
+    }
+    .direction-head h2 { margin:0; font-size:34px; line-height:1; letter-spacing:0; }
+    .direction-head p { margin:8px 0 0; max-width:760px; color:rgba(0,55,56,.62); font-size:13px; line-height:1.45; }
+    .tagset { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+    .tagset span { border:1px solid var(--line-dark); border-radius:999px; padding:8px 10px; color:var(--rain); font-size:10px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+    .desk {
+      display:grid;
+      grid-template-columns:310px minmax(0,1fr) 320px;
+      min-height:634px;
+    }
+    .left, .right { padding:18px; background:#efefd4; }
+    .left { border-right:1px solid var(--line-dark); }
+    .right { border-left:1px solid var(--line-dark); }
+    .label { margin:0 0 14px; color:var(--rain); font-size:10px; font-weight:950; letter-spacing:.16em; text-transform:uppercase; }
+    .lane {
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+      align-items:center;
+      min-height:72px;
+      padding:13px 14px;
+      border-radius:18px;
+      border:1px solid rgba(0,55,56,.11);
+      background:rgba(255,255,255,.24);
+      margin-bottom:9px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.32);
+    }
+    .lane.active { background:var(--ink); color:var(--cream); border-color:var(--ink); }
+    .lane strong { display:block; font-size:15px; line-height:1.08; }
+    .lane small { display:block; margin-top:5px; color:inherit; opacity:.58; font-size:10px; letter-spacing:.11em; text-transform:uppercase; font-weight:900; }
+    .lane b { color:var(--ink); font-size:15px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .lane.active b { color:var(--lemon); }
+    .middle {
+      background:
+        linear-gradient(180deg, rgba(244,241,216,.02), transparent),
+        var(--ink);
+      color:var(--cream);
+      padding:22px;
+      position:relative;
+      overflow:hidden;
+    }
+    .middle:after {
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background-image:linear-gradient(rgba(244,241,216,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(244,241,216,.055) 1px, transparent 1px);
+      background-size:44px 44px;
+      mask-image:linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+      opacity:.35;
+    }
+    .middle > * { position:relative; z-index:1; }
+    .decision-row { display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:18px; margin-bottom:18px; }
+    .title-xl { margin:0; color:var(--cream); font-size:clamp(46px,4.8vw,82px); line-height:.88; letter-spacing:0; text-wrap:balance; }
+    .copy { margin:14px 0 0; max-width:70ch; color:rgba(244,241,216,.66); font-size:14px; line-height:1.55; }
+    .score-shell { border-radius:30px; padding:6px; background:rgba(244,241,216,.06); border:1px solid rgba(244,241,216,.1); }
+    .score-core { min-height:184px; border-radius:24px; border:1px solid rgba(244,241,216,.12); display:flex; flex-direction:column; justify-content:space-between; padding:19px; background:rgba(0,0,0,.12); box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+    .score-core b { color:var(--lemon); font-size:56px; line-height:.9; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .score-core span { color:rgba(244,241,216,.62); font-size:10px; letter-spacing:.15em; font-weight:950; text-transform:uppercase; }
+    .metric-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:18px 0; }
+    .metric {
+      border-radius:20px;
+      padding:15px;
+      min-height:112px;
+      border:1px solid rgba(244,241,216,.12);
+      background:rgba(244,241,216,.045);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .metric b { display:block; color:var(--lemon); font-size:28px; line-height:1; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .metric span { display:block; margin-top:10px; color:rgba(244,241,216,.58); font-size:12px; line-height:1.32; }
+    .rows { display:grid; gap:8px; }
+    .row {
+      display:grid;
+      grid-template-columns:94px 1fr auto;
+      gap:12px;
+      align-items:center;
+      min-height:50px;
+      border-radius:15px;
+      border:1px solid rgba(244,241,216,.105);
+      padding:11px 13px;
+      background:rgba(244,241,216,.028);
+    }
+    .row span { color:rgba(244,241,216,.46); font-size:10px; letter-spacing:.14em; text-transform:uppercase; font-weight:950; }
+    .row strong { color:var(--cream); font-size:13px; }
+    .row b { color:var(--lemon); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+    .memo-card {
+      border-radius:22px;
+      padding:16px;
+      border:1px solid rgba(0,55,56,.11);
+      background:rgba(255,255,255,.28);
+      margin-bottom:10px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
+    }
+    .memo-card strong { display:block; color:var(--ink); font-size:14px; }
+    .memo-card span { display:block; margin-top:7px; color:rgba(0,55,56,.62); font-size:12px; line-height:1.44; }
+    .cta-pill {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      min-height:58px;
+      border-radius:999px;
+      padding:8px 8px 8px 20px;
+      background:var(--ink);
+      color:var(--cream);
+      font-size:13px;
+      font-weight:950;
+      margin-top:14px;
+      box-shadow:0 18px 34px rgba(0,55,56,.22);
+    }
+    .cta-pill i {
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:var(--lemon);
+      color:var(--ink);
+      display:grid;
+      place-items:center;
+      font-style:normal;
+      transition:transform 700ms var(--curve);
+    }
+    .option:hover .cta-pill i { transform:translateX(3px) translateY(-1px) scale(1.04); }
+    .program-board .middle { background:#061f1d; }
+    .program-board .lane.active { background:#102d2a; }
+    .leader { display:grid; grid-template-columns:42px 1fr 76px; gap:13px; align-items:center; min-height:64px; border-radius:18px; border:1px solid rgba(244,241,216,.12); background:rgba(244,241,216,.035); padding:12px; margin-bottom:9px; }
+    .leader em { color:rgba(244,241,216,.42); font-style:normal; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .leader strong { display:block; color:var(--cream); font-size:15px; }
+    .leader small { display:block; margin-top:4px; color:rgba(244,241,216,.52); }
+    .leader b { color:var(--lemon); text-align:right; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .mini-matrix { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:15px; }
+    .mini-matrix span { height:26px; border-radius:9px; border:1px solid rgba(244,241,216,.1); background:rgba(244,241,216,.06); }
+    .mini-matrix .ok { background:rgba(143,200,166,.72); }
+    .mini-matrix .warn { background:rgba(217,221,86,.78); }
+    .mini-matrix .fail { background:rgba(196,109,81,.82); }
+    .refi-board .middle { background:#081817; }
+    .chart {
+      height:188px;
+      border-radius:26px;
+      padding:6px;
+      border:1px solid rgba(244,241,216,.1);
+      background:rgba(244,241,216,.05);
+      margin:18px 0;
+      position:relative;
+    }
+    .chart-core {
+      position:absolute;
+      inset:6px;
+      border-radius:20px;
+      border:1px solid rgba(244,241,216,.1);
+      background:linear-gradient(180deg, rgba(244,241,216,.05), rgba(244,241,216,.015));
+      overflow:hidden;
+    }
+    .chart-core:before { content:""; position:absolute; left:22px; right:22px; top:58px; border-top:2px dashed var(--clay); }
+    .chart-core:after { content:""; position:absolute; left:22px; right:22px; bottom:38px; height:86px; background:linear-gradient(16deg, transparent 48%, var(--mint) 49%, var(--mint) 51%, transparent 52%); }
+    .dot { position:absolute; width:14px; height:14px; border-radius:50%; background:var(--lemon); left:66%; top:52px; box-shadow:0 0 0 9px rgba(217,221,86,.16); z-index:2; }
+    .axis { position:absolute; font-size:10px; color:rgba(244,241,216,.52); font-family:ui-monospace, SFMono-Regular, Menlo, monospace; z-index:2; }
+    .axis.a { left:24px; top:32px; color:#e99178; }
+    .axis.b { right:24px; bottom:22px; color:var(--mint); }
+    .split-score { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .split-score .metric { min-height:92px; }
+    .editorial .core { background:#f7f1dd; }
+    .editorial .direction-head { background:#f7f1dd; }
+    .editorial .desk { grid-template-columns:420px 1fr; }
+    .editorial .left { background:#f7f1dd; padding:30px; }
+    .editorial .middle { background:#1b2924; }
+    .editorial .left h3 { color:var(--ink); font-size:54px; line-height:.92; margin:0 0 24px; letter-spacing:0; }
+    .editorial .quote { font-family:"PP Editorial New", Georgia, serif; font-size:21px; line-height:1.4; color:rgba(0,55,56,.72); border-left:3px solid var(--clay); padding-left:18px; }
+    .terminal .core { background:#090d0c; color:var(--cream); }
+    .terminal .direction-head { background:#111916; color:var(--cream); border-color:rgba(244,241,216,.12); }
+    .terminal .direction-head h2 { color:var(--cream); }
+    .terminal .direction-head p { color:rgba(244,241,216,.58); }
+    .terminal .tagset span { border-color:rgba(244,241,216,.14); color:rgba(244,241,216,.62); }
+    .terminal .desk { grid-template-columns:280px 1fr 380px; }
+    .terminal .left,.terminal .right { background:#101613; color:var(--cream); border-color:rgba(244,241,216,.12); }
+    .terminal .lane { background:rgba(244,241,216,.035); color:var(--cream); border-color:rgba(244,241,216,.1); }
+    .terminal .lane b { color:var(--lemon); }
+    .terminal .lane.active { background:rgba(217,221,86,.12); border-color:rgba(217,221,86,.35); }
+    .terminal .memo-card { background:rgba(244,241,216,.035); border-color:rgba(244,241,216,.1); }
+    .terminal .memo-card strong { color:var(--cream); }
+    .terminal .memo-card span { color:rgba(244,241,216,.58); }
+    .terminal .middle { background:#050807; }
+    .terminal-code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; border-radius:24px; border:1px solid rgba(244,241,216,.12); background:#07100d; padding:18px; min-height:460px; color:rgba(244,241,216,.75); }
+    .terminal-code div { display:grid; grid-template-columns:96px 1fr auto; gap:14px; padding:10px 0; border-bottom:1px solid rgba(244,241,216,.07); }
+    .terminal-code b { color:var(--lemon); }
+    .terminal-code strong { color:var(--mint); }
+    .terminal-code span { color:rgba(244,241,216,.38); }
+    .terminal-code i { color:var(--cream); font-style:normal; }
+    .pros { max-width:1500px; margin:28px auto 0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+    .pros article { border-radius:26px; padding:22px; background:rgba(244,241,216,.075); border:1px solid rgba(244,241,216,.12); color:rgba(244,241,216,.68); }
+    .pros h3 { margin:0 0 8px; color:var(--cream); font-size:18px; }
+    .pros p { margin:0; line-height:1.45; font-size:13px; }
+    @media (max-width:1000px) {
+      .intro, .desk, .editorial .desk, .terminal .desk, .decision-row, .metric-grid, .split-score, .pros { grid-template-columns:1fr; }
+      .direction-head { grid-template-columns:1fr; }
+      .tagset { justify-content:flex-start; }
+      .left,.right { border:0; }
+      h1 { font-size:56px; }
+      .core { min-height:0; }
+      .nav { margin-left:0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav class="nav" aria-label="Concept navigation">
+      <b>Greenstreet Finance.</b>
+      <span class="active">Art direction</span>
+      <span>Borrower</span>
+      <span>Lender</span>
+      <span>Refi</span>
+    </nav>
+
+    <section class="intro">
+      <div>
+        <div class="pill">V3 · high-end decision system</div>
+        <h1>Pick an art direction before code.</h1>
+      </div>
+      <p>V2 was too literal and too boxy. These are stronger choices. Option A is my recommendation: premium operating system, dense but calm, commercial finance specific. Click one if you want, then tell me what still misses.</p>
+    </section>
+
+    <section class="options">
+      <article class="option selected" data-choice="a" onclick="window.toggleSelect && window.toggleSelect(this)">
+        <div class="choice-label">A</div>
+        <div class="core">
+          <header class="direction-head">
+            <div>
+              <h2>Recommended: Greenstreet Decision OS</h2>
+              <p>Best fit for borrower profiles + lender intel + refi tracker. Feels like a private underwriting terminal, but readable enough for brokers and investors.</p>
+            </div>
+            <div class="tagset"><span>Command OS</span><span>Double-bezel panels</span><span>Dense first screen</span></div>
+          </header>
+
+          <div class="desk">
+            <aside class="left">
+              <p class="label">Borrower lane</p>
+              <div class="lane active"><div><strong>Portfolio builder</strong><small>multi-property desk</small></div><b>7</b></div>
+              <div class="lane"><div><strong>STR operator</strong><small>seasonal income</small></div><b>+3mo</b></div>
+              <div class="lane"><div><strong>Non-US investor</strong><small>passport file</small></div><b>ITIN</b></div>
+              <div class="lane"><div><strong>Buy-and-hold</strong><small>stabilized rental</small></div><b>1.25x</b></div>
+              <div class="cta-pill">Change profile <i>↗</i></div>
+            </aside>
+
+            <section class="middle">
+              <div class="decision-row">
+                <div>
+                  <p class="label" style="color:var(--lemon)">Active underwriting memo</p>
+                  <h3 class="title-xl">Portfolio lane is viable. Concentration review before quote.</h3>
+                  <p class="copy">This replaces the current borrower page’s billboard hero with an actual profile memo: terms, proof, exceptions, and the next underwriting action in the first viewport.</p>
+                </div>
+                <div class="score-shell"><div class="score-core"><span>File confidence</span><b>76</b><span>watch exposure</span></div></div>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><b>1.18x</b><span>aggregate stressed DSCR across properties</span></div>
+                <div class="metric"><b>9 mo</b><span>reserve target after lender overlay</span></div>
+                <div class="metric"><b>2</b><span>assets below comfort threshold</span></div>
+              </div>
+              <div class="rows">
+                <div class="row"><span>Gate 01</span><strong>Rent roll reconciles to loan schedule</strong><b>required</b></div>
+                <div class="row"><span>Gate 02</span><strong>Entity chain and vesting match every property</strong><b>watch</b></div>
+                <div class="row"><span>Gate 03</span><strong>Route to portfolio lender, not retail DSCR</strong><b>route</b></div>
+              </div>
+            </section>
+
+            <aside class="right">
+              <p class="label">Next best action</p>
+              <div class="memo-card"><strong>Run exposure screen</strong><span>Use property count, state mix, and aggregate DSCR before rate quote.</span></div>
+              <div class="memo-card"><strong>Lender Intel handoff</strong><span>Prefill FICO, LTV, DSCR, state risk, strategy, and reserve expectation.</span></div>
+              <div class="memo-card"><strong>Refi Tracker language</strong><span>Use same memo grammar: eligible vs worthwhile, not one vague score.</span></div>
+              <div class="cta-pill">Price this lane <i>→</i></div>
+            </aside>
+          </div>
+        </div>
+      </article>
+
+      <article class="option editorial" data-choice="b" onclick="window.toggleSelect && window.toggleSelect(this)">
+        <div class="choice-label">B</div>
+        <div class="core">
+          <header class="direction-head">
+            <div>
+              <h2>Editorial Luxury Desk</h2>
+              <p>More premium and atmospheric. Strong for marketing credibility, weaker for tool density. Better if pages should sell confidence before operating like a calculator.</p>
+            </div>
+            <div class="tagset"><span>Luxury memo</span><span>Warmer</span><span>More narrative</span></div>
+          </header>
+          <div class="desk">
+            <aside class="left">
+              <p class="label">Borrower profile memo</p>
+              <h3>Borrower lane first. Rate second.</h3>
+              <p class="quote">“The best DSCR quote is not the lowest rate. It is the lane that survives rent proof, reserves, state risk, and program overlays.”</p>
+              <div class="cta-pill">Open profile memo <i>↗</i></div>
+            </aside>
+            <section class="middle">
+              <div class="decision-row">
+                <div>
+                  <p class="label" style="color:var(--lemon)">Lender routing</p>
+                  <h3 class="title-xl">4 programs fit. 2 deserve the file.</h3>
+                  <p class="copy">Editorial version keeps the design high-end but risks hiding active controls. Good for buyer confidence; less ideal for repeated broker workflows.</p>
+                </div>
+                <div class="score-shell"><div class="score-core"><span>Top fit</span><b>94</b><span>Cedar</span></div></div>
+              </div>
+              <div class="rows">
+                <div class="row"><span>01</span><strong>Greenstreet Cedar</strong><b>clean</b></div>
+                <div class="row"><span>02</span><strong>Greenstreet Aspen</strong><b>clean</b></div>
+                <div class="row"><span>03</span><strong>Greenstreet Willow</strong><b>watch</b></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article class="option terminal" data-choice="c" onclick="window.toggleSelect && window.toggleSelect(this)">
+        <div class="choice-label">C</div>
+        <div class="core">
+          <header class="direction-head">
+            <div>
+              <h2>Capital Terminal</h2>
+              <p>Most differentiated. Feels proprietary and sharp, but may intimidate retail borrowers. Best if Greenstreet wants “Bloomberg for DSCR” energy.</p>
+            </div>
+            <div class="tagset"><span>Terminal</span><span>Highest density</span><span>Most polarizing</span></div>
+          </header>
+          <div class="desk">
+            <aside class="left">
+              <p class="label">Scenario</p>
+              <div class="lane active"><div><strong>Refi economics</strong><small>rate-term</small></div><b>watch</b></div>
+              <div class="lane"><div><strong>Lender route</strong><small>program fit</small></div><b>4/7</b></div>
+              <div class="lane"><div><strong>Borrower lane</strong><small>portfolio</small></div><b>76</b></div>
+            </aside>
+            <section class="middle">
+              <div class="decision-row">
+                <div>
+                  <p class="label" style="color:var(--lemon)">Refi command</p>
+                  <h3 class="title-xl">Eligible. Not worth it yet.</h3>
+                  <p class="copy">Terminal approach handles refi best: split eligibility from economics, display trigger rate, and show exact next move.</p>
+                </div>
+                <div class="score-shell"><div class="score-core"><span>Action score</span><b>42</b><span>wait</span></div></div>
+              </div>
+              <div class="terminal-code">
+                <div><span>ELIG</span><i>seasoning, DSCR, LTV</i><b>PASS</b></div>
+                <div><span>ECON</span><i>monthly savings vs closing cost</i><b>WEAK</b></div>
+                <div><span>BREAKEVEN</span><i>current scenario</i><b>53 MO</b></div>
+                <div><span>CASHOUT</span><i>available proceeds</i><b>$0</b></div>
+                <div><span>NEXT</span><strong>set rate trigger or compare second lien</strong><b>DO</b></div>
+              </div>
+            </section>
+            <aside class="right">
+              <p class="label">Motion model</p>
+              <div class="memo-card"><strong>GSAP use</strong><span>Animate only transforms and opacity: row stagger, active-lane slide, refi dot movement, memo reveal.</span></div>
+              <div class="memo-card"><strong>No decoration motion</strong><span>Movement must confirm a financial state change.</span></div>
+              <div class="cta-pill">Open terminal view <i>↗</i></div>
+            </aside>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="pros">
+      <article><h3>Recommendation</h3><p>Choose A. It is premium enough, clear enough, and implementable across all three pages without making users decode a concept.</p></article>
+      <article><h3>Borrower Page</h3><p>A makes borrower profiles useful immediately: lane, evidence, exceptions, and next action above fold.</p></article>
+      <article><h3>Refi Improvement</h3><p>A/C fix biggest product issue: refi readiness must split eligibility from economics so "ready" does not lie.</p></article>
+    </section>
+  </main>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      if (!window.gsap) return;
+      gsap.defaults({ duration: 0.9, ease: "power3.out" });
+      gsap.from(".nav", { y: -18, autoAlpha: 0 });
+      gsap.from(".intro .pill, .intro h1, .intro p", { y: 34, autoAlpha: 0, stagger: 0.08 }, "<0.1");
+      gsap.from(".option", { y: 48, autoAlpha: 0, stagger: 0.14, duration: 1.05 }, "<0.2");
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+</body>
+</html>

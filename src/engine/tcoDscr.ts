@@ -36,9 +36,23 @@ export const MARKET_ADJUSTMENTS: Record<TcoMarketType, number> = {
   HOT: -0.02, NORMAL: 0.00, SLOW: 0.03, STRESS: 0.05,
 };
 
-function r4(n: number): number { return Math.round(n * 10000) / 10000; }
-function r2(n: number): number { return Math.round(n * 100) / 100; }
-function r3(n: number): number { return Math.round(n * 1000) / 1000; }
+function rounded(n: number, factor: number): number {
+  const scaled = n * factor;
+  if (!Number.isFinite(n) || !Number.isFinite(scaled)) {
+    throw new RangeError('TCO result exceeded the supported finite calculation range.');
+  }
+  return Math.round(scaled) / factor;
+}
+
+function r4(n: number): number { return rounded(n, 10000); }
+function r2(n: number): number { return rounded(n, 100); }
+function r3(n: number): number { return rounded(n, 1000); }
+
+function assertFiniteIntermediate(label: string, ...values: number[]): void {
+  if (values.some(value => !Number.isFinite(value))) {
+    throw new RangeError(`${label} exceeded the supported finite calculation range.`);
+  }
+}
 
 export interface TcoRateOpts {
   propertyType?: TcoPropertyType;
@@ -59,17 +73,17 @@ export interface TcoRateComponents {
  * Self-managed caps management at the 5% implicit-labor floor (TCO §2.3).
  */
 export function computeTcoRate(o: TcoRateOpts = {}): TcoRateComponents {
-  const type = o.propertyType ?? 'SFR';
-  const age = o.propertyAge ?? 'AVERAGE';
-  const market = o.marketType ?? 'NORMAL';
+  const type = o.propertyType && BASE_TCO_RATES[o.propertyType] ? o.propertyType : 'SFR';
+  const age = o.propertyAge && AGE_ADJUSTMENTS[o.propertyAge] ? o.propertyAge : 'AVERAGE';
+  const market = o.marketType && MARKET_ADJUSTMENTS[o.marketType] !== undefined ? o.marketType : 'NORMAL';
   const base = BASE_TCO_RATES[type];
   const ageAdj = AGE_ADJUSTMENTS[age];
 
   const management = o.isSelfManaged ? Math.min(base.management, 0.05) : base.management;
   const maintenance = Math.max(0, base.maintenance + ageAdj.maintenance);
   const capex = Math.max(0, base.capex + ageAdj.capex);
-  const vacancy = o.vacancyOverridePct !== undefined
-    ? Math.max(0, o.vacancyOverridePct / 100)
+  const vacancy = o.vacancyOverridePct !== undefined && Number.isFinite(o.vacancyOverridePct)
+    ? Math.min(1, Math.max(0, o.vacancyOverridePct / 100))
     : Math.max(0.02, base.vacancy + MARKET_ADJUSTMENTS[market]);
 
   return {
@@ -103,8 +117,8 @@ export interface TcoDscrInput {
 
 export interface TcoDscrResult {
   standardDSCR: number;     // gross rent ÷ PITIA (lender Track 1)
-  tcoDSCR: number;          // gross rent ÷ (PITIA + TCO opex)
-  afterTaxTcoDSCR: number;  // after the depreciation shield
+  tcoDSCR: number;          // NOI after TCO opex ÷ PITIA (investor Track 2)
+  afterTaxTcoDSCR: number;  // after-tax NOI available ÷ PITIA
   tcoGap: number;           // standardDSCR − tcoDSCR
   breakEvenRent: number;    // rent for TCO-DSCR = 1.0
   monthlyDeficit: number;   // pre-tax monthly cash flow (gross − PITIA − opex)
@@ -119,14 +133,30 @@ export interface TcoDscrResult {
  */
 export function computeTcoDscr(input: TcoDscrInput): TcoDscrResult {
   const { grossRent, principalAndInterest, propertyTax, insurance, hoa } = input;
+  const required = [grossRent, principalAndInterest, propertyTax, insurance, hoa];
+  if (required.some(value => !Number.isFinite(value) || value < 0)) {
+    throw new RangeError('Rent and PITIA components must be finite, non-negative numbers.');
+  }
+  if (input.depreciableBasis !== undefined && (!Number.isFinite(input.depreciableBasis) || input.depreciableBasis < 0)) {
+    throw new RangeError('Depreciable basis must be finite and non-negative.');
+  }
+  if (input.marginalTaxRate !== undefined && (!Number.isFinite(input.marginalTaxRate) || input.marginalTaxRate < 0 || input.marginalTaxRate > 1)) {
+    throw new RangeError('Marginal tax rate must be a decimal between 0 and 1.');
+  }
+
   const pitia = principalAndInterest + propertyTax + insurance + hoa;
+  assertFiniteIntermediate('TCO PITIA', pitia);
   const rate = computeTcoRate(input.rateOpts);
 
   const opex = grossRent * rate.total;
+  const noi = Math.max(0, grossRent - opex);
   const standardDSCR = pitia > 0 ? grossRent / pitia : 0;
-  const tcoDSCR = pitia + opex > 0 ? grossRent / (pitia + opex) : 0;
-  const preTaxCF = grossRent - pitia - opex;
+  // Canonical Track 2: modeled NOI after vacancy, management, maintenance,
+  // and CapEx reserves divided by the same full PITIA used by Track 1.
+  const tcoDSCR = pitia > 0 ? noi / pitia : 0;
+  const preTaxCF = noi - pitia;
   const breakEvenRent = rate.total < 1 ? pitia / (1 - rate.total) : 0;
+  assertFiniteIntermediate('TCO pre-tax result', opex, noi, standardDSCR, tcoDSCR, preTaxCF, breakEvenRent);
 
   // After-tax: straight-line residential depreciation shield (TCO §7.4).
   const marginalRate = input.marginalTaxRate ?? 0.24;
@@ -135,8 +165,13 @@ export function computeTcoDscr(input: TcoDscrInput): TcoDscrResult {
   const taxSavings = Math.max(0, -taxableIncome) * marginalRate;
   const taxOwed = Math.max(0, taxableIncome) * marginalRate;
   const afterTaxCF = preTaxCF + taxSavings - taxOwed;
-  // DSCR-form: cash available for debt service ÷ P&I (P&I already in preTaxCF).
-  const afterTaxTcoDSCR = principalAndInterest > 0 ? (afterTaxCF + principalAndInterest) / principalAndInterest : 0;
+  // Preserve the canonical denominator: after-tax NOI available ÷ full PITIA.
+  const afterTaxNoi = afterTaxCF + pitia;
+  const afterTaxTcoDSCR = pitia > 0 ? afterTaxNoi / pitia : 0;
+  assertFiniteIntermediate(
+    'TCO after-tax result', monthlyDepreciation, taxableIncome, taxSavings, taxOwed,
+    afterTaxCF, afterTaxNoi, afterTaxTcoDSCR,
+  );
 
   return {
     standardDSCR: r3(standardDSCR),

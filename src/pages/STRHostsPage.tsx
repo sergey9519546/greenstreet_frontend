@@ -1,158 +1,135 @@
-import React, { useEffect, useState } from "react";
-import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
-import { radius, font } from "../theme";
-import BottomCTA from "../design/BottomCTA";
+import React, { useEffect, useMemo, useState } from "react";
+import { DcShell, dc, Mono } from "../design/dc";
 
-// ── Who-We-Serve: STR & Airbnb Hosts ──────────────────────────────────────────
-// Signature: the 12-Month Revenue Ribbon — real seasonal income (ADR × occupancy),
-// the worst-month DSCR a lender actually underwrites to. Not the peak-season fantasy.
+type PageProps = { onBack?: () => void; onNavigate: (view: any) => void };
 
-const BLUE = "#7ec8d3";
-const RED = "#e06363";
-const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
-// seasonal multipliers — summer-peak vacation market
-const SEASON = [0.62, 0.68, 0.84, 0.96, 1.12, 1.28, 1.34, 1.26, 1.04, 0.88, 0.70, 0.78];
-const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const ILLUSTRATIVE_SEASON = [0.62, 0.68, 0.84, 0.96, 1.12, 1.28, 1.34, 1.26, 1.04, 0.88, 0.70, 0.78];
 
-export default function STRHostsPage({
-  onBack: _onBack,
-  onNavigate,
-}: {
-  onBack: () => void;
-  onNavigate: (v: any) => void;
-}) {
+function usePageMetadata(title: string, description: string, path: string) {
   useEffect(() => {
-    document.title = "Airbnb DSCR Loans: Qualify with Short-Term Rental Income | Greenstreet Finance";
+    document.title = title;
+    const setMeta = (key: string, value: string, property = false) => {
+      const attr = property ? "property" : "name";
+      let tag = document.head.querySelector("meta[" + attr + "='" + key + "']") as HTMLMetaElement | null;
+      if (!tag) { tag = document.createElement("meta"); tag.setAttribute(attr, key); document.head.appendChild(tag); }
+      tag.content = value;
+    };
+    setMeta("description", description);
+    setMeta("og:title", title, true);
+    setMeta("og:description", description, true);
+    let canonical = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = new URL(path, window.location.origin).href;
     window.scrollTo(0, 0);
-  }, []);
+  }, [description, path, title]);
+}
 
-  const [adr, setAdr] = useState(185);
-  const [occ, setOcc] = useState(64);
-  const [pay, setPay] = useState(2750);
+const money = (value: number) => Number.isFinite(value) ? "$" + Math.round(value).toLocaleString("en-US") : "Unavailable";
 
-  const base = adr * 30 * (occ / 100); // avg monthly gross
-  const monthly = SEASON.map((s) => base * s);
-  const worst = Math.min(...monthly);
-  const peak = Math.max(...monthly);
-  const annualAvg = monthly.reduce((a, b) => a + b, 0) / 12;
-  const worstDSCR = pay > 0 ? worst / pay : 0;
-  const avgDSCR = pay > 0 ? annualAvg / pay : 0;
-  const worstIdx = monthly.indexOf(worst);
-  const holds = worstDSCR >= 1.0;
+export const STR_HOSTS_NARROW_BREAKPOINT = 760;
+export const STR_HOSTS_INTRINSIC_LAYOUT_CSS = `
+  .str-model-grid{grid-template-columns:minmax(0,340px) minmax(0,1fr);min-width:0;max-width:100%}
+  .str-form,.str-output{box-sizing:border-box;min-width:0;max-width:100%}
+  .str-form fieldset{box-sizing:border-box;width:100%;min-inline-size:0;min-width:0;max-width:100%}
+  .str-field,.str-field input{min-width:0;max-width:100%}
+  .str-output,.str-result-grid,.str-stat,.str-chart-scroll,.str-chart,.str-month{min-width:0;max-width:100%}
+  .str-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .str-stat,.str-message,.str-error{overflow-wrap:anywhere}
+  .str-chart{width:100%;grid-template-columns:repeat(12,minmax(0,1fr));min-width:0}
+  .str-month span{max-width:100%;overflow-wrap:anywhere}
+  @media(max-width:${STR_HOSTS_NARROW_BREAKPOINT}px){
+    .str-hero-grid,.str-model-grid,.str-evidence-grid,.str-close-grid,.str-result-grid{grid-template-columns:minmax(0,1fr)}
+    .str-chart{gap:4px}
+    .str-month span{font-size:.625rem}
+  }
+`;
 
-  // chart geometry
-  const W = 560, H = 230, padL = 8, padR = 8, padT = 16, padB = 26;
-  const yMax = peak * 1.12;
-  const X = (i: number) => padL + (i / 11) * (W - padL - padR);
-  const Y = (v: number) => padT + (1 - v / yMax) * (H - padT - padB);
-  const area = `M ${X(0)},${Y(0)} ` + monthly.map((v, i) => `L ${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ") + ` L ${X(11)},${Y(0)} Z`;
-  const line = monthly.map((v, i) => `${i === 0 ? "M" : "L"} ${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
-
-  const numIn = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
-    <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
-      <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)} style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
-    </div>
+export default function STRHostsPage({ onNavigate }: PageProps) {
+  usePageMetadata(
+    "Short-Term Rental DSCR Scenario Guide | Greenstreet Finance",
+    "Model an illustrative short-term rental scenario using nightly rate, occupancy, seasonality, and payment inputs, then review income-method and eligibility limits.",
+    "/str-hosts",
   );
 
-  const navLinks = [
-    { label: "STR Underwriting", view: "str-underwriting" },
-    { label: "DSCR Calc", view: "dscr-calculator" },
-    { label: "Programs", view: "lender-intel" },
-  ];
+  const [adr, setAdr] = useState(185);
+  const [occupancy, setOccupancy] = useState(64);
+  const [payment, setPayment] = useState(2750);
+  const valid = [adr, occupancy, payment].every(Number.isFinite) && adr >= 0 && occupancy >= 0 && occupancy <= 100 && payment > 0;
+
+  const result = useMemo(() => {
+    if (!valid) return null;
+    const baseMonth = adr * 30 * (occupancy / 100);
+    const revenue = ILLUSTRATIVE_SEASON.map((multiplier) => baseMonth * multiplier);
+    if (!revenue.every(Number.isFinite)) return null;
+    const worst = Math.min(...revenue);
+    const peak = Math.max(...revenue);
+    const average = revenue.reduce((sum, value) => sum + value, 0) / revenue.length;
+    const worstIndex = revenue.indexOf(worst);
+    const worstDscr = worst / payment;
+    const averageDscr = average / payment;
+    if (![worst, peak, average, worstDscr, averageDscr].every(Number.isFinite)) return null;
+    return { revenue, worst, peak, average, worstIndex, worstDscr, averageDscr };
+  }, [adr, occupancy, payment, valid]);
+
+  const update = (setter: (value: number) => void) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const next = event.currentTarget.valueAsNumber;
+    setter(Number.isFinite(next) ? next : 0);
+  };
 
   return (
-    <DcShell onNavigate={onNavigate} accent={dc.teal} navLinks={navLinks} cta={{ label: "Underwrite my STR →", view: "str-underwriting" }}>
-      <style>{`@media(max-width:760px){.str-grid{grid-template-columns:1fr !important;}}`}</style>
-
-      {/* HERO */}
-      <section style={{ position: "relative", background: dc.teal, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
-        <div className="gs-dot-grid" />
-        <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For STR &amp; Airbnb Hosts</div>
-            <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>Airbnb DSCR loans that survive the slow months.</H1>
-            <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
-              Short-term rental income swings with the season. We underwrite it the way it actually behaves — ADR × occupancy, month by month — not the peak-week screenshot. The number holds at closing.
-            </Lead>
-            <button onClick={() => onNavigate("str-underwriting")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Underwrite my STR →</button>
+    <DcShell onNavigate={onNavigate} accent={dc.teal} navLinks={[{ label: "STR Tool", view: "str-underwriting" }, { label: "DSCR Calc", view: "dscr-calculator" }, { label: "Profiles", view: "borrower-profiles" }]} cta={{ label: "Model STR income", view: "str-underwriting" }}>
+      <style>{`
+        .str-page{background:#003738;color:#eeefd3}.str-wrap{width:min(1160px,calc(100% - 40px));margin:auto}.str-hero{background:#0b4d4d;padding:clamp(68px,10vw,124px) 0}
+        .str-hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(34px,6vw,84px);align-items:center}.str-kicker{font-size:.75rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#d8d958}
+        .str-hero h1{font-size:clamp(2.6rem,6.6vw,5.8rem);line-height:.94;letter-spacing:-.045em;margin:18px 0 24px;max-width:13ch}.str-lead{font-size:clamp(1.05rem,1.9vw,1.3rem);line-height:1.6;color:rgba(238,239,211,.76);max-width:62ch}
+        .str-callout{background:#003738;border:1px solid rgba(238,239,211,.16);border-radius:12px;padding:clamp(22px,3vw,34px)}.str-callout h2{font-size:clamp(1.5rem,2.8vw,2.3rem);line-height:1.1;margin:0 0 14px}.str-callout p{line-height:1.65;color:rgba(238,239,211,.7);margin:0}
+        .str-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.str-link{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:7px;background:#d8d958;color:#003738;font-weight:800;text-decoration:none}.str-link.secondary{background:transparent;color:#eeefd3;border:1px solid rgba(238,239,211,.34)}
+        .str-model,.str-evidence{padding:clamp(66px,8vw,110px) 0}.str-page h2{font-size:clamp(2rem,4vw,3.8rem);line-height:1;letter-spacing:-.04em;margin:12px 0 18px}.str-intro{color:rgba(238,239,211,.68);line-height:1.65;max-width:70ch}
+        .str-model-grid{display:grid;grid-template-columns:340px 1fr;gap:18px;margin-top:34px}.str-form,.str-output{background:#0b4d4d;border:1px solid rgba(238,239,211,.15);border-radius:12px;padding:clamp(22px,3vw,32px)}.str-form fieldset{border:0;padding:0;margin:0}.str-form legend{font-size:1.25rem;font-weight:800;margin-bottom:20px}
+        .str-field{margin:0 0 15px}.str-field label{display:block;font-size:.78rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}.str-field input{box-sizing:border-box;width:100%;min-height:46px;background:#003738;color:#eeefd3;border:1px solid rgba(238,239,211,.24);border-radius:7px;padding:10px 12px;font:inherit}
+        .str-help{font-size:.83rem;line-height:1.5;color:rgba(238,239,211,.58)}.str-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.str-stat{background:#003738;padding:18px;border-radius:8px}.str-stat span{display:block;color:rgba(238,239,211,.58);font-size:.8rem;margin-top:6px}
+        .str-chart-scroll{overflow-x:auto;margin-top:24px;padding-bottom:8px}.str-chart{display:grid;grid-template-columns:repeat(12,minmax(38px,1fr));align-items:end;gap:8px;min-width:610px;height:190px;border-bottom:1px solid rgba(238,239,211,.22)}.str-month{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px}.str-bar{width:100%;max-width:28px;background:#7ec8d3;border-radius:5px 5px 0 0}.str-month span{font-size:.7rem;color:rgba(238,239,211,.58)}
+        .str-message{margin-top:18px;line-height:1.6;color:rgba(238,239,211,.7)}.str-error{color:#ffd1cb;border-left:4px solid #e06363;padding-left:14px}.str-evidence{background:#0b4d4d}.str-evidence-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:34px}.str-card{background:#003738;border:1px solid rgba(238,239,211,.15);border-radius:10px;padding:24px}.str-card h3{margin:0 0 10px}.str-card p{margin:0;color:rgba(238,239,211,.66);line-height:1.6}
+        .str-close{background:#dfe7c5;color:#003738;padding:clamp(58px,8vw,92px) 0}.str-close-grid{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}.str-close p{color:rgba(0,55,56,.7);line-height:1.6;max-width:62ch}.str-close .str-link.secondary{color:#003738;border-color:rgba(0,55,56,.3)}
+        .str-page a:focus-visible,.str-page input:focus-visible{outline:3px solid #7ec8d3;outline-offset:4px}
+        @media(max-width:760px){.str-wrap{width:min(100% - 28px,1160px)}.str-hero-grid,.str-model-grid,.str-evidence-grid,.str-close-grid,.str-result-grid{grid-template-columns:1fr}.str-actions .str-link{width:100%}.str-hero h1{overflow-wrap:anywhere}}
+        ${STR_HOSTS_INTRINSIC_LAYOUT_CSS}
+      `}</style>
+      <div className="str-page">
+        <header className="str-hero">
+          <div className="str-wrap str-hero-grid">
+            <div><div className="str-kicker">For short-term rental hosts</div><h1>Model STR coverage without hiding the slow months.</h1><p className="str-lead">Short-term rental income changes with occupancy, nightly rate, season, operating history, local rules, and the evidence a provider accepts. A transparent scenario can reveal stress points; it cannot establish qualifying income.</p><div className="str-actions"><a className="str-link" href="#str-scenario">Try the seasonal model</a><a className="str-link secondary" href="#str-evidence">Review evidence questions</a></div></div>
+            <aside className="str-callout" aria-labelledby="str-answer-heading"><h2 id="str-answer-heading">What is STR DSCR analysis?</h2><p>It compares a supported rental-income assumption with the proposed property payment. Providers may use historical revenue, a market report, long-term market rent, another method, or none of those. Confirm the permitted method before relying on a ratio.</p></aside>
           </div>
-          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(18px,2.2vw,26px)" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 6 }}>Your year, month by month</div>
-            <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Seasonal STR revenue vs the payment">
-              <path d={area} fill={BLUE} fillOpacity="0.16" />
-              <path d={line} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1={padL} x2={W - padR} y1={Y(pay)} y2={Y(pay)} stroke={dc.lemon} strokeWidth="1.4" strokeDasharray="5 5" />
-              <text x={W - padR} y={Y(pay) - 5} textAnchor="end" fill={dc.lemon} fontSize="10" fontWeight={700} fontFamily={dc.mono}>payment {fmt$(pay)}</text>
-              {monthly.map((v, i) => (
-                <g key={i}>
-                  <circle cx={X(i)} cy={Y(v)} r={i === worstIdx ? 5 : 3} fill={i === worstIdx ? RED : BLUE} stroke={dc.dark} strokeWidth="1.5" />
-                  <text x={X(i)} y={H - 8} textAnchor="middle" fill="rgba(238,239,211,0.5)" fontSize="9" fontFamily={dc.mono}>{MONTHS[i]}</text>
-                </g>
-              ))}
-            </svg>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: holds ? dc.emerald : RED, display: "block" }}>{worstDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>worst-month DSCR</div></div>
-              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>year-round avg</div></div>
+        </header>
+
+        <section id="str-scenario" className="str-model" aria-labelledby="str-model-heading">
+          <div className="str-wrap"><div className="str-kicker">Illustrative seasonality model</div><h2 id="str-model-heading">Compare a fictional summer-peak year.</h2><p className="str-intro">The monthly pattern below is an educational example, not property, platform, market, or provider data. Replace it with verified evidence for a real review.</p>
+            <div className="str-model-grid">
+              <form className="str-form" onSubmit={(event) => event.preventDefault()}><fieldset><legend>Scenario inputs</legend>
+                <div className="str-field"><label htmlFor="str-adr">Average nightly rate</label><input id="str-adr" type="number" min="0" step="5" value={adr} onChange={update(setAdr)} /></div>
+                <div className="str-field"><label htmlFor="str-occ">Average occupancy (%)</label><input id="str-occ" type="number" min="0" max="100" step="1" value={occupancy} onChange={update(setOccupancy)} /></div>
+                <div className="str-field"><label htmlFor="str-payment">Monthly PITIA payment</label><input id="str-payment" type="number" min="1" step="50" value={payment} onChange={update(setPayment)} /></div>
+              </fieldset><p className="str-help">Gross revenue equals nightly rate x 30 days x occupancy x the displayed seasonal multiplier. It excludes platform fees, vacancy beyond the entered occupancy, management, utilities, maintenance, supplies, and taxes.</p></form>
+              <output className="str-output" aria-live="polite">
+                {result ? <><div className="str-result-grid"><div className="str-stat"><Mono style={{ color: result.worstDscr >= 1 ? dc.emerald : "#e06363", fontSize: 30, fontWeight: 800 }}>{result.worstDscr.toFixed(2)}x</Mono><span>lowest modeled month</span></div><div className="str-stat"><Mono style={{ color: dc.cream, fontSize: 30, fontWeight: 800 }}>{result.averageDscr.toFixed(2)}x</Mono><span>average modeled month</span></div></div>
+                  <div className="str-chart-scroll" role="img" aria-label={"Illustrative monthly gross revenue. Lowest month is " + MONTHS[result.worstIndex] + " at " + money(result.worst) + "."}><div className="str-chart">{result.revenue.map((value, index) => <div className="str-month" key={MONTHS[index]} title={MONTHS[index] + ": " + money(value)}><div className="str-bar" style={{ height: Math.max(4, result.peak > 0 ? value / result.peak * 100 : 4) + "%" }} /><span>{MONTHS[index]}</span></div>)}</div></div>
+                  <p className="str-message">The example's lowest month is {MONTHS[result.worstIndex]} at {money(result.worst)} against a {money(payment)} payment. A value above 1.00x means modeled gross revenue exceeds the entered payment; it is not an eligibility threshold or net cash-flow conclusion.</p></> : <div className="str-error"><h3>Enter a valid scenario.</h3><p>Nightly rate cannot be negative, occupancy must be from 0% to 100%, and payment must be above zero.</p></div>}
+              </output>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* INTERACTIVE RIBBON */}
-      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>The revenue ribbon</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>The deal has to survive February — not just July.</h2>
-          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Set your nightly rate and occupancy — scroll over the fields. Months under the lemon line don't cover the payment. We qualify on the trough, so there's no surprise at closing.</p>
-          <div className="str-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 28, alignItems: "stretch" }}>
-            <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.4vw,28px)", display: "grid", gap: 16, alignContent: "start" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE }}>The listing</div>
-              {[{ l: "Average nightly rate (ADR)", n: numIn(adr, setAdr, 5, "$") }, { l: "Occupancy", n: numIn(occ, setOcc, 1, "", "%") }, { l: "Monthly payment (PITIA)", n: numIn(pay, setPay, 50, "$") }].map((f) => (
-                <label key={f.l}><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>{f.l}</span>{f.n}</label>
-              ))}
-              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Seasonality models a summer-peak market. Real underwriting uses your market's AirDNA history.</div>
-            </div>
-            <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${holds ? "rgba(77,189,151,0.4)" : "rgba(224,99,99,0.4)"}`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: holds ? dc.emerald : RED, marginBottom: 6 }}>{holds ? "Holds the slow months" : "Breaks in the off-season"}</div>
-              <Mono style={{ fontSize: "clamp(48px,7vw,84px)", fontWeight: 700, color: holds ? dc.emerald : RED, lineHeight: 0.9 }}>{worstDSCR.toFixed(2)}x</Mono>
-              <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "46ch" }}>
-                Worst month ({["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][worstIdx]}) brings {fmt$(worst)} against a {fmt$(pay)} payment. {holds ? "Even the trough covers the loan — that's a fundable STR." : "The trough falls short — lower the loan, or we underwrite to the months that do clear."}
-              </div>
-              <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
-                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: BLUE, display: "block" }}>{fmt$(annualAvg)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>avg month</div></div>
-                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: dc.cream, display: "block" }}>{fmt$(peak)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>peak month</div></div>
-                <div><Mono style={{ fontSize: 20, fontWeight: 700, color: dc.lemon, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>annual DSCR</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        <section id="str-evidence" className="str-evidence" aria-labelledby="str-evidence-heading"><div className="str-wrap"><div className="str-kicker">Before requesting current terms</div><h2 id="str-evidence-heading">Verify the income, use, and cost story.</h2><div className="str-evidence-grid">
+          <article className="str-card"><h3>Income evidence</h3><p>Ask which historical statements, market reports, appraisals, leases, or other sources the provider permits and how it treats fees or haircuts.</p></article>
+          <article className="str-card"><h3>Legal rental use</h3><p>Confirm permits, zoning, HOA rules, insurance coverage, and any local restrictions. A modeled income stream does not override a use restriction.</p></article>
+          <article className="str-card"><h3>Borrower and property</h3><p>Credit, assets, reserves, entity, appraisal, property type, condition, state, and complete documentation may still affect eligibility.</p></article>
+        </div></div></section>
 
-      {/* WHY */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>STR income, underwritten honestly.</h2>
-          <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
-            {[
-              { t: "Real ADR × occupancy", s: "Market data, not a host's best week. The number is the one a lender will actually fund." },
-              { t: "Seasonally stress-tested", s: "We check the trough month and a rate rise before you commit — no off-season surprise." },
-              { t: "Long-term fallback", s: "If the STR number is thin, we can qualify on the long-term lease instead — whichever is stronger." },
-            ].map((v) => (
-              <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
-                <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>
-                <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>{v.s}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <BottomCTA onNavigate={onNavigate} cards={[
-        { bg: dc.lemon, fg: dc.dark, blurb: "Run your nightly rate and occupancy through the STR engine — month by month.", title: "Underwrite my STR", view: "str-underwriting" },
-        { bg: dc.mintBg, fg: dc.dark, blurb: "See which Greenstreet program fits a short-term-rental file.", title: "Find your program", view: "lender-intel" },
-      ]} />
+        <section className="str-close" aria-labelledby="str-close-heading"><div className="str-wrap str-close-grid"><div><div className="str-kicker" style={{ color: dc.rain }}>Next useful step</div><h2 id="str-close-heading">Compare seasonal and long-term-rent assumptions.</h2><p>Use the dedicated STR tool for a deeper income scenario, then ask the applicable provider which income method and evidence it will review for the actual property.</p></div><div className="str-actions"><a className="str-link" href="/tools/str-underwriting" onClick={(event) => { event.preventDefault(); onNavigate("str-underwriting"); }}>Open STR underwriting</a><a className="str-link secondary" href="/borrower-profiles" onClick={(event) => { event.preventDefault(); onNavigate("borrower-profiles"); }}>Review borrower profiles</a></div></div></section>
+      </div>
     </DcShell>
   );
 }
+

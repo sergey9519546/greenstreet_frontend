@@ -40,6 +40,20 @@ import { calculatePI } from './engine';
 import { computeTcoRate, mapToTcoType } from './tcoDscr';
 import type { TcoPropertyType, TcoPropertyAge, TcoMarketType } from './tcoDscr';
 
+function assertFiniteIntermediate(label: string, ...values: number[]): void {
+  if (values.some(value => !Number.isFinite(value))) {
+    throw new RangeError(`${label} exceeded the supported finite calculation range.`);
+  }
+}
+
+function calculateFinitePI(loanAmount: number, annualRate: number, termMonths: number): number {
+  const payment = calculatePI(loanAmount, annualRate, termMonths);
+  if (!Number.isFinite(payment) || payment < 0 || (loanAmount > 0 && payment === 0)) {
+    throw new RangeError('Principal-and-interest payment is unavailable for these inputs.');
+  }
+  return payment;
+}
+
 // ============================================================
 // AXIS CONFIGURATION
 // ============================================================
@@ -61,6 +75,7 @@ const RENT_OFFSETS_PCT: number[] = [
 // ============================================================
 
 export function classifyRiskZone(dscr: number): StressRiskZone {
+  if (!Number.isFinite(dscr)) return 'DEAL_BREAK';
   if (dscr >= 1.50) return 'SAFE';
   if (dscr >= 1.25) return 'COMFORTABLE';
   if (dscr >= 1.00) return 'MARGINAL';
@@ -93,6 +108,9 @@ export function computeBreakEvenVacancy(
 ): { vacancyPct: number; structurallyNegative: boolean } {
   // Underwater at full occupancy (or non-positive inputs) → impossible without
   // repairs/equity. Break-even vacancy is 0 and the deal is flagged.
+  if (!Number.isFinite(grossMonthlyRent) || !Number.isFinite(monthlyPITIA)) {
+    return { vacancyPct: 0, structurallyNegative: true };
+  }
   if (grossMonthlyRent <= 0 || monthlyPITIA <= 0 || grossMonthlyRent <= monthlyPITIA) {
     return { vacancyPct: 0, structurallyNegative: grossMonthlyRent <= monthlyPITIA };
   }
@@ -107,8 +125,8 @@ export function computeBreakEvenVacancy(
 /**
  * The product's core split, for a single scenario:
  *  • Track 1 (lender)  = gross rent ÷ PITIA — what the lender qualifies on.
- *  • Track 2 (investor)= NOI ÷ PITIA after vacancy + management + maintenance —
- *    what the investor actually nets. Matches computeStressMatrix's per-cell math.
+ *  • Track 2 (investor)= modeled NOI ÷ PITIA after vacancy, management,
+ *    maintenance, and CapEx reserves. This is the canonical Track-2 definition.
  *
  * The "Qualifies but Dangerous" flag (DSCR improvement spec, [High]): a deal the
  * lender approves (Track 1 ≥ 1.00) that loses money in reality (Track 2 < 1.00)
@@ -123,7 +141,7 @@ export function computeDualTrackDSCR(
   monthlyPITIA: number,
   opts: { vacancyPct?: number; propertyType?: TcoPropertyType; propertyAge?: TcoPropertyAge; marketType?: TcoMarketType; isSelfManaged?: boolean } = {},
 ): { track1: number; track2: number; delta: number; qualifiesButDangerous: boolean } {
-  if (grossMonthlyRent <= 0 || monthlyPITIA <= 0) {
+  if (!Number.isFinite(grossMonthlyRent) || !Number.isFinite(monthlyPITIA) || grossMonthlyRent <= 0 || monthlyPITIA <= 0) {
     return { track1: 0, track2: 0, delta: 0, qualifiesButDangerous: false };
   }
   // Track 2 opex from the TCO single-source (property-type/age/market + CapEx).
@@ -140,6 +158,7 @@ export function computeDualTrackDSCR(
   const noi = grossMonthlyRent * Math.max(0, 1 - rate.total);
   const track2 = noi / monthlyPITIA;
   const delta = track1 - track2;
+  assertFiniteIntermediate('Dual-track DSCR', track1, noi, track2, delta, track1 * 1000, track2 * 1000, delta * 1000);
   return {
     track1: Math.round(track1 * 1000) / 1000,
     track2: Math.round(track2 * 1000) / 1000,
@@ -190,7 +209,9 @@ export function computeShockWaterfall(
   basePITIA: number,
   shocks: WaterfallShock[],
 ): ShockWaterfallResult {
-  const safeDscr = (rent: number, pitia: number) => (pitia > 0 ? rent / pitia : 0);
+  const safeDscr = (rent: number, pitia: number) => (
+    Number.isFinite(rent) && Number.isFinite(pitia) && rent >= 0 && pitia > 0 ? rent / pitia : 0
+  );
   const baseDSCR = safeDscr(baseRent, basePITIA);
 
   let rent = baseRent;
@@ -199,9 +220,16 @@ export function computeShockWaterfall(
   const steps: WaterfallStep[] = [];
 
   for (const s of shocks) {
-    if (s.rentMultiplier !== undefined) rent = rent * s.rentMultiplier;
-    if (s.pitiaDelta !== undefined) pitia = pitia + s.pitiaDelta;
+    if (s.rentMultiplier !== undefined && Number.isFinite(s.rentMultiplier) && s.rentMultiplier >= 0) {
+      rent = rent * s.rentMultiplier;
+      assertFiniteIntermediate('Waterfall rent', rent);
+    }
+    if (s.pitiaDelta !== undefined && Number.isFinite(s.pitiaDelta)) {
+      pitia = Math.max(0, pitia + s.pitiaDelta);
+      assertFiniteIntermediate('Waterfall PITIA', pitia);
+    }
     const dscrAfter = safeDscr(rent, pitia);
+    assertFiniteIntermediate('Waterfall DSCR', dscrAfter, dscrAfter * 1000, (dscrAfter - prevDSCR) * 1000);
     steps.push({
       label: s.label,
       dscrAfter: Math.round(dscrAfter * 1000) / 1000,
@@ -241,7 +269,23 @@ export function computeStressMatrix(
   baseRate: number,
   qualifyingRent: number,
 ): StressMatrixResult {
+  const finiteInputs = [
+    property.purchasePrice, property.annualTaxes, property.annualInsurance,
+    property.hoa, property.floodInsurance, property.unitCount,
+    loan.ltv, baseRate, qualifyingRent,
+  ];
+  if (finiteInputs.some(value => !Number.isFinite(value))) {
+    throw new RangeError('Stress-matrix inputs must be finite numbers.');
+  }
+  if (property.purchasePrice <= 0 || loan.ltv <= 0 || loan.ltv > 100 || baseRate < 0 || qualifyingRent < 0) {
+    throw new RangeError('Stress-matrix loan, rate, LTV, and rent inputs are outside valid ranges.');
+  }
+  if ([property.annualTaxes, property.annualInsurance, property.hoa, property.floodInsurance].some(value => value < 0)) {
+    throw new RangeError('Stress-matrix expenses must be non-negative.');
+  }
   const loanAmount = property.purchasePrice * (loan.ltv / 100);
+  assertFiniteIntermediate('Stress-matrix loan amount', loanAmount);
+  if (loanAmount <= 0) throw new RangeError('Stress-matrix loan amount is too small to calculate.');
   const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
   const termMonths = termYears * 12;
 
@@ -251,6 +295,7 @@ export function computeStressMatrix(
     property.annualInsurance / 12 +
     property.hoa +
     property.floodInsurance / 12;
+  assertFiniteIntermediate('Stress-matrix monthly fixed expenses', monthlyFixed);
 
   // Track 2 opex from the TCO single-source — property-type/age/market + CapEx.
   // Replaces the legacy flat 8% vac + 8% mgmt + 5% maint.
@@ -282,14 +327,16 @@ export function computeStressMatrix(
     const ratePct = rateAxis[i];
     const rateOffsetBps = RATE_OFFSETS_BPS[i];
 
-    const piMonthly = calculatePI(loanAmount, ratePct, termMonths);
+    const piMonthly = calculateFinitePI(loanAmount, ratePct, termMonths);
     const pitiaMonthly = piMonthly + monthlyFixed;
+    assertFiniteIntermediate('Stress-matrix PITIA', pitiaMonthly);
 
     const row: StressMatrixCell[] = [];
 
     for (let j = 0; j < rentAxis.length; j++) {
       const rentOffsetPct = rentAxis[j];
       const adjustedRent = qualifyingRent * (1 + rentOffsetPct / 100);
+      assertFiniteIntermediate('Stress-matrix adjusted rent', adjustedRent);
 
       // Track 1: Lender Qualification DSCR (qualifyingRent / PITIA, no haircuts)
       const track1DSCR = pitiaMonthly > 0 ? adjustedRent / pitiaMonthly : 0;
@@ -300,6 +347,11 @@ export function computeStressMatrix(
 
       const monthlyCashFlow = noiMonthly - pitiaMonthly;
       const annualCashFlow = monthlyCashFlow * 12;
+      assertFiniteIntermediate(
+        'Stress-matrix cell', track1DSCR, track2DSCR, noiMonthly, monthlyCashFlow, annualCashFlow,
+        adjustedRent * 100, piMonthly * 100, pitiaMonthly * 100,
+        track1DSCR * 1000, track2DSCR * 1000, monthlyCashFlow * 100,
+      );
 
       const riskZone = classifyRiskZone(track1DSCR);
       zoneCounts[riskZone]++;
@@ -340,32 +392,9 @@ export function computeStressMatrix(
   // Build break-even curve: for each rent offset, find the rate where DSCR = 1.0
   const breakEvenCurve: StressBreakEvenPoint[] = rentAxis.map(rentOffsetPct => {
     const adjustedRent = qualifyingRent * (1 + rentOffsetPct / 100);
-    // DSCR = 1.0 when adjustedRent = PITIA = PI + monthlyFixed
-    // → PI = adjustedRent - monthlyFixed
-    // → solve for rate: PI(loanAmount, rate, termMonths) = adjustedRent - monthlyFixed
-    const targetPI = adjustedRent - monthlyFixed;
-    if (targetPI <= 0) {
-      // Even at 0% rate, PI > 0 (interest-only on principal / termMonths)
-      // → check if 0% rate gives PI < targetPI; if so, DSCR stays > 1.0 across all rates
-      const piAtZero = loanAmount / termMonths;  // simple division at 0% rate
-      if (piAtZero <= targetPI) {
-        // Never breaks in any realistic stress
-        return { rentOffsetPct, breakEvenRatePct: null, cushionBps: 99999 };
-      }
-      // Otherwise breaks below 0%
-      return { rentOffsetPct, breakEvenRatePct: 0, cushionBps: Math.round(baseRate * 100) };
-    }
-    // Binary search for the rate
-    const breakEvenRate = solveBreakEvenRate(loanAmount, termMonths, targetPI);
-    if (breakEvenRate === null) {
-      return { rentOffsetPct, breakEvenRatePct: null, cushionBps: 99999 };
-    }
-    const cushionBps = Math.round((baseRate - breakEvenRate) * 100);
-    return {
-      rentOffsetPct,
-      breakEvenRatePct: Math.round(breakEvenRate * 100) / 100,
-      cushionBps,
-    };
+    return computeBreakEvenRatePoint(
+      loanAmount, termMonths, monthlyFixed, adjustedRent, baseRate, rentOffsetPct,
+    );
   });
 
   // Aggregate stats
@@ -374,11 +403,15 @@ export function computeStressMatrix(
   const fragileZonePct = (zoneCounts.FRAGILE + zoneCounts.DEAL_BREAK) / totalCells;
 
   // Base case DSCR
-  const basePI = calculatePI(loanAmount, baseRate, termMonths);
+  const basePI = calculateFinitePI(loanAmount, baseRate, termMonths);
   const basePITIA = basePI + monthlyFixed;
   const baseTrack1DSCR = basePITIA > 0 ? qualifyingRent / basePITIA : 0;
   const baseNOI = qualifyingRent * Math.max(0, 1 - tcoRate.total);
   const baseTrack2DSCR = basePITIA > 0 ? baseNOI / basePITIA : 0;
+  assertFiniteIntermediate(
+    'Stress-matrix base case', basePITIA, baseTrack1DSCR, baseNOI, baseTrack2DSCR,
+    baseRate * 100, qualifyingRent * 100, baseTrack1DSCR * 1000, baseTrack2DSCR * 1000,
+  );
 
   // Summary
   const summary = buildSummary(
@@ -425,7 +458,7 @@ function solveBreakEvenRate(
 
   for (let i = 0; i < iterations; i++) {
     const mid = (lo + hi) / 2;
-    const pi = calculatePI(loanAmount, mid, termMonths);
+    const pi = calculateFinitePI(loanAmount, mid, termMonths);
     if (Math.abs(pi - targetPI) < 0.01) {
       return mid;
     }
@@ -437,9 +470,58 @@ function solveBreakEvenRate(
     }
   }
 
-  const finalRate = (lo + hi) / 2;
-  if (finalRate >= 30 || finalRate <= 0) return null;
-  return finalRate;
+  return (lo + hi) / 2;
+}
+
+/**
+ * Rate where Track-1 DSCR reaches 1.00 for one rent scenario. Cushion is signed
+ * headroom: positive means the break-even rate is above base; negative means the
+ * deal is already broken at base. A null rate means it survives through the
+ * modeled 30% ceiling; cushion then reports finite minimum modeled headroom.
+ */
+export function computeBreakEvenRatePoint(
+  loanAmount: number,
+  termMonths: number,
+  monthlyFixed: number,
+  adjustedRent: number,
+  baseRate: number,
+  rentOffsetPct: number = 0,
+  maxRate: number = 30,
+): StressBreakEvenPoint {
+  const values = [loanAmount, termMonths, monthlyFixed, adjustedRent, baseRate, rentOffsetPct, maxRate];
+  if (values.some(value => !Number.isFinite(value)) || loanAmount <= 0 || termMonths <= 0 || monthlyFixed < 0 || adjustedRent < 0 || baseRate < 0 || maxRate <= 0) {
+    throw new RangeError('Break-even inputs must be finite and within valid ranges.');
+  }
+  assertFiniteIntermediate('Break-even rate cushion', baseRate * 100, (maxRate - baseRate) * 100);
+
+  const targetPI = adjustedRent - monthlyFixed;
+  const piAtZero = loanAmount / termMonths;
+  if (targetPI <= piAtZero) {
+    return {
+      rentOffsetPct,
+      breakEvenRatePct: 0,
+      cushionBps: -Math.round(baseRate * 100),
+    };
+  }
+
+  const piAtMax = calculateFinitePI(loanAmount, maxRate, termMonths);
+  if (targetPI >= piAtMax) {
+    return {
+      rentOffsetPct,
+      breakEvenRatePct: null,
+      cushionBps: Math.max(0, Math.round((maxRate - baseRate) * 100)),
+    };
+  }
+
+  const breakEvenRate = solveBreakEvenRate(loanAmount, termMonths, targetPI, 0, maxRate);
+  if (breakEvenRate === null || !Number.isFinite(breakEvenRate)) {
+    throw new RangeError('Unable to solve a finite break-even rate.');
+  }
+  return {
+    rentOffsetPct,
+    breakEvenRatePct: Math.round(breakEvenRate * 100) / 100,
+    cushionBps: Math.round((breakEvenRate - baseRate) * 100),
+  };
 }
 
 // ============================================================

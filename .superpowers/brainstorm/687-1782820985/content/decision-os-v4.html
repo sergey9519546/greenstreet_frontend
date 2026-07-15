@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greenstreet Decision OS V4</title>
+  <style>
+    :root {
+      --ink:#003738;
+      --deep:#061f1d;
+      --deep2:#0c312f;
+      --cream:#f3f0d4;
+      --paper:#fbf8e6;
+      --soft:#e6e5c6;
+      --line:rgba(0,55,56,.14);
+      --line-light:rgba(243,240,212,.14);
+      --lemon:#d9dd56;
+      --mint:#78c49f;
+      --rain:#3b7d79;
+      --coral:#d16f55;
+      --graphite:#191c18;
+      --curve:cubic-bezier(.32,.72,0,1);
+      --mono:"Berkeley Mono", "SFMono-Regular", Consolas, monospace;
+      --sans:"Geist", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      margin:0;
+      color:var(--ink);
+      background:#141612;
+      font-family:var(--sans);
+      letter-spacing:0;
+    }
+    body:before {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background:
+        linear-gradient(90deg, rgba(243,240,212,.035) 1px, transparent 1px),
+        linear-gradient(rgba(243,240,212,.03) 1px, transparent 1px);
+      background-size:56px 56px;
+      opacity:.72;
+    }
+    body:after {
+      content:"";
+      position:fixed;
+      inset:0;
+      z-index:1;
+      pointer-events:none;
+      opacity:.055;
+      mix-blend-mode:soft-light;
+      background-image:linear-gradient(135deg, rgba(255,255,255,.9) 0 1px, transparent 1px 3px);
+      background-size:4px 4px;
+    }
+    .page {
+      position:relative;
+      z-index:2;
+      min-height:100vh;
+      padding:24px clamp(16px,3vw,42px) 64px;
+    }
+    .nav {
+      max-width:1480px;
+      margin:0 auto 26px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      color:var(--cream);
+    }
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:18px;
+      font-weight:900;
+      color:var(--cream);
+    }
+    .brand i {
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:var(--lemon);
+      box-shadow:0 0 0 5px rgba(217,221,86,.11);
+    }
+    .nav-island {
+      display:flex;
+      align-items:center;
+      gap:5px;
+      padding:5px;
+      border:1px solid rgba(243,240,212,.14);
+      background:rgba(243,240,212,.075);
+      border-radius:999px;
+      box-shadow:0 18px 70px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .nav-island a {
+      text-decoration:none;
+      color:rgba(243,240,212,.68);
+      border-radius:999px;
+      padding:10px 13px;
+      font-size:11px;
+      letter-spacing:.13em;
+      text-transform:uppercase;
+      font-weight:900;
+      transition:background 600ms var(--curve), color 600ms var(--curve), transform 600ms var(--curve);
+    }
+    .nav-island a:hover { transform:translateY(-1px); color:var(--cream); }
+    .nav-island a.active { background:var(--cream); color:var(--ink); }
+    .hero {
+      max-width:1480px;
+      margin:0 auto 18px;
+      min-height:calc(100dvh - 82px);
+      display:grid;
+      grid-template-rows:auto 1fr;
+      gap:16px;
+    }
+    .hero-top {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 430px;
+      gap:28px;
+      align-items:end;
+      color:var(--cream);
+      padding:26px 0 10px;
+    }
+    .eyebrow {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(217,221,86,.25);
+      background:rgba(217,221,86,.08);
+      border-radius:999px;
+      padding:8px 11px;
+      color:var(--lemon);
+      font-size:10px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:950;
+      margin-bottom:14px;
+    }
+    h1 {
+      margin:0;
+      color:var(--cream);
+      font-size:clamp(46px,7.4vw,106px);
+      line-height:.88;
+      letter-spacing:0;
+      max-width:1040px;
+      text-wrap:balance;
+    }
+    .hero-top p {
+      margin:0;
+      color:rgba(243,240,212,.68);
+      font-size:15px;
+      line-height:1.58;
+    }
+    .app-shell {
+      border-radius:38px;
+      padding:8px;
+      border:1px solid rgba(243,240,212,.13);
+      background:linear-gradient(145deg, rgba(243,240,212,.12), rgba(243,240,212,.035));
+      box-shadow:0 36px 110px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08);
+      min-height:670px;
+    }
+    .app-core {
+      min-height:654px;
+      overflow:hidden;
+      border-radius:30px;
+      background:var(--paper);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
+      display:grid;
+      grid-template-rows:auto 1fr;
+    }
+    .product-bar {
+      display:grid;
+      grid-template-columns:240px 1fr 320px;
+      border-bottom:1px solid var(--line);
+      background:rgba(243,240,212,.88);
+    }
+    .product-cell {
+      min-height:76px;
+      padding:16px 18px;
+      border-right:1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+    .product-cell:last-child { border-right:0; }
+    .k { color:var(--rain); font-size:10px; letter-spacing:.16em; text-transform:uppercase; font-weight:950; }
+    .v { margin-top:6px; color:var(--ink); font-size:22px; line-height:1.05; font-weight:900; }
+    .v.mono { font-family:var(--mono); letter-spacing:-.02em; }
+    .workspace {
+      display:grid;
+      grid-template-columns:292px minmax(0,1fr) 336px;
+      min-height:578px;
+    }
+    .lane-rail,
+    .action-rail {
+      background:#eeeece;
+      padding:18px;
+    }
+    .lane-rail { border-right:1px solid var(--line); }
+    .action-rail { border-left:1px solid var(--line); }
+    .rail-title {
+      margin:0 0 14px;
+      color:var(--rain);
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .lane {
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+      align-items:center;
+      min-height:70px;
+      padding:13px 14px;
+      border-radius:18px;
+      border:1px solid rgba(0,55,56,.11);
+      background:rgba(255,255,255,.32);
+      margin-bottom:9px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.42);
+    }
+    .lane.active {
+      background:var(--ink);
+      border-color:var(--ink);
+      color:var(--cream);
+      box-shadow:0 16px 36px rgba(0,55,56,.2);
+    }
+    .lane strong { display:block; font-size:14px; line-height:1.1; }
+    .lane small {
+      display:block;
+      margin-top:5px;
+      color:inherit;
+      opacity:.58;
+      font-size:10px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .lane b {
+      color:var(--ink);
+      font-size:15px;
+      font-family:var(--mono);
+      letter-spacing:-.03em;
+    }
+    .lane.active b { color:var(--lemon); }
+    .rail-copy {
+      margin:18px 0 0;
+      padding-top:16px;
+      border-top:1px solid var(--line);
+      color:rgba(0,55,56,.65);
+      font-size:12px;
+      line-height:1.44;
+    }
+    .command {
+      position:relative;
+      overflow:hidden;
+      background:var(--ink);
+      color:var(--cream);
+      padding:22px;
+    }
+    .command:before {
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(90deg, rgba(243,240,212,.055) 1px, transparent 1px),
+        linear-gradient(rgba(243,240,212,.05) 1px, transparent 1px);
+      background-size:44px 44px;
+      opacity:.34;
+      mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    }
+    .command > * { position:relative; z-index:1; }
+    .memo-head {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 210px;
+      gap:18px;
+      padding-bottom:18px;
+      border-bottom:1px solid rgba(243,240,212,.13);
+    }
+    .memo-head h2 {
+      margin:0;
+      color:var(--cream);
+      font-size:clamp(44px,5vw,78px);
+      line-height:.9;
+      letter-spacing:0;
+      max-width:900px;
+      text-wrap:balance;
+    }
+    .memo-head p {
+      margin:13px 0 0;
+      color:rgba(243,240,212,.66);
+      max-width:76ch;
+      font-size:14px;
+      line-height:1.52;
+    }
+    .bezel {
+      border-radius:30px;
+      padding:6px;
+      border:1px solid rgba(243,240,212,.1);
+      background:rgba(243,240,212,.055);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .score {
+      min-height:180px;
+      border-radius:24px;
+      padding:18px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(0,0,0,.12);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .score span {
+      color:rgba(243,240,212,.58);
+      font-size:10px;
+      font-weight:950;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .score b {
+      color:var(--lemon);
+      font-family:var(--mono);
+      font-size:58px;
+      line-height:.86;
+      letter-spacing:-.05em;
+    }
+    .metrics {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin:18px 0;
+    }
+    .metric {
+      min-height:112px;
+      border-radius:22px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(243,240,212,.043);
+      padding:15px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.055);
+    }
+    .metric b {
+      display:block;
+      color:var(--lemon);
+      font-family:var(--mono);
+      font-size:29px;
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+    .metric span {
+      display:block;
+      margin-top:10px;
+      color:rgba(243,240,212,.57);
+      font-size:12px;
+      line-height:1.34;
+    }
+    .rules { display:grid; gap:8px; }
+    .rule {
+      display:grid;
+      grid-template-columns:98px 1fr auto;
+      gap:12px;
+      align-items:center;
+      min-height:50px;
+      border-radius:16px;
+      border:1px solid rgba(243,240,212,.1);
+      background:rgba(243,240,212,.026);
+      padding:11px 13px;
+    }
+    .rule span {
+      color:rgba(243,240,212,.43);
+      font-size:10px;
+      font-weight:950;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .rule strong { color:var(--cream); font-size:13px; }
+    .rule b {
+      color:var(--lemon);
+      font-size:11px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .action-card {
+      border-radius:22px;
+      padding:16px;
+      border:1px solid rgba(0,55,56,.11);
+      background:rgba(255,255,255,.35);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.48);
+      margin-bottom:10px;
+    }
+    .action-card strong { display:block; color:var(--ink); font-size:14px; }
+    .action-card span {
+      display:block;
+      margin-top:7px;
+      color:rgba(0,55,56,.63);
+      font-size:12px;
+      line-height:1.43;
+    }
+    .cta {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      min-height:58px;
+      border-radius:999px;
+      padding:8px 8px 8px 20px;
+      background:var(--ink);
+      color:var(--cream);
+      font-size:13px;
+      font-weight:950;
+      margin-top:14px;
+      box-shadow:0 18px 34px rgba(0,55,56,.2);
+      transition:transform 700ms var(--curve);
+    }
+    .cta i {
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:var(--lemon);
+      color:var(--ink);
+      display:grid;
+      place-items:center;
+      font-style:normal;
+      transition:transform 700ms var(--curve);
+    }
+    .cta:hover { transform:scale(.992); }
+    .cta:hover i { transform:translateX(3px) translateY(-1px) scale(1.04); }
+    .variant-section {
+      max-width:1480px;
+      margin:34px auto 0;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+    .mini-shell {
+      border-radius:34px;
+      padding:8px;
+      border:1px solid rgba(243,240,212,.13);
+      background:linear-gradient(145deg, rgba(243,240,212,.1), rgba(243,240,212,.03));
+      box-shadow:0 24px 70px rgba(0,0,0,.22);
+    }
+    .mini-core {
+      min-height:520px;
+      border-radius:26px;
+      overflow:hidden;
+      display:grid;
+      grid-template-rows:auto 1fr;
+      background:var(--paper);
+    }
+    .mini-head {
+      padding:20px 22px;
+      border-bottom:1px solid var(--line);
+      background:var(--cream);
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:center;
+    }
+    .mini-head h3 { margin:0; color:var(--ink); font-size:30px; line-height:1; }
+    .mini-head p { margin:5px 0 0; color:rgba(0,55,56,.62); font-size:12px; }
+    .mini-body {
+      display:grid;
+      grid-template-columns:220px 1fr;
+      min-height:450px;
+    }
+    .mini-left { padding:16px; background:#eeeece; border-right:1px solid var(--line); }
+    .mini-main { padding:18px; background:var(--deep); color:var(--cream); }
+    .leader {
+      display:grid;
+      grid-template-columns:38px 1fr 76px;
+      gap:12px;
+      align-items:center;
+      min-height:62px;
+      border-radius:18px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(243,240,212,.036);
+      padding:12px;
+      margin-bottom:9px;
+    }
+    .leader em { color:rgba(243,240,212,.42); font-style:normal; font-family:var(--mono); }
+    .leader strong { display:block; color:var(--cream); font-size:14px; }
+    .leader small { display:block; margin-top:4px; color:rgba(243,240,212,.52); font-size:11px; }
+    .leader b { color:var(--lemon); text-align:right; font-family:var(--mono); font-size:13px; }
+    .chart {
+      height:164px;
+      border-radius:24px;
+      padding:6px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(243,240,212,.045);
+      position:relative;
+      margin:14px 0;
+    }
+    .chart-core {
+      position:absolute;
+      inset:6px;
+      border-radius:18px;
+      border:1px solid rgba(243,240,212,.1);
+      background:linear-gradient(180deg, rgba(243,240,212,.05), rgba(243,240,212,.015));
+      overflow:hidden;
+    }
+    .chart-core:before { content:""; position:absolute; left:20px; right:20px; top:50px; border-top:2px dashed var(--coral); }
+    .chart-core:after { content:""; position:absolute; left:20px; right:20px; bottom:34px; height:76px; background:linear-gradient(16deg, transparent 48%, var(--mint) 49%, var(--mint) 51%, transparent 52%); }
+    .dot { position:absolute; width:14px; height:14px; border-radius:50%; background:var(--lemon); left:66%; top:45px; box-shadow:0 0 0 8px rgba(217,221,86,.16); z-index:2; }
+    .split {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .split .metric { min-height:88px; }
+    .footer-note {
+      max-width:1480px;
+      margin:20px auto 0;
+      color:rgba(243,240,212,.58);
+      font-size:12px;
+      line-height:1.5;
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:16px;
+      align-items:center;
+    }
+    .footer-note b { color:var(--cream); }
+    .footer-note .pick {
+      border:1px solid rgba(217,221,86,.25);
+      background:rgba(217,221,86,.08);
+      color:var(--lemon);
+      border-radius:999px;
+      padding:10px 13px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size:10px;
+      font-weight:950;
+      white-space:nowrap;
+    }
+    @media (max-width:1100px) {
+      .hero-top,
+      .workspace,
+      .memo-head,
+      .metrics,
+      .variant-section,
+      .mini-body,
+      .footer-note {
+        grid-template-columns:1fr;
+      }
+      .nav { align-items:flex-start; }
+      .nav-island { max-width:100%; overflow:auto; }
+      .product-bar { grid-template-columns:1fr; }
+      .product-cell { border-right:0; border-bottom:1px solid var(--line); }
+      .lane-rail,
+      .action-rail { border:0; }
+      .hero { min-height:auto; }
+      .app-shell, .mini-shell { border-radius:28px; }
+      .app-core, .mini-core { border-radius:21px; }
+      h1 { font-size:56px; }
+      .memo-head h2 { font-size:46px; }
+    }
+    @media (max-width:620px) {
+      .page { padding:14px 12px 40px; }
+      .brand { font-size:16px; }
+      .nav { flex-direction:column; }
+      h1 { font-size:44px; }
+      .app-shell { padding:5px; }
+      .app-core { min-height:auto; }
+      .command { padding:16px; }
+      .rule { grid-template-columns:1fr; }
+      .split { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav">
+      <div class="brand"><i></i>Greenstreet Finance.</div>
+      <div class="nav-island">
+        <a class="active" href="#borrower">Borrower</a>
+        <a href="#lender">Lender</a>
+        <a href="#refi">Refi</a>
+        <a href="#motion">Motion</a>
+      </div>
+    </nav>
+
+    <section class="hero" id="borrower">
+      <div class="hero-top">
+        <div>
+          <span class="eyebrow">V4 · approved direction candidate</span>
+          <h1>Make the page feel like underwriting software, not a landing page.</h1>
+        </div>
+        <p>The borrower page becomes the pattern-setter: a live command surface with borrower lane, memo, gates, and next action above fold. Lender Intel and Refi Tracker reuse the same operating grammar.</p>
+      </div>
+
+      <div class="app-shell">
+        <div class="app-core">
+          <div class="product-bar">
+            <div class="product-cell"><span class="k">Mode</span><strong class="v">Borrower Profiles</strong></div>
+            <div class="product-cell"><span class="k">Question answered</span><strong class="v">What lane is this file, and what can break it?</strong></div>
+            <div class="product-cell"><span class="k">Primary action</span><strong class="v mono">price lane →</strong></div>
+          </div>
+
+          <div class="workspace">
+            <aside class="lane-rail">
+              <p class="rail-title">Borrower lane</p>
+              <div class="lane active"><div><strong>Portfolio builder</strong><small>multi-property desk</small></div><b>7</b></div>
+              <div class="lane"><div><strong>STR operator</strong><small>seasonal revenue</small></div><b>+3mo</b></div>
+              <div class="lane"><div><strong>Non-US investor</strong><small>passport-led file</small></div><b>ITIN</b></div>
+              <div class="lane"><div><strong>Buy-and-hold</strong><small>stabilized rental</small></div><b>1.25x</b></div>
+              <div class="lane"><div><strong>Vacation rental</strong><small>personal use edge</small></div><b>watch</b></div>
+              <p class="rail-copy">No separate hero. Profile selection controls assumptions, required docs, lender filters, and quote path.</p>
+            </aside>
+
+            <section class="command">
+              <div class="memo-head">
+                <div>
+                  <p class="rail-title" style="color:var(--lemon)">Active underwriting memo</p>
+                  <h2>Portfolio lane is viable. Review concentration before quote.</h2>
+                  <p>This is the above-fold experience the current borrower page lacks: user picks lane, sees file confidence, gates, evidence, and the next action without scrolling through marketing copy.</p>
+                </div>
+                <div class="bezel">
+                  <div class="score"><span>File confidence</span><b>76</b><span>watch exposure</span></div>
+                </div>
+              </div>
+
+              <div class="metrics">
+                <div class="metric"><b>1.18x</b><span>aggregate stressed DSCR across properties</span></div>
+                <div class="metric"><b>9 mo</b><span>reserve target after portfolio overlay</span></div>
+                <div class="metric"><b>2</b><span>assets below lender comfort threshold</span></div>
+              </div>
+
+              <div class="rules">
+                <div class="rule"><span>Gate 01</span><strong>Rent roll reconciles to loan schedule</strong><b>required</b></div>
+                <div class="rule"><span>Gate 02</span><strong>Entity chain and vesting match every property</strong><b>watch</b></div>
+                <div class="rule"><span>Gate 03</span><strong>Route to portfolio lender, not retail DSCR</strong><b>route</b></div>
+              </div>
+            </section>
+
+            <aside class="action-rail">
+              <p class="rail-title">Next best action</p>
+              <div class="action-card"><strong>Run exposure screen</strong><span>Use property count, state mix, and aggregate DSCR before rate quote.</span></div>
+              <div class="action-card"><strong>Lender Intel handoff</strong><span>Prefill FICO, LTV, DSCR, state risk, strategy, and reserve expectation.</span></div>
+              <div class="action-card"><strong>Remove generic CTA</strong><span>Use lane-specific actions. No “learn more” filler.</span></div>
+              <div class="cta">Price this lane <i>→</i></div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="variant-section" id="lender">
+      <article class="mini-shell">
+        <div class="mini-core">
+          <header class="mini-head">
+            <div><h3>Lender Intel</h3><p>Capital routing board. Eligible vs advisable.</p></div>
+            <span class="k">4 of 7 fit</span>
+          </header>
+          <div class="mini-body">
+            <aside class="mini-left">
+              <p class="rail-title">Deal box</p>
+              <div class="lane"><div><strong>FICO</strong><small>score</small></div><b>720</b></div>
+              <div class="lane"><div><strong>LTV</strong><small>loan/value</small></div><b>75%</b></div>
+              <div class="lane active"><div><strong>DSCR</strong><small>rent/payment</small></div><b>1.15x</b></div>
+              <div class="lane"><div><strong>State</strong><small>PPP risk</small></div><b>TX</b></div>
+            </aside>
+            <main class="mini-main">
+              <p class="rail-title" style="color:var(--lemon)">Program ranking</p>
+              <div class="leader"><em>01</em><div><strong>Greenstreet Cedar</strong><small>Jumbo headroom, clean pass</small></div><b>94</b></div>
+              <div class="leader"><em>02</em><div><strong>Greenstreet Aspen</strong><small>Everyday DSCR, low friction</small></div><b>94</b></div>
+              <div class="leader"><em>03</em><div><strong>Greenstreet Willow</strong><small>Fits, reserve pressure</small></div><b>83</b></div>
+              <div class="rules">
+                <div class="rule"><span>Memo</span><strong>Sort by confidence, not marketing order</strong><b>fix</b></div>
+                <div class="rule"><span>Gate</span><strong>Show why losers fail, not generic red cards</strong><b>fix</b></div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </article>
+
+      <article class="mini-shell" id="refi">
+        <div class="mini-core">
+          <header class="mini-head">
+            <div><h3>Refi Tracker</h3><p>Split eligibility from economic wisdom.</p></div>
+            <span class="k">eligible ≠ worth it</span>
+          </header>
+          <div class="mini-body">
+            <aside class="mini-left">
+              <p class="rail-title">Scenario</p>
+              <div class="lane"><div><strong>Balance</strong><small>first lien</small></div><b>$340k</b></div>
+              <div class="lane"><div><strong>Current</strong><small>rate</small></div><b>7.25%</b></div>
+              <div class="lane active"><div><strong>Refi</strong><small>rate</small></div><b>6.50%</b></div>
+              <div class="lane"><div><strong>Owned</strong><small>seasoning</small></div><b>12mo</b></div>
+            </aside>
+            <main class="mini-main">
+              <p class="rail-title" style="color:var(--lemon)">Decision</p>
+              <h3 style="margin:0;color:var(--cream);font-size:48px;line-height:.92;letter-spacing:0">Eligible, but wait.</h3>
+              <p style="color:rgba(243,240,212,.63);font-size:13px;line-height:1.45;max-width:56ch">Current page says ready too easily. New model separates lender eligibility from economic action.</p>
+              <div class="chart"><div class="chart-core"><div class="dot"></div></div></div>
+              <div class="split">
+                <div class="metric"><b>85</b><span>eligibility score</span></div>
+                <div class="metric"><b>42</b><span>economic score</span></div>
+                <div class="metric"><b>53mo</b><span>break-even</span></div>
+                <div class="metric"><b>$0</b><span>cash-out capacity</span></div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="footer-note" id="motion">
+      <p><b>Motion rule:</b> GSAP only for meaningful state transitions: active lane slide, ranking row stagger, refi dot movement, memo reveal. Use transforms and opacity only; no decorative motion, no layout animation.</p>
+      <span class="pick">Recommended: build this</span>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      if (!window.gsap) return;
+      gsap.defaults({ duration: 0.85, ease: "power3.out" });
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce) return;
+      const tl = gsap.timeline();
+      tl.from(".brand, .nav-island", { y: -18, autoAlpha: 0, stagger: 0.08 })
+        .from(".eyebrow, h1, .hero-top p", { y: 34, autoAlpha: 0, stagger: 0.08 }, "<0.1")
+        .from(".app-shell", { y: 46, scale: .985, autoAlpha: 0, duration: 1.05 }, "<0.12")
+        .from(".lane, .memo-head, .metric, .rule, .action-card", { y: 18, autoAlpha: 0, stagger: 0.025, duration: .72 }, "<0.2");
+    });
+  </script>
+</body>
+</html>

@@ -6,16 +6,17 @@
  * Step 4: Contact capture
  * Step 5: Confirmation
  *
- * PRESERVED: DSCR calc formula, Firestore leads submit + localStorage fallback,
- * trigger pill + window.openQualify + one-time auto-open + localStorage gate.
+ * PRESERVED: DSCR calc formula, secure API lead submit, and user-invoked opening.
  *
  * ADDED: step-enter animation, progress bar transition, result reveal (count-up),
  * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
  * focus rings, trust signals, mobile-responsive padding.
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
+import { createPortal } from "react-dom";
 import { swatch, font, radius } from "../theme";
-import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange } from "../engine";
+import { quickDscrEstimate, qualify, fmtUsd } from "../engine";
+import { trackEvent } from "../analytics/analytics";
 import type {
   QuickDscrTier,
   QualifyPropertyType as PropertyType,
@@ -30,6 +31,32 @@ type FicoBand = "under-680" | "680-719" | "720-759" | "760-plus";
 type Role = "investor" | "foreign" | "str" | "vacation";
 type Experience = "0" | "1-3" | "4-9" | "10-plus";
 type Timeline = "exploring" | "under-30" | "30-90" | "refi-soon";
+
+function dscrBand(dscr: number): string {
+  if (dscr < 0.8) return "under_0_80";
+  if (dscr < 1) return "0_80_to_0_99";
+  if (dscr < 1.25) return "1_00_to_1_24";
+  if (dscr < 1.5) return "1_25_to_1_49";
+  return "1_50_plus";
+}
+
+function ltvBand(propertyValue: number, loanAmount: number): string {
+  if (propertyValue <= 0) return "unknown";
+  const ltv = loanAmount / propertyValue;
+  if (ltv <= 0.6) return "60_or_less";
+  if (ltv <= 0.7) return "61_to_70";
+  if (ltv <= 0.75) return "71_to_75";
+  if (ltv <= 0.8) return "76_to_80";
+  return "over_80";
+}
+
+function leadSubmitErrorCode(status?: number): string {
+  if (!status) return "network_error";
+  if (status === 400) return "invalid_submission";
+  if (status === 429) return "rate_limited";
+  if (status >= 500) return "service_unavailable";
+  return "request_rejected";
+}
 
 interface StepOneData {
   propertyValue: number;
@@ -99,86 +126,53 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
   nextStep: string;
   color: string;
 } {
-  const purposeContext: Record<Purpose, { strong: string; borderline: string; low: string }> = {
-    purchase: {
-      strong: "For a purchase at this DSCR, you're in a strong position to move forward.",
-      borderline: "Purchases at this DSCR can close — a specialist will confirm the program and structure.",
-      low: "Some purchase programs allow sub-1.0 DSCR with compensating factors like reserves or lower LTV.",
-    },
-    "rate-term": {
-      strong: "Rate & term refinances at this DSCR typically qualify at standard pricing.",
-      borderline: "This DSCR meets the floor for a rate & term refi. A specialist can confirm the best available term.",
-      low: "At this DSCR level, a rate & term refi may require compensating factors. A specialist can review your full picture.",
-    },
-    "cash-out": {
-      strong: "Cash-out refinances at this DSCR are generally well-supported — your cushion helps.",
-      borderline: "Cash-out refinances at this DSCR are workable. LTV and FICO will affect final approval.",
-      low: "Cash-out refinances require more cushion. A specialist can look at reducing the cash-out amount or LTV to hit threshold.",
-    },
-  };
-
-  const ctx = purpose ? purposeContext[purpose] : null;
+  const purposeNote = purpose === "purchase"
+    ? "For a purchase, verify the proposed loan amount, rent evidence, taxes, insurance, and provider requirements."
+    : purpose === "rate-term"
+      ? "For a rate-and-term refinance, verify the current payoff, property value, rent evidence, and provider requirements."
+      : purpose === "cash-out"
+        ? "For a cash-out refinance, the requested proceeds and resulting LTV are additional inputs a provider must review."
+        : "A financing provider must review the complete scenario and current program requirements.";
 
   switch (tier) {
     case "LIKELY_QUALIFIES":
       return {
-        tier: "Strong",
-        headline: "This deal looks solid",
-        detail: "Your DSCR clears our standard threshold. You're in a good position to move forward.",
-        purposeNote: ctx?.strong ?? "",
-        nextStep: "Share your contact details and a Greenstreet specialist will send you a full scenario review — typically within one business day.",
+        tier: "Stronger coverage",
+        headline: "The preliminary coverage math is above 1.25x",
+        detail: "This result reflects only the assumptions entered here. It is not a qualification, approval, or indication of available pricing.",
+        purposeNote,
+        nextStep: "If you want a follow-up, you may submit the scenario for a current, provider-specific review.",
         color: swatch.emerald,
       };
     case "BORDERLINE":
       return {
-        tier: "Qualifies",
-        headline: "This deal meets the standard floor",
-        detail: "Your DSCR is at or above the 1.0x minimum. A specialist can confirm terms and get you to closing.",
-        purposeNote: ctx?.borderline ?? "",
-        nextStep: "A Greenstreet specialist can confirm which programs fit and lock you into terms.",
+        tier: "Near 1.00x",
+        headline: "The preliminary coverage math is near 1.00x",
+        detail: "Small changes to rent, payment, taxes, insurance, or fees may materially change this educational estimate.",
+        purposeNote,
+        nextStep: "A provider-specific review is required before drawing any conclusion about eligibility or terms.",
         color: swatch.rainforest,
       };
     case "SPECIALIST_REQUIRED":
       return {
-        tier: "Borderline",
-        headline: "This deal may work with the right structure",
-        detail: "Your DSCR is just below the standard 1.0x floor, but there are programs that accommodate this range — especially with strong credit or reserves.",
-        purposeNote: ctx?.low ?? "A Greenstreet specialist can explore sub-1.0 programs and structuring options — this is not a dead end.",
-        nextStep: "A Greenstreet specialist can explore sub-1.0 programs and structuring options. This is not a dead end.",
+        tier: "Below 1.00x",
+        headline: "The preliminary coverage math is below 1.00x",
+        detail: "The entered rent is lower than the estimated monthly obligation. This tool cannot determine whether any current program fits.",
+        purposeNote,
+        nextStep: "Review the assumptions and, if useful, request a current provider-specific assessment.",
         color: "#b8a820",
       };
     case "UNLIKELY":
     default:
       return {
-        tier: "Below Threshold",
-        headline: "This deal needs restructuring",
-        detail: "Your current numbers are below standard DSCR floors, but there may be paths forward — lower LTV, higher rent, or a different structure.",
-        purposeNote: ctx?.low ?? "A specialist can assess whether a restructured deal changes the picture.",
-        nextStep: "A Greenstreet specialist can walk through what adjustments would change the outcome. No commitment required.",
+        tier: "Lower coverage",
+        headline: "The entered assumptions produce lower coverage",
+        detail: "This educational estimate does not establish program availability or rule out alternatives. Verify every material input before relying on it.",
+        purposeNote,
+        nextStep: "You can revise the assumptions or request a current review without any promise of eligibility or terms.",
         color: "#c25b4e",
       };
   }
-}
-
-function estimateRate(
-  baseDSCR: number,
-  ficoBand: FicoBand | null,
-  purpose: Purpose | null
-): string {
-  let base = 6.5;
-  // FICO adjustments
-  if (ficoBand === "under-680") base += 1.25;
-  else if (ficoBand === "680-719") base += 0.75;
-  else if (ficoBand === "720-759") base += 0.25;
-  // else 760+ stays at base
-  // Purpose adjustments
-  if (purpose === "cash-out") base += 0.375;
-  else if (purpose === "rate-term") base += 0.0;
-  // DSCR adjustment — sub-1.0 carries a spread
-  if (baseDSCR < 1.0) base += 0.5;
-  const lo = (base - 0.125).toFixed(2);
-  const hi = (base + 0.25).toFixed(2);
-  return `${lo}% – ${hi}%`;
 }
 
 // ─── US States ────────────────────────────────────────────────────────────────
@@ -201,6 +195,53 @@ interface QualifyModalProps {
 
 // ─── Animation CSS injected once ─────────────────────────────────────────────
 const ANIMATION_CSS = `
+  .gs-qualify-modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483000 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: clamp(8px, 2vw, 20px) !important;
+    overflow: auto !important;
+    overscroll-behavior: contain;
+    visibility: visible !important;
+    opacity: 1 !important;
+    isolation: isolate;
+  }
+  .gs-qualify-modal-dialog {
+    display: block !important;
+    position: relative !important;
+    width: min(100%, 520px) !important;
+    min-width: 0 !important;
+    max-width: 520px !important;
+    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    margin: auto !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  @media (max-width: 380px) {
+    .gs-qualify-modal-overlay {
+      padding: 8px !important;
+    }
+    .gs-qualify-modal-dialog {
+      width: 100% !important;
+      max-height: calc(100vh - 16px) !important;
+      max-height: calc(100dvh - 16px) !important;
+      padding: 24px 18px 20px !important;
+    }
+  }
+
   @keyframes qm-step-enter {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -331,6 +372,11 @@ function ProgressBar({ step }: { step: number }) {
   const pct = Math.min(step, FUNNEL_STEPS) / FUNNEL_STEPS;
   return (
     <div
+      role="progressbar"
+      aria-label="Qualification progress"
+      aria-valuemin={1}
+      aria-valuemax={FUNNEL_STEPS}
+      aria-valuenow={Math.min(step, FUNNEL_STEPS)}
       style={{
         height: 4,
         background: swatch.mint,
@@ -449,14 +495,17 @@ function FieldGroup({
   error?: string;
   children: React.ReactNode;
 }) {
+  const labelId = useId();
+  const messageId = useId();
+
   return (
-    <div style={{ marginBottom: 16 }}>
-      <label style={labelStyle}>{label}</label>
+    <div role="group" aria-labelledby={labelId} aria-describedby={helper || error ? messageId : undefined} aria-invalid={error ? true : undefined} style={{ marginBottom: 16 }}>
+      <span id={labelId} style={labelStyle}>{label}</span>
       {children}
       {error ? (
-        <p style={errorMsgStyle}>{error}</p>
+        <p id={messageId} role="alert" aria-live="polite" style={errorMsgStyle}>{error}</p>
       ) : helper ? (
-        <p style={helperStyle}>{helper}</p>
+        <p id={messageId} style={helperStyle}>{helper}</p>
       ) : null}
     </div>
   );
@@ -475,6 +524,7 @@ function PillBtn({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={active ? "qm-pill qm-pill-active" : "qm-pill"}
       style={{
         padding: "8px 16px",
@@ -658,7 +708,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        See if your rental deal qualifies — in 60 seconds
+        Explore your rental scenario — in about 60 seconds
       </h2>
       <p
         style={{
@@ -668,7 +718,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        No credit pull &middot; no obligation &middot; instant DSCR estimate
+        No credit pull &middot; no obligation &middot; preliminary DSCR estimate
       </p>
 
       {/* Loan purpose — first question, sets context for all results */}
@@ -679,7 +729,7 @@ function Step1({
             ? "Cash-out refinance — replace your loan with a larger one and take the difference in cash. Pricing is slightly higher than a purchase."
             : step2.purpose === "rate-term"
             ? "Rate & term refinance — replace your current loan to change the rate or term, without taking cash out."
-            : "Are you buying it, refinancing for a better rate, or pulling cash out? Each has different pricing and programs."
+            : "Are you buying it, refinancing the existing balance, or requesting cash out? Each requires different inputs to review."
         }
         error={attempted && !step2.purpose ? "Please select a loan purpose to continue." : undefined}
       >
@@ -804,7 +854,7 @@ function Step1({
           style={inputStyle}
         />
         <p style={helperStyle}>
-          Your best guess at the note rate — used to estimate your monthly payment (PITIA). An estimate is fine; a specialist will confirm the real rate for your deal. Current DSCR rates typically run 6.5%–8.5% depending on credit and LTV.
+          Enter a rate assumption only to model the monthly payment (PITIA). This tool does not quote, confirm, or lock a current interest rate.
         </p>
       </div>
 
@@ -996,8 +1046,8 @@ function Step2({
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
         {data.purpose
-          ? `Your ${purposeLabel[data.purpose]} — these fields let us tailor your rate estimate and flag any state-level rules.`
-          : "These details let us tailor your rate estimate and flag any state-level rules that affect your deal."}
+          ? `Your ${purposeLabel[data.purpose]} — these fields refine the preliminary math and identify questions for further review.`
+          : "These details refine the preliminary math and identify questions for further review."}
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1031,7 +1081,7 @@ function Step2({
 
       <FieldGroup
         label="Your credit score range (estimate)"
-        helper="We don't pull your credit here — a rough range is all we need. Your score affects your rate tier and minimum down payment. Higher score = lower rate."
+        helper="We don't pull your credit here. A rough range helps identify questions a financing provider may ask; it does not produce a quote or approval."
         error={attempted && !data.ficoBand ? "Please select a credit score range." : undefined}
       >
         <div
@@ -1053,7 +1103,7 @@ function Step2({
 
       <FieldGroup
         label="Who will be on the loan?"
-        helper="Many DSCR loans close in the name of an LLC or entity rather than a person — both are fine. Some states require an entity. This affects title and liability, not your rate."
+        helper="Borrower and entity requirements vary by provider, property, and jurisdiction. This selection only identifies a question for further review."
         error={attempted && !data.borrowerType ? "Please choose how you'll borrow." : undefined}
       >
         <div role="group" aria-label="Borrower type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1067,7 +1117,7 @@ function Step2({
 
       <FieldGroup
         label="How many rental properties do you currently own?"
-        helper="Experience can unlock better programs and lower reserve requirements — but first-time investors qualify too. There's no wrong answer."
+        helper="Some providers ask about rental-property experience. This answer does not determine program fit or reserve requirements."
         error={attempted && !data.experience ? "Please pick a range." : undefined}
       >
         <div role="group" aria-label="Investor experience" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1148,18 +1198,11 @@ function Step3({
   const dscr = estimate.dscr;
   const col = dscrColor(dscr);
   const verdict = dscrVerdict(estimate.tier, step2.purpose);
-  const rate = estimateRate(dscr, step2.ficoBand, step2.purpose);
   const q = qualify(buildQualifyInput(step1, step2));
   const topLever = q.levers[0];
 
   // Animated count-up for the big DSCR number
   const displayDscr = useCountUp(dscr, 520);
-
-  const purposeLabel: Record<Purpose, string> = {
-    purchase: "Purchase",
-    "rate-term": "Rate & term refi",
-    "cash-out": "Cash-out refi",
-  };
 
   const isBorderlineOrLow =
     estimate.tier === "SPECIALIST_REQUIRED" || estimate.tier === "UNLIKELY";
@@ -1328,7 +1371,7 @@ function Step3({
         </p>
       </div>
 
-      {/* Rate estimate */}
+      {/* Pricing disclosure */}
       <div
         style={{
           background: "#fff",
@@ -1348,24 +1391,10 @@ function Step3({
             marginBottom: 4,
           }}
         >
-          Indicative rate range
-        </div>
-        <div
-          style={{
-            fontSize: 26,
-            fontFamily: font.mono,
-            fontWeight: 700,
-            color: swatch.midnight,
-            lineHeight: 1,
-            marginBottom: 4,
-          }}
-        >
-          {rate}
+          Pricing requires a current provider review
         </div>
         <p style={{ fontSize: 12, color: swatch.rainforest, margin: 0 }}>
-          Based on credit {step2.ficoBand ?? "range"},{" "}
-          {step2.purpose ? purposeLabel[step2.purpose].toLowerCase() : "your loan type"},{" "}
-          {step2.state || "your state"}. A specialist will confirm the exact rate for your deal.
+          Interest rates, fees, eligibility, and available terms change and depend on information this tool does not verify. No rate is quoted, confirmed, or locked here.
         </p>
       </div>
 
@@ -1420,7 +1449,7 @@ function Step3({
           ← Back
         </button>
         <button className="qm-btn-primary" style={btnPrimary} onClick={onNext}>
-          Get my full scenario review →
+          Continue to the optional contact step →
         </button>
       </div>
     </div>
@@ -1434,6 +1463,7 @@ function Step4({
   onBack,
   onSubmit,
   submitting,
+  submitError,
   headingId,
 }: {
   data: StepFourData;
@@ -1441,14 +1471,28 @@ function Step4({
   onBack: () => void;
   onSubmit: () => void;
   submitting: boolean;
+  submitError?: string;
   headingId: string;
 }) {
   const uid = useId();
   const idName  = `${uid}-name`;
   const idEmail = `${uid}-email`;
   const idPhone = `${uid}-phone`;
+  const idNameError = `${uid}-name-error`;
+  const idEmailMessage = `${uid}-email-message`;
+  const idTimelineLabel = `${uid}-timeline-label`;
+  const idTimelineHelp = `${uid}-timeline-help`;
+  const idTimelineError = `${uid}-timeline-error`;
+  const idConsentError = `${uid}-consent-error`;
+  const idValidationSummary = `${uid}-validation-summary`;
+  const idSubmitError = `${uid}-submit-error`;
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitAttempt, setSubmitAttempt] = useState(0);
   const [shaking, setShaking] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const consentRef = useRef<HTMLInputElement>(null);
 
   const roles: { val: Role; label: string; helper: string }[] = [
     { val: "investor", label: "Buy & hold investor", helper: "Long-term rental income." },
@@ -1466,16 +1510,42 @@ function Step4({
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim());
   const nameValid = data.name.trim().length >= 2;
   const isValid = nameValid && emailValid && data.contactConsent && data.timeline !== null;
+  const showNameError = Boolean(touched.name && !nameValid);
+  const showEmailError = Boolean(touched.email && !emailValid);
+  const showTimelineError = Boolean(touched.timeline && !data.timeline);
+  const showConsentError = Boolean(touched.contactConsent && !data.contactConsent);
+  const invalidFields = [
+    !nameValid ? "full name" : null,
+    !emailValid ? "email address" : null,
+    !data.timeline ? "closing timeline" : null,
+    !data.contactConsent ? "contact consent" : null,
+  ].filter((field): field is string => field !== null);
+  const invalidFieldList = invalidFields.length <= 1
+    ? invalidFields[0] ?? ""
+    : `${invalidFields.slice(0, -1).join(", ")}, and ${invalidFields[invalidFields.length - 1]}`;
+  const validationSummary = invalidFields.length > 0
+    ? `Please correct ${invalidFields.length} required ${invalidFields.length === 1 ? "field" : "fields"}: ${invalidFieldList}.`
+    : "";
 
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
 
   const handleSubmit = () => {
-    setTouched({ name: true, email: true, submit: true });
+    setTouched({ name: true, email: true, timeline: true, contactConsent: true, submit: true });
     if (isValid && !submitting) {
       onSubmit();
     } else if (!isValid) {
+      setSubmitAttempt((attempt) => attempt + 1);
       setShaking(true);
+      if (!nameValid) {
+        nameRef.current?.focus();
+      } else if (!emailValid) {
+        emailRef.current?.focus();
+      } else if (!data.timeline) {
+        timelineRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+      } else if (!data.contactConsent) {
+        consentRef.current?.focus();
+      }
     }
   };
 
@@ -1495,28 +1565,51 @@ function Step4({
           marginTop: 0,
         }}
       >
-        Where should we send your scenario review?
+        Where should we send your preliminary scenario?
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        A Greenstreet specialist will review your exact numbers and follow up
-        within one business day. Your information is used only to prepare your quote — no spam, no credit pull.
+        If you submit this form, a Greenstreet specialist may contact you to discuss the assumptions and current options. Response timing varies. No credit pull is made here.
       </p>
+
+      {submitAttempt > 0 && validationSummary && (
+        <p
+          key={submitAttempt}
+          id={idValidationSummary}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+          data-qualify-validation-summary="true"
+          style={{
+            ...errorMsgStyle,
+            margin: "0 0 18px",
+            padding: "10px 12px",
+            border: "1px solid #c25b4e",
+            borderRadius: radius.sm,
+            background: "#fff7f5",
+          }}
+        >
+          {validationSummary}
+        </p>
+      )}
 
       <div style={{ marginBottom: 16 }}>
         <label htmlFor={idName} style={labelStyle}>Full name</label>
         <input
           id={idName}
+          ref={nameRef}
           type="text"
           value={data.name}
           placeholder="Jane Smith"
           onChange={(e) => onChange({ name: e.target.value })}
           onBlur={() => markTouched("name")}
           className="qm-input"
-          style={touched.name && !nameValid ? inputErrorStyle : inputStyle}
+          style={showNameError ? inputErrorStyle : inputStyle}
           autoComplete="name"
+          aria-invalid={showNameError ? true : undefined}
+          aria-describedby={showNameError ? idNameError : undefined}
         />
-        {touched.name && !nameValid && (
-          <p style={errorMsgStyle}>Please enter your full name.</p>
+        {showNameError && (
+          <p id={idNameError} role="alert" aria-live="polite" style={errorMsgStyle}>Enter your full name.</p>
         )}
       </div>
 
@@ -1524,20 +1617,25 @@ function Step4({
         <label htmlFor={idEmail} style={labelStyle}>Work email</label>
         <input
           id={idEmail}
+          ref={emailRef}
           type="email"
           value={data.email}
           placeholder="jane@brokerage.com"
           onChange={(e) => onChange({ email: e.target.value })}
           onBlur={() => markTouched("email")}
           className="qm-input"
-          style={touched.email && !emailValid ? inputErrorStyle : inputStyle}
+          style={showEmailError ? inputErrorStyle : inputStyle}
           autoComplete="email"
           required
+          aria-invalid={showEmailError ? true : undefined}
+          aria-describedby={idEmailMessage}
         />
-        {touched.email && !emailValid ? (
-          <p style={errorMsgStyle}>Please enter a valid email address.</p>
+        {showEmailError ? (
+          <p id={idEmailMessage} role="alert" aria-live="polite" style={errorMsgStyle}>
+            {data.email.trim() ? "Enter a valid email address." : "Enter your email address."}
+          </p>
         ) : (
-          <p style={helperStyle}>We'll send your quote here.</p>
+          <p id={idEmailMessage} style={helperStyle}>We'll send the preliminary scenario here.</p>
         )}
       </div>
 
@@ -1556,19 +1654,31 @@ function Step4({
         <p style={helperStyle}>Prefer a call? Add your number and we'll reach out directly.</p>
       </div>
 
-      <FieldGroup
-        label="When do you need to close?"
-        helper="Helps us prioritize your file correctly. Exploring is fine — there's no pressure."
-        error={touched.submit && !data.timeline ? "Please pick a timeline." : undefined}
-      >
-        <div role="group" aria-label="Timeline" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+      <div style={{ marginBottom: 16 }}>
+        <span id={idTimelineLabel} style={labelStyle}>When do you need to close?</span>
+        <div
+          ref={timelineRef}
+          role="group"
+          aria-labelledby={idTimelineLabel}
+          aria-invalid={showTimelineError ? true : undefined}
+          aria-describedby={showTimelineError ? idTimelineError : idTimelineHelp}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) markTouched("timeline");
+          }}
+          style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}
+        >
           {timelines.map((t) => (
             <PillBtn key={t.val} active={data.timeline === t.val} onClick={() => onChange({ timeline: t.val })}>
               {t.label}
             </PillBtn>
           ))}
         </div>
-      </FieldGroup>
+        {showTimelineError ? (
+          <p id={idTimelineError} role="alert" aria-live="polite" style={errorMsgStyle}>Choose a closing timeline.</p>
+        ) : (
+          <p id={idTimelineHelp} style={helperStyle}>Helps us prioritize your file correctly. Exploring is fine; there's no pressure.</p>
+        )}
+      </div>
 
       <FieldGroup
         label="What best describes you?"
@@ -1592,16 +1702,20 @@ function Step4({
       </FieldGroup>
 
       {/* Trust bar with lock icon */}
-      <TrustBar text="No credit pull · no obligation · no spam. Your details are used only to prepare your quote." />
+      <TrustBar text="No credit pull · no obligation. Your details are used to respond to this request." />
 
       {/* Consent — contact required, SMS optional (TCPA-safe, not pre-checked) */}
       <label
         style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10, cursor: "pointer", fontSize: 12, color: swatch.midnight, lineHeight: 1.5 }}
       >
         <input
+          ref={consentRef}
           type="checkbox"
           checked={data.contactConsent}
           onChange={(e) => onChange({ contactConsent: e.target.checked })}
+          onBlur={() => markTouched("contactConsent")}
+          aria-invalid={showConsentError ? true : undefined}
+          aria-describedby={showConsentError ? idConsentError : undefined}
           style={{ marginTop: 1, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
         />
         <span>
@@ -1610,8 +1724,8 @@ function Step4({
           <a href="/terms-of-service" target="_blank" rel="noopener" style={{ color: swatch.rainforest }}>Terms</a>.
         </span>
       </label>
-      {touched.submit && !data.contactConsent && (
-        <p style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so we can send your result.</p>
+      {showConsentError && (
+        <p id={idConsentError} role="alert" aria-live="polite" style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Agree to contact so we can respond to your request.</p>
       )}
       <label
         style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20, cursor: "pointer", fontSize: 12, color: swatch.rainforest, lineHeight: 1.5 }}
@@ -1625,21 +1739,23 @@ function Step4({
         <span>Text me updates about my deal (optional). Msg &amp; data rates may apply; reply STOP to opt out.</span>
       </label>
 
+      {submitError && <p id={idSubmitError} role="alert" aria-live="assertive" style={{ ...errorMsgStyle, fontSize: 13, margin: "0 0 14px" }}>{submitError}</p>}
+
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>
           ← Back
         </button>
         <button
+          type="button"
           className={`qm-btn-primary${shaking ? " qm-shake" : ""}`}
-          style={
-            isValid && !submitting ? btnPrimary : btnPrimaryDisabled
-          }
-          disabled={!isValid || submitting}
+          style={!submitting ? btnPrimary : btnPrimaryDisabled}
+          disabled={submitting}
           onClick={handleSubmit}
           onAnimationEnd={() => setShaking(false)}
+          aria-describedby={submitError ? idSubmitError : submitAttempt > 0 && validationSummary ? idValidationSummary : undefined}
         >
           {submitting && <span className="qm-spinner" aria-hidden="true" />}
-          {submitting ? "Sending…" : "Send my scenario — get a specialist review →"}
+          {submitting ? "Sending…" : "Send my scenario for review →"}
         </button>
       </div>
     </div>
@@ -1651,6 +1767,11 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
   const firstName = name.split(" ")[0] || "there";
 
   const handleBookTime = () => {
+    trackEvent("cta_click", {
+      cta_id: "qualification_schedule_call",
+      placement: "qualification_confirmation",
+      route: window.location.pathname,
+    });
     onClose();
     window.history.pushState({}, "", "/rate-quiz");
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -1695,7 +1816,7 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.55,
         }}
       >
-        A Greenstreet specialist will review your numbers, check program fit, and send you a full scenario write-up — typically within one business day. No obligation.
+        Your request was submitted. A Greenstreet specialist may contact you to discuss the assumptions and current options; response timing varies.
       </p>
       <p
         style={{
@@ -1706,8 +1827,7 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.5,
         }}
       >
-        This is not a loan approval or commitment to lend. Your quote will be
-        based on a full review of your scenario.
+        This is not a loan approval, commitment, rate lock, or confirmed pricing. Any available terms require a separate provider review.
       </p>
 
       <div
@@ -1772,11 +1892,14 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     smsConsent: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   // For returning focus on close
-  const triggerRef = useRef<Element | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
+  const highestTrackedStepRef = useRef(1);
 
   // Unique id for the visible heading (aria-labelledby)
   const headingId = useId();
@@ -1788,47 +1911,46 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
 
   // Capture the focused element before opening, so we can restore it on close
   useEffect(() => {
-    if (open) {
-      triggerRef.current = document.activeElement;
-    } else {
-      // Return focus to the trigger element when the modal closes
-      const el = triggerRef.current;
-      if (el && typeof (el as HTMLElement).focus === "function") {
-        // Small delay lets the modal finish unmounting first
-        setTimeout(() => (el as HTMLElement).focus(), 30);
-      }
+    if (!open) return;
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    return () => {
+      const trigger = triggerRef.current;
       triggerRef.current = null;
-    }
+      if (trigger?.isConnected) window.requestAnimationFrame(() => trigger.focus());
+    };
   }, [open]);
 
   // Lock body scroll
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const scrollbarGap = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbarGap > 0) document.body.style.paddingRight = `${scrollbarGap}px`;
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
     };
   }, [open]);
 
   // Autofocus first field on step 1 (or heading on other steps)
   useEffect(() => {
     if (!open) return;
-    if (step === 1) {
-      setTimeout(() => firstFieldRef.current?.focus(), 80);
-    } else {
-      // Focus the heading so screen readers announce the new step
-      setTimeout(() => {
-        const heading = cardRef.current?.querySelector<HTMLElement>(`#${CSS.escape(headingId)}`);
-        if (heading) {
-          heading.setAttribute("tabindex", "-1");
-          heading.focus();
-        }
-      }, 80);
-    }
+    const timer = window.setTimeout(() => {
+      if (step === 1) return firstFieldRef.current?.focus();
+      const heading = cardRef.current?.querySelector<HTMLElement>(`#${CSS.escape(headingId)}`);
+      if (heading) {
+        heading.setAttribute("tabindex", "-1");
+        heading.focus();
+      }
+    }, 80);
+    return () => window.clearTimeout(timer);
   }, [open, step, headingId]);
+
+  useEffect(() => {
+    if (!open) setSubmitError("");
+  }, [open]);
 
   // Reset to step 1 when closed
   useEffect(() => {
@@ -1838,21 +1960,67 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     }
   }, [open]);
 
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      highestTrackedStepRef.current = 1;
+      trackEvent("qualify_open", {
+        source: "qualify_widget",
+        route: window.location.pathname,
+      });
+    } else if (!open && wasOpenRef.current && step < 5) {
+      trackEvent("qualify_abandon", {
+        step_number: step,
+        source: "qualify_widget",
+      });
+    }
+    wasOpenRef.current = open;
+  }, [open, step]);
+
+  useEffect(() => {
+    if (!open || step <= highestTrackedStepRef.current) return;
+    trackEvent("qualify_step_complete", {
+      step_number: step - 1,
+      source: "qualify_widget",
+    });
+
+    if (step === 2) {
+      const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
+      trackEvent("dscr_calculation_complete", {
+        dscr_band: dscrBand(estimate.dscr),
+        ltv_band: ltvBand(step1.propertyValue, step1.loanAmount),
+      });
+    }
+    if (step === 3) {
+      const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
+      trackEvent("qualification_complete", {
+        result_category: estimate.tier.toLowerCase(),
+      });
+    }
+    highestTrackedStepRef.current = step;
+  }, [open, step, step1.loanAmount, step1.propertyValue, step1.rate, step1.rent]);
+
   // Esc to close + Tab focus trap
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
         onClose();
         return;
       }
       if (e.key === "Tab" && cardRef.current) {
         const focusable = Array.from(
           cardRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)
-        ).filter((el) => el.offsetParent !== null); // skip hidden
+        ).filter((el) => el.offsetParent !== null && !el.hasAttribute("disabled"));
         if (focusable.length === 0) return;
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
+        if (!cardRef.current.contains(document.activeElement)) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
+          return;
+        }
         if (e.shiftKey) {
           if (document.activeElement === first) {
             e.preventDefault();
@@ -1866,8 +2034,19 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         }
       }
     };
+    const onFocusIn = (e: FocusEvent) => {
+      const card = cardRef.current;
+      if (!card || card.contains(e.target as Node)) return;
+      const first = Array.from(card.querySelectorAll<HTMLElement>(FOCUSABLE))
+        .find((el) => el.offsetParent !== null && !el.hasAttribute("disabled"));
+      (first ?? card).focus({ preventScroll: true });
+    };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocusIn);
+    };
   }, [open, onClose]);
 
   // Scrim click
@@ -1881,11 +2060,12 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   );
 
   const handleSubmit = async () => {
+    setSubmitError("");
     setSubmitting(true);
+    let responseStatus: number | undefined;
     // Use engine math for the persisted payload (matches the displayed result)
     const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
     const verdict = dscrVerdict(estimate.tier);
-    const rateEstimate = estimateRate(estimate.dscr, step2.ficoBand, step2.purpose);
     const q = qualify(buildQualifyInput(step1, step2));
 
     const payload = {
@@ -1910,7 +2090,6 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       dscr: estimate.dscr,
       verdict: verdict.headline,
       verdictTier: verdict.tier,
-      rateEstimate,
       qualify: {
         ltv: q.ltv,
         pitia: q.pitia,
@@ -1918,7 +2097,6 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         dscr: q.dscr,
         outcome: q.outcome,
         reasons: q.reasons,
-        rateRange: fmtRateRange(q.rateLow, q.rateHigh),
         needsHumanReview: q.needsHumanReview,
       },
       // consent record (TCPA/ECOA audit)
@@ -1929,45 +2107,51 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         policyVersion: "2026-06",
       },
       page: typeof window !== "undefined" ? window.location.pathname : "/",
-      createdAt: new Date().toISOString(),
-      submittedAt: new Date(), // Firestore rules require this field (as Timestamp)
-      // (lead persists to Firestore `leads` below; CRM/email sync is a future add)
     };
 
     try {
-      // Firebase is imported lazily so its ~524 kB client SDK is NOT pulled into
-      // the initial bundle (QualifyModal mounts globally on the home page). It
-      // loads only when a visitor actually submits a lead.
-      const [{ db }, { collection, addDoc }] = await Promise.all([
-        import("../firebase"),
-        import("firebase/firestore"),
-      ]);
-      await addDoc(collection(db, "leads"), payload);
-    } catch (err) {
-      console.warn(
-        "[QualifyModal] Firestore write failed, falling back to localStorage:",
-        err
-      );
-      try {
-        const existing = JSON.parse(localStorage.getItem("gs_leads") || "[]");
-        existing.push(payload);
-        localStorage.setItem("gs_leads", JSON.stringify(existing));
-      } catch (_) {
-        // localStorage unavailable — silently swallow
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      responseStatus = response.status;
+      if (!response.ok) {
+        throw new Error("lead_submission_rejected");
       }
+      const result = (await response.json().catch(() => ({}))) as { leadId?: unknown };
+      const leadId =
+        typeof result.leadId === "string" && /^[A-Za-z0-9_-]{8,160}$/.test(result.leadId)
+          ? result.leadId
+          : "not_returned";
+      trackEvent("lead_submitted", {
+        lead_id: leadId,
+        source: "qualify_widget",
+        route: window.location.pathname,
+      });
+      setStep(5);
+    } catch {
+      trackEvent("lead_submit_error", {
+        error_code: leadSubmitErrorCode(responseStatus),
+        step_number: 4,
+        source: "qualify_widget",
+      });
+      setSubmitError(responseStatus === 503
+        ? "Scenario submission is temporarily unavailable. Your entries are still here; please try again later."
+        : "We could not submit your scenario. Your entries are still here; please try again.");
     } finally {
       setSubmitting(false);
-      setStep(5);
     }
   };
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={headingId}
+      role="presentation"
+      className="gs-qualify-modal-overlay"
+      data-qualify-modal-overlay="true"
       onClick={handleScrimClick}
       style={{
         position: "fixed",
@@ -1982,7 +2166,12 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     >
       <div
         ref={cardRef}
-        className="qm-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        tabIndex={-1}
+        className="gs-qualify-modal-dialog"
+        data-qualify-modal-dialog="true"
         style={{
           background: swatch.pistachio,
           borderRadius: radius.lg,
@@ -2034,11 +2223,13 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             onBack={() => setStep(3)}
             onSubmit={handleSubmit}
             submitting={submitting}
+            submitError={submitError}
             headingId={headingId}
           />
         )}
         {step === 5 && <Step5 name={step4.name} onClose={onClose} headingId={headingId} />}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

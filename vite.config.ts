@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 import type { UserConfig } from 'vite';
 
 export default defineConfig(() => {
+  const hmrDisabled = process.env.DISABLE_HMR === 'true';
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -14,10 +15,11 @@ export default defineConfig(() => {
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
-      hmr: process.env.DISABLE_HMR !== 'true',
+      // An empty config inherits Vite's actual server port; never reserve a
+      // second hard-coded HMR port that can collide with parallel workers.
+      hmr: hmrDisabled ? false : {},
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      watch: hmrDisabled ? null : {},
     },
     build: {
       rollupOptions: {
@@ -27,9 +29,12 @@ export default defineConfig(() => {
             const nid = id.replace(/\\/g, '/');
             if (nid.includes('/react/') || nid.includes('/react-dom/') || nid.includes('/scheduler/')) return 'react';
             if (nid.includes('/gsap/') || nid.includes('/@gsap/')) return 'gsap';
-            // Firebase's bulk lives in the scoped @firebase/* packages, not the
-            // thin `firebase` wrapper — match both (firebase-admin is server-only).
-            if ((nid.includes('/firebase/') || nid.includes('/@firebase/')) && !nid.includes('/firebase-admin/')) return 'firebase';
+            // Keep optional Firebase services independently cacheable and below
+            // the large-chunk threshold instead of shipping one monolithic SDK.
+            if (nid.includes('/@firebase/firestore/')) return 'firebase-firestore';
+            if (nid.includes('/@firebase/auth/')) return 'firebase-auth';
+            if (nid.includes('/@firebase/')) return 'firebase-shared';
+            if (nid.includes('/firebase/') && !nid.includes('/firebase-admin/')) return 'firebase-core';
             if (nid.includes('/@anthropic-ai/')) return 'anthropic';
             // Heavy deps split out of the catch-all so they cache independently
             // and only download with the routes that use them.
@@ -45,7 +50,7 @@ export default defineConfig(() => {
     test: {
       globals: true,
       environment: 'node',
-      include: ['src/**/*.test.ts'],
+      include: ['src/**/*.test.{ts,tsx}'],
     },
   };
 });

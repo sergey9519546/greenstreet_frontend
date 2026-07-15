@@ -2,6 +2,24 @@ import { z } from "zod";
 
 export const STATE_REGEX = /^[A-Z]{2}$/;
 
+export const US_STATE_CODES = [
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+  "DC",
+] as const;
+
+const US_STATE_CODE_SET: ReadonlySet<string> = new Set(US_STATE_CODES);
+
+export const StateCodeSchema = z.string({ message: "state must be a string" })
+  .transform((state) => state.trim().toUpperCase())
+  .refine(
+    (state) => STATE_REGEX.test(state) && US_STATE_CODE_SET.has(state),
+    "state must be a valid 2-letter US state or DC abbreviation"
+  );
+
 export const DealRequestSchema = z.object({
   // Core — always required
   purchasePrice: z.number({ message: "purchasePrice must be a number" })
@@ -11,9 +29,7 @@ export const DealRequestSchema = z.object({
   monthlyRent: z.number({ message: "monthlyRent must be a number" })
     .min(0, "monthlyRent cannot be negative")
     .max(1_000_000, "monthlyRent seems unreasonably high"),
-  state: z.string({ message: "state must be a string" })
-    .transform((s) => s.trim().toUpperCase().slice(0, 2))
-    .refine((s) => STATE_REGEX.test(s), "state must be a 2-letter US abbreviation"),
+  state: StateCodeSchema,
 
   // Optional — with range guards
   loanAmount:  z.number().positive().max(50_000_000).optional(),
@@ -57,8 +73,7 @@ export const DealRequestSchema = z.object({
 });
 
 export const StateRequestSchema = z.object({
-  state:       z.string().transform((s) => s.trim().toUpperCase().slice(0, 2))
-               .refine((s) => STATE_REGEX.test(s), "state must be a 2-letter US abbreviation"),
+  state:       StateCodeSchema,
   entityType:  z.string().optional().default("LLC"),
   loanAmount:  z.number().positive().max(50_000_000).optional().default(400_000),
   unitCount:   z.number().int().min(1).max(4).optional().default(1),

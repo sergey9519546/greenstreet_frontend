@@ -26,7 +26,7 @@
 // ============================================================
 
 import type { ReturnsResult, HoldMatrixCell, PropertyInputs, LoanStructure } from './types';
-import { calculatePI, calculatePaymentFactor } from './engine';
+import { calculatePI } from './engine';
 import { computeXIRR } from './taxEngine';
 
 // Default operating expense ratios (Track 2 / Investor model)
@@ -40,6 +40,46 @@ const DEFAULT_TURNOVER_PCT = 2;      // 2% of GPR
 const HOLD_PERIODS = [3, 5, 7, 10];
 const EXIT_CAP_SCENARIOS = [-0.50, 0, 0.50]; // ±50 bps around base, plus base
 const RENT_GROWTH_SCENARIOS = [0, 1, 2, 3]; // %
+
+function ioPeriodMonths(ioPeriod: LoanStructure['ioPeriod']): number {
+  if (ioPeriod === '5_YR') return 60;
+  if (ioPeriod === '7_YR') return 84;
+  if (ioPeriod === '10_YR') return 120;
+  return 0;
+}
+
+function monthlyDebtService(
+  loanAmount: number,
+  annualRate: number,
+  termMonths: number,
+  paymentMonth: number,
+  interestOnlyMonths: number,
+): number {
+  if (paymentMonth > termMonths) return 0;
+  const monthlyRate = annualRate / 100 / 12;
+  if (paymentMonth <= interestOnlyMonths) return loanAmount * monthlyRate;
+  return calculatePI(loanAmount, annualRate, Math.max(1, termMonths - interestOnlyMonths));
+}
+
+function annualDebtServiceForYear(
+  loanAmount: number,
+  annualRate: number,
+  termMonths: number,
+  year: number,
+  interestOnlyMonths: number,
+): number {
+  let total = 0;
+  for (let month = (year - 1) * 12 + 1; month <= year * 12; month++) {
+    total += monthlyDebtService(loanAmount, annualRate, termMonths, month, interestOnlyMonths);
+  }
+  return total;
+}
+
+function requirePositiveExitCap(exitCapRatePct: number): void {
+  if (!Number.isFinite(exitCapRatePct) || exitCapRatePct <= 0) {
+    throw new RangeError('Exit cap rate must be a finite number greater than zero.');
+  }
+}
 
 /**
  * Compute full pre-tax returns stack including levered IRR + 48-cell hold matrix.
@@ -62,7 +102,12 @@ export function computeReturns(
 ): ReturnsResult {
   const purchasePrice = property.purchasePrice;
   const loanAmount = purchasePrice * (loan.ltv / 100);
-  const cashInvested = cashInvestedOverride ?? (purchasePrice - loanAmount);
+  const closingCosts =
+    loanAmount * (loan.points / 100) +
+    loan.lenderFees +
+    loan.brokerFees +
+    loan.rateLockCost;
+  const cashInvested = cashInvestedOverride ?? (purchasePrice - loanAmount + closingCosts);
 
   // Operating expenses
   const vacancyPct = strategy === 'STR' ? 25 : strategy === 'MTR' ? 12 : DEFAULT_VACANCY_LT_PCT;
@@ -80,18 +125,20 @@ export function computeReturns(
 
   const totalOpEx = mgmtAnnual + maintAnnual + turnoverAnnual + taxAnnual + insAnnual + hoaAnnual + floodAnnual;
   const noi = egiAnnual - totalOpEx;
+  const capExReserveAnnual = egiAnnual * (DEFAULT_CAPEX_RESERVE_PCT / 100);
 
   // Debt service
   const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
   const termMonths = termYears * 12;
-  const piMonthly = calculatePI(loanAmount, solvedRate, termMonths);
-  const piAnnual = piMonthly * 12;
+  const interestOnlyMonths = ioPeriodMonths(loan.ioPeriod);
+  const piMonthly = monthlyDebtService(loanAmount, solvedRate, termMonths, 1, interestOnlyMonths);
+  const piAnnual = annualDebtServiceForYear(loanAmount, solvedRate, termMonths, 1, interestOnlyMonths);
   const ads = piAnnual;
 
   // Returns
   const entryCapRate = noi / purchasePrice;
   const yieldOnCost = noi / (purchasePrice + loan.lenderFees + loan.brokerFees); // simplified total cost
-  const year1CashOnCash = (noi - ads) / cashInvested;
+  const year1CashOnCash = (noi - capExReserveAnnual - ads) / cashInvested;
   const debtYield = noi / loanAmount;
   const breakEvenOccupancy = (totalOpEx + ads) / (gprMonthly * 12);
 
@@ -103,12 +150,25 @@ export function computeReturns(
   const exitCapRatePct = 0.065; // 6.5% default base cap
   const exitValue = (noi * Math.pow(1 + rentGrowthDefault, holdYears)) / (exitCapRatePct);
   const exitSellingCosts = exitValue * 0.06; // 6% typical
-  const remainingLoanBalance = computeRemainingBalance(loanAmount, solvedRate, termMonths, holdYears * 12);
+  const remainingLoanBalance = computeRemainingBalance(
+    loanAmount,
+    solvedRate,
+    termMonths,
+    holdYears * 12,
+    interestOnlyMonths,
+  );
   const netExitProceeds = exitValue - exitSellingCosts - remainingLoanBalance - prepayPenaltyAtExit;
 
   // Equity multiple
-  const annualCashFlow = noi - ads;
-  const totalDistributions = annualCashFlow * holdYears + Math.max(netExitProceeds, 0);
+  let totalOperatingCashFlow = 0;
+  for (let yr = 1; yr <= holdYears; yr++) {
+    const growth = Math.pow(1 + rentGrowthDefault, yr - 1);
+    totalOperatingCashFlow +=
+      noi * growth -
+      capExReserveAnnual * growth -
+      annualDebtServiceForYear(loanAmount, solvedRate, termMonths, yr, interestOnlyMonths);
+  }
+  const totalDistributions = totalOperatingCashFlow + netExitProceeds;
   const equityMultiple = totalDistributions / cashInvested;
 
   // Levered IRR
@@ -116,7 +176,11 @@ export function computeReturns(
     { time: 0, amount: -cashInvested },
   ];
   for (let yr = 1; yr <= holdYears; yr++) {
-    const yearCashFlow = annualCashFlow * Math.pow(1 + rentGrowthDefault, yr - 1);
+    const growth = Math.pow(1 + rentGrowthDefault, yr - 1);
+    const yearCashFlow =
+      noi * growth -
+      capExReserveAnnual * growth -
+      annualDebtServiceForYear(loanAmount, solvedRate, termMonths, yr, interestOnlyMonths);
     cashFlows.push({ time: yr, amount: yearCashFlow });
   }
   // Replace last year with last-year-CF + exit proceeds
@@ -129,8 +193,11 @@ export function computeReturns(
     { time: 0, amount: -purchasePrice },
   ];
   for (let yr = 1; yr <= holdYears; yr++) {
-    const yearNOI = noi * Math.pow(1 + rentGrowthDefault, yr - 1);
-    unleveredCashFlows.push({ time: yr, amount: yearNOI });
+    const growth = Math.pow(1 + rentGrowthDefault, yr - 1);
+    unleveredCashFlows.push({
+      time: yr,
+      amount: noi * growth - capExReserveAnnual * growth,
+    });
   }
   const unleveredExit = exitValue - exitSellingCosts;
   unleveredCashFlows[unleveredCashFlows.length - 1].amount += unleveredExit;
@@ -138,7 +205,7 @@ export function computeReturns(
 
   // Monthly ADS breakdown (principal vs interest) — Year 1
   const monthlyInterestY1 = loanAmount * (solvedRate / 100 / 12);
-  const monthlyPrincipalY1 = piMonthly - monthlyInterestY1;
+  const monthlyPrincipalY1 = interestOnlyMonths > 0 ? 0 : piMonthly - monthlyInterestY1;
 
   // 48-cell hold matrix: 4 holds × 3 exit caps scenarios × 4 rent growths
   const holdMatrix = computeHoldMatrix(
@@ -150,6 +217,8 @@ export function computeReturns(
     rentGrowthDefault,
     exitCapRatePct,
     prepayPenaltyAtExit,
+    capExReserveAnnual,
+    interestOnlyMonths,
   );
 
   return {
@@ -207,7 +276,10 @@ export function computeHoldMatrix(
   rentGrowthBaseline: number,
   baseExitCapPct: number, // e.g., 0.065
   prepayPenaltyAtExit: number,
+  year1CapExReserve: number = 0,
+  interestOnlyMonths: number = 0,
 ): HoldMatrixCell[][] {
+  requirePositiveExitCap(baseExitCapPct * 100);
   const matrix: HoldMatrixCell[][] = [];
 
   for (const holdYears of HOLD_PERIODS) {
@@ -218,14 +290,27 @@ export function computeHoldMatrix(
         const exitNOI = year1NOI * Math.pow(1 + rentGrowth / 100, holdYears);
         const exitValue = exitNOI / exitCap;
         const sellingCosts = exitValue * 0.06;
-        const remainingBalance = computeRemainingBalance(loanAmount, rate, termMonths, holdYears * 12);
+        const remainingBalance = computeRemainingBalance(
+          loanAmount,
+          rate,
+          termMonths,
+          holdYears * 12,
+          interestOnlyMonths,
+        );
         const netExit = exitValue - sellingCosts - remainingBalance - prepayPenaltyAtExit;
 
         const cashFlows: { time: number; amount: number }[] = [{ time: 0, amount: -cashInvested }];
         for (let yr = 1; yr <= holdYears; yr++) {
           const yearNOI = year1NOI * Math.pow(1 + rentGrowth / 100, yr - 1);
-          const piAnnual = calculatePI(loanAmount, rate, termMonths) * 12;
-          cashFlows.push({ time: yr, amount: yearNOI - piAnnual });
+          const yearCapEx = year1CapExReserve * Math.pow(1 + rentGrowth / 100, yr - 1);
+          const piAnnual = annualDebtServiceForYear(
+            loanAmount,
+            rate,
+            termMonths,
+            yr,
+            interestOnlyMonths,
+          );
+          cashFlows.push({ time: yr, amount: yearNOI - yearCapEx - piAnnual });
         }
         cashFlows[cashFlows.length - 1].amount += netExit;
 
@@ -272,13 +357,23 @@ export function computeRemainingBalance(
   annualRate: number,
   totalTermMonths: number,
   monthsElapsed: number,
+  interestOnlyMonths: number = 0,
 ): number {
-  const r = annualRate / 100 / 12;
-  if (r === 0) return loanAmount * Math.max(0, 1 - monthsElapsed / totalTermMonths);
+  if (!Number.isFinite(monthsElapsed) || !Number.isFinite(totalTermMonths) || totalTermMonths <= 0) {
+    throw new RangeError('Loan term and elapsed months must be finite, with a positive term.');
+  }
+  const boundedIO = Math.max(0, Math.min(Math.floor(interestOnlyMonths), totalTermMonths));
+  if (monthsElapsed <= boundedIO) return loanAmount;
   if (monthsElapsed >= totalTermMonths) return 0;
+  const amortizationTermMonths = totalTermMonths - boundedIO;
+  const amortizingMonthsElapsed = monthsElapsed - boundedIO;
+  const r = annualRate / 100 / 12;
+  if (r === 0) {
+    return loanAmount * Math.max(0, 1 - amortizingMonthsElapsed / amortizationTermMonths);
+  }
 
-  const factor = Math.pow(1 + r, totalTermMonths);
-  const elapsed = Math.pow(1 + r, monthsElapsed);
+  const factor = Math.pow(1 + r, amortizationTermMonths);
+  const elapsed = Math.pow(1 + r, amortizingMonthsElapsed);
   const remaining = loanAmount * (factor - elapsed) / (factor - 1);
   return Math.max(0, remaining);
 }
@@ -300,6 +395,7 @@ export function computeExitProceeds(
   sellingCosts: number;
   netExitProceeds: number;
 } {
+  requirePositiveExitCap(exitCapRatePct);
   const exitNOI = year1NOI * Math.pow(1 + rentGrowthPct / 100, holdYears);
   const exitValue = exitNOI / (exitCapRatePct / 100);
   const sellingCosts = exitValue * (sellingCostsPct / 100);

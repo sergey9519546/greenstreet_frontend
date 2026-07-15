@@ -5,17 +5,8 @@
 //            Cost Segregation, After-Tax IRR
 // ============================================================
 //
-// SOURCES (verified June 2026):
-//   - IRC §167(c), §168(g)(2): 27.5-yr residential straight-line
-//   - OBBBA (signed Jan 2025): 100% bonus dep permanently for property
-//     acquired after Jan 19, 2025 [References 13,14,15]
-//   - IRC §1250: unrecaptured gain taxed max 25% (straight-line) [Refs 9,10,11,12]
-//   - IRC §1245: excess over straight-line = ordinary income (cost-seg 5/7-yr)
-//   - IRC §1411: NIIT 3.8% above $200K/$250K/$125K MAGI [Ref 11]
-//   - IRC §469: PAL $25K allowance; $100K-$150K MAGI phase-out; REP exception
-//     (750hr + 50% material participation) [Refs 20,21,22]
-//   - Cost seg: 20-40% reclassification to 5/7/15-yr; study $2,500-$15,000
-//     [Refs 16,17,18,19]
+// The rates and classifications below are configurable model assumptions, not
+// statements of current law. Every tax treatment requires independent review.
 // ============================================================
 
 import type {
@@ -36,12 +27,19 @@ import type {
 // ============================================================
 
 const OBBBA_EFFECTIVE_DATE = '2025-01-19'; // acquired AFTER this date = 100%
+export const TAX_MODEL_MAX_HOLD_YEARS = 50;
+const MODELED_SHORT_LIFE_RECOVERY_YEARS = 7;
+
+function boundedHoldYears(holdYears: number): number {
+  if (!Number.isFinite(holdYears) || holdYears < 1) return 0;
+  return Math.min(Math.floor(holdYears), TAX_MODEL_MAX_HOLD_YEARS);
+}
 
 /**
  * Determine OBBBA bonus depreciation category.
  *
- * Per OBBBA (signed Jan 2025):
- * - Acquired after Jan 19, 2025 → 100% (permanent)
+ * Configured bonus-depreciation schedule used by this model:
+ * - Acquired after Jan 19, 2025 → 100%
  * - Acquired Jan 1-19, 2025, placed in service 2025 → 40% (TCJA phase-down)
  * - Acquired Jan 1-19, 2025, placed in service 2026 → 20%
  * - Acquired before Jan 1, 2025, placed in service 2024 → 60%
@@ -95,7 +93,7 @@ export function determineBonusDepCategory(
     qualifyingComponentValue: 0, // filled in by caller with cost-seg reclassified amount
     firstYearBonusDepreciation: 0,
     provenance: 'VERIFIED_PRIMARY',
-    source: 'OBBBA (signed Jan 2025); IRC §168(k); Refs 13-15',
+    source: 'Configured bonus-depreciation model; verify classification and rate before use',
   };
 }
 
@@ -122,9 +120,10 @@ export function computeDepreciationSchedule(
   holdYears: number,
   taxProfile: TaxProfile,
 ): DepreciationSchedule[] {
+  const modeledHoldYears = boundedHoldYears(holdYears);
+  if (modeledHoldYears === 0 || !Number.isFinite(purchasePrice) || purchasePrice <= 0) return [];
   const landValue = purchasePrice * (landAllocationPct / 100);
   const buildingBasis = purchasePrice - landValue;
-  const annualBuildingDep = buildingBasis / RESIDENTIAL_DEPREC_YEARS;
 
   // Cost seg short-life components
   const costSegReclassifiedPct = taxProfile.costSegStudyCompleted
@@ -140,13 +139,20 @@ export function computeDepreciationSchedule(
     taxProfile.placedInServiceDate,
   );
   const year1BonusDep = shortLifeComponents * bonusDep.bonusPct;
+  const unbonusedShortLifeBasis = shortLifeComponents - year1BonusDep;
+  const modeledAnnualShortLifeDep = unbonusedShortLifeBasis / MODELED_SHORT_LIFE_RECOVERY_YEARS;
 
   const schedule: DepreciationSchedule[] = [];
   let cumulative = 0;
-  for (let year = 1; year <= holdYears; year++) {
-    const buildingDep = remainingAnnualDep; // straight-line on non-cost-seg portion
-    const costSegDep = year === 1 ? year1BonusDep : 0;
+  let remainingBuildingDepreciableBasis = remainingBuildingBasis;
+  let remainingShortLifeBasis = unbonusedShortLifeBasis;
+  for (let year = 1; year <= modeledHoldYears; year++) {
+    const buildingDep = Math.min(remainingAnnualDep, remainingBuildingDepreciableBasis);
+    const regularShortLifeDep = Math.min(modeledAnnualShortLifeDep, remainingShortLifeBasis);
+    const costSegDep = regularShortLifeDep + (year === 1 ? year1BonusDep : 0);
     const totalAnnual = buildingDep + costSegDep;
+    remainingBuildingDepreciableBasis = Math.max(0, remainingBuildingDepreciableBasis - buildingDep);
+    remainingShortLifeBasis = Math.max(0, remainingShortLifeBasis - regularShortLifeDep);
     cumulative += totalAnnual;
     schedule.push({
       year,
@@ -233,7 +239,7 @@ export function computeRecaptureOnSale(
   const exitSellingCosts = exitValue * (exitSellingCostsPct / 100);
   const netSalePrice = exitValue - exitSellingCosts;
   const adjustedBasis = purchasePrice - totalDepreciationTaken;
-  const totalGainOnSale = netSalePrice - adjustedBasis;
+  const totalGainOnSale = Math.max(netSalePrice - adjustedBasis, 0);
 
   // v11 FIX (AUDIT-5 #1): §1250/§1245 allocation bug fix
   // Spec line 284: "Accelerated/excess depreciation above straight-line (rare for
@@ -262,7 +268,10 @@ export function computeRecaptureOnSale(
   const straightLineDepreciation = Math.max(totalDepreciationTaken - costSegBonusDepreciation, 0);
 
   // §1250: ONLY the straight-line portion (not cost-seg bonus)
-  const unrecapturedSection1250Gain = Math.min(straightLineDepreciation, totalGainOnSale);
+  const unrecapturedSection1250Gain = Math.max(
+    0,
+    Math.min(straightLineDepreciation, totalGainOnSale),
+  );
 
   // §1245: cost-seg bonus depreciation — ordinary income rate
   // Recapture = lesser of (cost-seg bonus claimed) or (remaining gain after §1250)
@@ -286,12 +295,18 @@ export function computeRecaptureOnSale(
   // v11 FIX (AUDIT-5 #3): NIIT (3.8%) stacks on ALL net investment income per IRC §1411,
   // which includes §1245 recapture (cost-seg bonus dep) — not just §1250 + LTCG.
   // Previously excluded §1245, under-stating NIIT by 3.8% × §1245 amount.
+  const modeledNetInvestmentIncome =
+    unrecapturedSection1250Gain + section1245Recapture + appreciationGain;
+  const magiExcess = Math.max(
+    taxProfile.magi - getNIITThreshold(taxProfile.filingStatus),
+    0,
+  );
   const niitTax = niitApplies
-    ? (unrecapturedSection1250Gain + section1245Recapture + appreciationGain) * 0.038
+    ? Math.min(modeledNetInvestmentIncome, magiExcess) * 0.038
     : 0;
 
   // State tax (simplified flat rate on total gain)
-  const stateTax = totalGainOnSale * (taxProfile.stateTaxRatePct / 100);
+  const stateTax = Math.max(totalGainOnSale, 0) * (taxProfile.stateTaxRatePct / 100);
 
   const totalTaxOnSale = federalRecaptureTax + section1245Tax + federalLtcgTax + niitTax + stateTax;
   const afterTaxExitProceeds = netSalePrice - totalTaxOnSale;
@@ -415,10 +430,10 @@ export function computePassiveLossAllowance(
  * For each year:
  *   preTaxNCF = NOI - ADS  (Net Cash Flow before tax)
  *   depreciationDeduction = building + cost-seg bonus
- *   taxableIncome = NOI - depreciation  (if positive; else loss → PAL rules)
+ *   taxableIncome = NOI - mortgage interest - depreciation
  *   federalTax = taxableIncome × marginal rate (if positive)
  *   stateTax = taxableIncome × state rate
- *   afterTaxNCF = preTaxNCF - federalTax - stateTax + depreciation (add back non-cash)
+ *   afterTaxNCF = preTaxNCF - federalTax - stateTax
  *
  * Exit year (year N):
  *   + exitAfterTaxProceeds (after all recapture + LTCG + NIIT + state)
@@ -444,9 +459,23 @@ export function computeAfterTaxIRR(
   // when omitted, falls back to the prior approximation.
   loanRatePct?: number,
   loanTermMonths?: number,
+  closingCosts: number = 0,
+  rentGrowthPct: number = 2,
+  annualCapExReserve: number = 0,
+  interestOnlyMonths: number = 0,
 ): AfterTaxIRRResult {
-  const holdYears = Math.max(1, Math.floor(taxProfile.expectedHoldYears));
-  const cashInvested = purchasePrice - loanAmount; // simplified; real cash-to-close from engine
+  const holdYears = boundedHoldYears(taxProfile.expectedHoldYears);
+  if (holdYears === 0) throw new RangeError('Hold years must be within the tax model range.');
+  if (!Number.isFinite(taxProfile.exitCapRatePct) || taxProfile.exitCapRatePct <= 0) {
+    throw new RangeError('Exit cap rate must be a finite number greater than zero.');
+  }
+  if (![purchasePrice, loanAmount, annualNOI, annualADS, closingCosts, rentGrowthPct, annualCapExReserve]
+    .every(Number.isFinite)) {
+    throw new RangeError('Tax model inputs must be finite numbers.');
+  }
+  const cashInvested = purchasePrice - loanAmount + Math.max(0, closingCosts);
+  if (cashInvested <= 0) throw new RangeError('Cash invested must be greater than zero.');
+  void qualifyingRent;
   const depreciationSchedule = computeDepreciationSchedule(
     purchasePrice,
     taxProfile.landAllocationPct,
@@ -458,13 +487,21 @@ export function computeAfterTaxIRR(
   let cumulativeAfterTaxNCF = -cashInvested;
 
   // Estimate rent growth (default 2% — used for NOI growth)
-  const rentGrowthPct = 0.02;
+  const rentGrowthRate = rentGrowthPct / 100;
 
   for (let yr = 1; yr <= holdYears; yr++) {
-    const yearNOI = annualNOI * Math.pow(1 + rentGrowthPct, yr - 1);
-    const preTaxNCF = yearNOI - annualADS;
+    const growth = Math.pow(1 + rentGrowthRate, yr - 1);
+    const yearNOI = annualNOI * growth;
+    const yearCapExReserve = Math.max(0, annualCapExReserve) * growth;
+    const yearDebtService = loanRatePct !== undefined && loanTermMonths !== undefined
+      ? computeAnnualDebtService(loanAmount, loanRatePct, loanTermMonths, yr, interestOnlyMonths)
+      : annualADS;
+    const mortgageInterest = loanRatePct !== undefined && loanTermMonths !== undefined
+      ? computeAnnualMortgageInterest(loanAmount, loanRatePct, loanTermMonths, yr, interestOnlyMonths)
+      : 0;
+    const preTaxNCF = yearNOI - yearDebtService - yearCapExReserve;
     const depreciation = depreciationSchedule[yr - 1].totalAnnualDepreciation;
-    const taxableIncome = yearNOI - depreciation;
+    const taxableIncome = yearNOI - mortgageInterest - depreciation;
 
     // Federal tax: if taxable income positive, tax at marginal; if negative → PAL
     let federalTax = 0;
@@ -498,7 +535,9 @@ export function computeAfterTaxIRR(
   }
 
   // Exit year: compute recapture
-  const exitValue = (annualNOI / (taxProfile.exitCapRatePct / 100)) * Math.pow(1 + rentGrowthPct, holdYears);
+  const exitValue =
+    (annualNOI / (taxProfile.exitCapRatePct / 100)) *
+    Math.pow(1 + rentGrowthRate, holdYears);
   const totalDepreciationTaken = depreciationSchedule.reduce((sum, d) => sum + d.totalAnnualDepreciation, 0);
   const recapture = computeRecaptureOnSale(
     purchasePrice,
@@ -517,6 +556,7 @@ export function computeAfterTaxIRR(
     loanRatePct,
     loanTermMonths,
     holdYears * 12,
+    interestOnlyMonths,
   );
 
   // Final exit cash flow
@@ -548,11 +588,12 @@ export function computeAfterTaxIRR(
   const afterTaxIRR = computeXIRR(cashFlows);
 
   const niitApplies = isNIITApplicable(taxProfile.magi, taxProfile.filingStatus);
-  const effectiveRecaptureRate = recapture.unrecapturedSection1250Gain > 0
-    ? (recapture.federalRecaptureTax + recapture.niitTax) / recapture.unrecapturedSection1250Gain
+  const totalRecapture = recapture.unrecapturedSection1250Gain + recapture.section1245Recapture;
+  const effectiveRecaptureRate = totalRecapture > 0
+    ? recapture.federalRecaptureTax / totalRecapture
     : 0;
   const effectiveLtcgRate = recapture.appreciationGain > 0
-    ? (recapture.federalLtcgTax + (niitApplies ? recapture.appreciationGain * 0.038 : 0)) / recapture.appreciationGain
+    ? recapture.federalLtcgTax / recapture.appreciationGain
     : 0;
 
   return {
@@ -584,16 +625,23 @@ function computeRemainingBalance(
   loanRatePct?: number,
   loanTermMonths?: number,
   monthsElapsedOverride?: number,
+  interestOnlyMonths: number = 0,
 ): number {
   const monthsElapsed = monthsElapsedOverride ?? (taxProfile.expectedHoldYears * 12);
+  const boundedIO = Math.max(0, Math.min(Math.floor(interestOnlyMonths), loanTermMonths ?? 0));
 
   // Proper amortization path (preferred)
-  if (loanRatePct !== undefined && loanTermMonths !== undefined && loanRatePct > 0) {
-    const r = loanRatePct / 100 / 12;
-    if (r === 0) return loanAmount * Math.max(0, 1 - monthsElapsed / loanTermMonths);
+  if (loanRatePct !== undefined && loanTermMonths !== undefined && loanTermMonths > 0) {
+    if (monthsElapsed <= boundedIO) return loanAmount;
     if (monthsElapsed >= loanTermMonths) return 0;
-    const factor = Math.pow(1 + r, loanTermMonths);
-    const elapsed = Math.pow(1 + r, monthsElapsed);
+    const amortizationTermMonths = loanTermMonths - boundedIO;
+    const amortizingMonthsElapsed = monthsElapsed - boundedIO;
+    const r = loanRatePct / 100 / 12;
+    if (r === 0) {
+      return loanAmount * Math.max(0, 1 - amortizingMonthsElapsed / amortizationTermMonths);
+    }
+    const factor = Math.pow(1 + r, amortizationTermMonths);
+    const elapsed = Math.pow(1 + r, amortizingMonthsElapsed);
     const remaining = loanAmount * (factor - elapsed) / (factor - 1);
     return Math.max(0, remaining);
   }
@@ -604,12 +652,60 @@ function computeRemainingBalance(
   return loanAmount * approxRemainingPct;
 }
 
+function amortizingPayment(
+  loanAmount: number,
+  annualRatePct: number,
+  termMonths: number,
+  interestOnlyMonths: number,
+): number {
+  const amortizationMonths = Math.max(1, termMonths - interestOnlyMonths);
+  const monthlyRate = annualRatePct / 100 / 12;
+  if (monthlyRate === 0) return loanAmount / amortizationMonths;
+  const factor = Math.pow(1 + monthlyRate, amortizationMonths);
+  return loanAmount * monthlyRate * factor / (factor - 1);
+}
+
+function computeAnnualDebtService(
+  loanAmount: number,
+  annualRatePct: number,
+  termMonths: number,
+  year: number,
+  interestOnlyMonths: number,
+): number {
+  const monthlyRate = annualRatePct / 100 / 12;
+  const payment = amortizingPayment(loanAmount, annualRatePct, termMonths, interestOnlyMonths);
+  let total = 0;
+  for (let month = (year - 1) * 12 + 1; month <= year * 12 && month <= termMonths; month++) {
+    total += month <= interestOnlyMonths ? loanAmount * monthlyRate : payment;
+  }
+  return total;
+}
+
+function computeAnnualMortgageInterest(
+  loanAmount: number,
+  annualRatePct: number,
+  termMonths: number,
+  year: number,
+  interestOnlyMonths: number,
+): number {
+  const monthlyRate = annualRatePct / 100 / 12;
+  const payment = amortizingPayment(loanAmount, annualRatePct, termMonths, interestOnlyMonths);
+  let balance = loanAmount;
+  let yearInterest = 0;
+  for (let month = 1; month <= year * 12 && month <= termMonths; month++) {
+    const interest = balance * monthlyRate;
+    if (month > (year - 1) * 12) yearInterest += interest;
+    if (month > interestOnlyMonths) balance = Math.max(0, balance - (payment - interest));
+  }
+  return yearInterest;
+}
+
 // ============================================================
 // XIRR (Bisection) — Newton-Raphson with bisection fallback
 // ============================================================
 
 export function computeXIRR(cashFlows: { time: number; amount: number }[]): number {
-  if (cashFlows.length < 2) return 0;
+  if (cashFlows.length < 2 || cashFlows.some(cf => !Number.isFinite(cf.time) || !Number.isFinite(cf.amount))) return 0;
 
   // Sort by time
   const sorted = [...cashFlows].sort((a, b) => a.time - b.time);

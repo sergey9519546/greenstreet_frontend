@@ -17,6 +17,13 @@ describe("computeTrueCost", () => {
   it("no-prepay loan has zero prepay penalty at any hold", () => {
     expect(computeTrueCost(LOAN, loanB, 3).prepayPenalty).toBe(0);
   });
+
+  it("uses the first penalty year and exact payment months for a sub-year hold", () => {
+    const sixMonths = computeTrueCost(LOAN, loanA, 0.5);
+    expect(sixMonths.holdYears).toBe(0.5);
+    expect(sixMonths.interestPaid).toBeGreaterThan(0);
+    expect(sixMonths.prepayPenalty).toBeGreaterThan(0);
+  });
 });
 
 describe("compareTrueCost — the rate-myopia trap", () => {
@@ -31,5 +38,9 @@ describe("compareTrueCost — the rate-myopia trap", () => {
   it("ranks cheapest-total-cost first (choice-architecture default sort)", () => {
     const c = compareTrueCost(LOAN, [loanA, loanB], 3);
     expect(c.ranked[0].totalCost).toBeLessThanOrEqual(c.ranked[1].totalCost);
+  });
+
+  it("rejects an empty quote list instead of dereferencing an absent winner", () => {
+    expect(() => compareTrueCost(LOAN, [], 3)).toThrow(/at least one valid loan quote/i);
   });
 });

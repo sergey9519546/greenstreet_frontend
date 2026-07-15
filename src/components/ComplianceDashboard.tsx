@@ -124,7 +124,7 @@ const TAB_LABELS: Partial<Record<DashboardTab, string>> = {
 function Card({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
+      style={{ minWidth: 0, maxWidth: "100%", boxSizing: "border-box", background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
       {children}
     </div>
   );
@@ -134,7 +134,7 @@ function Card({ children, className = "", style = {} }: { children: React.ReactN
 function WhiteCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
+      style={{ minWidth: 0, maxWidth: "100%", boxSizing: "border-box", background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
       {children}
     </div>
   );
@@ -269,7 +269,7 @@ function useMinWidth(minPx: number): boolean {
 function Disclaimer() {
   return (
     <p className="text-[10px] leading-relaxed" style={{ color: T.faint, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 10 }}>
-      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Submit a scenario review for exact underwriting.
+      Illustrative preliminary estimate only. Not legal or compliance clearance, credit approval, or a commitment to lend. Rates, terms, and program availability may change and require independent underwriting review.
     </p>
   );
 }
@@ -472,8 +472,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             <div className="text-center mb-8">
               <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3 font-extrabold text-2xl"
                 style={{ background: "rgba(216,217,88,0.14)", color: swatch.lemon, borderRadius: radius.md, border: "1px solid rgba(216,217,88,0.32)" }}>G</div>
-              <h1 className="font-bold tracking-tight text-2xl" style={{ color: T.ink, letterSpacing: "-0.03em" }}>
-                INVEST<span style={{ opacity: 0.45 }}>GO</span>
+              <h1 aria-label="InvestGO" className="font-bold tracking-tight text-2xl" style={{ color: T.ink, letterSpacing: "-0.03em" }}>
+                <span aria-hidden="true">INVEST<span style={{ opacity: 0.45 }}>GO</span></span>
               </h1>
               <p className="text-xs mt-1.5" style={{ color: T.muted }}>
                 {requestedTool
@@ -760,8 +760,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── DASHBOARD ── */}
                   {activeTab === "dashboard" && (
                     <TabPane id="dashboard">
+                      <div role="note" className="text-xs leading-relaxed" style={{ color: T.muted, background: T.warnBg, border: `1px solid ${T.warnBorder}`, borderRadius: radius.sm, padding: "10px 12px" }}>
+                        <strong style={{ color: T.warnText }}>Illustrative demo workspace.</strong>{" "}
+                        Pipeline, alert, archive, export, and ruleset statuses below are sample data, not live monitoring or legal/compliance clearance.
+                      </div>
                       {/* KPI row */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 150px), 1fr))" }}>
                         {([
                           { label: "Active deals",    value: "6",     delta: "+2 this week",       deltaColor: swatch.emerald },
                           { label: "Avg DSCR",        value: "1.31x", delta: "Healthy book",        deltaColor: swatch.emerald },
@@ -780,7 +784,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       <div className="grid gap-4" style={{ gridTemplateColumns: isWide ? "minmax(0,1.5fr) minmax(0,1fr)" : "minmax(0,1fr)" }}>
                         {/* Pipeline table */}
                         <WhiteCard style={{ padding: "24px" }}>
-                          <div className="text-base font-bold mb-4" style={{ color: T.ink, letterSpacing: "-0.02em" }}>Active pipeline</div>
+                          <div className="text-base font-bold mb-4" style={{ color: T.ink, letterSpacing: "-0.02em" }}>Illustrative pipeline</div>
                           <div>
                             {demoPipeline.map((d) => {
                               const riskLevel = riskFromDscr(d.dscr);
@@ -822,14 +826,15 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                         {/* Right column */}
                         <div className="flex flex-col gap-4">
-                          {/* Compliance status */}
+                          {/* Illustrative compliance checklist */}
                           <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: "1px solid rgba(238,239,211,0.16)", boxShadow: "inset 0 1px 0 rgba(238,239,211,0.06)", borderRadius: radius.md }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: "rgba(238,239,211,0.55)" }}>Compliance</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-1" style={{ color: "rgba(238,239,211,0.55)" }}>Illustrative compliance checklist</div>
+                            <p className="text-[10px] mb-3" style={{ color: T.faint }}>Sample indicators only; no systems are being monitored.</p>
                             {([
-                              { label: "17a-4 WORM archive", status: "Active" },
-                              { label: "IC memos generated", status: "6 / 6" },
-                              { label: "State rules current", status: "Synced" },
-                              { label: "Exam export",         status: "Ready" },
+                              { label: "17a-4 WORM archive", status: "Example" },
+                              { label: "IC memos generated", status: "Sample" },
+                              { label: "State rules current", status: "Not live" },
+                              { label: "Exam export",         status: "Demo" },
                             ] as const).map(({ label, status }) => (
                               <div key={label} className="flex items-center justify-between py-2.5"
                                 style={{ borderBottom: `1px solid ${swatch.pistachio}15` }}>
@@ -844,7 +849,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                           {/* State alerts */}
                           <Card style={{ padding: "20px" }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.rainforest }}>State alerts</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.rainforest }}>Illustrative state flags</div>
                             {([
                               { mark: "✕", color: T.dangerText, text: "45 Harbor (NJ): prepay penalty high-risk for LLC — restructure or expect +0.25% rate." },
                               { mark: "~",  color: "#e6e76b",    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
@@ -880,7 +885,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         <WhiteCard className="lg:col-span-2" style={{ padding: "24px" }}>
                           <h2 className="font-bold mb-4 text-base" style={{ color: T.ink }}>Deal Parameters</h2>
 
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <FieldInput label="Purchase Price" type="number" value={dealForm.purchasePrice}
                               onChange={e => setDealForm(p => ({ ...p, purchasePrice: e.target.value }))}
                               helper="Total acquisition cost" />
@@ -899,7 +904,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               helper="2-letter code" />
                           </div>
 
-                          <div className="grid grid-cols-3 gap-3 mt-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                             <FieldSelect label="Property" value={dealForm.propertyType}
                               onChange={e => setDealForm(p => ({ ...p, propertyType: e.target.value }))}>
                               <option value="SFR">SFR</option>
@@ -973,7 +978,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 {[
                                   { t: "DSCR & pricing", d: "Whether the rent covers the full payment (PITIA), and the rate the deal can carry." },
                                   { t: "Sensitivity grid", d: "How the DSCR holds as rate and rent move against you — the stress map." },
-                                  { t: "Structure optimizer", d: "The LTV / reserves mix that lifts a marginal file into approval." },
+                                  { t: "Structure optimizer", d: "How LTV and reserve changes may improve a marginal file's preliminary fit." },
                                 ].map((r, i) => (
                                   <div key={r.t} className="flex items-start gap-3.5" style={{ padding: "15px 16px", borderRadius: radius.md, border: `1px solid ${T.cardBorder}`, background: T.inputBg }}>
                                     <span style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(216,217,88,0.14)", color: swatch.lemon, display: "grid", placeItems: "center", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{i + 1}</span>
@@ -1015,7 +1020,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 </div>
 
                                 {/* Dual-track */}
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   {[deal.dualTrackDSCR.track1, deal.dualTrackDSCR.track2].map(track => (
                                     <WhiteCard key={track.label} style={{ padding: "16px" }}>
                                       <div className="flex items-center justify-between mb-2">
@@ -1088,7 +1093,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                     <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
                                       <div>
                                         <h4 className="font-bold text-sm" style={{ color: T.ink }}>Top Matching Programs</h4>
-                                        <p className="text-[11px] mt-0.5" style={{ color: T.faint }}>Programs ranked by fit score for this deal. Ready to submit to underwriting.</p>
+                                        <p className="text-[11px] mt-0.5" style={{ color: T.faint }}>Programs ranked by preliminary fit score. Confirm current eligibility and terms through independent underwriting review.</p>
                                       </div>
                                       <GhostBtn onClick={() => switchTab("optimize")}>
                                         See all structures →
@@ -1660,7 +1665,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── SETTINGS ── */}
                   {activeTab === "settings" && (
                     <TabPane id="settings">
-                      <WhiteCard className="max-w-xl" style={{ padding: "32px" }}>
+                      <WhiteCard className="max-w-xl" style={{ padding: "clamp(20px, 6vw, 32px)" }}>
                         <h2 className="font-bold text-lg mb-1" style={{ color: T.ink }}>Your Profile</h2>
                         <p className="text-xs mb-6" style={{ color: T.muted }}>
                           Your name and license info appear on IC memos and audit exports.

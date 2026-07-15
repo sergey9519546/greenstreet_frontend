@@ -1,5 +1,5 @@
 /**
- * RateQuizPage — Greenstreet Finance rate-intelligence quiz.
+ * RateQuizPage — Greenstreet Finance preliminary scenario quiz.
  *
  * Design contract:
  *   • Solid flat cards, radius.md/lg, 1px FADED border, NO shadow/glow/glass
@@ -13,7 +13,7 @@
  *   • Mono+tabular numerics
  *   • Compliance: "preliminary estimate, not a commitment to lend"
  */
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono } from "../design/dc";
 import { DscrGauge, RiskFlame } from "../design/artifacts";
@@ -49,7 +49,7 @@ const QUESTIONS: QuizQuestion[] = [
     group: "Property",
     q: "What type of property are you financing?",
     education:
-      "DSCR loans work for most rental property types. Short-term rentals (Airbnb-style) and larger multifamily buildings have specialty programs with slightly different requirements.",
+      "Property type changes which assumptions and current program documents need review. Short-term rentals and five-plus-unit properties may use different income and eligibility methods.",
     opts: [
       { label: "Single-family rental", hint: "1 unit — most common", v: "sfr" },
       { label: "2–4 unit rental", hint: "small multifamily", v: "small" },
@@ -63,12 +63,12 @@ const QUESTIONS: QuizQuestion[] = [
     group: "Credit",
     q: "What's your approximate credit score?",
     education:
-      "We don't pull your credit here — a range is enough. Your score affects your rate tier and the minimum down payment required. Higher score = lower rate.",
+      "We do not pull credit here. The selected range only groups this scenario; verified credit and the full file may affect available structures and pricing.",
     opts: [
-      { label: "740 or above", hint: "best rate tier", v: "a" },
-      { label: "700–739", hint: "strong — near-best pricing", v: "b" },
-      { label: "660–699", hint: "standard programs available", v: "c" },
-      { label: "620–659", hint: "flexible — more down needed", v: "d" },
+      { label: "740 or above", hint: "stronger credit scenario", v: "a" },
+      { label: "700–739", hint: "stronger credit band", v: "b" },
+      { label: "660–699", hint: "current review needed", v: "c" },
+      { label: "620–659", hint: "may narrow scenarios", v: "d" },
     ],
   },
   {
@@ -77,12 +77,12 @@ const QUESTIONS: QuizQuestion[] = [
     group: "Down payment",
     q: "How much are you putting down?",
     education:
-      "LTV (loan-to-value — lower means more equity and better terms) = 100% minus your down payment. A 25% down payment = 75% LTV. Most DSCR programs require at least 20% down (80% LTV). Putting more down lowers your rate and opens more programs.",
+      "LTV is the loan amount divided by property value; for a purchase, the selected down-payment band approximates it. Program limits and pricing effects vary, so this quiz does not set a minimum.",
     opts: [
-      { label: "35% or more", hint: "≤65% LTV — best rate tier", v: "a" },
-      { label: "25–34%", hint: "66–75% LTV — strong", v: "b" },
-      { label: "20–24%", hint: "76–80% LTV — standard floor", v: "c" },
-      { label: "Less than 20%", hint: ">80% LTV — limited programs", v: "d" },
+      { label: "35% or more", hint: "≤65% modeled LTV", v: "a" },
+      { label: "25–34%", hint: "66–75% modeled LTV", v: "b" },
+      { label: "20–24%", hint: "76–80% modeled LTV", v: "c" },
+      { label: "Less than 20%", hint: ">80% modeled LTV", v: "d" },
     ],
   },
   {
@@ -91,21 +91,21 @@ const QUESTIONS: QuizQuestion[] = [
     group: "Cash flow",
     q: "How does the monthly rent compare to the full payment?",
     education:
-      "DSCR (Debt Service Coverage Ratio) = monthly rent ÷ PITIA (the full monthly payment — principal, interest, taxes, insurance, and HOA). 1.00x means rent exactly covers the payment. Most programs require at least 1.00x; some accept below 1.0x with compensating factors like reserves or low LTV.",
+      "This quiz uses DSCR as monthly rent divided by PITIA: principal, interest, taxes, insurance, and HOA. A 1.00x answer means reported rent equals the reported payment; current programs may calculate either side differently.",
     opts: [
       {
         label: "Comfortably — 1.25x or higher",
-        hint: "strong DSCR — best programs",
+        hint: "stronger modeled cushion",
         v: "a",
       },
       {
-        label: "It qualifies — roughly 1.0–1.25x",
-        hint: "standard DSCR",
+        label: "Rent roughly covers PITIA — about 1.0–1.25x",
+        hint: "rent covers modeled payment",
         v: "b",
       },
       {
         label: "It's tight — below 1.0x",
-        hint: "sub-1.0 programs available",
+        hint: "requires current review",
         v: "c",
       },
       {
@@ -121,7 +121,7 @@ const QUESTIONS: QuizQuestion[] = [
     group: "Borrower",
     q: "Who is the borrower?",
     education:
-      "This affects which program tiers and structures are available. First-time investors qualify — DSCR loans don't require prior rental experience.",
+      "Borrower profile can change documentation and program review. First-time investors may be considered, but prior-experience rules are program-specific.",
     opts: [
       {
         label: "US citizen or permanent resident",
@@ -147,8 +147,23 @@ const QUESTIONS: QuizQuestion[] = [
   },
 ];
 
+const RATE_QUIZ_STATE_KEY = "greenstreet:rate-quiz:v2";
+type SavedRateQuizState = { step: number; answers: string[] };
+
+function loadRateQuizState(): SavedRateQuizState {
+  if (typeof window === "undefined") return { step: 0, answers: [] };
+  try {
+    const saved = JSON.parse(window.sessionStorage.getItem(RATE_QUIZ_STATE_KEY) || "{}") as Partial<SavedRateQuizState>;
+    const answers = Array.isArray(saved.answers) ? saved.answers.slice(0, QUESTIONS.length).filter((answer) => typeof answer === "string") : [];
+    const step = typeof saved.step === "number" && Number.isInteger(saved.step) ? Math.min(Math.max(saved.step, 0), QUESTIONS.length) : 0;
+    return { step, answers };
+  } catch {
+    return { step: 0, answers: [] };
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Scoring — preserved verbatim from original logic
+// Scoring — preliminary category signals only; no pricing is calculated
 // ─────────────────────────────────────────────────────────────────────────────
 interface ResultData {
   program: string;
@@ -160,7 +175,7 @@ interface ResultData {
   verdictLines: { driven: string; why: string }[];
 }
 
-function deriveResult(answers: string[]): ResultData {
+function deriveLegacyResult(answers: string[]): ResultData {
   let program = "Greenstreet DSCR 1-4 — Standard";
   let rate = "6.75% – 7.25%";
   let note =
@@ -254,6 +269,46 @@ function deriveResult(answers: string[]): ResultData {
   return { program, rate, note, resultStats, tier, dscrValue: dscrEstimate, verdictLines };
 }
 
+export function deriveResult(answers: string[]): ResultData {
+  const legacy = deriveLegacyResult(answers);
+  const [type, credit, down, cov, who] = answers;
+  let program = "General DSCR scenario review";
+
+  if (who === "g") program = "International borrower scenario";
+  else if (cov === "c") program = "Below-1.0 coverage scenario";
+  else if (type === "multi") program = "5+ unit or mixed-use scenario";
+  else if (type === "str") program = "Short-term rental scenario";
+  else if (credit === "a" && (down === "a" || down === "b")) program = "Stronger credit and equity scenario";
+
+  const creditBand =
+    credit === "a" ? "740 or above" : credit === "b" ? "700-739" : credit === "c" ? "660-699" : credit === "d" ? "620-659" : "Not answered";
+  const ltvBand =
+    down === "a" ? "65% or lower" : down === "b" ? "66-75%" : down === "c" ? "76-80%" : down === "d" ? "Above 80%" : "Not answered";
+  const coverageBand =
+    cov === "a" ? "1.25x or higher" : cov === "b" ? "About 1.00-1.25x" : cov === "c" ? "Below 1.00x" : "Not answered";
+
+  const verdictLines: { driven: string; why: string }[] = [];
+  if (who === "g") verdictLines.push({ driven: "Borrower profile", why: "International and ITIN scenarios can require different identity, credit, asset, and entity documentation." });
+  if (cov === "c") verdictLines.push({ driven: "Modeled coverage", why: "Reported rent does not fully cover the reported payment band, so current program rules need review." });
+  if (type === "multi") verdictLines.push({ driven: "Property type", why: "Five-plus-unit and mixed-use properties may follow different program definitions." });
+  if (type === "str") verdictLines.push({ driven: "Income type", why: "Short-term-rental income methods vary and must be supported under the program being reviewed." });
+  if (verdictLines.length === 0) verdictLines.push({ driven: "Reported inputs", why: "This category reflects only quiz answers; verified documents and current program rules may change it." });
+
+  return {
+    program,
+    rate: "Not calculated by this quiz",
+    note: "Preliminary scenario category only. Pricing requires a dated review of verified credit, property, loan, points, prepayment structure, and market assumptions.",
+    resultStats: [
+      { label: "Self-reported credit", val: creditBand },
+      { label: "Approximate LTV", val: ltvBand },
+      { label: "Reported coverage", val: coverageBand },
+    ],
+    tier: legacy.tier,
+    dscrValue: legacy.dscrValue,
+    verdictLines,
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Micro-components
 // ─────────────────────────────────────────────────────────────────────────────
@@ -294,17 +349,10 @@ function OptionRow({
   onClick: () => void;
 }) {
   return (
-    <div
+    <button
+      type="button"
       className="rq-option rq-opt"
-      role="button"
-      tabIndex={0}
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick();
-        }
-      }}
       aria-pressed={selected}
       style={{
         display: "flex",
@@ -322,6 +370,9 @@ function OptionRow({
         transition: "background .13s, border-color .13s, transform .1s",
         userSelect: "none",
         boxShadow: "none",
+        width: "100%",
+        textAlign: "left",
+        fontFamily: font.family,
       }}
       onMouseEnter={(e) => {
         if (!selected)
@@ -334,7 +385,7 @@ function OptionRow({
             "rgba(238,239,211,0.06)";
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
         {/* Selection dot */}
         <div
           style={{
@@ -362,6 +413,7 @@ function OptionRow({
         </span>
       </div>
       <span
+        className="rq-opt-hint"
         style={{
           fontSize: 12,
           fontWeight: 500,
@@ -373,7 +425,7 @@ function OptionRow({
       >
         {hint}
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -439,16 +491,16 @@ function UnderwritePreview({
     derived.tier === "BEST" ? "Low" : derived.tier === "GOOD" ? "Moderate" : "High";
   // Each rail reveals only once the answers that drive it exist — otherwise empty.
   const rails = [
-    { label: "Program fit", value: started ? (derived.tier === "BEST" ? "Best" : derived.tier === "GOOD" ? "Standard" : "Specialty") : "—", width: started ? (derived.tier === "BEST" ? "92%" : derived.tier === "GOOD" ? "68%" : "42%") : "0%" },
-    { label: "Rate pressure", value: started ? pressure : "—", width: started ? (derived.tier === "BEST" ? "36%" : derived.tier === "GOOD" ? "58%" : "76%") : "0%" },
-    { label: "Docs friction", value: whoAnswered ? (liveAnswers[4] === "g" ? "Higher" : "Light") : "—", width: whoAnswered ? (liveAnswers[4] === "g" ? "72%" : "38%") : "0%" },
+    { label: "Scenario fit", value: started ? (derived.tier === "BEST" ? "Stronger" : derived.tier === "GOOD" ? "General" : "Review") : "—", width: started ? (derived.tier === "BEST" ? "92%" : derived.tier === "GOOD" ? "68%" : "42%") : "0%" },
+    { label: "Potential pricing factors", value: started ? pressure : "—", width: started ? (derived.tier === "BEST" ? "36%" : derived.tier === "GOOD" ? "58%" : "76%") : "0%" },
+    { label: "Documentation review", value: whoAnswered ? (liveAnswers[4] === "g" ? "Higher" : "Light") : "—", width: whoAnswered ? (liveAnswers[4] === "g" ? "72%" : "38%") : "0%" },
   ];
 
   return (
     <aside className="rq-strip" aria-label="Live underwriting preview">
       <div className="rq-strip-head">
         <div className="rq-strip-headL">
-          <span className="rq-strip-kicker">Live file read</span>
+          <span className="rq-strip-kicker">Live scenario summary</span>
           <span className="rq-strip-mapped">{filled}/{total} mapped</span>
         </div>
         <div className="rq-strip-dscr">
@@ -488,7 +540,7 @@ function UnderwritePreview({
       </div>
 
       <div className="rq-strip-note">
-        Preliminary model only. Final pricing still depends on verified credit, appraisal, reserves, state rules, and lender underwriting.
+        Preliminary self-reported scenario only. This quiz does not calculate pricing, underwrite a loan, or determine eligibility.
       </div>
     </aside>
   );
@@ -498,10 +550,20 @@ function UnderwritePreview({
 // Main page component
 // ─────────────────────────────────────────────────────────────────────────────
 export default function RateQuizPage({ onNavigate }: Props) {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [saved] = useState(loadRateQuizState);
+  const [step, setStep] = useState(saved.step);
+  const [answers, setAnswers] = useState<string[]>(saved.answers);
   const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(false);
+  const [revealed, setRevealed] = useState(saved.step === QUESTIONS.length);
+
+  useEffect(() => {
+    document.title = "Preliminary DSCR Scenario Quiz | Greenstreet Finance";
+  }, []);
+
+  useEffect(() => {
+    const snapshot: SavedRateQuizState = { step, answers };
+    window.sessionStorage.setItem(RATE_QUIZ_STATE_KEY, JSON.stringify(snapshot));
+  }, [step, answers]);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -597,19 +659,19 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
   const tierLabel =
     result?.tier === "BEST"
-      ? "Best rate tier"
+      ? "Stronger profile scenario"
       : result?.tier === "GOOD"
-      ? "Standard program"
-      : "Specialty program";
+      ? "General scenario"
+      : "Additional review scenario";
 
   // Risk level for RiskFlame
   const riskLevel =
     result?.tier === "WEAK" ? ("high" as const) : ("none" as const);
   const primaryCtaLabel =
     result?.tier === "WEAK"
-      ? "Strengthen this file ->"
+      ? "Test exact DSCR numbers ->"
       : result?.tier === "BEST"
-      ? "Price this deal ->"
+      ? "Review this scenario ->"
       : "Run exact DSCR numbers ->";
   const secondaryCtaLabel =
     result?.tier === "WEAK"
@@ -617,10 +679,10 @@ export default function RateQuizPage({ onNavigate }: Props) {
       : "Speak to a specialist ->";
   const nextStepCopy =
     result?.tier === "WEAK"
-      ? "Run the exact rent and PITIA in the DSCR Calculator, then structure the file around reserves, LTV, and borrower profile before you lock anything in."
+      ? "Run the exact rent and PITIA in the DSCR Calculator, then review reserves, LTV, and borrower profile against current documents."
       : result?.tier === "BEST"
-      ? "Run the exact rent and PITIA in the DSCR Calculator to confirm coverage, then move into pricing while the file is still in a strong lane."
-      : "Run the exact rent and PITIA in the DSCR Calculator to confirm the ratio, then compare standard program fit before locking terms.";
+      ? "Run the exact rent and PITIA in the DSCR Calculator, then request a dated scenario review if the assumptions remain supportable."
+      : "Run the exact rent and PITIA in the DSCR Calculator, then compare the verified inputs with current program documents.";
 
   return (
     <DcShell
@@ -630,7 +692,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
         { label: "Lender Intel", view: "lender-intel" },
         { label: "State Laws", view: "state-laws" },
       ]}
-      cta={{ label: "Speak to a specialist", onClick: () => (window as any).openQualify?.() }}
+      cta={{ label: "Request scenario review", onClick: () => (window as any).openQualify?.() }}
     >
       {/* Inline style overrides scoped to this page */}
       <style>{`
@@ -639,6 +701,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
           outline-offset: 2px;
           border-radius: ${radius.sm};
         }
+        #rq-main button:focus-visible, #rq-main a:focus-visible { outline: 2px solid ${swatch.lemon}; outline-offset: 3px; }
         .qw-pill { display: none !important; }
         .rq-workspace {
           display: block;
@@ -710,7 +773,10 @@ export default function RateQuizPage({ onNavigate }: Props) {
         .rq-strip-note { font-size: 11px; line-height: 1.45; color: rgba(238,239,211,.5); }
         @media (max-width: 479px) {
           .rq-opt-hint { display: none !important; }
-          .rq-result-grid { grid-template-columns: 1fr 1fr !important; }
+          .rq-result-grid { grid-template-columns: 1fr !important; }
+          .rq-option { padding: 14px 12px !important; gap: 8px !important; }
+          .rq-option span { overflow-wrap: anywhere; }
+          #rq-main { padding-left: 16px !important; padding-right: 16px !important; }
         }
         @media (max-width: 767px) {
           .rq-cta-row { flex-direction: column !important; }
@@ -724,6 +790,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
           .rq-strip-node-value { display: none !important; }
           .rq-strip-bars { grid-template-columns: 1fr !important; gap: 10px !important; }
           .rq-strip-note { display: none !important; }
+          .rq-info-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -771,7 +838,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   textTransform: "uppercase" as const,
                 }}
               >
-                Rate intelligence · 5 questions · 60 seconds
+                Preliminary scenario preview · 5 questions
               </span>
             </div>
 
@@ -786,7 +853,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 fontFamily: font.family,
               }}
             >
-              Find the right DSCR program for your deal.
+              Explore a preliminary DSCR scenario category.
             </h1>
 
             <p
@@ -809,6 +876,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
       {/* ── QUIZ / RESULT BAND ───────────────────────────────────────────── */}
       <section
+        id="rq-main"
         style={{
           background: swatch.midnight,
           color: swatch.pistachio,
@@ -1009,7 +1077,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     marginBottom: 8,
                   }}
                 >
-                  Best-match program
+                  Modeled scenario category
                 </div>
 
                 <h2
@@ -1039,10 +1107,10 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   }}
                 >
                   {result.tier === "BEST"
-                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest lender selection."
+                    ? "Your reported credit and LTV create a stronger modeled profile. This does not establish pricing, lender selection, or approval."
                     : result.tier === "GOOD"
-                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match and lock your terms."
-                    : "This program has tighter requirements, but it's built for your situation. Reserves, lower LTV, or stronger credit can help you qualify — a specialist can structure the deal."}
+                    ? "Your answers fall into the general scenario category. A current review is needed before discussing availability or terms."
+                    : "This scenario needs additional review. Documentation, leverage, coverage, property, and borrower facts may change the available options."}
                 </p>
 
                 {/* Rate + gauge columns */}
@@ -1068,7 +1136,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         marginBottom: 6,
                       }}
                     >
-                      Indicative rate range
+                      Pricing status
                     </div>
                     <Mono
                       style={{
@@ -1195,7 +1263,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     marginBottom: 10,
                   }}
                 >
-                  Program requirements
+                  Inputs used
                 </div>
                 <div
                   className="rq-result-grid"
@@ -1243,7 +1311,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         lineHeight: 1.6,
                       }}
                     >
-                      Increasing your down payment (lower LTV), building 6+ months of reserves kept in the bank after closing, or raising your credit score each improve your position. A Greenstreet specialist can structure the deal to qualify.
+                      Changing down payment, documented reserves, or credit may affect a future review. Test exact rent and PITIA first; do not assume any one change creates eligibility.
                     </p>
                   </div>
                 )}
@@ -1283,7 +1351,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     lineHeight: 1.5,
                   }}
                 >
-                  Preliminary estimate only — not a commitment to lend. Final terms subject to full underwriting, appraisal, and credit review. Self-reported credit is indicative only; no credit pull is performed.
+                  Preliminary estimate only. This quiz uses self-reported bands, does not pull credit, does not perform underwriting, and does not determine availability, pricing, or approval.
                 </p>
 
                 {/* CTAs */}
@@ -1468,6 +1536,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
         }}
       >
         <div
+          className="rq-info-grid"
           style={{
             maxWidth: 880,
             margin: "0 auto",
@@ -1482,12 +1551,12 @@ export default function RateQuizPage({ onNavigate }: Props) {
               body: "Debt Service Coverage Ratio — whether the property's monthly rent can cover the full loan payment (PITIA: principal, interest, taxes, insurance, and HOA). 1.00x = rent exactly covers the payment.",
             },
             {
-              label: "No income docs needed",
-              body: "DSCR loans qualify on the property's income, not your tax returns or pay stubs. Ideal for self-employed investors and those with complex income structures.",
+              label: "Property-income focus",
+              body: "DSCR scenarios focus on property rental income, but credit, assets, reserves, entity, appraisal, property, and other documentation may still be required.",
             },
             {
-              label: "Rates are illustrative",
-              body: "Rate ranges shown are indicative only and based on current Greenstreet program tiers. Final pricing depends on full underwriting, appraisal, reserves, and verified borrower details.",
+              label: "Pricing is not calculated",
+              body: "The quiz does not publish or estimate a rate. Request a dated review stating credit, LTV, DSCR, property, points, prepayment, loan-size, and market assumptions.",
             },
           ].map((card) => (
             <div

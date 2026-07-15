@@ -207,7 +207,7 @@ export function computeAcquisitionScore(
     contribution: capexScore * 0.05,
   });
 
-  const totalScore = Math.round(factors.reduce((sum, f) => sum + f.contribution, 0));
+  const totalScore = clampScore(Math.round(factors.reduce((sum, f) => sum + f.contribution, 0)));
   const band = totalScore >= 85 ? 'Exceptional' :
               totalScore >= 75 ? 'Strong' :
               totalScore >= 65 ? 'Acceptable' :
@@ -639,7 +639,41 @@ export function validateTwoQuoteRule(
 // ============================================================
 
 function clampScore(n: number): number {
+  if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.min(100, n));
+}
+
+/**
+ * Compute a bounded weighted score. Weights may be decimals or percentages;
+ * normalizing by their sum prevents a partially specified set from silently
+ * shrinking the attainable score range.
+ */
+export function computeWeightedCompositeScore(
+  factors: ReadonlyArray<{ score: number; weight: number }>,
+): number {
+  const usable = factors.filter(
+    factor => Number.isFinite(factor.score) && Number.isFinite(factor.weight) && factor.weight > 0,
+  );
+  const totalWeight = usable.reduce((sum, factor) => sum + factor.weight, 0);
+  if (totalWeight <= 0) return 0;
+
+  const weightedScore = usable.reduce(
+    (sum, factor) => sum + clampScore(factor.score) * factor.weight,
+    0,
+  ) / totalWeight;
+  return clampScore(Math.round(weightedScore));
+}
+
+const RETURN_GRADE_ORDER: Readonly<Record<ReturnGrade, number>> = {
+  F: 0,
+  D: 1,
+  C: 2,
+  B: 3,
+  A: 4,
+};
+
+function meetsMinimumReturnGrade(actual: ReturnGrade, minimum: ReturnGrade): boolean {
+  return RETURN_GRADE_ORDER[actual] >= RETURN_GRADE_ORDER[minimum];
 }
 
 // ============================================================
@@ -691,6 +725,23 @@ export interface VerdictInput {
 export function computeVerdict(input: VerdictInput): VerdictResult {
   const killCriteria: KillCriterion[] = [];
   const killSwitchConditions: string[] = [];
+  const invalidInputs = [
+    { label: 'Track 1 DSCR', value: input.track1DSCR, positive: true },
+    { label: 'Track 2 DSCR', value: input.track2DSCR, positive: true },
+    { label: 'lender minimum DSCR', value: input.lenderMinDSCR, positive: true },
+    { label: 'after-tax IRR', value: input.afterTaxIRR, positive: false },
+    { label: 'pre-tax IRR', value: input.preTaxIRR, positive: false },
+    { label: 'year-one cash-on-cash return', value: input.year1CoC, positive: false },
+    { label: 'deal-break rate', value: input.dealBreakRate, positive: true },
+    { label: 'solved rate', value: input.solvedRate, positive: true },
+    { label: 'rate headroom', value: input.rateHeadroomBps, positive: false },
+    { label: 'FICO', value: input.ficoScore, positive: true },
+    { label: 'LTV', value: input.ltv, positive: true },
+    { label: 'LTV cap', value: input.ltvCap, positive: true },
+    { label: 'loan amount', value: input.loanAmount, positive: true },
+    { label: 'lender minimum loan', value: input.lenderMinLoan, positive: true },
+    { label: 'lender confidence', value: input.bestLenderConfidence, positive: false },
+  ].filter(({ value, positive }) => !Number.isFinite(value) || (positive && value <= 0));
 
   // === KILL CRITERIA (Part J) ===
 
@@ -858,7 +909,10 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
     });
   }
 
-  // === TRACK 2 ACKNOWLEDGMENT (not a kill — forced acknowledgment) ===
+  // === TRACK 2 ACKNOWLEDGMENT ===
+  // VerdictInput has no explicit user-acknowledgment state. Conservatively keep
+  // negative-carry deals in review rather than treating a required acknowledgment
+  // as though it had already happened.
   const track2AcknowledgmentRequired = input.track2DSCR < 1.0;
   if (track2AcknowledgmentRequired) {
     killCriteria.push({
@@ -866,7 +920,7 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
       triggered: true,
       severity: 'ACKNOWLEDGMENT',
       detail: `Track 2 DSCR ${input.track2DSCR.toFixed(3)} < 1.0 — deal qualifies but loses money monthly.`,
-      action: 'Type "I understand" to proceed. Proceed only if appreciation or after-tax thesis justifies the negative carry, stated in $/mo.',
+      action: 'Review and document the monthly appreciation or after-tax thesis before reconsidering the scenario.',
     });
   }
 
@@ -876,18 +930,25 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
 
   // === DETERMINE VERDICT ===
   const blockers = killCriteria.filter(k => k.severity === 'BLOCKER' && k.triggered);
+  const rankingMissing = input.lenderRanking.length === 0;
   const hasEligibleLender = input.lenderRanking.some(l => l.eligible);
 
   let verdict: 'PROCEED' | 'RESTRUCTURE' | 'PASS';
   let bindingConstraint: string;
 
-  if (blockers.length > 0 || !hasEligibleLender || returnGrade === 'F') {
+  if (invalidInputs.length > 0) {
+    verdict = 'RESTRUCTURE';
+    bindingConstraint = `Invalid or incomplete inputs require review: ${invalidInputs.map(item => item.label).join(', ')}`;
+  } else if (rankingMissing) {
+    verdict = 'RESTRUCTURE';
+    bindingConstraint = 'Lender ranking unavailable — eligibility review required';
+  } else if (blockers.length > 0 || !hasEligibleLender || returnGrade === 'F') {
     verdict = 'PASS';
     bindingConstraint = blockers[0]?.criterion ?? (returnGrade === 'F' ? 'Return Grade F' : 'No eligible lender');
   } else if (
     input.track1DSCR >= input.lenderMinDSCR + 0.05 &&
-    (input.track2DSCR >= 1.0 || track2AcknowledgmentRequired) &&
-    returnGrade >= 'B' &&
+    input.track2DSCR >= 1.0 &&
+    meetsMinimumReturnGrade(returnGrade, 'B') &&
     input.rateHeadroomBps >= 50
   ) {
     verdict = 'PROCEED';
@@ -911,8 +972,8 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
   // === TRACK 2 ACK TEXT ===
   const track2AcknowledgmentText = track2AcknowledgmentRequired
     ? `This deal qualifies (Track 1 DSCR ${input.track1DSCR.toFixed(3)}) AND loses money every month (Track 2 DSCR ${input.track2DSCR.toFixed(3)}). ` +
-      `Type "I understand" to proceed. Proceed only if appreciation or after-tax thesis justifies the negative carry — ` +
-      `and that thesis must be stated in $/mo in writing.`
+      `The scenario remains in review until an appreciation or after-tax thesis justifies the negative carry ` +
+      `and that thesis is stated in $/mo in writing.`
     : '';
 
   return {
@@ -944,6 +1005,7 @@ export function computeReturnGrade(
   // afterTaxIRR is passed as a decimal (0.15 = 15%)
   const irrPct = afterTaxIRR;
 
+  if (!Number.isFinite(irrPct) || !Number.isFinite(track2DSCR)) return 'F';
   if (irrPct < 0 || track2DSCR < 0) return 'F';
   if (irrPct >= 0.15 && track2DSCR >= 1.10) return 'A';
   if (irrPct >= 0.12 && track2DSCR >= 1.00) return 'B';

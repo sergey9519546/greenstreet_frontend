@@ -1,8 +1,37 @@
 import React, { useEffect, useRef, useState } from "react";
-import { swatch, themes, ThemeName, radius } from "../theme";
+import { swatch, themes, ThemeName, radius, font } from "../theme";
 
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
+
+type MonoProps<Element extends React.ElementType = "span"> = {
+  as?: Element;
+  children?: React.ReactNode;
+  style?: React.CSSProperties;
+} & Omit<React.ComponentPropsWithoutRef<Element>, "as" | "children" | "style">;
+
+export function Mono<Element extends React.ElementType = "span">({
+  as,
+  children,
+  style,
+  ...props
+}: MonoProps<Element>) {
+  const Component: React.ElementType = as ?? "span";
+
+  return (
+    <Component
+      {...props}
+      style={{
+        fontFamily: font.mono,
+        fontVariantNumeric: "tabular-nums",
+        letterSpacing: "-0.03em",
+        ...style,
+      }}
+    >
+      {children}
+    </Component>
+  );
+}
 
 interface AnimatedCardProps extends React.HTMLAttributes<HTMLDivElement> {
   themeName?: ThemeName;
@@ -79,10 +108,13 @@ export function AnimatedButton({
   variant = "primary",
   showArrow = true,
   style,
+  onFocus,
+  onBlur,
   ...props
 }: AnimatedButtonProps) {
   const btnRef = useRef<HTMLButtonElement>(null);
   const arrowRef = useRef<SVGSVGElement>(null);
+  const [focused, setFocused] = useState(false);
   const theme = themes[themeName];
 
   // Colors based on variant
@@ -146,6 +178,8 @@ export function AnimatedButton({
       ref={btnRef}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
+      onFocus={(event) => { setFocused(true); onFocus?.(event); }}
+      onBlur={(event) => { setFocused(false); onBlur?.(event); }}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -160,7 +194,8 @@ export function AnimatedButton({
         fontSize: "15px",
         fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
         cursor: "pointer",
-        outline: "none",
+        outline: focused ? `3px solid ${swatch.rainforest}` : "2px solid transparent",
+        outlineOffset: "3px",
         transition: "box-shadow 0.2s",
         ...style,
       }}
@@ -170,6 +205,8 @@ export function AnimatedButton({
       {showArrow && (
         <svg
           ref={arrowRef}
+          aria-hidden="true"
+          focusable="false"
           width="16"
           height="16"
           viewBox="0 0 16 16"
@@ -230,12 +267,15 @@ export function PremiumInput({
   prefixSymbol,
   suffixSymbol,
   style,
+  id,
   onFocus,
   onBlur,
   ...props
 }: PremiumInputProps) {
   const [focused, setFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const generatedId = React.useId();
+  const inputId = id ?? generatedId;
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setFocused(true);
@@ -260,6 +300,7 @@ export function PremiumInput({
       }}
     >
       <label
+        htmlFor={inputId}
         style={{
           position: "absolute",
           left: prefixSymbol ? "24px" : "14px",
@@ -296,13 +337,13 @@ export function PremiumInput({
           </span>
         )}
         <input
+          id={inputId}
           onFocus={handleFocus}
           onBlur={handleBlur}
           style={{
             flex: 1,
             border: "none",
             background: "transparent",
-            outline: "none",
             padding: focused || hasValue ? "16px 14px 4px" : "10px 14px",
             fontSize: "15px",
             color: swatch.midnight,
@@ -343,17 +384,19 @@ export function PremiumSlider({
   formatValue = (val) => String(val),
   ticks,
 }: PremiumSliderProps) {
+  const inputId = React.useId();
   return (
     <div style={{ marginBottom: "24px", fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif' }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-        <span style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: swatch.rainforest }}>
+        <label htmlFor={inputId} style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: swatch.rainforest }}>
           {label}
-        </span>
+        </label>
         <span style={{ fontSize: "15px", fontWeight: 700, color: swatch.midnight }}>
           {formatValue(value)}
         </span>
       </div>
       <input
+        id={inputId}
         type="range"
         min={min}
         max={max}
@@ -365,16 +408,15 @@ export function PremiumSlider({
           accentColor: swatch.rainforest,
           height: "6px",
           borderRadius: radius.sm,
-          outline: "none",
           cursor: "pointer",
         }}
       />
       {ticks && (
         <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(0, 55, 56, 0.4)", fontSize: "11px", marginTop: "4px" }}>
           {ticks.map((t) => (
-            <span key={t} style={{ cursor: "pointer", fontWeight: value === t ? 700 : 400 }} onClick={() => onChange(t)}>
+            <button type="button" key={t} style={{ cursor: "pointer", font: "inherit", color: "inherit", fontWeight: value === t ? 700 : 400, border: 0, background: "transparent", padding: "2px" }} onClick={() => onChange(t)}>
               {t}%
-            </span>
+            </button>
           ))}
         </div>
       )}

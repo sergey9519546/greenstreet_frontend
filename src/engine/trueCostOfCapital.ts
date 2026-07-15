@@ -38,7 +38,9 @@ function prepayPenaltyAtYear(
   loanAmount: number, rate: number, termYears: number, prepayType: PrepayType, holdYears: number,
 ): number {
   const s = computePrepaySchedule(loanAmount, rate, termYears, prepayType, false, 0);
-  const y = Math.max(1, Math.min(6, Math.round(holdYears)));
+  // A penalty step changes after each completed year. A 6-month exit is year 1;
+  // a 13-month exit is year 2. Rounding assigned fractional holds to the wrong step.
+  const y = Math.max(1, Math.min(6, Math.ceil(holdYears)));
   switch (y) {
     case 1: return s.year1;
     case 2: return s.year2;
@@ -56,8 +58,22 @@ export function computeTrueCost(
   holdYears: number,
   termYears: number = 30,
 ): TrueCostResult {
+  const values = [loanAmount, quote.rate, quote.points, quote.fees, holdYears, termYears];
+  if (values.some(value => !Number.isFinite(value))) {
+    throw new RangeError('Loan, quote, hold, and term inputs must be finite numbers.');
+  }
+  if (loanAmount <= 0 || holdYears <= 0 || termYears <= 0 || holdYears > termYears) {
+    throw new RangeError('Loan amount, hold, and term must be positive, with hold no longer than term.');
+  }
+  if (quote.rate < 0 || quote.points < 0 || quote.fees < 0) {
+    throw new RangeError('Rate, points, and fees cannot be negative.');
+  }
+
   const termMonths = termYears * 12;
   const holdMonths = Math.round(holdYears * 12);
+  if (holdMonths < 1) {
+    throw new RangeError('Hold period must be at least one month.');
+  }
   const monthlyPI = calculatePI(loanAmount, quote.rate, termMonths);
   const remaining = computeRemainingBalance(loanAmount, quote.rate, termMonths, holdMonths);
   const principalPaidDown = Math.max(0, loanAmount - remaining);
@@ -98,6 +114,9 @@ export function compareTrueCost(
   holdYears: number,
   termYears: number = 30,
 ): TrueCostComparison {
+  if (quotes.length === 0) {
+    throw new RangeError('At least one valid loan quote is required for comparison.');
+  }
   const results = quotes.map((q) => computeTrueCost(loanAmount, q, holdYears, termYears));
   const ranked = [...results].sort((a, b) => a.totalCost - b.totalCost);
   const cheapest = ranked[0];

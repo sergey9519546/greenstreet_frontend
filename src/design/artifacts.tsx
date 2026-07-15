@@ -19,6 +19,14 @@ const RAIN = swatch.rainforest;
 const ORANGE = risk.warning;
 const RED = risk.danger;
 
+const finiteOr = (value: number, fallback: number) => Number.isFinite(value) ? value : fallback;
+const positiveSize = (value: number, fallback: number) => Number.isFinite(value) && value > 0 ? value : fallback;
+const fixedOrDash = (value: number, digits = 2) => Number.isFinite(value) ? value.toFixed(digits) : "—";
+const artifactText = (value: string) => {
+  const clean = String(value ?? "").trim();
+  return clean && !/^(?:nan|[+-]?infinity)$/i.test(clean) ? clean.slice(0, 32) : "—";
+};
+
 // Inject the shared keyframes/transitions once.
 let _injected = false;
 function ensureCss() {
@@ -37,6 +45,7 @@ function ensureCss() {
 .gsa-flame{transform-origin:50% 100%;}
 .gsa-path{stroke-dasharray:none;stroke-dashoffset:0;}
 .gsa-pulse-dot{transform-origin:center;}
+.gsa-control:focus-visible{outline:3px solid ${LEMON};outline-offset:4px;}
 @media (prefers-reduced-motion: reduce){
   .gsa-needle,.gsa-beam,.gsa-pan,.gsa-fill{transition:none !important;}
 }`;
@@ -45,6 +54,7 @@ function ensureCss() {
 
 // ── DSCR tier color (shared with the rest of the product) ─────────────────────
 export function dscrColor(dscr: number): string {
+  if (!Number.isFinite(dscr)) return RAIN;
   if (dscr >= 1.25) return EMERALD;
   if (dscr >= 1.1) return LEMON;
   if (dscr >= 1.0) return RAIN;
@@ -57,7 +67,9 @@ export function dscrColor(dscr: number): string {
 export function DscrGauge({ value, size = 200, label = true }: { value: number; size?: number; label?: boolean }) {
   ensureCss();
   const min = 0.5, max = 2.0;
-  const t = Math.max(0, Math.min(1, (value - min) / (max - min)));
+  const safeValue = finiteOr(value, min);
+  const safeSize = positiveSize(size, 200);
+  const t = Math.max(0, Math.min(1, (safeValue - min) / (max - min)));
   const angle = -90 + t * 180; // -90° (left) … +90° (right)
   const col = dscrColor(value);
   const r = 90, cx = 100, cy = 100;
@@ -73,8 +85,8 @@ export function DscrGauge({ value, size = 200, label = true }: { value: number; 
     { ...seg(1.1, 1.25), c: LEMON }, { ...seg(1.25, 2.0), c: EMERALD },
   ];
   return (
-    <div style={{ width: size, display: "inline-block", textAlign: "center" }}>
-      <svg viewBox="0 0 200 120" width={size} height={size * 0.6} role="img" aria-label={`DSCR ${value.toFixed(2)}`}>
+    <div style={{ width: "100%", maxWidth: safeSize, minWidth: 0, display: "inline-block", textAlign: "center" }}>
+      <svg viewBox="0 0 200 120" width="100%" role="img" aria-label={`Illustrative DSCR gauge: ${fixedOrDash(value)}`} style={{ display: "block", height: "auto" }}>
         {zones.map((z, i) => (
           <path key={i} d={arc(z.from, z.to)} fill="none" stroke={z.c} strokeWidth="12" strokeLinecap="butt" opacity={0.9} />
         ))}
@@ -85,9 +97,9 @@ export function DscrGauge({ value, size = 200, label = true }: { value: number; 
         <circle cx={cx} cy={cy} r="7" fill={MIDNIGHT} />
       </svg>
       {label && (
-        <div style={{ marginTop: -6, fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums", fontWeight: 700, fontSize: size * 0.16, color: col, lineHeight: 1 }}>
-          {value.toFixed(2)}
-          <span style={{ fontSize: size * 0.07 }}>x</span>
+        <div style={{ marginTop: -6, fontFamily: "'JetBrains Mono', monospace", fontVariantNumeric: "tabular-nums", fontWeight: 700, fontSize: safeSize * 0.16, color: col, lineHeight: 1 }}>
+          {fixedOrDash(value)}
+          {Number.isFinite(value) && <span style={{ fontSize: safeSize * 0.07 }}>x</span>}
         </div>
       )}
     </div>
@@ -113,14 +125,19 @@ export function ClaudeDscrGauge({
   onValueChange?: (value: number) => void;
 }) {
   ensureCss();
+  const safeMin = finiteOr(min, 0.5);
+  const proposedMax = finiteOr(max, 1.5);
+  const safeMax = proposedMax > safeMin ? proposedMax : safeMin + 1;
+  const safeValue = finiteOr(value, safeMin);
+  const safeSize = positiveSize(size, 320);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const needleRef = useRef<HTMLDivElement | null>(null);
   const glowRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const displayRef = useRef(value);
-  const [displayValue, setDisplayValue] = useState(value);
-  const clamped = Math.max(min, Math.min(max, value));
-  const pct = (clamped - min) / (max - min);
+  const displayRef = useRef(safeValue);
+  const [displayValue, setDisplayValue] = useState(safeValue);
+  const clamped = Math.max(safeMin, Math.min(safeMax, safeValue));
+  const pct = (clamped - safeMin) / (safeMax - safeMin);
   const angle = -135 + pct * 270;
   const col = dscrColor(value);
   const reduced =
@@ -133,8 +150,8 @@ export function ClaudeDscrGauge({
     if (!needle) return;
     if (reduced) {
       gsap.set(needle, { xPercent: -50, rotation: angle, transformOrigin: "50% 100%" });
-      setDisplayValue(value);
-      displayRef.current = value;
+      setDisplayValue(safeValue);
+      displayRef.current = safeValue;
       return;
     }
     gsap.to(needle, {
@@ -146,7 +163,7 @@ export function ClaudeDscrGauge({
       overwrite: true,
     });
     gsap.to(displayRef, {
-      current: value,
+      current: safeValue,
       duration: 0.48,
       ease: "power2.out",
       overwrite: true,
@@ -159,7 +176,7 @@ export function ClaudeDscrGauge({
         { scale: 1, opacity: 1, duration: 0.36, ease: "power2.out", overwrite: true }
       );
     }
-  }, [angle, reduced, value]);
+  }, [angle, reduced, safeValue]);
 
   const setFromPointer = (clientX: number, clientY: number) => {
     if (!onValueChange || !wrapRef.current) return;
@@ -168,7 +185,7 @@ export function ClaudeDscrGauge({
     const cy = rect.top + rect.height / 2;
     const raw = Math.atan2(clientX - cx, -(clientY - cy)) * 180 / Math.PI;
     const nextAngle = Math.max(-135, Math.min(135, raw));
-    const next = min + ((nextAngle + 135) / 270) * (max - min);
+    const next = safeMin + ((nextAngle + 135) / 270) * (safeMax - safeMin);
     onValueChange(Number(next.toFixed(2)));
   };
 
@@ -179,7 +196,8 @@ export function ClaudeDscrGauge({
       onMouseLeave={() => !reduced && cardRef.current && gsap.to(cardRef.current, { y: 0, duration: 0.22, ease: "power2.out" })}
       style={{
         width: "100%",
-        maxWidth: size,
+        maxWidth: safeSize,
+        minWidth: 0,
         margin: "0 auto",
         position: "relative",
         touchAction: onValueChange ? "none" : "auto",
@@ -187,12 +205,15 @@ export function ClaudeDscrGauge({
     >
       <div
         ref={wrapRef}
+        className="gsa-control"
         role="slider"
         aria-label={`${label} gauge`}
-        aria-valuemin={min}
-        aria-valuemax={max}
-        aria-valuenow={Number(value.toFixed(2))}
-        tabIndex={onValueChange ? 0 : -1}
+        aria-valuemin={safeMin}
+        aria-valuemax={safeMax}
+        aria-valuenow={Number(clamped.toFixed(2))}
+        aria-valuetext={`${fixedOrDash(value)} preliminary DSCR`}
+        aria-readonly={!onValueChange}
+        tabIndex={0}
         onPointerDown={(e) => {
           if (!onValueChange) return;
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -205,8 +226,8 @@ export function ClaudeDscrGauge({
         onKeyDown={(e) => {
           if (!onValueChange) return;
           const step = e.shiftKey ? 0.1 : 0.05;
-          if (e.key === "ArrowLeft" || e.key === "ArrowDown") onValueChange(Math.max(min, Number((value - step).toFixed(2))));
-          if (e.key === "ArrowRight" || e.key === "ArrowUp") onValueChange(Math.min(max, Number((value + step).toFixed(2))));
+          if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); onValueChange(Math.max(safeMin, Number((safeValue - step).toFixed(2)))); }
+          if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); onValueChange(Math.min(safeMax, Number((safeValue + step).toFixed(2)))); }
         }}
         style={{
           position: "relative",
@@ -265,11 +286,11 @@ export function ClaudeDscrGauge({
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingBottom: "7%", pointerEvents: "none", zIndex: 5 }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>{label}</div>
           <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(32px,4vw,48px)", fontWeight: 700, color: "#eeefd3", lineHeight: 0.9, textShadow: `0 2px 20px ${col}55` }}>
-            {displayValue.toFixed(2)}<span style={{ fontSize: "0.48em" }}>x</span>
+            {fixedOrDash(displayValue)}{Number.isFinite(displayValue) && <span style={{ fontSize: "0.48em" }}>x</span>}
           </div>
         </div>
-        <div style={{ position: "absolute", left: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{min.toFixed(2)}</div>
-        <div style={{ position: "absolute", right: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{max.toFixed(2)}</div>
+        <div style={{ position: "absolute", left: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{safeMin.toFixed(2)}</div>
+        <div style={{ position: "absolute", right: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{safeMax.toFixed(2)}</div>
       </div>
     </div>
   );
@@ -279,11 +300,14 @@ export function ClaudeDscrGauge({
 // Beam tips toward the heavier side. ratio = rent / payment (>1 = rent wins).
 export function BalanceScale({ rent, payment, size = 220 }: { rent: number; payment: number; size?: number }) {
   ensureCss();
-  const ratio = payment > 0 ? rent / payment : 1;
+  const safeRent = finiteOr(rent, 0);
+  const safePayment = finiteOr(payment, 0);
+  const safeSize = positiveSize(size, 220);
+  const ratio = safePayment > 0 ? safeRent / safePayment : 1;
   const tilt = Math.max(-14, Math.min(14, (ratio - 1) * 26)); // degrees, clamped
   const rentWins = ratio >= 1;
   return (
-    <svg viewBox="0 0 220 130" width={size} height={size * 0.59} role="img" aria-label="Rent vs payment balance">
+    <svg viewBox="0 0 220 130" width="100%" role="img" aria-label={`Illustrative rent versus payment balance: ${fixedOrDash(ratio)} ratio`} style={{ display: "block", height: "auto", maxWidth: safeSize }}>
       {/* stand */}
       <rect x="106" y="40" width="8" height="74" rx="3" fill={MIDNIGHT} />
       <rect x="80" y="112" width="60" height="8" rx="4" fill={MIDNIGHT} />
@@ -313,6 +337,7 @@ export function BalanceScale({ rent, payment, size = 220 }: { rent: number; paym
 // currentColor so it reads on either a light or dark ground.
 export type RiskLevel = "none" | "low" | "med" | "high";
 export function riskFromDscr(dscr: number): RiskLevel {
+  if (!Number.isFinite(dscr)) return "high";
   if (dscr >= 1.25) return "none";
   if (dscr >= 1.1) return "low";
   if (dscr >= 1.0) return "med";
@@ -321,7 +346,7 @@ export function riskFromDscr(dscr: number): RiskLevel {
 export function RiskFlame({ level, size = 22 }: { level: RiskLevel; size?: number }) {
   if (level === "none") {
     return (
-      <span title="Comfortable cushion" style={{ display: "inline-flex", alignItems: "center", color: EMERALD }}>
+      <span role="img" aria-label="Modeled risk: comfortable cushion" title="Comfortable cushion" style={{ display: "inline-flex", alignItems: "center", color: EMERALD }}>
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke={EMERALD} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </span>
     );
@@ -360,9 +385,13 @@ export function MotionWorkbench({
   const accent = mode === "stress" ? ORANGE : mode === "sim" ? EMERALD : LEMON;
   const secondary = mode === "stress" ? RED : mode === "sim" ? RAIN : EMERALD;
   const title = mode === "stress" ? "Stress path" : mode === "sim" ? "Rate futures" : "Loan fit";
+  const displayLabel = artifactText(label);
+  const displayValue = artifactText(value);
   return (
     <div
       data-gs-motion-artifact="workbench"
+      role="figure"
+      aria-label={`Illustrative ${title.toLowerCase()} demo`}
       style={{
         width: "100%",
         maxWidth: size,
@@ -376,7 +405,8 @@ export function MotionWorkbench({
         color: mode === "quiz" ? MIDNIGHT : "#eeefd3",
       }}
     >
-      <svg viewBox="0 0 420 388" width="100%" height="100%" role="img" aria-label={`${title} animation`}>
+      <span style={{ position: "absolute", top: 16, right: 16, zIndex: 2, padding: "5px 8px", borderRadius: 6, background: mode === "quiz" ? "rgba(0,55,56,0.08)" : "rgba(238,239,211,0.10)", fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>Illustrative demo</span>
+      <svg viewBox="0 0 420 388" width="100%" height="100%" role="img" aria-label={`Illustrative ${title.toLowerCase()} diagram`}>
         <defs>
           <pattern id={`dots-${mode}`} width="24" height="24" patternUnits="userSpaceOnUse">
             <circle cx="2" cy="2" r="1.1" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.13" />
@@ -422,8 +452,8 @@ export function MotionWorkbench({
         )}
         <g>
           <rect x="42" y="314" width="336" height="44" rx="22" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.96" />
-          <text x="64" y="342" fill={mode === "quiz" ? "#eeefd3" : MIDNIGHT} fontFamily="Outfit, Arial, sans-serif" fontSize="18" fontWeight="700">{label}</text>
-          <text x="332" y="342" textAnchor="end" fill={accent} fontFamily="JetBrains Mono, monospace" fontSize="22" fontWeight="800">{value}</text>
+          <text x="64" y="342" fill={mode === "quiz" ? "#eeefd3" : MIDNIGHT} fontFamily="Outfit, Arial, sans-serif" fontSize="18" fontWeight="700">{displayLabel}</text>
+          <text x="332" y="342" textAnchor="end" fill={accent} fontFamily="JetBrains Mono, monospace" fontSize="22" fontWeight="800">{displayValue}</text>
         </g>
       </svg>
     </div>

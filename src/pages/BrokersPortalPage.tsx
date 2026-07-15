@@ -7,54 +7,48 @@ const BENEFITS = [
   {
     icon: "01",
     title: "Saved scenarios",
-    desc: "Every deal you price is stored and reopenable. No re-entering data when you come back to it.",
+    desc: "Organize scenario inputs and revisit them when the workspace makes that feature available to your account.",
   },
   {
     icon: "02",
-    title: "Submit to underwriting",
-    desc: "Once your deal matches a program, send it straight to underwriting from the same screen — we are the lender. No copy-paste, no portal-hop.",
+    title: "Prepare for provider review",
+    desc: "Use a scenario summary to identify questions and documents for the responsible transaction party. A workspace action is not an underwriting submission or approval unless transaction disclosures expressly say so.",
   },
   {
     icon: "03",
     title: "Shareable deal summary",
-    desc: "Generate a clean deal-summary PDF in 10 seconds — share it with a partner or keep it for your records.",
+    desc: "Create a summary of scenario inputs and assumptions for discussion or recordkeeping when export is available.",
   },
   {
     icon: "04",
     title: "Portfolio tracker",
-    desc: "Track every active deal across your pipeline so nothing slips through the cracks.",
+    desc: "Keep scenario records together for comparison without treating workspace status as a provider's transaction status.",
   },
   {
     icon: "05",
     title: "State-rule alerts",
-    desc: "Automatically flagged when a deal hits a high-risk prepayment penalty (a fee some loans charge for early payoff or refi) or usury state — before the quote goes out.",
+    desc: "Review educational state-rule prompts and verify applicability, current law, and final contract language with qualified counsel.",
   },
   {
     icon: "06",
     title: "Export-ready deal package",
-    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for underwriting review or your own records.",
+    desc: "Collect available scenario materials for your own review. Exports remain estimates and do not become provider-issued underwriting documents.",
   },
 ];
 
-// ── Testimonials — role/company attribution only; no fabricated NMLS or hard stats ──
-const TESTIMONIALS = [
+// Hypothetical use cases. These are not customers, testimonials, or typical results.
+const EXAMPLES = [
   {
-    quote:
-      "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it — lower down payment, IO for year one. We closed in 19 days.",
-    name: "Alex Stickelman",
-    role: "CCO & COO, Vela Capital",
+    title: "Illustrative use: compare assumptions",
+    body: "A user can compare how rent, payment, leverage, and expense assumptions change a preliminary coverage estimate before speaking with a provider.",
   },
   {
-    quote:
-      "The program match and state-rule checks mean I stopped second-guessing my quotes. I price the deal and move on.",
-    name: "Sandra Rivera",
-    role: "Real Estate Investor, Miami FL",
+    title: "Illustrative use: prepare questions",
+    body: "A scenario summary can help a user identify which program, documentation, state-law, and pricing questions still require professional review.",
   },
   {
-    quote:
-      "I run eight loans through Greenstreet a week. The CCO actually likes the audit logs — that's new for us.",
-    name: "Robert Hayes",
-    role: "Buy-and-Hold Investor, Austin TX",
+    title: "Illustrative use: preserve context",
+    body: "Saved assumptions can make later comparisons easier, but they do not represent an approval, rate lock, commitment, or provider-maintained loan file.",
   },
 ];
 
@@ -71,6 +65,14 @@ export default function BrokersPortalPage({
     window.scrollTo(0, 0);
   }, []);
 
+  const navigateLink = (view: string) => ({
+    href: `#${view}`,
+    onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      onNavigate(view);
+    },
+  });
+
   return (
     <DcShell
       onNavigate={onNavigate}
@@ -81,8 +83,57 @@ export default function BrokersPortalPage({
       ]}
       cta={{ label: "Sign in →", view: "portal" }}
     >
+      <style>{`
+        .bp-link:focus-visible,
+        .bp-page button:focus-visible {
+          outline: 3px solid ${dc.emerald};
+          outline-offset: 3px;
+        }
+        .bp-hero > *,
+        .bp-benefits > *,
+        .bp-page section > div {
+          min-width: 0;
+        }
+        @media (max-width: 760px) {
+          .bp-hero,
+          .bp-benefits {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+          .bp-cta {
+            align-items: stretch !important;
+          }
+          .bp-cta-actions {
+            flex: 1 1 100% !important;
+            width: 100%;
+          }
+          .bp-cta-actions .bp-link {
+            box-sizing: border-box;
+            justify-content: center;
+            width: 100%;
+          }
+        }
+        @media (max-width: 420px) {
+          .bp-section {
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+          }
+          .bp-benefit-card {
+            padding: 26px 20px !important;
+          }
+          .bp-example-card {
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+          }
+          .bp-page {
+            overflow-wrap: anywhere;
+          }
+        }
+      `}</style>
+      <div className="bp-page" id="main-content">
       {/* ── HERO — solid dark, two-column: copy left + sign-in card right ─── */}
       <section
+        className="bp-section"
+        aria-labelledby="bp-page-title"
         style={{
           background: dc.dark,
           color: dc.cream,
@@ -91,7 +142,7 @@ export default function BrokersPortalPage({
         }}
       >
         <div
-          className="dc-hero"
+          className="dc-hero bp-hero"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
@@ -118,6 +169,7 @@ export default function BrokersPortalPage({
 
             {/* H1 */}
             <h1
+              id="bp-page-title"
               style={{
                 fontSize: "clamp(42px,5.4vw,82px)",
                 fontWeight: 600,
@@ -126,16 +178,19 @@ export default function BrokersPortalPage({
                 margin: "0 0 18px",
               }}
             >
-              Your deals,
-              <br />
-              your pipeline,
-              <br />
-              one login.
+              Your scenarios,{" "}
+              <br aria-hidden="true" />
+              your assumptions,{" "}
+              <br aria-hidden="true" />
+              one workspace.
             </h1>
 
             {/* Purpose line */}
             <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-              InvestGO is your investor workspace where your priced deals live between sessions. Save a DSCR scenario, come back tomorrow, and Greenstreet underwrites and funds it in-house — all without re-entering data.
+              InvestGO is presented as a workspace for organizing educational DSCR
+              scenarios and their assumptions. A saved result is not an
+              underwriting decision, approval, rate lock, submission, or commitment
+              to lend.
             </div>
 
             {/* Sub */}
@@ -150,24 +205,28 @@ export default function BrokersPortalPage({
                 margin: "0 0 32px",
               }}
             >
-              Free for individual investors. Team pricing for funds and portfolios.
+              Access, storage, export, and account terms depend on the version made
+              available to you and the disclosures shown at sign-in.
             </p>
 
             {/* Checklist */}
-            <div
+            <ul
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: 10,
                 maxWidth: 300,
+                listStyle: "none",
+                margin: 0,
+                padding: 0,
               }}
             >
               {[
-                "Save and revisit priced deals",
-                "Shareable deal summaries",
-                "Submit straight to underwriting",
+                "Save and revisit scenario estimates",
+                "Prepare shareable scenario summaries",
+                "Prepare questions for provider review",
               ].map((item) => (
-                <div
+                <li
                   key={item}
                   style={{
                     display: "flex",
@@ -178,15 +237,16 @@ export default function BrokersPortalPage({
                     color: "rgba(238,239,211,0.75)",
                   }}
                 >
-                  <span style={{ color: dc.emerald }}>✓</span>
+                  <span aria-hidden="true" style={{ color: dc.emerald }}>✓</span>
                   {item}
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
           {/* Right: Sign-in card — solid fill, flat 1.5px faded border, no blur */}
           <div
+            aria-label="Investor workspace access"
             style={{
               background: dc.teal,
               border: `1.5px solid ${dc.dark}30`,
@@ -219,10 +279,12 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Access your saved deals, underwriting submissions, and deal summaries in one place.
+                Access available saved scenarios and summaries in one place. Any
+                provider workflow is governed by separate transaction disclosures.
               </p>
-              <button
-                onClick={() => onNavigate("portal")}
+              <a
+                {...navigateLink("portal")}
+                className="bp-link"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -239,10 +301,11 @@ export default function BrokersPortalPage({
                   marginTop: 4,
                   fontFamily: dc.sans,
                   letterSpacing: "-0.01em",
+                  textDecoration: "none",
                 }}
               >
                 Sign in to INVEST<span style={{ opacity: 0.5 }}>GO</span> →
-              </button>
+              </a>
 
               <div
                 style={{
@@ -255,11 +318,11 @@ export default function BrokersPortalPage({
                 }}
               >
                 New to Greenstreet?{" "}
-                <button
-                  onClick={() => onNavigate("rate-quiz")}
+                <a
+                  {...navigateLink("rate-quiz")}
+                  className="bp-link"
                   style={{
                     background: "none",
-                    border: "none",
                     padding: 0,
                     cursor: "pointer",
                     color: dc.emerald,
@@ -267,10 +330,12 @@ export default function BrokersPortalPage({
                     fontSize: 13,
                     fontFamily: dc.sans,
                     letterSpacing: "-0.01em",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 3,
                   }}
                 >
-                  Price your first deal free →
-                </button>
+                  Explore a first scenario →
+                </a>
               </div>
             </div>
           </div>
@@ -279,6 +344,8 @@ export default function BrokersPortalPage({
 
       {/* ── BENEFIT GRID — "Everything a serious investor needs." ─────────── */}
       <section
+        className="bp-section"
+        aria-labelledby="bp-benefits-title"
         style={{
           background: dc.cream,
           padding: `clamp(56px,7vw,96px) ${dc.pad}`,
@@ -286,6 +353,7 @@ export default function BrokersPortalPage({
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <h2
+            id="bp-benefits-title"
             className="gs-reveal"
             style={{
               fontSize: "clamp(28px,3.4vw,46px)",
@@ -295,14 +363,15 @@ export default function BrokersPortalPage({
               maxWidth: "18ch",
             }}
           >
-            Everything a serious investor needs.
+            A workspace for organizing scenarios.
           </h2>
           <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(0,55,56,0.6)", margin: "0 0 36px", maxWidth: "52ch", lineHeight: 1.6 }}>
-            The workspace sits on top of the same DSCR engine you already use — so every saved deal includes the full analysis, not just a rate.
+            Each scenario can preserve the inputs and assumptions used for an
+            educational estimate. Availability varies by account and release.
           </p>
 
           <div
-            className="gs-reveal"
+            className="gs-reveal bp-benefits"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
@@ -315,6 +384,7 @@ export default function BrokersPortalPage({
             {BENEFITS.map((b) => (
               <div
                 key={b.title}
+                className="bp-benefit-card"
                 style={{ background: dc.cream, padding: "36px 30px" }}
               >
                 <Mono
@@ -330,17 +400,18 @@ export default function BrokersPortalPage({
                 >
                   {b.icon}
                 </Mono>
-                <div
+                <h3
                   style={{
                     fontSize: 20,
                     fontWeight: 600,
                     letterSpacing: "-0.02em",
                     marginBottom: 10,
                     color: dc.dark,
+                    lineHeight: 1.2,
                   }}
                 >
                   {b.title}
-                </div>
+                </h3>
                 <p
                   style={{
                     fontSize: 15,
@@ -359,8 +430,10 @@ export default function BrokersPortalPage({
         </div>
       </section>
 
-      {/* ── FROM THE FIELD — role-based testimonials ─────────────────────── */}
+      {/* Hypothetical use cases, not testimonials or customer evidence. */}
       <section
+        className="bp-section"
+        aria-labelledby="bp-examples-title"
         style={{
           background: dc.mintBg,
           padding: `clamp(48px,6vw,72px) ${dc.pad}`,
@@ -378,9 +451,10 @@ export default function BrokersPortalPage({
                 marginBottom: 12,
               }}
             >
-              From the field
+              Educational examples
             </div>
             <h2
+              id="bp-examples-title"
               style={{
                 fontSize: "clamp(26px,3.2vw,44px)",
                 fontWeight: 600,
@@ -389,12 +463,12 @@ export default function BrokersPortalPage({
                 margin: 0,
               }}
             >
-              What investors tell us.
+              Ways a scenario workspace may be used.
             </h2>
           </div>
 
           <div
-            className="gs-reveal"
+            className="gs-reveal bp-example-card"
             style={{
               background: dc.white,
               border: `1px solid ${dc.dark}15`,
@@ -402,48 +476,39 @@ export default function BrokersPortalPage({
               padding: "4px 28px 8px",
             }}
           >
-            {TESTIMONIALS.map((t, i) => (
+            {EXAMPLES.map((t, i) => (
               <div
                 key={i}
                 style={{
                   padding: "20px 0",
                   borderBottom:
-                    i < TESTIMONIALS.length - 1
+                    i < EXAMPLES.length - 1
                       ? `1px solid ${dc.dark}15`
                       : "none",
                 }}
               >
+                <h3
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: dc.rain,
+                    letterSpacing: "-0.01em",
+                    margin: "0 0 8px",
+                  }}
+                >
+                  {t.title}
+                </h3>
                 <p
                   style={{
                     fontSize: 15,
                     color: dc.dark,
                     lineHeight: 1.6,
-                    fontStyle: "italic",
-                    margin: "0 0 12px",
+                    margin: 0,
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  "{t.quote}"
+                  {t.body}
                 </p>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: dc.rain,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {t.name}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    color: "rgba(0,55,56,0.5)",
-                    marginTop: 2,
-                  }}
-                >
-                  {t.role}
-                </div>
               </div>
             ))}
           </div>
@@ -452,6 +517,8 @@ export default function BrokersPortalPage({
 
       {/* ── PORTAL CTA — action-forward, portal-focused ──────────────────── */}
       <section
+        className="bp-section"
+        aria-labelledby="bp-cta-title"
         style={{
           background: dc.dark,
           color: dc.cream,
@@ -459,7 +526,7 @@ export default function BrokersPortalPage({
         }}
       >
         <div
-          className="gs-reveal"
+          className="gs-reveal bp-cta"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
@@ -481,9 +548,10 @@ export default function BrokersPortalPage({
                 marginBottom: 14,
               }}
             >
-              Ready to price your next DSCR deal?
+              Ready to model another DSCR scenario?
             </div>
             <h2
+              id="bp-cta-title"
               style={{
                 fontSize: "clamp(28px,3.6vw,50px)",
                 fontWeight: 600,
@@ -493,9 +561,9 @@ export default function BrokersPortalPage({
                 margin: "0 0 14px",
               }}
             >
-              Open the portal.
-              <br />
-              Price and submit in minutes.
+              Open the workspace.{" "}
+              <br aria-hidden="true" />
+              Organize a preliminary scenario.
             </h2>
             <p
               style={{
@@ -507,12 +575,14 @@ export default function BrokersPortalPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Free for individual investors. Team pricing for funds
-              with five or more users.
+              Review all assumptions and limitations before sharing any output.
+              Program availability, rates, and terms vary, are not guaranteed, and
+              remain subject to provider underwriting and transaction disclosures.
             </p>
           </div>
 
           <div
+            className="bp-cta-actions"
             style={{
               display: "flex",
               flexDirection: "column",
@@ -520,8 +590,9 @@ export default function BrokersPortalPage({
               flex: "0 0 auto",
             }}
           >
-            <button
-              onClick={() => onNavigate("portal")}
+            <a
+              {...navigateLink("portal")}
+              className="bp-link"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -536,12 +607,14 @@ export default function BrokersPortalPage({
                 borderRadius: radius.sm,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
+                textDecoration: "none",
               }}
             >
               Sign in to portal →
-            </button>
-            <button
-              onClick={() => onNavigate("dscr-calculator")}
+            </a>
+            <a
+              {...navigateLink("dscr-calculator")}
+              className="bp-link"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -556,13 +629,15 @@ export default function BrokersPortalPage({
                 borderRadius: radius.sm,
                 fontFamily: dc.sans,
                 letterSpacing: "-0.01em",
+                textDecoration: "none",
               }}
             >
               Run the DSCR calc
-            </button>
+            </a>
           </div>
         </div>
       </section>
+      </div>
     </DcShell>
   );
 }

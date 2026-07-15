@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { analyzeRefi } from "./refiTracker";
+import { analyzeRefi, getRefiAuxiliaryGuidanceState } from "./refiTracker";
 import type { PropertyInputs, BorrowerProfile } from "./types";
 
 const property: PropertyInputs = {
@@ -40,6 +40,23 @@ const borrower: BorrowerProfile = {
 const currentLoan = { balance: 210_000, rate: 8.5, monthlyPayment: 1900 };
 
 describe("analyzeRefi", () => {
+  it("suppresses auxiliary economics when blank inputs put the scenario in review", () => {
+    const guidance = getRefiAuxiliaryGuidanceState(
+      "REVIEW",
+      "REVIEW",
+      Number.NaN,
+      Number.NaN,
+      Number.NaN,
+      Number.NaN,
+    );
+
+    expect(guidance.secondLienAvailable).toBe(false);
+    expect(guidance.debtGuidanceAvailable).toBe(false);
+    expect(guidance.currentRateLabel).toBeNull();
+    expect(guidance.projectedRateLabel).toBeNull();
+    expect(JSON.stringify(guidance)).not.toMatch(/NaN|Infinity/);
+  });
+
   it("computes current and projected refi DSCR", () => {
     const r = analyzeRefi(property, borrower, currentLoan, 12, 5, 6.5);
     expect(r.currentDSCR).toBeGreaterThan(0);
@@ -80,5 +97,70 @@ describe("analyzeRefi", () => {
     const none = analyzeRefi(property, borrower, currentLoan, 12, 0, 6.5);
     const lots = analyzeRefi(property, borrower, currentLoan, 12, 30, 6.5);
     expect(lots.cashOutMaxAmount).toBeGreaterThan(none.cashOutMaxAmount);
+  });
+
+  it("computes the appreciation gap for underwater and high-LTV property", () => {
+    const underwater = analyzeRefi(
+      property,
+      borrower,
+      { balance: 350_000, rate: 8.5, monthlyPayment: 2800 },
+      12,
+      0,
+      6.5,
+    );
+    expect(underwater.status).toBe("AVAILABLE");
+    expect(underwater.appreciationNeeded).toBeCloseTo(0.5556, 3);
+    expect(underwater.cashOutMaxAmount).toBe(0);
+    expect(underwater.refiType).toBe("NO_REFI");
+    expect(underwater.readinessFactors.find((factor) => factor.factor === "Equity")?.status).toBe("FAIL");
+  });
+
+  it("returns review rather than favorable zeros for a zero property value", () => {
+    const invalid = analyzeRefi(
+      { ...property, purchasePrice: 0 },
+      borrower,
+      currentLoan,
+      12,
+      0,
+      6.5,
+    );
+    expect(invalid.status).toBe("REVIEW");
+    expect(invalid.refiType).toBe("NO_REFI");
+    expect(invalid.refiReadinessScore).toBe(0);
+    expect(invalid.readinessFactors.every((factor) => factor.status === "FAIL")).toBe(true);
+    expect(invalid.reviewReasons.join(" ")).toMatch(/property value/i);
+  });
+
+  it.each([-1, 100, Number.POSITIVE_INFINITY])(
+    "returns review for an invalid projected rate of %s",
+    (rate) => {
+      const invalid = analyzeRefi(property, borrower, currentLoan, 12, 0, rate);
+      expect(invalid.status).toBe("REVIEW");
+      expect(invalid.refiReadinessScore).toBe(0);
+      expect(invalid.projectedRefiRate).toBe(0);
+    },
+  );
+
+  it("does not infer delayed-financing eligibility from incomplete inputs", () => {
+    const result = analyzeRefi(property, borrower, currentLoan, 1, 0, 6.5);
+    expect(result.delayedFinancingAvailable).toBe(false);
+  });
+
+  it("keeps every numeric output finite for valid boundary scenarios", () => {
+    const result = analyzeRefi(property, borrower, currentLoan, 1200, 100, 25);
+    const outputs = [
+      result.currentDSCR,
+      result.projectedRefiDSCR,
+      result.projectedRefiRate,
+      result.projectedRefiPayment,
+      result.monthlySavings,
+      result.breakEvenMonths,
+      result.appreciationNeeded,
+      result.cashOutMaxAmount,
+      result.refiReadinessScore,
+    ];
+    expect(result.status).toBe("AVAILABLE");
+    expect(outputs.every(Number.isFinite)).toBe(true);
+    expect(result.cashOutMaxAmount).toBeLessThanOrEqual(property.purchasePrice * 2 * 0.7);
   });
 });

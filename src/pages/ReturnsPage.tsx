@@ -1,12 +1,20 @@
 import React, { useState, useRef, useCallback } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
-import { computeReturns } from "../engine/returnsEngine";
+import { computeRemainingBalance, computeReturns } from "../engine/returnsEngine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 const RED    = "#e06363";
 const ORANGE = "#e6b84d";
+const CAPEX_RESERVE_PCT = 5;
+
+function ioMonths(ioPeriod: LoanStructure["ioPeriod"]): number {
+  if (ioPeriod === "5_YR") return 60;
+  if (ioPeriod === "7_YR") return 84;
+  if (ioPeriod === "10_YR") return 120;
+  return 0;
+}
 
 function fmt$(n: number) {
   return "$" + Math.round(n).toLocaleString("en-US");
@@ -27,21 +35,36 @@ function calcIRR(opts: {
   rentGrowth: number;
   vacancy: number;
   prepayAtExit: number;
+  closingCosts: number;
+  ioPeriod: LoanStructure["ioPeriod"];
 }): number {
-  const { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit } = opts;
+  const { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit, closingCosts, ioPeriod } = opts;
+  if (![purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit, closingCosts].every(Number.isFinite) || exitCapRate <= 0) return NaN;
   const loan    = purchasePrice * (ltv / 100);
-  const cashInv = purchasePrice - loan;
+  const cashInv = purchasePrice - loan + closingCosts;
+  if (cashInv <= 0) return NaN;
   const r       = rate / 100 / 12;
   const n       = 360;
-  const piMo    = r === 0
-    ? loan / n
-    : (loan * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  const io       = ioMonths(ioPeriod);
+  const amortN   = n - io;
+  const piMo     = r === 0
+    ? loan / amortN
+    : (loan * r * Math.pow(1 + r, amortN)) / (Math.pow(1 + r, amortN) - 1);
+  const debtForYear = (year: number) => {
+    let total = 0;
+    for (let month = (year - 1) * 12 + 1; month <= year * 12; month++) {
+      total += month <= io ? loan * r : piMo;
+    }
+    return total;
+  };
 
   const remBal = (elapsed: number) => {
+    if (elapsed <= io) return loan;
     if (elapsed >= n) return 0;
-    if (r === 0) return loan * (1 - elapsed / n);
-    const f = Math.pow(1 + r, n);
-    const e = Math.pow(1 + r, elapsed);
+    const amortElapsed = elapsed - io;
+    if (r === 0) return loan * (1 - amortElapsed / amortN);
+    const f = Math.pow(1 + r, amortN);
+    const e = Math.pow(1 + r, amortElapsed);
     return Math.max(0, (loan * (f - e)) / (f - 1));
   };
 
@@ -52,17 +75,19 @@ function calcIRR(opts: {
   const noiForYear = (yrOffset: number) => {
     const gross = monthlyRent * 12 * Math.pow(1 + rentGrowth / 100, yrOffset);
     const egi   = gross * (1 - vacancy / 100);
-    return egi - annualTaxes - annualInsurance - hoa * 12 - gross * (OPEX_PCT / 100);
+    const noi = egi - annualTaxes - annualInsurance - hoa * 12 - gross * (OPEX_PCT / 100);
+    const capex = egi * (CAPEX_RESERVE_PCT / 100);
+    return { noi, capex };
   };
 
   for (let yr = 1; yr <= hold; yr++) {
-    const noi = noiForYear(yr - 1);
-    let cf = noi - piMo * 12;
+    const { noi, capex } = noiForYear(yr - 1);
+    let cf = noi - capex - debtForYear(yr);
     if (yr === hold) {
-      const stabNOI = noiForYear(yr);
+      const stabNOI = noiForYear(yr).noi;
       const exit    = stabNOI / (exitCapRate / 100);
       const bal     = remBal(hold * 12);
-      cf += exit - exit * 0.06 - bal - loan * (prepayAtExit / 100);
+      cf += exit - exit * 0.06 - bal - bal * (prepayAtExit / 100);
     }
     cfs.push(cf);
   }
@@ -185,21 +210,31 @@ type JPoint = { year: number; cum: number; exit?: boolean };
 function buildJourney(o: {
   purchasePrice: number; ltv: number; rate: number; monthlyRent: number; annualTaxes: number;
   annualInsurance: number; hoa: number; holdYears: number; exitCapRate: number; rentGrowth: number; vacancy: number; prepayAtExit: number;
+  closingCosts: number; ioPeriod: LoanStructure["ioPeriod"];
 }): JPoint[] {
   const loan = o.purchasePrice * (o.ltv / 100);
-  const cashInv = o.purchasePrice - loan;
+  const cashInv = o.purchasePrice - loan + o.closingCosts;
   const r = o.rate / 100 / 12;
-  const pmt = r === 0 ? loan / 360 : (loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
-  const annualDS = pmt * 12;
+  const io = ioMonths(o.ioPeriod);
+  const amortN = 360 - io;
+  const pmt = r === 0 ? loan / amortN : (loan * r * Math.pow(1 + r, amortN)) / (Math.pow(1 + r, amortN) - 1);
   const fixed = o.annualTaxes + o.annualInsurance + o.hoa * 12;
   let cum = -cashInv, bal = loan;
   const pts: JPoint[] = [{ year: 0, cum }];
   const hold = Math.max(1, Math.round(o.holdYears));
   for (let y = 1; y <= hold; y++) {
-    const rent = o.monthlyRent * 12 * Math.pow(1 + o.rentGrowth / 100, y - 1) * (1 - o.vacancy / 100);
-    const noi = rent - fixed;
-    cum += noi - annualDS;
-    for (let m = 0; m < 12; m++) bal -= pmt - bal * r;
+    const gross = o.monthlyRent * 12 * Math.pow(1 + o.rentGrowth / 100, y - 1);
+    const egi = gross * (1 - o.vacancy / 100);
+    const noi = egi - fixed - gross * 0.15;
+    const capex = egi * (CAPEX_RESERVE_PCT / 100);
+    let annualDS = 0;
+    for (let m = (y - 1) * 12 + 1; m <= y * 12; m++) {
+      const interest = bal * r;
+      const monthPmt = m <= io ? loan * r : pmt;
+      annualDS += monthPmt;
+      if (m > io) bal = Math.max(0, bal - (pmt - interest));
+    }
+    cum += noi - capex - annualDS;
     if (y === hold) {
       const exitVal = o.exitCapRate > 0 ? noi / (o.exitCapRate / 100) : 0;
       const net = exitVal - exitVal * 0.07 - Math.max(0, bal) - (o.prepayAtExit / 100) * Math.max(0, bal);
@@ -269,6 +304,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   const [rentGrowth,      setRentGrowth]      = useState(4);
   const [vacancy,         setVacancy]         = useState(5);
   const [prepayAtExit,    setPrepayAtExit]    = useState(2);
+  const [closingCosts,    setClosingCosts]    = useState(12000);
+  const [ioPeriod,        setIoPeriod]        = useState<LoanStructure["ioPeriod"]>("NONE");
 
   // cause→effect highlight
   const [lastChanged, setLastChanged] = useState<string | null>(null);
@@ -302,21 +339,23 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
         isCondotel: false, isNonWarrantable: false, isRural: false, isDecliningMarket: false, hoaSTRPolicy: "UNKNOWN",
       };
       const loan: LoanStructure = {
-        ltv, term: "30_YR", ioPeriod: "NONE", armType: "FIXED", prepayPreference: "321",
+        ltv, term: "30_YR", ioPeriod, armType: "FIXED", prepayPreference: "321",
         purpose: "PURCHASE", expectedHoldYears: holdYears, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0,
       };
-      const penalty = (prepayAtExit / 100) * (purchasePrice * (1 - ltv / 100));
-      return computeReturns(property, loan, monthlyRent, "LTR", rate, penalty);
+      const loanAmount = purchasePrice * (ltv / 100);
+      const balanceAtExit = computeRemainingBalance(loanAmount, rate, 360, holdYears * 12, ioMonths(ioPeriod));
+      const penalty = (prepayAtExit / 100) * balanceAtExit;
+      return computeReturns(property, loan, monthlyRent, "LTR", rate, penalty, purchasePrice - loanAmount + closingCosts);
     } catch { return null; }
-  }, [purchasePrice, ltv, monthlyRent, rate, holdYears, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa, prepayAtExit]);
+  }, [purchasePrice, ltv, monthlyRent, rate, holdYears, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa, prepayAtExit, closingCosts, ioPeriod]);
 
   // ── derived ───────────────────────────────────────────────────────────────
-  const irrOpts = { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit };
+  const irrOpts = { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit, closingCosts, ioPeriod };
 
   const levIRR = calcIRR(irrOpts) * 100;
   const unlIRR = calcIRR({ ...irrOpts, ltv: 0 }) * 100;
 
-  const cashInv = purchasePrice * (1 - ltv / 100);
+  const cashInv = purchasePrice * (1 - ltv / 100) + closingCosts;
   const em      = engineResult !== null ? engineResult.equityMultiple : 1;
 
   const pct  = (v: number) => (Number.isFinite(v) ? v.toFixed(1) + "%" : "—");
@@ -325,13 +364,13 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   const irrColor   = levIRR >= 12 ? dc.emerald : levIRR >= 8 ? dc.lemon : RED;
 
   // verdict
-  const verdictLabel = levIRR >= 12 ? "STRONG DEAL" : levIRR >= 8 ? "WORKABLE" : Number.isFinite(levIRR) ? "WEAK" : "—";
+  const verdictLabel = levIRR >= 12 ? "UPPER MODEL BAND" : levIRR >= 8 ? "MIDDLE MODEL BAND" : Number.isFinite(levIRR) ? "LOWER MODEL BAND" : "—";
   const verdictText  = levIRR >= 12
-    ? "IRR above 12% — this deal is working hard relative to the risk. The rent is well above debt service."
+    ? "Modeled IRR is above the interface's 12% comparison band. This is not a risk-adjusted suitability conclusion."
     : levIRR >= 8
-    ? "IRR between 8–12% — acceptable, but look for ways to reduce the purchase price, increase rent, or tighten vacancy."
+    ? "Modeled IRR is within the interface's 8-12% comparison band. The band is not a market standard or recommendation."
     : Number.isFinite(levIRR)
-    ? "IRR below 8% — the deal may not reward the risk. Try a lower price, higher rent, or a shorter prepay structure."
+    ? "Modeled IRR is below the interface's 8% comparison band. Review the assumptions and sensitivity range without treating the result as advice."
     : "Adjust inputs to compute your IRR.";
 
   // engine returns (already %)
@@ -344,7 +383,13 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   const annualNOI  = entryCapRate > 0 ? purchasePrice * (entryCapRate / 100) : 0;
   const r_         = rate / 100 / 12;
   const loan_      = purchasePrice * (ltv / 100);
-  const piMoCalc   = r_ === 0 ? loan_ / 360 : (loan_ * r_ * Math.pow(1 + r_, 360)) / (Math.pow(1 + r_, 360) - 1);
+  const ioMonths_ = ioMonths(ioPeriod);
+  const amortMonths_ = 360 - ioMonths_;
+  const piMoCalc = ioMonths_ > 0
+    ? loan_ * r_
+    : r_ === 0
+    ? loan_ / amortMonths_
+    : (loan_ * r_ * Math.pow(1 + r_, amortMonths_)) / (Math.pow(1 + r_, amortMonths_) - 1);
   const annualPITIA = piMoCalc * 12;
   const dscrValue   = annualPITIA > 0 ? annualNOI / annualPITIA : 1.5;
   const dscrRisk    = riskFromDscr(dscrValue);
@@ -369,7 +414,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
       cta={{ label: "Compute IRR →", onClick: scrollToTool }}
     >
       <style>{`
-        @media(max-width:640px){ .rt-metric-grid{grid-template-columns:1fr 1fr !important;} }
+        .rt-input-panel{min-width:0;}
+        @media(max-width:640px){ .rt-metric-grid{grid-template-columns:1fr 1fr !important;} .rt-input-panel{padding:20px !important;} }
         @media(max-width:400px){ .rt-metric-grid{grid-template-columns:1fr !important;} }
       `}</style>
       {/* ── HERO ──────────────────────────────────────────────────────── */}
@@ -414,7 +460,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               Cash-on-cash return (yearly cash flow as a % of the cash you put in), IRR (the annualized return on your equity, accounting for the full exit), and equity multiple — from day one through the sale.
             </Lead>
             <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 13, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
-              Tip: adjust inputs on the left. The IRR updates live. Then check the sensitivity table to see if the deal still works under slower rent growth or an earlier exit.
+            Adjust inputs on the left and use the sensitivity table to compare how the model changes under different rent-growth and hold-period assumptions.
             </p>
             <Btn label="Run the returns engine ↓" href="#rt-tool" onClick={scrollToTool} />
           </div>
@@ -427,7 +473,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             </div>
             <ReturnsJourney pts={journeyPts} />
             <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "14px 0 16px", lineHeight: 1.55 }}>
-              You put <strong style={{ color: dc.cream }}>{"$" + Math.round(cashInv).toLocaleString("en-US")}</strong> down, collect cash flow each year, then the sale in year {holdYears} returns the rest. The line crossing break-even is when your capital is back — the final point is total profit.
+              The model assumes <strong style={{ color: dc.cream }}>{"$" + Math.round(cashInv).toLocaleString("en-US")}</strong> of initial equity, annual modeled cash flow, and a sale in year {holdYears}. The break-even crossing and final profit are projections from those inputs, not promised outcomes.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, borderTop: "1px solid rgba(238,239,211,0.16)", paddingTop: 16 }}>
               {[
@@ -474,7 +520,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 32, alignItems: "start" }}>
 
             {/* ── INPUTS ─────────────────────────────────────────────── */}
-            <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.16)" }}>
+            <div className="rt-input-panel" style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.16)" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                 Deal inputs
               </div>
@@ -518,7 +564,17 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                   <SliderField label="Annual Taxes" value={annualTaxes} set={setAnnualTaxes} min={0} max={30000} step={250} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
                   <SliderField label="Annual Insurance" value={annualInsurance} set={setAnnualInsurance} min={0} max={15000} step={100} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
                   <SliderField label="HOA /mo" value={hoa} set={setHoa} min={0} max={1500} step={25} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
+                  <SliderField label="Closing costs" hint="Cash paid at acquisition in addition to the down payment." value={closingCosts} set={setClosingCosts} min={0} max={150000} step={500} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
                   <SliderField label="Prepay penalty at exit %" hint="Applied to the remaining loan balance." value={prepayAtExit} set={setPrepayAtExit} min={0} max={5} step={0.5} suffix="%" fmt={(v) => v.toFixed(1)} />
+                  <label style={{ display: "block", marginTop: 14 }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 5 }}>Interest-only period</span>
+                    <select value={ioPeriod} onChange={(e) => setIoPeriod(e.target.value as LoanStructure["ioPeriod"])} style={{ width: "100%", minWidth: 0, padding: "11px 12px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.16)", background: dc.dark, color: dc.cream, fontFamily: dc.sans }}>
+                      <option value="NONE">None</option>
+                      <option value="5_YR">5 years</option>
+                      <option value="7_YR">7 years</option>
+                      <option value="10_YR">10 years</option>
+                    </select>
+                  </label>
                 </div>
               </Disclosure>
             </div>
@@ -546,10 +602,10 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 </div>
                 <div className="rt-metric-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                   {[
-                    { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Year 1 cash flow ÷ cash invested. Good: ≥8%" },
+            { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Modeled year-one cash flow / modeled cash invested" },
                     { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream, hint: "IRR if you paid all cash — no loan" },
                     { label: "Equity Multiple", val: emStr, color: dc.emerald, hint: "Total cash returned ÷ cash invested" },
-                    { label: "Cash Invested", val: fmt$(cashInv), color: dc.cream, hint: "Down payment only" },
+                    { label: "Cash Invested", val: fmt$(cashInv), color: dc.cream, hint: "Down payment plus entered closing costs" },
                     { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", color: dc.cream, hint: "Net operating income ÷ purchase price" },
                     { label: "Debt Yield", val: debtYield.toFixed(2) + "%", color: dc.cream, hint: "Net income ÷ loan amount (lender metric)" },
                   ].map((r) => (
@@ -582,7 +638,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                   </div>
                   <p style={{ fontSize: 13, color: "rgba(238,239,211,0.6)", margin: 0, lineHeight: 1.5 }}>
                     DSCR (debt-service coverage ratio) measures whether the property's net income covers the full loan payment. <strong>{dscrValue.toFixed(2)}x</strong> means the income is {dscrValue >= 1 ? `${((dscrValue - 1) * 100).toFixed(0)}% above the break-even point` : `${((1 - dscrValue) * 100).toFixed(0)}% short of covering costs`}.
-                    {dscrValue >= 1.25 ? " Most lenders are comfortable here." : dscrValue >= 1.0 ? " Most lenders require ≥1.25; consider increasing rent or reducing the loan." : " Below lender minimums — deal will likely not qualify as-is."}
+              {dscrValue >= 1.25 ? " This is the model's upper coverage band." : dscrValue >= 1.0 ? " This is the model's middle coverage band." : " Entered rent is below the modeled payment; lender treatment is not determined here."}
                   </p>
                 </div>
               </div>
@@ -593,7 +649,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                   Sensitivity table — Levered IRR
                 </div>
                 <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
-                  How your IRR changes under different hold periods (rows) and rent-growth rates (columns). Teal cells (≥14%) are strong; amber is acceptable; red needs work. Your current inputs are the base case.
+            How modeled IRR changes under different hold periods and rent-growth assumptions. Colors are comparison bands selected by this interface, not investment ratings. Your current inputs are the base case.
                 </p>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380, fontFamily: dc.mono }}>
@@ -645,12 +701,12 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               <Disclosure label="Full return stack — cap rate, yield on cost, debt yield">
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {[
-                    { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", hint: "NOI ÷ purchase price. Good: ≥5% for most markets." },
+              { label: "Cap Rate (entry)", val: entryCapRate.toFixed(2) + "%", hint: "Modeled NOI / purchase price; no universal target is assumed" },
                     { label: "Yield on Cost", val: yoc.toFixed(2) + "%", hint: "NOI ÷ total cost basis (including closing costs). Reflects true all-in yield." },
                     { label: "Debt Yield", val: debtYield.toFixed(2) + "%", hint: "NOI ÷ loan amount. Lenders typically require ≥8–10%." },
                     { label: "Cash-on-Cash (year 1)", val: coc.toFixed(1) + "%", hint: "After-debt cash flow ÷ cash invested. ≥8% = strong starting yield." },
                     { label: "Unlevered IRR", val: pct(unlIRR), hint: "IRR assuming no debt. Baseline return on the asset itself." },
-                    { label: "Levered IRR", val: irrStr, hint: "Annualized return on your equity. ≥12% = strong on DSCR rentals." },
+              { label: "Levered IRR", val: irrStr, hint: "Modeled annualized return on equity under the entered cash flows" },
                     { label: "Equity Multiple", val: emStr, hint: "Total proceeds ÷ cash invested. 1.5× over 5yr ≈ 8.4% IRR." },
                   ].map((row) => (
                     <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)", gap: 12 }}>
@@ -666,7 +722,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
 
               {/* Disclaimer */}
               <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
-                Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Submit a scenario review for exact underwriting.
+            Illustrative return model only, not investment, tax, legal, or lending advice. IRR and equity multiple depend on the entered financing, 15% operating-expense assumption, 5% of effective gross income CapEx reserve, vacancy, rent growth, exit cap rate, sale timing, prepayment input, closing costs, and other omitted costs. Actual outcomes can differ materially.
               </p>
             </div>
           </div>
@@ -682,14 +738,14 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 Ready to move forward?
               </div>
               <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
-                Lock the numbers in. Get your rate.
+              Review the financing assumptions.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
                 Submit once. Greenstreet places your file in the best-fit program and funds it — no re-keying the same numbers five times.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
+            <Btn label="Review my scenario" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
               <Btn label="See matching programs" variant="secondary" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} />
             </div>
           </div>

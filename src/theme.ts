@@ -16,6 +16,10 @@ export const swatch = {
   white: "#fff",
 } as const;
 
+// The default remains a light, warm-neutral brand surface. Dark is opt-in and
+// no palette selection is inferred from a forced dark or purple color bias.
+export const defaultThemeName = "light" as const;
+
 // Back-compat aliases (names used across existing pages)
 export const PISTACHIO = swatch.pistachio;
 export const MINT_BG = swatch.mint;
@@ -74,8 +78,9 @@ export const themes = {
     card: swatch.mint,
     cardText: swatch.midnight,
     border: swatch.midnightFaded,
-    btnBg: swatch.lemon, btnText: swatch.midnight,
+    btnBg: swatch.lemon, btnText: swatch.midnight, btnBorder: swatch.midnight,
     btnHoverBg: swatch.midnight, btnHoverText: swatch.mint,
+    focusRing: swatch.midnight,
   },
   // mint surface, midnight ink (secondary band)
   brand: {
@@ -85,19 +90,49 @@ export const themes = {
     card: swatch.pistachio,
     cardText: swatch.midnight,
     border: swatch.midnightFaded,
-    btnBg: swatch.midnight, btnText: swatch.mint,
+    btnBg: swatch.midnight, btnText: swatch.mint, btnBorder: swatch.midnight,
     btnHoverBg: swatch.lemon, btnHoverText: swatch.midnight,
+    focusRing: swatch.midnight,
   },
   // midnight/dark-teal surface, pistachio ink (dark band, e.g. footer/CTA)
   dark: {
     bg: swatch.midnight,
     text: swatch.pistachio,
-    muted: "#9fb0a8",
+    muted: "rgba(238,239,211,0.76)",
     card: swatch.darkTeal,
     cardText: swatch.pistachio,
     border: "rgba(238,239,211,0.16)",
-    btnBg: swatch.lemon, btnText: swatch.midnight,
+    btnBg: swatch.lemon, btnText: swatch.midnight, btnBorder: swatch.lemon,
     btnHoverBg: swatch.pistachio, btnHoverText: swatch.midnight,
+    focusRing: swatch.lemon,
+  },
+} as const;
+
+// Focus indicators are at least 3px and use high-contrast colors paired to the
+// adjacent surface. Consumers should select the color from the active theme.
+export const focus = {
+  width: "3px",
+  offset: "3px",
+  style: "solid",
+  onLight: swatch.midnight,
+  onDark: swatch.lemon,
+} as const;
+
+// Motion is opt-in and has one explicit reduced-motion path. Components should
+// apply `reducedDuration` inside the exported media query.
+export const motion = {
+  reducedMotionQuery: "(prefers-reduced-motion: reduce)",
+  reducedDuration: "0.01ms",
+  duration: {
+    instant: "0ms",
+    fast: "160ms",
+    standard: "240ms",
+    slow: "420ms",
+  },
+  easing: {
+    standard: "cubic-bezier(0.2, 0, 0, 1)",
+    enter: "cubic-bezier(0, 0, 0.2, 1)",
+    exit: "cubic-bezier(0.4, 0, 1, 1)",
   },
 } as const;
 
@@ -129,14 +164,14 @@ export const tracking = {
 export const onDark = {
   primary: "#eeefd3",
   dim: "rgba(238,239,211,0.85)",
-  secondary: "rgba(238,239,211,0.62)",
-  tertiary: "rgba(238,239,211,0.5)",   // large/secondary text only
+  secondary: "rgba(238,239,211,0.76)",
+  tertiary: "rgba(238,239,211,0.66)",  // AA-oriented supporting text
   faint: "rgba(238,239,211,0.4)",      // decorative dividers, never body
 } as const;
 export const onLight = {
   primary: "#003738",
-  secondary: "rgba(0,55,56,0.66)",
-  tertiary: "rgba(0,55,56,0.5)",
+  secondary: "rgba(0,55,56,0.78)",
+  tertiary: "rgba(0,55,56,0.68)",
 } as const;
 
 // ── Deal-depth ground ramp ────────────────────────────────────────────────────
@@ -156,3 +191,30 @@ export const depth = {
 export const size = {
   xs: 11, sm: 13, base: 15, md: 18, lg: 22, xl: 30, "2xl": 44, "3xl": 64,
 } as const;
+
+/** Clamp untrusted numeric style input to a finite range. */
+export function safeStyleNumber(
+  value: number,
+  fallback = 0,
+  min = -10_000,
+  max = 10_000,
+): number {
+  const safeFallback = Number.isFinite(fallback) ? fallback : 0;
+  const safeMin = Number.isFinite(min) ? min : -10_000;
+  const safeMax = Number.isFinite(max) ? max : 10_000;
+  const lower = Math.min(safeMin, safeMax);
+  const upper = Math.max(safeMin, safeMax);
+  const candidate = Number.isFinite(value) ? value : safeFallback;
+  const clamped = Math.min(upper, Math.max(lower, candidate));
+  return Object.is(clamped, -0) ? 0 : clamped;
+}
+
+/** Convert numeric layout input to a finite, non-negative pixel value. */
+export function safePx(value: number, fallback = 0, max = 10_000): string {
+  return `${safeStyleNumber(value, fallback, 0, max)}px`;
+}
+
+/** Convert numeric timing input to a finite, non-negative millisecond value. */
+export function safeMs(value: number, fallback = 0, max = 60_000): string {
+  return `${safeStyleNumber(value, fallback, 0, max)}ms`;
+}

@@ -1,144 +1,102 @@
 import React, { useEffect, useState } from "react";
-import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
-import { radius, font } from "../theme";
-import BottomCTA from "../design/BottomCTA";
+import { DcShell, dc } from "../design/dc";
+import { Mono } from "../components/PremiumUI";
 
-// ── Who-We-Serve: Vacation & Second Homes ─────────────────────────────────────
-// Signature: the Use-vs-Earn slider — split the month between nights you keep and
-// nights you rent; watch the rental income offset your payment. The getaway that
-// pays for itself.
+type PageProps = { onBack?: () => void; onNavigate: (view: any) => void };
 
-const BLUE = "#7ec8d3";
-const fmt$ = (n: number) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
-
-export default function VacationHomesPage({
-  onBack: _onBack,
-  onNavigate,
-}: {
-  onBack: () => void;
-  onNavigate: (v: any) => void;
-}) {
+function usePageMetadata(title: string, description: string, path: string) {
   useEffect(() => {
-    document.title = "Vacation & Second Home DSCR Loans | Greenstreet Finance";
+    document.title = title;
+    const setMeta = (key: string, value: string, property = false) => {
+      const attr = property ? "property" : "name";
+      let node = document.head.querySelector("meta[" + attr + "='" + key + "']") as HTMLMetaElement | null;
+      if (!node) { node = document.createElement("meta"); node.setAttribute(attr, key); document.head.appendChild(node); }
+      node.content = value;
+    };
+    setMeta("description", description);
+    setMeta("og:title", title, true);
+    setMeta("og:description", description, true);
+    let canonical = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = new URL(path, window.location.origin).href;
     window.scrollTo(0, 0);
-  }, []);
+  }, [description, path, title]);
+}
 
-  const [rentNights, setRentNights] = useState(14);
-  const [adr, setAdr] = useState(255);
-  const [pay, setPay] = useState(3100);
+const money = (value: number) => Number.isFinite(value) ? "$" + Math.round(value).toLocaleString("en-US") : "Unavailable";
 
-  const useNights = 30 - rentNights;
-  const income = adr * rentNights; // booked nights you rent out
-  const net = pay - income; // out-of-pocket carry after rental income
-  const offsetPct = Math.min(100, Math.round((income / pay) * 100));
-  const paysForItself = net <= 0;
-
-  const numIn = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
-    <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
-      <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)} style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
-    </div>
+export default function VacationHomesPage({ onNavigate }: PageProps) {
+  usePageMetadata(
+    "Vacation Rental Use and DSCR Scenario Guide | Greenstreet Finance",
+    "Compare personal-use and gross rental-income assumptions for a vacation property while reviewing occupancy, business-purpose, cost, and eligibility limits.",
+    "/vacation-homes",
   );
 
-  const navLinks = [
-    { label: "STR Underwriting", view: "str-underwriting" },
-    { label: "DSCR Calc", view: "dscr-calculator" },
-    { label: "Programs", view: "lender-intel" },
-  ];
+  const [rentedNights, setRentedNights] = useState(14);
+  const [nightlyRate, setNightlyRate] = useState(255);
+  const [payment, setPayment] = useState(3100);
+  const [operatingCostPct, setOperatingCostPct] = useState(30);
+
+  const valid = [rentedNights, nightlyRate, payment, operatingCostPct].every(Number.isFinite)
+    && rentedNights >= 0 && rentedNights <= 30 && nightlyRate >= 0 && payment > 0 && operatingCostPct >= 0 && operatingCostPct <= 100;
+  const personalNights = valid ? 30 - rentedNights : 0;
+  const grossIncome = valid ? nightlyRate * rentedNights : NaN;
+  const modeledOperatingCosts = valid ? grossIncome * operatingCostPct / 100 : NaN;
+  const netBeforeDebt = valid ? grossIncome - modeledOperatingCosts : NaN;
+  const carry = valid ? payment - netBeforeDebt : NaN;
+  const offset = valid && payment > 0 ? Math.max(0, Math.min(100, netBeforeDebt / payment * 100)) : NaN;
+  const finiteResult = valid && [grossIncome, modeledOperatingCosts, netBeforeDebt, carry, offset].every(Number.isFinite);
+
+  const update = (setter: (value: number) => void) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const next = event.currentTarget.valueAsNumber;
+    setter(Number.isFinite(next) ? next : 0);
+  };
 
   return (
-    <DcShell onNavigate={onNavigate} accent={dc.teal} navLinks={navLinks} cta={{ label: "Run my second home →", view: "dscr-calculator" }}>
-      <style>{`@media(max-width:760px){.vac-grid{grid-template-columns:1fr !important;}}`}</style>
+    <DcShell onNavigate={onNavigate} accent={dc.teal} navLinks={[{ label: "Solutions", view: "solutions" }, { label: "STR Guide", view: "str-hosts" }, { label: "DSCR Calc", view: "dscr-calculator" }]} cta={{ label: "Model rental use", view: "dscr-calculator" }}>
+      <style>{`
+        .vh-page{background:#003738;color:#eeefd3}.vh-wrap{width:min(1160px,calc(100% - 40px));margin:auto}.vh-hero{background:#0b4d4d;padding:clamp(68px,10vw,124px) 0}.vh-hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(34px,6vw,84px);align-items:center}
+        .vh-kicker{font-size:.75rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#d8d958}.vh-hero h1{font-size:clamp(2.6rem,6.6vw,5.8rem);line-height:.94;letter-spacing:-.045em;margin:18px 0 24px;max-width:13ch}.vh-lead{font-size:clamp(1.05rem,1.9vw,1.3rem);line-height:1.6;color:rgba(238,239,211,.76);max-width:62ch}
+        .vh-callout{background:#003738;border:1px solid rgba(238,239,211,.16);border-radius:12px;padding:clamp(22px,3vw,34px)}.vh-callout h2{font-size:clamp(1.5rem,2.8vw,2.3rem);line-height:1.1;margin:0 0 14px}.vh-callout p{line-height:1.65;color:rgba(238,239,211,.7);margin:0}.vh-callout strong{color:#d8d958}
+        .vh-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.vh-link{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:7px;background:#d8d958;color:#003738;font-weight:800;text-decoration:none}.vh-link.secondary{background:transparent;color:#eeefd3;border:1px solid rgba(238,239,211,.34)}
+        .vh-model,.vh-paths{padding:clamp(66px,8vw,110px) 0}.vh-page h2{font-size:clamp(2rem,4vw,3.8rem);line-height:1;letter-spacing:-.04em;margin:12px 0 18px}.vh-intro{color:rgba(238,239,211,.68);line-height:1.65;max-width:70ch}
+        .vh-model-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:34px}.vh-form,.vh-result{background:#0b4d4d;border:1px solid rgba(238,239,211,.15);border-radius:12px;padding:clamp(22px,3vw,32px)}.vh-form fieldset{border:0;padding:0;margin:0}.vh-form legend{font-size:1.25rem;font-weight:800;margin-bottom:20px}
+        .vh-split-label{display:flex;justify-content:space-between;gap:12px;font-size:.9rem;font-weight:800;margin-bottom:10px}.vh-split{display:flex;height:34px;border-radius:7px;overflow:hidden;margin-bottom:14px}.vh-use{background:#d8d958;color:#003738}.vh-rent{background:#7ec8d3;color:#003738}.vh-use,.vh-rent{display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900}
+        .vh-form input[type=range]{width:100%}.vh-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}.vh-field label{display:block;font-size:.75rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}.vh-field input[type=number]{box-sizing:border-box;width:100%;min-height:46px;background:#003738;color:#eeefd3;border:1px solid rgba(238,239,211,.24);border-radius:7px;padding:10px;font:inherit}
+        .vh-help{font-size:.83rem;line-height:1.5;color:rgba(238,239,211,.58);margin:18px 0 0}.vh-result{display:flex;flex-direction:column;justify-content:center}.vh-result-value{font-size:clamp(3rem,7vw,5.6rem);line-height:.9;color:#7ec8d3}.vh-result h3{font-size:1.35rem;margin:14px 0 8px}.vh-result p{color:rgba(238,239,211,.68);line-height:1.6}.vh-error{color:#ffd1cb;border-left:4px solid #e06363;padding-left:14px}
+        .vh-paths{background:#0b4d4d}.vh-path-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:34px}.vh-card{background:#003738;border:1px solid rgba(238,239,211,.15);border-radius:10px;padding:24px}.vh-card h3{margin:0 0 10px}.vh-card p{margin:0;color:rgba(238,239,211,.66);line-height:1.6}
+        .vh-close{background:#dfe7c5;color:#003738;padding:clamp(58px,8vw,92px) 0}.vh-close-grid{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}.vh-close p{color:rgba(0,55,56,.7);line-height:1.6;max-width:62ch}.vh-close .vh-link.secondary{color:#003738;border-color:rgba(0,55,56,.3)}
+        .vh-page a:focus-visible,.vh-page input:focus-visible{outline:3px solid #7ec8d3;outline-offset:4px}
+        @media(max-width:760px){.vh-wrap{width:min(100% - 28px,1160px)}.vh-hero-grid,.vh-model-grid,.vh-path-grid,.vh-close-grid,.vh-fields{grid-template-columns:1fr}.vh-actions .vh-link{width:100%}.vh-hero h1{overflow-wrap:anywhere}.vh-split-label{font-size:.78rem}}
+      `}</style>
+      <div className="vh-page">
+        <header className="vh-hero"><div className="vh-wrap vh-hero-grid"><div><div className="vh-kicker">For vacation-rental owners</div><h1>Decide occupancy before modeling the rental income.</h1><p className="vh-lead">A property used personally and a non-owner-occupied investment property may follow different financing rules. Model cash flow only after describing the intended use accurately.</p><div className="vh-actions"><a className="vh-link" href="#vacation-model">Compare use and income</a><a className="vh-link secondary" href="#occupancy-paths">Review occupancy limits</a></div></div>
+          <aside className="vh-callout" aria-labelledby="vh-answer-heading"><h2 id="vh-answer-heading">Can a vacation home use DSCR financing?</h2><p><strong>It depends on occupancy and business purpose.</strong> DSCR financing is generally designed for non-owner-occupied investment property. Planned personal use may make the property ineligible for that path or require a different financing category.</p></aside></div></header>
 
-      {/* HERO */}
-      <section style={{ position: "relative", background: dc.teal, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
-        <div className="gs-dot-grid" />
-        <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Vacation &amp; Second Homes</div>
-            <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>The getaway that pays for itself.</H1>
-            <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
-              Keep the weeks you want. Rent the rest. A second home financed as an investment qualifies on the nights you let — so your escape carries part of its own payment.
-            </Lead>
-            <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Run my second home →</button>
-          </div>
-          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 14 }}>Your month, split</div>
-            <div style={{ display: "flex", height: 22, borderRadius: 100, overflow: "hidden", marginBottom: 8 }}>
-              <div style={{ width: `${(useNights / 30) * 100}%`, background: dc.lemon, transition: "width .25s" }} />
-              <div style={{ width: `${(rentNights / 30) * 100}%`, background: BLUE, transition: "width .25s" }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>
-              <span><b style={{ color: dc.lemon }}>{useNights}</b> nights yours</span>
-              <span><b style={{ color: BLUE }}>{rentNights}</b> nights rented</span>
-            </div>
-            <Mono style={{ fontSize: "clamp(30px,4vw,44px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{paysForItself ? "Pays for itself" : fmt$(net) + "/mo"}</Mono>
-            <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{paysForItself ? `rental income covers the ${fmt$(pay)} payment` : `your carry after ${fmt$(income)} rental income`}</div>
-          </div>
-        </div>
-      </section>
+        <section id="vacation-model" className="vh-model" aria-labelledby="vh-model-heading"><div className="vh-wrap"><div className="vh-kicker">Illustrative use-versus-income model</div><h2 id="vh-model-heading">Estimate net income before debt, not eligibility.</h2><p className="vh-intro">This planning model applies an editable operating-cost percentage to gross booked-night revenue, then compares the remainder with the entered payment. It does not account for every cost, tax, vacancy pattern, or provider rule.</p>
+          <div className="vh-model-grid">
+            <form className="vh-form" onSubmit={(event) => event.preventDefault()}><fieldset><legend>Monthly use assumptions</legend>
+              <div className="vh-split-label"><span>{personalNights} personal-use nights</span><span>{rentedNights} rented nights</span></div>
+              <div className="vh-split" aria-hidden="true"><div className="vh-use" style={{ width: personalNights / 30 * 100 + "%" }}>{personalNights > 4 ? "USE" : ""}</div><div className="vh-rent" style={{ width: rentedNights / 30 * 100 + "%" }}>{rentedNights > 4 ? "RENT" : ""}</div></div>
+              <label htmlFor="vh-nights">Rented nights per 30-day month</label><input id="vh-nights" type="range" min="0" max="30" step="1" value={rentedNights} onChange={update(setRentedNights)} />
+              <div className="vh-fields">
+                <div className="vh-field"><label htmlFor="vh-rate">Nightly rate</label><input id="vh-rate" type="number" min="0" step="5" value={nightlyRate} onChange={update(setNightlyRate)} /></div>
+                <div className="vh-field"><label htmlFor="vh-payment">Monthly payment</label><input id="vh-payment" type="number" min="1" step="50" value={payment} onChange={update(setPayment)} /></div>
+                <div className="vh-field"><label htmlFor="vh-cost">Operating costs (%)</label><input id="vh-cost" type="number" min="0" max="100" step="1" value={operatingCostPct} onChange={update(setOperatingCostPct)} /></div>
+              </div>
+            </fieldset><p className="vh-help">Operating costs are a user-entered simplification. Verify management, platform fees, utilities, supplies, cleaning, maintenance, taxes, insurance, reserves, and seasonal vacancy separately.</p></form>
+            <output className="vh-result" aria-live="polite">{finiteResult ? <><Mono className="vh-result-value">{Math.round(offset)}%</Mono><h3>of the entered payment is offset in this model.</h3><p>{money(grossIncome)} gross revenue less {money(modeledOperatingCosts)} modeled operating costs leaves {money(netBeforeDebt)} before debt. {carry > 0 ? "The remaining modeled payment is " + money(carry) + "." : "The modeled net income meets or exceeds the entered payment."} This is not an occupancy or financing decision.</p></> : <div className="vh-error"><h3>Enter a valid scenario.</h3><p>Rented nights must be from 0 to 30, payment must be above zero, and nightly rate and operating costs cannot be outside their displayed bounds.</p></div>}</output>
+          </div></div></section>
 
-      {/* INTERACTIVE USE-VS-EARN */}
-      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Use vs. earn</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>Slide the month. Watch it pay you back.</h2>
-          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Drag the split between nights you keep and nights you rent. The more you rent, the more your getaway offsets its own payment.</p>
-          <div className="vac-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "stretch" }}>
-            {/* slider + bar */}
-            <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: dc.lemon }}>{useNights} nights yours</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: BLUE }}>{rentNights} nights rented</span>
-              </div>
-              <div style={{ display: "flex", height: 40, borderRadius: radius.sm, overflow: "hidden", marginBottom: 18 }}>
-                <div style={{ width: `${(useNights / 30) * 100}%`, background: dc.lemon, display: "flex", alignItems: "center", justifyContent: "center", color: dc.dark, fontWeight: 700, fontSize: 12, transition: "width .25s" }}>{useNights > 3 ? "USE" : ""}</div>
-                <div style={{ width: `${(rentNights / 30) * 100}%`, background: BLUE, display: "flex", alignItems: "center", justifyContent: "center", color: dc.dark, fontWeight: 700, fontSize: 12, transition: "width .25s" }}>{rentNights > 3 ? "EARN" : ""}</div>
-              </div>
-              <input className="gs-range" aria-label="Rented nights per month" type="range" min={0} max={28} step={1} value={rentNights} onChange={(e) => setRentNights(+e.target.value)} style={{ width: "100%" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 6 }}><span>keep it all</span><span>rent most of it</span></div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 24 }}>
-                <label><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>Nightly rate</span>{numIn(adr, setAdr, 5, "$")}</label>
-                <label><span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>Monthly payment</span>{numIn(pay, setPay, 50, "$")}</label>
-              </div>
-            </div>
-            {/* result */}
-            <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${paysForItself ? "rgba(77,189,151,0.4)" : "rgba(238,239,211,0.1)"}`, padding: "clamp(24px,3vw,36px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: paysForItself ? dc.emerald : BLUE, marginBottom: 8 }}>{paysForItself ? "It pays for itself" : "Your monthly carry"}</div>
-              <Mono style={{ fontSize: "clamp(40px,6vw,72px)", fontWeight: 700, color: paysForItself ? dc.emerald : dc.cream, lineHeight: 0.9 }}>{paysForItself ? "$0" : fmt$(net)}</Mono>
-              <div style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", marginTop: 12, lineHeight: 1.5 }}>
-                {fmt$(income)} rental income offsets {offsetPct}% of the {fmt$(pay)} payment. {paysForItself ? "The income covers the loan — you own a getaway at no monthly cost." : `You'd carry ${fmt$(net)} a month and keep ${useNights} nights for yourself.`}
-              </div>
-              <button onClick={() => onNavigate("dscr-calculator")} style={{ marginTop: 20, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Price this as a loan →</button>
-            </div>
-          </div>
-        </div>
-      </section>
+        <section id="occupancy-paths" className="vh-paths" aria-labelledby="vh-path-heading"><div className="vh-wrap"><div className="vh-kicker">Choose the truthful category</div><h2 id="vh-path-heading">Three questions before financing comparisons.</h2><div className="vh-path-grid">
+          <article className="vh-card"><h3>Will you occupy the property?</h3><p>Disclose intended personal use. Do not label an owner-used property as non-owner-occupied to fit a business-purpose scenario.</p></article>
+          <article className="vh-card"><h3>Is rental use permitted?</h3><p>Confirm zoning, permits, HOA rules, insurance, and any local short-term-rental restrictions before relying on income.</p></article>
+          <article className="vh-card"><h3>What evidence is accepted?</h3><p>Historical revenue, market reports, appraisals, leases, and provider income methods vary. Ask for the current, property-specific standard.</p></article>
+        </div></div></section>
 
-      {/* WHY */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>A second home, financed like the asset it is.</h2>
-          <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
-            {[
-              { t: "Qualify on the rental nights", s: "We underwrite the income from the nights you let — not your salary. Use it yourself the rest of the year." },
-              { t: "No second-home income docs", s: "It's a DSCR investment loan: the property's rent qualifies, so there's no DTI squeeze on top of your primary mortgage." },
-              { t: "STR-aware underwriting", s: "Seasonal nightly income is modeled honestly — the number holds when the off-season hits." },
-            ].map((v) => (
-              <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
-                <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>
-                <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>{v.s}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <BottomCTA onNavigate={onNavigate} cards={[
-        { bg: dc.lemon, fg: dc.dark, blurb: "Price your second home as a DSCR loan — 60 seconds, no credit pull.", title: "Run my second home", view: "dscr-calculator" },
-        { bg: dc.mintBg, fg: dc.dark, blurb: "Renting it short-term? Underwrite the nightly income honestly.", title: "Underwrite the STR income", view: "str-underwriting" },
-      ]} />
+        <section className="vh-close" aria-labelledby="vh-close-heading"><div className="vh-wrap vh-close-grid"><div><div className="vh-kicker" style={{ color: dc.rain }}>Next useful step</div><h2 id="vh-close-heading">Use the workflow that matches the actual occupancy.</h2><p>For a non-owner-occupied rental scenario, continue to the DSCR calculator. For nightly income, review the STR guide and confirm the permitted income method.</p></div><div className="vh-actions"><a className="vh-link" href="/tools/dscr-calculator" onClick={(event) => { event.preventDefault(); onNavigate("dscr-calculator"); }}>Model a rental property</a><a className="vh-link secondary" href="/str-hosts" onClick={(event) => { event.preventDefault(); onNavigate("str-hosts"); }}>Review STR assumptions</a></div></div></section>
+      </div>
     </DcShell>
   );
 }
+

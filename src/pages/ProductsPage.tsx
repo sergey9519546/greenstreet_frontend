@@ -1,749 +1,135 @@
 import React, { useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
-import { MotionWorkbench } from "../design/artifacts";
+import { DcShell, dc, Mono } from "../design/dc";
 
-// ScrollTrigger is already registered in dc.tsx — calling it again here is a
-// no-op for GSAP but avoids the "Plugin already registered" warning in strict mode.
-// We keep the import for the per-row scrollTrigger config below.
+type PageProps = { onBack?: () => void; onNavigate: (view: any) => void };
+type Tool = { title: string; view: string; href: string; body: string; limit: string };
+type Group = { id: string; eyebrow: string; title: string; intro: string; tools: Tool[] };
 
-// ── Tool definitions — alternating 2-col feature rows ────────────────────────
-// Panel colour sets rotate across the 11 tools so adjacent rows never share the
-// same background.  contentOrder / visualOrder alternate so text swaps sides.
-interface Tool {
-  title: string;
-  desc: string;
-  cta: string;
-  view: string;
-  tag?: string;
-  panelBg: string;
-  panelAccent: string;
-  panelBody: string;
-  panelTag: string;
-  panelMetric: string;
-  panelNote: string;
-}
-
-const TOOLS: Tool[] = [
+const GROUPS: Group[] = [
   {
-    title: "Deal Analyzer",
-    desc: "The full picture in one pass. Track 1 shows what the lender uses to qualify the file (DSCR: whether rent covers the full monthly PITIA payment — principal, interest, taxes, insurance, HOA). Track 2 strips out vacancy, management fees and CapEx reserves to show what you'll actually earn. Also computes break-even rate and cash-on-cash — before you wire earnest money.",
-    cta: "Analyze my deal",
-    view: "deal-analyzer",
-    tag: "Most used",
-    panelBg: dc.dark,
-    panelAccent: dc.lemon,
-    panelBody: "rgba(238,239,211,0.62)",
-    panelTag: "Deal Analyzer",
-    panelMetric: "1.11×",
-    panelNote: "Dual-track DSCR · lender + investor",
+    id: "property",
+    eyebrow: "Start with the property",
+    title: "Coverage and operating assumptions",
+    intro: "Build the property and payment picture before comparing a financing structure.",
+    tools: [
+      { title: "Deal Analyzer", view: "deal-analyzer", href: "/tools/deal-analyzer", body: "Compare rent coverage with an investor cash-flow view that includes editable vacancy, management, maintenance, and capital-expenditure assumptions.", limit: "A scenario summary, not underwriting or investment advice." },
+      { title: "DSCR Calculator", view: "dscr-calculator", href: "/tools/dscr-calculator", body: "Enter rent, price, leverage, rate, taxes, insurance, and association dues to review modeled payment coverage.", limit: "Entered assumptions do not establish eligibility or pricing." },
+      { title: "STR Underwriting", view: "str-underwriting", href: "/tools/str-underwriting", body: "Model average daily rate, occupancy, seasonality, and slow-period coverage for a short-term rental scenario.", limit: "Confirm permitted income evidence, local use, and provider rules." },
+      { title: "Portfolio View", view: "portfolio", href: "/tools/portfolio", body: "Organize property-level debt, rent, value, and coverage before reviewing a blended portfolio summary.", limit: "Provider treatment of multiple properties and collateral varies." },
+    ],
   },
   {
-    title: "DSCR Calculator",
-    desc: "Quick DSCR check and max-purchase-price. Enter the rent, rate and property costs; get the PITIA breakdown (full monthly payment), rate tier guidance, and which Greenstreet programs fit — when you need an answer in 60 seconds, not 60 minutes.",
-    cta: "Check my DSCR",
-    view: "dscr-calculator",
-    panelBg: dc.mintBg,
-    panelAccent: dc.rain,
-    panelBody: "rgba(0,55,56,0.55)",
-    panelTag: "DSCR Calculator",
-    panelMetric: "1.25×",
-    panelNote: "Live dual-track coverage + lender shortlist",
+    id: "stress",
+    eyebrow: "Stress the structure",
+    title: "Rate, rent, return, and refinance models",
+    intro: "Use transparent sensitivities to see which assumptions matter. None of these outputs predicts markets or future financing.",
+    tools: [
+      { title: "Stress Matrix", view: "stress-matrix", href: "/tools/stress-matrix", body: "Compare combinations of lower rent and higher rate assumptions to locate modeled coverage breakpoints.", limit: "Sensitivity cells are illustrations, not forecasts." },
+      { title: "Monte Carlo Explorer", view: "monte-carlo", href: "/tools/monte-carlo", body: "Generate seeded, mean-reverting rate paths and summarize the share of modeled paths below selected coverage levels.", limit: "Modeled path shares are not probabilities of actual outcomes." },
+      { title: "ARM Reset Analyzer", view: "arm-reset", href: "/tools/arm-reset", body: "Enter index, margin, caps, and payment inputs from the note to compare possible reset scenarios.", limit: "The note controls; modeled rates are not forecasts." },
+      { title: "Returns Model", view: "returns", href: "/tools/returns", body: "Explore cash-on-cash, IRR, and equity outcomes using editable acquisition, financing, operating, and exit assumptions.", limit: "Returns can be negative and require independent investment review." },
+      { title: "Tax Engine", view: "tax-engine", href: "/tools/tax-engine", body: "Review an educational rental-property tax scenario with visible depreciation and disposition assumptions.", limit: "Not tax advice; current law and individual treatment require a qualified professional." },
+      { title: "Refi Tracker", view: "refi-tracker", href: "/tools/refi-tracker", body: "Compare entered closing costs, payment changes, hold period, and discount assumptions to estimate a modeled break-even point.", limit: "No savings are promised; actual costs, rates, and timing vary." },
+    ],
   },
   {
-    title: "Program Intelligence",
-    desc: "Filter all 19 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
-    cta: "Match my file to a program",
-    view: "lender-intel",
-    panelBg: dc.dark,
-    panelAccent: dc.lemon,
-    panelBody: "rgba(238,239,211,0.62)",
-    panelTag: "Lender Intel",
-    panelMetric: "19",
-    panelNote: "Programs ranked by fit score",
-  },
-  {
-    title: "50-State Compliance Rules",
-    desc: "50-state matrix with statutory citations covering prepayment penalties (a fee some loans charge if you pay off or refinance early), usury caps, and short-term-rental restrictions. Covers the traps that kill deals after you think you're done: OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437.",
-    cta: "Check my state's rules",
-    view: "state-laws",
-    panelBg: dc.teal,
-    panelAccent: dc.lemon,
-    panelBody: "rgba(238,239,211,0.6)",
-    panelTag: "State Laws",
-    panelMetric: "50",
-    panelNote: "Cited PPP & usury rule sets",
-  },
-  {
-    title: "Monte Carlo Rate Simulation",
-    desc: "500 simulated rate paths show the probability your DSCR (rent-to-payment ratio) breaks below 1.0 before the ARM resets. Uses a calibrated Vasicek stochastic model — the same framework bank stress teams use — giving P10/P50/P90 distributions so you can see best, median and worst case in one view.",
-    cta: "Simulate my rate risk",
-    view: "monte-carlo",
-    panelBg: dc.teal,
-    panelAccent: dc.emerald,
-    panelBody: "rgba(238,239,211,0.6)",
-    panelTag: "Monte Carlo",
-    panelMetric: "500×",
-    panelNote: "Stochastic rate-path simulation",
-  },
-  {
-    title: "Stress Matrix",
-    desc: "A 120-cell grid shows every combination of rent haircut and rate shock — so you can see exactly where DSCR breaks before a lender asks. Run it in seconds; share it as a defensible page in the loan package.",
-    cta: "Run the stress matrix",
-    view: "stress-matrix",
-    panelBg: dc.mintBg,
-    panelAccent: dc.rain,
-    panelBody: "rgba(0,55,56,0.55)",
-    panelTag: "Stress Matrix",
-    panelMetric: "120",
-    panelNote: "Sensitivity cells: rent × rate",
-  },
-  {
-    title: "After-Tax Returns",
-    desc: "Levered IRR (return on your cash invested after debt), equity multiple (total returned ÷ invested), and after-tax IRR accounting for the full depreciation stack: §167 straight-line depreciation, §469 passive-activity-loss, §1250 recapture at sale, and §1411 net investment income tax. The real net return, every line traceable.",
-    cta: "Run my returns",
-    view: "returns",
-    panelBg: dc.lemon,
-    panelAccent: dc.rain,
-    panelBody: "rgba(0,55,56,0.6)",
-    panelTag: "Returns Engine",
-    panelMetric: "IRR",
-    panelNote: "After-tax IRR, equity multiple, fully traced",
-  },
-  {
-    title: "Tax Engine",
-    desc: "Rental property's biggest advantage is depreciation — the IRS lets you deduct a portion of the building each year. The Tax Engine runs the full stack: §167 straight-line depreciation, §469 passive-activity-loss rules with the real-estate-professional exception, §1250 recapture at 25%, and §1411 NIIT. Every line traceable to a code section.",
-    cta: "Calculate my tax shield",
-    view: "tax-engine",
-    panelBg: dc.dark,
-    panelAccent: dc.lemon,
-    panelBody: "rgba(238,239,211,0.62)",
-    panelTag: "Tax Engine",
-    panelMetric: "§§",
-    panelNote: "Depreciation · PAL · recapture · NIIT",
-  },
-  {
-    title: "Short-Term Rental (STR) Underwriting",
-    desc: "Short-term rental (Airbnb / VRBO) income is modeled on average daily rate (ADR) × occupancy with seasonal haircuts — the income methodology lenders actually accept, not the optimistic projections Airbnb shows hosts. Runs against the STR program parameters so you can see the qualifying DSCR before you list the property.",
-    cta: "Underwrite my STR",
-    view: "str-underwriting",
-    panelBg: dc.teal,
-    panelAccent: dc.emerald,
-    panelBody: "rgba(238,239,211,0.6)",
-    panelTag: "STR",
-    panelMetric: "ADR×",
-    panelNote: "ADR × occupancy · seasonal haircut",
-  },
-  {
-    title: "ARM Reset Analyzer",
-    desc: "Adjustable-rate mortgages (ARMs) have a fixed period — e.g., 5 years on a 5/1 ARM — then reset based on an index (usually SOFR) plus a margin, subject to periodic and lifetime caps. The ARM Reset Analyzer computes the payment at every future reset date so you know the worst-case payment before your client signs.",
-    cta: "Model my ARM resets",
-    view: "arm-reset",
-    panelBg: dc.mintBg,
-    panelAccent: dc.rain,
-    panelBody: "rgba(0,55,56,0.55)",
-    panelTag: "ARM Reset",
-    panelMetric: "5/1",
-    panelNote: "Index + margin + cap schedule",
-  },
-  {
-    title: "Refi Tracker",
-    desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) pencils only if the monthly savings pay back closing costs before you sell or refinance again. The Refi Tracker shows break-even month, NPV of savings, and the minimum rate drop that justifies closing costs — so you refinance when the math confirms it, not when rates feel low.",
-    cta: "Find my refi break-even",
-    view: "refi-tracker",
-    panelBg: dc.dark,
-    panelAccent: dc.lemon,
-    panelBody: "rgba(238,239,211,0.62)",
-    panelTag: "Refi Tracker",
-    panelMetric: "NPV",
-    panelNote: "Break-even month · min rate delta",
+    id: "research",
+    eyebrow: "Research before relying",
+    title: "Program and state-rule references",
+    intro: "Use these references to form better questions, then confirm the current answer with the applicable provider or qualified professional.",
+    tools: [
+      { title: "Program Intelligence", view: "lender-intel", href: "/tools/lender-intel", body: "Compare a file with illustrative credit, leverage, DSCR, property, transaction, and borrower-profile parameters.", limit: "Reference scenarios are not a provider marketplace or eligibility decision." },
+      { title: "State Rules", view: "state-laws", href: "/tools/state-laws", body: "Review educational prepayment, usury, licensing, and short-term-rental research organized by state.", limit: "Verify current law, applicability, sources, and final documents with counsel." },
+    ],
   },
 ];
 
-const SPECIAL_TOOLS = [
-  {
-    title: "Deal Workspace",
-    desc: "The workspace-only version of the analyzer: inputs, lender match, sensitivity, optimization, and saved scenarios in one operating screen.",
-    href: "/tools/deal-workspace",
-    label: "Open workspace",
-    stat: "01",
-  },
-  {
-    title: "Sensitivity Lab",
-    desc: "Rent breakpoints, rate headroom, appraisal stress, and structure changes after a deal has been priced.",
-    href: "/tools/sensitivity",
-    label: "Open sensitivity lab",
-    stat: "02",
-  },
-  {
-    title: "Structure Optimizer",
-    desc: "Compare interest-only, amortization, rate, and cost structures against qualifying DSCR and investor cash flow.",
-    href: "/tools/structure-optimizer",
-    label: "Optimize structure",
-    stat: "03",
-  },
-  {
-    title: "Scenario History",
-    desc: "Saved deal runs, state checks, and output logs for repeat analysis and audit trails inside InvestGO.",
-    href: "/tools/scenario-history",
-    label: "View saved scenarios",
-    stat: "04",
-  },
-] as const;
-
-// ── Feature row ───────────────────────────────────────────────────────────────
-// Each row is a 2-col grid that alternates text/visual side.
-// Class "pr-feat" is Products-specific; ProductsPage registers its own GSAP
-// ScrollTrigger that staggers the two children per row (text → visual).
-// No gs-reveal or dc-band-2 — those are generic; pr-feat has its own motion.
-function FeatureRow({
-  tool,
-  index,
-  onNavigate,
-}: {
-  tool: Tool;
-  index: number;
-  onNavigate: (v: string) => void;
-}) {
-  const textFirst = index % 2 === 0;
-
-  return (
-    <div
-      className="pr-feat"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "clamp(32px, 5vw, 80px)",
-        alignItems: "center",
-      }}
-    >
-      {/* Text column */}
-      <div
-        style={{
-          order: textFirst ? 1 : 2,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-        }}
-      >
-        {tool.tag && (
-          <div
-            style={{
-              display: "inline-block",
-              padding: "4px 11px",
-              background: dc.lemon,
-              color: dc.dark,
-              borderRadius: dc.r.pill,
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase" as const,
-              marginBottom: 14,
-            }}
-          >
-            {tool.tag}
-          </div>
-        )}
-        <h2
-          style={{
-            fontSize: "clamp(28px, 3.4vw, 46px)",
-            fontWeight: 600,
-            letterSpacing: "-0.03em",
-            lineHeight: 1.04,
-            margin: "0 0 18px",
-            color: dc.dark,
-          }}
-        >
-          {tool.title}
-        </h2>
-        <p
-          style={{
-            fontSize: "clamp(17px, 1.4vw, 21px)",
-            fontWeight: 500,
-            lineHeight: 1.55,
-            color: "rgba(0,55,56,0.68)",
-            margin: "0 0 28px",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {tool.desc}
-        </p>
-        <button
-          onClick={() => onNavigate(tool.view)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: dc.lemon,
-            color: dc.dark,
-            fontWeight: 700,
-            fontSize: 15,
-            border: "none",
-            cursor: "pointer",
-            padding: "14px 26px",
-            borderRadius: dc.r.md,
-            fontFamily: dc.sans,
-            letterSpacing: "-0.01em",
-            minHeight: 44,
-          }}
-        >
-          {tool.cta} →
-        </button>
-      </div>
-
-      {/* Visual panel */}
-      <div style={{ order: textFirst ? 2 : 1 }}>
-        <div
-          style={{
-            position: "relative",
-            borderRadius: dc.r.lg,
-            overflow: "hidden",
-            background: tool.panelBg,
-            border: `1px solid ${dc.faded}`,
-            padding: "clamp(18px, 2vw, 28px)",
-            aspectRatio: "1.5",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase" as const,
-              color: tool.panelAccent,
-              marginBottom: 14,
-            }}
-          >
-            {tool.panelTag}
-          </div>
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Mono
-              style={{
-                fontSize: "clamp(40px, 5.5vw, 84px)",
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                color: tool.panelAccent,
-              }}
-            >
-              {tool.panelMetric}
-            </Mono>
-          </div>
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: tool.panelBody,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {tool.panelNote}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SpecialToolCard({
-  tool,
-  onNavigate,
-}: {
-  tool: (typeof SPECIAL_TOOLS)[number];
-  onNavigate: (v: string) => void;
-}) {
-  return (
-    <article
-      style={{
-        display: "grid",
-        gridTemplateRows: "auto 1fr auto",
-        minHeight: 280,
-        background: dc.dark,
-        color: dc.cream,
-        borderRadius: 8,
-        padding: "clamp(24px, 2.8vw, 36px)",
-        border: "1px solid rgba(238,239,211,0.12)",
-      }}
-    >
-      <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.lemon, marginBottom: 28 }}>{tool.stat}</Mono>
-      <div>
-        <h3
-          style={{
-            fontSize: "clamp(25px,2.6vw,36px)",
-            lineHeight: 1,
-            letterSpacing: "-0.04em",
-            fontWeight: 650,
-            margin: "0 0 14px",
-            color: dc.cream,
-          }}
-        >
-          {tool.title}
-        </h3>
-        <p style={{ margin: 0, color: "rgba(238,239,211,0.66)", lineHeight: 1.55, fontWeight: 500 }}>
-          {tool.desc}
-        </p>
-      </div>
-      <button
-        onClick={() => onNavigate("portal")}
-        style={{
-          marginTop: 30,
-          justifySelf: "start",
-          background: dc.lemon,
-          color: dc.dark,
-          border: "none",
-          borderRadius: dc.r.md,
-          padding: "13px 20px",
-          fontFamily: dc.sans,
-          fontWeight: 650,
-          cursor: "pointer",
-        }}
-      >
-        {tool.label} →
-      </button>
-    </article>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-export default function ProductsPage({
-  onBack,
-  onNavigate,
-}: {
-  onBack: () => void;
-  onNavigate: (v: any) => void;
-}) {
+function usePageMetadata(title: string, description: string, path: string) {
   useEffect(() => {
-    document.title = "Products | Greenstreet Finance";
+    document.title = title;
+    const setMeta = (key: string, value: string, property = false) => {
+      const attr = property ? "property" : "name";
+      let tag = document.head.querySelector("meta[" + attr + "='" + key + "']") as HTMLMetaElement | null;
+      if (!tag) { tag = document.createElement("meta"); tag.setAttribute(attr, key); document.head.appendChild(tag); }
+      tag.content = value;
+    };
+    setMeta("description", description);
+    setMeta("og:title", title, true);
+    setMeta("og:description", description, true);
+    let canonical = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = new URL(path, window.location.origin).href;
     window.scrollTo(0, 0);
-  }, []);
+  }, [description, path, title]);
+}
+
+function ToolLink({ tool, onNavigate }: { tool: Tool; onNavigate: (view: any) => void }) {
+  return <a className="pr-tool-link" href={tool.href} onClick={(event) => { event.preventDefault(); onNavigate(tool.view); }}>Open {tool.title}</a>;
+}
+
+export default function ProductsPage({ onBack, onNavigate }: PageProps) {
+  usePageMetadata(
+    "DSCR and Rental Property Analysis Tools | Greenstreet Finance",
+    "Browse Greenstreet tools for DSCR coverage, STR and portfolio scenarios, rate stress, returns, refinance modeling, program comparisons, and state research.",
+    "/products",
+  );
 
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      navLinks={[
-        { label: "All tools", view: "products" },
-        { label: "Lender Intel", view: "lender-intel" },
-        { label: "State Rules", view: "state-laws" },
-      ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
-    >
-      {/* ── HERO: solid dark, left-aligned, eyebrow + display h1 + sub ──────── */}
-      {/* id="pr-hero" matches the mockup; useDcGsap animates #gs-hero-content   */}
-      {/* children — here we put everything inside one wrapper so both the       */}
-      {/* title block and the sub-paragraph get the hero stagger treatment.       */}
-      <section
-        style={{
-          background: dc.dark,
-          color: dc.cream,
-          padding: `clamp(64px, 9vh, 128px) ${dc.pad}`,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          id="gs-hero-content"
-          className="dc-hero"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 0.95fr) minmax(320px, 0.6fr)",
-            alignItems: "center",
-            gap: "clamp(28px, 4vw, 48px)",
-            minHeight: "clamp(280px, 38vh, 420px)",
-          }}
-        >
-          <div>
-            {/* Title block — eyebrow + display h1 */}
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 18,
-              }}
-            >
-              11 tools · one engine
-            </div>
-            <H1 style={{ margin: 0 }}>
-              The DSCR Engine
-            </H1>
-
-            {/* Sub — separate child so hero stagger steps to it after the h1 */}
-            <Lead
-              style={{
-                color: "rgba(238,239,211,0.72)",
-                maxWidth: "48ch",
-                margin: "clamp(24px,3vw,36px) 0 0",
-              }}
-            >
-              Eleven tools for DSCR rental-loan underwriting — from a 60-second
-              deal check to a full after-tax returns model. Every tool runs off the
-              same deterministic core: versioned math, statutory citations, no
-              AI-generated numbers. Run a quick deal check, layer in tax and
-              returns, then stress-test before you commit. Start anywhere.
-            </Lead>
+    <DcShell onNavigate={onNavigate} accent={dc.dark} navLinks={[{ label: "Products", view: "products" }, { label: "Solutions", view: "solutions" }, { label: "Platform", view: "platform" }]} cta={{ label: "Start with DSCR", view: "dscr-calculator" }}>
+      <style>{`
+        .pr-page{background:#eeefd3;color:#003738}.pr-wrap{width:min(1180px,calc(100% - 40px));margin:auto}.pr-hero{background:#003738;color:#eeefd3;padding:clamp(70px,10vw,128px) 0}
+        .pr-kicker{color:#d8d958;font-size:.75rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}.pr-hero h1{font-size:clamp(2.8rem,7vw,6.2rem);line-height:.92;letter-spacing:-.05em;margin:18px 0 24px;max-width:12ch}
+        .pr-lead{font-size:clamp(1.05rem,1.9vw,1.3rem);line-height:1.6;color:rgba(238,239,211,.75);max-width:68ch}.pr-jumps{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.pr-jumps a{color:#003738;background:#d8d958;padding:12px 16px;border-radius:7px;font-weight:800;text-decoration:none}
+        .pr-group{padding:clamp(64px,8vw,110px) 0}.pr-group:nth-child(even){background:#dfe7c5}.pr-page h2{font-size:clamp(2rem,4vw,3.9rem);line-height:1;letter-spacing:-.04em;margin:12px 0 16px}.pr-intro{font-size:1.05rem;line-height:1.65;color:rgba(0,55,56,.7);max-width:68ch}
+        .pr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:38px}.pr-card{display:flex;flex-direction:column;min-width:0;background:#fffef0;border:1px solid rgba(0,55,56,.17);border-radius:12px;padding:clamp(22px,3vw,32px)}
+        .pr-card h3{font-size:clamp(1.35rem,2.4vw,2rem);margin:0 0 12px}.pr-card p{line-height:1.6;color:rgba(0,55,56,.72);margin:0}.pr-limit{margin:18px 0!important;padding-top:16px;border-top:1px solid rgba(0,55,56,.16);font-size:.92rem}
+        .pr-tool-link{display:inline-flex;align-items:center;align-self:flex-start;margin-top:auto;min-height:44px;color:#155e68;font-weight:800;text-underline-offset:4px}.pr-close{background:#003738;color:#eeefd3;padding:clamp(60px,8vw,98px) 0}
+        .pr-close-grid{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end}.pr-close p{color:rgba(238,239,211,.7);line-height:1.6;max-width:60ch}.pr-actions{display:flex;flex-wrap:wrap;gap:10px}.pr-action{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:7px;background:#d8d958;color:#003738;font-weight:800;text-decoration:none}.pr-action.secondary{background:transparent;color:#eeefd3;border:1px solid rgba(238,239,211,.34)}
+        .pr-page a:focus-visible,.pr-page button:focus-visible{outline:3px solid #7ec8d3;outline-offset:4px}.pr-card:target{outline:3px solid #287a84;outline-offset:4px}
+        @media(max-width:700px){.pr-wrap{width:min(100% - 28px,1180px)}.pr-grid,.pr-close-grid{grid-template-columns:1fr}.pr-actions .pr-action{width:100%}.pr-hero h1{overflow-wrap:anywhere}}
+      `}</style>
+      <div className="pr-page">
+        <header className="pr-hero">
+          <div className="pr-wrap">
+            <div className="pr-kicker">Greenstreet product catalog</div>
+            <h1>Choose the tool for the question in front of you.</h1>
+            <p className="pr-lead">Greenstreet provides educational scenario-analysis tools for rental-property financing and investment questions. Each tool exposes its inputs and limitations; none provides a quote, approval, commitment to lend, legal advice, tax advice, or guaranteed outcome.</p>
+            <nav className="pr-jumps" aria-label="Product categories">{GROUPS.map((group) => <a key={group.id} href={"#" + group.id}>{group.eyebrow}</a>)}</nav>
           </div>
-          <MotionWorkbench mode="sim" value="11" label="Connected tools" />
-        </div>
-      </section>
+        </header>
 
-      {/* ── FEATURE LIST: alternating 2-col rows — the Products centrepiece ── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(64px, 8vw, 112px) ${dc.pad} clamp(40px, 5vw, 64px)`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: "clamp(56px, 8vw, 120px)",
-          }}
-        >
-          {TOOLS.map((tool, i) => (
-            <FeatureRow
-              key={tool.view}
-              tool={tool}
-              index={i}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section
-        style={{
-          background: dc.mintBg,
-          color: dc.dark,
-          padding: `clamp(64px, 8vw, 112px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 0.8fr) minmax(0, 1.2fr)",
-              gap: "clamp(32px,5vw,80px)",
-              alignItems: "end",
-              marginBottom: "clamp(32px,5vw,56px)",
-            }}
-            className="dc-split"
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: dc.rain,
-                  marginBottom: 14,
-                }}
-              >
-                Special tools
+        {GROUPS.map((group) => (
+          <section className="pr-group" id={group.id} aria-labelledby={group.id + "-heading"} key={group.id}>
+            <div className="pr-wrap">
+              <div className="pr-kicker" style={{ color: dc.rain }}>{group.eyebrow}</div>
+              <h2 id={group.id + "-heading"}>{group.title}</h2>
+              <p className="pr-intro">{group.intro}</p>
+              <div className="pr-grid">
+                {group.tools.map((tool) => (
+                  <article className="pr-card" id={tool.view} key={tool.view}>
+                    <h3>{tool.title}</h3>
+                    <p>{tool.body}</p>
+                    <p className="pr-limit"><strong>Limit:</strong> {tool.limit}</p>
+                    <ToolLink tool={tool} onNavigate={onNavigate} />
+                  </article>
+                ))}
               </div>
-              <h2
-                style={{
-                  fontSize: "clamp(34px,4.4vw,64px)",
-                  lineHeight: 0.98,
-                  letterSpacing: "-0.045em",
-                  fontWeight: 650,
-                  margin: 0,
-                }}
-              >
-                Workspace-only tools, now directly linked.
-              </h2>
             </div>
-            <p
-              style={{
-                margin: 0,
-                fontSize: "clamp(16px,1.4vw,19px)",
-                lineHeight: 1.55,
-                color: "rgba(0,55,56,0.66)",
-                fontWeight: 500,
-                maxWidth: "54ch",
-              }}
-            >
-              These are the deeper InvestGO workbench views that used to live only inside the platform sidebar. They now have stable public routes and sit beside the standalone engines.
-            </p>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-              gap: 16,
-            }}
-            className="pr-special-grid"
-          >
-            {SPECIAL_TOOLS.map((tool) => (
-              <SpecialToolCard key={tool.href} tool={tool} onNavigate={onNavigate} />
-            ))}
-          </div>
-        </div>
-      </section>
+          </section>
+        ))}
 
-      {/* ── CLOSING CTA — demo + solutions cross-link ── */}
-      <section
-        style={{
-          background: dc.dark,
-          color: dc.cream,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="gs-reveal dc-band-2"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.8vw,52px)",
-                fontWeight: 600,
-                letterSpacing: "-0.04em",
-                lineHeight: 1.0,
-                color: dc.cream,
-                margin: "0 0 16px",
-              }}
-            >
-              Not sure which tool to start with?
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(15px,1.3vw,18px)",
-                fontWeight: 500,
-                lineHeight: 1.55,
-                color: "rgba(238,239,211,0.6)",
-                maxWidth: "48ch",
-                margin: "0 0 18px",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              New to DSCR? Start with the Deal Analyzer — it covers everything a
-              first-time investor needs in a single screen. Or see the recommended
-              workflow for your strategy, or book a 15-minute walkthrough.
-            </p>
-            <button
-              onClick={() => onNavigate("solutions")}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                fontSize: 14,
-                fontWeight: 600,
-                color: dc.lemon,
-                letterSpacing: "-0.01em",
-                fontFamily: dc.sans,
-              }}
-            >
-              See tools by role →
-            </button>
+        <section className="pr-close" aria-labelledby="pr-close-heading">
+          <div className="pr-wrap pr-close-grid">
+            <div><div className="pr-kicker">Not sure where to begin?</div><h2 id="pr-close-heading">Start with rent and the full payment.</h2><p>The DSCR calculator is the clearest first step for a single rental property. If the question is audience-specific, use the solutions guide to find the relevant evidence and limitations.</p></div>
+            <div className="pr-actions">
+              <a className="pr-action" href="/tools/dscr-calculator" onClick={(event) => { event.preventDefault(); onNavigate("dscr-calculator"); }}>Open the DSCR calculator</a>
+              <a className="pr-action secondary" href="/solutions" onClick={(event) => { event.preventDefault(); onNavigate("solutions"); }}>Explore investor solutions</a>
+              {onBack && <button className="pr-action secondary" type="button" onClick={onBack}>Return to previous page</button>}
+            </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-            <button
-              onClick={() => onNavigate("rate-quiz")}
-              style={{
-                background: dc.lemon,
-                color: dc.dark,
-                border: "none",
-                borderRadius: dc.r.md,
-                padding: "15px 28px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-                textAlign: "left" as const,
-              }}
-            >
-              See my rate in 5 questions →
-            </button>
-            <button
-              onClick={() => onNavigate("dscr-calculator")}
-              style={{
-                background: "transparent",
-                color: dc.cream,
-                border: `1.5px solid ${dc.faded}`,
-                borderRadius: dc.r.md,
-                padding: "15px 28px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-                textAlign: "left" as const,
-              }}
-            >
-              DSCR Calculator →
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── BACK PILL ── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(48px,6vh,72px) ${dc.pad} clamp(72px,10vh,120px)`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <button
-            onClick={() => onNavigate("marketing")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: dc.mintBg,
-              border: "none",
-              borderRadius: 999,
-              padding: "15px 30px",
-              cursor: "pointer",
-              fontFamily: dc.sans,
-            }}
-          >
-            <span
-              style={{
-                fontSize: "clamp(16px,1.4vw,19px)",
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                color: dc.dark,
-              }}
-            >
-              Back to all tools
-            </span>
-            <span style={{ fontSize: 18, color: dc.rain }}>→</span>
-          </button>
-        </div>
-      </section>
+        </section>
+      </div>
     </DcShell>
   );
 }
+

@@ -34,6 +34,41 @@ import type {
   DSCRFormulaMethod,
 } from './types';
 import { computeTcoRate, mapToTcoType } from './tcoDscr';
+import {
+  MAX_ANNUAL_PROPERTY_EXPENSE,
+  MAX_CURRENCY_INPUT,
+  MAX_MONTHLY_PROPERTY_EXPENSE,
+  MAX_MONTHLY_RENT,
+  MAX_PURCHASE_PRICE,
+} from './inputs';
+
+function isFiniteNonNegative(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
+function isFinitePositive(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+function hasOnlyNonNegativeFiniteValues(...values: number[]): boolean {
+  return values.every(isFiniteNonNegative);
+}
+
+function isFiniteAtMost(value: number, max: number): boolean {
+  return Number.isFinite(value) && value >= 0 && value <= max;
+}
+
+function roundFinite(value: number, decimals: number): number {
+  return Number.isFinite(value) ? Number(value.toFixed(decimals)) : 0;
+}
+
+function annualToMonthly(value: number): number {
+  return isFiniteNonNegative(value) ? value / 12 : 0;
+}
+
+function hasInterestOnlyPeriod(ioPeriod: string): boolean {
+  return ioPeriod === '5_YR' || ioPeriod === '7_YR' || ioPeriod === '10_YR';
+}
 
 // ============================================================
 // SECTION 5.2: CORRECTED PAYMENT FACTOR CALCULATION
@@ -45,19 +80,26 @@ import { computeTcoRate, mapToTcoType } from './tcoDscr';
 // ============================================================
 
 export function calculatePaymentFactor(annualRate: number, termMonths: number): number {
+  if (!isFiniteNonNegative(annualRate) || !isFinitePositive(termMonths)) return 0;
   const r = annualRate / 100 / 12;
   if (r === 0) return 1 / termMonths;
-  const compoundFactor = Math.pow(1 + r, termMonths);
-  return (r * compoundFactor) / (compoundFactor - 1);
+  // Discounted form avoids Infinity / Infinity for very large, but finite, terms.
+  const denominator = 1 - Math.pow(1 + r, -termMonths);
+  const factor = denominator > 0 ? r / denominator : 0;
+  return isFinitePositive(factor) ? factor : 0;
 }
 
 export function calculatePI(loanAmount: number, annualRate: number, termMonths: number): number {
+  if (!isFinitePositive(loanAmount)) return 0;
   const factor = calculatePaymentFactor(annualRate, termMonths);
-  return loanAmount * factor;
+  const payment = loanAmount * factor;
+  return isFiniteNonNegative(payment) ? payment : 0;
 }
 
 export function calculateIOPayment(loanAmount: number, annualRate: number): number {
-  return loanAmount * (annualRate / 100 / 12);
+  if (!isFinitePositive(loanAmount) || !isFiniteNonNegative(annualRate)) return 0;
+  const payment = loanAmount * (annualRate / 100 / 12);
+  return isFiniteNonNegative(payment) ? payment : 0;
 }
 
 // ============================================================
@@ -344,7 +386,7 @@ function buildTrack1(
 
   return {
     label: 'Track 1 — Lender Qualification',
-    dscr: Math.round(dscr * 1000) / 1000,
+    dscr: roundFinite(dscr, 3),
     gradient: getDSCRGradient(dscr),
     qualifyingRent,
     rentSource,
@@ -383,7 +425,7 @@ function buildTrack2(
 
   return {
     label: 'Track 2 — Investor Survival',
-    dscr: Math.round(dscr * 1000) / 1000,
+    dscr: roundFinite(dscr, 3),
     gradient: getDSCRGradient(dscr),
     qualifyingRent: grossRent,
     rentSource: `Gross less ${vacancyPct.toFixed(0)}% vacancy, ${mgmtPct.toFixed(0)}% mgmt, ${maintPct.toFixed(0)}% maint, ${capexPct.toFixed(0)}% capex (TCO ${(rate.total * 100).toFixed(0)}%)`,
@@ -438,8 +480,7 @@ export function calculatePITIA(
   mortgageInsurance: number = 0,
 ): PITIABreakdown {
   const termMonths = termYears * 12;
-  const ioYears = ioPeriod === 'NONE' ? 0 : ioPeriod === '5_YR' ? 5 : ioPeriod === '7_YR' ? 7 : 10;
-  const isInterestOnly = ioYears > 0;
+  const isInterestOnly = hasInterestOnlyPeriod(ioPeriod);
 
   let pi: number;
   let ioPayment: number | undefined;
@@ -451,19 +492,23 @@ export function calculatePITIA(
     pi = calculatePI(loanAmount, rate, termMonths);
   }
 
-  const taxes = annualTaxes / 12;
-  const insurance = annualInsurance / 12;
-  const flood = floodInsurance / 12;
-  const mi = mortgageInsurance;
+  const taxes = annualToMonthly(annualTaxes);
+  const insurance = annualToMonthly(annualInsurance);
+  // Unit contract: floodInsurance is an ANNUAL premium, matching taxes and
+  // hazard insurance. It is converted to monthly exactly once, here in PITIA.
+  const flood = annualToMonthly(floodInsurance);
+  const hoaMonthly = isFiniteNonNegative(hoa) ? hoa : 0;
+  const mi = isFiniteNonNegative(mortgageInsurance) ? mortgageInsurance : 0;
 
-  const total = pi + taxes + insurance + hoa + flood + mi;
-  const itia = isInterestOnly ? pi + taxes + insurance + hoa + flood + mi : undefined;
+  const totalCandidate = pi + taxes + insurance + hoaMonthly + flood + mi;
+  const total = isFiniteNonNegative(totalCandidate) ? totalCandidate : 0;
+  const itia = isInterestOnly ? total : undefined;
 
   return {
     principalAndInterest: pi,
     taxes,
     insurance,
-    hoa,
+    hoa: hoaMonthly,
     floodInsurance: flood,
     mortgageInsurance: mi,
     total,
@@ -489,25 +534,36 @@ export function solveDealBreakRate(
   hoa: number,
   floodInsurance: number = 0,
 ): number {
+  if (
+    !isFinitePositive(qualifyingRent) ||
+    !isFinitePositive(loanAmount) ||
+    !isFinitePositive(termYears) ||
+    !hasOnlyNonNegativeFiniteValues(annualTaxes, annualInsurance, hoa, floodInsurance)
+  ) return 0;
+
   // Target: P&I = qualifyingRent - fixedExpenses (for DSCR = 1.0)
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  const fixedExpenses = annualToMonthly(annualTaxes) + annualToMonthly(annualInsurance) + hoa + annualToMonthly(floodInsurance);
   const targetPI = qualifyingRent - fixedExpenses;
 
-  if (targetPI <= 0) return 0; // Impossible: fixed expenses exceed income
+  if (!isFinitePositive(targetPI)) return 0; // Impossible: fixed expenses exceed income
 
   const termMonths = termYears * 12;
-  const ioYears = ioPeriod === 'NONE' ? 0 : parseInt(ioPeriod) || 0;
 
-  if (ioYears > 0) {
+  if (hasInterestOnlyPeriod(ioPeriod)) {
     // IO: targetPI = loanAmount * rate/12 → rate = targetPI * 12 / loanAmount * 100
-    return (targetPI * 12 / loanAmount) * 100;
+    const solvedRate = (targetPI * 12 / loanAmount) * 100;
+    return isFinitePositive(solvedRate) ? solvedRate : 0;
   }
 
   // Amortizing: bisection
-  let lowRate = 2.0;
-  let highRate = 15.0;
+  let lowRate = 0;
+  let highRate = 15;
+  for (let i = 0; i < 8 && calculatePI(loanAmount, highRate, termMonths) < targetPI; i++) {
+    highRate *= 2;
+  }
+  if (calculatePI(loanAmount, highRate, termMonths) < targetPI) return 0;
 
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 60; i++) {
     const midRate = (lowRate + highRate) / 2;
     const pi = calculatePI(loanAmount, midRate, termMonths);
     if (pi > targetPI) {
@@ -536,19 +592,33 @@ export function solveMaxPurchasePrice(
   floodInsurance: number = 0,
   targetDSCR: number = 1.0,
 ): number {
+  if (
+    !isFinitePositive(qualifyingRent) ||
+    !isFinitePositive(ltv) || ltv > 100 ||
+    !isFiniteNonNegative(rate) ||
+    !isFinitePositive(termYears) ||
+    !isFinitePositive(targetDSCR) ||
+    !hasOnlyNonNegativeFiniteValues(annualTaxes, annualInsurance, hoa, floodInsurance)
+  ) return 0;
+
   // Max PITIA = qualifyingRent / targetDSCR
   const maxPITIA = qualifyingRent / targetDSCR;
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  const fixedExpenses = annualToMonthly(annualTaxes) + annualToMonthly(annualInsurance) + hoa + annualToMonthly(floodInsurance);
   const maxPI = maxPITIA - fixedExpenses;
 
-  if (maxPI <= 0) return 0;
+  if (!isFinitePositive(maxPI)) return 0;
 
   const termMonths = termYears * 12;
-  const factor = calculatePaymentFactor(rate, termMonths);
+  // During an IO period, reverse sizing must invert the IO payment rather than
+  // the fully amortizing payment. A 0% IO rate has no finite reverse solution.
+  const factor = hasInterestOnlyPeriod(ioPeriod)
+    ? rate / 100 / 12
+    : calculatePaymentFactor(rate, termMonths);
+  if (!isFinitePositive(factor)) return 0;
   const maxLoan = maxPI / factor;
   const maxPrice = maxLoan / (ltv / 100);
 
-  return Math.round(maxPrice);
+  return isFinitePositive(maxPrice) ? Math.round(maxPrice) : 0;
 }
 
 export function solveMinDownPayment(
@@ -564,6 +634,16 @@ export function solveMinDownPayment(
   floodInsurance: number = 0,
   targetDSCR: number = 1.0,
 ): { minDown: number; additionalDown: number } {
+  if (
+    !isFinitePositive(purchasePrice) ||
+    !isFinitePositive(qualifyingRent) ||
+    !isFinitePositive(ltv) || ltv > 100 ||
+    !isFiniteNonNegative(rate) ||
+    !isFinitePositive(termYears) ||
+    !isFinitePositive(targetDSCR) ||
+    !hasOnlyNonNegativeFiniteValues(annualTaxes, annualInsurance, hoa, floodInsurance)
+  ) return { minDown: 0, additionalDown: 0 };
+
   const maxPrice = solveMaxPurchasePrice(
     qualifyingRent, ltv, rate, termYears, ioPeriod,
     annualTaxes, annualInsurance, hoa, floodInsurance, targetDSCR
@@ -583,7 +663,9 @@ export function solveRequiredRent(
   pitia: number,
   incomeFactor: number = 1.0 // 1.0 = no haircut; 0.80 = 20% STR haircut
 ): number {
-  return (targetDSCR * pitia) / incomeFactor;
+  if (!isFinitePositive(targetDSCR) || !isFinitePositive(pitia) || !isFinitePositive(incomeFactor)) return 0;
+  const requiredRent = (targetDSCR * pitia) / incomeFactor;
+  return isFinitePositive(requiredRent) ? requiredRent : 0;
 }
 
 // ============================================================
@@ -613,6 +695,15 @@ export function calculateCashToClose(
   const total = base + reservesLikely + furnishingBudget - sellerCredits;
   const totalConservative = base + reservesConservative + furnishingBudget - sellerCredits;
   const totalStress = base + (Math.min(reserveMonthsConservative * 1.5, 12) * monthlyPITIA) + furnishingBudget - sellerCredits;
+
+  if (![downPayment, closingCosts, points, lenderFees, brokerFees, rateLockCost, reservesLikely, reservesConservative, furnishingBudget, sellerCredits, total, totalConservative, totalStress].every(Number.isFinite)) {
+    return {
+      downPayment: 0, closingCosts: 0, points: 0, lenderFees: 0,
+      brokerFees: 0, rateLockCost: 0, reserveRequirement: 0,
+      reserveConservative: 0, furnishingBudget: 0, credits: 0,
+      total: 0, totalConservative: 0, totalStress: 0,
+    };
+  }
 
   return {
     downPayment,
@@ -752,7 +843,11 @@ export function quickDscrEstimate(
   if (
     !Number.isFinite(propertyValue) || propertyValue <= 0 ||
     !Number.isFinite(monthlyRent) || monthlyRent <= 0 ||
-    !Number.isFinite(annualRatePct) || annualRatePct <= 0
+    !Number.isFinite(annualRatePct) || annualRatePct <= 0 ||
+    !Number.isFinite(ltv) || ltv <= 0 || ltv > 1 ||
+    !Number.isFinite(annualTaxRate) || annualTaxRate < 0 ||
+    !Number.isFinite(annualInsRate) || annualInsRate < 0 ||
+    !Number.isFinite(termMonths) || termMonths <= 0
   ) {
     return {
       dscr: 0,
@@ -822,9 +917,24 @@ export function solveDSCR(
   // ── Input guard: clamp / sanitise key numbers before any math ──────────────
   // Returns a safe zero-DSCR "needs review" result rather than NaN/Infinity.
   if (
-    !Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0 ||
-    !Number.isFinite(property.leaseRent) || property.leaseRent < 0 ||
-    !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100
+    !isFiniteAtMost(property.purchasePrice, MAX_PURCHASE_PRICE) || property.purchasePrice <= 0 ||
+    !isFiniteAtMost(property.leaseRent, MAX_MONTHLY_RENT) ||
+    !isFiniteAtMost(property.marketRent, MAX_MONTHLY_RENT) ||
+    !isFiniteAtMost(property.strProjectedRent, MAX_MONTHLY_RENT) ||
+    !isFiniteAtMost(property.strDocumentedRent, MAX_MONTHLY_RENT) ||
+    !isFiniteAtMost(property.annualTaxes, MAX_ANNUAL_PROPERTY_EXPENSE) ||
+    !isFiniteAtMost(property.annualInsurance, MAX_ANNUAL_PROPERTY_EXPENSE) ||
+    !isFiniteAtMost(property.hoa, MAX_MONTHLY_PROPERTY_EXPENSE) ||
+    !isFiniteAtMost(property.floodInsurance, MAX_ANNUAL_PROPERTY_EXPENSE) ||
+    !Number.isFinite(property.unitCount) || property.unitCount <= 0 ||
+    !Number.isFinite(borrower.ficoScore) || borrower.ficoScore <= 0 ||
+    !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100 ||
+    !isFiniteAtMost(loan.lenderFees, MAX_CURRENCY_INPUT) ||
+    !isFiniteAtMost(loan.brokerFees, MAX_CURRENCY_INPUT) ||
+    !isFiniteAtMost(loan.rateLockCost, MAX_CURRENCY_INPUT) ||
+    !Number.isFinite(loan.points) || loan.points < 0 || loan.points > 100
+    || (reassessedAnnualTaxOverride !== undefined &&
+      !isFiniteAtMost(reassessedAnnualTaxOverride, MAX_ANNUAL_PROPERTY_EXPENSE))
   ) {
     const zeroPITIA: PITIABreakdown = {
       principalAndInterest: 0, taxes: 0, insurance: 0, hoa: 0,
@@ -950,7 +1060,7 @@ export function solveDSCR(
     qualifyingRent, loanAmount, termYears, loan.ioPeriod,
     annualTaxes, property.annualInsurance, property.hoa, property.floodInsurance
   );
-  const rateHeadroomBps = Math.round((dealBreakRate - solvedRate) * 100);
+  const rateHeadroomBps = roundFinite((dealBreakRate - solvedRate) * 100, 0);
 
   const maxPurchaseAtDSCR1 = solveMaxPurchasePrice(
     qualifyingRent, loan.ltv, solvedRate, termYears, loan.ioPeriod,
@@ -983,7 +1093,7 @@ export function solveDSCR(
     qualifyingRent,
     rentSource,
     monthlyPITIA: pitia,
-    dscr: Math.round(dscr * 1000) / 1000,
+    dscr: roundFinite(dscr, 3),
     dscrGradient: getDSCRGradient(dscr),
     solvedRate,
     tripleRate,

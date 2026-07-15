@@ -1,6 +1,7 @@
 // ============================================================
-// DSCR Deal Engine v11.7 — Refi & Seasoning Tracker
-// Institutional-grade readiness scoring (4-factor composite, 0-100)
+// DSCR Deal Engine v11.7 - Refi & Seasoning Tracker
+// Scenario math only. Model limits below are input-safety bounds,
+// not lender eligibility rules or representations of available terms.
 // ============================================================
 
 import type {
@@ -9,12 +10,103 @@ import type {
   RefiAnalysis,
   RefiReadinessFactor,
 } from './types';
-import { estimateRate, calculatePI } from './engine';
+import { calculatePI } from './engine';
 
-// v11.7 institutional constants
-const CASH_OUT_LTV = 70;          // DSCR cash-out LTV cap (industry std; rate-term uses 75)
-const SEASONING_REQUIRED_MONTHS = 6;
+const CASH_OUT_LTV = 70;
 const RATE_TERM_LTV = 75;
+const SEASONING_REQUIRED_MONTHS = 6;
+const MAX_MODEL_RATE_PCT = 25;
+const MIN_MODEL_APPRECIATION_PCT = -95;
+const MAX_MODEL_APPRECIATION_PCT = 100;
+const MAX_MODEL_OWNERSHIP_MONTHS = 1200;
+const NO_BREAK_EVEN = 999;
+
+export type RefiAnalysisStatus = 'AVAILABLE' | 'REVIEW';
+
+export interface RefiAuxiliaryGuidanceState {
+  secondLienAvailable: boolean;
+  debtGuidanceAvailable: boolean;
+  currentRateLabel: string | null;
+  projectedRateLabel: string | null;
+}
+
+export function getRefiAuxiliaryGuidanceState(
+  refiStatus: RefiAnalysisStatus | undefined,
+  secondLienStatus: 'AVAILABLE' | 'REVIEW',
+  currentRate: number,
+  projectedRate: number,
+  covenantDscr: number,
+  inPlaceRent: number,
+): RefiAuxiliaryGuidanceState {
+  const primaryAvailable = refiStatus === 'AVAILABLE';
+  const currentRateFinite = Number.isFinite(currentRate);
+  const projectedRateFinite = Number.isFinite(projectedRate);
+  const debtInputsValid = Number.isFinite(covenantDscr)
+    && covenantDscr > 0
+    && Number.isFinite(inPlaceRent)
+    && inPlaceRent >= 0;
+
+  return {
+    secondLienAvailable: primaryAvailable && secondLienStatus === 'AVAILABLE' && currentRateFinite,
+    debtGuidanceAvailable: primaryAvailable && projectedRateFinite && debtInputsValid,
+    currentRateLabel: currentRateFinite ? `${currentRate.toFixed(2)}%` : null,
+    projectedRateLabel: projectedRateFinite ? `${projectedRate.toFixed(2)}%` : null,
+  };
+}
+
+export interface SafeRefiAnalysis extends RefiAnalysis {
+  status: RefiAnalysisStatus;
+  reviewReasons: string[];
+}
+
+const isFiniteNumber = (value: number): boolean => Number.isFinite(value);
+
+function zeroFactor(factor: string, reason: string): RefiReadinessFactor {
+  return {
+    factor,
+    score: 0,
+    maxScore: 25,
+    status: 'FAIL',
+    detail: `Review required: ${reason}`,
+  };
+}
+
+function unavailableAnalysis(reasons: string[]): SafeRefiAnalysis {
+  const detail = reasons.join(' ');
+  const readinessFactors = [
+    zeroFactor('Seasoning', detail),
+    zeroFactor('Equity', detail),
+    zeroFactor('Rate Incentive', detail),
+    zeroFactor('DSCR Headroom', detail),
+  ];
+
+  return {
+    status: 'REVIEW',
+    reviewReasons: reasons,
+    currentDSCR: 0,
+    projectedRefiDSCR: 0,
+    seasoningMonthsRequired: SEASONING_REQUIRED_MONTHS,
+    delayedFinancingAvailable: false,
+    projectedRefiRate: 0,
+    projectedRefiPayment: 0,
+    monthlySavings: 0,
+    breakEvenMonths: NO_BREAK_EVEN,
+    appreciationNeeded: 0,
+    refiType: 'NO_REFI',
+    seasoningMet: false,
+    seasoningMonthsRemaining: SEASONING_REQUIRED_MONTHS,
+    cashOutMaxAmount: 0,
+    refiReadinessScore: 0,
+    readinessFactors,
+  };
+}
+
+function safeMonthlyPayment(principal: number, annualRatePct: number): number {
+  if (principal === 0) return 0;
+  if (annualRatePct === 0) return principal / 360;
+  const payment = calculatePI(principal, annualRatePct, 360);
+  return Number.isFinite(payment) && payment >= 0 ? payment : Number.NaN;
+}
 
 export function analyzeRefi(
   property: PropertyInputs,
@@ -23,186 +115,237 @@ export function analyzeRefi(
   monthsOwned: number,
   projectedAppreciation: number,
   projectedRateEnvironment: number
-): RefiAnalysis {
-  // Current DSCR (Track 1 — no vacancy)
-  const currentPITIA = currentLoan.monthlyPayment + property.annualTaxes / 12 + property.annualInsurance / 12 + property.hoa;
+): SafeRefiAnalysis {
+  // The user-entered replacement rate drives this scenario. Borrower data remains
+  // in the signature for API compatibility but is not used to infer an approval.
+  void borrower;
+
+  const reasons: string[] = [];
+  const requireFinite = (value: number, label: string) => {
+    if (!isFiniteNumber(value)) reasons.push(`${label} must be a finite number.`);
+  };
+  const requireNonNegative = (value: number, label: string) => {
+    requireFinite(value, label);
+    if (isFiniteNumber(value) && value < 0) reasons.push(`${label} cannot be negative.`);
+  };
+
+  requireFinite(property.purchasePrice, 'Property value');
+  if (isFiniteNumber(property.purchasePrice) && property.purchasePrice <= 0) {
+    reasons.push('Property value must be greater than zero.');
+  }
+  requireNonNegative(property.leaseRent, 'Lease rent');
+  requireNonNegative(property.marketRent, 'Market rent');
+  requireNonNegative(property.annualTaxes, 'Annual taxes');
+  requireNonNegative(property.annualInsurance, 'Annual insurance');
+  requireNonNegative(property.hoa, 'Monthly HOA');
+  requireFinite(currentLoan.balance, 'Current loan balance');
+  if (isFiniteNumber(currentLoan.balance) && currentLoan.balance <= 0) {
+    reasons.push('Current loan balance must be greater than zero.');
+  }
+  requireFinite(currentLoan.monthlyPayment, 'Current monthly payment');
+  if (isFiniteNumber(currentLoan.monthlyPayment) && currentLoan.monthlyPayment <= 0) {
+    reasons.push('Current monthly payment must be greater than zero.');
+  }
+  requireFinite(currentLoan.rate, 'Current rate');
+  if (isFiniteNumber(currentLoan.rate) && (currentLoan.rate < 0 || currentLoan.rate > MAX_MODEL_RATE_PCT)) {
+    reasons.push(`Current rate must be between 0% and ${MAX_MODEL_RATE_PCT}% for this model.`);
+  }
+  requireFinite(projectedRateEnvironment, 'Projected refinance rate');
+  if (
+    isFiniteNumber(projectedRateEnvironment)
+    && (projectedRateEnvironment < 0 || projectedRateEnvironment > MAX_MODEL_RATE_PCT)
+  ) {
+    reasons.push(`Projected refinance rate must be between 0% and ${MAX_MODEL_RATE_PCT}% for this model.`);
+  }
+  requireFinite(monthsOwned, 'Months owned');
+  if (
+    isFiniteNumber(monthsOwned)
+    && (!Number.isInteger(monthsOwned) || monthsOwned < 0 || monthsOwned > MAX_MODEL_OWNERSHIP_MONTHS)
+  ) {
+    reasons.push(`Months owned must be a whole number from 0 to ${MAX_MODEL_OWNERSHIP_MONTHS}.`);
+  }
+  requireFinite(projectedAppreciation, 'Projected appreciation');
+  if (
+    isFiniteNumber(projectedAppreciation)
+    && (
+      projectedAppreciation < MIN_MODEL_APPRECIATION_PCT
+      || projectedAppreciation > MAX_MODEL_APPRECIATION_PCT
+    )
+  ) {
+    reasons.push(
+      `Projected appreciation must be between ${MIN_MODEL_APPRECIATION_PCT}% and ${MAX_MODEL_APPRECIATION_PCT}% for this scenario.`,
+    );
+  }
+
+  if (reasons.length > 0) return unavailableAnalysis(reasons);
+
   const qualifyingRent = Math.min(property.leaseRent, property.marketRent);
+  const escrows = property.annualTaxes / 12 + property.annualInsurance / 12 + property.hoa;
+  const currentPITIA = currentLoan.monthlyPayment + escrows;
   const currentDSCR = currentPITIA > 0 ? qualifyingRent / currentPITIA : 0;
-
-  // Projected refi (projectedAppreciation is a percent, e.g. 5 → +5%)
   const appreciatedValue = property.purchasePrice * (1 + projectedAppreciation / 100);
-  const refiLTV = 75;
-  const refiLoanAmount = appreciatedValue * (refiLTV / 100);
 
-  const isCashOut = refiLoanAmount > currentLoan.balance;
-  const actualRefiAmount = Math.min(refiLoanAmount, currentLoan.balance * 1.05);
+  if (!Number.isFinite(appreciatedValue) || appreciatedValue <= 0) {
+    return unavailableAnalysis(['Projected property value is outside the model range.']);
+  }
 
-  const refiRate = estimateRate(
-    borrower,
-    {
-      ltv: refiLTV,
-      term: '30_YR',
-      ioPeriod: 'NONE',
-      armType: 'FIXED',
-      prepayPreference: '321',
-      purpose: isCashOut ? 'CASH_OUT' : 'RATE_TERM',
-      expectedHoldYears: 5,
-      points: 0,
-      lenderFees: 0,
-      brokerFees: 0,
-      rateLockCost: 0,
-    },
-    currentDSCR,
-    property.propertyType,
-    property.isDecliningMarket ?? false,
+  const projectedRefiRate = projectedRateEnvironment;
+  const projectedRefiPayment = safeMonthlyPayment(currentLoan.balance, projectedRefiRate);
+  if (!Number.isFinite(projectedRefiPayment)) {
+    return unavailableAnalysis(['Projected refinance payment could not be calculated from the entered values.']);
+  }
+
+  const projectedPITIA = projectedRefiPayment + escrows;
+  const projectedRefiDSCR = projectedPITIA > 0 ? qualifyingRent / projectedPITIA : 0;
+  const monthlySavings = currentLoan.monthlyPayment - projectedRefiPayment;
+  const refiClosingCosts = currentLoan.balance * 0.025;
+  const calculatedBreakEven = monthlySavings > 0
+    ? Math.ceil(refiClosingCosts / monthlySavings)
+    : NO_BREAK_EVEN;
+  const breakEvenMonths = Number.isFinite(calculatedBreakEven)
+    ? Math.min(NO_BREAK_EVEN, Math.max(1, calculatedBreakEven))
+    : NO_BREAK_EVEN;
+
+  const rateTermMaxLoan = appreciatedValue * (RATE_TERM_LTV / 100);
+  const rateTermSupported = currentLoan.balance <= rateTermMaxLoan + 0.01;
+  const targetValue = currentLoan.balance / (RATE_TERM_LTV / 100);
+  const appreciationNeeded = Math.max(0, targetValue / property.purchasePrice - 1);
+  const cashOutMaxAmount = Math.max(
+    0,
+    appreciatedValue * (CASH_OUT_LTV / 100) - currentLoan.balance,
   );
 
-  // Adjust rate for projected rate environment
-  const adjustedRefiRate = refiRate + (projectedRateEnvironment - 6.125) * 0.5;
+  if (
+    ![
+      currentDSCR,
+      projectedRefiDSCR,
+      monthlySavings,
+      appreciationNeeded,
+      cashOutMaxAmount,
+    ].every(Number.isFinite)
+  ) {
+    return unavailableAnalysis(['The entered values produced a non-finite refinance result.']);
+  }
 
-  const refiPayment = calculatePI(actualRefiAmount, adjustedRefiRate, 360);
-
-  const projectedRefiDSCR = qualifyingRent / (refiPayment + property.annualTaxes / 12 + property.annualInsurance / 12 + property.hoa);
-  const monthlySavings = currentLoan.monthlyPayment - refiPayment;
-
-  const refiClosingCosts = actualRefiAmount * 0.025;
-  const breakEvenMonths = monthlySavings > 0 ? Math.ceil(refiClosingCosts / monthlySavings) : 999;
-
-  const seasoningMonthsRequired = SEASONING_REQUIRED_MONTHS;
-  const delayedFinancingAvailable = monthsOwned >= 0;
-
-  const appreciationNeeded = currentLoan.balance > property.purchasePrice * (RATE_TERM_LTV / 100)
-    ? 0
-    : ((currentLoan.balance / (RATE_TERM_LTV / 100)) - property.purchasePrice) / property.purchasePrice;
-
-  // ── v11.7: Refi Tracker Enhancements ─────────────────────────────
-  // 1) Cash-out capacity at 70% LTV (more conservative than 75% rate-term LTV)
-  const cashOutMaxAmount = Math.max(0, appreciatedValue * (CASH_OUT_LTV / 100) - currentLoan.balance);
-
-  // 2) Seasoning status
   const seasoningMet = monthsOwned >= SEASONING_REQUIRED_MONTHS;
   const seasoningMonthsRemaining = Math.max(0, SEASONING_REQUIRED_MONTHS - monthsOwned);
 
-  // 3) Refi type classification
-  const rawMonthlySavings = monthlySavings;  // preserve pre-clamp value for scoring
-  let refiType: 'RATE_TERM' | 'CASH_OUT' | 'NO_REFI';
-  if (rawMonthlySavings <= 0 && cashOutMaxAmount <= 0) {
-    refiType = 'NO_REFI';
-  } else if (isCashOut && cashOutMaxAmount > 0) {
-    refiType = 'CASH_OUT';
-  } else {
-    refiType = 'RATE_TERM';
-  }
-
-  // 4) Four-factor readiness scoring (max 100)
-  // Factor A: Seasoning (max 25)
-  const seasoningScore: RefiReadinessFactor = (() => {
-    if (monthsOwned >= SEASONING_REQUIRED_MONTHS) {
-      return {
+  const seasoningScore: RefiReadinessFactor = seasoningMet
+    ? {
         factor: 'Seasoning',
-        score: 25, maxScore: 25, status: 'PASS',
-        detail: `${monthsOwned} months owned — meets ${SEASONING_REQUIRED_MONTHS}-month DSCR seasoning requirement.`,
-      };
-    } else if (monthsOwned > 0) {
-      return {
-        factor: 'Seasoning',
-        score: 15, maxScore: 25, status: 'WARN',
-        detail: `${monthsOwned} months owned — needs ${seasoningMonthsRemaining} more month(s) to meet ${SEASONING_REQUIRED_MONTHS}-month seasoning.`,
-      };
-    }
-    return {
-      factor: 'Seasoning',
-      score: 0, maxScore: 25, status: 'FAIL',
-      detail: 'Property not yet closed — no seasoning established.',
-    };
-  })();
+        score: 25,
+        maxScore: 25,
+        status: 'PASS',
+        detail: `${monthsOwned} months owned meets this model's ${SEASONING_REQUIRED_MONTHS}-month scenario threshold.`,
+      }
+    : monthsOwned > 0
+      ? {
+          factor: 'Seasoning',
+          score: 15,
+          maxScore: 25,
+          status: 'WARN',
+          detail: `${seasoningMonthsRemaining} more month(s) are needed to reach this model's ${SEASONING_REQUIRED_MONTHS}-month threshold.`,
+        }
+      : {
+          factor: 'Seasoning',
+          score: 0,
+          maxScore: 25,
+          status: 'FAIL',
+          detail: 'No ownership seasoning is established in the entered scenario.',
+        };
 
-  // Factor B: Equity (max 25) — based on appreciationNeeded
-  const equityScore: RefiReadinessFactor = (() => {
-    const needed = Math.max(0, appreciationNeeded);
-    if (needed === 0) {
-      return {
+  const equityScore: RefiReadinessFactor = appreciationNeeded === 0
+    ? {
         factor: 'Equity',
-        score: 25, maxScore: 25, status: 'PASS',
-        detail: `Current LTV supports refi at ${RATE_TERM_LTV}% — no appreciation required.`,
-      };
-    } else if (needed < 0.05) {
-      return {
-        factor: 'Equity',
-        score: 15, maxScore: 25, status: 'WARN',
-        detail: `Needs ${(needed * 100).toFixed(1)}% appreciation to reach ${RATE_TERM_LTV}% LTV threshold.`,
-      };
-    }
-    return {
-      factor: 'Equity',
-      score: 0, maxScore: 25, status: 'FAIL',
-      detail: `Needs ${(needed * 100).toFixed(1)}% appreciation — refi not viable today.`,
-    };
-  })();
+        score: 25,
+        maxScore: 25,
+        status: 'PASS',
+        detail: `The entered balance is at or below this model's ${RATE_TERM_LTV}% rate-and-term LTV scenario limit.`,
+      }
+    : appreciationNeeded < 0.05
+      ? {
+          factor: 'Equity',
+          score: 15,
+          maxScore: 25,
+          status: 'WARN',
+          detail: `Value must increase ${(appreciationNeeded * 100).toFixed(1)}% for the entered balance to reach ${RATE_TERM_LTV}% LTV.`,
+        }
+      : {
+          factor: 'Equity',
+          score: 0,
+          maxScore: 25,
+          status: 'FAIL',
+          detail: `Value must increase ${(appreciationNeeded * 100).toFixed(1)}% for the entered balance to reach ${RATE_TERM_LTV}% LTV.`,
+        };
 
-  // Factor C: Rate incentive (max 25) — based on rawMonthlySavings
-  const rateScore: RefiReadinessFactor = (() => {
-    if (rawMonthlySavings > 0) {
-      // Scale: >$200/mo savings = full 25; >$50 = 20; >0 = 15
-      const scaled = rawMonthlySavings >= 200 ? 25 : rawMonthlySavings >= 50 ? 20 : 15;
-      return {
+  const rateScore: RefiReadinessFactor = monthlySavings > 0
+    ? {
         factor: 'Rate Incentive',
-        score: scaled, maxScore: 25, status: 'PASS',
-        detail: `Projected refi saves $${rawMonthlySavings.toFixed(0)}/mo — ${breakEvenMonths}mo break-even on $${refiClosingCosts.toFixed(0)} closing costs.`,
-      };
-    } else if (rawMonthlySavings === 0) {
-      return {
-        factor: 'Rate Incentive',
-        score: 10, maxScore: 25, status: 'WARN',
-        detail: 'Rate-neutral refi — only justified for cash-out or term extension.',
-      };
-    }
-    return {
-      factor: 'Rate Incentive',
-      score: 0, maxScore: 25, status: 'FAIL',
-      detail: `Refi would increase payment by $${Math.abs(rawMonthlySavings).toFixed(0)}/mo — not viable for rate-term.`,
-    };
-  })();
+        score: monthlySavings >= 200 ? 25 : monthlySavings >= 50 ? 20 : 15,
+        maxScore: 25,
+        status: 'PASS',
+        detail: `The modeled payment is $${monthlySavings.toFixed(0)}/mo lower, with a ${breakEvenMonths}-month cost break-even.`,
+      }
+    : monthlySavings === 0
+      ? {
+          factor: 'Rate Incentive',
+          score: 10,
+          maxScore: 25,
+          status: 'WARN',
+          detail: 'The entered replacement rate produces no modeled P&I savings.',
+        }
+      : {
+          factor: 'Rate Incentive',
+          score: 0,
+          maxScore: 25,
+          status: 'FAIL',
+          detail: `The modeled payment is $${Math.abs(monthlySavings).toFixed(0)}/mo higher.`,
+        };
 
-  // Factor D: DSCR headroom (max 25) — based on projectedRefiDSCR
-  const dscrScore: RefiReadinessFactor = (() => {
-    if (projectedRefiDSCR >= 1.25) {
-      return {
+  const dscrScore: RefiReadinessFactor = projectedRefiDSCR >= 1.25
+    ? {
         factor: 'DSCR Headroom',
-        score: 25, maxScore: 25, status: 'PASS',
-        detail: `Projected refi DSCR ${projectedRefiDSCR.toFixed(3)} — strong qualifying buffer (≥1.25).`,
-      };
-    } else if (projectedRefiDSCR >= 1.0) {
-      return {
-        factor: 'DSCR Headroom',
-        score: 15, maxScore: 25, status: 'WARN',
-        detail: `Projected refi DSCR ${projectedRefiDSCR.toFixed(3)} — marginal qualifying buffer (1.00–1.25).`,
-      };
-    }
-    return {
-      factor: 'DSCR Headroom',
-      score: 0, maxScore: 25, status: 'FAIL',
-      detail: `Projected refi DSCR ${projectedRefiDSCR.toFixed(3)} — below 1.00 qualifying threshold.`,
-    };
-  })();
+        score: 25,
+        maxScore: 25,
+        status: 'PASS',
+        detail: `Projected scenario DSCR is ${projectedRefiDSCR.toFixed(3)}.`,
+      }
+    : projectedRefiDSCR >= 1
+      ? {
+          factor: 'DSCR Headroom',
+          score: 15,
+          maxScore: 25,
+          status: 'WARN',
+          detail: `Projected scenario DSCR is ${projectedRefiDSCR.toFixed(3)} with limited headroom.`,
+        }
+      : {
+          factor: 'DSCR Headroom',
+          score: 0,
+          maxScore: 25,
+          status: 'FAIL',
+          detail: `Projected scenario DSCR is ${projectedRefiDSCR.toFixed(3)}, below the model's 1.00x comparison line.`,
+        };
 
-  const readinessFactors: RefiReadinessFactor[] = [
-    seasoningScore, equityScore, rateScore, dscrScore,
-  ];
-  const refiReadinessScore = readinessFactors.reduce((sum, f) => sum + f.score, 0);
-  // ── end v11.7 enhancements ────────────────────────────────────────
+  const readinessFactors = [seasoningScore, equityScore, rateScore, dscrScore];
+  const refiReadinessScore = readinessFactors.reduce((sum, factor) => sum + factor.score, 0);
+  const refiType = rateTermSupported && (monthlySavings > 0 || cashOutMaxAmount > 0)
+    ? 'RATE_TERM'
+    : 'NO_REFI';
 
   return {
+    status: 'AVAILABLE',
+    reviewReasons: [],
     currentDSCR,
     projectedRefiDSCR,
-    seasoningMonthsRequired,
-    delayedFinancingAvailable,
-    projectedRefiRate: adjustedRefiRate,
-    projectedRefiPayment: refiPayment,
-    monthlySavings: Math.max(0, monthlySavings),
+    seasoningMonthsRequired: SEASONING_REQUIRED_MONTHS,
+    // Delayed-financing eligibility needs facts not present in this API (including
+    // acquisition funding and documentation), so the model does not infer it.
+    delayedFinancingAvailable: false,
+    projectedRefiRate,
+    projectedRefiPayment,
+    monthlySavings,
     breakEvenMonths,
-    appreciationNeeded: Math.max(0, appreciationNeeded),
-    // v11.7 fields
+    appreciationNeeded,
     refiType,
     seasoningMet,
     seasoningMonthsRemaining,

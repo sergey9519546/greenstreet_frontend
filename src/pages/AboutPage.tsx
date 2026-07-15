@@ -1,900 +1,192 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, H1, Lead, ScenePhoto } from "../design/dc";
 
-// ── Static data ───────────────────────────────────────────────────────────────
-
-const TEAM = [
-  { id: "team-dave",    name: "Dave Feldman",   role: "Cofounder & CEO" },
-  { id: "team-priya",   name: "Priya Rao",      role: "Cofounder & Head of Quant" },
-  { id: "team-marcus",  name: "Marcus Chen",    role: "Head of Lending" },
-  { id: "team-sara",    name: "Sara López",     role: "Head of Compliance" },
-  { id: "team-tobi",    name: "Tobi Okafor",   role: "Staff Engineer, Engine" },
-  { id: "team-anita",   name: "Anita Mehta",   role: "Product Designer" },
-  { id: "team-jordan",  name: "Jordan Brooks",  role: "Account Executive" },
-  { id: "team-hannah",  name: "Hannah Park",   role: "Compliance Counsel" },
+const PRINCIPLES = [
+  { title: "Preliminary by default", body: "A scenario is an educational estimate, not an approval, commitment, rate lock, legal conclusion, or instruction to proceed." },
+  { title: "Visible assumptions", body: "Users should be able to identify the rent, payment, leverage, expense, and program assumptions that shape an output." },
+  { title: "Transaction documents control", body: "Provider identity, role, licensing, pricing, credit decisions, and final terms must come from transaction-specific disclosures." },
+  { title: "High-stakes claims need review", body: "Program, legal, tax, and eligibility information should be checked against current sources and qualified professional guidance." },
 ];
 
-const JOBS = [
-  { title: "Senior Quant Engineer" },
-  { title: "Full-Stack Engineer, Tools" },
-  { title: "Compliance Counsel — State Rules" },
-  { title: "Account Executive, Investor Relations" },
+const ACCOUNTABILITY = [
+  { title: "Inputs", body: "Results depend on the property and financing assumptions entered." },
+  { title: "Method", body: "Scenario outputs should expose the formulas and assumptions used." },
+  { title: "Sources", body: "Material program and legal claims require dated, reviewable sources." },
+  { title: "Review", body: "A qualified transaction party must verify results before reliance." },
 ];
 
-const VALUES = [
-  { heading: "Speed is the product",                    body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds — not a spreadsheet round-trip or a call to the lender." },
-  { heading: "No black boxes",                          body: "Every figure Greenstreet produces is computed by versioned code with a statutory citation behind every rule — never an AI-generated estimate. When a regulator asks where a number came from, we hand them the source." },
-  { heading: "Your borrower stays yours",               body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship, share your pipeline data, or take a cut of your deal. Your business is yours." },
-  { heading: "Compliance is a feature, not a footnote", body: "State prepayment-penalty rules, DSCR floors, seasoning requirements — baked into every output from the start, not an afterthought appended to a printout after the fact." },
+const PUBLIC_FACTS = [
+  "Legal entity and business role",
+  "Licensing and jurisdictions served",
+  "Leadership and professional credentials",
+  "Capital, lender, and service-provider relationships",
 ];
 
-// ── Scoped styles ─────────────────────────────────────────────────────────────
-// Light-nav (lemon) override mirrors DealAnalyzerPage's pistachio pattern.
-// Job-row hover + CTA card lift are the only motion permitted (per design rules).
 const ABOUT_CSS = `
-  /* Lemon nav: swap all text to dark ink */
-  .dc-nav a { color: rgba(0,55,56,0.72) !important; }
-  .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
-  .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: rgba(216,217,88,1) !important; }
-  /* Lemon footer: dark wordmark */
-  footer { color: rgba(0,55,56,0.55) !important; }
-  footer .gs-footer-word { color: #003738 !important; }
-  /* Job-row hover */
-  .ab-job { transition: transform .14s, background .15s; }
-  .ab-job:hover { transform: translateX(6px); background: #003738 !important; }
-  .ab-job:hover .ab-jt { color: #eeefd3 !important; }
-  .ab-job:hover .ab-ja { color: #d8d958 !important; }
-  /* CTA card lift */
-  .cta-card { transition: transform .15s; }
-  .cta-card:hover { transform: translateY(-4px); }
-  /* Team grid: 4-col desktop → 2-col mobile */
-  .ab-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
-  @media (max-width: 767px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
-  /* Investor logo grid: 3-col desktop → 2-col mobile */
-  .ab-inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 767px) { .ab-inv-grid { grid-template-columns: repeat(2, 1fr); } }
-  /* Values, Jobs, CTA 2-col grids → single col on mobile */
-  .ab-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .ab-jobs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px,5vw,72px); align-items: start; }
-  .ab-cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 991px) {
-    .ab-2col { grid-template-columns: 1fr !important; }
-    .ab-jobs-grid { grid-template-columns: 1fr !important; }
-    .ab-cta-grid { grid-template-columns: 1fr !important; }
+  .about-page { overflow-wrap: anywhere; }
+  .about-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .about-accountability { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+  .about-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .about-link:focus-visible { outline: 3px solid #00a878; outline-offset: 4px; }
+  @media (max-width: 850px) { .about-accountability { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) {
+    .about-grid, .about-accountability { grid-template-columns: 1fr; }
+    .about-actions { flex-direction: column; align-items: stretch; }
+    .about-actions .about-link { text-align: center; }
   }
 `;
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+function usePageMetadata(title: string, description: string, path: string) {
+  useEffect(() => {
+    document.title = title;
+
+    let descriptionTag = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!descriptionTag) {
+      descriptionTag = document.createElement("meta");
+      descriptionTag.name = "description";
+      document.head.appendChild(descriptionTag);
+    }
+    descriptionTag.content = description;
+
+    let robotsTag = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!robotsTag) {
+      robotsTag = document.createElement("meta");
+      robotsTag.name = "robots";
+      document.head.appendChild(robotsTag);
+    }
+    robotsTag.content = "index, follow";
+
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = new URL(path, window.location.origin).href;
+  }, [description, path, title]);
+}
 
 export default function AboutPage({
-  onBack,
+  onBack: _onBack,
   onNavigate,
 }: {
   onBack?: () => void;
-  onNavigate: (v: any) => void;
+  onNavigate: (view: any) => void;
 }) {
+  usePageMetadata(
+    "About Greenstreet Finance | DSCR Scenario Tools",
+    "Learn how Greenstreet Finance structures preliminary DSCR scenarios, identifies assumptions, and separates educational estimates from provider decisions.",
+    "/about",
+  );
+
   useEffect(() => {
-    document.title = "About | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
+
+  const navigate = (event: React.MouseEvent<HTMLAnchorElement>, view: string) => {
+    event.preventDefault();
+    onNavigate(view);
+  };
 
   return (
     <DcShell
       onNavigate={onNavigate}
       accent={dc.lemon}
       navLinks={[
-        { label: "Product",  view: "products" },
-        { label: "Careers",  view: "careers" },
+        { label: "Product", view: "products" },
+        { label: "Careers", view: "careers" },
+        { label: "Support", view: "support" },
       ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Model a scenario →", view: "dscr-calculator" }}
     >
       <style>{ABOUT_CSS}</style>
-
-      {/* ── HERO — solid lemon, dark ink ──────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.lemon,
-          color: dc.dark,
-          padding: `clamp(64px,9vh,128px) ${dc.pad}`,
-          overflow: "hidden",
-        }}
-      >
-        <div id="gs-hero-content" style={{ maxWidth: 1080, margin: "0 auto" }}>
-
-          {/* Eyebrow */}
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase" as const,
-              color: "rgba(0,55,56,0.55)",
-              marginBottom: 24,
-            }}
-          >
-            About Greenstreet
+      <div className="about-page">
+        <section aria-labelledby="about-title" style={{ background: dc.lemon, color: dc.dark, padding: `clamp(60px,9vw,120px) ${dc.pad}` }}>
+          <div id="gs-hero-content" style={{ maxWidth: 1080, margin: "0 auto" }}>
+            <p style={{ margin: "0 0 20px", color: "rgba(0,55,56,0.58)", fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>About Greenstreet Finance</p>
+            <H1 id="about-title" style={{ margin: "0 0 24px", maxWidth: "24ch" }}>DSCR scenario analysis for rental-property decisions.</H1>
+            <Lead style={{ color: "rgba(0,55,56,0.72)", maxWidth: "58ch", margin: "0 0 30px" }}>Greenstreet Finance provides educational tools for exploring how rental income, proposed debt payments, leverage, expenses, and selected assumptions may affect a DSCR scenario. Outputs are preliminary estimates, not approvals or commitments to lend.</Lead>
+            <nav className="about-actions" aria-label="About page next steps">
+              <a className="about-link" href="/dscr-calculator" onClick={(event) => navigate(event, "dscr-calculator")} style={{ background: dc.dark, color: dc.cream, borderRadius: 6, padding: "13px 24px", fontWeight: 700, textDecoration: "none" }}>Model a preliminary DSCR scenario</a>
+              <a className="about-link" href="/how-it-works" onClick={(event) => navigate(event, "how-it-works")} style={{ color: dc.dark, border: "1px solid rgba(0,55,56,0.3)", borderRadius: 6, padding: "13px 24px", fontWeight: 700, textDecoration: "none" }}>See how scenario analysis works</a>
+            </nav>
           </div>
+        </section>
 
-          {/* H1 */}
-          <H1 style={{ margin: "0 0 28px", maxWidth: "24ch" }}>
-            The DSCR underwriting platform real estate investors trust.
-          </H1>
+        <ScenePhoto
+          src="/img/generated/scenes/office-window-team.png"
+          alt="Illustrative workspace for reviewing rental-property scenario inputs"
+          eyebrow="Illustrative image"
+          caption="This image does not depict verified Greenstreet Finance employees. Final eligibility, pricing, and terms come from the provider identified in transaction disclosures."
+          style={{ background: dc.cream }}
+        />
 
-          {/* Subtitle */}
-          <Lead
-            style={{
-              color: "rgba(0,55,56,0.72)",
-              maxWidth: "54ch",
-              margin: "0 0 36px",
-            }}
-          >
-            DSCR loans let rental-property owners qualify on the property's rent —
-            not their personal income. Greenstreet is the software platform that
-            makes that process fast, accurate, and defensible. Founded by a broker
-            and a quant who watched good deals die at the lender because the math
-            was wrong. We built the engine we wished existed: deterministic,
-            provenance-tracked, every line citable.
-          </Lead>
-
-          {/* Hero meta */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 40 }}>
+        <section aria-labelledby="about-purpose-title" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
+          <div className="about-grid" style={{ maxWidth: dc.maxW, margin: "0 auto", alignItems: "start" }}>
             <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase" as const,
-                  color: "rgba(0,55,56,0.5)",
-                  marginBottom: 4,
-                }}
-              >
-                Founded by
-              </div>
-              <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                Dave Feldman and Priya Rao
-              </div>
+              <p style={{ color: dc.rain, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", margin: "0 0 12px" }}>Purpose and boundary</p>
+              <h2 id="about-purpose-title" style={{ color: dc.dark, fontSize: "clamp(28px,3.7vw,48px)", lineHeight: 1.05, margin: 0 }}>Clearer inputs, assumptions, and questions.</h2>
             </div>
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase" as const,
-                  color: "rgba(0,55,56,0.5)",
-                  marginBottom: 4,
-                }}
-              >
-                Headquartered in
-              </div>
-              <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                Austin, Texas
-              </div>
+            <div style={{ color: "rgba(0,55,56,0.7)", fontSize: "clamp(16px,1.5vw,20px)", lineHeight: 1.65 }}>
+              <p style={{ margin: "0 0 18px" }}>Greenstreet Finance is designed to organize a rental property's income, proposed debt payment, leverage, and operating assumptions in one scenario.</p>
+              <p style={{ margin: 0 }}>The result is a starting point for comparison and discussion. It does not replace underwriting, legal, tax, insurance, or financial review.</p>
             </div>
           </div>
+        </section>
 
-          {/* Hero CTA row */}
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
-            <button
-              onClick={() => onNavigate("dscr-calculator")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: dc.dark,
-                color: dc.cream,
-                fontWeight: 600,
-                fontSize: 15,
-                border: "none",
-                cursor: "pointer",
-                padding: "13px 26px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Check my deal's DSCR →
-            </button>
-            <button
-              onClick={() => onNavigate("rate-quiz")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: "transparent",
-                color: "rgba(0,55,56,0.75)",
-                fontWeight: 600,
-                fontSize: 15,
-                border: "1px solid rgba(0,55,56,0.25)",
-                cursor: "pointer",
-                padding: "13px 22px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Book a 15-min demo
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <ScenePhoto
-        src="/img/generated/scenes/office-window-team.png"
-        alt="The Greenstreet underwriting team reviewing deals at a desk"
-        eyebrow="One desk, every deal"
-        caption="A broker and a quant — and the team that prices, structures, and funds each file."
-        style={{ background: dc.cream }}
-      />
-
-      {/* ── VISION — two stacked 2-col blocks ────────────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(64px,8vw,112px) ${dc.pad}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: "clamp(48px,6vw,80px)",
-          }}
-        >
-          {/* Row 1: Our Vision */}
-          <div
-            className="gs-reveal dc-band-2"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "0.8fr 1.2fr",
-              gap: "clamp(28px,4vw,72px)",
-              alignItems: "start",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase" as const,
-                  color: dc.rain,
-                  marginBottom: 14,
-                }}
-              >
-                Our Vision
-              </div>
-              <h2
-                style={{
-                  fontSize: "clamp(28px,3.4vw,46px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.03em",
-                  lineHeight: 1.04,
-                  margin: 0,
-                }}
-              >
-                Materially better real-estate lending.
-              </h2>
-            </div>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.4vw,21px)",
-                fontWeight: 500,
-                lineHeight: 1.6,
-                color: "rgba(0,55,56,0.72)",
-                margin: 0,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              In 2026 we founded Greenstreet after watching, first-hand, how hard
-              it had become for investors to price DSCR deals that actually held at
-              the lender — and how often investors signed on deals where the
-              numbers hadn't been run correctly. We went back to the drawing board
-              on rental-loan software and built the engine we wished existed:
-              deterministic, provenance-tracked, defensible to a regulator on every
-              line.
-            </p>
-          </div>
-
-          {/* Row 2: Our Commitment */}
-          <div
-            className="gs-reveal dc-band-2"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "0.8fr 1.2fr",
-              gap: "clamp(28px,4vw,72px)",
-              alignItems: "start",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase" as const,
-                  color: dc.rain,
-                  marginBottom: 14,
-                }}
-              >
-                Our Commitment
-              </div>
-              <h2
-                style={{
-                  fontSize: "clamp(28px,3.4vw,46px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.03em",
-                  lineHeight: 1.04,
-                  margin: 0,
-                }}
-              >
-                To the{" "}
-                <span style={{ color: dc.rain }}>people</span>{" "}
-                who close the deal.
-              </h2>
-            </div>
-            <p
-              style={{
-                fontSize: "clamp(17px,1.4vw,21px)",
-                fontWeight: 500,
-                lineHeight: 1.6,
-                color: "rgba(0,55,56,0.72)",
-                margin: 0,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Investors and the borrowers behind every deal deserve the same math
-              an institution runs. Every figure Greenstreet produces is computed by
-              versioned code with a statutory citation behind every rule — never an
-              AI-generated estimate. When a regulator, a lender, or a borrower asks
-              where a number came from, we hand them the source.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── VALUES — 4 principles, 2-col card grid ────────────────────────── */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ marginBottom: "clamp(36px,5vw,56px)" }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.rain,
-                marginBottom: 12,
-              }}
-            >
-              What we believe
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.5vw,48px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.0,
-                margin: 0,
-                maxWidth: "22ch",
-              }}
-            >
-              Four principles that drive every product decision.
-            </h2>
-          </div>
-
-          <div className="gs-reveal ab-2col">
-            {VALUES.map((v, i) => (
-              <div
-                key={i}
-                className="ix-card"
-                style={{
-                  background: dc.cream,
-                  borderRadius: dc.r.md,
-                  border: `1px solid ${dc.faded}`,
-                  padding: "clamp(24px,3vw,36px)",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "clamp(17px,1.6vw,21px)",
-                    fontWeight: 600,
-                    letterSpacing: "-0.025em",
-                    color: dc.dark,
-                    marginBottom: 10,
-                    lineHeight: 1.15,
-                  }}
-                >
-                  {v.heading}
-                </div>
-                <p
-                  style={{
-                    fontSize: "clamp(14px,1.1vw,16px)",
-                    fontWeight: 500,
-                    lineHeight: 1.6,
-                    color: "rgba(0,55,56,0.65)",
-                    margin: 0,
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {v.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TEAM — dark band, 4-col card grid ───────────────────────────── */}
-      <section
-        style={{
-          background: dc.dark,
-          color: dc.cream,
-          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            className="gs-reveal"
-            style={{
-              textAlign: "center",
-              marginBottom: "clamp(40px,5vw,64px)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 16,
-              }}
-            >
-              Our team
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(34px,5vw,76px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.0,
-                margin: "0 auto",
-                maxWidth: "18ch",
-              }}
-            >
-              The people behind the engine.
-            </h2>
-          </div>
-
-          <div className="gs-reveal ab-team-grid">
-            {TEAM.map((m) => {
-              // Derive initials: first letter of each word, max 2
-              const initials = m.name
-                .split(" ")
-                .map((w) => w[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase();
-              return (
-                <div key={m.id}>
-                  {/* Monogram avatar — intentional branded element, no photo needed */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                      aspectRatio: "1",
-                      marginBottom: 14,
-                      borderRadius: 9,
-                      background: dc.teal,
-                      border: "1px solid rgba(238,239,211,0.10)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: dc.sans,
-                        fontSize: "clamp(28px,3.5vw,42px)",
-                        fontWeight: 600,
-                        letterSpacing: "-0.03em",
-                        color: dc.lemon,
-                        lineHeight: 1,
-                        userSelect: "none",
-                      }}
-                    >
-                      {initials}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 600,
-                      letterSpacing: "-0.02em",
-                      color: dc.cream,
-                    }}
-                  >
-                    {m.name}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "rgba(238,239,211,0.62)",
-                      marginTop: 2,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {m.role}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── JOBS — 2-col: list left / blurb right ───────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(64px,8vw,112px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="gs-reveal ab-jobs-grid"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-          }}
-        >
-          {/* Left: job list */}
-          <div>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.rain,
-                marginBottom: 14,
-              }}
-            >
-              Open roles
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(32px,4vw,56px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.0,
-                margin: "0 0 28px",
-              }}
-            >
-              Come build the engine with us.
-            </h2>
-
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                marginBottom: 28,
-              }}
-            >
-              {JOBS.map((j, i) => (
-                <button
-                  key={i}
-                  onClick={() => onNavigate("careers")}
-                  className="ab-job"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto",
-                    gap: 16,
-                    alignItems: "center",
-                    background: dc.mintBg,
-                    borderRadius: 9,
-                    padding: "18px 22px",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left" as const,
-                    fontFamily: dc.sans,
-                    width: "100%",
-                  }}
-                >
-                  <span
-                    className="ab-jt"
-                    style={{
-                      fontSize: "clamp(16px,1.7vw,19px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.02em",
-                      color: dc.dark,
-                    }}
-                  >
-                    {j.title}
-                  </span>
-                  <span
-                    className="ab-ja"
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: dc.rain,
-                      letterSpacing: "-0.01em",
-                      whiteSpace: "nowrap" as const,
-                    }}
-                  >
-                    Apply →
-                  </span>
-                </button>
+        <section aria-labelledby="about-principles-title" style={{ background: dc.mintBg, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
+          <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+            <h2 id="about-principles-title" style={{ color: dc.dark, fontSize: "clamp(28px,3.5vw,46px)", margin: "0 0 32px" }}>Principles for Greenstreet scenario tools</h2>
+            <div className="about-grid">
+              {PRINCIPLES.map((principle) => (
+                <article key={principle.title} style={{ background: dc.cream, border: `1px solid ${dc.faded}`, borderRadius: dc.r.md, padding: "clamp(24px,3vw,34px)" }}>
+                  <h3 style={{ color: dc.dark, fontSize: 20, margin: "0 0 10px" }}>{principle.title}</h3>
+                  <p style={{ color: "rgba(0,55,56,0.66)", lineHeight: 1.65, margin: 0 }}>{principle.body}</p>
+                </article>
               ))}
             </div>
-
-            <button
-              onClick={() => onNavigate("careers")}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: dc.dark,
-                color: dc.mintBg,
-                fontWeight: 600,
-                fontSize: 15,
-                border: "none",
-                cursor: "pointer",
-                padding: "13px 26px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              All jobs →
-            </button>
           </div>
+        </section>
 
-          {/* Right: blurb + visual placeholder */}
-          <div>
-            <p
-              style={{
-                fontSize: "clamp(19px,1.7vw,26px)",
-                fontWeight: 600,
-                lineHeight: 1.25,
-                letterSpacing: "-0.03em",
-                color: dc.dark,
-                margin: "0 0 24px",
-              }}
-            >
-              We're building a generational company in DSCR lending — and always
-              looking for talent to propel the mission.
-            </p>
-            {/* Branded wordmark panel — intentional, no unfinished placeholder */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 12,
-                width: "100%",
-                aspectRatio: "1.67",
-                borderRadius: 12,
-                background: dc.dark,
-                border: "1px solid rgba(0,55,56,0.10)",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: dc.sans,
-                  fontSize: "clamp(28px,3.5vw,48px)",
-                  fontWeight: 600,
-                  letterSpacing: "-0.04em",
-                  color: dc.lemon,
-                  lineHeight: 1,
-                }}
-              >
-                Greenstreet
-              </span>
-              <span
-                style={{
-                  fontFamily: dc.sans,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase" as const,
-                  color: "rgba(238,239,211,0.62)",
-                }}
-              >
-                Austin, Texas · Est. 2026
-              </span>
+        <section aria-labelledby="about-accountability-title" style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
+          <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+            <h2 id="about-accountability-title" style={{ fontSize: "clamp(30px,4vw,52px)", margin: "0 0 32px" }}>How to read a Greenstreet scenario</h2>
+            <ol className="about-accountability" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+              {ACCOUNTABILITY.map((item, index) => (
+                <li key={item.title} style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24 }}>
+                  <p aria-hidden="true" style={{ color: dc.lemon, fontWeight: 800, margin: "0 0 18px" }}>0{index + 1}</p>
+                  <h3 style={{ fontSize: 20, margin: "0 0 8px" }}>{item.title}</h3>
+                  <p style={{ color: "rgba(238,239,211,0.7)", lineHeight: 1.6, margin: 0 }}>{item.body}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section aria-labelledby="about-public-title" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
+          <div className="about-grid" style={{ maxWidth: dc.maxW, margin: "0 auto", alignItems: "start" }}>
+            <div>
+              <h2 id="about-public-title" style={{ color: dc.dark, fontSize: "clamp(28px,3.5vw,46px)", margin: "0 0 16px" }}>Public facts require support.</h2>
+              <p style={{ color: "rgba(0,55,56,0.68)", lineHeight: 1.65, margin: "0 0 24px" }}>Greenstreet Finance does not present company credentials, relationships, or performance claims here unless the responsible owner has verified them.</p>
+              <a className="about-link" href="/legal" onClick={(event) => navigate(event, "legal")} style={{ color: dc.rain, fontWeight: 700 }}>Read current disclosures and limitations →</a>
             </div>
+            <ul style={{ background: dc.mintBg, borderRadius: dc.r.md, padding: "24px 24px 24px 44px", margin: 0 }}>
+              {PUBLIC_FACTS.map((fact) => <li key={fact} style={{ color: dc.dark, lineHeight: 1.55, marginBottom: 12 }}>{fact}</li>)}
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── INVESTORS — 6-logo grid ──────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase" as const,
-              color: dc.rain,
-              marginBottom: 14,
-            }}
-          >
-            Our backers
+        <section aria-labelledby="about-next-title" style={{ background: dc.rain, color: dc.cream, padding: `clamp(48px,6vw,76px) ${dc.pad}` }}>
+          <div style={{ maxWidth: 900, margin: "0 auto" }}>
+            <h2 id="about-next-title" style={{ fontSize: "clamp(28px,3.6vw,46px)", margin: "0 0 16px" }}>Choose a useful next step.</h2>
+            <p style={{ color: "rgba(238,239,211,0.76)", lineHeight: 1.65, maxWidth: "60ch", margin: "0 0 24px" }}>Model your own assumptions or review the support hub before relying on a scenario.</p>
+            <nav className="about-actions" aria-label="About Greenstreet next steps">
+              <a className="about-link" href="/dscr-calculator" onClick={(event) => navigate(event, "dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, borderRadius: 6, padding: "13px 22px", fontWeight: 700, textDecoration: "none" }}>Open the educational calculator</a>
+              <a className="about-link" href="/support" onClick={(event) => navigate(event, "support")} style={{ color: dc.cream, border: "1px solid rgba(238,239,211,0.5)", borderRadius: 6, padding: "13px 22px", fontWeight: 700, textDecoration: "none" }}>Browse help and support</a>
+            </nav>
           </div>
-          <h2
-            style={{
-              fontSize: "clamp(28px,3.4vw,46px)",
-              fontWeight: 600,
-              letterSpacing: "-0.03em",
-              margin: "0 0 40px",
-            }}
-          >
-            Backed by investors who build fintech for the long run.
-          </h2>
-          <div className="ab-inv-grid">
-            {[
-              "Cedar Ventures",
-              "Mistral Capital",
-              "Greylock Bridge",
-              "First Round West",
-              "Founders Co-op",
-              "Range Partners",
-            ].map((inv) => (
-              <div
-                key={inv}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: dc.cream,
-                  borderRadius: dc.r.md,
-                  border: `1px solid ${dc.faded}`,
-                  padding: "38px 24px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "clamp(18px,1.8vw,24px)",
-                    fontWeight: 600,
-                    letterSpacing: "-0.03em",
-                    color: dc.dark,
-                  }}
-                >
-                  {inv}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA — two cards ─────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(48px,6vw,80px) ${dc.pad} clamp(64px,8vw,104px)`,
-        }}
-      >
-        <div
-          className="gs-reveal ab-cta-grid"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-          }}
-        >
-          {/* Card 1: Demo */}
-          <button
-            onClick={() => onNavigate("rate-quiz")}
-            className="cta-card"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              gap: 40,
-              background: dc.dark,
-              color: dc.cream,
-              borderRadius: dc.r.lg,
-              padding: "clamp(32px,4vw,52px)",
-              border: "none",
-              cursor: "pointer",
-              textAlign: "left" as const,
-              minHeight: 240,
-              fontFamily: dc.sans,
-            }}
-          >
-            <div
-              style={{
-                fontSize: "clamp(24px,2.6vw,34px)",
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.08,
-                color: dc.cream,
-              }}
-            >
-              See Greenstreet run a real deal — live, 15 minutes.
-            </div>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: dc.lemon,
-                color: dc.dark,
-                fontWeight: 600,
-                fontSize: 15,
-                padding: "13px 24px",
-                borderRadius: 6,
-                alignSelf: "flex-start",
-              }}
-            >
-              Book a walkthrough →
-            </span>
-          </button>
-
-          {/* Card 2: Contact — anchor makes the phone number a real tap target */}
-          <a
-            href="/book-demo"
-            className="cta-card"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              gap: 40,
-              background: dc.rain,
-              color: dc.cream,
-              borderRadius: dc.r.lg,
-              padding: "clamp(32px,4vw,52px)",
-              minHeight: 240,
-              textDecoration: "none",
-              cursor: "pointer",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "clamp(24px,2.6vw,34px)",
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.08,
-                color: dc.cream,
-              }}
-            >
-              Talk to a specialist — not a form.
-            </div>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                color: dc.lemon,
-                fontWeight: 700,
-                fontSize: "clamp(22px,2.6vw,32px)",
-                fontFamily: dc.mono,
-                letterSpacing: "-0.03em",
-                alignSelf: "flex-start",
-              }}
-            >
-              Book a scenario review
-            </span>
-          </a>
-        </div>
-      </section>
+        </section>
+      </div>
     </DcShell>
   );
 }

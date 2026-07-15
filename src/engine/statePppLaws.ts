@@ -23,6 +23,93 @@ import type {
   ProvenanceLabel,
 } from './types';
 
+export const STATE_CODE_TO_NAME: Readonly<Record<string, string>> = Object.freeze({
+  AL: 'Alabama',
+  AK: 'Alaska',
+  AZ: 'Arizona',
+  AR: 'Arkansas',
+  CA: 'California',
+  CO: 'Colorado',
+  CT: 'Connecticut',
+  DE: 'Delaware',
+  FL: 'Florida',
+  GA: 'Georgia',
+  HI: 'Hawaii',
+  ID: 'Idaho',
+  IL: 'Illinois',
+  IN: 'Indiana',
+  IA: 'Iowa',
+  KS: 'Kansas',
+  KY: 'Kentucky',
+  LA: 'Louisiana',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MA: 'Massachusetts',
+  MI: 'Michigan',
+  MN: 'Minnesota',
+  MS: 'Mississippi',
+  MO: 'Missouri',
+  MT: 'Montana',
+  NE: 'Nebraska',
+  NV: 'Nevada',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  NM: 'New Mexico',
+  NY: 'New York',
+  NC: 'North Carolina',
+  ND: 'North Dakota',
+  OH: 'Ohio',
+  OK: 'Oklahoma',
+  OR: 'Oregon',
+  PA: 'Pennsylvania',
+  RI: 'Rhode Island',
+  SC: 'South Carolina',
+  SD: 'South Dakota',
+  TN: 'Tennessee',
+  TX: 'Texas',
+  UT: 'Utah',
+  VT: 'Vermont',
+  VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
+  WI: 'Wisconsin',
+  WY: 'Wyoming',
+  DC: 'District of Columbia',
+});
+
+export const STATE_JURISDICTION_CODES: readonly string[] = Object.freeze(
+  Object.keys(STATE_CODE_TO_NAME),
+);
+
+const STATE_NAME_TO_CODE = Object.freeze(
+  Object.fromEntries(
+    Object.entries(STATE_CODE_TO_NAME).map(([code, name]) => [name.toUpperCase(), code]),
+  ) as Record<string, string>,
+);
+
+/** Returns a canonical postal code for an exact two-letter code or full jurisdiction name. */
+export function normalizeStateCode(value: string | null | undefined): string | null {
+  const normalized = value?.trim().replace(/\s+/g, ' ').toUpperCase();
+  if (!normalized) return null;
+  if (STATE_CODE_TO_NAME[normalized]) return normalized;
+  return STATE_NAME_TO_CODE[normalized] ?? null;
+}
+
+export interface PPPStateSourceMetadata {
+  sourceUrl?: string | null;
+  effectiveDate?: string | null;
+  reviewedAt?: string | null;
+  reviewer?: string | null;
+}
+
+export type PPPStateLawWithSource = PPPStateLaw & PPPStateSourceMetadata;
+
+export const PPP_MODEL_AS_OF = '2026-06-25';
+
+export const PPP_MODEL_LIMITATION =
+  `Informational model data current as of ${PPP_MODEL_AS_OF}; not legal advice. ` +
+  'It does not determine legality, enforceability, program availability, pricing, or approval. Verify current primary sources, lender guidelines, and final documents with qualified counsel.';
+
 // -----------------------------------------------------------
 // Indexed threshold values (2026)
 // Annually re-confirmed each January per Part E.3
@@ -56,8 +143,8 @@ const DECLINING_ONLY_OPTIONS: PrepayType[] = [
 ];
 
 // No-PPP premium constants
-const NO_PPP_RATE_PREMIUM = 0.0025;   // ~0.25% rate premium
-const NO_PPP_FEE_PREMIUM = 0.00625;   // ~0.625% fee premium
+const NO_PPP_RATE_PREMIUM = 0.0025;   // Illustrative internal model assumption; not a current quote.
+const NO_PPP_FEE_PREMIUM = 0.00625;   // Illustrative internal model assumption; not a current quote.
 
 // Entity types that are NOT individuals
 const ENTITY_TYPES: EntityType[] = ['LLC', 'S_CORP', 'C_CORP', 'TRUST'];
@@ -65,7 +152,7 @@ const ENTITY_TYPES: EntityType[] = ['LLC', 'S_CORP', 'C_CORP', 'TRUST'];
 // -----------------------------------------------------------
 // Full State Matrix — PPP_STATE_LAWS
 // -----------------------------------------------------------
-export const PPP_STATE_LAWS: Record<string, PPPStateLaw> = {
+export const PPP_STATE_LAWS: Record<string, PPPStateLawWithSource> = {
   // ── MINNESOTA — HF 3437 ENACTED (v11 upgrade) ──────────────
   MN: {
     state: 'MN',
@@ -1229,8 +1316,19 @@ export const PPP_STATE_LAWS: Record<string, PPPStateLaw> = {
 // -----------------------------------------------------------
 // Helper: determine the effective status for a given state
 // -----------------------------------------------------------
-function getStateLaw(state: string): PPPStateLaw | null {
-  return PPP_STATE_LAWS[state.toUpperCase()] ?? null;
+function getStateLaw(state: string): PPPStateLawWithSource | null {
+  const code = normalizeStateCode(state);
+  return code ? PPP_STATE_LAWS[code] ?? null : null;
+}
+
+export function getPPPStateSourceMetadata(state: string): Required<PPPStateSourceMetadata> {
+  const law = getStateLaw(state);
+  return {
+    sourceUrl: law?.sourceUrl ?? null,
+    effectiveDate: law?.effectiveDate ?? null,
+    reviewedAt: law?.reviewedAt ?? null,
+    reviewer: law?.reviewer ?? null,
+  };
 }
 
 // -----------------------------------------------------------
@@ -1258,7 +1356,7 @@ function buildAllowedResult(
     noPPPPremiumFee: 0,
     requiresEntityVesting: false,
     entityNote: '',
-    legalWarning: '',
+    legalWarning: PPP_MODEL_LIMITATION,
     ...overrides,
   };
 }
@@ -1280,7 +1378,7 @@ function buildBlockedResult(
     noPPPPremiumFee: NO_PPP_FEE_PREMIUM,
     requiresEntityVesting: false,
     entityNote: '',
-    legalWarning: '',
+    legalWarning: PPP_MODEL_LIMITATION,
     ...overrides,
   };
 }
@@ -1295,18 +1393,19 @@ export function checkPPPLegal(
   unitCount: number,
   productType: 'FIXED' | 'ARM',
 ): PPPCheckResult {
-  const law = getStateLaw(state);
+  const st = normalizeStateCode(state) ?? state.trim().toUpperCase();
+  const law = getStateLaw(st);
 
-  // ── State not in restricted matrix → default ALLOWED ──
+  // A missing state entry is unknown, not proof that a structure is legally available.
   if (!law) {
     return buildAllowedResult(
-      'ALLOWED',
-      `${state.toUpperCase()} has no known PPP restrictions. Standard prepay options available.`,
+      'CONDITIONAL',
+      `${st || 'This jurisdiction'} has no reviewed state-specific rule attached to this model. Available options are shown only for scenario comparison; verify current law and program terms before use.`,
       ALL_PREPAY_OPTIONS,
+      { legalWarning: PPP_MODEL_LIMITATION },
     );
   }
 
-  const st = state.toUpperCase();
   const isARM = productType === 'ARM';
 
   // ── MN: HF 3437 ENACTED (v11 fix) — context-dependent ──
@@ -2205,7 +2304,7 @@ export function getNoPPPPremium(
   state: string,
   entityType: EntityType = 'LLC',  // v11 FIX: default to LLC (typical DSCR vesting)
 ): { ratePremium: number; feePremium: number } {
-  const st = state.toUpperCase();
+  const st = normalizeStateCode(state) ?? state.trim().toUpperCase();
   const law = PPP_STATE_LAWS[st];
   const isEntity = entityType !== 'INDIVIDUAL';
 
@@ -2384,7 +2483,7 @@ export interface PPPBranchResult extends PPPCheckResult {
 }
 
 export function checkPPPWithBranching(input: PPPBranchInput): PPPBranchResult {
-  const st = input.state.toUpperCase();
+  const st = normalizeStateCode(input.state) ?? input.state.trim().toUpperCase();
   const isEntity = input.entityType !== 'INDIVIDUAL';
   const isMnPostHf3437 = true; // eff. Aug 1, 2026 — we're past that
 
@@ -2487,7 +2586,7 @@ function buildBranchResult(input: PPPBranchInput & {
   mnHf3437Applicable?: boolean;
   njLenderSplitWarning?: boolean;
 }): PPPBranchResult {
-  const st = input.state.toUpperCase();
+  const st = normalizeStateCode(input.state) ?? input.state.trim().toUpperCase();
   const penaltyBase = st === 'OH' ? 'ORIGINAL_PRINCIPAL' : 'REMAINING_BALANCE';
   const requiresEntityVesting = !input.allowed && input.entityType === 'INDIVIDUAL';
 
@@ -2528,7 +2627,7 @@ export function getIndexedThreshold(state: string, year: number = 2026): {
   year: number;
   needsJanuaryReconfirm: boolean;
 } {
-  const st = state.toUpperCase();
+  const st = normalizeStateCode(state) ?? state.trim().toUpperCase();
   if (st === 'PA') {
     return {
       threshold: PA_PPP_THRESHOLD_2026,

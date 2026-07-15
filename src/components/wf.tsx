@@ -28,7 +28,7 @@ export function Section({ theme = "light", space: pad = "section", first = false
   return (
     <ThemeCtx.Provider value={t}>
       <section id={id} style={{ background: t.bg, color: t.text, padding: `${first ? 0 : py} ${space.gutter}`, paddingTop: first ? "clamp(32px,4vw,56px)" : py, ...style }}>
-        <div style={{ maxWidth: "1180px", margin: "0 auto" }}>{children}</div>
+        <div style={{ width: "100%", minWidth: 0, maxWidth: "1180px", margin: "0 auto" }}>{children}</div>
       </section>
     </ThemeCtx.Provider>
   );
@@ -118,6 +118,7 @@ interface ButtonProps {
 export function Button({ href, onClick, variant = "primary", children, style }: ButtonProps) {
   const t = useTheme();
   const [h, setH] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
   const isPrimary = variant === "primary";
   const base = isPrimary
     ? { bg: t.btnBg, fg: t.btnText, hbg: t.btnHoverBg, hfg: t.btnHoverText, bd: t.btnBg }
@@ -128,12 +129,16 @@ export function Button({ href, onClick, variant = "primary", children, style }: 
       onClick={onClick}
       onMouseEnter={() => setH(true)}
       onMouseLeave={() => setH(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       style={{
         display: "inline-flex", alignItems: "center", gap: "8px",
         fontFamily: font.family, fontSize: "15px", fontWeight: 700, textDecoration: "none",
         padding: "14px 26px", borderRadius: radius.sm,
         background: h ? base.hbg : base.bg, color: h ? base.hfg : base.fg,
         border: `1.5px solid ${h ? (isPrimary ? base.hbg : base.hfg === t.bg ? base.bg === "transparent" ? t.text : base.hbg : base.hbg) : base.bd}`,
+        outline: focused ? `3px solid ${t.bg === swatch.midnight ? swatch.lemon : swatch.rainforest}` : "2px solid transparent",
+        outlineOffset: "3px",
         transition: "background-color .15s, color .15s, border-color .15s", cursor: "pointer", ...style,
       }}
     >{children}</a>
@@ -165,5 +170,5 @@ interface GridProps {
 }
 
 export function Grid({ min = "320px", gap = "20px", children, style }: GridProps) {
-  return <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${min}, 1fr))`, gap, ...style }}>{children}</div>;
+  return <div style={{ display: "grid", minWidth: 0, gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${min}), 1fr))`, gap, ...style }}>{children}</div>;
 }

@@ -13,6 +13,26 @@ import type {
 } from './types';
 import { computeTcoRate } from './tcoDscr';
 
+const MAX_FINANCIAL_VALUE = Number.MAX_SAFE_INTEGER / 12;
+
+function finiteNonNegative(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(MAX_FINANCIAL_VALUE, Math.max(0, value))
+    : 0;
+}
+
+function finiteSum(values: number[]): number {
+  return Math.min(MAX_FINANCIAL_VALUE, values.reduce((sum, value) => sum + finiteNonNegative(value), 0));
+}
+
+function deterministicNewDealId(properties: PortfolioProperty[]): string {
+  const ids = new Set(properties.map(property => property.id));
+  let id = 'new-deal';
+  let suffix = 2;
+  while (ids.has(id)) id = `new-deal-${suffix++}`;
+  return id;
+}
+
 export function analyzePortfolio(
   existingProperties: PortfolioProperty[],
   newDeal: {
@@ -28,9 +48,9 @@ export function analyzePortfolio(
   availableLiquidity: number,
   currentMarketRate: number = 7.0,
 ): PortfolioAnalysis {
-  const allProperties = newDeal
+  const allProperties = (newDeal
     ? [...existingProperties, {
-        id: `new-${Date.now()}`,
+        id: deterministicNewDealId(existingProperties),
         name: 'Subject Property',
         address: '',
         monthlyPITIA: newDeal.monthlyPITIA,
@@ -41,30 +61,35 @@ export function analyzePortfolio(
         track2DSCR: newDeal.track2DSCR,
         isBlanket: newDeal.isBlanket,
       }]
-    : existingProperties;
+    : existingProperties).map(property => ({
+      ...property,
+      monthlyPITIA: finiteNonNegative(property.monthlyPITIA),
+      monthlyRent: finiteNonNegative(property.monthlyRent),
+      loanBalance: finiteNonNegative(property.loanBalance),
+      dscr: finiteNonNegative(property.dscr),
+      track2DSCR: finiteNonNegative(property.track2DSCR),
+      lender: typeof property.lender === 'string' && property.lender.trim() ? property.lender : 'Unknown lender',
+    }));
 
-  const totalPITIA = allProperties.reduce((sum, p) => sum + p.monthlyPITIA, 0);
-  const totalRent = allProperties.reduce((sum, p) => sum + p.monthlyRent, 0);
+  const totalPITIA = finiteSum(allProperties.map(p => p.monthlyPITIA));
+  const totalRent = finiteSum(allProperties.map(p => p.monthlyRent));
 
   // NOI = Gross less the TCO operating-cost haircut (vacancy + mgmt + maint +
   // CapEx). Portfolio-level default = SFR/average/normal (28%); single source of
   // truth in tcoDscr.ts. Replaces the legacy flat 8/8/5.
   const tcoTotal = computeTcoRate({ propertyType: 'SFR' }).total;
-  const totalNOI = allProperties.reduce((sum, p) => {
-    const net = p.monthlyRent * (1 - tcoTotal);
-    return sum + net * 12;
-  }, 0);
+  const totalNOI = finiteSum(allProperties.map(p => p.monthlyRent * (1 - tcoTotal) * 12));
 
   // Portfolio DSCR = ΣNOI / ΣDebt_Service (totals, NEVER averages)
   const totalAnnualDebtService = totalPITIA * 12;
   const globalDSCR = totalAnnualDebtService > 0 ? totalNOI / totalAnnualDebtService : 0;
 
   // Debt Yield = NOI / Total Loan Balance
-  const totalLoanBalance = allProperties.reduce((sum, p) => sum + p.loanBalance, 0);
+  const totalLoanBalance = finiteSum(allProperties.map(p => p.loanBalance));
   const totalDebtYield = totalLoanBalance > 0 ? totalNOI / totalLoanBalance : 0;
 
   // Cash-on-Cash (Track 2 income)
-  const totalCashInvested = allProperties.reduce((sum, p) => sum + p.loanBalance * 0.25, 0); // estimate 25% down
+  const totalCashInvested = finiteSum(allProperties.map(p => p.loanBalance * 0.25)); // estimate 25% down
   const annualTrack2CF = totalNOI - totalAnnualDebtService;
   const weightedCashOnCash = totalCashInvested > 0 ? annualTrack2CF / totalCashInvested : 0;
 
@@ -79,12 +104,12 @@ export function analyzePortfolio(
   const totalReservesByLender = Array.from(lenderGroups.entries()).map(([lender, group]) => {
     // Base 6 months + 2 months per additional property with same lender, capped at 12
     const months = Math.min(12, group.baseMonths + (group.properties.length - 1) * 2);
-    const dollars = group.properties.reduce((sum, p) => sum + p.monthlyPITIA * months, 0);
+    const dollars = finiteSum(group.properties.map(p => p.monthlyPITIA * months));
     return { lender, months, dollars };
   });
 
-  const totalReservesRequired = totalReservesByLender.reduce((sum, r) => sum + r.dollars, 0);
-  const reserveShortfall = Math.max(0, totalReservesRequired - availableLiquidity);
+  const totalReservesRequired = finiteSum(totalReservesByLender.map(r => r.dollars));
+  const reserveShortfall = Math.max(0, totalReservesRequired - finiteNonNegative(availableLiquidity));
 
   // Blanket loan warning
   const hasBlanket = allProperties.some(p => p.isBlanket);
@@ -92,16 +117,12 @@ export function analyzePortfolio(
     ? 'CRITICAL: Blanket loan detected. Partial release clause must be confirmed before signing. Without partial release, selling one property may trigger full loan payoff on ALL properties.'
     : null;
 
-  // Refi scan — properties with DSCR > 1.25 and rates above current market
-  const refiOpportunities: RefiOpportunity[] = allProperties
-    .filter(p => p.dscr >= 1.25 && p.loanBalance > 0)
-    .map(p => ({
-      propertyId: p.id,
-      currentRate: 0, // Would need actual rate data
-      projectedRate: currentMarketRate - 0.25, // Estimate
-      monthlySavings: p.monthlyPITIA * 0.05, // Rough estimate
-      seasoningMonthsRemaining: 0,
-    }));
+  // Refinance economics require note terms, a real quote, closing costs, and
+  // seasoning dates that PortfolioProperty does not carry. Do not fabricate
+  // savings or rates from PITIA; leave the watchlist empty until those inputs
+  // are explicitly supplied by the data model.
+  const refiOpportunities: RefiOpportunity[] = [];
+  void currentMarketRate;
 
   // ── v11.6 — Portfolio Analytics Depth ──
 
@@ -166,11 +187,11 @@ export function analyzePortfolio(
   };
 
   // DSCR distribution stats (Track 1)
-  const dscrValues = allProperties.map(p => p.dscr).filter(v => typeof v === 'number' && !isNaN(v));
+  const dscrValues = allProperties.map(p => p.dscr).filter(Number.isFinite);
   const dscrDistribution = computeDistributionStats(dscrValues);
 
   // Track 2 DSCR distribution stats
-  const track2Values = allProperties.map(p => p.track2DSCR).filter(v => typeof v === 'number' && !isNaN(v));
+  const track2Values = allProperties.map(p => p.track2DSCR).filter(Number.isFinite);
   const track2DscrDistribution = computeDistributionStats(track2Values);
 
   // Negative cash flow bleed analysis
@@ -181,9 +202,9 @@ export function analyzePortfolio(
   for (const p of allProperties) {
     if (p.track2DSCR < 1.0) {
       negativeCashFlowPropertyIds.push(p.id);
-      const monthlyNOI_track2 = p.monthlyRent * (1 - 0.08 - 0.08 - 0.05); // vacancy 8% + mgmt 8% + maint 5%
+      const monthlyNOI_track2 = p.monthlyRent * (1 - tcoTotal);
       const bleed = Math.max(0, p.monthlyPITIA - monthlyNOI_track2);
-      totalMonthlyBleed += bleed;
+      totalMonthlyBleed = finiteSum([totalMonthlyBleed, bleed]);
     }
   }
   const negativeCashFlowProperties = {
@@ -259,6 +280,18 @@ export function computePortfolioHealthScore(result: ReturnType<typeof analyzePor
   color: string;
   breakdown: { dscrPts: number; concentrationPts: number; cashFlowPts: number; reservePts: number };
 } {
+  // Legacy PortfolioAnalysis fixtures predate the properties field. Only an
+  // explicitly present, empty property list proves that the portfolio is empty;
+  // missing legacy data must continue through the established score pillars.
+  if (Array.isArray(result.properties) && result.properties.length === 0) {
+    return {
+      score: 0,
+      label: 'CRITICAL',
+      color: '#e06363',
+      breakdown: { dscrPts: 0, concentrationPts: 0, cashFlowPts: 0, reservePts: 0 },
+    };
+  }
+
   // DSCR pillar (40 pts)
   const g = result.globalDSCR;
   const dscrPts = g >= 1.50 ? 40 : g >= 1.25 ? 30 : g >= 1.0 ? 18 : 0;
@@ -291,4 +324,56 @@ export function computePortfolioHealthScore(result: ReturnType<typeof analyzePor
     score >= 30 ? '#fb923c'  : '#e06363';
 
   return { score, label, color, breakdown: { dscrPts, concentrationPts, cashFlowPts, reservePts } };
+}
+
+export interface PortfolioAggregateInput {
+  value: number;
+  balance: number;
+  rate: number;
+  rent: number;
+  pitia: number;
+  cf: number;
+}
+
+export interface PortfolioAggregates {
+  hasProperties: boolean;
+  blend: number;
+  equity: number;
+  totCash: number;
+  wRate: number;
+  totBal: number;
+}
+
+/**
+ * Computes the values presented by the portfolio summary strip. The explicit
+ * availability flag keeps an empty portfolio distinct from a real portfolio
+ * whose valid aggregate happens to be zero.
+ */
+export function computePortfolioAggregates(
+  properties: readonly PortfolioAggregateInput[],
+): PortfolioAggregates {
+  let totRent = 0;
+  let totDebt = 0;
+  let totValue = 0;
+  let totBal = 0;
+  let totCash = 0;
+  let wRateNum = 0;
+
+  for (const property of properties) {
+    totRent += property.rent;
+    totDebt += property.pitia;
+    totValue += property.value;
+    totBal += property.balance;
+    totCash += property.cf;
+    wRateNum += property.rate * property.balance;
+  }
+
+  return {
+    hasProperties: properties.length > 0,
+    blend: totDebt > 0 ? totRent / totDebt : 0,
+    equity: totValue - totBal,
+    totCash,
+    wRate: totBal > 0 ? wRateNum / totBal : 0,
+    totBal,
+  };
 }

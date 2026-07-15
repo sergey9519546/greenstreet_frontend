@@ -46,6 +46,50 @@ export const CURRENT_MARKET_SNAPSHOT: MarketIndexSnapshot = {
 
 // Stress test scenario: SOFR rises 140 bps to 5.00%
 export const STRESS_SOFR_PCT = 5.0;
+const BASELINE_SOFR_PCT = CURRENT_MARKET_SNAPSHOT.sofr30Day;
+const MAX_RATE_PCT = 100;
+const MAX_LOAN_AMOUNT = Number.MAX_SAFE_INTEGER / 12;
+const MAX_TERM_MONTHS = 1200;
+
+function finiteBounded(value: unknown, fallback: number, min: number, max: number): number {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(max, Math.max(min, value))
+    : fallback;
+}
+
+function sanitizeARMTerms(armTerms: ARMTerms): ARMTerms {
+  const initialRate = finiteBounded(armTerms.initialRate, 0, 0, MAX_RATE_PCT);
+  const lifetimeCapPct = finiteBounded(armTerms.lifetimeCapPct, 0, 0, MAX_RATE_PCT - initialRate);
+  const lifetimeCapRate = initialRate + lifetimeCapPct;
+  return {
+    ...armTerms,
+    marginPct: finiteBounded(armTerms.marginPct, 0, 0, MAX_RATE_PCT),
+    initialRate,
+    initialCapPct: finiteBounded(armTerms.initialCapPct, 0, 0, MAX_RATE_PCT),
+    periodicCapPct: finiteBounded(armTerms.periodicCapPct, 0, 0, MAX_RATE_PCT),
+    lifetimeCapPct,
+    floorRate: finiteBounded(armTerms.floorRate, initialRate, 0, lifetimeCapRate),
+    fixedPeriodMonths: Math.round(finiteBounded(armTerms.fixedPeriodMonths, 0, 0, MAX_TERM_MONTHS)),
+    resetFrequencyMonths: Math.round(finiteBounded(armTerms.resetFrequencyMonths, 6, 1, MAX_TERM_MONTHS)),
+  };
+}
+
+function safePayment(balance: number, annualRate: number, termMonths: number): number {
+  const safeBalance = finiteBounded(balance, 0, 0, MAX_LOAN_AMOUNT);
+  const safeRate = finiteBounded(annualRate, 0, 0, MAX_RATE_PCT);
+  const safeTerm = Math.round(finiteBounded(termMonths, 1, 1, MAX_TERM_MONTHS));
+  const payment = calculatePI(safeBalance, safeRate, safeTerm);
+  return Number.isFinite(payment) ? Math.max(0, payment) : 0;
+}
+
+function scenarioIndexValue(
+  index: string,
+  sofrScenarioPct: number,
+  snapshot: MarketIndexSnapshot,
+): number {
+  const selectedIndex = getIndexValue(index, snapshot);
+  return finiteBounded(selectedIndex + (sofrScenarioPct - BASELINE_SOFR_PCT), selectedIndex, 0, MAX_RATE_PCT);
+}
 
 // ============================================================
 // DEFAULT ARM PROGRAMS (verified typical structures)
@@ -142,16 +186,27 @@ export function simulateARMResetLadder(
   sustainedIndexPct: number,
   horizonYears: number = 10,
 ): ARMResetLadderResult {
-  const resetPeriodYears = armTerms.resetFrequencyMonths / 12;
-  const maxResets = Math.max(
-    1,
-    Math.floor((horizonYears - armTerms.fixedPeriodMonths / 12) / resetPeriodYears),
+  armTerms = sanitizeARMTerms(armTerms);
+  const horizonMonths = Math.floor(finiteBounded(horizonYears, 0, 0, 100) * 12);
+  const resetFrequencyMonths = armTerms.resetFrequencyMonths;
+  const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
+
+  if (horizonMonths < armTerms.fixedPeriodMonths) {
+    return {
+      trajectory: [],
+      stabilizedRate: armTerms.initialRate,
+      yearsToLifetimeCap: null,
+      lifetimeCapRate,
+    };
+  }
+
+  const maxResets = 1 + Math.floor(
+    (horizonMonths - armTerms.fixedPeriodMonths) / resetFrequencyMonths,
   );
 
-  const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
   const fullyIndexedRate = Math.max(
     armTerms.floorRate,
-    sustainedIndexPct + armTerms.marginPct,
+    finiteBounded(sustainedIndexPct, 0, 0, MAX_RATE_PCT) + armTerms.marginPct,
   );
 
   const trajectory: ARMResetTrajectoryPoint[] = [];
@@ -159,7 +214,7 @@ export function simulateARMResetLadder(
   let yearsToLifetimeCap: number | null = null;
 
   for (let i = 1; i <= maxResets; i++) {
-    const year = armTerms.fixedPeriodMonths / 12 + (i - 1) * resetPeriodYears;
+    const year = (armTerms.fixedPeriodMonths + (i - 1) * resetFrequencyMonths) / 12;
     let newRate: number;
     let capBinding: ARMResetTrajectoryPoint['capBinding'];
 
@@ -190,7 +245,7 @@ export function simulateARMResetLadder(
 
     prevRate = newRate;
     // If we've hit the lifetime cap, no point continuing
-    if (newRate >= lifetimeCapRate - 0.0001 && i > 1) break;
+    if (newRate >= lifetimeCapRate - 0.0001) break;
   }
 
   return {
@@ -240,6 +295,12 @@ export function computeARMReset(
   ioPeriodMonths: number = 0,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): ARMResetResult {
+  armTerms = sanitizeARMTerms(armTerms);
+  loanBalanceAtReset = finiteBounded(loanBalanceAtReset, 0, 0, MAX_LOAN_AMOUNT);
+  remainingTermMonths = Math.round(finiteBounded(remainingTermMonths, 1, 1, MAX_TERM_MONTHS));
+  qualifyingRent = finiteBounded(qualifyingRent, 0, 0, MAX_LOAN_AMOUNT);
+  monthlyFixedExpenses = finiteBounded(monthlyFixedExpenses, 0, 0, MAX_LOAN_AMOUNT);
+  ioPeriodMonths = Math.round(finiteBounded(ioPeriodMonths, 0, 0, MAX_TERM_MONTHS));
   const currentIndex = getIndexValue(armTerms.index, marketSnapshot);
 
   // Scenario 1: First reset at current index — capped at initialCap
@@ -251,8 +312,8 @@ export function computeARMReset(
   const resetRateAtCurrentIndex = Math.max(currentResetRateBeforeFloor, armTerms.floorRate);
 
   // Scenario 2: Stress — simulate the full reset ladder under sustained stress
-  // SOFR = 5.0% for the entire reset horizon. Each reset applies per-period cap.
-  const stressIndex = STRESS_SOFR_PCT;
+  // Apply the calibrated SOFR stress shift to the note's selected index.
+  const stressIndex = scenarioIndexValue(armTerms.index, STRESS_SOFR_PCT, marketSnapshot);
   const stressLadder = simulateARMResetLadder(
     armTerms,
     stressIndex,
@@ -266,9 +327,9 @@ export function computeARMReset(
   const resetRateAtLifetimeCap = armTerms.initialRate + armTerms.lifetimeCapPct;
 
   // Compute payments at each reset rate (amortizing over remaining term)
-  const paymentAtCurrentReset = calculatePI(loanBalanceAtReset, resetRateAtCurrentIndex, remainingTermMonths);
-  const paymentAtStressReset = calculatePI(loanBalanceAtReset, resetRateAtStressIndex, remainingTermMonths);
-  const paymentAtLifetimeCap = calculatePI(loanBalanceAtReset, resetRateAtLifetimeCap, remainingTermMonths);
+  const paymentAtCurrentReset = safePayment(loanBalanceAtReset, resetRateAtCurrentIndex, remainingTermMonths);
+  const paymentAtStressReset = safePayment(loanBalanceAtReset, resetRateAtStressIndex, remainingTermMonths);
+  const paymentAtLifetimeCap = safePayment(loanBalanceAtReset, resetRateAtLifetimeCap, remainingTermMonths);
 
   // Track 1 DSCR at each reset = qualifyingRent / (new_PI + fixed_expenses)
   const pitiaAtCurrentReset = paymentAtCurrentReset + monthlyFixedExpenses;
@@ -310,6 +371,7 @@ export function computeARMReset(
     currentIndex,
     resetRateAtCurrentIndex,
     resetRateAtStressIndex,
+    stressIndex,
     track1DSCRAtCurrentReset,
     track1DSCRAtStressReset,
     dealBreakRate,
@@ -344,13 +406,13 @@ function getIndexValue(index: string, snapshot: MarketIndexSnapshot): number {
   switch (index) {
     case 'SOFR_30D':
     case 'SOFR_30D_AVG':
-      return snapshot.sofr30Day;
+      return finiteBounded(snapshot.sofr30Day, CURRENT_MARKET_SNAPSHOT.sofr30Day, 0, MAX_RATE_PCT);
     case 'TREASURY_5YR':
-      return snapshot.treasury5Y;
+      return finiteBounded(snapshot.treasury5Y, CURRENT_MARKET_SNAPSHOT.treasury5Y, 0, MAX_RATE_PCT);
     case 'TREASURY_10YR':
-      return snapshot.treasury10Y;
+      return finiteBounded(snapshot.treasury10Y, CURRENT_MARKET_SNAPSHOT.treasury10Y, 0, MAX_RATE_PCT);
     default:
-      return snapshot.sofr30Day;
+      return finiteBounded(snapshot.sofr30Day, CURRENT_MARKET_SNAPSHOT.sofr30Day, 0, MAX_RATE_PCT);
   }
 }
 
@@ -360,6 +422,10 @@ function solveDealBreakRate(
   remainingTermMonths: number,
   monthlyFixedExpenses: number,
 ): number {
+  qualifyingRent = finiteBounded(qualifyingRent, 0, 0, MAX_LOAN_AMOUNT);
+  loanBalance = finiteBounded(loanBalance, 0, 0, MAX_LOAN_AMOUNT);
+  remainingTermMonths = Math.round(finiteBounded(remainingTermMonths, 1, 1, MAX_TERM_MONTHS));
+  monthlyFixedExpenses = finiteBounded(monthlyFixedExpenses, 0, 0, MAX_LOAN_AMOUNT);
   // Find rate where PI(rate) = qualifyingRent - fixedExpenses (DSCR = 1.0)
   const targetPI = qualifyingRent - monthlyFixedExpenses;
   if (targetPI <= 0) return 0;
@@ -368,7 +434,7 @@ function solveDealBreakRate(
   let high = 15.0;
   for (let i = 0; i < 50; i++) {
     const mid = (low + high) / 2;
-    const pi = calculatePI(loanBalance, mid, remainingTermMonths);
+    const pi = safePayment(loanBalance, mid, remainingTermMonths);
     if (pi > targetPI) {
       high = mid;
     } else {
@@ -383,6 +449,7 @@ function buildWarning(
   currentIndex: number,
   resetCurrent: number,
   resetStress: number,
+  stressIndex: number,
   dscrCurrent: number,
   dscrStress: number,
   dealBreak: number,
@@ -393,7 +460,7 @@ function buildWarning(
   const lines: string[] = [];
   lines.push(`ARM RESET ANALYSIS (${armTerms.armType})`);
   lines.push(`Current ${armTerms.index.replace('_', ' ')} = ${currentIndex}%; margin = ${armTerms.marginPct}%; ` +
-             `reset rate @ current = ${resetCurrent.toFixed(3)}%, @ stress SOFR 5.0% = ${resetStress.toFixed(3)}%.`);
+             `reset rate @ current = ${resetCurrent.toFixed(3)}%, @ stress ${armTerms.index.replace('_', ' ')} ${stressIndex.toFixed(2)}% = ${resetStress.toFixed(3)}%.`);
   lines.push(`Track 1 DSCR @ current reset = ${dscrCurrent.toFixed(3)}; @ stress reset = ${dscrStress.toFixed(3)}.`);
   lines.push(`Deal-break rate at reset = ${dealBreak.toFixed(2)}%; cushion vs stress = ${cushionBps} bps.`);
 
@@ -430,14 +497,16 @@ export function computeRemainingBalanceAtReset(
   totalTermMonths: number,
   monthsElapsed: number,
 ): number {
-  const r = annualRate / 100 / 12;
-  if (r === 0) return loanAmount * (1 - monthsElapsed / totalTermMonths);
+  const principal = finiteBounded(loanAmount, 0, 0, MAX_LOAN_AMOUNT);
+  const rate = finiteBounded(annualRate, 0, 0, MAX_RATE_PCT) / 100 / 12;
+  const term = Math.round(finiteBounded(totalTermMonths, 1, 1, MAX_TERM_MONTHS));
+  const elapsedMonths = Math.round(finiteBounded(monthsElapsed, 0, 0, term));
+  if (rate === 0) return principal * (1 - elapsedMonths / term);
 
-  const factor = Math.pow(1 + r, totalTermMonths);
-  const elapsed = Math.pow(1 + r, monthsElapsed);
-
-  const remaining = loanAmount * (factor - elapsed) / (factor - 1);
-  return Math.max(0, remaining);
+  const payment = safePayment(principal, annualRate, term);
+  const growth = Math.pow(1 + rate, elapsedMonths);
+  const remaining = principal * growth - payment * ((growth - 1) / rate);
+  return Number.isFinite(remaining) ? Math.max(0, Math.min(principal, remaining)) : 0;
 }
 
 // ============================================================
@@ -476,6 +545,7 @@ export function computeLenderStressRate(
   lifetimeCapRate: number;     // initial + lifetimeCap
   trajectory: ARMResetTrajectoryPoint[];
 } {
+  armTerms = sanitizeARMTerms(armTerms);
   const currentIndex = getIndexValue(armTerms.index, marketSnapshot);
   const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
   const resetRate = Math.max(currentIndex + armTerms.marginPct, armTerms.floorRate);
@@ -484,7 +554,8 @@ export function computeLenderStressRate(
   const resetPlus2Rate = Math.min(resetRate + 2.0, lifetimeCapRate);
 
   // Realistic 4-reset stress — sustained stress index, walk the ladder
-  const stressLadder = simulateARMResetLadder(armTerms, STRESS_SOFR_PCT, 10);
+  const stressIndex = scenarioIndexValue(armTerms.index, STRESS_SOFR_PCT, marketSnapshot);
+  const stressLadder = simulateARMResetLadder(armTerms, stressIndex, 10);
   const trajectory = stressLadder.trajectory.slice(0, 4);  // first 4 resets
   const rateAfter4Resets = trajectory.length > 0
     ? trajectory[trajectory.length - 1].rate
@@ -561,16 +632,21 @@ export function computeMultiScenarioARMReset(
   monthlyFixedExpenses: number,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): MultiScenarioARMResult {
+  armTerms = sanitizeARMTerms(armTerms);
+  loanBalanceAtReset = finiteBounded(loanBalanceAtReset, 0, 0, MAX_LOAN_AMOUNT);
+  remainingTermMonths = Math.round(finiteBounded(remainingTermMonths, 1, 1, MAX_TERM_MONTHS));
+  qualifyingRent = finiteBounded(qualifyingRent, 0, 0, MAX_LOAN_AMOUNT);
+  monthlyFixedExpenses = finiteBounded(monthlyFixedExpenses, 0, 0, MAX_LOAN_AMOUNT);
   // Compute deal-break rate once (independent of scenario)
   const dealBreakRate = solveDealBreakRate(
     qualifyingRent, loanBalanceAtReset, remainingTermMonths, monthlyFixedExpenses,
   );
 
   const scenarios: ARMScenarioResult[] = SCENARIO_ORDER.map((name) => {
-    const sustainedSOFR = ARM_SCENARIO_INDEXES[name];
+    const sustainedSOFR = scenarioIndexValue(armTerms.index, ARM_SCENARIO_INDEXES[name], marketSnapshot);
     const ladder = simulateARMResetLadder(armTerms, sustainedSOFR, 10);
     const stabilizedRate = ladder.stabilizedRate;
-    const payment = calculatePI(loanBalanceAtReset, stabilizedRate, remainingTermMonths);
+    const payment = safePayment(loanBalanceAtReset, stabilizedRate, remainingTermMonths);
     const pitia = payment + monthlyFixedExpenses;
     const dscr = pitia > 0 ? qualifyingRent / pitia : 0;
     const cushionBps = Math.round((dealBreakRate - stabilizedRate) * 100);
@@ -653,8 +729,11 @@ export function computePaymentShockPct(
   remainingTermMonths: number,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): PaymentShockResult {
+  armTerms = sanitizeARMTerms(armTerms);
+  loanBalanceAtReset = finiteBounded(loanBalanceAtReset, 0, 0, MAX_LOAN_AMOUNT);
+  remainingTermMonths = Math.round(finiteBounded(remainingTermMonths, 1, 1, MAX_TERM_MONTHS));
   // Initial payment at origination rate
-  const initialPayment = calculatePI(
+  const initialPayment = safePayment(
     loanBalanceAtReset, armTerms.initialRate, remainingTermMonths,
   );
 
@@ -663,7 +742,7 @@ export function computePaymentShockPct(
   // But across the 5 scenarios, the CRISIS scenario is the one where the
   // first-reset cap actually binds (in BULLISH, rate may drop).
   const firstResetCeiling = armTerms.initialRate + armTerms.initialCapPct;
-  const worstCasePaymentAtFirstReset = calculatePI(
+  const worstCasePaymentAtFirstReset = safePayment(
     loanBalanceAtReset, firstResetCeiling, remainingTermMonths,
   );
 
@@ -724,13 +803,19 @@ export function findDSCRBreakYear(
   threshold: number = 1.0,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): DSCRBreakYearResult {
-  const sustainedSOFR = ARM_SCENARIO_INDEXES[scenarioName];
+  armTerms = sanitizeARMTerms(armTerms);
+  loanBalanceAtReset = finiteBounded(loanBalanceAtReset, 0, 0, MAX_LOAN_AMOUNT);
+  remainingTermMonths = Math.round(finiteBounded(remainingTermMonths, 1, 1, MAX_TERM_MONTHS));
+  qualifyingRent = finiteBounded(qualifyingRent, 0, 0, MAX_LOAN_AMOUNT);
+  monthlyFixedExpenses = finiteBounded(monthlyFixedExpenses, 0, 0, MAX_LOAN_AMOUNT);
+  threshold = finiteBounded(threshold, 1, 0, 100);
+  const sustainedSOFR = scenarioIndexValue(armTerms.index, ARM_SCENARIO_INDEXES[scenarioName], marketSnapshot);
   const ladder = simulateARMResetLadder(armTerms, sustainedSOFR, 10);
   const yearsToFirstReset = armTerms.fixedPeriodMonths / 12;
 
   // Build year-by-year trajectory: {year, rate, dscr}
   const trajectory = ladder.trajectory.map((p) => {
-    const payment = calculatePI(loanBalanceAtReset, p.rate, remainingTermMonths);
+    const payment = safePayment(loanBalanceAtReset, p.rate, remainingTermMonths);
     const pitia = payment + monthlyFixedExpenses;
     const dscr = pitia > 0 ? qualifyingRent / pitia : 0;
     return {
@@ -801,7 +886,10 @@ export function computeRefiTriggerRate(
   remainingTermMonths: number,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): RefiTriggerResult {
-  const currentFixedRate = marketSnapshot.freddieMac30YrFixed;
+  armTerms = sanitizeARMTerms(armTerms);
+  loanBalanceAtReset = finiteBounded(loanBalanceAtReset, 0, 0, MAX_LOAN_AMOUNT);
+  remainingTermMonths = Math.round(finiteBounded(remainingTermMonths, 1, 1, MAX_TERM_MONTHS));
+  const currentFixedRate = finiteBounded(marketSnapshot.freddieMac30YrFixed, CURRENT_MARKET_SNAPSHOT.freddieMac30YrFixed, 0, MAX_RATE_PCT);
 
   // ARM stabilized rate at current SOFR
   const currentSOFR = marketSnapshot.sofr30Day;
@@ -831,8 +919,8 @@ export function computeRefiTriggerRate(
   let recommendation: string;
 
   if (refiRecommended) {
-    const armPayment = calculatePI(loanBalanceAtReset, currentARMStabilizedRate, remainingTermMonths);
-    const fixedPayment = calculatePI(loanBalanceAtReset, currentFixedRate, remainingTermMonths);
+    const armPayment = safePayment(loanBalanceAtReset, currentARMStabilizedRate, remainingTermMonths);
+    const fixedPayment = safePayment(loanBalanceAtReset, currentFixedRate, remainingTermMonths);
     refiSavingsMonthly = Math.max(0, armPayment - fixedPayment);
     const refiClosingCosts = loanBalanceAtReset * 0.025;
     breakEvenMonths = refiSavingsMonthly > 0

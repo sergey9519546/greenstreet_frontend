@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import React, { useState, useEffect, useRef } from "react";
+import { DcShell, dc, H1, Lead, Btn } from "../design/dc";
+import { Mono } from "../components/PremiumUI";
 import BottomCTA from "../design/BottomCTA";
 
 const AS_OF = "Jun 25, 2026";
@@ -184,6 +185,68 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   },
 ];
 
+// Safe public answers correspond to FAQS by index. They intentionally avoid
+// universal thresholds, rates, timelines, legal conclusions, and tax outcomes.
+const SAFE_FAQ_ANSWERS: string[] = [
+  "A DSCR loan is commonly used for business-purpose, non-owner-occupied rental property. Scenario review focuses on rental income relative to a modeled debt payment, while credit, assets, reserves, entity, appraisal, property, and documentation rules may still apply.",
+  "DSCR = monthly qualifying rent divided by the monthly debt-payment amount used by the program. Worked example: $2,500 rent divided by $1,920 PITIA equals 1.30x. A program may define rent or payment differently.",
+  "This site's PITIA model includes principal and interest, monthly property taxes, monthly insurance, and HOA dues. Flood, wind, ground rent, assessments, or other costs may matter in a current review.",
+  "Some DSCR transactions are described as non-QM or business-purpose, but those labels do not eliminate documentation or determine which rules apply. Classification depends on transaction facts and applicable law.",
+  "This FAQ cannot provide a reliable current rate. A useful rate discussion must state its date, credit, LTV, DSCR, loan size, property type, points, prepayment structure, lock assumptions, and whether it is an illustration or an actual quote.",
+  "There is no universal closing timeline. Appraisal, title, insurance, entity documents, borrower documents, conditions, and the parties involved can change the schedule.",
+  "A result below 1.00x means modeled rent is lower than modeled payment. It does not by itself establish eligibility or ineligibility; current program definitions and the verified file control.",
+  "Credit requirements vary by program, transaction, property, leverage, and borrower profile. Confirm any floor from a dated approved program record.",
+  "Down-payment and LTV limits vary. More equity can reduce the modeled payment, but this FAQ does not state a universal minimum or promise a pricing change.",
+  "Reserve requirements and eligible asset treatment vary. Confirm the amount, measurement date, eligible accounts, ownership, seasoning, and documentation for the current program.",
+  "An LLC may be eligible in some business-purpose scenarios, but entity type, ownership, guaranties, documents, state law, and program rules vary. Obtain legal and tax advice for the structure.",
+  "Non-U.S. citizens and ITIN borrowers may be considered under some programs. Identity, credit references, assets, source of funds, reserves, entity, sanctions screening, property, and jurisdiction requirements can differ.",
+  "A typical process can include scenario review, application documents, appraisal and rent evidence, title and insurance, document review, conditions, and closing. Order and timing vary; the How It Works route describes the workflow without promising dates.",
+  "The calculator can test supportable rent, down payment, rate, taxes, insurance, and HOA assumptions. Only use rent changes supported by evidence, and confirm whether a current program uses the same inputs.",
+  "The deal-break rate is this model's interest rate at which entered rent equals modeled PITIA. It is a sensitivity measure, not a universal lender floor or a forecast of available pricing.",
+  "A signed tenant may not be required in every scenario. Fannie Mae Form 1007 is a conventional market-rent schedule illustrating one source of rent evidence; DSCR programs may use it differently.",
+  "Short-term-rental scenarios may be available, but income methods, history, occupancy, licensing, insurance, reserves, and property eligibility vary. Platform projections are not automatically qualifying income.",
+  "Eligible property types vary by current program and transaction. Confirm unit count, mixed use, condition, size, title, occupancy, zoning, HOA, and appraisal requirements.",
+  "DSCR programs can reduce reliance on employment-income documents, but they are not no-document loans. A file may still require identity, credit, assets, reserves, source of funds, entity, appraisal, rent, title, insurance, and property documents.",
+  "Short-term-rental income methods vary. A program may consider appraisal rent, leases, operating history, platform statements, market data, or adjustments; do not assume one hierarchy or haircut.",
+  "Compare prepayment and no-penalty structures using the actual note, costs, expected hold period, and applicable law. Availability and enforceability can depend on state, purpose, borrower or entity type, amount, term, and contract.",
+  "Rate-and-term or cash-out refinancing may be available, but the property, borrower, seasoning, leverage, DSCR, title, and current program must be reviewed again.",
+  "There is no universal refinance waiting period. Seasoning and delayed-financing rules vary by program, transaction history, valuation method, and requested cash out.",
+  "Cash-out and rate-and-term leverage limits vary. Model the new payment, then confirm current LTV, DSCR, seasoning, and proceeds rules.",
+  "Break-even months = total transaction costs divided by monthly payment savings. Include any actual prepayment charge and compare the result with the expected hold period.",
+  "This FAQ does not provide a complete 2026 regulatory update. Use current official agency and state sources and qualified counsel for a specific transaction.",
+  "Tax results depend on current law and the investor's facts. Any tax-tool output is illustrative, not tax advice; confirm depreciation, deductions, entity treatment, and filing positions with a qualified tax professional.",
+];
+
+const SAFE_FAQ_SOURCE_NOTES: string[] = [
+  "CFPB business-purpose interpretation; current program documents control.",
+  "Calculator methodology; Form 1007 is not a universal DSCR rule.",
+  "Greenstreet calculator methodology; verify actual property costs.",
+  "CFPB Regulation Z interpretation; transaction-specific legal review still applies.",
+  "No rate source used because this answer avoids an unverified market range.",
+  "File-specific parties and documents control.",
+  "Calculator methodology; current program documents control.",
+  "Current approved program documents control.",
+  "Current approved program documents control.",
+  "Current approved program documents control.",
+  "Current program documents plus legal and tax advice.",
+  "Current approved program and compliance documents control.",
+  "Greenstreet workflow description; no timing promise.",
+  "Greenstreet calculator methodology.",
+  "Greenstreet sensitivity methodology; not a market-rate source.",
+  "Fannie Mae Form 1007 scope note; current program documents control.",
+  "Current approved program and property documents control.",
+  "Current approved program and appraisal documents control.",
+  "Current file checklist; requirements vary.",
+  "Current approved program methodology controls.",
+  "Actual note, current law, and qualified legal review control.",
+  "Current refinance program documents control.",
+  "Current refinance program documents control.",
+  "Current refinance program documents control.",
+  "Arithmetic methodology using user-provided costs and savings.",
+  "Official current sources and qualified counsel required.",
+  "Qualified tax professional and current authority required.",
+];
+
 // Resolve a CTA action to the correct navigation target
 function useFaqCtaHandler(onNavigate: (v: string) => void) {
   return (action: "calculator" | "qualify" | "state-laws" | "lender-intel") => {
@@ -194,9 +257,26 @@ function useFaqCtaHandler(onNavigate: (v: string) => void) {
   };
 }
 
+export function getFaqFocusIndex(key: string, current: number, count: number): number | null {
+  if (count <= 0) return null;
+  if (key === "ArrowDown") return (current + 1) % count;
+  if (key === "ArrowUp") return (current - 1 + count) % count;
+  if (key === "Home") return 0;
+  if (key === "End") return count - 1;
+  return null;
+}
+
 export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   const [open, setOpen] = useState<number | null>(0);
+  const questionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const handleCtaAction = useFaqCtaHandler(onNavigate);
+
+  const handleQuestionKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const next = getFaqFocusIndex(event.key, index, FAQS.length);
+    if (next === null) return;
+    event.preventDefault();
+    questionRefs.current[next]?.focus();
+  };
 
   useEffect(() => {
     document.title = "DSCR Loan FAQ | Greenstreet Finance";
@@ -220,6 +300,12 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
         .faq-answer-open{max-height:1200px;opacity:1;}
         .faq-answer-closed{max-height:0;opacity:0;}
         .faq-btn:hover{background:${dc.mintBg} !important;}
+        .faq-btn:focus-visible{outline:3px solid ${dc.rain};outline-offset:-3px;}
+        .faq-source{overflow-wrap:anywhere;}
+        @media(max-width:560px){
+          .faq-btn{padding:20px 18px !important;gap:12px !important;}
+          .faq-panel-inner{padding:0 18px 22px !important;}
+        }
       `}</style>
 
       {/* ── HERO ── */}
@@ -246,14 +332,12 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
           >
             Frequently asked
           </div>
-          <H1 style={{ margin: "0 0 20px", maxWidth: "18ch" }}>
-            DSCR loan questions — answered in plain language.
-          </H1>
+          <H1 style={{ margin: "0 0 20px", maxWidth: "18ch" }}>DSCR loan questions — answered in plain language.</H1>
           <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "50ch", margin: "0 0 20px" }}>
-            A DSCR loan qualifies on the property's rent — not your income or tax returns. Every question below covers how that works, what you need to qualify, and what to watch out for.
+            A DSCR loan scenario compares property rental income with a modeled debt payment. Credit, assets, reserves, entity, appraisal, property, and documentation rules may still apply; the answers below separate general education from current program requirements.
           </Lead>
           <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: 0, letterSpacing: "-0.01em" }}>
-            Last reviewed {AS_OF} · sources shown inline with each answer.
+            Content updated {AS_OF} · scope notes and approved primary sources shown inline.
           </p>
         </div>
       </section>
@@ -272,13 +356,11 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             const prevGroup = i > 0 ? FAQS[i - 1].group : null;
             const showGroupHead = faq.group && faq.group !== prevGroup;
             return (
-            <React.Fragment key={i}>
+            <React.Fragment key={faq.q}>
               {showGroupHead && (
-                <div style={{ marginTop: i === 0 ? 0 : 20, marginBottom: 4, paddingLeft: 4 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: dc.rain }}>
-                    {faq.group}
-                  </span>
-                </div>
+                <h2 style={{ margin: `${i === 0 ? 0 : 20}px 0 4px`, paddingLeft: 4, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: dc.rain }}>
+                  {faq.group}
+                </h2>
               )}
             <div
               style={{
@@ -291,8 +373,14 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             >
               {/* Question row */}
               <button
+                ref={(node) => { questionRefs.current[i] = node; }}
+                id={`faq-question-${i}`}
+                type="button"
                 className="faq-btn"
                 onClick={() => setOpen(open === i ? null : i)}
+                onKeyDown={(event) => handleQuestionKeyDown(event, i)}
+                aria-expanded={open === i}
+                aria-controls={`faq-panel-${i}`}
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -308,6 +396,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 }}
               >
                 <span
+                  aria-hidden="true"
                   style={{
                     fontSize: "clamp(16px,1.6vw,19px)",
                     fontWeight: 600,
@@ -338,9 +427,14 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
 
               {/* Answer panel */}
               <div
+                id={`faq-panel-${i}`}
+                role="region"
+                aria-labelledby={`faq-question-${i}`}
+                hidden={open !== i}
                 className={open === i ? "faq-answer faq-answer-open" : "faq-answer faq-answer-closed"}
               >
                 <div
+                  className="faq-panel-inner"
                   style={{
                     padding: "0 30px 28px",
                     borderTop: `1px solid rgba(0,55,56,0.08)`,
@@ -356,7 +450,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    {faq.a}
+                    {SAFE_FAQ_ANSWERS[i] ?? faq.a}
                   </p>
                   {faq.cta && (
                     <button
@@ -390,14 +484,25 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                     }}
                   >
                     <Mono
+                      className="faq-source"
                       style={{
                         fontSize: 12,
                         color: dc.rain,
                         letterSpacing: "0.01em",
                       }}
                     >
-                      src · {faq.src}
+                      scope · {SAFE_FAQ_SOURCE_NOTES[i] ?? faq.src}
                     </Mono>
+                    {(i === 0 || i === 3) && (
+                      <a href="https://www.consumerfinance.gov/rules-policy/regulations/1026/interp-3/" target="_blank" rel="noreferrer" style={{ display: "inline-block", marginTop: 8, color: dc.rain, fontSize: 12, fontWeight: 700 }}>
+                        CFPB Regulation Z business-purpose interpretation
+                      </a>
+                    )}
+                    {(i === 1 || i === 15) && (
+                      <a href="https://singlefamily.fanniemae.com/media/document/pdf/form-1007" target="_blank" rel="noreferrer" style={{ display: "inline-block", marginTop: 8, color: dc.rain, fontSize: 12, fontWeight: 700 }}>
+                        Fannie Mae Form 1007
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
@@ -417,10 +522,10 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               Ready to run your deal?
             </div>
             <p style={{ color: "rgba(238,239,211,0.75)", fontSize: 15, margin: 0, lineHeight: 1.5, maxWidth: "44ch" }}>
-              Check whether your property qualifies and see your preliminary program match in minutes. No commitment required.
+              Review a preliminary property scenario and identify inputs that still need verification. No eligibility or pricing determination is made.
             </p>
           </div>
-          <Btn label="See if your deal qualifies" onClick={() => (window as any).openQualify?.()} style={{ flexShrink: 0 }} />
+          <Btn label="Request a scenario review" onClick={() => (window as any).openQualify?.()} style={{ flexShrink: 0 }} />
         </div>
 
         {/* Freshness signal */}
@@ -454,7 +559,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             Reviewed
           </span>
           <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
-            All answers reviewed {AS_OF} · sources inline · next review Jul 22, 2026
+            Content updated {AS_OF} · current program, legal, and tax facts require source-specific review
           </span>
         </div>
       </section>
@@ -504,7 +609,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               marginRight: "auto",
             }}
           >
-            Check whether your deal qualifies — or talk to a DSCR specialist directly. Most questions answered the same business day.
+            Run a preliminary scenario or request a review of the assumptions. Response timing and program availability are not guaranteed.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
             <button
@@ -525,7 +630,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 letterSpacing: "-0.01em",
               }}
             >
-              See if your deal qualifies →
+              Request a scenario review →
             </button>
             <a
               href="/book-demo"

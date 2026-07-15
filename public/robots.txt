@@ -1,10 +1,16 @@
 User-agent: *
 Allow: /
 
-# Block internal app routes from being indexed
+# Private application and API routes are not public search content.
+# Public scripts, styles, images, and other rendering assets remain crawlable.
 Disallow: /api/
 Disallow: /investgo
 Disallow: /dashboard
 Disallow: /broker-portal
+Disallow: /tools/workspace
+Disallow: /tools/deal-workspace
+Disallow: /tools/sensitivity
+Disallow: /tools/structure-optimizer
+Disallow: /tools/scenario-history
 
-Sitemap: https://greenstreet.com/sitemap.xml
+Sitemap: https://www.greenstreet.finance/sitemap.xml

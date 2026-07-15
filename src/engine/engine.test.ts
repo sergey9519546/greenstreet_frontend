@@ -12,6 +12,10 @@ import {
   calculatePaymentFactor,
   calculatePI,
   calculateIOPayment,
+  calculatePITIA,
+  solveDealBreakRate,
+  solveMaxPurchasePrice,
+  solveRequiredRent,
   solveDSCR,
   quickDscrEstimate,
 } from './engine';
@@ -47,6 +51,14 @@ describe('calculatePaymentFactor', () => {
     const f40 = calculatePaymentFactor(7.0, 480);
     const f30 = calculatePaymentFactor(7.0, 360);
     expect(f40).toBeLessThan(f30);
+  });
+
+  it('rejects invalid rates and terms without returning NaN or Infinity', () => {
+    expect(calculatePaymentFactor(Number.NaN, 360)).toBe(0);
+    expect(calculatePaymentFactor(-1, 360)).toBe(0);
+    expect(calculatePaymentFactor(7, 0)).toBe(0);
+    expect(calculatePI(300_000, 7, Number.POSITIVE_INFINITY)).toBe(0);
+    expect(calculateIOPayment(300_000, -7)).toBe(0);
   });
 });
 
@@ -89,6 +101,31 @@ describe('calculateIOPayment', () => {
   it('$500k @ 6.00% IO → $2,500/mo', () => {
     const io = calculateIOPayment(500_000, 6.0);
     expect(io).toBeCloseTo(2500, 1);
+  });
+});
+
+describe('PITIA units and reverse sizing', () => {
+  it('treats flood insurance as annual and converts it exactly once', () => {
+    // $120k / 10yr / 0% = $1,000 P&I; fixed costs are $100 tax,
+    // $50 hazard, $25 HOA, and $100 flood per month.
+    const pitia = calculatePITIA(120_000, 0, 10, 'NONE', 1_200, 600, 25, 1_200);
+    expect(pitia.principalAndInterest).toBe(1_000);
+    expect(pitia.floodInsurance).toBe(100);
+    expect(pitia.total).toBe(1_275);
+  });
+
+  it('uses the IO factor when reverse-sizing a purchase', () => {
+    // At 12% IO, each $100k costs $1,000/mo. $2,000 supports a $200k loan,
+    // which at 75% LTV supports a $266,667 purchase.
+    expect(solveMaxPurchasePrice(2_000, 75, 12, 30, '5_YR', 0, 0, 0)).toBe(266_667);
+    expect(solveDealBreakRate(2_000, 200_000, 30, '5_YR', 0, 0, 0)).toBe(12);
+  });
+
+  it('rejects invalid reverse-solver domains', () => {
+    expect(solveMaxPurchasePrice(2_000, 0, 7, 30, 'NONE', 0, 0, 0)).toBe(0);
+    expect(solveMaxPurchasePrice(2_000, 75, 7, 30, 'NONE', 0, 0, 0, 0, 0)).toBe(0);
+    expect(solveDealBreakRate(2_000, 0, 30, 'NONE', 0, 0, 0)).toBe(0);
+    expect(solveRequiredRent(1.1, 2_000, 0)).toBe(0);
   });
 });
 
@@ -258,9 +295,19 @@ describe('buildEngineInputs', () => {
     expect(property.isDecliningMarket).toBe(false);
   });
 
-  it('normalizes state to uppercase 2-letter abbrev', () => {
+  it('normalizes a full state name to its actual postal abbreviation', () => {
     const { property } = buildEngineInputs({ purchasePrice: 400_000, monthlyRent: 3_000, state: 'texas' });
-    expect(property.state).toBe('TE'); // only first 2 chars
+    expect(property.state).toBe('TX');
+  });
+
+  it('does not invent an abbreviation for an unknown state name', () => {
+    const { property } = buildEngineInputs({ purchasePrice: 400_000, monthlyRent: 3_000, state: 'Atlantis' });
+    expect(property.state).toBe('');
+  });
+
+  it('preserves the annual flood-premium contract in mapped inputs', () => {
+    const { property } = buildEngineInputs({ purchasePrice: 400_000, monthlyRent: 3_000, state: 'FL', floodInsurance: 1_800 });
+    expect(property.floodInsurance).toBe(1_800);
   });
 
   it('defaults FICO to 740', () => {

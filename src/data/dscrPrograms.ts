@@ -1,9 +1,9 @@
-// Greenstreet DSCR program lineup — real underwriting parameters.
+// Illustrative DSCR scenario parameters used by the analysis tools.
 //
-// Source: live DSCR eligibility matrices from Greenstreet's capital partner
-// (caketpo.com/products, DSCR tab), pulled 2026-06-24.
-// Partner name is NEVER surfaced to customers — Greenstreet underwrites
-// and funds these in-house.
+// Source reference: eligibility matrices reviewed 2026-06-24. These values
+// preserve the calculation model but are not a current rate sheet, approval,
+// commitment, or representation that a particular provider will offer terms.
+// Confirm current requirements and effective dates before relying on a result.
 //
 // Two data layers per program:
 //   Headline  — minFICO / maxLTV / maxLoan used by LenderIntelPage card filters
@@ -25,6 +25,7 @@ export type DscrTierGrid = {
   label: string;
   dscrMin: number | null;   // null = no-ratio tier (no DSCR required)
   dscrMax: number | null;   // null = open-ended (≥ dscrMin, no cap)
+  acceptsNoRatio?: boolean; // explicit when a numeric tier also accepts no-ratio files
   rows: LtvRow[];           // highest ficoMin first, lowest loanMax first within FICO
 };
 
@@ -55,21 +56,39 @@ export function lookupMaxLTV(
   dscr: number | null,                           // null = no-ratio
   txType: "purchase" | "rateTerm" | "cashOut"
 ): number | null {
+  if (
+    !Number.isInteger(fico) ||
+    fico < 300 ||
+    fico > 850 ||
+    !Number.isFinite(loanAmt) ||
+    loanAmt <= 0 ||
+    loanAmt > program.maxLoan ||
+    (dscr !== null && (!Number.isFinite(dscr) || dscr < 0 || dscr > 20)) ||
+    !["purchase", "rateTerm", "cashOut"].includes(txType)
+  ) {
+    return null;
+  }
+
+  // Published grids use two-decimal ratio bands. Flooring extra precision avoids
+  // promoting a borderline scenario into a more favorable tier.
+  const conservativeDscr =
+    dscr === null ? null : Math.floor((dscr + Number.EPSILON) * 100) / 100;
   const tier = program.grid.find((t) => {
-    if (dscr === null) return t.dscrMin === null;
+    if (conservativeDscr === null) return program.noRatio && (t.acceptsNoRatio || t.dscrMin === null);
     if (t.dscrMin === null) return false;
-    return dscr >= t.dscrMin && (t.dscrMax === null || dscr <= t.dscrMax);
+    return conservativeDscr >= t.dscrMin && (t.dscrMax === null || conservativeDscr <= t.dscrMax);
   });
   if (!tier) return null;
-  const row = tier.rows.find((r) => fico >= r.ficoMin && loanAmt <= r.loanMax);
+  const row = tier.rows
+    .filter((candidate) => fico >= candidate.ficoMin && loanAmt <= candidate.loanMax)
+    .sort((a, b) => b.ficoMin - a.ficoMin || a.loanMax - b.loanMax)[0];
   if (!row) return null;
-  if (txType === "purchase") return row.purchase;
-  if (txType === "rateTerm") return row.rateTerm;
-  return row.cashOut;
+  const ltv = txType === "purchase" ? row.purchase : txType === "rateTerm" ? row.rateTerm : row.cashOut;
+  return ltv !== null && Number.isFinite(ltv) && ltv >= 0 && ltv <= 100 ? ltv : null;
 }
 
 // ---------------------------------------------------------------------------
-// Programs
+// Illustrative scenario profiles
 // ---------------------------------------------------------------------------
 
 export const DSCR_PROGRAMS: DscrProgram[] = [
@@ -89,7 +108,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     grid: [
       {
         label: "≥ 0.75",
-        dscrMin: 0.75, dscrMax: null,
+        dscrMin: 1.00, dscrMax: null,
         rows: [
           // ≤ $1,500,000
           { ficoMin: 720, loanMax: 1_500_000, purchase: 85, rateTerm: 80, cashOut: 75 },
@@ -112,7 +131,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
       {
         // DSCR < 1.00 & No-Ratio overlay: flat 70% purchase / 65% refi, priced as 700 FICO
         label: "< 1.00 / No-Ratio",
-        dscrMin: null, dscrMax: 0.99,
+        dscrMin: 0.75, dscrMax: 0.99, acceptsNoRatio: true,
         rows: [
           { ficoMin: 640, loanMax: 3_000_000, purchase: 70, rateTerm: 65, cashOut: null },
         ],
@@ -398,3 +417,5 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
 ];
 
 export const DSCR_PROGRAMS_AS_OF = "Jun 24, 2026";
+export const DSCR_PROGRAMS_DISCLOSURE =
+  "Illustrative scenario parameters reviewed Jun 24, 2026; confirm current provider requirements before relying on a result.";

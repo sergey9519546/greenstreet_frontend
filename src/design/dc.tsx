@@ -123,6 +123,16 @@ input[type="number"]{cursor:ns-resize;}
 .gs-range::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${swatch.emerald};cursor:pointer;transition:transform .15s;}
 .gs-range::-webkit-slider-thumb:hover{transform:scale(1.18);}
 .gs-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${swatch.emerald};cursor:pointer;}
+.dc-shell,.dc-embedded{width:100%;max-width:100%;min-width:0;}
+.dc-shell main,.dc-embedded main,.dc-shell main>section,.dc-embedded main>section{width:100%;max-width:100%;min-width:0;}
+.dc-shell :where(.dc-hero,.dc-band-2,.dc-band-3,.dc-band-4,.dc-split,.da-metrics-3,.hp-main-grid,.hp-input-grid,.hp-logic-row,.hp-logic-grid),
+.dc-embedded :where(.dc-hero,.dc-band-2,.dc-band-3,.dc-band-4,.dc-split,.da-metrics-3,.hp-main-grid,.hp-input-grid,.hp-logic-row,.hp-logic-grid){min-width:0;max-width:100%;}
+.dc-shell :where(.dc-hero,.dc-band-2,.dc-band-3,.dc-band-4,.dc-split,.da-metrics-3,.hp-main-grid,.hp-input-grid,.hp-logic-row,.hp-logic-grid)>*,
+.dc-embedded :where(.dc-hero,.dc-band-2,.dc-band-3,.dc-band-4,.dc-split,.da-metrics-3,.hp-main-grid,.hp-input-grid,.hp-logic-row,.hp-logic-grid)>*{min-width:0;max-width:100%;overflow-wrap:anywhere;}
+.dc-shell :where(img,svg,video,canvas),.dc-embedded :where(img,svg,video,canvas){max-width:100%;}
+.dc-shell :where(input,select,textarea,button),.dc-embedded :where(input,select,textarea,button){min-width:0;max-width:100%;}
+.dc-shell table,.dc-embedded table{width:100%;max-width:100%;min-width:0 !important;table-layout:fixed;}
+.dc-shell :where(th,td),.dc-embedded :where(th,td){min-width:0 !important;max-width:100%;white-space:normal !important;overflow-wrap:anywhere;word-break:normal;}
 .gs-dot-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.055) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;}
 /* Dotted texture on every section's green background, sitewide — cream dots are
    invisible on light surfaces, subtle on all the green shades. !important layers
@@ -130,7 +140,7 @@ input[type="number"]{cursor:ns-resize;}
 .dc-shell main > section{background-image:radial-gradient(rgba(238,239,211,0.05) 1px,transparent 1px) !important;background-size:34px 34px !important;}
 .gs-mono{font-family:${font.mono};font-variant-numeric:tabular-nums;letter-spacing:-0.03em;}
 .ix-card{transition:transform .14s, background .15s;} .ix-card:hover{transform:translateY(-3px);}
-.dc-nav a:focus-visible,.dc-nav button:focus-visible,a.dc-cta:focus-visible{outline:2px solid ${LEMON};outline-offset:3px;border-radius:6px;}
+.dc-shell :where(a,button,input,select,textarea,[tabindex]):focus-visible,.dc-embedded :where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid ${LEMON};outline-offset:3px;border-radius:6px;}
 /* Floating/pulsing motion neutralized per design taste (no "flow"/glassmorphism). */
 @keyframes gsFloat{from,to{transform:none;}}
 @keyframes gsPulse{from,to{opacity:1;}}
@@ -146,13 +156,13 @@ input[type="number"]{cursor:ns-resize;}
    2/3-col hero, band, or tool-split container. */
 @media (max-width: 991px){
   .dc-hero{grid-template-columns:1fr !important;gap:40px !important;}
-  .dc-band-3,.dc-band-2,.dc-split{grid-template-columns:1fr !important;}
-  .dc-band-4{grid-template-columns:repeat(2,1fr) !important;}
-  .da-metrics-3{grid-template-columns:repeat(2,1fr) !important;}
+  .dc-band-3,.dc-band-2,.dc-split{grid-template-columns:minmax(0,1fr) !important;}
+  .dc-band-4{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+  .da-metrics-3{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
 }
 @media (max-width: 640px){
-  .dc-band-4{grid-template-columns:1fr !important;}
-  .da-metrics-3{grid-template-columns:repeat(2,1fr) !important;}
+  .dc-band-4,.da-metrics-3{grid-template-columns:minmax(0,1fr) !important;}
+  .dc-shell :where(th,td),.dc-embedded :where(th,td){padding-left:6px !important;padding-right:6px !important;font-size:clamp(10px,3.4vw,13px) !important;}
 }
 @media (max-width: 640px){
   .hp-card{min-height:680px !important;aspect-ratio:auto !important;}
@@ -160,7 +170,8 @@ input[type="number"]{cursor:ns-resize;}
 }
 @media (prefers-reduced-motion:reduce){
   [class*="gsFloat"],.gs-bar{animation:none !important;}
-  *{animation-duration:.001ms !important;}
+  .ix-card:hover,.ix-card:focus-within{transform:none !important;}
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important;}
 }
 .gs-num:focus-visible{outline:2px solid #d8d958;outline-offset:2px;border-radius:3px;}
 .gs-range:focus-visible{outline:2px solid #d8d958;outline-offset:4px;}
@@ -191,7 +202,8 @@ export function useDcGsap(scope: React.RefObject<HTMLElement>) {
         // never layout, so it is safe and causes no drop. Routed pages stay stable
         // from first paint.
         hc.querySelectorAll("[data-count]").forEach((el) => {
-          const end = +(el.getAttribute("data-count") || 0);
+          const parsedEnd = +(el.getAttribute("data-count") || 0);
+          const end = Number.isFinite(parsedEnd) ? parsedEnd : 0;
           const obj = { n: 0 };
           gsap.to(obj, {
             n: end,
@@ -305,7 +317,7 @@ export function Card({ children, style, tone = "subtle", pad = scale.xl }: { chi
     raised: { bg: swatch.darkTeal, bd: "rgba(238,239,211,0.16)" },
     solid: { bg: MIDNIGHT, bd: "rgba(238,239,211,0.12)" },
   }[tone];
-  return <div style={{ background: tones.bg, border: `1px solid ${tones.bd}`, borderRadius: radius.md, padding: pad, ...style }}>{children}</div>;
+  return <div style={{ minWidth: 0, maxWidth: "100%", overflowWrap: "anywhere", background: tones.bg, border: `1px solid ${tones.bd}`, borderRadius: radius.md, padding: pad, ...style }}>{children}</div>;
 }
 
 /** Cinematic brand photo band — a framed scene image (public/img/generated) with
@@ -352,28 +364,30 @@ export function Mono({ children, style }: { children: React.ReactNode; style?: R
 export function CountUp({ value, decimals = 0, prefix = "", suffix = "", group = false, duration = 0.55, style }: {
   value: number; decimals?: number; prefix?: string; suffix?: string; group?: boolean; duration?: number; style?: React.CSSProperties;
 }) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const safeDecimals = Number.isInteger(decimals) ? Math.max(0, Math.min(8, decimals)) : 0;
   const ref = useRef<HTMLSpanElement>(null);
-  const prev = useRef(value);
+  const prev = useRef(safeValue);
   // group → thousands separators (currency). Sign placed before the prefix so
   // negatives read "-$454" not "$-454".
   const fmt = (n: number) =>
     group
       ? (n < 0 ? "-" : "") + prefix + Math.round(Math.abs(n)).toLocaleString("en-US") + suffix
-      : prefix + n.toFixed(decimals) + suffix;
+      : prefix + n.toFixed(safeDecimals) + suffix;
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const from = prev.current;
-    prev.current = value;
-    if (from === value) return;
+    prev.current = safeValue;
+    if (from === safeValue) return;
     const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) { el.textContent = fmt(value); return; }
+    if (reduced) { el.textContent = fmt(safeValue); return; }
     const obj = { v: from };
-    gsap.to(obj, { v: value, duration, ease: "power2.out", overwrite: true, onUpdate: () => { el.textContent = fmt(obj.v); } });
-  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+    gsap.to(obj, { v: safeValue, duration, ease: "power2.out", overwrite: true, onUpdate: () => { el.textContent = fmt(obj.v); } });
+  }, [safeValue]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <span ref={ref} style={{ fontFamily: font.mono, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em", ...style }}>
-      {fmt(value)}
+      {fmt(safeValue)}
     </span>
   );
 }
@@ -410,12 +424,18 @@ export function HeroProof({
   const gapRef = useRef<HTMLDivElement>(null);
   const gapNumRef = useRef<HTMLSpanElement>(null);
   const t2NumRef = useRef<HTMLSpanElement>(null);
-  const fmtNum = valueFmt || ((n: number) => n.toFixed(2) + "x");
+  const defaultFmt = (n: number) => Number.isFinite(n) ? n.toFixed(2) + "x" : "—";
+  const fmtNum = (n: number) => {
+    if (!Number.isFinite(n)) return "—";
+    try { return valueFmt ? valueFmt(n) : defaultFmt(n); } catch { return defaultFmt(n); }
+  };
 
   const CORAL = "#e0635f";
   const ARC_LEN = Math.PI * 110;            // semicircle gauge, r=110
-  const t1 = valueNum ?? (typeof value === "string" ? parseFloat(value) : 0);
-  const hasDual = track2Num !== undefined && track2Num < t1 - 0.001;
+  const parsedT1 = valueNum ?? (typeof value === "string" ? parseFloat(value) : 0);
+  const t1 = Number.isFinite(parsedT1) ? parsedT1 : 0;
+  const safeTrack2 = Number.isFinite(track2Num) ? track2Num as number : undefined;
+  const hasDual = safeTrack2 !== undefined && safeTrack2 < t1 - 0.001;
   const verdictColor = chip?.color || LEMON;
   const zoneColor = (d: number) => (d >= 1.25 ? dc.emerald : d >= 1.0 ? LEMON : CORAL);
 
@@ -446,8 +466,8 @@ export function HeroProof({
     if (!proofRef.current) return;
     if (prefersReducedMotion()) {
       paint(t1);
-      setState(t1 >= 1 ? "Lender — qualifies" : "Below the 1.00 floor", zoneColor(t1));
-      if (hasDual) { setGapText(t1, track2Num as number); if (gapRef.current) gsap.set(gapRef.current, { autoAlpha: 1, y: 0 }); }
+      setState(t1 >= 1 ? "Modeled lender coverage: above 1.00" : "Modeled coverage: below 1.00", zoneColor(t1));
+      if (hasDual) { setGapText(t1, safeTrack2 as number); if (gapRef.current) gsap.set(gapRef.current, { autoAlpha: 1, y: 0 }); }
       return;
     }
     paint(0);
@@ -455,14 +475,14 @@ export function HeroProof({
     const tl = gsap.timeline();
     tl.from(".hp-panel", { y: 16, autoAlpha: 0, duration: 0.55, ease: "expo.out", stagger: 0.07 }, 0)
       .to(proxy, { d: t1, duration: 1.0, ease: "power2.out", onUpdate: () => paint(proxy.d),
-            onComplete: () => setState(t1 >= 1 ? "Lender — qualifies" : "Below the 1.00 floor", zoneColor(t1)) }, 0.25);
+            onComplete: () => setState(t1 >= 1 ? "Modeled lender coverage: above 1.00" : "Modeled coverage: below 1.00", zoneColor(t1)) }, 0.25);
     if (hasDual) {
       tl.to(gapRef.current, { autoAlpha: 1, y: 0, duration: 0.5, ease: "power2.out" }, "+=0.5")
-        .to(proxy, { d: track2Num as number, duration: 0.95, ease: "power2.inOut",
-              onStart: () => setState("Investor survival — loses money", CORAL),
+        .to(proxy, { d: safeTrack2 as number, duration: 0.95, ease: "power2.inOut",
+              onStart: () => setState("Modeled cash flow: below zero", CORAL),
               onUpdate: () => { paint(proxy.d); setGapText(t1, proxy.d); } }, "<0.1")
         .to(proxy, { d: t1, duration: 0.9, ease: "power2.inOut", onUpdate: () => paint(proxy.d),
-              onComplete: () => { setState("Lender qualifies — but the investor doesn't", verdictColor); setGapText(t1, track2Num as number); } }, "+=0.7");
+              onComplete: () => { setState("Preliminary coverage views differ", verdictColor); setGapText(t1, safeTrack2 as number); } }, "+=0.7");
     }
     return () => tl.kill();
   }, { scope: proofRef, dependencies: [] }); // mount only — see the change effect below
@@ -472,12 +492,12 @@ export function HeroProof({
   const skipFirst = useRef(true);
   useEffect(() => {
     if (skipFirst.current) { skipFirst.current = false; return; }
-    if (prefersReducedMotion()) { paint(t1); if (hasDual) setGapText(t1, track2Num as number); return; }
+    if (prefersReducedMotion()) { paint(t1); if (hasDual) setGapText(t1, safeTrack2 as number); return; }
     const proxy = { d: parseFloat(numRef.current?.textContent || String(t1)) || t1 };
     gsap.to(proxy, { d: t1, duration: 0.5, ease: "power2.out", overwrite: true, onUpdate: () => paint(proxy.d) });
-    setState(t1 >= 1 ? "Lender — qualifies" : "Below the 1.00 floor", zoneColor(t1));
-    if (hasDual) setGapText(t1, track2Num as number);
-  }, [t1, track2Num]); // eslint-disable-line react-hooks/exhaustive-deps
+    setState(t1 >= 1 ? "Modeled lender coverage: above 1.00" : "Modeled coverage: below 1.00", zoneColor(t1));
+    if (hasDual) setGapText(t1, safeTrack2 as number);
+  }, [t1, safeTrack2]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div ref={proofRef} style={{ position: "relative" }}>
@@ -507,7 +527,7 @@ export function HeroProof({
 
           {/* The one focal element: a DSCR gauge that tells the dual-track story */}
           <div className="hp-panel" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-            <svg viewBox="0 0 280 168" width="min(86%, 340px)" style={{ overflow: "visible" }} role="img" aria-label={`DSCR ${typeof value === "string" ? value : ""}`}>
+            <svg viewBox="0 0 280 168" width="min(86%, 340px)" style={{ overflow: "visible" }} role="img" aria-label={`Illustrative preliminary DSCR ${fmtNum(t1)}`}>
               {/* track */}
               <path d="M30 150 A110 110 0 0 1 250 150" fill="none" stroke="rgba(238,239,211,0.12)" strokeWidth="14" strokeLinecap="round" />
               {/* the 1.00 floor tick (top-centre = 50% of the 0–2.0x sweep) */}
@@ -521,12 +541,12 @@ export function HeroProof({
               <text x="140" y="156" textAnchor="middle" fill="rgba(238,239,211,0.5)" fontFamily={font.family} fontSize="11" fontWeight="700" letterSpacing="0.04em">DSCR · rent ÷ payment</text>
             </svg>
 
-            <div ref={stateRef} style={{ marginTop: 6, fontSize: 14, fontWeight: 800, letterSpacing: "-0.01em", color: LEMON }}>Lender — qualifies</div>
+            <div ref={stateRef} aria-live="polite" style={{ marginTop: 6, fontSize: 14, fontWeight: 800, letterSpacing: "-0.01em", color: LEMON }}>Preliminary coverage view</div>
 
             {/* The reveal: the gap the lender doesn't see */}
             <div ref={gapRef} style={{ marginTop: 14, opacity: 0, transform: "translateY(8px)", background: "rgba(224,99,99,0.09)", border: "1px solid rgba(224,99,99,0.28)", borderRadius: radius.md, padding: "10px 16px", maxWidth: 360 }}>
               <span style={{ fontSize: 12.5, color: "rgba(238,239,211,0.72)", lineHeight: 1.5 }}>
-                Investor survival <span ref={t2NumRef} style={{ color: CORAL, fontWeight: 800, fontFamily: font.mono }}>—</span> {costsLabel} · a <span ref={gapNumRef} style={{ color: CORAL, fontWeight: 800, fontFamily: font.mono }}>—</span> gap the lender doesn&apos;t see.
+                Expanded-cost DSCR <span ref={t2NumRef} style={{ color: CORAL, fontWeight: 800, fontFamily: font.mono }}>—</span> after {costsLabel}; a <span ref={gapNumRef} style={{ color: CORAL, fontWeight: 800, fontFamily: font.mono }}>—</span> difference from the simplified coverage view.
               </span>
             </div>
           </div>
@@ -536,7 +556,7 @@ export function HeroProof({
             <div style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", fontFamily: font.mono, letterSpacing: "-0.01em" }}>{sub}</div>
             {chip && (
               <div className="hp-chip" style={{ background: MINT_BG, borderRadius: radius.md, padding: "12px 16px", border: "1px solid rgba(0,55,56,0.12)" }}>
-                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 3 }}>Verdict</div>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: RAINFOREST, marginBottom: 3 }}>Preliminary result</div>
                 <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: "0.05em", textTransform: "uppercase", color: chip.color }}>{chip.label}</div>
               </div>
             )}
@@ -576,7 +596,7 @@ export function DcShell({
     // site — here that reads as a framed card-in-a-card. Flatten it: transparent
     // sections, no horizontal padding/border, full width → flush with the workspace.
     return (
-      <div ref={scope} className="dc-embedded" style={{ color: MIDNIGHT, fontFamily: font.family, overflowX: "hidden", letterSpacing: "-0.02em" }}>
+      <div ref={scope} className="dc-embedded" style={{ width: "100%", maxWidth: "100%", minWidth: 0, color: MIDNIGHT, fontFamily: font.family, letterSpacing: "-0.02em" }}>
         <style>{DC_CSS}</style>
         <style>{`
           .dc-embedded main > section{background:transparent !important;background-image:none !important;border:none !important;border-top:none !important;border-bottom:none !important;padding-left:0 !important;padding-right:0 !important;padding-top:0 !important;padding-bottom:clamp(28px,5vh,56px) !important;}
@@ -589,7 +609,7 @@ export function DcShell({
     );
   }
   return (
-    <div ref={scope} className="dc-shell" style={{ background: PISTACHIO, color: MIDNIGHT, fontFamily: font.family, minHeight: "100vh", overflowX: "hidden", letterSpacing: "-0.02em" }}>
+    <div ref={scope} className="dc-shell" style={{ width: "100%", maxWidth: "100%", minWidth: 0, background: PISTACHIO, color: MIDNIGHT, fontFamily: font.family, minHeight: "100vh", letterSpacing: "-0.02em" }}>
       <style>{DC_CSS}</style>
       {/* Shared site chrome (same nav + footer as the marketing home) so every
           page is framed identically. Per-page navLinks/cta/accent are no longer

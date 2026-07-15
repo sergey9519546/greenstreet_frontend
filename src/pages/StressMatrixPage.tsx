@@ -34,18 +34,33 @@ const ZONE_ACCENT: Record<StressRiskZone, string> = {
 
 // ── Plain-English verdict copy ────────────────────────────────────────────────
 function verdictCopy(dscr: number, zone: StressRiskZone): { headline: string; sub: string } {
-  if (zone === "SAFE")        return { headline: "Strong — rent easily covers all costs",        sub: "This scenario leaves a comfortable buffer above the lender's minimum." };
+  if (zone === "SAFE")        return { headline: "Higher modeled coverage",                       sub: "Entered rent leaves a larger buffer above modeled costs." };
   if (zone === "COMFORTABLE") return { headline: "Solid — deal still covers costs with margin",  sub: "Rent exceeds the full payment. Lenders typically require DSCR ≥ 1.25." };
   if (zone === "MARGINAL")    return { headline: "Tight — rent just barely covers costs",        sub: `At ${dscr.toFixed(2)}x the deal clears 1.00, but there's little cushion.` };
   if (zone === "FRAGILE")     return { headline: "Cash-flow shortfall — stress this deal hard",  sub: `Rent falls short of the full monthly payment by about ${Math.round((1 - dscr) * 100)}%.` };
-  return { headline: "Deal breaks — rent cannot cover costs in this scenario",                  sub: `DSCR of ${dscr.toFixed(2)}x means the property is cash-flow negative. Lenders won't approve below 1.00.` };
+  return { headline: "Modeled coverage below the entered costs",                                sub: `DSCR of ${dscr.toFixed(2)}x is below 1.00 under this scenario. This does not determine lender approval or actual cash flow.` };
 }
 
 // ── Mini P&I calculator (used for live stress panel) ─────────────────────────
-function calcPI(loanAmt: number, annualRate: number, months = 360): number {
+function finiteSum(...values: Array<number | null>): number | null {
+  if (values.some((value) => value === null || !Number.isFinite(value))) return null;
+  const total = (values as number[]).reduce((sum, value) => sum + value, 0);
+  return Number.isFinite(total) ? total : null;
+}
+
+function finiteProduct(...values: number[]): number | null {
+  if (values.some((value) => !Number.isFinite(value))) return null;
+  const product = values.reduce((result, value) => result * value, 1);
+  return Number.isFinite(product) ? product : null;
+}
+
+function calcPI(loanAmt: number, annualRate: number, months = 360): number | null {
+  if (![loanAmt, annualRate, months].every(Number.isFinite) || loanAmt < 0 || annualRate < 0 || months <= 0) return null;
   const r = annualRate / 100 / 12;
-  if (r === 0) return loanAmt / months;
-  return (loanAmt * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+  const payment = r === 0
+    ? loanAmt / months
+    : loanAmt * r / (1 - Math.pow(1 + r, -months));
+  return Number.isFinite(payment) && payment >= 0 ? payment : null;
 }
 
 function calcDSCR(
@@ -56,12 +71,24 @@ function calcDSCR(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number
-): number {
-  const loanAmt = purchasePrice * (1 - downPct / 100);
+): number | null {
+  if (![purchasePrice, downPct, rate, rent, annualTaxes, annualInsurance, hoa].every(Number.isFinite) ||
+      purchasePrice < 0 || downPct < 0 || downPct > 100 || rate < 0 || rent < 0 ||
+      annualTaxes < 0 || annualInsurance < 0 || hoa < 0) return null;
+  const loanAmt = finiteProduct(purchasePrice, 1 - downPct / 100);
+  if (loanAmt === null) return null;
   const pi = calcPI(loanAmt, rate);
-  const fixed = annualTaxes / 12 + annualInsurance / 12 + hoa;
-  const pitia = pi + fixed;
-  return pitia > 0 ? rent / pitia : 0;
+  const fixed = finiteSum(annualTaxes / 12, annualInsurance / 12, hoa);
+  const pitia = finiteSum(pi, fixed);
+  if (pitia === null || pitia <= 0) return null;
+  const dscr = rent / pitia;
+  return Number.isFinite(dscr) && dscr >= 0 ? dscr : null;
+}
+
+function formatMonthly(value: number | null): string {
+  return value !== null && Number.isFinite(value)
+    ? `$${Math.round(value).toLocaleString()}/mo`
+    : "Unavailable";
 }
 
 // ── Pinned cell shape ────────────────────────────────────────────────────────
@@ -87,7 +114,7 @@ interface StressPreset {
   tax: number;    // tax & insurance bump, %
 }
 const PRESETS: StressPreset[] = [
-  { id: "calm",      label: "Calm baseline",    sub: "No shock — your deal as underwritten",       rate: 0,   rent: 0,   vac: 5,  tax: 0  },
+  { id: "calm",      label: "Illustrative baseline", sub: "Base inputs with the displayed vacancy assumption", rate: 0, rent: 0, vac: 5, tax: 0 },
   { id: "rate",      label: "Rate spike",       sub: "Fed hikes — your rate jumps +200 bps",       rate: 200, rent: 0,   vac: 5,  tax: 0  },
   { id: "soft",      label: "Soft rental market", sub: "Rents dip 10% · vacancy doubles to 10%",   rate: 0,   rent: -10, vac: 10, tax: 0  },
   { id: "recession", label: "2008-style shock", sub: "Rent −15% · rate +150 bps · vacancy 15%",    rate: 150, rent: -15, vac: 15, tax: 0  },
@@ -197,7 +224,7 @@ export default function StressMatrixPage({
   }, [purchasePrice, downPct, baseRate, monthlyRent, annualTaxes, annualInsurance, hoa]);
 
   // ── Live stressed DSCR (slider-driven, instant) ───────────────────────────
-  const stressedDSCR = useMemo(() => {
+  const stressedDSCRValue = useMemo(() => {
     const stressedRate = baseRate + rateOffsetBps / 100;
     const effectiveRent =
       monthlyRent * (1 + rentChangePct / 100) * (1 - vacancyPct / 100);
@@ -206,7 +233,9 @@ export default function StressMatrixPage({
     return calcDSCR(purchasePrice, downPct, stressedRate, effectiveRent, stressedTaxes, stressedInsurance, hoa);
   }, [purchasePrice, downPct, baseRate, rateOffsetBps, monthlyRent, rentChangePct, vacancyPct, annualTaxes, annualInsurance, taxBumpPct, hoa]);
 
-  const baseDSCR    = result?.baseTrack1DSCR ?? 0;
+  const baseDSCRValue = result && Number.isFinite(result.baseTrack1DSCR) ? result.baseTrack1DSCR : null;
+  const baseDSCR    = baseDSCRValue ?? 0;
+  const stressedDSCR = stressedDSCRValue ?? 0;
   const baseZone    = classifyRiskZone(baseDSCR);
   const stressZone  = classifyRiskZone(stressedDSCR);
   const stressRisk  = riskFromDscr(stressedDSCR);
@@ -220,33 +249,41 @@ export default function StressMatrixPage({
   const passRate    = Math.round((passCount / totalCells) * 100) + "%";
 
   // PITIA for display
-  const loanAmt         = purchasePrice * (1 - downPct / 100);
-  const basePIAmt       = calcPI(loanAmt, baseRate);
-  const baseFixed       = annualTaxes / 12 + annualInsurance / 12 + hoa;
-  const basePITIA       = basePIAmt + baseFixed;
+  const loanAmt         = finiteProduct(purchasePrice, 1 - downPct / 100);
+  const basePIAmt       = loanAmt === null ? null : calcPI(loanAmt, baseRate);
+  const baseFixed       = finiteSum(annualTaxes / 12, annualInsurance / 12, hoa);
+  const basePITIA       = finiteSum(basePIAmt, baseFixed);
   const stressedRate    = baseRate + rateOffsetBps / 100;
-  const stressedPIAmt   = calcPI(loanAmt, stressedRate);
-  const stressedTaxInsMo= (annualTaxes * (1 + taxBumpPct / 100) + annualInsurance * (1 + taxBumpPct / 100)) / 12;
-  const stressedPITIA   = stressedPIAmt + stressedTaxInsMo + hoa;
-  const effectiveRent   = monthlyRent * (1 + rentChangePct / 100) * (1 - vacancyPct / 100);
+  const stressedPIAmt   = loanAmt === null ? null : calcPI(loanAmt, stressedRate);
+  const stressedTaxes   = finiteProduct(annualTaxes, 1 + taxBumpPct / 100);
+  const stressedInsurance = finiteProduct(annualInsurance, 1 + taxBumpPct / 100);
+  const stressedTaxInsMo= finiteSum(stressedTaxes === null ? null : stressedTaxes / 12, stressedInsurance === null ? null : stressedInsurance / 12);
+  const stressedPITIA   = finiteSum(stressedPIAmt, stressedTaxInsMo, hoa);
+  const grossStressedRent = finiteProduct(monthlyRent, 1 + rentChangePct / 100);
+  const effectiveRent   = grossStressedRent === null ? null : finiteProduct(grossStressedRent, 1 - vacancyPct / 100);
+  const analysisAvailable = result !== null && baseDSCRValue !== null && stressedDSCRValue !== null &&
+    basePIAmt !== null && baseFixed !== null && basePITIA !== null && stressedPIAmt !== null &&
+    stressedTaxInsMo !== null && stressedPITIA !== null && grossStressedRent !== null && effectiveRent !== null;
   // Break-even vacancy at the CURRENT stressed rate + rent (the occupancy loss
   // the deal can absorb before its DSCR drops below 1.00). Uses the same lender
   // basis as the gauge: rent-after-rent-shock (pre-vacancy) ÷ stressed PITIA.
-  const breakEvenVac    = computeBreakEvenVacancy(monthlyRent * (1 + rentChangePct / 100), stressedPITIA);
+  const breakEvenVac    = computeBreakEvenVacancy(grossStressedRent ?? 0, stressedPITIA ?? 0);
   // Dual-track at the current stressed state: lender (gross rent ÷ PITIA) vs
-  // investor survival (after the modeled vacancy + management + maintenance).
-  const dualTrack       = computeDualTrackDSCR(monthlyRent * (1 + rentChangePct / 100), stressedPITIA, { vacancyPct });
+  // investor survival (modeled NOI after vacancy, management, maintenance,
+  // and CapEx reserves, divided by the same full PITIA).
+  const dualTrack       = computeDualTrackDSCR(grossStressedRent ?? 0, stressedPITIA ?? 0, { vacancyPct });
   // Multi-shock waterfall — decompose the active sliders into each shock's
   // marginal DSCR bite (Edge §7), so the user sees which lever breaks the deal.
   const shockWaterfall  = (() => {
+    if (!analysisAvailable) return computeShockWaterfall(0, 0, []);
     const shocks: WaterfallShock[] = [];
-    const rateDelta = stressedPIAmt - basePIAmt;
+    const rateDelta = stressedPIAmt! - basePIAmt!;
     if (Math.abs(rateDelta) > 0.5) shocks.push({ label: `Rate ${rateOffsetBps >= 0 ? "+" : ""}${(rateOffsetBps / 100).toFixed(2)}%`, pitiaDelta: rateDelta });
-    const taxDelta = stressedTaxInsMo - (baseFixed - hoa);
+    const taxDelta = stressedTaxInsMo! - (baseFixed! - hoa);
     if (Math.abs(taxDelta) > 0.5) shocks.push({ label: `Tax & insurance +${taxBumpPct}%`, pitiaDelta: taxDelta });
     if (rentChangePct !== 0) shocks.push({ label: `Rent ${rentChangePct > 0 ? "+" : ""}${rentChangePct}%`, rentMultiplier: 1 + rentChangePct / 100 });
     if (vacancyPct !== 0) shocks.push({ label: `Vacancy ${vacancyPct}%`, rentMultiplier: 1 - vacancyPct / 100 });
-    return computeShockWaterfall(monthlyRent, basePITIA, shocks);
+    return computeShockWaterfall(monthlyRent, basePITIA!, shocks);
   })();
 
   // Cell styles
@@ -276,14 +313,20 @@ export default function StressMatrixPage({
   const previewCells = useMemo(() => {
     const RENT_OFFSETS = [-25, -20, -15, -10, -5, 0, 5, 10, 15, 20];
     const BPS_ROWS     = [-50, 0, 50, 100];
-    const loan = purchasePrice * (1 - downPct / 100);
-    const fixed = annualTaxes / 12 + annualInsurance / 12;
+    const loan = finiteProduct(purchasePrice, 1 - downPct / 100);
+    const fixed = finiteSum(annualTaxes / 12, annualInsurance / 12);
     const cells: { bg: string; ink: string; v: string }[] = [];
     BPS_ROWS.forEach((bps) => {
       RENT_OFFSETS.forEach((rp) => {
         const rate = Math.max(0.5, baseRate + bps / 100);
-        const pi   = calcPI(loan, rate);
-        const d    = pi + fixed > 0 ? (monthlyRent * (1 + rp / 100)) / (pi + fixed) : 0;
+        const pi   = loan === null ? null : calcPI(loan, rate);
+        const pitia = finiteSum(pi, fixed);
+        const adjustedRent = finiteProduct(monthlyRent, 1 + rp / 100);
+        const d = pitia !== null && pitia > 0 && adjustedRent !== null ? adjustedRent / pitia : null;
+        if (d === null || !Number.isFinite(d)) {
+          cells.push({ bg: "rgba(238,239,211,0.08)", ink: "rgba(238,239,211,0.55)", v: "—" });
+          return;
+        }
         const zone = classifyRiskZone(d);
         cells.push({ ...ZONE_COLORS[zone], v: d.toFixed(1) });
       });
@@ -299,11 +342,11 @@ export default function StressMatrixPage({
 
   // ── Legend ───────────────────────────────────────────────────────────────
   const legend: { zone: StressRiskZone; label: string }[] = [
-    { zone: "SAFE",        label: "SAFE ≥1.50"       },
+    { zone: "SAFE",        label: "HIGHER CUSHION ≥1.50" },
     { zone: "COMFORTABLE", label: "COMFORTABLE ≥1.25" },
     { zone: "MARGINAL",    label: "MARGINAL ≥1.00"   },
     { zone: "FRAGILE",     label: "FRAGILE ≥0.85"    },
-    { zone: "DEAL_BREAK",  label: "DEAL BREAK <0.85" },
+    { zone: "DEAL_BREAK",  label: "LOW COVERAGE <0.85" },
   ];
 
   function zoneLabel(z: StressRiskZone) { return z.replace("_", " "); }
@@ -325,7 +368,8 @@ export default function StressMatrixPage({
       {/* ── Global styles ──────────────────────────────────────────────── */}
       <style>{`
         .sm-num::-webkit-outer-spin-button,.sm-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-        .sm-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
+        .sm-num{width:100%;min-width:0;max-width:100%;box-sizing:border-box;flex:1 1 auto;
+          border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;
           font-family:${dc.mono};font-size:9px;font-weight:700;}
         .sm-cell{display:block;width:100%;}
@@ -344,10 +388,18 @@ export default function StressMatrixPage({
         /* Accordion */
         .sm-accord-btn{background:none;border:none;cursor:pointer;padding:0;text-align:left;width:100%;
           display:flex;align-items:center;justify-content:space-between;}
+        /* Intrinsic-size containment: only the matrix viewport may scroll horizontally. */
+        .sm-tool-grid,.sm-tool-grid > *,.sm-main > *,.sm-slider-grid > *,.sm-compare-row > *{min-width:0;}
+        .sm-sidebar,.sm-main,.sm-card{width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
+        .sm-input-box{width:100%;max-width:100%;min-width:0;box-sizing:border-box;}
+        .sm-input-box > *{min-width:0;}
+        .sm-matrix-scroll{width:100%;max-width:100%;min-width:0;overflow-x:auto;
+          overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch;}
         /* Mobile layout */
         @media(max-width:991px){
-          .sm-tool-grid{grid-template-columns:1fr !important;}
-          .sm-sidebar{position:static !important;top:unset !important;}
+          .sm-tool-grid{grid-template-columns:minmax(0,1fr) !important;width:100%;max-width:100%;}
+          .sm-sidebar{position:static !important;top:unset !important;width:100%;
+            max-width:calc(100vw - ${dc.pad} - ${dc.pad});}
         }
         @media(max-width:767px){
           .sm-hero-grid{grid-template-columns:1fr !important;}
@@ -357,6 +409,9 @@ export default function StressMatrixPage({
         }
         @media(max-width:479px){
           .sm-slider-grid{grid-template-columns:1fr !important;}
+          .sm-sidebar{padding:20px !important;}
+          .sm-card{padding:18px 16px !important;}
+          .sm-accord-btn{flex-direction:column;align-items:flex-start;gap:10px;}
         }
         @media(prefers-reduced-motion:reduce){
           .gs-slider::-webkit-slider-thumb{transition:none !important;}
@@ -434,9 +489,9 @@ export default function StressMatrixPage({
                 Live stressed DSCR
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <RiskFlame level={stressRisk} size={16} />
-                <Mono style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.03em", color: ZONE_ACCENT[stressZone], lineHeight: 1 }}>
-                  {stressedDSCR.toFixed(2)}x
+                {analysisAvailable ? <RiskFlame level={stressRisk} size={16} /> : null}
+                <Mono style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.03em", color: analysisAvailable ? ZONE_ACCENT[stressZone] : "rgba(238,239,211,0.62)", lineHeight: 1 }}>
+                  {analysisAvailable ? `${stressedDSCR.toFixed(2)}x` : "Unavailable"}
                 </Mono>
               </div>
             </div>
@@ -472,17 +527,16 @@ export default function StressMatrixPage({
               Guided stress simulator · preliminary estimate
             </div>
             <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 10px", color: CREAM }}>
-              Base{" "}
-              <Mono style={{ color: CREAM }}>{baseDSCR.toFixed(2)}x</Mono>
-              {" · "}
-              <span style={{ color: EMERALD }}>{passRate}</span>
-              {" of scenarios still cover costs"}
+              {analysisAvailable ? <>
+                Base <Mono style={{ color: CREAM }}>{baseDSCR.toFixed(2)}x</Mono>{" · "}
+                <span style={{ color: EMERALD }}>{passRate}</span>{" of scenarios still cover costs"}
+              </> : "Analysis unavailable"}
             </h2>
             <p style={{ fontSize: 14, color: "rgba(238,239,211,0.62)", margin: 0, maxWidth: "60ch", lineHeight: 1.6, fontWeight: 500 }}>
               <strong style={{ color: "rgba(238,239,211,0.8)" }}>PITIA</strong>{" "}
               <span style={{ fontWeight: 400 }}>(the full monthly payment — principal, interest, taxes, insurance, and any HOA dues)</span>{" "}
-              at base: <Mono style={{ color: LEMON }}>${Math.round(basePITIA).toLocaleString()}/mo</Mono>.
-              Adjust sliders below to model stress. All results are preliminary estimates — not a guaranteed rate or approval.
+              at base: <Mono style={{ color: LEMON }}>{formatMonthly(basePITIA)}</Mono>.
+              Adjust the assumptions below to compare stress scenarios. Results are illustrative model outputs, not forecasts, rates, approvals, or investment recommendations.
             </p>
           </div>
 
@@ -528,11 +582,11 @@ export default function StressMatrixPage({
               {/* Zone counts */}
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(238,239,211,0.10)" }}>
                 <div>
-                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>SAFE</div>
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>HIGHER CUSHION</div>
                   <Mono style={{ fontSize: 18, fontWeight: 600, color: EMERALD }}>{safeCount}</Mono>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>DEAL BREAK</div>
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>LOW COVERAGE</div>
                   <Mono style={{ fontSize: 18, fontWeight: 600, color: "#e06363" }}>{breakCount}</Mono>
                 </div>
                 <div>
@@ -543,12 +597,12 @@ export default function StressMatrixPage({
             </div>
 
             {/* ── RIGHT: Interactive stress panel + matrix ─────────────── */}
-            <div>
+            <div className="sm-main">
 
               {/* ╔══════════════════════════════════════════════════╗
                   ║  INTERACTIVE STRESS SLIDERS                      ║
                   ╚══════════════════════════════════════════════════╝ */}
-              <div style={{
+              <div className="sm-card" style={{
                 background: "#001f20", borderRadius: dc.r.md, padding: "24px 28px",
                 border: "1px solid rgba(238,239,211,0.08)", marginBottom: 24,
               }}>
@@ -659,6 +713,14 @@ export default function StressMatrixPage({
                   />
                 </div>
 
+                {!analysisAvailable ? (
+                  <div role="status" style={{ background: "rgba(230,184,77,0.09)", border: "1px solid rgba(230,184,77,0.34)", borderRadius: dc.r.sm, padding: "18px 20px", color: CREAM }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: LEMON, marginBottom: 6 }}>Analysis unavailable</div>
+                    <div style={{ fontSize: 12.5, lineHeight: 1.55, color: "rgba(238,239,211,0.68)" }}>
+                      One or more entered values is incomplete, outside the supported range, or too large to calculate safely. PITIA and stress metrics are withheld until the inputs produce finite results.
+                    </div>
+                  </div>
+                ) : <>
                 {/* ── BEFORE / AFTER comparison ──────────────────── */}
                 <div
                   className="sm-compare-row"
@@ -681,7 +743,7 @@ export default function StressMatrixPage({
                         <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>Zone</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: ZONE_ACCENT[baseZone] }}>{zoneLabel(baseZone)}</div>
                         <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
-                          PITIA <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${Math.round(basePITIA).toLocaleString()}/mo</Mono>
+                          PITIA <Mono style={{ color: "rgba(238,239,211,0.6)" }}>{formatMonthly(basePITIA)}</Mono>
                         </div>
                         <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
                           Rent <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${monthlyRent.toLocaleString()}/mo</Mono>
@@ -720,7 +782,7 @@ export default function StressMatrixPage({
                         <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>Zone</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: ZONE_ACCENT[stressZone], transition: "color 0.3s" }}>{zoneLabel(stressZone)}</div>
                         <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
-                          PITIA <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${Math.round(stressedPITIA).toLocaleString()}/mo</Mono>
+                          PITIA <Mono style={{ color: "rgba(238,239,211,0.6)" }}>{formatMonthly(stressedPITIA)}</Mono>
                         </div>
                         <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
                           Eff. rent <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${Math.round(effectiveRent).toLocaleString()}/mo</Mono>
@@ -757,9 +819,9 @@ export default function StressMatrixPage({
                   </div>
                   <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "9px 0 0", lineHeight: 1.5 }}>
                     {dualTrack.qualifiesButDangerous ? (
-                      <>The lender approves on gross rent (<strong style={{ color: dc.cream }}>{dualTrack.track1.toFixed(2)}x</strong>), but after vacancy, management, and maintenance the deal nets <strong style={{ color: ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track2.toFixed(2)}x</strong> — below 1.00. It clears underwriting and still loses money every month. This is the gap Track 2 exists to catch.</>
+                    <>The gross-rent track is <strong style={{ color: dc.cream }}>{dualTrack.track1.toFixed(2)}x</strong>, while the expense-adjusted track is <strong style={{ color: ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track2.toFixed(2)}x</strong>. This difference illustrates why a coverage ratio alone does not establish approval, profitability, or actual monthly cash flow.</>
                     ) : (
-                      <>Track 1 is what the lender qualifies on; Track 2 is what you actually net after vacancy, management, and maintenance. {dualTrack.track2 >= 1.0 ? "Both clear — the deal survives in reality, not just on paper." : "Track 2 below 1.0 means thin real-world cash flow even where the lender is comfortable."}</>
+                      <>Track 1 is gross rent divided by PITIA; Track 2 is modeled NOI after vacancy, management, maintenance, and CapEx reserves divided by the same PITIA. {dualTrack.track2 >= 1.0 ? "Both modeled coverage tracks are at or above 1.00." : "Track 2 below 1.00 indicates the modeled NOI does not cover full PITIA."}</>
                     )}
                   </p>
                 </div>
@@ -834,17 +896,18 @@ export default function StressMatrixPage({
                     {verdict.sub}
                     {stressZone === "DEAL_BREAK" || stressZone === "FRAGILE" ? (
                       <span style={{ display: "block", marginTop: 6, color: "rgba(238,239,211,0.62)", fontStyle: "italic", fontSize: 11 }}>
-                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, submit a scenario review.
+            Illustrative stress output only. Verify rent, vacancy, expenses, taxes, insurance, financing terms, and program rules; this model does not forecast performance or determine approval.
                       </span>
                     ) : null}
                   </p>
                 </div>
+                </>}
               </div>
 
               {/* ╔══════════════════════════════════════════════════╗
                   ║  FULL MATRIX — progressive disclosure            ║
                   ╚══════════════════════════════════════════════════╝ */}
-              <div style={{
+              <div className="sm-card" style={{
                 background: "#001a1b", borderRadius: dc.r.md, padding: "20px 24px",
                 border: "1px solid rgba(238,239,211,0.07)",
               }}>
@@ -859,7 +922,7 @@ export default function StressMatrixPage({
                       {showFullMatrix ? "▾ Hide full matrix" : "▸ Show full matrix — 120 combinations"}
                     </div>
                     <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 3, lineHeight: 1.4 }}>
-                      12 rate shocks × 10 rent changes · hover any cell for exact DSCR · click to pin
+              12 rate assumptions × 10 rent assumptions · hover for modeled DSCR · click to pin
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
@@ -883,6 +946,7 @@ export default function StressMatrixPage({
                         {/* Heatmap table */}
                         <div
                           ref={matrixRef}
+                          className="sm-matrix-scroll"
                           style={{ overflowX: "auto", position: "relative" }}
                           onMouseLeave={() => setHoverCell(null)}
                         >
@@ -1056,7 +1120,7 @@ export default function StressMatrixPage({
 
               {/* ── Compliance footnote ───────────────────────────────── */}
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", marginTop: 18, lineHeight: 1.55, maxWidth: "60ch" }}>
-                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, submit a scenario review.
+            All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>illustrative scenario outputs</strong> based on entered assumptions and fixed model bands. They are not forecasts, guaranteed rates, approval findings, or investment advice.
               </p>
             </div>
           </div>
@@ -1088,7 +1152,7 @@ function InputField({
       <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>
         {label}
       </span>
-      <div style={{ display: "flex", alignItems: "center", background: "#003738", borderRadius: 6, padding: "0 11px", border: "1px solid rgba(238,239,211,0.10)" }}>
+      <div className="sm-input-box" style={{ display: "flex", alignItems: "center", background: "#003738", borderRadius: 6, padding: "0 11px", border: "1px solid rgba(238,239,211,0.10)" }}>
         {prefix && <span style={{ color: "rgba(238,239,211,0.62)", flexShrink: 0 }}>{prefix}</span>}
         {children}
         {suffix && <span style={{ color: "rgba(238,239,211,0.62)", flexShrink: 0 }}>{suffix}</span>}

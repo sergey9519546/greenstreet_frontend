@@ -48,7 +48,13 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
   const removeQuote = (i: number) =>
     setQuotes((qs) => (qs.length <= 2 ? qs : qs.filter((_, idx) => idx !== i)));
 
-  const cmp = compareTrueCost(loanAmount, quotes, holdYears);
+  let cmp: ReturnType<typeof compareTrueCost> | null = null;
+  let comparisonError = "";
+  try {
+    cmp = compareTrueCost(loanAmount, quotes, holdYears);
+  } catch (error) {
+    comparisonError = error instanceof Error ? error.message : "Enter valid quote values to compare total cost.";
+  }
 
   const fieldStyle: React.CSSProperties = { width: "100%", border: `1.5px solid ${swatch.midnightFaded}`, background: swatch.white, borderRadius: radius.sm, padding: "9px 11px", fontFamily: dc.sans, fontSize: 14, fontWeight: 600, color: dc.dark, outline: "none" };
   const labelStyle: React.CSSProperties = { display: "block", fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 5 };
@@ -65,7 +71,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
         <label style={{ flex: "1 1 180px" }}>
           <span style={labelStyle}>Loan amount</span>
-          <input type="number" step={5000} value={loanAmount} onChange={(e) => setLoanAmount(+e.target.value)} style={fieldStyle} />
+          <input type="number" min={1} step={5000} value={loanAmount} onChange={(e) => setLoanAmount(+e.target.value)} style={fieldStyle} />
         </label>
         <label style={{ flex: "1 1 140px" }}>
           <span style={labelStyle}>Years you'll hold</span>
@@ -84,15 +90,15 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
               </label>
               <label style={{ flex: "1 1 90px" }}>
                 <span style={labelStyle}>Rate %</span>
-                <input type="number" step={0.125} value={q.rate} onChange={(e) => update(i, { rate: +e.target.value })} style={fieldStyle} />
+                <input type="number" min={0} step={0.125} value={q.rate} onChange={(e) => update(i, { rate: +e.target.value })} style={fieldStyle} />
               </label>
               <label style={{ flex: "1 1 80px" }}>
                 <span style={labelStyle}>Points %</span>
-                <input type="number" step={0.25} value={q.points} onChange={(e) => update(i, { points: +e.target.value })} style={fieldStyle} />
+                <input type="number" min={0} step={0.25} value={q.points} onChange={(e) => update(i, { points: +e.target.value })} style={fieldStyle} />
               </label>
               <label style={{ flex: "1 1 90px" }}>
                 <span style={labelStyle}>Fees $</span>
-                <input type="number" step={250} value={q.fees} onChange={(e) => update(i, { fees: +e.target.value })} style={fieldStyle} />
+                <input type="number" min={0} step={250} value={q.fees} onChange={(e) => update(i, { fees: +e.target.value })} style={fieldStyle} />
               </label>
               <label style={{ flex: "1 1 150px" }}>
                 <span style={labelStyle}>Prepay</span>
@@ -113,7 +119,7 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
       )}
 
       {/* headline — the rate-myopia callout */}
-      <div style={{ background: cmp.savingsVsLowestRate > 0 ? "rgba(230,184,77,0.12)" : "rgba(77,189,151,0.1)", border: `1px solid ${cmp.savingsVsLowestRate > 0 ? "rgba(230,184,77,0.4)" : "rgba(77,189,151,0.4)"}`, borderRadius: radius.sm, padding: "14px 18px", margin: "0 0 18px" }}>
+      {cmp ? <div style={{ background: cmp.savingsVsLowestRate > 0 ? "rgba(230,184,77,0.12)" : "rgba(77,189,151,0.1)", border: `1px solid ${cmp.savingsVsLowestRate > 0 ? "rgba(230,184,77,0.4)" : "rgba(77,189,151,0.4)"}`, borderRadius: radius.sm, padding: "14px 18px", margin: "0 0 18px" }}>
         <p style={{ fontSize: 14, fontWeight: 600, color: dc.dark, margin: 0, lineHeight: 1.5 }}>
           {cmp.savingsVsLowestRate > 0 ? (
             <>The lowest-rate option ({cmp.lowestRateLabel}) costs <strong style={{ color: "#b8901f" }}>{fmt(cmp.savingsVsLowestRate)} more</strong> over {holdYears} {holdYears === 1 ? "year" : "years"} than {cmp.cheapest.label}, once points, fees, and prepay are counted.</>
@@ -121,11 +127,11 @@ export default function TrueCostComparator({ accent = dc.rain }: { accent?: stri
             <>Here the lowest-rate option is also the cheapest all-in over {holdYears} {holdYears === 1 ? "year" : "years"} — no rate-myopia penalty.</>
           )}
         </p>
-      </div>
+      </div> : <div role="alert" style={{ background: "rgba(224,99,99,0.09)", border: "1px solid rgba(224,99,99,0.35)", borderRadius: radius.sm, padding: "14px 18px", margin: "0 0 18px", color: dc.dark, fontSize: 13, fontWeight: 600 }}>{comparisonError}</div>}
 
       {/* ranked results — cheapest first */}
       <div style={{ display: "grid", gap: 10 }}>
-        {cmp.ranked.map((r, i) => {
+        {cmp?.ranked.map((r, i) => {
           const best = i === 0;
           return (
             <div key={r.label} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14, background: best ? "rgba(0,101,101,0.05)" : swatch.white, border: `1.5px solid ${best ? dc.rain : swatch.midnightFaded}`, borderRadius: radius.sm, padding: "16px 18px" }}>

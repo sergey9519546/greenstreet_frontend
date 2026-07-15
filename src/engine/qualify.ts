@@ -85,22 +85,32 @@ export const QUALIFY_POLICY = {
 // ── Math helpers ─────────────────────────────────────────────────────────────
 const TERM_MONTHS = 360;
 
+function finiteNonNegative(value: unknown, fallback = 0): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
 /** Monthly principal+interest for a fully-amortizing loan. */
 export function amortize(loan: number, annualRate: number, n = TERM_MONTHS): number {
-  if (loan <= 0) return 0;
+  if (!Number.isFinite(loan) || loan <= 0 || !Number.isFinite(annualRate) || annualRate < 0 || !Number.isFinite(n) || n <= 0) return 0;
   const i = annualRate / 12;
   if (i === 0) return loan / n;
-  const f = Math.pow(1 + i, n);
-  return (loan * i * f) / (f - 1);
+  const denominator = 1 - Math.pow(1 + i, -n);
+  const payment = denominator > 0 ? loan * i / denominator : 0;
+  return Number.isFinite(payment) && payment >= 0 ? payment : 0;
 }
 
 /** Inverse: loan amount whose P&I equals a target monthly payment. */
 export function loanForPayment(payment: number, annualRate: number, n = TERM_MONTHS): number {
-  if (payment <= 0) return 0;
+  if (!Number.isFinite(payment) || payment <= 0 || !Number.isFinite(annualRate) || annualRate < 0 || !Number.isFinite(n) || n <= 0) return 0;
   const i = annualRate / 12;
   if (i === 0) return payment * n;
-  const f = Math.pow(1 + i, n);
-  return (payment * (f - 1)) / (i * f);
+  const principal = payment * (1 - Math.pow(1 + i, -n)) / i;
+  return Number.isFinite(principal) && principal >= 0 ? principal : 0;
 }
 
 function ficoAdj(b: FicoBand): number {
@@ -110,6 +120,7 @@ function ficoAdj(b: FicoBand): number {
     case "680-719": return 0.75;
     case "720-759": return 0.25;
     case "760-plus": return 0;
+    default: return 1.5;
   }
 }
 
@@ -124,15 +135,22 @@ function ratePI(input: QualifyInput, ltv: number): number {
   if (input.purpose === "cash-out") r += 0.00375;
   if (ltv > 0.8) r += 0.005;
   else if (ltv > 0.75) r += 0.0025;
-  return Math.min(Math.max(r, p.rateClamp.min), p.rateClamp.max);
+  return clamp(Number.isFinite(r) ? r : p.rateClamp.max, p.rateClamp.min, p.rateClamp.max);
 }
 
 function rateRange(piRate: number, dscr: number): { low: number; high: number } {
-  let r = piRate;
-  if (dscr < 1.0) r += 0.005;
-  else if (dscr < 1.1) r += 0.0025;
-  r = Math.min(Math.max(r, QUALIFY_POLICY.rateClamp.min), QUALIFY_POLICY.rateClamp.max);
-  return { low: r - 0.00125, high: r + 0.0025 };
+  const bounds = QUALIFY_POLICY.rateClamp;
+  let r = Number.isFinite(piRate) ? piRate : bounds.max;
+  const safeDscr = Number.isFinite(dscr) ? dscr : 0;
+  if (safeDscr < 1.0) r += 0.005;
+  else if (safeDscr < 1.1) r += 0.0025;
+  r = clamp(r, bounds.min, bounds.max);
+  // Clamp each endpoint after adding the displayed spread. Previously the
+  // high endpoint could exceed the policy ceiling by 25 bps.
+  return {
+    low: clamp(r - 0.00125, bounds.min, bounds.max),
+    high: clamp(r + 0.0025, bounds.min, bounds.max),
+  };
 }
 
 function classifyDscr(dscr: number): DscrBand {
@@ -147,18 +165,18 @@ function classifyDscr(dscr: number): DscrBand {
 // ── Main ─────────────────────────────────────────────────────────────────────
 export function qualify(input: QualifyInput): QualifyResult {
   const p = QUALIFY_POLICY;
-  const value = Math.max(0, input.value);
-  const loan = Math.max(0, input.loanAmount);
-  const rent = Math.max(0, input.rent);
+  const value = finiteNonNegative(input.value);
+  const loan = finiteNonNegative(input.loanAmount);
+  const rent = finiteNonNegative(input.rent);
 
   const ltv = value > 0 ? loan / value : 0;
   const piRate = ratePI(input, ltv);
   const piMonthly = amortize(loan, piRate);
 
-  const taxesM = (input.taxesAnnual ?? value * p.taxFactor) / 12;
-  const insM = (input.insuranceAnnual ?? value * p.insFactor) / 12;
-  const hoaM = input.hoaMonthly ?? 0;
-  const otherM = input.otherMonthly ?? 0;
+  const taxesM = finiteNonNegative(input.taxesAnnual, value * p.taxFactor) / 12;
+  const insM = finiteNonNegative(input.insuranceAnnual, value * p.insFactor) / 12;
+  const hoaM = finiteNonNegative(input.hoaMonthly);
+  const otherM = finiteNonNegative(input.otherMonthly);
   const pitia = piMonthly + taxesM + insM + hoaM + otherM;
 
   const dscr = pitia > 0 ? rent / pitia : 0;
@@ -170,7 +188,7 @@ export function qualify(input: QualifyInput): QualifyResult {
   const rentGap = Math.max(0, minRentStandard - rent);
 
   const { low, high } = rateRange(piRate, dscr);
-  const cap = p.ltvCap[input.purpose];
+  const cap = p.ltvCap[input.purpose] ?? p.ltvCap.purchase;
 
   // ── Outcome decision tree (top→down, first match wins) ────────────────────
   const reasons: string[] = [];

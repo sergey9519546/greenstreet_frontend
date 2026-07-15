@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greenstreet Decision OS V5</title>
+  <style>
+    :root {
+      --ink:#003738;
+      --deep:#061f1d;
+      --deep2:#0e3a37;
+      --cream:#f3f0d4;
+      --paper:#fbf8e6;
+      --rail:#eeeece;
+      --line:rgba(0,55,56,.14);
+      --line2:rgba(243,240,212,.13);
+      --lemon:#d9dd56;
+      --mint:#78c49f;
+      --rain:#3b7d79;
+      --coral:#d16f55;
+      --curve:cubic-bezier(.32,.72,0,1);
+      --mono:"Berkeley Mono","SFMono-Regular",Consolas,monospace;
+      --sans:"Geist","Plus Jakarta Sans",ui-sans-serif,system-ui,sans-serif;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      background:#111410;
+      color:var(--cream);
+      font-family:var(--sans);
+      letter-spacing:0;
+      overflow-x:hidden;
+    }
+    body:before {
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 12% 6%, rgba(217,221,86,.1), transparent 24%),
+        radial-gradient(circle at 80% 8%, rgba(120,196,159,.09), transparent 28%),
+        linear-gradient(90deg, rgba(243,240,212,.035) 1px, transparent 1px),
+        linear-gradient(rgba(243,240,212,.03) 1px, transparent 1px);
+      background-size:auto, auto, 54px 54px, 54px 54px;
+      opacity:.85;
+    }
+    body:after {
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.045;
+      mix-blend-mode:soft-light;
+      background-image:linear-gradient(135deg, rgba(255,255,255,.9) 0 1px, transparent 1px 3px);
+      background-size:4px 4px;
+    }
+    .page {
+      position:relative;
+      z-index:1;
+      min-height:100vh;
+      padding:22px clamp(14px,2.4vw,34px) 34px;
+    }
+    .frame {
+      max-width:1540px;
+      margin:0 auto;
+      min-height:calc(100vh - 56px);
+      display:grid;
+      grid-template-rows:auto 1fr;
+      gap:14px;
+    }
+    .top {
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:center;
+      gap:14px;
+      color:var(--cream);
+    }
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:17px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .brand i {
+      width:9px;
+      height:9px;
+      border-radius:50%;
+      background:var(--lemon);
+      box-shadow:0 0 0 5px rgba(217,221,86,.12);
+    }
+    .mode-pill {
+      justify-self:center;
+      display:flex;
+      gap:5px;
+      border:1px solid rgba(243,240,212,.14);
+      border-radius:999px;
+      padding:5px;
+      background:rgba(243,240,212,.075);
+      box-shadow:0 18px 60px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .mode-pill span {
+      border-radius:999px;
+      padding:10px 14px;
+      color:rgba(243,240,212,.62);
+      font-size:10px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      font-weight:950;
+      white-space:nowrap;
+    }
+    .mode-pill span.active {
+      background:var(--cream);
+      color:var(--ink);
+    }
+    .right-meta {
+      justify-self:end;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-family:var(--mono);
+      font-size:11px;
+      color:rgba(243,240,212,.55);
+    }
+    .right-meta b { color:var(--lemon); font-weight:900; }
+    .shell {
+      border-radius:38px;
+      padding:8px;
+      border:1px solid rgba(243,240,212,.13);
+      background:linear-gradient(145deg, rgba(243,240,212,.12), rgba(243,240,212,.035));
+      box-shadow:0 36px 120px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.08);
+      min-height:0;
+    }
+    .core {
+      height:100%;
+      min-height:760px;
+      overflow:hidden;
+      border-radius:30px;
+      background:var(--paper);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
+      display:grid;
+      grid-template-rows:auto 1fr;
+    }
+    .command-header {
+      display:grid;
+      grid-template-columns:320px 1fr 330px;
+      border-bottom:1px solid var(--line);
+      background:var(--cream);
+    }
+    .head-cell {
+      padding:18px 20px;
+      min-height:92px;
+      border-right:1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+    .head-cell:last-child { border-right:0; }
+    .k {
+      color:var(--rain);
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .v {
+      margin-top:7px;
+      color:var(--ink);
+      font-size:22px;
+      line-height:1.02;
+      font-weight:950;
+      letter-spacing:0;
+    }
+    .v.big {
+      font-size:clamp(30px,3.2vw,50px);
+      line-height:.94;
+      max-width:860px;
+    }
+    .v.mono { font-family:var(--mono); letter-spacing:-.02em; }
+    .workspace {
+      min-height:668px;
+      display:grid;
+      grid-template-columns:292px minmax(0,1fr) 336px;
+    }
+    .left,
+    .right {
+      background:var(--rail);
+      color:var(--ink);
+      padding:18px;
+    }
+    .left { border-right:1px solid var(--line); }
+    .right { border-left:1px solid var(--line); }
+    .section-label {
+      margin:0 0 14px;
+      color:var(--rain);
+      font-size:10px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .lane {
+      color:var(--ink);
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+      align-items:center;
+      min-height:70px;
+      padding:13px 14px;
+      border-radius:18px;
+      border:1px solid rgba(0,55,56,.11);
+      background:rgba(255,255,255,.32);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.42);
+      margin-bottom:9px;
+      transition:transform 650ms var(--curve), background 650ms var(--curve);
+    }
+    .lane:hover { transform:translateX(3px); }
+    .lane.active {
+      background:var(--ink);
+      color:var(--cream);
+      border-color:var(--ink);
+      box-shadow:0 16px 36px rgba(0,55,56,.2);
+    }
+    .lane strong {
+      display:block;
+      font-size:14px;
+      line-height:1.1;
+    }
+    .lane small {
+      display:block;
+      margin-top:5px;
+      color:inherit;
+      opacity:.58;
+      font-size:10px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .lane b {
+      color:var(--ink);
+      font-family:var(--mono);
+      font-size:15px;
+      letter-spacing:-.04em;
+    }
+    .lane.active b { color:var(--lemon); }
+    .rail-note {
+      margin:18px 0 0;
+      padding-top:16px;
+      border-top:1px solid var(--line);
+      color:rgba(0,55,56,.65);
+      font-size:12px;
+      line-height:1.44;
+    }
+    .main {
+      position:relative;
+      overflow:hidden;
+      background:var(--ink);
+      color:var(--cream);
+      padding:22px;
+      display:grid;
+      grid-template-rows:auto auto 1fr;
+      gap:16px;
+    }
+    .main:before {
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(90deg, rgba(243,240,212,.055) 1px, transparent 1px),
+        linear-gradient(rgba(243,240,212,.048) 1px, transparent 1px);
+      background-size:44px 44px;
+      opacity:.34;
+      mask-image:linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    }
+    .main > * { position:relative; z-index:1; }
+    .memo {
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 218px;
+      gap:18px;
+      padding-bottom:18px;
+      border-bottom:1px solid rgba(243,240,212,.13);
+    }
+    h1 {
+      margin:0;
+      color:var(--cream);
+      font-size:clamp(44px,4.8vw,82px);
+      line-height:.88;
+      letter-spacing:0;
+      max-width:900px;
+      text-wrap:balance;
+    }
+    .memo p {
+      margin:13px 0 0;
+      max-width:76ch;
+      color:rgba(243,240,212,.65);
+      font-size:14px;
+      line-height:1.52;
+    }
+    .bezel {
+      border-radius:30px;
+      padding:6px;
+      border:1px solid rgba(243,240,212,.1);
+      background:rgba(243,240,212,.055);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .score {
+      min-height:184px;
+      border-radius:24px;
+      padding:18px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(0,0,0,.12);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .score span {
+      color:rgba(243,240,212,.58);
+      font-size:10px;
+      font-weight:950;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .score b {
+      color:var(--lemon);
+      font-family:var(--mono);
+      font-size:58px;
+      line-height:.86;
+      letter-spacing:-.05em;
+    }
+    .metrics {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    .metric {
+      min-height:108px;
+      border-radius:22px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(243,240,212,.043);
+      padding:15px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.055);
+    }
+    .metric b {
+      display:block;
+      color:var(--lemon);
+      font-family:var(--mono);
+      font-size:29px;
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+    .metric span {
+      display:block;
+      margin-top:10px;
+      color:rgba(243,240,212,.57);
+      font-size:12px;
+      line-height:1.34;
+    }
+    .rules {
+      display:grid;
+      gap:8px;
+      align-self:start;
+    }
+    .rule {
+      display:grid;
+      grid-template-columns:98px 1fr auto;
+      gap:12px;
+      align-items:center;
+      min-height:50px;
+      border-radius:16px;
+      border:1px solid rgba(243,240,212,.1);
+      background:rgba(243,240,212,.026);
+      padding:11px 13px;
+    }
+    .rule span {
+      color:rgba(243,240,212,.43);
+      font-size:10px;
+      font-weight:950;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .rule strong {
+      color:var(--cream);
+      font-size:13px;
+    }
+    .rule b {
+      color:var(--lemon);
+      font-size:11px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .action {
+      border-radius:22px;
+      padding:16px;
+      border:1px solid rgba(0,55,56,.11);
+      background:rgba(255,255,255,.35);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.48);
+      margin-bottom:10px;
+    }
+    .action strong {
+      display:block;
+      color:var(--ink);
+      font-size:14px;
+    }
+    .action span {
+      display:block;
+      margin-top:7px;
+      color:rgba(0,55,56,.63);
+      font-size:12px;
+      line-height:1.43;
+    }
+    .cta {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      min-height:58px;
+      border-radius:999px;
+      padding:8px 8px 8px 20px;
+      background:var(--ink);
+      color:var(--cream);
+      font-size:13px;
+      font-weight:950;
+      margin-top:14px;
+      box-shadow:0 18px 34px rgba(0,55,56,.2);
+      transition:transform 700ms var(--curve);
+    }
+    .cta i {
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:var(--lemon);
+      color:var(--ink);
+      font-style:normal;
+      transition:transform 700ms var(--curve);
+    }
+    .cta:hover { transform:scale(.992); }
+    .cta:hover i { transform:translateX(3px) translateY(-1px) scale(1.04); }
+    .mode-preview {
+      max-width:1540px;
+      margin:18px auto 0;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    .mini {
+      border-radius:32px;
+      padding:8px;
+      border:1px solid rgba(243,240,212,.13);
+      background:linear-gradient(145deg, rgba(243,240,212,.1), rgba(243,240,212,.03));
+      box-shadow:0 22px 70px rgba(0,0,0,.22);
+    }
+    .mini-core {
+      border-radius:24px;
+      overflow:hidden;
+      min-height:390px;
+      display:grid;
+      grid-template-rows:auto 1fr;
+      background:var(--paper);
+    }
+    .mini-head {
+      padding:18px 20px;
+      border-bottom:1px solid var(--line);
+      background:var(--cream);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+    .mini-head h2 {
+      margin:0;
+      color:var(--ink);
+      font-size:29px;
+      line-height:1;
+      letter-spacing:0;
+    }
+    .mini-head span {
+      color:var(--rain);
+      font-size:10px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      font-weight:950;
+    }
+    .mini-body {
+      display:grid;
+      grid-template-columns:200px 1fr;
+      min-height:320px;
+    }
+    .mini-left {
+      padding:14px;
+      border-right:1px solid var(--line);
+      background:var(--rail);
+      color:var(--ink);
+    }
+    .mini-main {
+      background:var(--deep);
+      color:var(--cream);
+      padding:16px;
+    }
+    .leader {
+      display:grid;
+      grid-template-columns:36px 1fr 66px;
+      gap:11px;
+      align-items:center;
+      min-height:58px;
+      border-radius:17px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(243,240,212,.036);
+      padding:11px;
+      margin-bottom:8px;
+    }
+    .leader em {
+      color:rgba(243,240,212,.42);
+      font-style:normal;
+      font-family:var(--mono);
+    }
+    .leader strong {
+      display:block;
+      color:var(--cream);
+      font-size:14px;
+    }
+    .leader small {
+      display:block;
+      margin-top:4px;
+      color:rgba(243,240,212,.52);
+      font-size:11px;
+    }
+    .leader b {
+      color:var(--lemon);
+      text-align:right;
+      font-family:var(--mono);
+      font-size:13px;
+    }
+    .refi-title {
+      margin:0;
+      color:var(--cream);
+      font-size:42px;
+      line-height:.92;
+      letter-spacing:0;
+    }
+    .chart {
+      height:132px;
+      border-radius:22px;
+      padding:6px;
+      border:1px solid rgba(243,240,212,.11);
+      background:rgba(243,240,212,.045);
+      position:relative;
+      margin:13px 0;
+    }
+    .chart:before {
+      content:"";
+      position:absolute;
+      left:24px;
+      right:24px;
+      top:48px;
+      border-top:2px dashed var(--coral);
+    }
+    .chart:after {
+      content:"";
+      position:absolute;
+      left:24px;
+      right:24px;
+      bottom:28px;
+      height:62px;
+      background:linear-gradient(16deg, transparent 48%, var(--mint) 49%, var(--mint) 51%, transparent 52%);
+    }
+    .chart i {
+      position:absolute;
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:var(--lemon);
+      left:66%;
+      top:42px;
+      box-shadow:0 0 0 8px rgba(217,221,86,.16);
+      z-index:1;
+    }
+    .mini-scores {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+    }
+    .mini-score {
+      border-radius:16px;
+      border:1px solid rgba(243,240,212,.1);
+      background:rgba(243,240,212,.036);
+      padding:10px;
+      min-height:72px;
+    }
+    .mini-score b {
+      display:block;
+      color:var(--lemon);
+      font-family:var(--mono);
+      font-size:22px;
+      letter-spacing:-.05em;
+    }
+    .mini-score span {
+      display:block;
+      margin-top:6px;
+      color:rgba(243,240,212,.55);
+      font-size:10px;
+      line-height:1.2;
+    }
+    .motion-note {
+      max-width:1540px;
+      margin:14px auto 0;
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      color:rgba(243,240,212,.58);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .motion-note b { color:var(--cream); }
+    .motion-note span {
+      color:var(--lemon);
+      border:1px solid rgba(217,221,86,.25);
+      background:rgba(217,221,86,.08);
+      border-radius:999px;
+      padding:9px 12px;
+      font-size:10px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      font-weight:950;
+      white-space:nowrap;
+      height:max-content;
+    }
+    @media (max-width:1120px) {
+      .top,
+      .command-header,
+      .workspace,
+      .memo,
+      .metrics,
+      .mode-preview,
+      .mini-body,
+      .motion-note {
+        grid-template-columns:1fr;
+      }
+      .mode-pill { justify-self:start; overflow:auto; max-width:100%; }
+      .right-meta { justify-self:start; }
+      .head-cell { border-right:0; border-bottom:1px solid var(--line); }
+      .left,.right,.mini-left { border:0; }
+      .core { min-height:auto; }
+      h1 { font-size:50px; }
+      .mini-scores { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width:620px) {
+      .page { padding:12px; }
+      .brand { font-size:15px; }
+      .shell { border-radius:28px; padding:5px; }
+      .core { border-radius:22px; }
+      .main { padding:16px; }
+      h1 { font-size:42px; }
+      .rule { grid-template-columns:1fr; }
+      .mini-scores { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="frame">
+      <header class="top">
+        <div class="brand"><i></i>Greenstreet Finance.</div>
+        <nav class="mode-pill" aria-label="Decision OS modes">
+          <span class="active">Borrower</span>
+          <span>Lender Intel</span>
+          <span>Refi Tracker</span>
+          <span>Memo Export</span>
+        </nav>
+        <div class="right-meta"><b>V5</b> no billboard / tool first</div>
+      </header>
+
+      <section class="shell">
+        <div class="core">
+          <div class="command-header">
+            <div class="head-cell">
+              <span class="k">Current mode</span>
+              <strong class="v">Borrower Profiles</strong>
+            </div>
+            <div class="head-cell">
+              <span class="k">Primary screen question</span>
+              <strong class="v big">What lane is this file, and what can break it?</strong>
+            </div>
+            <div class="head-cell">
+              <span class="k">Next action</span>
+              <strong class="v mono">price lane →</strong>
+            </div>
+          </div>
+
+          <div class="workspace">
+            <aside class="left">
+              <p class="section-label">Lane switchboard</p>
+              <div class="lane active"><div><strong>Portfolio builder</strong><small>multi-property desk</small></div><b>7</b></div>
+              <div class="lane"><div><strong>STR operator</strong><small>seasonal revenue</small></div><b>+3mo</b></div>
+              <div class="lane"><div><strong>Non-US investor</strong><small>passport-led file</small></div><b>ITIN</b></div>
+              <div class="lane"><div><strong>Buy-and-hold</strong><small>stabilized rental</small></div><b>1.25x</b></div>
+              <div class="lane"><div><strong>Vacation rental</strong><small>personal use edge</small></div><b>watch</b></div>
+              <p class="rail-note">This replaces the borrower page hero. The page opens inside the tool, with profile selection already usable.</p>
+            </aside>
+
+            <section class="main">
+              <div class="memo">
+                <div>
+                  <p class="section-label" style="color:var(--lemon)">Active underwriting memo</p>
+                  <h1>Portfolio lane viable. Concentration review before quote.</h1>
+                  <p>Terms, proof, failure gates, and handoff actions appear in the first viewport. No internal redesign copy. No giant photo. No repeated CTA ladder.</p>
+                </div>
+                <div class="bezel">
+                  <div class="score">
+                    <span>File confidence</span>
+                    <b>76</b>
+                    <span>watch exposure</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="metrics">
+                <div class="metric"><b>1.18x</b><span>aggregate stressed DSCR across properties</span></div>
+                <div class="metric"><b>9 mo</b><span>reserve target after portfolio overlay</span></div>
+                <div class="metric"><b>2</b><span>assets below lender comfort threshold</span></div>
+              </div>
+
+              <div class="rules">
+                <div class="rule"><span>Gate 01</span><strong>Rent roll reconciles to loan schedule</strong><b>required</b></div>
+                <div class="rule"><span>Gate 02</span><strong>Entity chain and vesting match every property</strong><b>watch</b></div>
+                <div class="rule"><span>Gate 03</span><strong>Route to portfolio lender, not retail DSCR</strong><b>route</b></div>
+              </div>
+            </section>
+
+            <aside class="right">
+              <p class="section-label">Next best action</p>
+              <div class="action"><strong>Run exposure screen</strong><span>Use property count, state mix, and aggregate DSCR before rate quote.</span></div>
+              <div class="action"><strong>Lender Intel handoff</strong><span>Prefill FICO, LTV, DSCR, state risk, strategy, and reserve expectation.</span></div>
+              <div class="action"><strong>Submission checklist</strong><span>Generate lane-specific docs instead of a generic upload list.</span></div>
+              <div class="cta">Price this lane <i>→</i></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="mode-preview">
+      <article class="mini">
+        <div class="mini-core">
+          <header class="mini-head">
+            <div>
+              <h2>Lender Intel</h2>
+              <span>routing board · eligible vs advisable</span>
+            </div>
+            <span>4 fit</span>
+          </header>
+          <div class="mini-body">
+            <aside class="mini-left">
+              <p class="section-label">Deal box</p>
+              <div class="lane"><div><strong>FICO</strong><small>score</small></div><b>720</b></div>
+              <div class="lane"><div><strong>LTV</strong><small>loan/value</small></div><b>75%</b></div>
+              <div class="lane active"><div><strong>DSCR</strong><small>rent/payment</small></div><b>1.15x</b></div>
+            </aside>
+            <main class="mini-main">
+              <div class="leader"><em>01</em><div><strong>Greenstreet Cedar</strong><small>Jumbo headroom, clean pass</small></div><b>94</b></div>
+              <div class="leader"><em>02</em><div><strong>Greenstreet Aspen</strong><small>Everyday DSCR, low friction</small></div><b>94</b></div>
+              <div class="leader"><em>03</em><div><strong>Greenstreet Willow</strong><small>Fits, reserve pressure</small></div><b>83</b></div>
+            </main>
+          </div>
+        </div>
+      </article>
+
+      <article class="mini">
+        <div class="mini-core">
+          <header class="mini-head">
+            <div>
+              <h2>Refi Tracker</h2>
+              <span>eligibility split from economics</span>
+            </div>
+            <span>watch</span>
+          </header>
+          <div class="mini-body">
+            <aside class="mini-left">
+              <p class="section-label">Scenario</p>
+              <div class="lane"><div><strong>Balance</strong><small>first lien</small></div><b>$340k</b></div>
+              <div class="lane"><div><strong>Current</strong><small>rate</small></div><b>7.25%</b></div>
+              <div class="lane active"><div><strong>Refi</strong><small>rate</small></div><b>6.50%</b></div>
+            </aside>
+            <main class="mini-main">
+              <h2 class="refi-title">Eligible, but wait.</h2>
+              <div class="chart"><i></i></div>
+              <div class="mini-scores">
+                <div class="mini-score"><b>85</b><span>eligibility</span></div>
+                <div class="mini-score"><b>42</b><span>economic</span></div>
+                <div class="mini-score"><b>53mo</b><span>break-even</span></div>
+                <div class="mini-score"><b>$0</b><span>cash-out</span></div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="motion-note">
+      <p><b>Motion:</b> GSAP only animates meaningful state changes: active lane slide, ranking row stagger, refi dot movement, memo reveal. Transforms and opacity only. No decoration motion.</p>
+      <span>Implementation candidate</span>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.defaults({ duration:.78, ease:"power3.out" });
+      gsap.timeline()
+        .from(".brand, .mode-pill, .right-meta", { y:-16, autoAlpha:0, stagger:.06 })
+        .from(".shell", { y:30, scale:.99, autoAlpha:0, duration:.95 }, "<.08")
+        .from(".head-cell, .lane, .memo, .metric, .rule, .action", { y:16, autoAlpha:0, stagger:.018 }, "<.16")
+        .from(".mini", { y:26, autoAlpha:0, stagger:.09 }, "<.18");
+    });
+  </script>
+</body>
+</html>

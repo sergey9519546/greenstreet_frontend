@@ -182,7 +182,25 @@ export function runMonteCarloRatePath(
   params: VasicekParameters = DEFAULT_VASICEK_PARAMS,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): MonteCarloRatePathResult {
-  const rng = mulberry32(seed);
+  if (!Number.isFinite(simulations) || !Number.isInteger(simulations) || simulations < 1) {
+    throw new RangeError('simulations must be a positive finite integer');
+  }
+  if (!Number.isFinite(horizonMonths) || !Number.isInteger(horizonMonths) || horizonMonths < 1) {
+    throw new RangeError('horizonMonths must be a positive finite integer');
+  }
+  if (!Number.isFinite(seed)) {
+    throw new RangeError('seed must be finite');
+  }
+
+  const normalizedSeed = Math.trunc(seed) >>> 0;
+  const snapshotSOFR = Number.isFinite(marketSnapshot.sofr30Day)
+    ? marketSnapshot.sofr30Day
+    : CURRENT_MARKET_SNAPSHOT.sofr30Day;
+  const modelParams: VasicekParameters = {
+    ...params,
+    initialSOFR: snapshotSOFR,
+  };
+  const rng = mulberry32(normalizedSeed);
   const paths: RatePathOutcome[] = [];
   const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
 
@@ -194,7 +212,7 @@ export function runMonteCarloRatePath(
 
   for (let sim = 0; sim < simulations; sim++) {
     // Simulate the SOFR path
-    const sofrPath = simulateSOFRPath(params, horizonMonths, rng);
+    const sofrPath = simulateSOFRPath(modelParams, horizonMonths, rng);
 
     // Capture SOFR at key horizons (1yr=12mo, 3yr=36mo, 5yr=60mo, 10yr=120mo)
     if (sofrPath.length > 12) sofrAtYear1.push(sofrPath[12]);
@@ -251,8 +269,8 @@ export function runMonteCarloRatePath(
   const summaryLines: string[] = [];
   summaryLines.push(
     `Monte Carlo ARM/SOFR simulation: ${simulations} paths × ${horizonMonths} months ` +
-    `(Vasicek: θ=${params.longRunMeanSOFR}%, κ=${params.meanReversionSpeed}, σ=${params.volatility}%, ` +
-    `r0=${params.initialSOFR}%, shock=${(params.shockProbMonthly * 100).toFixed(1)}%/mo × ±${params.shockMagnitudeBps}bps).`,
+    `(Vasicek: θ=${modelParams.longRunMeanSOFR}%, κ=${modelParams.meanReversionSpeed}, σ=${modelParams.volatility}%, ` +
+    `r0=${modelParams.initialSOFR}%, shock=${(modelParams.shockProbMonthly * 100).toFixed(1)}%/mo × ±${modelParams.shockMagnitudeBps}bps).`,
   );
   summaryLines.push(
     `Stabilized rate: mean ${finalRateStats.mean.toFixed(3)}%, median ${finalRateStats.median.toFixed(3)}%, ` +
@@ -290,7 +308,7 @@ export function runMonteCarloRatePath(
   return {
     simulations,
     horizonMonths,
-    seed,
+    seed: normalizedSeed,
     paths,
     finalRateStats,
     dscrStats,
@@ -301,12 +319,12 @@ export function runMonteCarloRatePath(
     sofrAtHorizon,
     modelParameters: {
       process: 'VASICEK',
-      longRunMeanSOFR: params.longRunMeanSOFR,
-      meanReversionSpeed: params.meanReversionSpeed,
-      volatility: params.volatility,
-      initialSOFR: params.initialSOFR,
-      shockProbMonthly: params.shockProbMonthly,
-      shockMagnitudeBps: params.shockMagnitudeBps,
+      longRunMeanSOFR: modelParams.longRunMeanSOFR,
+      meanReversionSpeed: modelParams.meanReversionSpeed,
+      volatility: modelParams.volatility,
+      initialSOFR: modelParams.initialSOFR,
+      shockProbMonthly: modelParams.shockProbMonthly,
+      shockMagnitudeBps: modelParams.shockMagnitudeBps,
     },
     summary,
   };

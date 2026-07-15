@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
-import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
+import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeWeightedCompositeScore } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
 import { buildEngineInputs } from "../engine/inputs";
 import type { LenderRankingEntry } from "../engine/types";
@@ -103,6 +103,15 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
   // Engine
   const result = useMemo(() => {
     try {
+      const rawInputs = [purchasePrice, downPct, monthlyRent, rate, fico, annualTaxes, annualInsurance, hoa];
+      if (
+        !rawInputs.every(Number.isFinite) ||
+        purchasePrice <= 0 || monthlyRent <= 0 || rate <= 0 || fico <= 0 ||
+        downPct <= 0 || downPct >= 100 || annualTaxes < 0 || annualInsurance < 0 || hoa < 0
+      ) {
+        return null;
+      }
+
       const req = {
         purchasePrice,
         loanAmount: purchasePrice * (1 - downPct / 100),
@@ -120,10 +129,13 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       const annualCashFlow =
         deal.dualTrackDSCR.track2.qualifyingRent * 12 - deal.monthlyPITIA.total * 12;
       const year1CoC =
-        annualCashFlow > 0 ? (annualCashFlow / cashInvested) * 100 : 0;
+        cashInvested > 0 ? (annualCashFlow / cashInvested) * 100 : Number.NaN;
 
-      // TDZ FIX: use the locally-computed value, not result?.afterTaxIRR (which would be undefined)
-      const afterTaxIRR = Math.max(0, (year1CoC / 100) * 5);
+      // This page does not collect hold-period, exit, growth, or tax inputs, so it
+      // cannot calculate a defensible IRR. Keep the cash-flow proxy separate and
+      // force the verdict into review until a real after-tax IRR is available.
+      const fiveYearCashFlowReturnProxyPct = year1CoC * 5;
+      const afterTaxIRR = Number.NaN;
 
       const track2DSCR = deal.dualTrackDSCR.track2.dscr;
       const ltvNeeded = 100 - downPct;
@@ -169,7 +181,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
         track1DSCR: deal.dscr,
         track2DSCR,
         lenderMinDSCR,
-        afterTaxIRR,          // fixed: now uses the local computed value
+        afterTaxIRR,
         preTaxIRR: afterTaxIRR,
         year1CoC,
         dealBreakRate: deal.dealBreakRate,
@@ -193,22 +205,29 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
       const kill = computeDealKillCheck(deal, inputs.borrower, inputs.loan, inputs.property, inputs.strategy, null, null, null);
       const acq  = computeAcquisitionScore(deal, null, inputs.property, inputs.borrower, inputs.loan, inputs.strategy, null, null);
-      const grade = computeReturnGrade(afterTaxIRR, track2DSCR);
+      const grade = "N/A";
 
-      // Composite factors (mirrors the mockup's weighted scoring)
+      // Composite weights sum to 1.00. The return factor is explicitly a cash-flow
+      // proxy, not IRR, because the necessary exit and tax assumptions are absent.
       const dscrScore  = Math.max(0, Math.min(100, (deal.dscr - 0.75) / (1.5 - 0.75) * 100));
       const levScore   = Math.max(0, Math.min(100, (80 - (100 - downPct)) / (80 - 60) * 100));
       const ficoScore  = Math.max(0, Math.min(100, (fico - 620) / (780 - 620) * 100));
-      const irrScore   = Math.max(0, Math.min(100, (afterTaxIRR * 100 - 4) / (16 - 4) * 100));
+      const returnProxyScore = Math.max(0, Math.min(100, (fiveYearCashFlowReturnProxyPct - 4) / (16 - 4) * 100));
       const liqScore   = Math.max(0, Math.min(100, 60)); // default 6-month reserve proxy
-      const composite  = Math.round(dscrScore * 0.30 + levScore * 0.18 + ficoScore * 0.14 + irrScore * 0.20 + liqScore * 0.10);
+      const composite = computeWeightedCompositeScore([
+        { score: dscrScore, weight: 0.30 },
+        { score: levScore, weight: 0.20 },
+        { score: returnProxyScore, weight: 0.20 },
+        { score: ficoScore, weight: 0.15 },
+        { score: liqScore, weight: 0.15 },
+      ]);
 
       const factors = [
         { label: "DSCR coverage (30%)", v: dscrScore, note: `${deal.dscr.toFixed(2)}x — ${deal.dscr >= 1.25 ? "comfortable" : deal.dscr >= 1.0 ? "qualifies" : "sub-1.0"}` },
-        { label: "Leverage (18%)",      v: levScore,  note: `${100 - downPct}% LTV` },
-        { label: "Est. 5-yr return proxy (20%)", v: irrScore,  note: `${(afterTaxIRR * 100).toFixed(1)}% (proxy, not true IRR)` },
-        { label: "Borrower credit (14%)", v: ficoScore, note: `${fico} FICO` },
-        { label: "Liquidity (10%)",     v: liqScore,  note: "6-month reserve proxy" },
+        { label: "Leverage (20%)",      v: levScore,  note: `${100 - downPct}% LTV` },
+        { label: "Est. 5-yr cash-flow proxy (20%)", v: returnProxyScore, note: `${fiveYearCashFlowReturnProxyPct.toFixed(1)}% cumulative proxy; not IRR` },
+        { label: "Borrower credit (15%)", v: ficoScore, note: `${fico} FICO` },
+        { label: "Liquidity (15%)",     v: liqScore,  note: "6-month reserve proxy" },
       ].map((f) => ({ ...f, color: factorColor(f.v), valStr: Math.round(f.v) + "/100", pct: f.v + "%" }));
 
       // IC memo bullets driven by real values
@@ -221,12 +240,12 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
           ? { mark: "✓", color: MINT, text: `DSCR ${deal.dscr.toFixed(2)}x sits comfortably above the 1.25x comfort line.` }
           : deal.dscr >= 1.0
           ? { mark: "~", color: YLW,  text: `DSCR ${deal.dscr.toFixed(2)}x qualifies but leaves thin cushion against rate or vacancy shock.` }
-          : { mark: "✕", color: RED,  text: `DSCR ${deal.dscr.toFixed(2)}x is below 1.0 — most lenders require compensating factors or decline.` }
+      : { mark: "✕", color: RED,  text: `DSCR ${deal.dscr.toFixed(2)}x is below the model's 1.0 comparison line; actual program treatment varies.` }
       );
       memo.push(
         (100 - downPct) <= 75
-          ? { mark: "✓", color: MINT, text: `${100 - downPct}% LTV is within standard DSCR program limits.` }
-          : { mark: "~", color: YLW,  text: `${100 - downPct}% LTV pushes pricing add-ons and narrows the lender shortlist.` }
+      ? { mark: "✓", color: MINT, text: `${100 - downPct}% LTV is within the stored model matrix for this scenario.` }
+      : { mark: "~", color: YLW,  text: `${100 - downPct}% LTV is outside some stored matrix assumptions; this is not a pricing or eligibility finding.` }
       );
       memo.push(
         deal.rateHeadroomBps >= 50
@@ -235,11 +254,11 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       );
       memo.push(
         matched.length > 0
-          ? { mark: "✓", color: MINT, text: `${matched.length} Greenstreet program${matched.length > 1 ? "s" : ""} eligible at this LTV and FICO.` }
-          : { mark: "✕", color: RED,  text: "No programs match current LTV and FICO — restructure down payment or score." }
+      ? { mark: "✓", color: MINT, text: `${matched.length} stored program scenario${matched.length > 1 ? "s" : ""} match the entered LTV and FICO assumptions.` }
+      : { mark: "✕", color: RED,  text: "No stored program scenario matches the entered LTV and FICO assumptions. This does not establish ineligibility." }
       );
 
-      return { deal, verdict, kill, acq, grade, year1CoC, track2DSCR, afterTaxIRR, composite, factors, memo, matched };
+      return { deal, verdict, kill, acq, grade, year1CoC, track2DSCR, fiveYearCashFlowReturnProxyPct, composite, factors, memo, matched };
     } catch {
       return null;
     }
@@ -316,7 +335,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
               Decision engine · IC memo
             </div>
             <H1 style={{ margin: "0 0 24px" }}>
-              Should you buy this deal?
+            Explore this deal's modeled tradeoffs.
             </H1>
             <Lead
               style={{
@@ -325,7 +344,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 margin: "0 0 20px",
               }}
             >
-              Enter your deal on the left. The engine weighs the rent against the payment (DSCR), your leverage, returns, and cash cushion — then gives one clear verdict: GO, CONDITIONAL, or NO-GO, with the exact reasons to fix. Updates live as you type.
+            Enter assumptions to compare rent coverage, leverage, modeled returns, and liquidity. The GO, CONDITIONAL, and NO-GO labels are internal model bands for organizing scenarios, not purchase advice, approvals, or underwriting decisions.
             </Lead>
           </div>
 
@@ -353,7 +372,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
               · composite {heroComposite}/100
             </h2>
             <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
-              The composite score (0–100) weights DSCR coverage, leverage, estimated return, credit, and liquidity. A score above 66 typically clears underwriting.
+            The composite score weights DSCR coverage, leverage, estimated return, credit, and liquidity using fixed interface weights. The bands have not been validated as approval or performance predictors.
             </p>
           </div>
 
@@ -373,10 +392,10 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
               {([
                 { label: "Purchase Price", hint: "What you're paying for the property.", value: purchasePrice, set: setPurchasePrice, step: 5000,  prefix: "$", suffix: "" },
-                { label: "Down Payment",   hint: "Your cash in — higher down = lower LTV (how the loan amount compares to the property value; lower = more equity = better terms) = stronger approval odds.", value: downPct, set: setDownPct, step: 1, prefix: "", suffix: "%" },
+            { label: "Down Payment",   hint: "Your modeled cash contribution. A higher input reduces modeled LTV and payment; it does not guarantee terms or approval.", value: downPct, set: setDownPct, step: 1, prefix: "", suffix: "%" },
                 { label: "Note Rate",      hint: "The interest rate on the loan. Estimate is fine — use today's market rate.", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%" },
                 { label: "Monthly Rent",   hint: "Expected gross rent. For vacant properties, use market-comparable rent — an estimate is fine.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
-                { label: "FICO Score",     hint: "Your credit score. Affects which programs you qualify for. 620 minimum for most DSCR programs; 740+ unlocks best pricing.", value: fico, set: setFico, step: 5, prefix: "", suffix: "" },
+            { label: "FICO Score",     hint: "A scenario input compared with the stored program matrix. Actual credit requirements and pricing vary and must be verified.", value: fico, set: setFico, step: 5, prefix: "", suffix: "" },
                 { label: "Annual Taxes",   hint: "Property taxes per year. Find on the county assessor site — estimate is fine.", value: annualTaxes, set: setAnnualTaxes, step: 250, prefix: "$", suffix: "" },
                 { label: "Annual Ins.",    hint: "Homeowners insurance per year. Budget $1,500–$3,000 if unknown.", value: annualInsurance, set: setAnnualInsurance, step: 100, prefix: "$", suffix: "" },
                 { label: "Monthly HOA",    hint: "HOA dues per month. Enter 0 if none.", value: hoa, set: setHoa, step: 25, prefix: "$", suffix: "" },
@@ -435,10 +454,10 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     </Mono>
                     <p style={{ fontSize: "clamp(14px,1.2vw,16px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.72)", margin: 0 }}>
                       {result.verdict.verdict === "PROCEED"
-                        ? "This deal clears all primary underwriting signals. The rent covers the payment, leverage is within program limits, and at least one Greenstreet program fits. You can move to term sheet."
+              ? "The scenario is within the model's upper band for the entered coverage, leverage, and stored program assumptions. This is not underwriting clearance or a term-sheet invitation."
                         : result.verdict.verdict === "RESTRUCTURE"
-                        ? "This deal is workable but has at least one weak signal — usually DSCR too close to the floor, LTV too high, or rate headroom too thin. See the IC memo below for what to fix before submitting."
-                        : "This deal fails one or more hard gates. Most lenders will decline as structured. The IC memo and kill-criterion checklist below tell you specifically what needs to change."}
+              ? "The scenario is within the model's middle band and contains one or more sensitivity flags. Review the assumptions below before relying on the result."
+              : "The scenario is outside one or more model bands. This does not predict a lender decision or tell you whether to proceed."}
                     </p>
                   </div>
 
@@ -489,7 +508,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                     </div>
                     <p style={{ fontSize: 13, color: "rgba(238,239,211,0.65)", margin: "0 0 12px", lineHeight: 1.5 }}>
                       {result.verdict.verdict === "PROCEED"
-                        ? "Your deal clears underwriting checks. Get a formal rate quote and term sheet from Greenstreet."
+              ? "The scenario is within the model's upper band. Request an independent review of current terms and requirements if useful."
                         : result.verdict.verdict === "RESTRUCTURE"
                         ? "A Greenstreet specialist can walk through the IC memo items with you and identify the fastest path to a clean file."
                         : "Greenstreet can review what's blocking the deal and explore alternative structures — including sub-1.0 programs or global DSCR options."}
@@ -502,7 +521,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         See matching programs →
                       </a>
                     </div>
-                    <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "10px 0 0" }}>Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.</p>
+            <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "10px 0 0" }}>Illustrative decision-support model only. It is not investment advice, underwriting, an approval, a rate quote, or a commitment to lend.</p>
                   </div>
                 </div>
 
@@ -583,8 +602,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 >
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Return grade</div>
-                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>A = 10%+ IRR proxy · D = below 4%</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade), lineHeight: 1 }}>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>Unavailable without hold, exit, growth, and tax inputs</div>
+                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: dc.cream, lineHeight: 1 }}>
                       {result.grade}
                     </Mono>
                   </div>
@@ -601,8 +620,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 {/* ENGINE FOOTNOTE */}
                 <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.16)", fontSize: 12, color: "rgba(238,239,211,0.62)", lineHeight: 1.6 }}>
                   <strong style={{ color: dc.emerald }}>How PROCEED is decided: </strong>
-                  The engine checks DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) above the lender minimum with a small cushion, a second rent-coverage check at 1.0x, a return grade of B or better, at least 50 basis points of rate headroom before the deal breaks, no hard blockers, and at least one eligible Greenstreet program.{" "}
-                  Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting. Submit a scenario review for exact underwriting.
+            The model compares DSCR, a second expense-adjusted coverage track, return bands, rate headroom, stored flags, and program-matrix matches. Its 1.0x line, score weights, return grades, 50-basis-point headroom, program snapshot, and PPP setting are internal assumptions.{" "}
+            Results are illustrative and do not determine purchase suitability, legal availability, lender eligibility, approval, pricing, or final terms.
                 </div>
               </div>
             )}

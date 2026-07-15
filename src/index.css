@@ -4,7 +4,9 @@
    JetBrains Mono (numerics). */
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss/theme";
-@import "tailwindcss/utilities";
+@import "tailwindcss/utilities" source(none);
+@source "./";
+@source "../index.html";
 
 @theme {
   /* Lead with "Outfit Variable" — the exact font the Webflow home + design system
@@ -269,10 +271,8 @@ body {
 
 @media only screen and (min-width: 992px) {
   .nav-btn {
-    min-width: 0rem;
-  }
-  .nav-btn {
-    width: 0rem;
+    min-width: max-content;
+    width: auto;
   }
 }
 
@@ -1014,15 +1014,35 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   overflow: hidden !important;
 }
 
-/* Footer logo larger than the nav logo (higher specificity wins over the shared rule) */
-.footer_logo > span { font-size: 46px !important; }
+/* Keep the loaded footer wordmark intrinsically inside its logo box. Desktop
+   retains the 46px lockup; compact screens scale it before the font can widen
+   the document during the swap from fallback to Outfit Variable. */
+.footer_logo > span {
+  max-width: 100% !important;
+  font-size: 46px !important;
+}
+
+@media (max-width: 480px) {
+  .footer_logo_wrap,
+  .footer_logo {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .footer_logo > span {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: min(46px, 8vw) !important;
+  }
+}
 
 @media (max-width: 479px) {
   .nav-logo > span {
     font-size: 25px !important;
     word-spacing: 0.045em !important;
   }
-  .footer_logo > span { font-size: 36px !important; }
 }
 
 /* Greenstreet rebuild video section (home, immediately before Solutions) */
@@ -1104,9 +1124,20 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   align-items: center !important;
 }
 
-.nav-logo,
-.nav-logo-go,
+.footer_logo_wrap {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
 .footer_logo {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.nav-logo,
+.nav-logo-go {
   display: block;
   max-width: 700px;
   width: 100%;
@@ -1135,6 +1166,9 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 .gs-site-nav .nav-wrap {
   min-height: 64px !important;
   align-items: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 .gs-site-nav .nav-logo-wrap,
 .gs-site-nav .nav-logo {
@@ -1155,10 +1189,15 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 .gs-site-nav .nav-links-wrap {
   min-height: 0 !important;
   align-items: center !important;
+  min-width: 0 !important;
+}
+.gs-site-nav .nav-links-contain {
+  flex: 1 1 auto !important;
 }
 @media (min-width: 992px) {
   [data-wf--nav-main--variant="greenstreet"] .nav-links-wrap {
     gap: clamp(10px, 0.85vw, 16px) !important;
+    justify-content: flex-end !important;
   }
 }
 .gs-site-nav .nav-link {
@@ -1166,8 +1205,46 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 }
 .gs-site-nav .nav-btn {
   width: auto !important;
-  min-width: auto !important;
+  min-width: max-content !important;
   flex: 0 0 auto !important;
+  overflow: visible !important;
+}
+
+@media (min-width: 992px) and (max-width: 1500px) {
+  .gs-site-nav .nav-logo > span { font-size: clamp(26px, 2vw, 30px) !important; }
+  .gs-site-nav .nav-links-wrap { gap: clamp(6px, 0.6vw, 10px) !important; }
+  .gs-site-nav .nav-link { padding-inline: clamp(5px, 0.55vw, 9px) !important; }
+  .gs-site-nav .nav-btn :where(a, button) {
+    padding-inline: clamp(14px, 1.2vw, 20px) !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 991px) {
+  body:has(.gs-site-nav [aria-expanded="true"]) {
+    overflow: hidden;
+    touch-action: none;
+  }
+  .gs-site-nav :where(.menu-mobile-wrap, [role="dialog"]) { overscroll-behavior: contain; }
+}
+
+#root :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-lemon-lime) !important;
+  outline-offset: 3px !important;
+}
+#root :where(input, select, textarea):focus-visible {
+  outline-color: var(--color-rain-forest) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-left,
+  .animate-marquee-right {
+    animation: none !important;
+    transform: none !important;
+  }
+  .gs-video-frame .gs-video,
+  video[autoplay] { display: none !important; }
+  .gs-video-mute { display: none !important; }
 }
 
 @media (max-width: 991px) {
@@ -1356,8 +1433,122 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
     min-height: 900px !important;
   }
 }
+
+/* The DSCR calculator's fluid section wrappers include their mobile gutters in
+   their intrinsic width. At a 320px viewport that left a 323.56px content box
+   starting at x=16. Keep the 16px lane, but size the lane from the viewport and
+   let its grid/form descendants shrink instead of masking overflow. */
+@media (max-width: 360px) {
+  body:has(#root input[aria-label="Down payment percent"]) #root :where(main, section) {
+    min-inline-size: 0 !important;
+    max-inline-size: 100vw !important;
+  }
+
+  body:has(#root input[aria-label="Down payment percent"]) #root section > :where(div, form) {
+    inline-size: calc(100vw - 32px) !important;
+    max-inline-size: calc(100vw - 32px) !important;
+    min-inline-size: 0 !important;
+    margin-inline: auto !important;
+  }
+
+  body:has(#root input[aria-label="Down payment percent"]) #root :where(form, fieldset, [style*="grid-template"]) {
+    min-inline-size: 0 !important;
+    max-inline-size: 100% !important;
+  }
+
+  /* The calculator panel carries a desktop-only inline 400px/1fr grid. Inline
+     declarations outrank the general mobile rules, so explicitly collapse the
+     panel and its children to the available lane at narrow phone widths. */
+  #gs-calc .calc-panel {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  #gs-calc .calc-panel > * {
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    min-inline-size: 0 !important;
+  }
+
+  /* Keep the mobile menu's 44px target inside the same 16px viewport lane.
+     Constrain only the row that directly owns the burger; the control itself
+     remains 44px and is anchored to that row instead of its over-wide ancestor. */
+  .gs-site-nav :has(> .burger-wrap) {
+    box-sizing: border-box !important;
+    inline-size: calc(100vw - 32px) !important;
+    max-inline-size: calc(100vw - 32px) !important;
+    min-inline-size: 0 !important;
+    grid-template-columns: minmax(0, 1fr) 44px !important;
+    margin-inline: auto !important;
+  }
+
+  .gs-site-nav .nav-logo-wrap {
+    inline-size: auto !important;
+    max-inline-size: 100% !important;
+    min-inline-size: 0 !important;
+  }
+
+  .gs-site-nav .nav-logo-wrap :is(img, svg) {
+    max-inline-size: 100% !important;
+    block-size: auto;
+  }
+
+  .gs-site-nav .burger-wrap {
+    inline-size: 44px !important;
+    min-inline-size: 44px !important;
+    max-inline-size: 44px !important;
+    flex: 0 0 44px !important;
+    margin-inline-start: auto !important;
+    margin-inline-end: 0 !important;
+    inset-inline-start: auto !important;
+    inset-inline-end: 0 !important;
+  }
+}
 @media (max-width: 479px) {
   #hs-booking {
     min-height: 1200px !important;
+  }
+}
+
+/* Respect the operating-system motion preference across both the static
+   marketing document and React-routed pages. Content that normally reveals
+   through animation remains visible and interactive. */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .testimonial_logo_list {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .mwg_effect026,
+  .gs-sm-state,
+  [data-hov="true"] .solution_item_icon {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  [hov-img] img,
+  :is(a, .partners-item, .featured-cs-item-card) .arrow-wrap,
+  :is(a, .partners-item, .featured-cs-item-card) .arrow-contain,
+  .nav_links_svg,
+  .acc-icon-wrap {
+    transform: none !important;
+  }
+
+  html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list {
+    transition: none !important;
   }
 }

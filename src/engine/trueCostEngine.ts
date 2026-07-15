@@ -216,25 +216,47 @@ export function computeAEY(
   prepayPenaltyAtExit: number,
   parRate?: number,
 ): TrueCostResult {
+  const numericInputs = [
+    loanAmount, annualRate, termMonths, holdMonths, pointsPct,
+    lenderFees, brokerFees, rateLockCost, prepayPenaltyAtExit,
+  ];
+  if (numericInputs.some(value => !Number.isFinite(value))) {
+    throw new RangeError('True-cost inputs must be finite numbers.');
+  }
+  if (loanAmount <= 0 || annualRate < 0 || termMonths <= 0 || !Number.isInteger(termMonths)) {
+    throw new RangeError('Loan amount and term must be positive, and rate cannot be negative.');
+  }
+  if (holdMonths <= 0 || !Number.isInteger(holdMonths) || holdMonths > termMonths) {
+    throw new RangeError('Hold period must be a whole number of months within the loan term.');
+  }
+  if ([pointsPct, lenderFees, brokerFees, rateLockCost, prepayPenaltyAtExit].some(value => value < 0)) {
+    throw new RangeError('Points, fees, lock cost, and prepayment penalty cannot be negative.');
+  }
+  if (parRate !== undefined && (!Number.isFinite(parRate) || parRate < 0)) {
+    throw new RangeError('Par rate must be a finite, non-negative number when supplied.');
+  }
+
   const pointsDollars = loanAmount * (pointsPct / 100);
   const netLoanProceeds = loanAmount - pointsDollars - lenderFees - brokerFees - rateLockCost;
+  if (netLoanProceeds <= 0) {
+    throw new RangeError('Fees and points must leave positive net loan proceeds.');
+  }
 
   const piMonthly = calculatePI(loanAmount, annualRate, termMonths);
   const remainingBalance = computeRemainingBalance(loanAmount, annualRate, termMonths, holdMonths);
 
-  // Build cash flows for XIRR (annual granularity for stability)
-  const holdYears = holdMonths / 12;
+  // Build exact monthly cash flows. Annual aggregation misplaced the balloon for
+  // fractional holds (and produced no payment row at all for holds under a year).
   const cashFlows: TrueCostCashFlow[] = [];
 
   // t=0: net proceeds (positive cash inflow to borrower)
   cashFlows.push({ month: 0, amount: netLoanProceeds });
 
-  // t=1..holdYears: monthly payments aggregated annually
-  for (let yr = 1; yr <= holdYears; yr++) {
-    cashFlows.push({ month: yr * 12, amount: -piMonthly * 12 });
+  for (let month = 1; month <= holdMonths; month++) {
+    cashFlows.push({ month, amount: -piMonthly });
   }
 
-  // t=holdYears: exit balloon + prepay penalty
+  // Exit balloon and any applicable PPP land on the exact exit month.
   cashFlows[cashFlows.length - 1].amount += -(remainingBalance + prepayPenaltyAtExit);
 
   // Convert to XIRR format
@@ -264,8 +286,8 @@ export function computeAEY(
     const yspFlows: { time: number; amount: number }[] = [
       { time: 0, amount: yspNetProceeds },
     ];
-    for (let yr = 1; yr <= holdYears; yr++) {
-      yspFlows.push({ time: yr, amount: -piMonthly * 12 });
+    for (let month = 1; month <= holdMonths; month++) {
+      yspFlows.push({ time: month / 12, amount: -piMonthly });
     }
     yspFlows[yspFlows.length - 1].amount += -(remainingBalance + prepayPenaltyAtExit);
     yspAdjustedAPR = computeXIRR(yspFlows);
@@ -323,6 +345,18 @@ export function computeAEY(
   };
 }
 
+/**
+ * A quoted prepayment penalty applies only when the program and jurisdiction
+ * permit that PPP. `pppAllowed` describes whether the penalty is allowed, not
+ * whether the borrower is allowed to prepay.
+ */
+export function resolvePrepayPenaltyAtExit(pppAllowed: boolean, quotedPenalty: number): number {
+  if (!Number.isFinite(quotedPenalty) || quotedPenalty < 0) {
+    throw new RangeError('Quoted prepayment penalty must be finite and non-negative.');
+  }
+  return pppAllowed ? quotedPenalty : 0;
+}
+
 // ============================================================
 // LENDER RANKING
 // ============================================================
@@ -373,23 +407,36 @@ export function rankLendersByAEY(
     }
     // v11 FIX (AUDIT-7 #1): Use ACTUAL lender fees from the quote, NOT loanAmountMin.value
     // (which is the lender's minimum loan size — a $50K-$2M figure that was inflating AEY by ~700bps)
-    const trueCost = computeAEY(
-      q.loanAmount,
-      q.estimatedRate,
-      q.termMonths,
-      q.holdMonths,
-      q.pointsPct ?? 0,           // points % from quote
-      q.lenderFees ?? 1500,       // actual lender fees from quote (default $1500 if missing)
-      q.brokerFees ?? 0,          // broker fees
-      q.rateLockCost ?? 0,        // rate lock cost
-      q.pppAllowed ? 0 : q.prepayPenaltyAtExit,
-      q.parRate,
-    );
-    trueCost.lenderId = q.lender.id;
-    trueCost.lenderName = q.lender.name;
-    trueCost.provenance = q.lender.sourceType;
-    trueCost.confidenceScore = q.lender.confidenceScore;
-    return { quote: q, aey: trueCost.aey, trueCost };
+    try {
+      const trueCost = computeAEY(
+        q.loanAmount,
+        q.estimatedRate,
+        q.termMonths,
+        q.holdMonths,
+        q.pointsPct ?? 0,           // points % from quote
+        q.lenderFees ?? 1500,       // actual lender fees from quote (default $1500 if missing)
+        q.brokerFees ?? 0,          // broker fees
+        q.rateLockCost ?? 0,        // rate lock cost
+        resolvePrepayPenaltyAtExit(q.pppAllowed, q.prepayPenaltyAtExit),
+        q.parRate,
+      );
+      trueCost.lenderId = q.lender.id;
+      trueCost.lenderName = q.lender.name;
+      trueCost.provenance = q.lender.sourceType;
+      trueCost.confidenceScore = q.lender.confidenceScore;
+      return { quote: q, aey: trueCost.aey, trueCost };
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'Invalid true-cost quote inputs.';
+      return {
+        quote: {
+          ...q,
+          eligible: false,
+          ineligibleReasons: [...q.ineligibleReasons, `True-cost unavailable: ${reason}`],
+        },
+        aey: Infinity,
+        trueCost: null as TrueCostResult | null,
+      };
+    }
   });
 
   // Sort: eligible first by AEY ascending; ineligible at bottom
@@ -415,7 +462,9 @@ export function rankLendersByAEY(
       eligible: entry.quote.eligible,
       ineligibleReasons: entry.quote.ineligibleReasons,
       estimatedRate: entry.quote.estimatedRate,
-      aey: entry.aey === Infinity ? 0 : entry.aey,
+      // Infinity is the internal unavailable sentinel. Returning 0 falsely made
+      // ineligible/invalid quotes look like zero-cost financing.
+      aey: entry.aey,
       totalCost60mo: entry.trueCost?.totalCost60mo ?? 0,
       confidenceScore: entry.quote.lender.confidenceScore,
       counterpartyRisk: counterparty,

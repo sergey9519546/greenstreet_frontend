@@ -1,4 +1,4 @@
 {
   "name": "Greenstreet Finance DSCR Engine",
-  "description": "The next-generation AI-native system of action for DSCR and non-QM wholesale lending. Powered by Sovereign OS, Greenstreet returns Dual-Track DSCR pre-screens, ranked lender matches across 30+ non-QM programs, and stress-tested underwriting in under 90 seconds."
+  "description": "A scenario-analysis toolkit for rental-property financing. Greenstreet models DSCR, property cash flow, program-fit assumptions, state-rule considerations, and stress scenarios for preliminary educational review."
 }

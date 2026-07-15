@@ -56,6 +56,7 @@ const VAC_SIGMA = 0.015;
 const CIR_A = 0.5;
 const CIR_B = 0.035;
 const CIR_SIGMA = 0.0075;
+const CALIBRATION_YEAR = 2026;
 
 // Lower-Cholesky of corr[(rent, vacancy, rate)] =
 //   [[1, -0.48, 0.44], [-0.48, 1, -0.30], [0.44, -0.30, 1]]
@@ -82,7 +83,7 @@ function insuranceProfile(state: string): { muAnnual: number; jumpProb: number; 
 }
 
 function tcoAgeFromYear(yearBuilt: number): TcoPropertyAge {
-  const age = new Date().getFullYear() - (yearBuilt || 2000);
+  const age = CALIBRATION_YEAR - (Number.isFinite(yearBuilt) ? yearBuilt : 2000);
   if (age <= 5) return 'NEW';
   if (age <= 15) return 'AVERAGE';
   if (age <= 30) return 'AGING';
@@ -95,8 +96,15 @@ export function runMonteCarlo(
   strategy: RentalStrategy,
   dscrResult: DSCRResult,
   simulations: number = 2500,
+  seed: number = 42,
 ): MonteCarloResult {
-  const rng = mulberry32(42);
+  if (!Number.isFinite(simulations) || !Number.isInteger(simulations) || simulations < 1) {
+    throw new RangeError('simulations must be a positive finite integer');
+  }
+  if (!Number.isFinite(seed)) {
+    throw new RangeError('seed must be finite');
+  }
+  const rng = mulberry32(Math.trunc(seed) >>> 0);
   const isSTR = strategy === 'STR';
   const isMTR = strategy === 'MTR';
 

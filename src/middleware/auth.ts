@@ -2,17 +2,14 @@ import { Request, Response, NextFunction } from "express";
 import * as admin from "firebase-admin";
 import { logger } from "../logger";
 
-let adminInitialized = false;
 try {
-  // Initialize firebase-admin if not already initialized
   if (admin.apps.length === 0) {
     admin.initializeApp();
   }
-  adminInitialized = true;
-} catch (error: any) {
+} catch (error: unknown) {
   logger.warn(
-    { error: error.message },
-    "firebase-admin initialization failed. Token verification will fall back to mock context in development mode."
+    { errorType: error instanceof Error ? error.name : "UnknownError" },
+    "firebase-admin initialization failed; protected routes will fail closed"
   );
 }
 
@@ -23,20 +20,50 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-/**
- * Express middleware to verify Firebase ID tokens.
- * If REQUIRE_AUTH is true, it enforces a valid Authorization header.
- * Otherwise, it decodes the token if present but allows unauthenticated requests to pass.
- */
-export async function verifyFirebaseToken(
+function developmentBypassEnabled(): boolean {
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.ALLOW_DEV_AUTH_BYPASS === "true"
+  );
+}
+
+function firebaseErrorCode(error: unknown): string {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "string") return code;
+  }
+  return error instanceof Error ? error.name : "UnknownError";
+}
+
+function bearerToken(authorization: string | undefined): string | null {
+  if (!authorization) return null;
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  const token = match?.[1]?.trim();
+  return token ? token : null;
+}
+
+async function applyFirebaseAuthentication(
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction
-) {
-  const authHeader = req.headers.authorization;
+  next: NextFunction,
+  required: boolean
+): Promise<void> {
+  if (req.user?.uid) {
+    next();
+    return;
+  }
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    if (process.env.REQUIRE_AUTH === "true") {
+  if (developmentBypassEnabled()) {
+    req.user = { uid: "development-auth-bypass" };
+    next();
+    return;
+  }
+
+  const authHeader = req.headers.authorization;
+  const token = bearerToken(authHeader);
+
+  if (!authHeader) {
+    if (required) {
       res.status(401).json({ error: "Unauthorized: Missing ID token" });
       return;
     }
@@ -44,27 +71,56 @@ export async function verifyFirebaseToken(
     return;
   }
 
-  const token = authHeader.split("Bearer ")[1];
+  if (!token) {
+    res.status(401).json({ error: "Unauthorized: Invalid authorization header" });
+    return;
+  }
+
+  if (admin.apps.length === 0) {
+    logger.error("Firebase authentication is unavailable");
+    res.status(503).json({ error: "Authentication service unavailable" });
+    return;
+  }
 
   try {
-    if (adminInitialized) {
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-      };
-    } else {
-      // In local development where admin SDK is not fully credentialed, fallback to mock user
-      // NOTE: never log any portion of the token — even partial JWTs can leak header/payload info
-      logger.info("Bypassing token verification in development fallback");
-      req.user = {
-        uid: "dev-user-id",
-        email: "dev-user@greenstreet.dev",
-      };
-    }
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+    };
     next();
-  } catch (error: any) {
-    logger.warn({ error: error.message }, "Firebase ID token verification failed");
+  } catch (error: unknown) {
+    logger.warn(
+      { errorCode: firebaseErrorCode(error) },
+      "Firebase ID token verification failed"
+    );
     res.status(401).json({ error: "Unauthorized: Invalid ID token" });
   }
+}
+
+/**
+ * Decodes a Firebase token when present. REQUIRE_AUTH=true preserves the
+ * historical global-auth behavior, while route-specific paid APIs should use
+ * requireFirebaseToken directly.
+ */
+export async function verifyFirebaseToken(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  await applyFirebaseAuthentication(
+    req,
+    res,
+    next,
+    process.env.REQUIRE_AUTH === "true"
+  );
+}
+
+/** Fail-closed Firebase authentication for protected routes. */
+export async function requireFirebaseToken(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  await applyFirebaseAuthentication(req, res, next, true);
 }

@@ -66,6 +66,41 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      { "source": "/index.html", "destination": "/", "type": 301 },
+      { "source": "/foreign-nationals", "destination": "/non-us-investors", "type": 301 },
+      { "source": "/portfolio-builders", "destination": "/tools/portfolio", "type": 301 },
+      { "source": "/partners", "destination": "/partnerships", "type": 301 },
+      { "source": "/privacy-policy", "destination": "/legal/privacy-policy", "type": 301 },
+      { "source": "/terms-of-service", "destination": "/legal/terms-of-service", "type": 301 },
+      { "source": "/book-demo", "destination": "/rate-quiz", "type": 301 },
+      { "source": "/decision-support", "destination": "/tools/decision-support", "type": 301 },
+      { "source": "/tools/arm", "destination": "/tools/arm-reset", "type": 301 },
+      { "source": "/tools/irr", "destination": "/tools/returns", "type": 301 },
+      { "source": "/tools/dscr-calculator", "destination": "/dscr-calculator", "type": 301 },
+      { "source": "/tools/lender-intel", "destination": "/lender-intel", "type": 301 },
+      { "source": "/tools/state-laws", "destination": "/state-laws", "type": 301 },
+      { "source": "/tools/deal-analyzer", "destination": "/deal-analyzer", "type": 301 },
+      { "source": "/tools/borrower-profiles", "destination": "/borrower-profiles", "type": 301 },
+      { "source": "/dashboard", "destination": "/investgo", "type": 301 },
+      { "source": "/broker-portal", "destination": "/investgo", "type": 301 },
+      { "source": "/tools/workspace", "destination": "/investgo/analyze", "type": 301 },
+      { "source": "/tools/deal-workspace", "destination": "/investgo/analyze", "type": 301 },
+      { "source": "/tools/sensitivity", "destination": "/investgo/sensitivity", "type": 301 },
+      { "source": "/tools/structure-optimizer", "destination": "/investgo/optimize", "type": 301 },
+      { "source": "/tools/scenario-history", "destination": "/investgo/history", "type": 301 }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+        ]
+      }
+    ],
     "rewrites": [
       {
         "source": "/api/**",

@@ -1,615 +1,132 @@
 import React, { useEffect } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { DcShell, dc, Mono } from "../design/dc";
 
-// ── Use-case rows — numbered vertical list (signature section) ────────────────
-interface UseCase {
-  num: string;
-  title: string;
-  desc: string;
-  cta: string;
-  view: string;
-  numBg: string;
-  numInk: string;
-}
+type PageProps = { onBack?: () => void; onNavigate: (view: any) => void };
 
-const USECASES: UseCase[] = [
-  {
-    num: "01",
-    title: "Price the deal in under a minute",
-    desc: "Enter the property address, rent, rate and costs. Get DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) on both tracks: Track 1 is what the lender uses to qualify you; Track 2 adds vacancy, management fees and CapEx to show what you'll actually pocket. No login, no guesswork.",
-    cta: "See if my deal qualifies",
-    view: "dscr-calculator",
-    numBg: dc.lemon,
-    numInk: dc.dark,
-  },
-  {
-    num: "02",
-    title: "Match the right Greenstreet program before your first call",
-    desc: "Your file is scored against every Greenstreet DSCR program: FICO floors, LTV caps (how the loan amount compares to the property value — lower = more equity = better terms), DSCR minimums, state coverage and entity rules — ranked by fit score. Know which program funds your deal before you make an offer.",
-    cta: "Find the best program for my file",
-    view: "lender-intel",
-    numBg: dc.dark,
-    numInk: dc.lemon,
-  },
-  {
-    num: "03",
-    title: "Check the state rule before it kills the deal",
-    desc: "Prepayment-penalty fees (a fee some loans charge if you pay the loan off or refinance early), usury caps and short-term-rental rules for all 50 states — each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you make an offer.",
-    cta: "Look up state rules for my deal",
-    view: "state-laws",
-    numBg: dc.lemon,
-    numInk: dc.dark,
-  },
-  {
-    num: "04",
-    title: "Stress-test the rate and the rent",
-    desc: "A 120-cell rate × rent shock grid shows you exactly how far the deal can bend before DSCR breaks below 1.00. Run it in seconds — then keep it as a defensible page in your deal package.",
-    cta: "Run the stress matrix",
-    view: "stress-matrix",
-    numBg: dc.dark,
-    numInk: dc.lemon,
-  },
-  {
-    num: "05",
-    title: "Hand the lender everything they need to say yes",
-    desc: "The investment-committee memo, the state compliance check, and the stress matrix — all generated in one pass, all citable. Submit a clean package and close faster, because the lender isn't waiting on missing documents.",
-    cta: "Build the deal package",
-    view: "deal-analyzer",
-    numBg: dc.lemon,
-    numInk: dc.dark,
-  },
+const WORKFLOW = [
+  { num: "01", title: "Collect the property facts", body: "Start with transaction type, occupancy, rent evidence, property costs, requested leverage, entity, and borrower profile. Missing facts should remain visible rather than replaced with optimistic defaults." },
+  { num: "02", title: "Model coverage and investor cash flow", body: "Keep qualifying-style rent coverage separate from vacancy, management, maintenance, and capital-expenditure assumptions. Neither track is an underwriting decision." },
+  { num: "03", title: "Stress the assumptions", body: "Test lower rent and higher rate inputs to identify where modeled coverage falls below 1.00x. The result is a sensitivity view, not a market forecast." },
+  { num: "04", title: "Flag rules and documents", body: "Use state references and profile checklists as research prompts. Verify current law, licensing, prepayment language, provider requirements, and final documents with qualified parties." },
+  { num: "05", title: "Request current provider review", body: "Share the entered assumptions and supporting evidence. Only the applicable provider can confirm eligibility, pricing, conditions, approval, and closing requirements." },
 ];
 
-const AS_OF = "Jun 22, 2026";
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-export default function BrokersPage({
-  onBack,
-  onNavigate,
-}: {
-  onBack: () => void;
-  onNavigate: (v: any) => void;
-}) {
+function usePageMetadata(title: string, description: string, path: string) {
   useEffect(() => {
-    document.title = "For Investors | Greenstreet Finance";
+    document.title = title;
+    const upsert = (key: string, value: string, property = false) => {
+      const attr = property ? "property" : "name";
+      let node = document.head.querySelector("meta[" + attr + "='" + key + "']") as HTMLMetaElement | null;
+      if (!node) { node = document.createElement("meta"); node.setAttribute(attr, key); document.head.appendChild(node); }
+      node.content = value;
+    };
+    upsert("description", description);
+    upsert("og:title", title, true);
+    upsert("og:description", description, true);
+    let canonical = document.head.querySelector("link[rel='canonical']") as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = new URL(path, window.location.origin).href;
     window.scrollTo(0, 0);
-  }, []);
+  }, [description, path, title]);
+}
+
+function RouteLink({ href, view, onNavigate, children, secondary = false }: { href: string; view: string; onNavigate: (view: any) => void; children: React.ReactNode; secondary?: boolean }) {
+  return <a className={"br-link" + (secondary ? " secondary" : "")} href={href} onClick={(event) => { event.preventDefault(); onNavigate(view); }}>{children}</a>;
+}
+
+export default function BrokersPage({ onBack, onNavigate }: PageProps) {
+  usePageMetadata(
+    "DSCR Scenario Tools for Mortgage Brokers | Greenstreet Finance",
+    "A broker workflow for organizing DSCR property assumptions, stress tests, borrower-profile questions, and current provider review without implying approval.",
+    "/brokers",
+  );
 
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      navLinks={[
-        { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
-        { label: "State Rules", view: "state-laws" },
-      ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
-      accent={dc.dark}
-    >
-      {/* ── HERO: 2-col — content left, product panel right ────────────────── */}
-      <section
-        style={{
-          background: dc.dark,
-          color: dc.cream,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          id="gs-hero-content"
-          className="dc-hero"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            padding: `clamp(56px,7vh,96px) ${dc.pad}`,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "clamp(36px,5vw,72px)",
-            alignItems: "center",
-            minHeight: "clamp(440px,56vh,700px)",
-          }}
-        >
-          {/* Left column — copy */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: "clamp(18px,2.5vw,32px)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-              }}
-            >
-              For Investors
-            </div>
-            <H1 style={{ margin: 0 }}>
-              One deal.
-              <br />
-              We underwrite
-              <br />
-              and fund it.
-            </H1>
-            <Lead
-              style={{
-                color: "rgba(238,239,211,0.72)",
-                margin: 0,
-                maxWidth: "38ch",
-              }}
-            >
-              Greenstreet is the broker and the lender — direct to you. Five tools
-              price, qualify, and stress-test your DSCR rental deal — no income
-              docs, no income tax returns, no middleman. Price a deal in under 60
-              seconds, then we fund it in-house.
-            </Lead>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Btn
-                label="Price my first deal →"
-                onClick={() => onNavigate("dscr-calculator")}
-              />
-              <button
-                onClick={() => onNavigate("rate-quiz")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: "transparent",
-                  color: "rgba(238,239,211,0.82)",
-                  fontWeight: 600,
-                  fontSize: 15,
-                  border: `1.5px solid ${dc.faded}`,
-                  cursor: "pointer",
-                  padding: "13px 22px",
-                  borderRadius: dc.r.md,
-                  fontFamily: dc.sans,
-                  letterSpacing: "-0.01em",
-                  minHeight: 44,
-                }}
-              >
-                See my rate in 5 questions →
-              </button>
-            </div>
-          </div>
-
-          {/* Right column — Greenstreet DSCR programs panel */}
-          <div
-            style={{
-              height: "clamp(280px,40vh,520px)",
-              borderRadius: 12,
-              overflow: "hidden",
-              background: dc.teal,
-              border: "1px solid rgba(238,239,211,0.12)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              padding: "clamp(28px,3.5vw,44px)",
-            }}
-          >
-            {/* Header row */}
+    <DcShell onNavigate={onNavigate} accent={dc.dark} navLinks={[{ label: "DSCR Calc", view: "dscr-calculator" }, { label: "Programs", view: "lender-intel" }, { label: "State Rules", view: "state-laws" }]} cta={{ label: "Model a deal", view: "dscr-calculator" }}>
+      <style>{`
+        .br-page{background:#eeefd3;color:#003738}.br-wrap{width:min(1160px,calc(100% - 40px));margin:auto}.br-hero{background:#003738;color:#eeefd3;padding:clamp(64px,9vw,118px) 0}
+        .br-kicker{font-size:.75rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#d8d958}.br-hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(32px,6vw,88px);align-items:center}
+        .br-hero h1{font-size:clamp(2.6rem,6.5vw,5.6rem);line-height:.94;letter-spacing:-.045em;margin:18px 0 24px;max-width:12ch}.br-lead{font-size:clamp(1.05rem,1.8vw,1.28rem);line-height:1.6;color:rgba(238,239,211,.75);max-width:58ch}
+        .br-panel{background:#0b4d4d;border:1px solid rgba(238,239,211,.16);border-radius:12px;padding:clamp(22px,3vw,34px)}.br-panel h2{font-size:1.4rem;margin:0 0 18px}.br-panel ul{padding-left:20px;margin:0}.br-panel li{margin:12px 0;line-height:1.5;color:rgba(238,239,211,.76)}
+        .br-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}.br-link{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 18px;border-radius:7px;background:#d8d958;color:#003738;font-weight:800;text-decoration:none}
+        .br-link.secondary{background:transparent;color:#eeefd3;border:1px solid rgba(238,239,211,.34)}.br-workflow,.br-boundaries{padding:clamp(64px,8vw,110px) 0}.br-heading{max-width:760px;margin-bottom:40px}
+        .br-page h2{font-size:clamp(2rem,4vw,3.8rem);line-height:1;letter-spacing:-.035em;margin:12px 0 18px}.br-heading p,.br-boundaries p{font-size:1.05rem;line-height:1.65;color:rgba(0,55,56,.7)}
+        .br-steps{position:relative}.br-step{display:grid;grid-template-columns:64px 1fr;gap:22px;padding:26px 0;border-top:1px solid rgba(0,55,56,.2)}.br-step:last-child{border-bottom:1px solid rgba(0,55,56,.2)}
+        .br-step h3{font-size:clamp(1.25rem,2.3vw,1.8rem);margin:0 0 8px}.br-step p{line-height:1.6;color:rgba(0,55,56,.7);margin:0;max-width:68ch}.br-boundaries{background:#dfe7c5}
+        .br-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:34px}.br-card{background:#eeefd3;border:1px solid rgba(0,55,56,.18);padding:24px;border-radius:10px}.br-card h3{margin:0 0 10px}.br-card p{font-size:.98rem;margin:0}
+        .br-close{background:#003738;color:#eeefd3;padding:clamp(60px,8vw,96px) 0}.br-close-grid{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:end}.br-close p{color:rgba(238,239,211,.7);line-height:1.6;max-width:60ch}
+        .br-page a:focus-visible,.br-page button:focus-visible{outline:3px solid #7ec8d3;outline-offset:4px}
+        @media(max-width:760px){.br-wrap{width:min(100% - 28px,1160px)}.br-hero-grid,.br-cards,.br-close-grid{grid-template-columns:1fr}.br-step{grid-template-columns:46px 1fr}.br-actions .br-link{width:100%}.br-hero h1{overflow-wrap:anywhere}}
+      `}</style>
+      <div className="br-page">
+        <header className="br-hero">
+          <div className="br-wrap br-hero-grid">
             <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase" as const,
-                  color: dc.lemon,
-                  marginBottom: 16,
-                }}
-              >
-                Greenstreet DSCR programs
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                }}
-              >
-                {[
-                  { label: "1–4 Unit Standard", spec: "≥1.00x DSCR" },
-                  { label: "Portfolio / Blanket", spec: "to $25M" },
-                  { label: "Non-US Investor", spec: "30%+ down" },
-                  { label: "STR / Airbnb", spec: "ADR × occ" },
-                  { label: "Sub-1.0", spec: "≥0.75x DSCR" },
-                ].map((row) => (
-                  <div
-                    key={row.label}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "9px 0",
-                      borderBottom: "1px solid rgba(238,239,211,0.10)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: dc.cream,
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      {row.label}
-                    </span>
-                    <Mono
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: dc.emerald,
-                      }}
-                    >
-                      {row.spec}
-                    </Mono>
-                  </div>
-                ))}
+              <div className="br-kicker">For mortgage brokers</div>
+              <h1>Turn a DSCR lead into a review-ready scenario.</h1>
+              <p className="br-lead">Greenstreet is a scenario-analysis workspace for rental-property financing. It helps brokers organize property math, stress assumptions, and profile questions before requesting current terms from an applicable provider.</p>
+              <div className="br-actions">
+                <RouteLink href="/tools/dscr-calculator" view="dscr-calculator" onNavigate={onNavigate}>Model property coverage</RouteLink>
+                <a className="br-link secondary" href="#broker-workflow">Review the workflow</a>
               </div>
             </div>
-            {/* Footer row */}
-            <div
-              style={{
-                paddingTop: 16,
-                borderTop: "1px solid rgba(238,239,211,0.10)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "rgba(238,239,211,0.62)",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                In-house underwriting · direct
-              </span>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: "0.05em",
-                  textTransform: "uppercase" as const,
-                  color: dc.lemon,
-                  padding: "4px 10px",
-                  border: "1px solid rgba(216,217,88,0.4)",
-                  borderRadius: 4,
-                }}
-              >
-                Live programs
-              </span>
+            <aside className="br-panel" aria-labelledby="br-panel-heading">
+              <h2 id="br-panel-heading">What the workspace does not do</h2>
+              <ul>
+                <li>It does not quote, lock, approve, or fund a loan.</li>
+                <li>It does not confirm provider availability or current program terms.</li>
+                <li>It does not replace compliance, legal, tax, appraisal, insurance, or underwriting review.</li>
+              </ul>
+            </aside>
+          </div>
+        </header>
+
+        <section id="broker-workflow" className="br-workflow" aria-labelledby="br-workflow-heading">
+          <div className="br-wrap">
+            <div className="br-heading">
+              <div className="br-kicker" style={{ color: dc.rain }}>A defensible first pass</div>
+              <h2 id="br-workflow-heading">Five steps from intake to provider review.</h2>
+              <p>The workflow keeps entered facts, assumptions, and unresolved questions visible so a preliminary model is not mistaken for a loan decision.</p>
+            </div>
+            <div className="br-steps">
+              {WORKFLOW.map((step) => (
+                <article className="br-step" key={step.num}>
+                  <Mono style={{ color: dc.rain, fontSize: 24, fontWeight: 800 }}>{step.num}</Mono>
+                  <div><h3>{step.title}</h3><p>{step.body}</p></div>
+                </article>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── USE-CASE LIST: vertical rail + numbered rows (centrepiece) ────────── */}
-      {/*   This is the Brokers page signature — not shared with any other page.  */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(64px,8vw,112px) ${dc.pad} clamp(40px,5vw,64px)`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.4vw,46px)",
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                margin: "0 0 14px",
-                maxWidth: "18ch",
-                color: dc.dark,
-              }}
-            >
-              Five steps from first look to funded file.
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(16px,1.25vw,19px)",
-                fontWeight: 500,
-                lineHeight: 1.55,
-                color: "rgba(0,55,56,0.62)",
-                margin: 0,
-                maxWidth: "54ch",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              DSCR loans qualify on rental income, not the borrower's pay stubs (business-purpose / non-owner-occupied — a rental you invest in, not a home you live in). These tools handle every step of that process.
-            </p>
-          </div>
-
-          {/* Numbered list with continuous left-rail */}
-          <div style={{ position: "relative" }}>
-            {/* Vertical rail line — runs full height behind all bubbles */}
-            <div
-              style={{
-                position: "absolute",
-                left: 22,
-                top: 0,
-                bottom: 0,
-                width: 1,
-                background: "rgba(0,55,56,0.15)",
-              }}
-            />
-
-            {USECASES.map((u) => (
-              <div
-                key={u.num}
-                className="gs-reveal"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "44px 1fr",
-                  gap: "clamp(20px,3vw,48px)",
-                  alignItems: "start",
-                  paddingBottom: "clamp(36px,4vw,56px)",
-                }}
-              >
-                {/* Numbered bubble — sits over the rail, alternating lemon/dark */}
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 1,
-                    width: 44,
-                    height: 44,
-                    borderRadius: "50%",
-                    background: u.numBg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Mono
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: u.numInk,
-                    }}
-                  >
-                    {u.num}
-                  </Mono>
-                </div>
-
-                {/* Row content */}
-                <div style={{ paddingTop: 10 }}>
-                  <h3
-                    style={{
-                      fontSize: "clamp(21px,2.2vw,30px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.03em",
-                      margin: "0 0 12px",
-                      color: dc.dark,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {u.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "clamp(16px,1.35vw,19px)",
-                      fontWeight: 500,
-                      lineHeight: 1.6,
-                      color: "rgba(0,55,56,0.65)",
-                      margin: "0 0 16px",
-                      maxWidth: "58ch",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {u.desc}
-                  </p>
-                  <button
-                    onClick={() => onNavigate(u.view)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: dc.rain,
-                      letterSpacing: "-0.01em",
-                      fontFamily: dc.sans,
-                    }}
-                  >
-                    {u.cta} →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── BROKER CTA STRIP ─────────────────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.dark,
-          color: dc.cream,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="gs-reveal dc-band-2"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 14,
-              }}
-            >
-              Direct · in-house underwriting
+        <section className="br-boundaries" aria-labelledby="br-boundaries-heading">
+          <div className="br-wrap">
+            <div className="br-kicker" style={{ color: dc.rain }}>Eligibility boundaries</div>
+            <h2 id="br-boundaries-heading">Property coverage is only one part of the file.</h2>
+            <div className="br-cards">
+              <article className="br-card"><h3>Borrower and entity</h3><p>Credit, assets, reserves, identity, guarantees, ownership, vesting, and signing authority may apply.</p></article>
+              <article className="br-card"><h3>Property and income</h3><p>Appraisal, rent evidence, condition, occupancy, permits, insurance, HOA rules, and provider income methods may apply.</p></article>
+              <article className="br-card"><h3>Transaction and jurisdiction</h3><p>State law, business purpose, licensing, prepayment terms, loan size, and current market conditions can change the available structure.</p></article>
             </div>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.8vw,52px)",
-                fontWeight: 600,
-                letterSpacing: "-0.04em",
-                lineHeight: 1.0,
-                color: dc.cream,
-                margin: "0 0 16px",
-              }}
-            >
-              Ready to place your next file?
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(15px,1.3vw,18px)",
-                fontWeight: 500,
-                lineHeight: 1.55,
-                color: "rgba(238,239,211,0.6)",
-                maxWidth: "50ch",
-                margin: 0,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Book a 15-minute walkthrough — we'll run a real file through the
-              Greenstreet engine together, from pricing to submission, so you see
-              exactly what you will see before you fund.
-            </p>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-            {/* ONE dominant lemon primary CTA per contract */}
-            <button
-              onClick={() => onNavigate("rate-quiz")}
-              style={{
-                background: dc.lemon,
-                color: dc.dark,
-                border: "none",
-                borderRadius: dc.r.md,
-                padding: "16px 28px",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-                textAlign: "left" as const,
-                minHeight: 44,
-              }}
-            >
-              See my rate in 5 questions →
-            </button>
-            {/* Secondary: transparent + FADED border, per contract */}
-            <button
-              onClick={() => onNavigate("rate-quiz")}
-              style={{
-                background: "transparent",
-                color: dc.cream,
-                border: `1.5px solid ${dc.faded}`,
-                borderRadius: dc.r.md,
-                padding: "15px 28px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-                textAlign: "left" as const,
-                minHeight: 44,
-              }}
-            >
-              Get a rate in 5 questions →
-            </button>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── CLOSE BAND: freshness + back nav — mintBg breaks the cream/dark rhythm ── */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(40px,5vw,64px) ${dc.pad}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 24,
-          }}
-        >
-          {/* Freshness signal — intentional trust element, not decorative */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase" as const,
-                padding: "5px 11px",
-                borderRadius: dc.r.pill,
-                background: "rgba(238,239,211,0.06)",
-                border: "1px solid rgba(238,239,211,0.18)",
-                color: "rgba(238,239,211,0.62)",
-              }}
-            >
-              Reviewed
-            </span>
-            <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
-              Page refreshed {AS_OF} · program lineup + fees reviewed · next review Jul 22, 2026
-            </span>
+        <section className="br-close" aria-labelledby="br-next-heading">
+          <div className="br-wrap br-close-grid">
+            <div>
+              <div className="br-kicker">Choose the next review</div>
+              <h2 id="br-next-heading">Start with the property, then verify the program.</h2>
+              <p>Use the calculator for visible payment and coverage assumptions. Use program intelligence only as an illustrative comparison, then request current provider guidance for the complete file.</p>
+            </div>
+            <div className="br-actions">
+              <RouteLink href="/tools/dscr-calculator" view="dscr-calculator" onNavigate={onNavigate}>Open the DSCR calculator</RouteLink>
+              <RouteLink secondary href="/tools/lender-intel" view="lender-intel" onNavigate={onNavigate}>Compare reference scenarios</RouteLink>
+              {onBack && <button type="button" className="br-link secondary" onClick={onBack}>Return to tools</button>}
+            </div>
           </div>
-
-          {/* Back nav */}
-          <button
-            onClick={() => onBack()}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: "transparent",
-              border: `1.5px solid ${dc.faded}`,
-              borderRadius: dc.r.pill,
-              padding: "13px 24px",
-              cursor: "pointer",
-              fontFamily: dc.sans,
-              minHeight: 44,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 15,
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                color: dc.dark,
-              }}
-            >
-              ← All tools
-            </span>
-          </button>
-        </div>
-      </section>
+        </section>
+      </div>
     </DcShell>
   );
 }
+

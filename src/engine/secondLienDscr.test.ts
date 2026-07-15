@@ -41,4 +41,73 @@ describe("computeSecondLienDscr — Angel Oak worked example", () => {
     expect(over.cltv).toBeGreaterThan(75); // (280k+40k)/400k = 80%
     expect(over.qualifies).toBe(false);
   });
+
+  it("returns review for a zero property value instead of a favorable zero CLTV", () => {
+    const invalid = computeSecondLienDscr({
+      monthlyRent: 2500,
+      firstLienPITIA: 1600,
+      firstLienBalance: 240_000,
+      propertyValue: 0,
+      secondLienAmount: 40_000,
+      secondLienRate: 10.5,
+    });
+    expect(invalid.status).toBe("REVIEW");
+    expect(invalid.qualifies).toBe(false);
+    expect(invalid.maxSecondLien).toBe(0);
+    expect(invalid.reviewReasons.join(" ")).toMatch(/property value/i);
+  });
+
+  it.each([-1, 100, Number.POSITIVE_INFINITY])(
+    "returns review for an invalid second-lien rate of %s",
+    (secondLienRate) => {
+      const invalid = computeSecondLienDscr({
+        monthlyRent: 2500,
+        firstLienPITIA: 1600,
+        firstLienBalance: 240_000,
+        propertyValue: 400_000,
+        secondLienAmount: 40_000,
+        secondLienRate,
+      });
+      expect(invalid.status).toBe("REVIEW");
+      expect(invalid.qualifies).toBe(false);
+      expect(invalid.maxSecondLien).toBe(0);
+    },
+  );
+
+  it("handles an underwater first lien with finite, non-favorable outputs", () => {
+    const underwater = computeSecondLienDscr({
+      monthlyRent: 2500,
+      firstLienPITIA: 2200,
+      firstLienBalance: 450_000,
+      propertyValue: 400_000,
+      secondLienAmount: 20_000,
+      secondLienRate: 10.5,
+    });
+    const outputs = [
+      underwater.secondLienPayment,
+      underwater.combinedDebtService,
+      underwater.combinedDSCR,
+      underwater.cltv,
+      underwater.maxSecondLien,
+    ];
+    expect(underwater.status).toBe("AVAILABLE");
+    expect(underwater.qualifies).toBe(false);
+    expect(underwater.maxSecondLien).toBe(0);
+    expect(underwater.bindingConstraint).toBe("CLTV");
+    expect(outputs.every(Number.isFinite)).toBe(true);
+  });
+
+  it("rejects a requested draw larger than the property value", () => {
+    const absurd = computeSecondLienDscr({
+      monthlyRent: 2500,
+      firstLienPITIA: 1600,
+      firstLienBalance: 240_000,
+      propertyValue: 400_000,
+      secondLienAmount: 500_000,
+      secondLienRate: 10.5,
+    });
+    expect(absurd.status).toBe("REVIEW");
+    expect(absurd.qualifies).toBe(false);
+    expect(absurd.maxSecondLien).toBe(0);
+  });
 });

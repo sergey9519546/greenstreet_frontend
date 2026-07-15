@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { analyzePortfolio, computePortfolioHealthScore } from './portfolio';
+import { analyzePortfolio, computePortfolioAggregates, computePortfolioHealthScore } from './portfolio';
 import type { PortfolioProperty, BorrowerProfile } from './types';
 
 function prop(over: Partial<PortfolioProperty>): PortfolioProperty {
@@ -49,6 +49,35 @@ describe('analyzePortfolio', () => {
   });
 });
 
+describe('computePortfolioAggregates', () => {
+  it('makes every aggregate unavailable and zero after the final property is removed', () => {
+    expect(computePortfolioAggregates([])).toEqual({
+      hasProperties: false,
+      blend: 0,
+      equity: 0,
+      totCash: 0,
+      wRate: 0,
+      totBal: 0,
+    });
+  });
+
+  it('preserves the established blended portfolio calculations', () => {
+    const result = computePortfolioAggregates([
+      { value: 200_000, balance: 100_000, rate: 6, rent: 2_000, pitia: 1_000, cf: 1_000 },
+      { value: 300_000, balance: 200_000, rate: 9, rent: 3_000, pitia: 2_000, cf: 1_000 },
+    ]);
+
+    expect(result).toEqual({
+      hasProperties: true,
+      blend: 5 / 3,
+      equity: 200_000,
+      totCash: 2_000,
+      wRate: 8,
+      totBal: 300_000,
+    });
+  });
+});
+
 describe('computePortfolioHealthScore', () => {
   const base = {
     globalDSCR: 1.6,
@@ -59,10 +88,21 @@ describe('computePortfolioHealthScore', () => {
     negativeCashFlowProperties: { count: 0 },
   } as unknown as ReturnType<typeof analyzePortfolio>;
 
-  it('scores a clean book 100 / STRONG', () => {
+  it('remains compatible with a clean legacy fixture that lacks properties', () => {
     const h = computePortfolioHealthScore(base);
     expect(h.score).toBe(100);
     expect(h.label).toBe('STRONG');
+  });
+
+  it('gives an explicitly empty analyzed portfolio an honest zero score', () => {
+    const empty = analyzePortfolio([], null, borrower, 0);
+
+    expect(computePortfolioHealthScore(empty)).toEqual({
+      score: 0,
+      label: 'CRITICAL',
+      color: '#e06363',
+      breakdown: { dscrPts: 0, concentrationPts: 0, cashFlowPts: 0, reservePts: 0 },
+    });
   });
 
   it('scores a distressed book 0 / CRITICAL', () => {

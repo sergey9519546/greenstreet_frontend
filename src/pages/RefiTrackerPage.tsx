@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { DcShell, dc, Mono, H1, H2, Lead, Btn, useRevealOnView } from "../design/dc";
 import { RiskFlame, riskFromDscr } from "../design/artifacts";
-import { analyzeRefi } from "../engine/refiTracker";
+import { analyzeRefi, getRefiAuxiliaryGuidanceState } from "../engine/refiTracker";
 import { computeSecondLienDscr } from "../engine/secondLienDscr";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
 import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenantCheck";
@@ -9,7 +9,11 @@ import { radius, font } from "../theme";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
 
-const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+const fmt$ = (n: number) => Number.isFinite(n)
+  ? "$" + Math.round(n).toLocaleString("en-US")
+  : "Unavailable";
+const fmtPct = (n: number, digits = 2) => Number.isFinite(n) ? `${n.toFixed(digits)}%` : "Unavailable";
+const parseNumericInput = (raw: string) => raw.trim() === "" ? Number.NaN : Number(raw);
 
 // Mint accent — the page's distinct colour identity (light warm-green)
 const MINT = dc.mintBg; // #e8e9bf
@@ -28,7 +32,7 @@ export default function RefiTrackerPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "Should I Refinance My DSCR Loan? | Greenstreet Finance";
+    document.title = "DSCR Refinance Scenario Model | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -57,21 +61,49 @@ export default function RefiTrackerPage({
   // ── Sprint 2 debt tests: DSCR maintenance covenant + day-one in-place rent ──
   const [covenantDscr, setCovenantDscr] = useState(1.20);
   const [inPlaceRent, setInPlaceRent] = useState(3000);
-  const currentValue = Math.round(purchasePrice * (1 + (projectedAppreciation / 100) * (monthsOwned / 12)));
-  const firstLienPITIA = currentPayment + (annualTaxes + annualInsurance) / 12 + hoa;
+  const projectedValueChange = projectedAppreciation * (monthsOwned / 12);
+  const pageInputsValid = [
+    purchasePrice, currentBalance, currentRate, currentPayment, monthlyRent,
+    monthsOwned, projectedRate, projectedAppreciation, annualTaxes, annualInsurance, hoa,
+  ].every(Number.isFinite)
+    && purchasePrice > 0
+    && currentBalance > 0
+    && currentRate >= 0 && currentRate <= 25
+    && currentPayment > 0
+    && monthlyRent >= 0
+    && Number.isInteger(monthsOwned) && monthsOwned >= 0 && monthsOwned <= 1200
+    && projectedRate >= 0 && projectedRate <= 25
+    && projectedValueChange >= -95 && projectedValueChange <= 100
+    && annualTaxes >= 0 && annualInsurance >= 0 && hoa >= 0;
+  const modeledValue = purchasePrice * (1 + projectedValueChange / 100);
+  const currentValue = pageInputsValid && Number.isFinite(modeledValue) && modeledValue > 0
+    ? Math.round(modeledValue)
+    : 0;
+  const firstLienPITIA = pageInputsValid
+    ? currentPayment + (annualTaxes + annualInsurance) / 12 + hoa
+    : 0;
   const secondLien = computeSecondLienDscr({
     monthlyRent, firstLienPITIA, firstLienBalance: currentBalance,
     propertyValue: currentValue, secondLienAmount: secondAmount, secondLienRate: secondRate,
   });
   // Refi-proceeds gap at maturity/reset: can a new loan (capped by BOTH the
   // rate-term LTV AND the DSCR floor) retire the current balance? + binding label.
-  const refiGap = computeRefiProceedsGap({
-    propertyValue: currentValue,
-    currentBalance,
-    qualifyingRent: monthlyRent,
-    escrowsMonthly: (annualTaxes + annualInsurance) / 12 + hoa,
-    newRate: projectedRate,
-  });
+  const refiGap = pageInputsValid
+    ? computeRefiProceedsGap({
+        propertyValue: currentValue,
+        currentBalance,
+        qualifyingRent: monthlyRent,
+        escrowsMonthly: (annualTaxes + annualInsurance) / 12 + hoa,
+        newRate: projectedRate,
+      })
+    : {
+        maxNewLoan: 0,
+        bindingConstraint: "LTV" as const,
+        canRetireBalance: false,
+        cashOutAvailable: 0,
+        proceedsGap: 0,
+        newPayment: 0,
+      };
   // Maintenance-covenant test on the current loan + day-one (in-place rent) vs
   // stabilized (market rent) lease-up risk. Stabilized = current rent ÷ current PITIA.
   const stabilizedDSCR = firstLienPITIA > 0 ? monthlyRent / firstLienPITIA : 0;
@@ -119,11 +151,12 @@ export default function RefiTrackerPage({
         borrower,
         { balance: currentBalance, rate: currentRate, monthlyPayment: currentPayment },
         monthsOwned,
-        projectedAppreciation,
+        projectedValueChange,
         projectedRate
       );
-      const appreciatedValue = purchasePrice * (1 + projectedAppreciation / 100);
       return {
+        status: analysis.status,
+        reviewReasons: analysis.reviewReasons,
         totalScore: analysis.refiReadinessScore,
         factors: analysis.readinessFactors.map((f) => ({
           factor: f.factor,
@@ -134,7 +167,7 @@ export default function RefiTrackerPage({
         })),
         currentDSCR: analysis.currentDSCR,
         refiDSCR: analysis.projectedRefiDSCR,
-        appreciatedValue,
+        appreciatedValue: currentValue,
         cashOutMaxAmount: analysis.cashOutMaxAmount,
         monthlySavings: analysis.monthlySavings,
         breakEvenMonths: analysis.breakEvenMonths,
@@ -153,20 +186,32 @@ export default function RefiTrackerPage({
     monthsOwned,
     projectedRate,
     projectedAppreciation,
+    projectedValueChange,
+    currentValue,
     annualTaxes,
     annualInsurance,
     hoa,
   ]);
 
   const score = result?.totalScore ?? 0;
-  const vColor = result ? scoreColor(score) : "#e06363";
-  const vLabel = result
+  const resultAvailable = result?.status === "AVAILABLE";
+  const auxiliaryGuidance = getRefiAuxiliaryGuidanceState(
+    result?.status,
+    secondLien.status,
+    currentRate,
+    projectedRate,
+    covenantDscr,
+    inPlaceRent,
+  );
+  const secondLienAvailable = auxiliaryGuidance.secondLienAvailable;
+  const vColor = resultAvailable ? scoreColor(score) : "#e06363";
+  const vLabel = resultAvailable
     ? score >= 80
       ? "REFI READY"
       : score >= 55
       ? "CONDITIONAL"
       : "NOT READY"
-    : "INPUTS REQUIRED";
+    : "REVIEW INPUTS";
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -183,7 +228,7 @@ export default function RefiTrackerPage({
   const ms = result?.monthlySavings ?? 0;
   const bePct = Math.min(1, Math.max(0, beMonths / 60));
   const beDotX = Math.round(bePct * 420);
-  const noBreakeven = result === null || ms <= 0 || beMonths >= 120;
+  const noBreakeven = !resultAvailable || ms <= 0 || beMonths >= 120;
   const showDot = !noBreakeven;
   // Cumulative-savings line passes through (0,178) and must cross the flat refi-cost
   // line (y=40) exactly at beDotX — so the dot sits on the real intersection, not a
@@ -241,20 +286,22 @@ export default function RefiTrackerPage({
     value: number;
     set: (v: number) => void;
     step: number;
+    min?: number;
+    max?: number;
     prefix?: string;
     suffix?: string;
   }> = [
-    { label: "Purchase Price", hint: "What you originally paid — sets your equity baseline.", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
-    { label: "Current Loan Balance", hint: "What you still owe today. Estimate is fine.", value: currentBalance, set: setCurrentBalance, step: 1000, prefix: "$" },
-    { label: "Current Rate", hint: "Your existing interest rate — drives savings math.", value: currentRate, set: setCurrentRate, step: 0.125, suffix: "%" },
-    { label: "Current Monthly P&I", hint: "Principal + interest only (not taxes/insurance). Check your statement.", value: currentPayment, set: setCurrentPayment, step: 25, prefix: "$" },
-    { label: "Months Owned", hint: "Most lenders require 6 months before you can refi a DSCR loan.", value: monthsOwned, set: setMonthsOwned, step: 1 },
-    { label: "Monthly Rent (qualifying)", hint: "The rent your lender will count — lease amount or appraised rent, whichever is lower.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
-    { label: "Projected Rate at Refi", hint: "The rate you expect to get on the new loan. Use today's market rate as your starting estimate.", value: projectedRate, set: setProjectedRate, step: 0.125, suffix: "%" },
-    { label: "Projected Appreciation (%/yr)", hint: "How much you think the property will rise in value annually. Used to estimate equity at refi time.", value: projectedAppreciation, set: setProjectedAppreciation, step: 0.5, suffix: "%" },
-    { label: "Annual Taxes", hint: "Your property tax bill per year. Find it on your last tax statement.", value: annualTaxes, set: setAnnualTaxes, step: 500, prefix: "$" },
-    { label: "Annual Insurance", hint: "Homeowner's insurance premium per year.", value: annualInsurance, set: setAnnualInsurance, step: 250, prefix: "$" },
-    { label: "Monthly HOA", hint: "Enter 0 if there is no HOA.", value: hoa, set: setHoa, step: 25, prefix: "$" },
+    { label: "Purchase Price", hint: "What you originally paid — sets your equity baseline.", value: purchasePrice, set: setPurchasePrice, step: 5000, min: 1, prefix: "$" },
+    { label: "Current Loan Balance", hint: "What you still owe today. Estimate is fine.", value: currentBalance, set: setCurrentBalance, step: 1000, min: 1, prefix: "$" },
+    { label: "Current Rate", hint: "Your existing interest rate — drives savings math.", value: currentRate, set: setCurrentRate, step: 0.125, min: 0, max: 25, suffix: "%" },
+    { label: "Current Monthly P&I", hint: "Principal + interest only (not taxes/insurance). Check your statement.", value: currentPayment, set: setCurrentPayment, step: 25, min: 0.01, prefix: "$" },
+    { label: "Months Owned", hint: "This scenario compares ownership time with a 6-month model threshold; actual requirements vary.", value: monthsOwned, set: setMonthsOwned, step: 1, min: 0, max: 1200 },
+    { label: "Monthly Rent (qualifying)", hint: "The lesser of entered lease and market rent is used in this scenario.", value: monthlyRent, set: setMonthlyRent, step: 100, min: 0, prefix: "$" },
+    { label: "Assumed Rate at Refi", hint: "A user-entered scenario rate, not a current market quote or forecast. Verify available terms before relying on it.", value: projectedRate, set: setProjectedRate, step: 0.125, min: 0, max: 25, suffix: "%" },
+    { label: "Projected Appreciation (%/yr)", hint: "Annualized value-change assumption. The model prorates it by months owned and accepts a total modeled change from -95% to 100%.", value: projectedAppreciation, set: setProjectedAppreciation, step: 0.5, suffix: "%" },
+    { label: "Annual Taxes", hint: "Your property tax bill per year. Find it on your last tax statement.", value: annualTaxes, set: setAnnualTaxes, step: 500, min: 0, prefix: "$" },
+    { label: "Annual Insurance", hint: "Homeowner's insurance premium per year.", value: annualInsurance, set: setAnnualInsurance, step: 250, min: 0, prefix: "$" },
+    { label: "Monthly HOA", hint: "Enter 0 if there is no HOA.", value: hoa, set: setHoa, step: 25, min: 0, prefix: "$" },
   ];
 
   return (
@@ -316,10 +363,10 @@ export default function RefiTrackerPage({
               Refi Tracker · 4-factor readiness
             </div>
             <H1 style={{ margin: "0 0 24px", color: dc.cream }}>
-              Should you refi this DSCR loan yet?
+              Model a DSCR refinance scenario.
             </H1>
             <div style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.6, color: dc.lemon, maxWidth: "50ch", margin: "0 0 14px", letterSpacing: "-0.01em" }}>
-              Enter your current loan and the rate you could refi into. This tool scores your deal 0–100 on four factors and shows the exact month your savings pay back the refi cost.
+              Enter your current loan and an assumed replacement rate. The tool compares four modeled factors and estimates a break-even month if every entered assumption holds.
             </div>
             <Lead
               style={{
@@ -328,7 +375,7 @@ export default function RefiTrackerPage({
                 margin: "0 0 34px",
               }}
             >
-              Scores seasoning (you usually need 6 months), equity (how much LTV — how the loan amount compares to the property value — has improved), DSCR (whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it; higher is stronger) headroom, and monthly savings.
+              The model uses seasoning, equity, DSCR headroom, and monthly savings. Its seasoning and LTV thresholds are internal assumptions, not universal lender requirements or eligibility findings.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 40 }}>
               <Btn label="Open the refi tracker ↓" href="#rf-tool" onClick={scrollToTool} />
@@ -345,7 +392,7 @@ export default function RefiTrackerPage({
                     lineHeight: 1,
                   }}
                 >
-                  {result ? Math.round(score) : "—"}
+                  {resultAvailable ? Math.round(score) : "—"}
                 </Mono>
                 <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   readiness / 100
@@ -361,7 +408,7 @@ export default function RefiTrackerPage({
                     lineHeight: 1,
                   }}
                 >
-                  {result && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
+                  {resultAvailable && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
                 </Mono>
                 <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   break-even
@@ -377,7 +424,7 @@ export default function RefiTrackerPage({
                     lineHeight: 1,
                   }}
                 >
-                  {result ? fmt$(result.cashOutMaxAmount) : "—"}
+                  {resultAvailable ? fmt$(result.cashOutMaxAmount) : "—"}
                 </Mono>
                 <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   cash-out capacity
@@ -486,15 +533,15 @@ export default function RefiTrackerPage({
                   Projected refi rate
                 </span>
                 <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.emerald }}>
-                  {currentRate.toFixed(2)}% → {projectedRate.toFixed(3).replace(/0$/, "")}%
+                  {fmtPct(currentRate)} → {fmtPct(projectedRate, 3)}
                 </Mono>
               </div>
               <input
                 type="range"
                 min={4}
-                max={Math.max(9, Math.ceil(currentRate))}
+                max={25}
                 step={0.125}
-                value={projectedRate}
+                value={Number.isFinite(projectedRate) ? projectedRate : 6.5}
                 onChange={(e) => setProjectedRate(+e.target.value)}
                 aria-label="Projected refi rate"
                 style={{ width: "100%", accentColor: dc.emerald, cursor: "pointer" }}
@@ -535,7 +582,7 @@ export default function RefiTrackerPage({
               Live refi readiness engine
             </div>
             <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.6)", maxWidth: "64ch", margin: "0 0 6px", lineHeight: 1.6 }}>
-              80–100 = refi-ready now. 55–79 = worth watching. Below 55 = wait. A rate &amp; term refinance (replace your current loan to change the rate or term, without taking cash out) needs at least 6 months of seasoning; cash-out requires additional equity.
+              The 0-100 score is an interface band for comparing assumptions, not a recommendation. This version models a 6-month seasoning threshold and fixed LTV caps; actual requirements vary by program, transaction, property, and borrower.
             </p>
           </div>
           <h2
@@ -549,7 +596,7 @@ export default function RefiTrackerPage({
             }}
           >
             Readiness{" "}
-            <Mono style={{ color: dc.cream }}>{result ? Math.round(score) : "—"}/100</Mono>
+            <Mono style={{ color: dc.cream }}>{resultAvailable ? Math.round(score) : "—"}/100</Mono>
             {" · "}
             <span style={{ color: vColor }}>{vLabel}</span>
           </h2>
@@ -617,8 +664,11 @@ export default function RefiTrackerPage({
                       className="rt-num"
                       type="number"
                       step={f.step}
-                      value={f.value}
-                      onChange={(e) => f.set(+e.target.value)}
+                      min={f.min}
+                      max={f.max}
+                      value={Number.isFinite(f.value) ? f.value : ""}
+                      onChange={(e) => f.set(parseNumericInput(e.target.value))}
+                      aria-invalid={!Number.isFinite(f.value)}
                       style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
                     />
                     {f.suffix && (
@@ -668,7 +718,7 @@ export default function RefiTrackerPage({
                     lineHeight: 1,
                   }}
                 >
-                  {result ? Math.round(score) : "—"}
+                  {resultAvailable ? Math.round(score) : "—"}
                 </Mono>
                 <div
                   style={{
@@ -683,13 +733,13 @@ export default function RefiTrackerPage({
                   {vLabel}
                 </div>
                 <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)" }}>
-                  {result?.refiType === "RATE_TERM" &&
+                  {!resultAvailable && "Review the highlighted inputs before relying on any refinance output."}
+                  {resultAvailable && result?.refiType === "RATE_TERM" &&
                     "Rate & term refi — you lower your rate/term without pulling cash out. Balance stays roughly the same."}
-                  {result?.refiType === "CASH_OUT" &&
+                  {resultAvailable && result?.refiType === "CASH_OUT" &&
                     `You have equity to pull out. Maximum cash-out: ${fmt$(result.cashOutMaxAmount)} (at 70% LTV — 70 cents borrowed per dollar of value).`}
-                  {result?.refiType === "NO_REFI" &&
-                    "No meaningful savings and not enough equity. Stay in your current loan and revisit in 6–12 months."}
-                  {!result && "Fill in the inputs on the left to see your readiness score."}
+                  {resultAvailable && result?.refiType === "NO_REFI" &&
+                    "The entered scenario does not clear the model's equity and payment comparisons. Review alternatives and verify actual terms."}
                 </div>
               </div>
 
@@ -715,7 +765,7 @@ export default function RefiTrackerPage({
                 >
                   Refi Math
                 </div>
-                {result ? (
+                {resultAvailable ? (
                   [
                     {
                       label: "Current DSCR",
@@ -726,14 +776,14 @@ export default function RefiTrackerPage({
                     },
                     {
                       label: "DSCR after refi",
-                      sub: result.refiDSCR >= 1.0 ? "Still qualifies after the new payment." : "Caution — rent may not cover the new payment.",
+                      sub: result.refiDSCR >= 1.0 ? "Modeled rent covers the entered payment assumptions." : "Caution — modeled rent may not cover the entered payment assumptions.",
                       val: result.refiDSCR.toFixed(2) + "x",
                       color: result.refiDSCR >= 1.0 ? dc.emerald : "#e06363",
                       flame: riskFromDscr(result.refiDSCR),
                     },
                     {
                       label: "Monthly savings",
-                      sub: "How much less you'd pay per month vs. your current loan.",
+                      sub: "Signed P&I difference versus the current entered payment.",
                       val:
                         (result.monthlySavings >= 0 ? "+" : "") +
                         fmt$(result.monthlySavings),
@@ -741,7 +791,7 @@ export default function RefiTrackerPage({
                     },
                     {
                       label: "Break-even",
-                      sub: result.breakEvenMonths > 120 ? "Savings never recoup refi costs at this rate — don't refi yet." : "Months until cumulative savings exceed refi closing costs. Under 24 is excellent.",
+      sub: result.breakEvenMonths > 120 ? "Modeled savings do not recoup the entered costs within 120 months." : "Modeled months until cumulative savings exceed the entered refinance costs.",
                       val:
                         result.breakEvenMonths > 120
                           ? "120+ (don't refi)"
@@ -750,7 +800,7 @@ export default function RefiTrackerPage({
                     },
                     {
                       label: "Cash-out capacity",
-                      sub: "Max you could pull out at 70% LTV (how the loan compares to property value). Zero if not enough equity.",
+      sub: "Illustrative proceeds using the model's 70% LTV assumption. Actual limits and eligible proceeds vary.",
                       val: fmt$(result.cashOutMaxAmount),
                       color: dc.cream,
                     },
@@ -791,7 +841,7 @@ export default function RefiTrackerPage({
                       padding: "8px 0",
                     }}
                   >
-                    No result yet — check that your loan balance and purchase price are filled in above.
+                    Output unavailable. Enter finite, non-negative values within the displayed model ranges.
                   </div>
                 )}
               </div>
@@ -900,7 +950,7 @@ export default function RefiTrackerPage({
                   lineHeight: 1.6,
                 }}
               >
-                <strong style={{ color: dc.emerald }}>How the score works:</strong> Four factors scored 0–25 each: seasoning (how long you've owned it), equity (LTV improvement), DSCR headroom (rent vs. new payment), and monthly savings. Cash-out is capped at 70% LTV (loan-to-value); rate &amp; term at 75%. Output from analyzeRefi v11.7.
+            <strong style={{ color: dc.emerald }}>How the model works:</strong> Four factors are scored 0-25 each: seasoning, equity, DSCR headroom, and modeled monthly savings. This version assumes 70% cash-out LTV and 75% rate-and-term LTV. Those are scenario limits, not current program terms. Output from analyzeRefi v11.7.
               </div>
             </div>
           </div>
@@ -911,20 +961,28 @@ export default function RefiTrackerPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Or: tap equity without refinancing</div>
-          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "20ch" }}>Keep your {currentRate}% first lien. Borrow against the equity.</H2>
+          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "20ch" }}>
+            {secondLienAvailable
+              ? `Keep your ${auxiliaryGuidance.currentRateLabel} first lien. Borrow against the equity.`
+              : "Review inputs before comparing second-lien options."}
+          </H2>
           <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "62ch", margin: "0 0 26px" }}>
-            A DSCR closed-end 2nd lien (the $21B market Angel Oak opened) pulls cash without touching a low-rate 1st lien or paying its prepay penalty. Qualifies on <strong style={{ color: dc.cream }}>combined</strong> DSCR = rent ÷ (1st payment + 2nd payment), CLTV ≤ 75%.
+            {secondLienAvailable ? (
+              <>This illustrative second-lien scenario preserves the entered first lien and models <strong style={{ color: dc.cream }}>combined</strong> DSCR = rent / (first payment + second payment), using a 75% CLTV assumption. Availability and terms must be verified.</>
+            ) : (
+              <>Second-lien guidance is unavailable until the refinance and second-lien inputs produce valid results.</>
+            )}
           </Lead>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
             {[
-              { l: "2nd-lien draw", v: secondAmount, set: setSecondAmount, step: 5000, pre: "$" },
-              { l: "2nd-lien rate", v: secondRate, set: setSecondRate, step: 0.125, suf: "%" },
+              { l: "2nd-lien draw", v: secondAmount, set: setSecondAmount, step: 5000, min: 1, max: currentValue || undefined, pre: "$" },
+              { l: "2nd-lien rate", v: secondRate, set: setSecondRate, step: 0.125, min: 0, max: 25, suf: "%" },
             ].map((f) => (
               <label key={f.l} style={{ display: "block" }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)", marginBottom: 6 }}>{f.l}</span>
                 <div style={{ display: "inline-flex", alignItems: "center", background: dc.teal, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
                   {f.pre && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.pre}</span>}
-                  <input type="number" step={f.step} value={f.v} onChange={(e) => f.set(+e.target.value)} style={{ width: 140, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
+                  <input type="number" step={f.step} min={f.min} max={f.max} value={Number.isFinite(f.v) ? f.v : ""} onChange={(e) => f.set(parseNumericInput(e.target.value))} aria-invalid={!Number.isFinite(f.v)} style={{ width: 140, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
                   {f.suf && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.suf}</span>}
                 </div>
               </label>
@@ -932,10 +990,10 @@ export default function RefiTrackerPage({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }} className="dc-band-4">
             {[
-              { v: `${secondLien.combinedDSCR.toFixed(2)}x`, l: "combined DSCR", c: secondLien.combinedDSCR >= 1.0 ? dc.emerald : "#e06363" },
-              { v: `${secondLien.cltv.toFixed(0)}%`, l: "CLTV (cap 75%)", c: secondLien.cltv <= 75 ? dc.cream : "#e06363" },
-              { v: fmt$(secondLien.maxSecondLien), l: `max 2nd lien · ${secondLien.bindingConstraint}-bound`, c: dc.lemon },
-              { v: secondLien.qualifies ? "QUALIFIES" : "TIGHT", l: `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo`, c: secondLien.qualifies ? dc.emerald : dc.lemon },
+              { v: secondLienAvailable ? `${secondLien.combinedDSCR.toFixed(2)}x` : "Review", l: "combined DSCR", c: secondLienAvailable && secondLien.combinedDSCR >= 1.0 ? dc.emerald : "#e06363" },
+              { v: secondLienAvailable ? `${secondLien.cltv.toFixed(0)}%` : "Review", l: "CLTV (cap 75%)", c: secondLienAvailable && secondLien.cltv <= 75 ? dc.cream : "#e06363" },
+              { v: secondLienAvailable ? fmt$(secondLien.maxSecondLien) : "Review", l: secondLienAvailable ? `max 2nd lien · ${secondLien.bindingConstraint}-bound` : "max 2nd lien unavailable", c: secondLienAvailable ? dc.lemon : "#e06363" },
+              { v: secondLienAvailable ? (secondLien.qualifies ? "FITS MODEL" : "DOES NOT FIT") : "REVIEW INPUTS", l: secondLienAvailable ? `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo` : secondLien.reviewReasons[0] ?? "Check entered values", c: secondLienAvailable && secondLien.qualifies ? dc.emerald : "#e06363" },
             ].map((s) => (
               <div key={s.l} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
                 <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
@@ -944,7 +1002,9 @@ export default function RefiTrackerPage({
             ))}
           </div>
           <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5, maxWidth: "72ch" }}>
-            Best when your 1st lien is below market and carries a prepay penalty. Max draw is the lesser of the CLTV room and what combined DSCR supports. Illustrative — exact terms by lender.
+            {secondLienAvailable
+              ? "Best when your 1st lien is below market and carries a prepay penalty. Max draw is the lesser of the CLTV room and what combined DSCR supports. Illustrative — exact terms by lender."
+              : "Review the entered values above. No second-lien fit, payment, or maximum is modeled while this scenario is unavailable."}
           </p>
         </div>
       </section>
@@ -955,18 +1015,18 @@ export default function RefiTrackerPage({
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Refinance at maturity / ARM reset</div>
           <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "22ch" }}>When the loan comes due, can the property refinance out?</H2>
           <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "64ch", margin: "0 0 26px" }}>
-            At a balloon maturity or ARM reset the new loan is capped by <strong style={{ color: dc.cream }}>both</strong> the 75% rate-term LTV and the DSCR floor — whichever binds first. If it can't cover the existing balance, you bring cash to close (the proceeds gap).
+            For this modeled balloon or ARM-reset scenario, proceeds are limited by <strong style={{ color: dc.cream }}>both</strong> an assumed 75% rate-and-term LTV and an assumed DSCR floor. A displayed proceeds gap is a model result, not a payoff or cash-to-close statement.
           </Lead>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
             {[
-              { l: "DSCR covenant (maintenance)", v: covenantDscr, set: setCovenantDscr, step: 0.05, suf: "x", pre: "" },
-              { l: "In-place rent now (day-one)", v: inPlaceRent, set: setInPlaceRent, step: 50, pre: "$", suf: "" },
+              { l: "DSCR covenant (maintenance)", v: covenantDscr, set: setCovenantDscr, step: 0.05, min: 0.01, suf: "x", pre: "" },
+              { l: "In-place rent now (day-one)", v: inPlaceRent, set: setInPlaceRent, step: 50, min: 0, pre: "$", suf: "" },
             ].map((f) => (
               <label key={f.l} style={{ display: "block" }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)", marginBottom: 6 }}>{f.l}</span>
                 <div style={{ display: "inline-flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
                   {f.pre && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.pre}</span>}
-                  <input type="number" step={f.step} value={f.v} onChange={(e) => f.set(+e.target.value)} style={{ width: 150, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
+                  <input type="number" step={f.step} min={f.min} value={Number.isFinite(f.v) ? f.v : ""} onChange={(e) => f.set(parseNumericInput(e.target.value))} aria-invalid={!Number.isFinite(f.v)} style={{ width: 150, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
                   {f.suf && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.suf}</span>}
                 </div>
               </label>
@@ -974,7 +1034,7 @@ export default function RefiTrackerPage({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }} className="dc-band-4">
             {[
-              { v: fmt$(refiGap.maxNewLoan), l: `max new loan · ${refiGap.bindingConstraint}-bound`, c: dc.lemon },
+              { v: pageInputsValid ? fmt$(refiGap.maxNewLoan) : "Review", l: pageInputsValid ? `max new loan · ${refiGap.bindingConstraint}-bound` : "max new loan unavailable", c: pageInputsValid ? dc.lemon : "#e06363" },
               refiGap.canRetireBalance
                 ? { v: fmt$(refiGap.cashOutAvailable), l: "cash-out available", c: dc.emerald }
                 : { v: fmt$(refiGap.proceedsGap), l: "cash to close (gap)", c: "#e06363" },
@@ -990,7 +1050,13 @@ export default function RefiTrackerPage({
 
           {/* debt-test flags */}
           <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
-            {!refiGap.canRetireBalance && (
+            {!pageInputsValid && (
+              <div style={{ background: "rgba(224,99,99,0.1)", border: "1px solid rgba(224,99,99,0.4)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e0635f", marginBottom: 4 }}>Review inputs</div>
+                <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>Refinance proceeds are unavailable until all required values are finite and within the displayed model ranges.</p>
+              </div>
+            )}
+            {pageInputsValid && !refiGap.canRetireBalance && (
               <div style={{ background: "rgba(224,99,99,0.1)", border: "1px solid rgba(224,99,99,0.4)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e0635f", marginBottom: 4 }}>Refi proceeds gap · {refiGap.bindingConstraint}-constrained</div>
                 <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>
@@ -998,13 +1064,13 @@ export default function RefiTrackerPage({
                 </p>
               </div>
             )}
-            {covenant.status !== "OK" && (
+            {pageInputsValid && covenant.status !== "OK" && (
               <div style={{ background: covenant.status === "BREACH" ? "rgba(224,99,99,0.1)" : "rgba(230,184,77,0.1)", border: `1px solid ${covenant.status === "BREACH" ? "rgba(224,99,99,0.4)" : "rgba(230,184,77,0.4)"}`, borderLeft: `3px solid ${covenant.status === "BREACH" ? "#e06363" : "#e6b84d"}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: covenant.status === "BREACH" ? "#e0635f" : "#e6b84d", marginBottom: 4 }}>DSCR covenant · {covenant.status}</div>
                 <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{covenant.note}</p>
               </div>
             )}
-            {dayOne.leaseUpRisk && (
+            {auxiliaryGuidance.debtGuidanceAvailable && dayOne.leaseUpRisk && (
               <div style={{ background: "rgba(230,184,77,0.1)", border: "1px solid rgba(230,184,77,0.4)", borderLeft: "3px solid #e6b84d", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e6b84d", marginBottom: 4 }}>Day-one vs stabilized · lease-up risk</div>
                 <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{dayOne.note}</p>
@@ -1013,7 +1079,9 @@ export default function RefiTrackerPage({
           </div>
 
           <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5, maxWidth: "72ch" }}>
-            Max new loan = lesser of the 75% rate-term LTV and what the DSCR floor (1.00x) supports at the projected {projectedRate}% rate. Covenant test uses current rent ÷ current PITIA. Illustrative — exact terms by lender.
+            {auxiliaryGuidance.debtGuidanceAvailable
+              ? `Modeled maximum = lesser of the assumed 75% rate-and-term LTV and what the assumed 1.00x DSCR floor supports at the entered ${auxiliaryGuidance.projectedRateLabel} rate. Covenant test uses entered rent / current PITIA. Illustrative only; verify actual terms and calculations.`
+              : "Refinance proceeds and covenant guidance are unavailable until all required inputs are valid."}
           </p>
         </div>
       </section>

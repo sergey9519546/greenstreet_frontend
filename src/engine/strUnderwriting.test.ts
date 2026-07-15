@@ -39,6 +39,36 @@ describe("computeSTRMonthlySeasonality", () => {
     const peak = Math.max(...US_NATIONAL_STR_SEASONALITY.map((m) => m.index));
     expect(US_NATIONAL_STR_SEASONALITY.find((m) => m.index === peak)!.month).toBe("Jul");
   });
+
+  it("falls back safely for empty and malformed seasonality arrays", () => {
+    const empty = computeSTRMonthlySeasonality(120_000, 3_000, 20, []);
+    const malformed = computeSTRMonthlySeasonality(
+      120_000,
+      3_000,
+      20,
+      [{ month: "Jan", index: Number.NaN }] as any,
+    );
+
+    expect(empty.months).toHaveLength(12);
+    expect(malformed.months).toHaveLength(12);
+    expect(empty.warningMessage).toMatch(/national baseline/i);
+    expect(malformed.warningMessage).toMatch(/national baseline/i);
+  });
+
+  it("bounds invalid haircut inputs and never emits non-finite metrics", () => {
+    const result = computeSTRMonthlySeasonality(Number.POSITIVE_INFINITY, Number.NaN, 250);
+    const numericValues: number[] = [];
+    const collectNumbers = (value: unknown) => {
+      if (typeof value === "number") numericValues.push(value);
+      else if (Array.isArray(value)) value.forEach(collectNumbers);
+      else if (value && typeof value === "object") Object.values(value).forEach(collectNumbers);
+    };
+
+    collectNumbers(result);
+    expect(numericValues.every(Number.isFinite)).toBe(true);
+    expect(result.warningMessage).toMatch(/0% to 100%/i);
+    expect(result.warningMessage).toMatch(/incomplete|unknown/i);
+  });
 });
 
 describe("checkSTRLegality", () => {
@@ -86,14 +116,14 @@ describe("evaluateSTRUnderwriting", () => {
     hoaSTRPolicy: "ALLOWS",
   });
 
-  it("computes three independent worlds with the documented haircut lower than projected", () => {
+  it("keeps World 2's disclosed haircut and uses documented history exactly", () => {
     const r = evaluateSTRUnderwriting(property, 350_000, 7, 30, "NONE", 6_000, 2_500, 0, 0);
     expect(r.world1_LTR.haircutPercent).toBe(0);
     expect(r.world2_Projected.haircutPercent).toBe(20);
-    expect(r.world3_Documented.haircutPercent).toBe(10);
-    // World 2 net = 6000 × 0.80, World 3 net = 5000 × 0.90
+    expect(r.world3_Documented.haircutPercent).toBe(0);
+    // World 2 net = 6000 × 0.80; World 3 preserves the documented 5000.
     expect(r.world2_Projected.netIncome).toBeCloseTo(4_800, 0);
-    expect(r.world3_Documented.netIncome).toBeCloseTo(4_500, 0);
+    expect(r.world3_Documented.netIncome).toBe(5_000);
   });
 
   it("selects the most conservative (MIN) qualifying rent across worlds", () => {
@@ -111,5 +141,79 @@ describe("evaluateSTRUnderwriting", () => {
     expect(r.legalityGate).toBeDefined();
     expect(r.documentationChecklist.length).toBeGreaterThan(0);
     expect(r.monthlySeasonality.months).toHaveLength(12);
+  });
+
+  it("excludes missing documented history instead of letting zero govern", () => {
+    const r = evaluateSTRUnderwriting(
+      { ...property, strDocumentedRent: 0 },
+      350_000,
+      7,
+      30,
+      "NONE",
+      6_000,
+      2_500,
+      0,
+      0,
+    );
+
+    expect(r.world3_Documented.qualifyingRent).toBe(0);
+    expect(r.world3_Documented.method).toMatch(/excluded rather than treated as \$0/i);
+    expect(r.bestQualifyingRent).toBeGreaterThan(0);
+    expect(r.bestWorld).not.toBe(r.world3_Documented.name);
+  });
+
+  it.each([1, 2_800])(
+    "preserves exact documented history of $%d when legality is uncertain",
+    (documentedRent) => {
+      const r = evaluateSTRUnderwriting(
+        { ...property, strDocumentedRent: documentedRent, hoaSTRPolicy: "UNKNOWN" },
+        350_000,
+        7,
+        30,
+        "NONE",
+        6_000,
+        2_500,
+        0,
+        0,
+      );
+
+      expect(r.legalityGate.status).toBe("UNCERTAIN");
+      expect(r.world3_Documented.grossIncome).toBe(documentedRent);
+      expect(r.world3_Documented.haircutPercent).toBe(0);
+      expect(r.world3_Documented.netIncome).toBe(documentedRent);
+      expect(r.world3_Documented.qualifyingRent).toBe(documentedRent);
+      expect(r.world3_Documented.qualifyingRent).not.toBe(property.marketRent);
+      expect(r.bestWorld).toBe(r.world1_LTR.name);
+    },
+  );
+
+  it("keeps the conservative minimum when all rent sources are valid", () => {
+    const r = evaluateSTRUnderwriting(property, 350_000, 7, 30, "NONE", 6_000, 2_500, 0, 0);
+    expect(r.bestQualifyingRent).toBe(Math.min(3_000, 6_000 * 0.8, 5_000));
+  });
+
+  it("returns an explicit incomplete result with finite numbers for impossible payment inputs", () => {
+    const r = evaluateSTRUnderwriting(
+      property,
+      Number.POSITIVE_INFINITY,
+      Number.NaN,
+      0,
+      "NONE",
+      Number.NaN,
+      2_500,
+      0,
+      0,
+    );
+    const numericValues: number[] = [];
+    const collectNumbers = (value: unknown) => {
+      if (typeof value === "number") numericValues.push(value);
+      else if (Array.isArray(value)) value.forEach(collectNumbers);
+      else if (value && typeof value === "object") Object.values(value).forEach(collectNumbers);
+    };
+
+    collectNumbers(r);
+    expect(numericValues.every(Number.isFinite)).toBe(true);
+    expect(r.bestQualifyingRent).toBe(0);
+    expect(r.bestWorld).toMatch(/^Incomplete/);
   });
 });

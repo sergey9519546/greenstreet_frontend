@@ -48,6 +48,17 @@ describe("computeReassessedTax", () => {
     expect(computeReassessedTax(300_000, "CA", 1_000).note).toMatch(/Prop 13/);
     expect(computeReassessedTax(300_000, "FL", 1_000).note).toMatch(/Save Our Homes/);
   });
+
+  it("sanitizes invalid values and never emits a negative supplemental bill", () => {
+    const invalid = computeReassessedTax(Number.NaN, " ca ", -1_000, Number.POSITIVE_INFINITY);
+    expect(invalid.reassessedAnnualTax).toBe(0);
+    expect(invalid.deltaAnnual).toBe(0);
+    expect(invalid.supplementalBillEstimate).toBe(0);
+
+    const lowerBuyerBill = computeReassessedTax(100_000, "CA", 5_000);
+    expect(lowerBuyerBill.deltaAnnual).toBeLessThan(0);
+    expect(lowerBuyerBill.supplementalBillEstimate).toBe(0);
+  });
 });
 
 describe("computeReassessmentDSCRImpact", () => {
@@ -70,6 +81,22 @@ describe("computeReassessmentDSCRImpact", () => {
     const res = computeReassessmentDSCRImpact(500_000, "CA", 3_000, 2_400, 2_000, 2_000);
     expect(res.taxDeltaAnnual).toBe(0);
     expect(res.dscrImpact).toBe(0);
+  });
+
+  it("clamps invalid inputs without producing negative supplemental bills", () => {
+    const res = computeReassessmentDSCRImpact(
+      500_000,
+      "CA",
+      Number.NaN,
+      -2_400,
+      8_000,
+      6_000,
+    );
+    expect(res.pitiaBefore).toBe(0);
+    expect(res.pitiaAfter).toBe(0);
+    expect(res.dscrBefore).toBe(0);
+    expect(res.dscrAfter).toBe(0);
+    expect(res.supplementalBillEstimate).toBe(0);
   });
 });
 

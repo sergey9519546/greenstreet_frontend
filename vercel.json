@@ -1,6 +1,41 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/foreign-nationals", "destination": "/non-us-investors", "permanent": true },
+    { "source": "/portfolio-builders", "destination": "/tools/portfolio", "permanent": true },
+    { "source": "/partners", "destination": "/partnerships", "permanent": true },
+    { "source": "/privacy-policy", "destination": "/legal/privacy-policy", "permanent": true },
+    { "source": "/terms-of-service", "destination": "/legal/terms-of-service", "permanent": true },
+    { "source": "/book-demo", "destination": "/rate-quiz", "permanent": true },
+    { "source": "/decision-support", "destination": "/tools/decision-support", "permanent": true },
+    { "source": "/tools/arm", "destination": "/tools/arm-reset", "permanent": true },
+    { "source": "/tools/irr", "destination": "/tools/returns", "permanent": true },
+    { "source": "/tools/dscr-calculator", "destination": "/dscr-calculator", "permanent": true },
+    { "source": "/tools/lender-intel", "destination": "/lender-intel", "permanent": true },
+    { "source": "/tools/state-laws", "destination": "/state-laws", "permanent": true },
+    { "source": "/tools/deal-analyzer", "destination": "/deal-analyzer", "permanent": true },
+    { "source": "/tools/borrower-profiles", "destination": "/borrower-profiles", "permanent": true },
+    { "source": "/dashboard", "destination": "/investgo", "permanent": true },
+    { "source": "/broker-portal", "destination": "/investgo", "permanent": true },
+    { "source": "/tools/workspace", "destination": "/investgo/analyze", "permanent": true },
+    { "source": "/tools/deal-workspace", "destination": "/investgo/analyze", "permanent": true },
+    { "source": "/tools/sensitivity", "destination": "/investgo/sensitivity", "permanent": true },
+    { "source": "/tools/structure-optimizer", "destination": "/investgo/optimize", "permanent": true },
+    { "source": "/tools/scenario-history", "destination": "/investgo/history", "permanent": true }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.ts" },
     { "source": "/health", "destination": "/api/index.ts" },
