@@ -424,7 +424,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     ))}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
                       <a href="/products" onClick={(e) => { e.preventDefault(); onNavigate?.('products'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
-                        See all 19 programs →
+                        See all 7 programs →
                       </a>
                       <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: LEMON, textDecoration: 'none', opacity: 0.85 }}>
                         Which program fits me? →

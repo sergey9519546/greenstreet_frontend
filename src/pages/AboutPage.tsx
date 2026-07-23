@@ -18,13 +18,13 @@ const JOBS = [
   { title: "Senior Quant Engineer" },
   { title: "Full-Stack Engineer, Tools" },
   { title: "Compliance Counsel — State Rules" },
-  { title: "Account Executive, Brokers" },
+  { title: "Account Executive, Investor Relations" },
 ];
 
 const VALUES = [
   { heading: "Speed is the product",                    body: "A deal that stalls at pricing costs your borrower real money. We built the engine to give you a defensible number in seconds — not a spreadsheet round-trip or a call to the lender." },
   { heading: "No black boxes",                          body: "Every figure Greenstreet produces is computed by versioned code with a statutory citation behind every rule — never an AI-generated estimate. When a regulator asks where a number came from, we hand them the source." },
-  { heading: "Your borrower stays yours",               body: "We are a software platform, not a lender, not a referral marketplace. We never touch your client relationship, share your pipeline data, or take a cut of your deal. Your business is yours." },
+  { heading: "Your deal stays yours",                   body: "Greenstreet originates your loan directly under its own brand — funded through our wholesale lending partner, Cake — never a marketplace shopping your file to competing lenders. We don't sell your data or tack on a referral markup. One desk underwrites your deal, start to close." },
   { heading: "Compliance is a feature, not a footnote", body: "State prepayment-penalty rules, DSCR floors, seasoning requirements — baked into every output from the start, not an afterthought appended to a printout after the fact." },
 ];
 
@@ -129,11 +129,12 @@ export default function AboutPage({
             }}
           >
             DSCR loans let rental-property owners qualify on the property's rent —
-            not their personal income. Greenstreet is the software platform that
-            makes that process fast, accurate, and defensible. Founded by a broker
-            and a quant who watched good deals die at the lender because the math
-            was wrong. We built the engine we wished existed: deterministic,
-            provenance-tracked, every line citable.
+            not their personal income. Greenstreet originates these loans directly
+            for real estate investors, funded through our wholesale lending
+            partner, Cake. Founded by a broker and a quant who watched good deals
+            die at the lender because the math was wrong, we built the engine we
+            wished existed to make the process fast, accurate, and defensible:
+            deterministic, provenance-tracked, every line citable.
           </Lead>
 
           {/* Hero meta */}
@@ -338,11 +339,11 @@ export default function AboutPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Brokers, investors and the borrowers they serve deserve the same math
-              an institution runs. Every figure Greenstreet produces is computed by
-              versioned code with a statutory citation behind every rule — never an
-              AI-generated estimate. When a regulator, a lender, or a borrower asks
-              where a number came from, we hand them the source.
+              Real estate investors deserve the same math an institution runs.
+              Every figure Greenstreet produces is computed by versioned code
+              with a statutory citation behind every rule — never an
+              AI-generated estimate. When a regulator or an investor asks where
+              a number came from, we hand them the source.
             </p>
           </div>
         </div>

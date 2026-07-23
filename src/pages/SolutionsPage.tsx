@@ -366,7 +366,7 @@ export default function SolutionsPage({
               margin: 0,
             }}
           >
-            Greenstreet is the lender — no middlemen, no broker portals. Whether
+            Greenstreet originates your loan directly — no middlemen, no broker shopping. Whether
             you're closing your first rental, running a short-term rental on
             Airbnb, building a portfolio of 40 doors, or stress-testing an ARM
             reset, every product runs off the same deterministic underwriting

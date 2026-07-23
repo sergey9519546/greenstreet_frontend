@@ -53,14 +53,14 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Program Intelligence",
-    desc: "Filter all 19 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
+    desc: "Filter all 7 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
     cta: "Match my file to a program",
     view: "products",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Loan Programs",
-    panelMetric: "19",
+    panelMetric: "7",
     panelNote: "Programs ranked by fit score",
   },
   {
@@ -489,8 +489,9 @@ export default function ProductsPage({
               Eleven tools for DSCR rental-loan underwriting — from a 60-second
               deal check to a full after-tax returns model. Every tool runs off the
               same deterministic core: versioned math, statutory citations, no
-              AI-generated numbers. Brokers typically use three tools. Investors
-              use five. Funds use all eleven. Start anywhere.
+              AI-generated numbers. First-time investors typically use three
+              tools. Repeat investors use five. Portfolio builders and funds use
+              all eleven. Start anywhere.
             </Lead>
           </div>
           <MotionWorkbench mode="sim" value="11" label="Connected tools" />
@@ -639,7 +640,7 @@ export default function ProductsPage({
               }}
             >
               New to DSCR? Start with the Deal Analyzer — it covers everything a
-              first-time investor or broker needs in a single screen. Or see the
+              first-time investor needs in a single screen. Or see the
               recommended workflow for your role, or book a 15-minute walkthrough.
             </p>
             <button
