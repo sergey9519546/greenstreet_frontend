@@ -76,7 +76,7 @@ export function computeReturns(
   const taxAnnual = property.annualTaxes;
   const insAnnual = property.annualInsurance;
   const hoaAnnual = property.hoa * 12;
-  const floodAnnual = property.floodInsurance;
+  const floodAnnual = property.floodInsurance * 12; // floodInsurance is MONTHLY — annualize like hoa (bug audit #1)
 
   const totalOpEx = mgmtAnnual + maintAnnual + turnoverAnnual + taxAnnual + insAnnual + hoaAnnual + floodAnnual;
   const noi = egiAnnual - totalOpEx;

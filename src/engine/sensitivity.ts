@@ -47,7 +47,7 @@ function mFixed(
   hoa: number,
   floodInsurance: number,
 ): number {
-  return annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  return annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
 }
 
 /** Compute full PITIA for an amortizing loan (no IO) */
@@ -804,10 +804,10 @@ export function computeBreakevenResult(
   // ── Tax / Insurance Breakeven ────────────────────────────────────────
   // How much would annual taxes need to decrease for DSCR = 1.0?
   const targetFixed1_0 = qualifyingRent - pi;
-  const targetTaxMo1_0 = targetFixed1_0 - (annualInsurance / 12) - hoa - (floodInsurance / 12);
+  const targetTaxMo1_0 = targetFixed1_0 - (annualInsurance / 12) - hoa - (floodInsurance);
   const taxAppealNeeded = r0(Math.max(0, (annualTaxes / 12 - targetTaxMo1_0) * 12));
 
-  const targetInsMo1_0 = targetFixed1_0 - (annualTaxes / 12) - hoa - (floodInsurance / 12);
+  const targetInsMo1_0 = targetFixed1_0 - (annualTaxes / 12) - hoa - (floodInsurance);
   const insuranceReshopNeeded = r0(Math.max(0, (annualInsurance / 12 - targetInsMo1_0) * 12));
 
   const taxInsuranceBreakeven = { taxAppealNeeded, insuranceReshopNeeded };

@@ -97,7 +97,7 @@ export function computeStressMatrix(
     property.annualTaxes / 12 +
     property.annualInsurance / 12 +
     property.hoa +
-    property.floodInsurance / 12;
+    property.floodInsurance; // MONTHLY — do not divide by 12 (bug audit #1)
 
   // Track 2 haircut assumptions (per strategy)
   const vacancyPct = 8;

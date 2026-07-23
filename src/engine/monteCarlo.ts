@@ -118,7 +118,7 @@ export function runMonteCarlo(
         maintenanceShock = maintenanceMin + rng() * (maintenanceMax - maintenanceMin);
       }
 
-      const monthlyPITIA = currentPI + currentTaxes + currentInsurance + property.hoa + (property.floodInsurance || 0) / 12;
+      const monthlyPITIA = currentPI + currentTaxes + currentInsurance + property.hoa + (property.floodInsurance || 0); // flood is MONTHLY (bug audit #1)
       // Track 2 cash flow: effective rent (after vacancy) less ongoing mgmt + maintenance % less PITIA less one-off maint shock
       const cashFlow =
         effectiveRent
@@ -136,7 +136,7 @@ export function runMonteCarlo(
     annualCashFlows.push(yearCashFlow);
 
     // Track 1 DSCR (qualification — gross rent, no vacancy)
-    const simPITIA = currentPI + currentTaxes + currentInsurance + property.hoa + (property.floodInsurance || 0) / 12;
+    const simPITIA = currentPI + currentTaxes + currentInsurance + property.hoa + (property.floodInsurance || 0); // flood is MONTHLY (bug audit #1)
     const simTrack1DSCR = simPITIA > 0 ? currentRent / simPITIA : 0;
     dscrValues.push(simTrack1DSCR);
 

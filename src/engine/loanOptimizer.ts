@@ -224,7 +224,7 @@ export function rescueTrack1(
     property.annualTaxes / 12 +
     property.annualInsurance / 12 +
     property.hoa +
-    property.floodInsurance / 12;
+    property.floodInsurance; // MONTHLY — do not divide by 12 (bug audit #1)
   const currentPI = pitia - fixedExpenses;
   const currentRent = currentTrack1DSCR * pitia;
   const targetRent = targetDSCR * pitia;
