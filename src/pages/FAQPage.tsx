@@ -57,13 +57,13 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "What credit score do I need?",
-    a: "Greenstreet's Core program requires 660+. The Flex program goes to 640 with compensating factors. Going from 660 to 740+ can save 0.75–1.50% in rate and unlock the Premier tier. ITIN borrowers and foreign nationals without a U.S. Social Security Number qualify on the Global program.",
+    a: "Greenstreet's programs start at 620 FICO (Maple and Birch); Cedar and Aspen open at 640, and Oak, Willow, and Magnolia at 660. Higher credit unlocks better leverage and pricing — moving from 660 to 740+ can save roughly 0.75–1.50% in rate and reach the best-priced tier (740+ FICO at 75% LTV). ITIN borrowers and foreign nationals without a U.S. Social Security Number qualify on the Maple, Aspen, Willow, and Magnolia programs, which carry foreign-national paths.",
     src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
   },
   {
     group: "Qualification",
     q: "How much do I need to put down?",
-    a: "The standard minimum is 20% down (80% LTV — how the loan amount compares to the property value). Greenstreet prices its best rates at 75% LTV (25% down). A strong file (740+ FICO, DSCR at or above 1.0, SFR purchase) accesses the Premier tier at that level. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
+    a: "The standard minimum is 20% down (80% LTV — how the loan amount compares to the property value). Greenstreet prices its best rates at 75% LTV (25% down). A strong file (740+ FICO, DSCR at or above 1.0, SFR purchase) reaches the best-priced tier at that level. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
     src: "Greenstreet lender matrix · Apr 2026",
   },
   {
@@ -81,8 +81,8 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "Can a foreign national or ITIN borrower get a DSCR loan?",
-    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Foreign nationals with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
-    src: "Greenstreet Global program matrix · FIRPTA IRC §897 · Q2 2026",
+    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Foreign nationals with no U.S. credit qualify on Greenstreet's foreign-national programs — Maple, Aspen, Willow, and Magnolia. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
+    src: "Greenstreet foreign-national programs (Maple / Aspen / Willow / Magnolia) · FIRPTA IRC §897 · Q2 2026",
     cta: { label: "See if your file qualifies →", action: "qualify" },
   },
   {

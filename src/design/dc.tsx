@@ -128,7 +128,7 @@ export const DC_CSS = `
 // Scroll/entrance animation over a scope. Pages add className="gs-reveal" to sections,
 // id="gs-hero-content" to the hero column, and data-count="N" to count-up numbers.
 // Honors prefers-reduced-motion: numbers snap to final, sections stay fully visible.
-export function useDcGsap(scope: React.RefObject<HTMLElement>) {
+export function useDcGsap(scope: React.RefObject<HTMLElement | null>) {
   useGSAP(
     () => {
       const reduce = prefersReducedMotion();

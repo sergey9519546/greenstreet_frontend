@@ -21,7 +21,7 @@ import { swatch, radius, font } from "../theme";
 
 interface Props {
   onBack?: () => void;
-  onNavigate?: (view: string) => void;
+  onNavigate?: (view: any) => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
