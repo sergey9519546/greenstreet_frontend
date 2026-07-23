@@ -403,6 +403,15 @@ function buildVerdict(track1: DSCRTrack, track2: DSCRTrack): DualTrackVerdict {
 // PITIA CALCULATION (Section 5.3)
 // ============================================================
 
+/**
+ * UNIT CONVENTION (bug audit #1 — FLOOD-INSURANCE UNIT MISMATCH):
+ *   annualTaxes / annualInsurance are ANNUAL figures → divided by 12 below.
+ *   hoa and floodInsurance are both already MONTHLY (matches DealRequest.hoa /
+ *   DealRequest.floodInsurance in inputs.ts, and irrWaterfall.ts's ×12
+ *   annualization of both) — they are used AS-IS, never divided by 12.
+ *   Previously floodInsurance was wrongly divided by 12 here as if it were
+ *   annual, understating flood cost ~12x and inflating the gating Track-1 DSCR.
+ */
 export function calculatePITIA(
   loanAmount: number,
   rate: number,
@@ -411,7 +420,7 @@ export function calculatePITIA(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see unit convention above)
   mortgageInsurance: number = 0,
 ): PITIABreakdown {
   const termMonths = termYears * 12;
@@ -430,7 +439,8 @@ export function calculatePITIA(
 
   const taxes = annualTaxes / 12;
   const insurance = annualInsurance / 12;
-  const flood = floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY — do NOT divide by 12.
+  const flood = floodInsurance;
   const mi = mortgageInsurance;
 
   const total = pi + taxes + insurance + hoa + flood + mi;
@@ -464,10 +474,11 @@ export function solveDealBreakRate(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see calculatePITIA unit convention)
 ): number {
   // Target: P&I = qualifyingRent - fixedExpenses (for DSCR = 1.0)
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY (like hoa) — do NOT divide by 12.
+  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const targetPI = qualifyingRent - fixedExpenses;
 
   if (targetPI <= 0) return 0; // Impossible: fixed expenses exceed income
@@ -510,12 +521,13 @@ export function solveMaxPurchasePrice(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see calculatePITIA unit convention)
   targetDSCR: number = 1.0,
 ): number {
   // Max PITIA = qualifyingRent / targetDSCR
   const maxPITIA = qualifyingRent / targetDSCR;
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY — do NOT divide by 12.
+  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const maxPI = maxPITIA - fixedExpenses;
 
   if (maxPI <= 0) return 0;
@@ -538,7 +550,7 @@ export function solveMinDownPayment(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — forwarded to solveMaxPurchasePrice unchanged
   targetDSCR: number = 1.0,
 ): { minDown: number; additionalDown: number } {
   const maxPrice = solveMaxPurchasePrice(

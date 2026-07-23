@@ -267,10 +267,12 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     const remainingTermAtReset = termMonths - monthsToReset;
     const loanBalanceAtReset = computeRemainingBalanceAtReset(loanAmount, dscr.solvedRate, termMonths, monthsToReset);
 
+    // Bug audit #1 (unit convention): floodInsurance is already MONTHLY (like
+    // hoa) — do NOT divide by 12 (see calculatePITIA in engine.ts).
     const monthlyFixedExpenses = input.property.annualTaxes / 12
       + input.property.annualInsurance / 12
       + input.property.hoa
-      + input.property.floodInsurance / 12;
+      + input.property.floodInsurance;
 
     const ioPeriodMonths = input.loan.ioPeriod === 'NONE' ? 0
       : input.loan.ioPeriod === '5_YR' ? 60
@@ -347,13 +349,23 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
   );
 
   // 9. Verdict
+  //
+  // IRR SCALE CONVENTION (bug audit #3): taxEngine.computeAfterTaxIRR returns
+  // afterTaxIRR/preTaxIRR as DECIMAL fractions (0.15 = 15%; see computeXIRR).
+  // returnsEngine.computeReturns returns leveredIRR/year1CashOnCash/entryCapRate
+  // as PERCENT (15.0 = 15%; see its own "as percentage" comments). decisionSupport's
+  // VerdictInput/ICMemoInput expect DECIMAL for afterTaxIRR/preTaxIRR/year1CoC
+  // (see computeReturnGrade's "afterTaxIRR is passed as a decimal" comment and its
+  // 0.08/0.12/0.15 thresholds). So: taxEngine-sourced values pass through UNCHANGED
+  // (already decimal — do NOT divide by 100 again; that was the bug: 0.15 → 0.0015,
+  // a 100x error), while returnsEngine-sourced PERCENT values get /100 to become decimal.
   const verdictInput: VerdictInput = {
     track1DSCR,
     track2DSCR,
     lenderMinDSCR: 1.0, // standard floor
-    afterTaxIRR: afterTaxIRR.afterTaxIRR / 100, // convert to decimal
-    preTaxIRR: afterTaxIRR.preTaxIRR / 100,
-    year1CoC: returns.year1CashOnCash / 100,
+    afterTaxIRR: afterTaxIRR.afterTaxIRR, // already decimal — see convention note above
+    preTaxIRR: afterTaxIRR.preTaxIRR,     // already decimal — see convention note above
+    year1CoC: returns.year1CashOnCash / 100, // returnsEngine gives percent -> convert to decimal
     dealBreakRate: dscr.dealBreakRate,
     solvedRate: dscr.solvedRate,
     rateHeadroomBps: dscr.rateHeadroomBps,
@@ -393,7 +405,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     preTaxIRR: returns.leveredIRR,
     preTaxP10: input.monteCarloP10IRR ?? returns.leveredIRR * 0.8,
     preTaxP90: input.monteCarloP90IRR ?? returns.leveredIRR * 1.2,
-    afterTaxIRR: afterTaxIRR.afterTaxIRR / 100,
+    afterTaxIRR: afterTaxIRR.afterTaxIRR, // already decimal — see IRR scale convention note above (bug audit #3)
     equityMultiple: returns.equityMultiple,
     sellerAnnualTax: input.sellerAnnualTax,
     reassessedAnnualTax: reassessment.reassessedAnnualTax,
