@@ -19,7 +19,7 @@ const FOOTER: { h: string; links: { label: string; view: PageView; href?: string
     links: [
       { label: "Deal Analyzer", view: "deal-analyzer" },
       { label: "DSCR Calculator", view: "dscr-calculator" },
-      { label: "Our DSCR Programs", view: "lender-intel" },
+      { label: "Loan Programs", view: "products" },
       { label: "State Rules", view: "state-laws" },
     ],
   },
@@ -253,8 +253,8 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
                   <a className="footer_link_wrap w-inline-block" href="/deal-analyzer" onClick={(e) => { e.preventDefault(); onNavigate("deal-analyzer"); }}>
                     <div className="footer_link_text u-weight-bold">Deal Analyzer</div>
                   </a>
-                  <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate("lender-intel"); }}>
-                    <div className="footer_link_text u-weight-bold">Our DSCR Programs</div>
+                  <a className="footer_link_wrap w-inline-block" href="/products" onClick={(e) => { e.preventDefault(); onNavigate("products"); }}>
+                    <div className="footer_link_text u-weight-bold">DSCR Loan Programs</div>
                   </a>
                   <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={(e) => { e.preventDefault(); onNavigate("state-laws"); }}>
                     <div className="footer_link_text u-weight-bold">State Regulations</div>
@@ -307,7 +307,7 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
           </div>
           <div className="footer_bottom_wrap">
             <div className="footer_bottom_contain u-container">
-              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved.</div>
+              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved. Greenstreet DSCR loans are funded through our wholesale lending partner, Cake (caketpo.com). Business-purpose loans only; not a commitment to lend.</div>
               <div className="footer_bottom_list">
                 <a className="footer_bottom_link_wrap w-inline-block" href="/privacy-policy" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/privacy-policy"); window.dispatchEvent(new PopStateEvent("popstate")); }}>
                   <div className="footer_bottom_link_text u-text-style-small">Privacy Policy</div>

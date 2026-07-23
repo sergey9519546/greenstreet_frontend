@@ -402,7 +402,6 @@ export interface StructureOption {
   prepayPenalty: string;
   prepaySchedule: PrepayPenaltySchedule;
   totalCostOfCapital: number;
-  bestLender: string;
   tags: string[];
   pppAllowed: boolean;
   pppStateNote: string;

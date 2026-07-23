@@ -674,7 +674,7 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
+        { label: "Loan Programs", view: "products" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
@@ -785,7 +785,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
       accent={BL_ACCENT}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
+        { label: "Loan Programs", view: "products" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}

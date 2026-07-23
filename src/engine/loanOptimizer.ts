@@ -758,7 +758,6 @@ export function generateStructureOptions(
       prepayPenalty: prepaySchedule.structure,
       prepaySchedule,
       totalCostOfCapital: Math.round(fiveYearCost),
-      bestLender: findBestLenderName(property, borrower, testLoan, strategy, result.dscr, structLoanAmount, adjustedRate),
       tags,
       pppAllowed: pppCheck.allowed,
       pppStateNote: pppCheck.legalWarning || pppCheck.reason,
@@ -903,44 +902,3 @@ function computeFiveYearCost(
   );
 }
 
-function findBestLenderName(
-  property: PropertyInputs,
-  borrower: BorrowerProfile,
-  loan: LoanStructure,
-  _strategy: RentalStrategy,
-  dscr: number,
-  loanAmount: number,
-  solvedRate: number,
-): string {
-  const lenderData: {
-    name: string;
-    rateAdjustment: number;
-    minFICO: number;
-    minDSCR: number;
-  }[] = [
-    { name: 'Griffin Funding', rateAdjustment: 0.25, minFICO: 0, minDSCR: 0.75 },
-    { name: 'Kiavi', rateAdjustment: 0.50, minFICO: 660, minDSCR: 1.1 },
-    { name: 'Visio Lending', rateAdjustment: -0.125, minFICO: 680, minDSCR: 0.75 },
-    { name: 'Lima One Capital', rateAdjustment: -0.375, minFICO: 660, minDSCR: 0.90 },
-    { name: 'Defy Mortgage', rateAdjustment: -0.125, minFICO: 640, minDSCR: 0.75 },
-    { name: 'Easy Street Capital', rateAdjustment: -0.25, minFICO: 620, minDSCR: 0 },
-    { name: 'New Silver', rateAdjustment: 0.75, minFICO: 660, minDSCR: 0.75 },
-    { name: 'Deephaven Mortgage', rateAdjustment: 0.25, minFICO: 660, minDSCR: 0.75 },
-  ];
-
-  let bestName = '\u2014';
-  let bestRate = solvedRate;
-
-  for (const lender of lenderData) {
-    if (borrower.ficoScore < lender.minFICO) continue;
-    if (dscr < lender.minDSCR) continue;
-
-    const lenderRate = solvedRate + lender.rateAdjustment;
-    if (lenderRate < bestRate) {
-      bestRate = lenderRate;
-      bestName = lender.name;
-    }
-  }
-
-  return bestName;
-}

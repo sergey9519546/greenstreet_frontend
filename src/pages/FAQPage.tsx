@@ -6,7 +6,7 @@ const AS_OF = "Jun 25, 2026";
 // Source attribution per answer — refreshed 2026-06-25.
 // Each `src` is the primary source a curious reader (or AI search engine) can verify.
 // Groups: Basics, Qualification, Income & Property, Refinance, Compliance & Regulatory
-const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: string; action: "calculator" | "qualify" | "state-laws" | "lender-intel" } }[] = [
+const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: string; action: "calculator" | "qualify" | "state-laws" } }[] = [
   // ── GROUP: The basics ─────────────────────────────────────────────────────────
   {
     group: "The basics",
@@ -185,11 +185,10 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
 
 // Resolve a CTA action to the correct navigation target
 function useFaqCtaHandler(onNavigate: (v: string) => void) {
-  return (action: "calculator" | "qualify" | "state-laws" | "lender-intel") => {
+  return (action: "calculator" | "qualify" | "state-laws") => {
     if (action === "qualify") { (window as any).openQualify?.(); return; }
     if (action === "calculator") { onNavigate("dscr-calculator"); return; }
     if (action === "state-laws") { onNavigate("state-laws"); return; }
-    if (action === "lender-intel") { onNavigate("lender-intel"); return; }
   };
 }
 

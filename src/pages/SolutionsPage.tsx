@@ -4,7 +4,8 @@ import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifac
 
 // ── Audience segments ─────────────────────────────────────────────────────────
 // Audience: real estate investors, foreign nationals, STR/Airbnb, portfolio
-// builders. We ARE the lender AND the broker — direct to investors.
+// builders. Greenstreet originates direct to investors; loans are funded
+// through our wholesale lending partner, Cake.
 interface Segment {
   tag: string;
   title: string;

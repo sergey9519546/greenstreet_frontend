@@ -276,7 +276,6 @@ export default function BorrowerProfilesPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Get a preliminary estimate →", view: "dscr-calculator" }}
@@ -315,7 +314,7 @@ export default function BorrowerProfilesPage({
               margin: "0 0 28px",
             }}
           >
-            DSCR (Debt-Service Coverage Ratio) loans qualify on what the property earns — not your W-2. Greenstreet is the direct lender: no broker markup, no middleman, one underwriting desk. Pick your investor segment below.
+            DSCR (Debt-Service Coverage Ratio) loans qualify on what the property earns — not your W-2. Greenstreet originates every loan directly — one underwriting desk, funded through our wholesale lending partner, Cake. Pick your investor segment below.
           </Lead>
 
           {/* ── Jump-nav ── */}
@@ -456,7 +455,7 @@ export default function BorrowerProfilesPage({
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("lender-intel")}>See rate intel</button>
+              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>View loan programs</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
               Preliminary estimate only — not a commitment to lend.
@@ -746,7 +745,7 @@ export default function BorrowerProfilesPage({
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("lender-intel")}>Portfolio rate intel</button>
+              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>View loan programs</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
               Preliminary estimate only — not a commitment to lend.

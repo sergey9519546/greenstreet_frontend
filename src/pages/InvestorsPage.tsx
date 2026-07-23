@@ -26,7 +26,7 @@ const MYTHS = [
     myth: "All DSCR loans price the same.",
     truth:
       "Greenstreet programs span high-leverage DSCR, no-ratio DSCR (a program that skips the rent-to-payment test; usually needs more down or reserves), multi-family, short-term rental, and foreign national. Picking the right program moves your rate 100–150 bps. Program Match reads your file parameters and ranks which program fits — without a phone call.",
-    view: "lender-intel",
+    view: "products",
     cta: "Match my deal to a program",
   },
   {
@@ -42,7 +42,7 @@ const MYTHS = [
     myth: "Cash-out refinance always means waiting 12 months to season.",
     truth:
       "A cash-out refinance (replace your loan with a larger one and take the difference in cash) typically requires seasoning — many lenders make you wait a full year. Greenstreet seasons cash-out at six months on qualifying files. The STR program is also designed to recycle BRRRR capital faster than a conventional refi timeline.",
-    view: "lender-intel",
+    view: "products",
     cta: "See cash-out programs",
   },
 ];

@@ -84,7 +84,7 @@ const fmtPct = (n: number) => `${n.toFixed(3)}%`;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface SolveResult { deal: DSCRResult; topLenders: { name: string; score: number; tier: string; rank: number | null; topReasons: string[] }[] }
+interface SolveResult { deal: DSCRResult }
 interface SensResult { sensitivity: BreakevenResult }
 interface OptResult { options: StructureOption[] }
 interface StateResult { state: string; ppp: PPPCheckResult }
@@ -1059,31 +1059,6 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                     </WhiteCard>
                                   ))}
                                 </div>
-
-                                {/* Top Programs */}
-                                {solveResult!.topLenders.length > 0 && (
-                                  <WhiteCard style={{ padding: "20px" }}>
-                                    <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
-                                      <div>
-                                        <h4 className="font-bold text-sm" style={{ color: T.ink }}>Top Matching Programs</h4>
-                                        <p className="text-[11px] mt-0.5" style={{ color: T.faint }}>Programs ranked by fit score for this deal. Ready to submit to underwriting.</p>
-                                      </div>
-                                      <GhostBtn onClick={() => switchTab("optimize")}>
-                                        See all structures →
-                                      </GhostBtn>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {solveResult!.topLenders.map((l, i) => (
-                                        <div key={i} className="px-3 py-1.5 text-xs"
-                                          style={{ background: T.inputBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.sm }}>
-                                          <span className="font-bold" style={{ color: T.ink }}>{l.name}</span>
-                                          <span className="ml-2 font-mono" style={{ color: T.faint }}>{l.score}/100</span>
-                                          {l.tier && <span className="ml-2 font-semibold uppercase text-[9px]" style={{ color: swatch.rainforest }}>{l.tier}</span>}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </WhiteCard>
-                                )}
 
                                 {/* Quick-nav */}
                                 {(sensResult || optResult) && (

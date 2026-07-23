@@ -1,8 +1,6 @@
 import { parentPort } from "worker_threads";
 import {
   solveDSCR,
-  matchLenders,
-  scoreLenderMatch,
   checkPPPLegal,
   computeBreakevenResult,
   generateStructureOptions,
@@ -20,16 +18,7 @@ if (parentPort) {
         case "SOLVE": {
           const { property, borrower, loan, strategy } = buildEngineInputs(payload);
           const deal = solveDSCR(property, borrower, loan, strategy);
-          const fitResults = matchLenders(property, borrower, loan, strategy, deal.solvedRate);
-          const scoreResult = scoreLenderMatch(fitResults, loan, borrower, strategy);
-          const topLenders = scoreResult.topPicks.map((p) => ({
-            name: p.lenderName,
-            score: p.totalScore,
-            tier: p.tier,
-            rank: p.rankAmongEligible,
-            topReasons: p.topReasons.slice(0, 2),
-          }));
-          result = { deal, topLenders };
+          result = { deal };
           break;
         }
 

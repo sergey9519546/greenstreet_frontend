@@ -55,11 +55,11 @@ const TOOLS: Tool[] = [
     title: "Program Intelligence",
     desc: "Filter all 19 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
     cta: "Match my file to a program",
-    view: "lender-intel",
+    view: "products",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
-    panelTag: "Lender Intel",
+    panelTag: "Loan Programs",
     panelMetric: "19",
     panelNote: "Programs ranked by fit score",
   },
@@ -431,7 +431,6 @@ export default function ProductsPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "All tools", view: "products" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}

@@ -153,8 +153,8 @@ export function checkBRRRRSeasoningGate(
   // Standard: 6-12 months from acquisition for ARV-based cash-out
   const lenderRuleMonths = 6;
   const seasoningMet = monthsHeld >= lenderRuleMonths;
-  // Easy Street Capital waives 12-mo STR cash-out seasoning
-  const waivedByLender = strategy === 'STR' ? 'Easy Street Capital' : null;
+  // STR cash-out seasoning may be waived under the STR program
+  const waivedByLender = strategy === 'STR' ? 'STR program exception' : null;
 
   const carryCostDuringSeasoning = monthlyPITIA * Math.max(0, lenderRuleMonths - monthsHeld);
 

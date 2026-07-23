@@ -56,9 +56,10 @@ const DISCLOSURES: LegalDoc = {
     },
     {
       id: "lenders",
-      title: "5. Program information",
+      title: "5. Program information & funding partner",
       paras: [
-        "Greenstreet program parameters shown in the tools reflect current guidelines and are updated periodically. They are indicative, not commitments. Final terms are set by Greenstreet Finance after full underwriting.",
+        "Greenstreet program parameters shown in the tools reflect current guidelines and are updated periodically. They are indicative, not commitments. Final terms are set after full underwriting.",
+        "Greenstreet Finance originates its DSCR loan programs under its own brand. These loans are funded through Greenstreet's wholesale lending partner, Cake (caketpo.com). Program guidelines, eligibility matrices, and pricing shown on this site are based on that partner's published DSCR programs and are subject to change.",
       ],
     },
     {

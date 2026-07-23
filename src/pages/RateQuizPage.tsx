@@ -562,7 +562,6 @@ export default function RateQuizPage({ onNavigate }: Props) {
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calculator", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Laws", view: "state-laws" },
       ]}
       cta={{ label: "Speak to a specialist", onClick: () => (window as any).openQualify?.() }}

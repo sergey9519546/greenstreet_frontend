@@ -83,7 +83,7 @@ const STUDIES: Study[] = [
     challenge:
       "Discovering deals were marginal only after the appraisal was ordered. On paper the rent covered the payment. In reality, vacancy and management quietly pushed properties underwater on Track 2. Paying $3,000–7,000 per appraisal to get bad news that could have arrived on day one.",
     solution:
-      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit and funds in-house.",
+      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit, funded through our wholesale lending partner, Cake.",
     result:
       "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A foreign-national ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
     quote:

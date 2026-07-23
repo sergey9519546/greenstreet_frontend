@@ -101,7 +101,6 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       accent={RAIN}
       navLinks={[
         { label: "Calculator", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
       ]}
       cta={{ label: "Check a state →", onClick: scrollToTool }}
     >

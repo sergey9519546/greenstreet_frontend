@@ -45,15 +45,6 @@ export type {
   Purpose as EnginePurpose,
 } from './qualify';
 
-// --- Lender matching (real 19-lender provenance DB) ---
-export {
-  LENDERS,
-  getLenderById,
-  matchLenders,
-  computeQualifyingRentForLender,
-} from './lenders';
-export { scoreLenderMatch } from './lenderMatchScore';
-
 // --- State PPP / STR / usury facts ---
 export {
   checkPPPLegal,
@@ -102,7 +93,5 @@ export type {
   PPPCheckResult,
   PPPStateLaw,
   PPPStateStatus,
-  LenderProgram,
-  LenderFitResult,
   ProvenanceLabel,
 } from './types';

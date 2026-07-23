@@ -10,7 +10,6 @@ import QualifyWidget from "./components/QualifyWidget";
 const routeModules = {
   ComplianceDashboard: () => import("./components/ComplianceDashboard"),
   DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
-  LenderIntelPage: () => import("./pages/LenderIntelPage"),
   StateLawsPage: () => import("./pages/StateLawsPage"),
   FAQPage: () => import("./pages/FAQPage"),
   BlogPage: () => import("./pages/BlogPage"),
@@ -47,7 +46,6 @@ function warmAllRoutes() {
 
 const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
 const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
-const LenderIntelPage = lazy(routeModules.LenderIntelPage);
 const StateLawsPage = lazy(routeModules.StateLawsPage);
 const FAQPage = lazy(routeModules.FAQPage);
 const BlogPage = lazy(routeModules.BlogPage);
@@ -124,7 +122,6 @@ function viewToPath(view: PageView): string {
     case "marketing":         return "/";
     case "portal":            return "/investgo";
     case "dscr-calculator":   return "/dscr-calculator";
-    case "lender-intel":      return "/lender-intel";
     case "state-laws":        return "/state-laws";
     case "deal-analyzer":     return "/deal-analyzer";
     case "borrower-profiles": return "/borrower-profiles";
@@ -320,8 +317,6 @@ export default function App() {
         );
       case "dscr-calculator":
         return <DSCRCalculatorPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
-      case "lender-intel":
-        return <LenderIntelPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
         return <StateLawsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "faq":

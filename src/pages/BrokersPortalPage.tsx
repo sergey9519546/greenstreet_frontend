@@ -12,7 +12,7 @@ const BENEFITS = [
   {
     icon: "02",
     title: "Submit to underwriting",
-    desc: "Once your deal matches a program, send it straight to underwriting from the same screen — we are the lender. No copy-paste, no portal-hop.",
+    desc: "Once your deal matches a program, send it straight to underwriting from the same screen — Greenstreet underwrites in-house, funded through our wholesale lending partner, Cake. No copy-paste, no portal-hop.",
   },
   {
     icon: "03",
@@ -135,7 +135,7 @@ export default function BrokersPortalPage({
 
             {/* Purpose line */}
             <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-              InvestGO is your investor workspace where your priced deals live between sessions. Save a DSCR scenario, come back tomorrow, and Greenstreet underwrites and funds it in-house — all without re-entering data.
+              InvestGO is your investor workspace where your priced deals live between sessions. Save a DSCR scenario, come back tomorrow, and Greenstreet underwrites it in-house — funded through our wholesale lending partner, Cake — all without re-entering data.
             </div>
 
             {/* Sub */}

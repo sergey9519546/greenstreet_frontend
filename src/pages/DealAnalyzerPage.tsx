@@ -111,7 +111,6 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       accent={DA_ACCENT}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lenders", view: "lender-intel" },
       ]}
       cta={{ label: "Analyze a deal →", onClick: scrollToTool }}
     >
@@ -379,7 +378,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   </div>
                 ))}
                 <div style={{ marginTop: 14 }}>
-                  <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ fontSize: 13, fontWeight: 600, color: dc.rain, textDecoration: "none" }}>
+                  <a href="/products" onClick={(e) => { e.preventDefault(); onNavigate?.("products"); }} style={{ fontSize: 13, fontWeight: 600, color: dc.rain, textDecoration: "none" }}>
                     Full program matcher with FICO + LTV filters →
                   </a>
                 </div>
@@ -409,7 +408,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, whiteSpace: "nowrap", minHeight: 44 }}>
                 Get my rate →
               </a>
-              <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, border: `1.5px solid ${swatch.midnightFaded}`, whiteSpace: "nowrap", minHeight: 44 }}>
+              <a href="/products" onClick={(e) => { e.preventDefault(); onNavigate?.("products"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, border: `1.5px solid ${swatch.midnightFaded}`, whiteSpace: "nowrap", minHeight: 44 }}>
                 Browse programs
               </a>
             </div>

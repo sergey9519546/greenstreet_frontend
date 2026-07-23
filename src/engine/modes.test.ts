@@ -27,8 +27,6 @@ describe("DSCR Execution Modes", () => {
       expect(result.deal).toBeDefined();
       expect(result.deal.dscr).toBeGreaterThan(1.0);
       expect(result.deal.solvedRate).toBeCloseTo(6.125, 3); // Flagship computed solved rate is 6.125%
-      expect(result.topLenders).toBeInstanceOf(Array);
-      expect(result.topLenders.length).toBeGreaterThan(0);
     } finally {
       // Restore pool size configuration
       if (originalPoolSize !== undefined) {
