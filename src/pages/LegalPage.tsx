@@ -63,8 +63,27 @@ const DISCLOSURES: LegalDoc = {
       ],
     },
     {
+      id: "fair-lending",
+      title: "6. Fair lending & Equal Housing",
+      paras: [
+        "Greenstreet Finance is an Equal Housing Lender. We do not discriminate against any applicant on the basis of race, color, religion, national origin, sex, marital status, age, disability, or any other basis prohibited by the Equal Credit Opportunity Act (ECOA) or the Fair Housing Act.",
+        "This commitment applies to all Greenstreet Finance lending activity, marketing, and borrower communications, regardless of loan program.",
+      ],
+    },
+    {
+      id: "licensing",
+      title: "7. Licensing & identity",
+      paras: [
+        "Greenstreet Finance originates DSCR (Debt-Service Coverage Ratio) loans. These are business-purpose loans secured by investment properties and made to business entities and real estate investors — not consumer, owner-occupied, or personal/family/household-purpose mortgages.",
+        "The identifiers below are required for regulatory compliance and must be completed with Greenstreet Finance's actual, verified information before this page can be considered final — they are not yet filled in:",
+        "NMLS ID: [TODO — insert Greenstreet Finance NMLS ID]",
+        "Licensed in: [TODO — list licensed states]",
+        "Address: [TODO — insert business address]",
+      ],
+    },
+    {
       id: "liability",
-      title: "6. Limitation of liability",
+      title: "8. Limitation of liability",
       paras: [
         'Greenstreet is provided "as is." To the maximum extent permitted by law, Greenstreet Finance is not liable for losses arising from reliance on tool outputs. Your use confirms acceptance of these terms.',
       ],

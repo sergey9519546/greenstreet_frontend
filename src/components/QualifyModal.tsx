@@ -1929,7 +1929,12 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         policyVersion: "2026-06",
       },
       page: typeof window !== "undefined" ? window.location.pathname : "/",
-      createdAt: new Date().toISOString(),
+      // NOTE: field name must match firestore.rules `/leads` create rule,
+      // which requires `submittedAt` (not `createdAt`). A mismatch here
+      // makes every write DENIED, silently falling through to the visitor's
+      // own localStorage (unreadable by the business) — this was the root
+      // cause of 100% lead loss. Keep this in sync with firestore.rules.
+      submittedAt: new Date().toISOString(),
       // TODO: production lead endpoint / CRM
     };
 
@@ -1941,10 +1946,17 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         import("../firebase"),
         import("firebase/firestore"),
       ]);
+      // Primary path — Firestore allows anonymous create on /leads (see
+      // firestore.rules). This must succeed for every legitimate submission;
+      // localStorage below is a genuine last-resort fallback only, not a
+      // silent default.
       await addDoc(collection(db, "leads"), payload);
     } catch (err) {
-      console.warn(
-        "[QualifyModal] Firestore write failed, falling back to localStorage:",
+      // This should be rare (offline / network failure). Log loudly — a
+      // lead landing here is NOT visible to the business until manually
+      // recovered from the visitor's own browser storage.
+      console.error(
+        "[QualifyModal] Firestore lead write FAILED — falling back to localStorage; this lead will NOT reach the business automatically:",
         err
       );
       try {

@@ -31,7 +31,11 @@ service cloud.firestore {
       allow create: if isAuthenticated()
                     && request.resource.data.userId == request.auth.uid
                     && request.resource.data.keys().hasAll(['userId', 'createdAt', 'title']);
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    // Pin ownership: the update cannot reassign this deal to
+                    // another user's uid — new userId must match the existing one.
+                    && request.resource.data.userId == resource.data.userId;
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
@@ -55,6 +59,9 @@ service cloud.firestore {
       allow create: if
         // Must include these fields — extra fields are permitted (Firestore doesn't strip them)
         request.resource.data.keys().hasAll(['submittedAt']) &&
+        // submittedAt must be a real timestamp (e.g. serverTimestamp()) or an
+        // ISO string — this is what the client actually sends; reject junk types.
+        (request.resource.data.submittedAt is timestamp || request.resource.data.submittedAt is string) &&
         // Enforce string length caps on common text fields (if present)
         (!('email' in request.resource.data) || request.resource.data.email is string && request.resource.data.email.size() <= 200) &&
         (!('name' in request.resource.data)  || request.resource.data.name  is string && request.resource.data.name.size()  <= 200) &&

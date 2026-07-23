@@ -307,7 +307,12 @@ export function PageShell({ title, subtitle, children, onBack, onNavigate }: {
           </div>
           <div className="footer_bottom_wrap">
             <div className="footer_bottom_contain u-container">
-              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved. Greenstreet DSCR loans are funded through our wholesale lending partner, Cake (caketpo.com). Business-purpose loans only; not a commitment to lend.</div>
+              <div>
+                <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved. Greenstreet DSCR loans are funded through our wholesale lending partner, Cake (caketpo.com). Business-purpose loans only; not a commitment to lend.</div>
+                <div className="footer_bottom_text" style={{ marginTop: 6 }}>
+                  Greenstreet Finance is an <strong>Equal Housing Lender</strong>. We do not discriminate on any basis prohibited by the Equal Credit Opportunity Act (ECOA) or the Fair Housing Act.
+                </div>
+              </div>
               <div className="footer_bottom_list">
                 <a className="footer_bottom_link_wrap w-inline-block" href="/privacy-policy" onClick={(e) => { e.preventDefault(); window.history.pushState({}, "", "/privacy-policy"); window.dispatchEvent(new PopStateEvent("popstate")); }}>
                   <div className="footer_bottom_link_text u-text-style-small">Privacy Policy</div>
