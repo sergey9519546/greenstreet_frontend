@@ -2,6 +2,15 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
 const AS_OF = "Jun 25, 2026";
+// Computed rather than hardcoded so the "next review" promise can't silently
+// lapse the way a fixed date does — bump AS_OF and this follows automatically.
+const REVIEW_CADENCE_DAYS = 27;
+function reviewDateAfter(base: string, days: number): string {
+  const d = new Date(base);
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+const NEXT_REVIEW = reviewDateAfter(AS_OF, REVIEW_CADENCE_DAYS);
 
 // Source attribution per answer — refreshed 2026-06-25.
 // Each `src` is the primary source a curious reader (or AI search engine) can verify.
@@ -69,8 +78,8 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "How much cash do I need to keep in the bank after closing?",
-    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). At DSCR 1.25 or above: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add extra months for: short-term rentals (+3), condos (+3), credit score below 680 (+3), first-time investors (+3), loans above $1M (+6), foreign nationals (+6). These stack. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
-    src: "Greenstreet reserveEngine.ts · 5-overlay model",
+    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). Greenstreet's general reserve estimate starts from a DSCR-tiered base: at DSCR 1.25 or above, 3–6 months; at 1.00–1.24, 6–9 months; at 0.75–0.99, 9–12 months; below 0.75, 12 months. On top of that, overlays can add extra months for: short-term rental strategy (+3), credit score below 680 (+3, or +6 below 640), first-time investors (+3), loans above $1M (+3), foreign nationals (+6), LTV above 80% (+1), and California properties (+6, applied to every DSCR tier). Everything is capped at 12 months total. This is a general estimate — the specific program you qualify for may set its own reserve minimum (see that program's page), which governs your actual file. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
+    src: "Greenstreet reserveEngine.ts · DSCR-tiered base + overlay model",
   },
   {
     group: "Qualification",
@@ -456,7 +465,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             Reviewed
           </span>
           <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
-            All answers reviewed {AS_OF} · sources inline · next review Jul 22, 2026
+            All answers reviewed {AS_OF} · sources inline · next review {NEXT_REVIEW}
           </span>
         </div>
       </section>

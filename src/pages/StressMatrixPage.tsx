@@ -29,6 +29,17 @@ const ZONE_ACCENT: Record<StressRiskZone, string> = {
   DEAL_BREAK:  "#ff6b6b",
 };
 
+// Per-zone corner glyph so the heatmap doesn't rely on hue discrimination
+// alone to tell zones apart — every zone gets a distinct symbol, not just the
+// two most severe.
+const ZONE_GLYPH: Record<StressRiskZone, string> = {
+  SAFE:        "✓",
+  COMFORTABLE: "◆",
+  MARGINAL:    "!",
+  FRAGILE:     "🔥",
+  DEAL_BREAK:  "🔥",
+};
+
 // ── Plain-English verdict copy ────────────────────────────────────────────────
 function verdictCopy(dscr: number, zone: StressRiskZone): { headline: string; sub: string } {
   if (zone === "SAFE")        return { headline: "Strong — rent easily covers all costs",        sub: "This scenario leaves a comfortable buffer above the lender's minimum." };
@@ -756,8 +767,6 @@ export default function StressMatrixPage({
                                       const isHovered  = hoverCell !== null &&
                                         hoverCell.rateBps === offsetBps &&
                                         Math.abs(hoverCell.rentPct - cell.rentOffsetPct) < 0.001;
-                                      // danger zone: show flame indicator on high-risk cells
-                                      const isDanger = cell.riskZone === "DEAL_BREAK" || cell.riskZone === "FRAGILE";
                                       return (
                                         <td
                                           key={ci}
@@ -779,8 +788,8 @@ export default function StressMatrixPage({
                                         >
                                           <div className="sm-cell" style={cellStyle(cell.riskZone, isBaseCell, isHovered)}>
                                             {cell.track1DSCR.toFixed(2)}
-                                            {isDanger && !isBaseCell && !isHovered && (
-                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>🔥</span>
+                                            {!isBaseCell && !isHovered && (
+                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>{ZONE_GLYPH[cell.riskZone]}</span>
                                             )}
                                           </div>
                                         </td>

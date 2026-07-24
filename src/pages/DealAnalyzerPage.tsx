@@ -37,7 +37,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const dscr = pitia > 0 ? rent / pitia : 0;
   const cashFlow = rent - pitia;
   const noi = rent * 0.92 * 12 - tax - ins;
-  const capRate = (noi / price) * 100;
+  const capRate = price > 0 ? (noi / price) * 100 : 0;
   const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
   const ltv = 100 - down;
 
@@ -254,19 +254,19 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </p>
 
               {([
-                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16 },
-                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16 },
-                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16 },
-                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16 },
-                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16 },
+                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16, min: 1 },
+                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16, min: 0 },
+                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16, min: 0 },
+                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16, min: 0 },
+                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16, min: 0 },
+                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16, min: 0 },
+                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16, min: 0 },
               ] as const).map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
                   <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>{f.label}</span>
                   <div className="da-field">
                     {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.prefix}</span>}
-                    <input className="da-num" type="number" step={f.step} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
+                    <input className="da-num" type="number" step={f.step} min={f.min} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
                     {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.suffix}</span>}
                   </div>
                 </label>

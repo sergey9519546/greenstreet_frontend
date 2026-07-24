@@ -471,7 +471,7 @@ export default function BrokersPage({
                 margin: "0 0 16px",
               }}
             >
-              Ready to place your next file?
+              Ready to submit your next deal?
             </h2>
             <p
               style={{

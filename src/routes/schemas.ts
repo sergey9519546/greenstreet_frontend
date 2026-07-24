@@ -74,7 +74,7 @@ export const NarrateRequestSchema = z.object({
     dualTrackDSCR: z.object({
       track1: z.object({ passes: z.boolean() }).optional().nullable(),
       track2: z.object({ passes: z.boolean() }).optional().nullable(),
-      verdict: z.object({ summary: z.string().optional() }).optional().nullable(),
+      verdict: z.object({ summary: z.string().max(1000, "summary must be at most 1000 characters").optional() }).optional().nullable(),
     }).optional().nullable(),
   }),
   context: z.string().max(1000, "context must be at most 1000 characters").optional().nullable(),

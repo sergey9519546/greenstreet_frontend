@@ -64,7 +64,7 @@ export const POSTS = [
         "A — HOA dues (if applicable). Full monthly HOA included at face value.",
       ]},
       { h: "What counts as gross rent" },
-      { p: "For a standard long-term rental, lenders use the lower of: (1) the actual signed lease, or (2) the Form 1007 market rent from the appraisal. If there's no lease — vacant property, new acquisition — the 1007 rent stands on its own. That's why 63% of DSCR loans close without a signed lease: the appraisal rent is sufficient." },
+      { p: "For a standard long-term rental, lenders use the lower of: (1) the actual signed lease, or (2) the Form 1007 market rent from the appraisal. If there's no lease — vacant property, new acquisition — the 1007 rent stands on its own. That's why a significant share of DSCR loans close without a signed lease: the appraisal rent is sufficient." },
       { p: "For short-term rentals (Airbnb, VRBO), lenders typically use the lower of: the 1007 long-term rent, AirDNA projected income × 70–80%, or documented 12-month STR gross revenue. See our STR underwriting article for the full logic." },
       { h: "DSCR tiers and what they mean for your deal" },
       { list: [

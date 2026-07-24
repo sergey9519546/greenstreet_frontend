@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "main": "dist/function.cjs",
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild src/engineWorker.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/engineWorker.cjs && esbuild src/function.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/function.cjs",
@@ -32,14 +35,11 @@
     "@types/node": "^22.20.0",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.4",
-    "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
     "firebase": "^12.15.0",
     "gsap": "^3.15.0",
-    "jsdom": "^29.1.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
-    "puppeteer": "^25.2.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-markdown": "^10.1.0",

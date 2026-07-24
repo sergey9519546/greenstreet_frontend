@@ -435,7 +435,7 @@ export default function BorrowerProfilesPage({
               rows={[
                 { k: "Program", v: "DSCR Global (no-ratio)" },
                 { k: "Rate range", v: "7.50 – 8.25%" },
-                { k: "DSCR minimum", v: "≥ 1.00x" },
+                { k: "DSCR minimum", v: "≥ 0.75x" },
                 { k: "Down payment", v: "30% minimum" },
                 { k: "Credit", v: "Passport + alt reference" },
                 { k: "LLC required", v: "Yes" },

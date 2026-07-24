@@ -12,6 +12,13 @@ export const app = express();
 
 const isProd = process.env.NODE_ENV === "production";
 
+// This app is only ever reached through a reverse-proxy hop (Firebase Hosting
+// rewrite -> Cloud Functions v2, per firebase.json + src/function.ts), so
+// Express's default req.ip (from the raw socket) does not reflect the real
+// client address. Trust exactly one hop so req.ip resolves from
+// X-Forwarded-For correctly — this is what narrateLimiter/apiLimiter key on.
+app.set("trust proxy", 1);
+
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Production MUST set ALLOWED_ORIGINS explicitly — there is no placeholder
 // domain to silently fall back to. Only non-production gets a default, and
@@ -73,6 +80,10 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   }
   // Disable powerful features not used by this API
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  // Defense-in-depth: this app only ever returns JSON API responses (the SPA
+  // itself is served separately by Firebase Hosting), so a strict default-src
+  // is safe here and doesn't need to account for any script/style/font origins.
+  res.setHeader("Content-Security-Policy", "default-src 'none'");
   next();
 });
 

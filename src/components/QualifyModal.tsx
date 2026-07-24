@@ -65,11 +65,30 @@ const FICO_TO_ENGINE: Record<FicoBand, EngineFicoBand> = {
   "760-plus": "760-plus",
 };
 
+// The property-state dropdown stores full state names (e.g. "Florida"), but
+// PPP_STATE_LAWS (statePppLaws.ts) is keyed by 2-letter postal codes (e.g.
+// "FL") — convert before lookup so PPP tier detection actually matches.
+const STATE_NAME_TO_CODE: Record<string, string> = {
+  Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
+  Colorado: "CO", Connecticut: "CT", Delaware: "DE", Florida: "FL", Georgia: "GA",
+  Hawaii: "HI", Idaho: "ID", Illinois: "IL", Indiana: "IN", Iowa: "IA",
+  Kansas: "KS", Kentucky: "KY", Louisiana: "LA", Maine: "ME", Maryland: "MD",
+  Massachusetts: "MA", Michigan: "MI", Minnesota: "MN", Mississippi: "MS",
+  Missouri: "MO", Montana: "MT", Nebraska: "NE", Nevada: "NV",
+  "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY",
+  "North Carolina": "NC", "North Dakota": "ND", Ohio: "OH", Oklahoma: "OK",
+  Oregon: "OR", Pennsylvania: "PA", "Rhode Island": "RI", "South Carolina": "SC",
+  "South Dakota": "SD", Tennessee: "TN", Texas: "TX", Utah: "UT", Vermont: "VT",
+  Virginia: "VA", Washington: "WA", "West Virginia": "WV", Wisconsin: "WI",
+  Wyoming: "WY",
+};
+
 // PPP tier for qualify(): 0 = clear, 2 = confirm-by-hand, 3 = restricted.
 // Derived from the engine's authoritative state-law data (statePppLaws.ts),
 // which qualify() expects via stateTier — it never parses the state string.
 function tierForState(state: string): number {
-  const law = PPP_STATE_LAWS[state?.toUpperCase?.() ?? ""];
+  const code = STATE_NAME_TO_CODE[state] ?? state;
+  const law = PPP_STATE_LAWS[code?.toUpperCase?.() ?? ""];
   if (!law) return 0;
   switch (law.status) {
     case "PROHIBITED":

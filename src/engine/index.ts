@@ -23,12 +23,14 @@ export {
 export type { QuickDscrTier, QuickDscrEstimate } from './engine';
 
 // --- Preliminary qualification engine (LTV/PITIA/DSCR/outcome/levers) ---
+// Note: OUTCOME_META is intentionally not re-exported here — it has no
+// consumer anywhere in the app (verified by repo-wide grep); import it
+// directly from './qualify' if a future caller needs it.
 export {
   qualify,
   amortize,
   loanForPayment,
   QUALIFY_POLICY,
-  OUTCOME_META,
   fmtUsd,
   fmtPct,
   fmtRateRange,
@@ -46,12 +48,13 @@ export type {
 } from './qualify';
 
 // --- State PPP / STR / usury facts ---
+// Note: checkPPPWithBranching, getIndexedThreshold, and getMnHf3437Status are
+// intentionally not re-exported here — none has a consumer anywhere in the
+// app (verified by repo-wide grep); import directly from './statePppLaws' if
+// a future caller needs one of them.
 export {
   checkPPPLegal,
-  checkPPPWithBranching,
   getNoPPPPremium,
-  getIndexedThreshold,
-  getMnHf3437Status,
   PPP_STATE_LAWS,
 } from './statePppLaws';
 

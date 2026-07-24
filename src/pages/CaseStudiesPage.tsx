@@ -117,12 +117,12 @@ const AURORA_STORY = {
 
 const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
 
-// Logo map — only logos that exist under /img/logos/
-const LOGOS: Record<string, string> = {
-  "vela-capital": "/img/logos/cs-vela-capital.png",
-  "northshore-non-qm": "/img/logos/cs-northshore-nonqm.png",
-  "quintero-co": "/img/logos/cs-quintero-co.png",
-};
+// Logo map — only logos that exist under /img/logos/. Left empty: none of
+// these illustrative case studies have a real logo asset checked in, and the
+// render below is already gated on `LOGOS[s.slug]` being truthy, so an empty
+// map just skips the logo — no broken-image icon next to a disclosed
+// not-a-verified-named-customer case study.
+const LOGOS: Record<string, string> = {};
 
 // ── CSS for SVG stroke-draw animation ────────────────────────────────────────
 const CS_LINE_CSS = `
