@@ -25,7 +25,7 @@ export function analyzeRefi(
   projectedRateEnvironment: number
 ): RefiAnalysis {
   // Current DSCR (Track 1 — no vacancy)
-  const currentPITIA = currentLoan.monthlyPayment + property.annualTaxes / 12 + property.annualInsurance / 12 + property.hoa;
+  const currentPITIA = currentLoan.monthlyPayment + property.annualTaxes / 12 + property.annualInsurance / 12 + property.hoa + property.floodInsurance;
   const qualifyingRent = Math.min(property.leaseRent, property.marketRent);
   const currentDSCR = currentPITIA > 0 ? qualifyingRent / currentPITIA : 0;
 
@@ -62,7 +62,7 @@ export function analyzeRefi(
 
   const refiPayment = calculatePI(actualRefiAmount, adjustedRefiRate, 360);
 
-  const projectedRefiDSCR = qualifyingRent / (refiPayment + property.annualTaxes / 12 + property.annualInsurance / 12 + property.hoa);
+  const projectedRefiDSCR = qualifyingRent / (refiPayment + property.annualTaxes / 12 + property.annualInsurance / 12 + property.hoa + property.floodInsurance);
   const monthlySavings = currentLoan.monthlyPayment - refiPayment;
 
   const refiClosingCosts = actualRefiAmount * 0.025;
@@ -71,7 +71,7 @@ export function analyzeRefi(
   const seasoningMonthsRequired = SEASONING_REQUIRED_MONTHS;
   const delayedFinancingAvailable = monthsOwned >= 0;
 
-  const appreciationNeeded = currentLoan.balance > property.purchasePrice * (RATE_TERM_LTV / 100)
+  const appreciationNeeded = currentLoan.balance <= property.purchasePrice * (RATE_TERM_LTV / 100)
     ? 0
     : ((currentLoan.balance / (RATE_TERM_LTV / 100)) - property.purchasePrice) / property.purchasePrice;
 

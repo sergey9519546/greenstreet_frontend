@@ -178,6 +178,18 @@ const LTCG_BRACKETS_SINGLE: TaxBracket[] = [
   { threshold: 533400, rate: 0.20 },
 ];
 
+const LTCG_BRACKETS_MFS: TaxBracket[] = [
+  { threshold: 0, rate: 0 },
+  { threshold: 48350, rate: 0.15 },
+  { threshold: 300000, rate: 0.20 },
+];
+
+const LTCG_BRACKETS_HOH: TaxBracket[] = [
+  { threshold: 0, rate: 0 },
+  { threshold: 64750, rate: 0.15 },
+  { threshold: 566700, rate: 0.20 },
+];
+
 // NIIT thresholds (IRC §1411)
 export function getNIITThreshold(filingStatus: FilingStatus): number {
   switch (filingStatus) {
@@ -312,28 +324,52 @@ export function computeRecaptureOnSale(
 }
 
 function getMarginalOrdinaryRate(magi: number, filingStatus: FilingStatus): number {
-  // Simplified 2026 ordinary brackets (MFJ)
-  if (filingStatus === 'MFJ') {
-    if (magi <= 24800) return 0.10;
-    if (magi <= 101400) return 0.12;
-    if (magi <= 206700) return 0.22;
-    if (magi <= 394600) return 0.24;
-    if (magi <= 501050) return 0.32;
-    if (magi <= 751600) return 0.35;
-    return 0.37;
-  } else {
-    if (magi <= 12400) return 0.10;
-    if (magi <= 50700) return 0.12;
-    if (magi <= 103350) return 0.22;
-    if (magi <= 197300) return 0.24;
-    if (magi <= 250525) return 0.32;
-    if (magi <= 375800) return 0.35;
-    return 0.37;
+  // Simplified 2026 ordinary brackets
+  switch (filingStatus) {
+    case 'MFJ':
+      if (magi <= 24800) return 0.10;
+      if (magi <= 101400) return 0.12;
+      if (magi <= 206700) return 0.22;
+      if (magi <= 394600) return 0.24;
+      if (magi <= 501050) return 0.32;
+      if (magi <= 751600) return 0.35;
+      return 0.37;
+    case 'SINGLE':
+    case 'MFS':
+      if (magi <= 12400) return 0.10;
+      if (magi <= 50700) return 0.12;
+      if (magi <= 103350) return 0.22;
+      if (magi <= 197300) return 0.24;
+      if (magi <= 250525) return 0.32;
+      if (magi <= 375800) return 0.35;
+      return 0.37;
+    case 'HOH':
+      if (magi <= 17000) return 0.10;
+      if (magi <= 64850) return 0.12;
+      if (magi <= 103350) return 0.22;
+      if (magi <= 197300) return 0.24;
+      if (magi <= 250500) return 0.32;
+      if (magi <= 626350) return 0.35;
+      return 0.37;
   }
 }
 
 function getLTCGRate(magi: number, filingStatus: FilingStatus): number {
-  const brackets = filingStatus === 'MFJ' ? LTCG_BRACKETS_MFJ : LTCG_BRACKETS_SINGLE;
+  let brackets: TaxBracket[];
+  switch (filingStatus) {
+    case 'MFJ':
+      brackets = LTCG_BRACKETS_MFJ;
+      break;
+    case 'MFS':
+      brackets = LTCG_BRACKETS_MFS;
+      break;
+    case 'HOH':
+      brackets = LTCG_BRACKETS_HOH;
+      break;
+    case 'SINGLE':
+      brackets = LTCG_BRACKETS_SINGLE;
+      break;
+  }
   let rate = 0;
   for (const b of brackets) {
     if (magi >= b.threshold) rate = b.rate;

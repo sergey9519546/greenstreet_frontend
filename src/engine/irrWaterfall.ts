@@ -76,7 +76,7 @@ export function computeIRRWaterfall(
   prepayPenaltyAtExit: number,
 ): IRRWaterfallResult {
   // ── Track 2 haircut assumptions (per strategy) ──
-  const vacancyPct = 8;
+  const vacancyPct = strategy === 'STR' ? 25 : strategy === 'MTR' ? 12 : 8;
   const managementPct = 8;
   const maintenancePct = 5;
 

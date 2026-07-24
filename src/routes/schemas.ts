@@ -39,7 +39,7 @@ export const DealRequestSchema = z.object({
 
   // Enums / booleans — permissive (engine applies defaults for unknown values)
   propertyType: z.string().optional(),
-  entityType:   z.string().optional(),
+  entityType:   z.enum(["INDIVIDUAL", "LLC", "S_CORP", "C_CORP", "TRUST"]).optional(),
   experience:   z.string().optional(),
   term:         z.string().optional(),
   ioPeriod:     z.string().optional(),
@@ -59,10 +59,10 @@ export const DealRequestSchema = z.object({
 export const StateRequestSchema = z.object({
   state:       z.string().transform((s) => s.trim().toUpperCase().slice(0, 2))
                .refine((s) => STATE_REGEX.test(s), "state must be a 2-letter US abbreviation"),
-  entityType:  z.string().optional().default("LLC"),
+  entityType:  z.enum(["INDIVIDUAL", "LLC", "S_CORP", "C_CORP", "TRUST"]).optional().default("LLC"),
   loanAmount:  z.number().positive().max(50_000_000).optional().default(400_000),
   unitCount:   z.number().int().min(1).max(4).optional().default(1),
-  productType: z.string().optional().default("FIXED"),
+  productType: z.enum(["FIXED", "ARM"]).optional().default("FIXED"),
 });
 
 export const NarrateRequestSchema = z.object({

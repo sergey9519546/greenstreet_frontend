@@ -23,6 +23,7 @@ interface Task {
   payload: any;
   resolve: (value: any) => void;
   reject: (reason?: any) => void;
+  worker?: Worker;
 }
 
 class WorkerPool {
@@ -67,19 +68,36 @@ class WorkerPool {
       this.processQueue();
     });
 
+    // Node fires 'error' then 'exit' for a single fatal crash — guard so the
+    // cleanup below (reject stranded tasks, respawn, drain queue) runs once.
+    let crashHandled = false;
+    const handleWorkerDeath = () => {
+      if (crashHandled) return;
+      crashHandled = true;
+      this.workers = this.workers.filter(w => w !== worker);
+      // Fail fast: any task already dispatched to this worker will never get
+      // a "message" response now, so reject it immediately instead of leaving
+      // its Promise hanging until an external timeout (or forever).
+      for (const [id, task] of this.activeTasks) {
+        if (task.worker === worker) {
+          this.activeTasks.delete(id);
+          task.reject(new Error("Worker crashed/exited before completing this task"));
+        }
+      }
+      this.createWorker();
+      this.processQueue();
+    };
+
     worker.on("error", (err) => {
       console.error("Worker error:", err);
-      // Restart worker
-      this.workers = this.workers.filter(w => w !== worker);
-      this.createWorker();
+      handleWorkerDeath();
     });
 
     worker.on("exit", (code) => {
       if (code !== 0) {
         console.error(`Worker stopped with exit code ${code}`);
       }
-      this.workers = this.workers.filter(w => w !== worker);
-      this.createWorker();
+      handleWorkerDeath();
     });
 
     this.workers.push(worker);
@@ -97,6 +115,7 @@ class WorkerPool {
     
     const task = this.taskQueue.shift();
     if (task) {
+      task.worker = worker;
       this.activeTasks.set(task.id, task);
       worker.postMessage({ id: task.id, type: task.type, payload: task.payload });
     }

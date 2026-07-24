@@ -119,13 +119,14 @@ export default function PortfolioPage({
         ...c,
         address: "",
         monthlyPITIA: c.pitia,
-        track2DSCR: c.dscr * 0.9,
+        loanBalance: c.balance,
+        track2DSCR: c.pitia > 0 ? (c.rent * (1 - 0.08 - 0.08 - 0.05)) / c.pitia : 0,
         isBlanket: false,
         purchasePrice: c.value,
         monthlyRent: c.rent,
       }));
       const borrower = buildEngineInputs({ purchasePrice: 400000, monthlyRent: 2800, state: "TX", ficoScore: 720 }).borrower;
-      return analyzePortfolio(enriched as any, null, borrower, 50000);
+      return analyzePortfolio(enriched, null, borrower, 50000);
     } catch {
       return null;
     }
