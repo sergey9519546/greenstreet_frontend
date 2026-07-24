@@ -14,6 +14,8 @@ import {
   calculatePITIA,
   solveDealBreakRate,
   solveMaxPurchasePrice,
+  estimateReserveMonths,
+  solveDSCR,
 } from './engine';
 import { buildEngineInputs } from './inputs';
 import { computeAfterTaxIRR } from './taxEngine';
@@ -21,7 +23,7 @@ import { computeIRRWaterfall } from './irrWaterfall';
 import { runV11Analysis } from './v11Runner';
 import { computeReturnGrade } from './decisionSupport';
 import { PPP_STATE_LAWS, checkPPPLegal } from './statePppLaws';
-import type { TaxProfile } from './types';
+import type { TaxProfile, BorrowerProfile, LoanStructure } from './types';
 
 function makeTaxProfile(overrides: Partial<TaxProfile> = {}): TaxProfile {
   return {
@@ -309,5 +311,141 @@ describe('bug audit #5 — PA prepayment threshold must be $319,777 for 2026', (
   it('a PA loan just below $319,777 on a 1-2 unit property blocks PPP', () => {
     const result = checkPPPLegal('PA', 'LLC', 319_000, 1, 'FIXED');
     expect(result.allowed).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG #6 — estimateReserveMonths (engine.ts) omitted the FICO and loan->$1M
+// overlays present in reserveEngine.ts's computeOverlays() (2026-07-24 audit
+// finding). estimateReserveMonths feeds calculateCashToClose for every live
+// DSCR result, so a missing overlay here silently understated cash-to-close
+// reserve requirements for every low-FICO or >$1M-loan deal.
+//
+// Corrected overlay table (kept in sync with reserveEngine.ts's
+// computeOverlays(), using the real solved loanAmount rather than
+// reserveEngine.ts's PITIA-based estimate):
+//   base tier (by DSCR): >=1.25 -> 3 | 1.00-1.24 -> 6 | 0.75-0.99 -> 9 | else -> 12
+//   overlays: STR +3 | FICO<640 +6 (else FICO<680 +3) | first-time investor +3
+//             | loanAmount>$1M +3 | foreign national +6 | LTV>80% +1
+//   grand total capped at 12 months
+//
+// Note: FAQPage.tsx's public copy says ">$1M -> +6" and additionally
+// advertises a "condos +3" overlay; reserveEngine.ts's own computeOverlays()
+// implements neither of those as described (it uses +3 for >$1M and has no
+// condo overlay at all, since no property-type input is threaded into it).
+// This fix intentionally matches reserveEngine.ts's actual code (the
+// instructed source of truth for this repair), not the FAQ copy — the
+// FAQ/reserveEngine.ts mismatch is a separate, pre-existing audit item.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('bug audit #6 — estimateReserveMonths applies the FICO and loan->$1M overlays', () => {
+  function makeBorrower(overrides: Partial<BorrowerProfile> = {}): BorrowerProfile {
+    return {
+      ficoScore: 740,
+      experience: 'EXPERIENCED',
+      existingFinancedProperties: 1,
+      entityType: 'LLC',
+      isUSCitizenOrPR: true,
+      availableReserves: 0,
+      reserveAssets: [],
+      isFirstResponder: false,
+      isForeignNational: false,
+      ...overrides,
+    };
+  }
+
+  function makeLoan(overrides: Partial<LoanStructure> = {}): LoanStructure {
+    return {
+      ltv: 75,
+      term: '30_YR',
+      ioPeriod: 'NONE',
+      armType: 'FIXED',
+      prepayPreference: 'NONE',
+      purpose: 'PURCHASE',
+      expectedHoldYears: 5,
+      points: 0,
+      lenderFees: 0,
+      brokerFees: 0,
+      rateLockCost: 0,
+      ...overrides,
+    };
+  }
+
+  it('base LTR case: DSCR 1.30 (>=1.25 tier), clean borrower, $300K loan -> 3 months (tier low end, no overlays)', () => {
+    // Base tier only: DSCR>=1.25 -> 3. No STR/FICO/first-time/>$1M/foreign/LTV overlays apply.
+    const months = estimateReserveMonths(1.30, 'LTR', makeBorrower(), makeLoan(), 300_000);
+    expect(months).toBe(3);
+  });
+
+  it('STR case: DSCR 1.10 (1.00-1.24 tier = 6) + STR overlay (+3) -> 9 months', () => {
+    const months = estimateReserveMonths(1.10, 'STR', makeBorrower(), makeLoan(), 400_000);
+    expect(months).toBe(9);
+  });
+
+  it('>$1M loan case: DSCR 1.05 (1.00-1.24 tier = 6) + loan>$1M overlay (+3) -> 9 months', () => {
+    // Before this fix, estimateReserveMonths ignored loanAmount entirely, so this
+    // case would have returned 6 (tier only) instead of the correct 9.
+    const months = estimateReserveMonths(1.05, 'LTR', makeBorrower(), makeLoan(), 1_200_000);
+    expect(months).toBe(9);
+  });
+
+  it('foreign-national case: DSCR 0.80 (0.75-0.99 tier = 9) + foreign-national overlay (+6) = 15, capped at 12', () => {
+    const months = estimateReserveMonths(
+      0.80,
+      'LTR',
+      makeBorrower({ isForeignNational: true }),
+      makeLoan(),
+      350_000,
+    );
+    expect(months).toBe(12);
+  });
+
+  it('low-FICO case (new overlay): DSCR 1.30 (tier 3) + FICO 620 (<640 -> +6) -> 9 months', () => {
+    // Regression guard for the specific overlay this fix adds: before the fix,
+    // ficoScore was never read by estimateReserveMonths, so this would have
+    // incorrectly returned 3 instead of 9.
+    const months = estimateReserveMonths(
+      1.30,
+      'LTR',
+      makeBorrower({ ficoScore: 620 }),
+      makeLoan(),
+      300_000,
+    );
+    expect(months).toBe(9);
+  });
+
+  it('mid-FICO case (new overlay): DSCR 1.30 (tier 3) + FICO 660 (640-679 -> +3) -> 6 months', () => {
+    const months = estimateReserveMonths(
+      1.30,
+      'LTR',
+      makeBorrower({ ficoScore: 660 }),
+      makeLoan(),
+      300_000,
+    );
+    expect(months).toBe(6);
+  });
+
+  it('end-to-end: a live >$1M DSCR deal now carries the +3 loan overlay through cashToClose.reserveRequirement', () => {
+    // Sized so LTV=75% -> loanAmount = 0.75 * 1,400,000 = $1,050,000 (> $1M).
+    // Rent is set well above PITIA so Track 1 DSCR clears 1.25, giving a base
+    // tier of 3 months; the corrected function should add +3 for the >$1M
+    // loan, for a total of 6 months feeding into cashToClose.
+    const inputs = buildEngineInputs({
+      purchasePrice: 1_400_000,
+      monthlyRent: 12_000,
+      state: 'TX',
+      ltv: 75,
+      ficoScore: 740,
+      experience: 'EXPERIENCED',
+    });
+    const result = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
+
+    expect(result.loanAmount).toBeCloseTo(1_050_000, 0);
+    expect(result.dscr).toBeGreaterThanOrEqual(1.25);
+
+    const expectedReserveMonths = 3 + 3; // tier(3) + loan>$1M overlay(3)
+    expect(result.cashToClose.reserveRequirement).toBeCloseTo(
+      expectedReserveMonths * result.monthlyPITIA.total,
+      1,
+    );
   });
 });

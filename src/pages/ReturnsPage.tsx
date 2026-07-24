@@ -1,7 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
-import { computeReturns } from "../engine/returnsEngine";
-import type { PropertyInputs, LoanStructure } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -12,8 +10,26 @@ function fmt$(n: number) {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
+// Shared op-ex ratio — matches engine's combined mgmt(8%)+maint(5%)+turnover(2%) = 15% of gross.
+const OPEX_PCT = 15;
+
+// Day-1 (or grown) NOI for a given assumption set. Honors the user's rentGrowth and
+// vacancy sliders so every metric derived from it — not just IRR — reflects the same
+// inputs. yrOffset=0 gives the un-grown "day 1" NOI used for the snapshot metrics
+// (Cap Rate, Yield on Cost, Debt Yield, Cash-on-Cash).
+function noiForYear(
+  opts: { monthlyRent: number; rentGrowth: number; vacancy: number; annualTaxes: number; annualInsurance: number; hoa: number },
+  yrOffset: number,
+): number {
+  const gross = opts.monthlyRent * 12 * Math.pow(1 + opts.rentGrowth / 100, yrOffset);
+  const egi   = gross * (1 - opts.vacancy / 100);
+  return egi - opts.annualTaxes - opts.annualInsurance - opts.hoa * 12 - gross * (OPEX_PCT / 100);
+}
+
 // Inline IRR bisection — matches engine cash-flow model (OPEX 15%, mgmt+maint+turnover).
 // Used for the headline and sensitivity matrix so every user-editable input is honored.
+// Returns the cash-flow array alongside the IRR so callers can derive Equity Multiple
+// from the same slider-driven assumptions (see em below).
 function calcIRR(opts: {
   purchasePrice: number;
   ltv: number;
@@ -27,7 +43,7 @@ function calcIRR(opts: {
   rentGrowth: number;
   vacancy: number;
   prepayAtExit: number;
-}): number {
+}): { irr: number; cfs: number[] } {
   const { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit } = opts;
   const loan    = purchasePrice * (ltv / 100);
   const cashInv = purchasePrice - loan;
@@ -45,21 +61,15 @@ function calcIRR(opts: {
     return Math.max(0, (loan * (f - e)) / (f - 1));
   };
 
-  const OPEX_PCT = 15;
   const hold = Math.max(1, Math.min(15, holdYears));
   const cfs: number[] = [-cashInv];
 
-  const noiForYear = (yrOffset: number) => {
-    const gross = monthlyRent * 12 * Math.pow(1 + rentGrowth / 100, yrOffset);
-    const egi   = gross * (1 - vacancy / 100);
-    return egi - annualTaxes - annualInsurance - hoa * 12 - gross * (OPEX_PCT / 100);
-  };
-
+  const noiOpts = { monthlyRent, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa };
   for (let yr = 1; yr <= hold; yr++) {
-    const noi = noiForYear(yr - 1);
+    const noi = noiForYear(noiOpts, yr - 1);
     let cf = noi - piMo * 12;
     if (yr === hold) {
-      const stabNOI = noiForYear(yr);
+      const stabNOI = noiForYear(noiOpts, yr);
       const exit    = stabNOI / (exitCapRate / 100);
       const bal     = remBal(hold * 12);
       cf += exit - exit * 0.06 - bal - loan * (prepayAtExit / 100);
@@ -70,16 +80,18 @@ function calcIRR(opts: {
   const f = (rate_: number) => cfs.reduce((s, c, i) => s + c / Math.pow(1 + rate_, i), 0);
   let lo = -0.9, hi = 5;
   const flo = f(lo);
-  if (flo * f(hi) > 0) return NaN; // no sign change ⇒ no real IRR root
+  if (flo * f(hi) > 0) return { irr: NaN, cfs }; // no sign change ⇒ no real IRR root
   let curFlo = flo;
+  let irr = (lo + hi) / 2;
   for (let i = 0; i < 100; i++) {
     const m = (lo + hi) / 2;
     const fm = f(m);
-    if (Math.abs(fm) < 1) return m;
+    if (Math.abs(fm) < 1) { irr = m; break; }
     if (curFlo * fm < 0) { hi = m; }
     else { lo = m; curFlo = fm; }
+    irr = (lo + hi) / 2;
   }
-  return (lo + hi) / 2;
+  return { irr, cfs };
 }
 
 // ─── slider field ─────────────────────────────────────────────────────────────
@@ -238,32 +250,38 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   }, []);
 
   // ── engine ────────────────────────────────────────────────────────────────
-  const engineResult = React.useMemo(() => {
-    try {
-      const property: PropertyInputs = {
-        purchasePrice, leaseRent: monthlyRent, marketRent: monthlyRent,
-        strProjectedRent: 0, strDocumentedRent: 0, hoa,
-        annualTaxes, annualInsurance, floodInsurance: 0,
-        propertyType: "SFR", state: "TX", unitCount: 1, sqft: 1500, yearBuilt: 2000,
-        isCondotel: false, isNonWarrantable: false, isRural: false, isDecliningMarket: false, hoaSTRPolicy: "UNKNOWN",
-      };
-      const loan: LoanStructure = {
-        ltv, term: "30_YR", ioPeriod: "NONE", armType: "FIXED", prepayPreference: "321",
-        purpose: "PURCHASE", expectedHoldYears: holdYears, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0,
-      };
-      const penalty = (prepayAtExit / 100) * (purchasePrice * (1 - ltv / 100));
-      return computeReturns(property, loan, monthlyRent, "LTR", rate, penalty);
-    } catch { return null; }
-  }, [purchasePrice, ltv, monthlyRent, rate, holdYears, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa, prepayAtExit]);
-
   // ── derived ───────────────────────────────────────────────────────────────
   const irrOpts = { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit };
 
-  const levIRR = calcIRR(irrOpts) * 100;
-  const unlIRR = calcIRR({ ...irrOpts, ltv: 0 }) * 100;
+  const levResult = calcIRR(irrOpts);
+  const unlResult = calcIRR({ ...irrOpts, ltv: 0 });
+  const levIRR    = levResult.irr * 100;
+  const unlIRR    = unlResult.irr * 100;
 
   const cashInv = purchasePrice * (1 - ltv / 100);
-  const em      = engineResult !== null ? engineResult.equityMultiple : 1;
+
+  // Shared day-1 assumption set — every metric below is derived from the same
+  // rentGrowth/vacancy-honoring NOI and P&I that drive the headline Levered IRR,
+  // so no metric on this page silently ignores the sliders.
+  const loanAmt    = purchasePrice * (ltv / 100);
+  const r_         = rate / 100 / 12;
+  const piMoCalc   = r_ === 0 ? loanAmt / 360 : (loanAmt * r_ * Math.pow(1 + r_, 360)) / (Math.pow(1 + r_, 360) - 1);
+  const annualPI   = piMoCalc * 12;
+  const year1NOI   = noiForYear({ monthlyRent, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa }, 0);
+
+  // Cap Rate / Yield on Cost / Debt Yield / CoC are day-1 snapshot metrics — they
+  // correctly do not vary with rentGrowth, only with vacancy (matching calcIRR's
+  // noiForYear(0)). Yield on Cost equals Cap Rate here because this page hardcodes
+  // lenderFees/brokerFees to 0, making purchase price the full cost basis.
+  const entryCapRate = purchasePrice > 0 ? (year1NOI / purchasePrice) * 100 : 0;
+  const yoc          = entryCapRate;
+  const debtYield    = loanAmt > 0 ? (year1NOI / loanAmt) * 100 : 0;
+  const coc          = cashInv > 0 ? ((year1NOI - annualPI) / cashInv) * 100 : 0;
+  // Equity Multiple: sum of the levered cash-flow array (already honors rentGrowth
+  // and vacancy via calcIRR/noiForYear) over cash invested — same assumptions as IRR.
+  const em = cashInv > 0 && levResult.cfs.length > 1
+    ? levResult.cfs.slice(1).reduce((s, c) => s + c, 0) / cashInv
+    : 1;
 
   const pct  = (v: number) => (Number.isFinite(v) ? v.toFixed(1) + "%" : "—");
   const irrStr     = pct(levIRR);
@@ -280,18 +298,9 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
     ? "IRR below 8% — the deal may not reward the risk. Try a lower price, higher rent, or a shorter prepay structure."
     : "Adjust inputs to compute your IRR.";
 
-  // engine returns (already %)
-  const entryCapRate = engineResult !== null ? engineResult.entryCapRate       : 0;
-  const yoc          = engineResult !== null ? engineResult.yieldOnCost        : 0;
-  const debtYield    = engineResult !== null ? engineResult.debtYield          : 0;
-  const coc          = engineResult !== null ? engineResult.year1CashOnCash    : 0;
-
   // DSCR for the gauge (NOI / annual debt service)
-  const annualNOI  = entryCapRate > 0 ? purchasePrice * (entryCapRate / 100) : 0;
-  const r_         = rate / 100 / 12;
-  const loan_      = purchasePrice * (ltv / 100);
-  const piMoCalc   = r_ === 0 ? loan_ / 360 : (loan_ * r_ * Math.pow(1 + r_, 360)) / (Math.pow(1 + r_, 360) - 1);
-  const annualPITIA = piMoCalc * 12;
+  const annualNOI   = year1NOI;
+  const annualPITIA = annualPI;
   const dscrValue   = annualPITIA > 0 ? annualNOI / annualPITIA : 1.5;
   const dscrRisk    = riskFromDscr(dscrValue);
 
@@ -552,7 +561,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                             {h}yr{h === holdYears ? <span style={{ color: dc.lemon, marginLeft: 4, fontSize: 10 }}>← you</span> : ""}
                           </td>
                           {growths.map((gr) => {
-                            const r = calcIRR({ ...irrOpts, holdYears: h, rentGrowth: gr }) * 100;
+                            const r = calcIRR({ ...irrOpts, holdYears: h, rentGrowth: gr }).irr * 100;
                             return (
                               <td key={gr} style={cellStyle(r)}>
                                 {Number.isFinite(r) ? r.toFixed(1) + "%" : "—"}

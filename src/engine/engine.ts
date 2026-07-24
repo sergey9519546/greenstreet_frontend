@@ -955,7 +955,7 @@ export function solveDSCR(
   );
 
   // Reserve estimation (simplified — full engine in reserveEngine.ts)
-  const reserveMonths = estimateReserveMonths(dscr, strategy, borrower, loan);
+  const reserveMonths = estimateReserveMonths(dscr, strategy, borrower, loan, loanAmount);
   const reserveMonthsConservative = Math.min(reserveMonths + 3, 12);
   const furnishingBudget = strategy === 'STR' ? 5000 : 0;
   const closingCostPct = 0.03;
@@ -993,14 +993,38 @@ export function solveDSCR(
 }
 
 // ============================================================
-// RESERVE ESTIMATION (simplified — full in reserveEngine.ts)
+// RESERVE ESTIMATION (simplified — full scenario/haircut engine in
+// reserveEngine.ts's computeReserveScenarios)
 // ============================================================
-
-function estimateReserveMonths(
+//
+// v11.14 FIX (audit finding): this function feeds calculateCashToClose for
+// every live DSCR result, but was missing two overlays that the fully-spec'd
+// reserveEngine.ts (src/engine/reserveEngine.ts computeOverlays()) applies:
+//   - low-FICO overlay (FICO < 640 → +6mo; FICO 640-679 → +3mo)
+//   - loan-amount overlay (loan > $1M → +3mo)
+// Both are now applied here, using the SAME months-added values as
+// reserveEngine.ts's computeOverlays(), so the simplified inline estimate and
+// the fully-built scenario engine agree on overlay magnitudes. Unlike
+// reserveEngine.ts (which has no direct loan-amount input and must infer one
+// from monthly PITIA), this function has the real solved loanAmount in scope,
+// so it applies the >$1M test against the actual loan amount rather than an
+// estimate.
+//
+// NOTE (out of scope for this fix): reserveEngine.ts's own overlay table does
+// NOT match the public FAQ copy (FAQPage.tsx) in two respects — FAQ advertises
+// a single "FICO < 680 → +3" overlay (reserveEngine.ts actually splits this
+// into <640 → +6 / 640-679 → +3) and "loans > $1M → +6" (reserveEngine.ts
+// uses +3). FAQ also advertises a "condos → +3" overlay that neither
+// reserveEngine.ts nor this function implements (no property-type input is
+// threaded into either overlay calculation). Those are pre-existing
+// FAQ/reserveEngine.ts spec mismatches, not something introduced or corrected
+// by this change; flagged here for a follow-up audit item.
+export function estimateReserveMonths(
   dscr: number,
   strategy: RentalStrategy,
   borrower: BorrowerProfile,
   loan: LoanStructure,
+  loanAmount: number,
 ): number {
   let months = 6;
   if (dscr >= 1.25) months = 3;
@@ -1008,9 +1032,12 @@ function estimateReserveMonths(
   else if (dscr >= 0.75) months = 9;
   else months = 12;
 
-  // Overlays
+  // Overlays (kept in sync with reserveEngine.ts's computeOverlays())
   if (strategy === 'STR') months += 3;
+  if (borrower.ficoScore < 640) months += 6;
+  else if (borrower.ficoScore < 680) months += 3;
   if (borrower.experience === 'FIRST_TIME') months += 3;
+  if (loanAmount > 1_000_000) months += 3;
   if (borrower.isForeignNational) months += 6;
   if (loan.ltv > 80) months += 1;
 
