@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
@@ -202,6 +202,11 @@ export default function MonteCarloPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  useEffect(() => {
+    document.title = "Monte Carlo Rate Simulation | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
   // ── inputs ────────────────────────────────────────────────────────────────
   const [loanAmount,    setLoanAmount]    = useState(340000);
   const [monthlyRent,   setMonthlyRent]   = useState(3000);

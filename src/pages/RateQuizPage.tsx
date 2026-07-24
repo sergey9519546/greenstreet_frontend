@@ -500,6 +500,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
   // Pick an answer and advance
   const pick = useCallback(
     (v: string) => {
+      if (pendingAnswer !== null) return;
       setPendingAnswer(v);
       const newAns = [...answers];
       newAns[step] = v;
@@ -519,7 +520,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
         }, 160);
       });
     },
-    [answers, step, total, animateCard, animateResult]
+    [answers, step, total, animateCard, animateResult, pendingAnswer]
   );
 
   const back = useCallback(() => {
@@ -889,9 +890,9 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   }}
                 >
                   {result.tier === "BEST"
-                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest lender selection."
+                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest program selection."
                     : result.tier === "GOOD"
-                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match and lock your terms."
+                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best program match and lock your terms."
                     : "This program has tighter requirements, but it's built for your situation. Reserves, lower LTV, or stronger credit can help you qualify — a specialist can structure the deal."}
                 </p>
 

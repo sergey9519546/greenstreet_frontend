@@ -274,9 +274,10 @@ export default function App() {
     if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
 
     const w = window as any;
+    let startTimeoutId: ReturnType<typeof setTimeout> | undefined;
     if (isMarketing) {
       // Marketing DOM is now visible — (re)initialize its GSAP/Swiper layer.
-      setTimeout(() => {
+      startTimeoutId = setTimeout(() => {
         try {
           if (typeof w.initAnimations === "function") w.initAnimations();
           if (typeof w.__gsStartMarketing === "function") w.__gsStartMarketing();
@@ -294,6 +295,11 @@ export default function App() {
         console.error("Failed to tear down marketing animations:", e);
       }
     }
+    // Cancel a still-pending 'start' timeout if `view` changes again (or the
+    // component unmounts) before it fires — otherwise a fast marketing →
+    // non-marketing transition lets the stale timeout re-run initAnimations()/
+    // __gsStartMarketing() against the now-hidden, inert Webflow root.
+    return () => { if (startTimeoutId !== undefined) clearTimeout(startTimeoutId); };
   }, [view]);
 
   const handleLoginClick = () => goTo("portal");

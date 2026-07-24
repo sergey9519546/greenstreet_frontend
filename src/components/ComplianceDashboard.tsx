@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useId } from "react";
 import { auth, db, loginWithGoogle, logoutUser, loginAnonymously } from "../firebase";
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
@@ -169,11 +169,14 @@ function GhostBtn({ children, onClick, className = "" }:
 }
 
 /** Flat label input */
-function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; helper?: string }) {
+function FieldInput({ label, helper, id, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; helper?: string }) {
+  const generatedId = useId();
+  const fieldId = id ?? generatedId;
   return (
     <div className="space-y-1">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <label htmlFor={fieldId} className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
       <input {...props}
+        id={fieldId}
         className="w-full px-3 py-2.5 text-sm font-mono outline-none transition-colors"
         style={{
           background: T.inputBg,
@@ -190,11 +193,14 @@ function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLI
 }
 
 /** Flat label select */
-function FieldSelect({ label, helper, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; helper?: string }) {
+function FieldSelect({ label, helper, children, id, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; helper?: string }) {
+  const generatedId = useId();
+  const fieldId = id ?? generatedId;
   return (
     <div className="space-y-1">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <label htmlFor={fieldId} className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
       <select {...props}
+        id={fieldId}
         className="w-full px-3 py-2.5 text-sm outline-none transition-colors appearance-none"
         style={{
           background: T.inputBg,
@@ -338,28 +344,38 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
       setAuditLogs(logs);
     });
     return () => unsub();
-  }, [currentUser]);
+  }, [currentUser, demoMode]);
 
   useEffect(() => {
     if (!currentUser && !demoMode) return;
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
-    getDoc(ref).then(snap => { if (snap.exists()) setBrokerConfig(snap.data() as any); });
-  }, [currentUser]);
+    getDoc(ref)
+      .then(snap => { if (snap.exists()) setBrokerConfig(prev => ({ ...prev, ...(snap.data() as Partial<typeof prev>) })); })
+      .catch(err => console.error("Failed to load broker settings", err));
+  }, [currentUser, demoMode]);
 
   const saveBrokerConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser && !demoMode) return;
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
-    await setDoc(ref, brokerConfig);
-    setBrokerSaved(true);
-    setTimeout(() => setBrokerSaved(false), 3000);
+    try {
+      await setDoc(ref, brokerConfig);
+      setBrokerSaved(true);
+      setTimeout(() => setBrokerSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save broker settings", err);
+    }
   };
 
   const deleteLog = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if ((!currentUser && !demoMode) || !id) return;
-    await deleteDoc(doc(db, "artifacts", "default-app-id", "users", userUid, "audits", id));
-    if (selectedLog?.id === id) setSelectedLog(null);
+    try {
+      await deleteDoc(doc(db, "artifacts", "default-app-id", "users", userUid, "audits", id));
+      if (selectedLog?.id === id) setSelectedLog(null);
+    } catch (err) {
+      console.error("Failed to delete audit log", err);
+    }
   };
 
   const saveLog = async (type: AuditLog["type"], title: string, input: string, output: any) => {
@@ -396,9 +412,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
       setSolveResult(solve);
       if (sensRes.ok) { setSensResult(sens); } else { setSensError(sens.error || "Sensitivity engine failed. Re-run from Deal Workspace."); }
       if (optRes.ok) { setOptResult(opt); } else { setOptError(opt.error || "Optimizer engine failed. Re-run from Deal Workspace."); }
-      await saveLog("analyze",
+      saveLog("analyze",
         `DSCR ${solve.deal.dscr.toFixed(2)}x — ${dealForm.propertyType} ${dealForm.state} ${dscrLabel(solve.deal.dscr)}`,
-        JSON.stringify(payload), solve);
+        JSON.stringify(payload), solve).catch(err => console.error("Failed to save audit log", err));
     } catch (err: any) {
       setSolveError(err.message || "Engine error. Check your inputs and try again.");
     } finally {
@@ -510,12 +526,14 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               className="space-y-3">
               <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
                 placeholder="you@email.com"
+                aria-label="Email"
                 className="w-full px-4 py-3 text-sm outline-none transition-colors"
                 style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
                 onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
                 onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
               <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)}
                 placeholder="Password"
+                aria-label="Password"
                 className="w-full px-4 py-3 text-sm outline-none transition-colors font-mono"
                 style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
                 onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
@@ -814,7 +832,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         <div className="flex flex-col gap-4">
                           {/* Compliance status */}
                           <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: `1px solid ${swatch.midnight}`, borderRadius: radius.md }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance (preview)</div>
                             {([
                               { label: "17a-4 WORM archive", status: "Active" },
                               { label: "IC memos generated", status: "6 / 6" },
@@ -1580,7 +1598,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               <h3 className="font-bold text-sm mb-0.5" style={{ color: T.ink }}>{selectedLog.title}</h3>
                               <p className="text-[10px] mb-4" style={{ color: T.faint }}>{new Date(selectedLog.timestamp).toLocaleString()}</p>
                               {/* Human-readable summary if analyze type */}
-                              {selectedLog.type === "analyze" && selectedLog.output?.deal && (() => {
+                              {selectedLog.type === "analyze" && selectedLog.output?.deal && typeof selectedLog.output.deal.dscr === "number" && (() => {
                                 const d = selectedLog.output.deal as DSCRResult;
                                 return (
                                   <div className="space-y-2 mb-4 pb-4" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>

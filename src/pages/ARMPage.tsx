@@ -160,6 +160,7 @@ export default function ARMPage({
       <style>{`
         .arm-in::-webkit-outer-spin-button,.arm-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .arm-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        .arm-in:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}

@@ -212,6 +212,11 @@ export function DcFooter({ bg = MIDNIGHT }: { bg?: string } = {}) {
         <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO }}>Greenstreet</div>
         <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
       </div>
+      <div style={{ maxWidth: dc.maxW, margin: "14px auto 0", fontSize: 11.5, lineHeight: 1.6, color: "rgba(238,239,211,0.45)" }}>
+        Greenstreet DSCR loans are funded through our wholesale lending partner, Cake (caketpo.com). Business-purpose
+        loans only; not a commitment to lend. Greenstreet Finance is an Equal Housing Lender and does not discriminate
+        on any basis prohibited by the Equal Credit Opportunity Act (ECOA) or the Fair Housing Act.
+      </div>
     </footer>
   );
 }

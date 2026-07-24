@@ -27,7 +27,6 @@ export default function TaxEnginePage({
   const [rate, setRate] = useState(7.0);
   const [ltv, setLtv] = useState(75);
   const [holdYears, setHoldYears] = useState(5);
-  const [rentGrowth, setRentGrowth] = useState(3);
   const [magi, setMagi] = useState(150000);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("MFJ");
   const [isRep, setIsRep] = useState(false);
@@ -86,7 +85,6 @@ export default function TaxEnginePage({
     rate,
     ltv,
     holdYears,
-    rentGrowth,
     magi,
     filingStatus,
     isRep,
@@ -137,6 +135,7 @@ export default function TaxEnginePage({
         .te-num::-webkit-outer-spin-button,.te-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .te-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
         .te-sel{width:100%;border:none;outline:none;font-family:${dc.sans};-webkit-appearance:none;cursor:pointer;background:transparent;color:${dc.cream};letter-spacing:-0.02em;}
+        .te-num:focus-visible,.te-sel:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
       `}</style>
 
       {/* ── HERO — lemon field, dark ink ── */}

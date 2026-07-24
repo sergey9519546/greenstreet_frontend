@@ -248,12 +248,14 @@ export default function StressMatrixPage({
       <style>{`
         .sm-num::-webkit-outer-spin-button,.sm-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .sm-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
+        .sm-num:focus-visible{outline:2px solid ${LEMON};outline-offset:2px;border-radius:3px;}
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;
           font-family:${dc.mono};font-size:9px;font-weight:700;}
         .sm-cell{display:block;width:100%;}
         /* Slider resets */
         .gs-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;
           border-radius:3px;outline:none;cursor:pointer;background:#003738;}
+        .gs-slider:focus-visible{outline:2px solid ${LEMON};outline-offset:4px;}
         .gs-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
           border-radius:50%;background:${LEMON};border:2px solid #003738;cursor:pointer;
           transition:transform .12s,box-shadow .12s;}

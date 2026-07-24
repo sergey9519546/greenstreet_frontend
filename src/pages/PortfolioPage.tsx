@@ -192,6 +192,7 @@ export default function PortfolioPage({
       <style>{`
         .pf-in::-webkit-outer-spin-button,.pf-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .pf-in{width:68px;border:none;background:${dc.cream};outline:none;font-family:${dc.mono};color:${dc.dark};text-align:right;border-radius:5px;padding:6px 8px;font-size:13px;font-weight:600;}
+        .pf-in:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
         .pf-row:hover{background:rgba(0,55,56,0.03);}
         .dc-nav a{color:rgba(0,55,56,0.72) !important;}
         .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
@@ -512,6 +513,7 @@ export default function PortfolioPage({
                         <td style={{ padding: "11px 14px", borderBottom: `1px solid ${dc.faded}` }}>
                           <button
                             onClick={() => removeRow(c.id)}
+                            aria-label={`Remove ${c.name || "property"}`}
                             style={{ background: "none", border: "1px solid rgba(211,47,47,0.35)", color: "#d32f2f", borderRadius: dc.r.sm, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: dc.sans }}
                           >
                             ×

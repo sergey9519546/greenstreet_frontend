@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, H1, H2, H3, Lead, Btn, HeroProof, Mono } from "../design/dc";
+import { DcShell, dc, H1, H2, Lead, Btn, HeroProof, Mono } from "../design/dc";
 import { PISTACHIO, MIDNIGHT, LEMON, FADED, font, swatch, radius } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import { calculatePaymentFactor } from "../engine";
 
 interface Props {
   onBack?: () => void;
   onNavigate?: (view: any) => void;
 }
-
-const pf = (r: number) => {
-  if (r === 0) return 0;
-  const m = r / 12;
-  return (m * Math.pow(1 + m, 360)) / (Math.pow(1 + m, 360) - 1);
-};
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
 
@@ -43,7 +38,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
   // ── Core calculations ───────────────────────────────────────────────────────
   const loan = price * (1 - down / 100);
-  const pAndI = loan * pf(rate / 100);
+  const pAndI = loan * calculatePaymentFactor(rate, 360);
   const pitia = pAndI + tax / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
   const cashFlow = rent - pitia;
@@ -84,7 +79,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     const p = o.price ?? price, d = o.down ?? down, r = o.rent ?? rent;
     const rt = o.rate ?? rate, t = o.tax ?? tax, i = o.ins ?? ins;
     const l = p * (1 - d / 100);
-    const pit = l * pf(rt / 100) + t / 12 + i / 12 + hoa;
+    const pit = l * calculatePaymentFactor(rt, 360) + t / 12 + i / 12 + hoa;
     return pit > 0 ? r / pit : 0;
   };
   const sd = (v: number) => { const x = v - dscr; return (x >= 0 ? '+' : '') + x.toFixed(2); };
@@ -114,7 +109,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   // ── Max Purchase ─────────────────────────────────────────────────────────────
   const maxPITIA = mRent / target;
   const maxPI    = maxPITIA - mTax / 12 - mIns / 12;
-  const maxLoan  = maxPI > 0 ? maxPI / pf(mRate / 100) : 0;
+  const maxLoan  = maxPI > 0 ? maxPI / calculatePaymentFactor(mRate, 360) : 0;
   const maxPrice = maxLoan / (1 - mDown / 100);
 
   const mRows = [
@@ -195,17 +190,17 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
           <div className="gs-reveal dc-band-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1px', background: `${MIDNIGHT}33`, borderRadius: 9, overflow: 'hidden' }}>
             <div style={{ background: PISTACHIO, padding: 'clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)' }}>
               <Mono style={{ fontSize: 'clamp(32px,4vw,52px)', fontWeight: 600, color: LEMON, marginBottom: 14, lineHeight: 1 }}>01</Mono>
-              <H3 style={{ marginBottom: 10, lineHeight: 1.1 }}>Enter</H3>
+              <H2 style={{ marginBottom: 10, lineHeight: 1.1 }}>Enter</H2>
               <Lead style={{ color: FADED, margin: 0 }}>Purchase price, rent, rate, taxes, insurance. Seven fields — about thirty seconds.</Lead>
             </div>
             <div style={{ background: MIDNIGHT, color: PISTACHIO, padding: 'clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)' }}>
               <Mono style={{ fontSize: 'clamp(32px,4vw,52px)', fontWeight: 600, color: '#4dbd97', marginBottom: 14, lineHeight: 1 }}>02</Mono>
-              <H3 style={{ marginBottom: 10, lineHeight: 1.1, color: PISTACHIO }}>Compute</H3>
+              <H2 style={{ marginBottom: 10, lineHeight: 1.1, color: PISTACHIO }}>Compute</H2>
               <Lead style={{ color: 'rgba(238,239,211,0.65)', margin: 0 }}>Live DSCR ratio, PITIA breakdown (the full monthly payment — principal, interest, taxes, insurance, and HOA), cash flow, cap rate. Updates as you type.</Lead>
             </div>
             <div style={{ background: LEMON, padding: 'clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)' }}>
               <Mono style={{ fontSize: 'clamp(32px,4vw,52px)', fontWeight: 600, color: FADED, marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <H3 style={{ marginBottom: 10, lineHeight: 1.1 }}>Match</H3>
+              <H2 style={{ marginBottom: 10, lineHeight: 1.1 }}>Match</H2>
               <Lead style={{ color: MIDNIGHT, margin: 0 }}>Every Greenstreet program ranked by fit. State PPP rule checked. Rate band. No calls needed.</Lead>
             </div>
           </div>
@@ -246,7 +241,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Down payment — sets your LTV (loan ÷ value)</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{down}% · {fmt(price * down / 100)}</Mono>
                     </div>
-                    <input className="gsr" type="range" step="5" min="20" max="50" value={down} onChange={e => setDown(+e.target.value)} style={{ width: '100%' }} />
+                    <input className="gsr" type="range" step="5" min="20" max="50" value={down} onChange={e => setDown(+e.target.value)} style={{ width: '100%' }} aria-label="Down payment percentage" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
                   </div>
                   <div>
@@ -254,7 +249,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Interest rate — drives P&amp;I payment</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{rate.toFixed(3)}%</Mono>
                     </div>
-                    <input className="gsr" type="range" step="0.125" min="4" max="12" value={rate} onChange={e => setRate(+e.target.value)} style={{ width: '100%' }} />
+                    <input className="gsr" type="range" step="0.125" min="4" max="12" value={rate} onChange={e => setRate(+e.target.value)} style={{ width: '100%' }} aria-label="Interest rate percentage" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 4 }}><span>4%</span><span>12%</span></div>
                   </div>
                   <label style={{ display: 'block' }}>
@@ -287,6 +282,13 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </div>
                     </label>
                   </div>
+                  <label style={{ display: 'block' }}>
+                    <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>HOA /mo</span>
+                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                      <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
+                      <input className="gs-num" type="number" step="25" value={hoa} onChange={e => setHoa(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                    </div>
+                  </label>
                 </div>
               </div>
 
@@ -452,17 +454,41 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   </label>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Down payment — sets your LTV (loan ÷ value)</span>
+                      <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{mDown}%</Mono>
+                    </div>
+                    <input className="gsr" type="range" step="5" min="20" max="50" value={mDown} onChange={e => setMDown(+e.target.value)} style={{ width: '100%' }} aria-label="Max purchase down payment percentage" />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Note rate</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{mRate.toFixed(3)}%</Mono>
                     </div>
-                    <input className="gsr" type="range" step="0.125" min="4" max="12" value={mRate} onChange={e => setMRate(+e.target.value)} style={{ width: '100%' }} />
+                    <input className="gsr" type="range" step="0.125" min="4" max="12" value={mRate} onChange={e => setMRate(+e.target.value)} style={{ width: '100%' }} aria-label="Note rate percentage" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <label style={{ display: 'block' }}>
+                      <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Taxes /yr</span>
+                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
+                        <input className="gs-num" type="number" step="250" value={mTax} onChange={e => setMTax(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                      </div>
+                    </label>
+                    <label style={{ display: 'block' }}>
+                      <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Ins. /yr</span>
+                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
+                        <input className="gs-num" type="number" step="100" value={mIns} onChange={e => setMIns(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                      </div>
+                    </label>
                   </div>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Target DSCR — the ratio you want to hit</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{target.toFixed(2)}x</Mono>
                     </div>
-                    <input className="gsr" type="range" step="0.05" min="0.75" max="1.50" value={target} onChange={e => setTarget(+e.target.value)} style={{ width: '100%' }} />
+                    <input className="gsr" type="range" step="0.05" min="0.75" max="1.50" value={target} onChange={e => setTarget(+e.target.value)} style={{ width: '100%' }} aria-label="Target DSCR ratio" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 4 }}><span>0.75x</span><span>1.50x</span></div>
                   </div>
                 </div>
