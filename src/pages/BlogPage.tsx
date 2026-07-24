@@ -624,7 +624,10 @@ export const POSTS = [
 
 // The grid posts (all except the featured one), in reverse-chron order
 const GRID_POSTS = POSTS.filter((p) => !p.featured);
-const FEATURED_POST = POSTS.find((p) => p.featured)!;
+// Fall back to the first post instead of asserting: a future content edit
+// that unmarks the featured post (or forgets to mark a replacement) should
+// degrade to "show the first post," not crash the /blog route.
+const FEATURED_POST = POSTS.find((p) => p.featured) ?? POSTS[0];
 
 // ── Tag filter list ───────────────────────────────────────────────────────────
 const ALL_TAGS = ["All", "Lending", "Tax", "Compliance", "Rates", "Underwriting", "STR", "Process", "Product"];
