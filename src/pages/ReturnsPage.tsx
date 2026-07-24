@@ -124,6 +124,7 @@ function Disclosure({ label, children, defaultOpen = false }: { label: string; c
     <div style={{ borderRadius: dc.r.sm, border: "1px solid rgba(0,55,56,0.12)", overflow: "hidden" }}>
       <button
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
         style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "13px 18px", background: "rgba(0,55,56,0.04)", border: "none", cursor: "pointer",
