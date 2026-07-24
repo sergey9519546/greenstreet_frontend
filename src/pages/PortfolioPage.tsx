@@ -359,7 +359,7 @@ export default function PortfolioPage({
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
               <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Apply with confidence</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                This blended view is what Greenstreet's blanket underwriter builds. Submit it with your application — no guesswork, no surprises. Blanket lines to $25M.
+                This blended view is what Greenstreet's blanket underwriter builds. Submit it with your application — no guesswork, no surprises. Blanket structures available.
               </p>
             </div>
           </div>

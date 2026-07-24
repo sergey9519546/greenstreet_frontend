@@ -15,7 +15,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
-import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange } from "../engine";
+import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
 import type {
   QuickDscrTier,
   QualifyPropertyType as PropertyType,
@@ -65,12 +65,33 @@ const FICO_TO_ENGINE: Record<FicoBand, EngineFicoBand> = {
   "760-plus": "760-plus",
 };
 
+// PPP tier for qualify(): 0 = clear, 2 = confirm-by-hand, 3 = restricted.
+// Derived from the engine's authoritative state-law data (statePppLaws.ts),
+// which qualify() expects via stateTier — it never parses the state string.
+function tierForState(state: string): number {
+  const law = PPP_STATE_LAWS[state?.toUpperCase?.() ?? ""];
+  if (!law) return 0;
+  switch (law.status) {
+    case "PROHIBITED":
+    case "PRACTICALLY_PROHIBITED":
+      return 3;
+    case "ENTITY_ONLY":
+    case "CONDITIONAL":
+    case "AMBIGUOUS":
+    case "ARM_RESTRICTED":
+      return 2;
+    default:
+      return 0;
+  }
+}
+
 // Build a QualifyInput from modal state (used by the result screen + payload).
 function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
   return {
     propertyType: s1.propertyType ?? "sfr",
     purpose: s2.purpose ?? "purchase",
     state: s2.state,
+    stateTier: tierForState(s2.state),
     value: s1.propertyValue,
     loanAmount: s1.loanAmount > 0 ? s1.loanAmount : s1.propertyValue * 0.75,
     rent: s1.rent,
@@ -160,7 +181,10 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
   }
 }
 
-function estimateRate(
+// Quick band-based rate QUOTE for the modal only. Deliberately named apart from
+// the engine's exported estimateRate(), which uses a different signature and
+// adjustment schedule — do not conflate the two.
+function estimateQuickRate(
   baseDSCR: number,
   ficoBand: FicoBand | null,
   purpose: Purpose | null
@@ -1148,7 +1172,7 @@ function Step3({
   const dscr = estimate.dscr;
   const col = dscrColor(dscr);
   const verdict = dscrVerdict(estimate.tier, step2.purpose);
-  const rate = estimateRate(dscr, step2.ficoBand, step2.purpose);
+  const rate = estimateQuickRate(dscr, step2.ficoBand, step2.purpose);
   const q = qualify(buildQualifyInput(step1, step2));
   const topLever = q.levers[0];
 
@@ -1885,7 +1909,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     // Use engine math for the persisted payload (matches the displayed result)
     const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
     const verdict = dscrVerdict(estimate.tier);
-    const rateEstimate = estimateRate(estimate.dscr, step2.ficoBand, step2.purpose);
+    const rateEstimate = estimateQuickRate(estimate.dscr, step2.ficoBand, step2.purpose);
     const q = qualify(buildQualifyInput(step1, step2));
 
     const payload = {

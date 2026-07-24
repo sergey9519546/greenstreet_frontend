@@ -36,25 +36,29 @@ const BENEFITS = [
   },
 ];
 
-// ── Testimonials — role/company attribution only; no fabricated NMLS or hard stats ──
+// ── Testimonials — illustrative composites (same policy as CaseStudiesPage):
+// role-only attribution, no invented named individuals or companies. Replace
+// with verified, permissioned quotes before presenting as real endorsements.
+const TESTIMONIALS_DISCLAIMER =
+  "Illustrative composite quotes reflecting common user feedback — not attributed to verified named individuals.";
 const TESTIMONIALS = [
   {
     quote:
-      "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it — lower down payment, IO for year one. We closed in 19 days.",
-    name: "Alex Stickelman",
-    role: "CCO & COO, Vela Capital",
+      "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it — lower down payment, IO for year one.",
+    name: "Fund operations lead",
+    role: "Illustrative composite",
   },
   {
     quote:
       "The program match and state-rule checks mean I stopped second-guessing my quotes. I price the deal and move on.",
-    name: "Sandra Rivera",
-    role: "Real Estate Investor, Miami FL",
+    name: "Real estate investor, Florida",
+    role: "Illustrative composite",
   },
   {
     quote:
-      "I run eight loans through Greenstreet a week. The CCO actually likes the audit logs — that's new for us.",
-    name: "Robert Hayes",
-    role: "Buy-and-Hold Investor, Austin TX",
+      "I run multiple loans through Greenstreet a week. The compliance team actually likes the audit logs — that's new for us.",
+    name: "Buy-and-hold investor, Texas",
+    role: "Illustrative composite",
   },
 ];
 
@@ -446,6 +450,9 @@ export default function BrokersPortalPage({
                 </div>
               </div>
             ))}
+            <p style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", margin: "14px 0 0", lineHeight: 1.5 }}>
+              {TESTIMONIALS_DISCLAIMER}
+            </p>
           </div>
         </div>
       </section>

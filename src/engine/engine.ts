@@ -533,8 +533,13 @@ export function solveMaxPurchasePrice(
   if (maxPI <= 0) return 0;
 
   const termMonths = termYears * 12;
-  const factor = calculatePaymentFactor(rate, termMonths);
-  const maxLoan = maxPI / factor;
+  // IO qualification: payment = loanAmount * rate/12, so maxLoan = maxPI * 12 / rate.
+  // Mirrors solveDealBreakRate's IO branch — previously ioPeriod was accepted but ignored,
+  // understating max price for interest-only loans.
+  const ioYears = ioPeriod === 'NONE' ? 0 : parseInt(ioPeriod) || 0;
+  const maxLoan = ioYears > 0 && rate > 0
+    ? (maxPI * 12) / (rate / 100)
+    : maxPI / calculatePaymentFactor(rate, termMonths);
   const maxPrice = maxLoan / (ltv / 100);
 
   return Math.round(maxPrice);

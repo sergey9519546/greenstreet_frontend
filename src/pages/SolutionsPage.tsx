@@ -67,7 +67,7 @@ const SEGMENTS: Segment[] = [
     tag: "Portfolio builders",
     title: "One blended view of all your doors",
     desc:
-      "When you own 10+ properties, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket underwriter actually evaluates your book. Blanket and multi-property lines to $25M, single application.",
+      "When you own 10+ properties, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket underwriter actually evaluates your book. Blanket and multi-property structures, single application.",
     cta: "Build my portfolio view →",
     view: "portfolio",
     panelBg: dc.rain,
@@ -77,7 +77,7 @@ const SEGMENTS: Segment[] = [
     statBg: dc.teal,
     dscrPreview: 1.49,
     stats: [
-      { v: "$25M", k: "blanket line capacity" },
+      { v: "$3.5M", k: "max per-note loan size" },
       { v: "1.49×", k: "blended DSCR example" },
       { v: "40+", k: "doors modeled" },
       { v: "1", k: "application" },

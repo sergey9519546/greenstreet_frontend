@@ -233,7 +233,17 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                       strokeWidth={isSel ? 2.4 : 0.8}
                       onMouseEnter={() => setHover(code)}
                       onClick={() => setSelected(code)}
-                      style={{ cursor: "pointer", filter: isHov ? "brightness(1.12)" : "none" }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelected(code);
+                        }
+                      }}
+                      onFocus={() => setHover(code)}
+                      onBlur={() => setHover(null)}
+                      style={{ cursor: "pointer", filter: isHov ? "brightness(1.12)" : "none", outline: isHov ? `2px solid ${dc.dark}` : "none" }}
                       aria-label={`${r.name}: ${TIER_LABELS[r.tier]}`}
                     />
                   );

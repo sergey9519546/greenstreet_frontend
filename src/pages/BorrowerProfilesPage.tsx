@@ -731,7 +731,7 @@ export default function BorrowerProfilesPage({
               rows={[
                 { k: "Program", v: "DSCR Portfolio / Blanket" },
                 { k: "Rate range", v: "6.99 – 7.50%" },
-                { k: "Loan size", v: "Up to $25M" },
+                { k: "Loan size", v: "To $3.5M per note" },
                 { k: "Portfolio DSCR", v: "≥ 1.25x (blended)" },
                 { k: "LTV", v: "≤ 75%" },
                 { k: "Doors", v: "2 – 20 in one note" },
@@ -773,7 +773,7 @@ export default function BorrowerProfilesPage({
                 "One credit pull, one approval",
                 "One closing — not 10",
                 "Blended DSCR absorbs thin-margin doors",
-                "Up to $25M in a single note",
+                "Multiple doors in a single note",
               ].map((item) => (
                 <div key={item} style={{ display: "flex", gap: 8, padding: "6px 0", fontSize: 13, color: dc.dark, alignItems: "flex-start" }}>
                   <span style={{ color: dc.rain, fontWeight: 800, flexShrink: 0 }}>✓</span>

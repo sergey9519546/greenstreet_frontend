@@ -241,7 +241,22 @@ export function Btn({ label, onClick, href, variant = "primary", style }: { labe
   return (
     <div className="btn_main_wrap" data-wf--btn-main--style={variant} style={{ display: "inline-block", ...style }}>
       <div className="g_clickable_wrap">
-        <a className="g_clickable_link w-inline-block" {...(href !== undefined ? { href } : {})} onClick={onClick}><span className="g_clickable_text u-sr-only">{label}</span></a>
+        <a
+          className="g_clickable_link w-inline-block"
+          {...(href !== undefined
+            ? { href }
+            : {
+                role: "button" as const,
+                tabIndex: 0,
+                onKeyDown: (e: React.KeyboardEvent) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onClick?.(e as unknown as React.MouseEvent);
+                  }
+                },
+              })}
+          onClick={onClick}
+        ><span className="g_clickable_text u-sr-only">{label}</span></a>
       </div>
       <div className="btn_main_text" onClick={onClick}>{label}</div>
       <div className="btn-arrow-wrap">
