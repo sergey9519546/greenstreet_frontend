@@ -1295,36 +1295,35 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
    the preserved Webflow homepage keeps its own responsive choreography. */
 @media (max-width: 767px) {
   .gs-site-nav {
-    min-height: 82px !important;
+    min-height: 96px !important;
     isolation: isolate;
   }
 
   .gs-site-nav .nav-contain {
-    padding-inline: var(--gs-page-gutter, clamp(1rem, 4.6vw, 1.25rem)) !important;
+    padding: 16px !important;
   }
 
   .gs-site-nav .nav-wrap {
-    /* .nav-contain retains the home's 16px vertical breathing room.  A 50px
-       inner rail therefore gives the compact, still generous 82px mobile bar. */
-    min-height: 50px !important;
-    gap: 10px;
+    min-height: 64px !important;
+    gap: 16px;
   }
 
   .gs-site-nav .nav-logo > span {
-    font-size: clamp(1.55rem, 7.2vw, 1.8rem) !important;
+    font-size: 30px !important;
   }
 
   .gs-site-nav .burger-wrap {
-    width: 44px !important;
-    min-width: 44px !important;
-    height: 44px !important;
-    min-height: 44px !important;
+    width: 64px !important;
+    min-width: 64px !important;
+    height: 64px !important;
+    min-height: 64px !important;
     display: inline-flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-right: -8px;
-    border-radius: 8px;
+    margin-right: 0;
+    padding: 16px !important;
+    border-radius: 0;
   }
 
   .gs-site-nav .burger-wrap:focus-visible {
