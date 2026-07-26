@@ -6,7 +6,7 @@ describe("SPA route resolution", () => {
     expect(resolveRoute("/")).toBe("marketing");
     expect(resolveRoute("/dscr-calculator")).toBe("dscr-calculator");
     expect(resolveRoute("/lender-intel")).toBe("products");
-    expect(resolveRoute("/tools/structure-optimizer")).toBe("portal");
+    expect(resolveRoute("/tools/structure-optimizer")).toBe("structure-optimizer");
   });
 
   it("keeps blog article routes inside the blog renderer", () => {

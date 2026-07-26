@@ -1,3 +1,5 @@
+import type { PageView } from "../router/resolve";
+
 export interface ToolReliabilityHoldContent {
   title: string;
   reason: string;
@@ -5,7 +7,7 @@ export interface ToolReliabilityHoldContent {
 }
 
 export interface ToolReliabilityHoldDefinition extends ToolReliabilityHoldContent {
-  view: string;
+  view: PageView;
   path: string;
 }
 
@@ -39,6 +41,54 @@ export const TOOL_RELIABILITY_HOLDS = {
       "One approved scenario and debt schedule across every result",
       "Verified program terms with source and review dates",
       "Regression tests for every recommendation outcome",
+    ],
+  },
+  rateQuiz: {
+    view: "rate-quiz",
+    path: "/rate-quiz",
+    title: "Rate Estimate",
+    reason:
+      "The published rate bands and program labels are not connected to an approved, versioned rate sheet and cannot be presented as current pricing or eligibility.",
+    whatIsNeeded: [
+      "An accountable owner for pricing and program data",
+      "Versioned rate sheets with source and review dates",
+      "Boundary tests for every adjustment and eligibility label",
+    ],
+  },
+  dealAnalyzer: {
+    view: "deal-analyzer",
+    path: "/deal-analyzer",
+    title: "Deal Analyzer",
+    reason:
+      "The shared DSCR arithmetic is valid, but this page still combines it with unverified program, pricing, and state-law conclusions.",
+    whatIsNeeded: [
+      "Remove or govern every program and rate output",
+      "Use only counsel-reviewed state rules with effective dates",
+      "Regression tests that separate arithmetic from eligibility decisions",
+    ],
+  },
+  stateRules: {
+    view: "state-laws",
+    path: "/state-laws",
+    title: "State Rules Reference",
+    reason:
+      "The legal effective dates and jurisdiction summaries have not completed counsel review, so the site cannot safely present them as current.",
+    whatIsNeeded: [
+      "Counsel-reviewed primary sources for every jurisdiction",
+      "Transaction-date-aware effective-date handling",
+      "A named reviewer and expiration date for each summary",
+    ],
+  },
+  strUnderwriting: {
+    view: "str-underwriting",
+    path: "/tools/str-underwriting",
+    title: "STR Underwriting",
+    reason:
+      "The income-selection, seasonality, and jurisdiction assumptions have not been reconciled to an approved provider policy.",
+    whatIsNeeded: [
+      "A provider-approved qualifying-income hierarchy",
+      "Dated, jurisdiction-specific source data",
+      "Golden tests for selected income, expenses, and DSCR",
     ],
   },
   taxEngine: {
@@ -126,7 +176,7 @@ export const TOOL_RELIABILITY_HOLDS = {
     ],
   },
   structureOptimizer: {
-    view: "optimize",
+    view: "structure-optimizer",
     path: "/tools/structure-optimizer",
     title: "Structure Optimizer",
     reason:

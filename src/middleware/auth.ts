@@ -1,13 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import * as admin from "firebase-admin";
 import { logger } from "../logger";
+import { getAdminApp, getAdminAuth } from "../services/firebaseAdmin";
 
 let adminInitialized = false;
 try {
-  // Initialize firebase-admin if not already initialized
-  if (admin.apps.length === 0) {
-    admin.initializeApp();
-  }
+  getAdminApp();
   adminInitialized = true;
 } catch (error: any) {
   // NOTE: this used to say verification would "fall back to mock context in
@@ -89,7 +86,7 @@ export async function verifyFirebaseToken(
 
   try {
     if (adminInitialized) {
-      const decodedToken = await admin.auth().verifyIdToken(token);
+      const decodedToken = await getAdminAuth().verifyIdToken(token);
       req.user = {
         uid: decodedToken.uid,
         email: decodedToken.email,

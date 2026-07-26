@@ -1,19 +1,10 @@
-/* Greenstreet 50-state PPP rule map — marketing home section (after Solutions).
- * Renders the same geographic US map + prepayment-penalty tiers used by the
- * /state-laws tool, as a self-contained, animated teaser. Geometry is fetched
- * from /us-map-paths.json (generated from src/data/usMapPaths.ts); tier data
- * mirrors StateLawsPage. Idempotent; reveals on scroll-into-view. */
+/* Greenstreet neutral US map — marketing home reliability-hold visual.
+ * Geometry is preserved so the accepted homepage composition does not fall
+ * apart, but the map deliberately publishes no jurisdiction classification or
+ * legal conclusion while the state-rule source set is under review. */
 (function () {
-  // Tier system — identical to StateLawsPage (0 allowed → 3 effectively banned).
-  var TIER_COLORS = { 0: "#4dbd97", 1: "#d8d958", 2: "#f97316", 3: "#ff6b6b" };
-  var TIER_LABELS = { 0: "PPP allowed", 1: "Threshold-based", 2: "High-risk", 3: "Effectively banned" };
-
-  // States with a non-standard tier (everything else defaults to 0 / allowed).
-  var SPECIAL_TIERS = {
-    AK: 2, AR: 1, CA: 1, FL: 0, GA: 0, IL: 1, KS: 3, ME: 1, MD: 3, MN: 1,
-    MS: 1, NJ: 2, NM: 1, NY: 1, ND: 3, OH: 1, OK: 1, PA: 1, RI: 1, SC: 1,
-    TX: 0, WA: 1, WV: 1, WI: 1,
-  };
+  var HOLD_COLOR = "#4b7f7b";
+  var HOLD_LABEL = "State rules under review";
 
   var CODE_TO_NAME = {
     AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
@@ -40,22 +31,13 @@
     return dataPromise;
   }
 
-  function tierOf(code) {
-    return Object.prototype.hasOwnProperty.call(SPECIAL_TIERS, code) ? SPECIAL_TIERS[code] : 0;
-  }
-
-  function buildLegend(legendEl, counts) {
+  function buildLegend(legendEl) {
     if (!legendEl) return;
-    legendEl.innerHTML = "";
-    [0, 1, 2, 3].forEach(function (t) {
-      var row = document.createElement("div");
-      row.className = "gs-sm-legend-row";
-      row.innerHTML =
-        '<span class="gs-sm-dot" style="background:' + TIER_COLORS[t] + '"></span>' +
-        '<span class="gs-sm-legend-label">' + TIER_LABELS[t] + "</span>" +
-        '<span class="gs-sm-legend-count">' + counts[t] + "</span>";
-      legendEl.appendChild(row);
-    });
+    legendEl.innerHTML =
+      '<div class="gs-sm-legend-row">' +
+      '<span class="gs-sm-dot" style="background:' + HOLD_COLOR + '"></span>' +
+      '<span class="gs-sm-legend-label">' + HOLD_LABEL + "</span>" +
+      '<span class="gs-sm-legend-count">50</span></div>';
   }
 
   function render(root) {
@@ -65,25 +47,21 @@
 
     getData().then(function (data) {
       var codes = Object.keys(data.paths);
-      var counts = { 0: 0, 1: 0, 2: 0, 3: 0 };
 
       var svg = document.createElementNS(SVGNS, "svg");
       svg.setAttribute("viewBox", data.viewBox);
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
       svg.setAttribute("class", "gs-sm-svg");
       svg.setAttribute("role", "img");
-      svg.setAttribute("aria-label", "Map of all 50 states colored by DSCR prepayment-penalty rule tier");
+      svg.setAttribute("aria-label", "Neutral map of the United States; state legal classifications are under review");
 
       codes.forEach(function (code) {
-        var t = tierOf(code);
-        if (code !== "DC") counts[t]++;
         var p = document.createElementNS(SVGNS, "path");
         p.setAttribute("d", data.paths[code]);
-        p.setAttribute("fill", TIER_COLORS[t]);
+        p.setAttribute("fill", HOLD_COLOR);
         p.setAttribute("class", "gs-sm-state");
         p.setAttribute("data-code", code);
         p.setAttribute("data-name", CODE_TO_NAME[code] || code);
-        p.setAttribute("data-tier", String(t));
         svg.appendChild(p);
       });
 
@@ -95,16 +73,15 @@
       root.innerHTML = "";
       root.appendChild(svg);
       root.appendChild(tip);
-      buildLegend(legendEl, counts);
+      buildLegend(legendEl);
 
       // hover tooltip
       svg.addEventListener("mousemove", function (e) {
         var el = e.target;
         if (el && el.classList && el.classList.contains("gs-sm-state")) {
-          var t = el.getAttribute("data-tier");
           tip.innerHTML =
-            '<span class="gs-sm-tip-dot" style="background:' + TIER_COLORS[t] + '"></span>' +
-            '<strong>' + el.getAttribute("data-name") + "</strong> · " + TIER_LABELS[t];
+            '<span class="gs-sm-tip-dot" style="background:' + HOLD_COLOR + '"></span>' +
+            '<strong>' + el.getAttribute("data-name") + "</strong> · " + HOLD_LABEL;
           tip.classList.add("is-on");
           var r = root.getBoundingClientRect();
           var x = e.clientX - r.left, y = e.clientY - r.top;
@@ -139,7 +116,7 @@
       // safety: reveal after 1.6s regardless (covers paused observers)
       setTimeout(function () { states.forEach(function (s) { s.classList.add("is-in"); }); }, 1600);
     }).catch(function () {
-      root.innerHTML = '<div class="gs-statemap-loading">Map unavailable. <a href="/state-laws">View all 50-state rules →</a></div>';
+      root.innerHTML = '<div class="gs-statemap-loading">Neutral map unavailable. State classifications remain under review.</div>';
     });
   }
 

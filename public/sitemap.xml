@@ -6,17 +6,13 @@
   <url><loc>https://www.greenstreet.finance/brokers</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/investors</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/dscr-calculator</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://www.greenstreet.finance/deal-analyzer</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/borrower-profiles</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/partners</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.greenstreet.finance/state-laws</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.greenstreet.finance/rate-quiz</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/book-demo</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/blog</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/faq</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/case-studies</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://www.greenstreet.finance/tools/str-underwriting</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://www.greenstreet.finance/careers</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://www.greenstreet.finance/legal</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://www.greenstreet.finance/privacy-policy</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>

@@ -6,8 +6,8 @@
  * Step 4: Contact capture
  * Step 5: Confirmation
  *
- * PRESERVED: DSCR calc formula, Firestore leads submit + localStorage fallback,
- * trigger pill + window.openQualify + one-time auto-open + localStorage gate.
+ * PRESERVED: DSCR calc formula, trigger pill + window.openQualify +
+ * one-time auto-open + localStorage gate.
  *
  * ADDED: step-enter animation, progress bar transition, result reveal (count-up),
  * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
@@ -15,7 +15,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
-import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
+import { qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
 import type {
   QuickDscrTier,
   QualifyPropertyType as PropertyType,
@@ -53,7 +53,7 @@ interface StepFourData {
   role: Role | null;
   timeline: Timeline | null;
   contactConsent: boolean;
-  smsConsent: boolean;
+  website: string;
 }
 
 // Modal credit bands → engine credit bands (engine separates <660; the modal's
@@ -89,7 +89,7 @@ const STATE_NAME_TO_CODE: Record<string, string> = {
 function tierForState(state: string): number {
   const code = STATE_NAME_TO_CODE[state] ?? state;
   const law = PPP_STATE_LAWS[code?.toUpperCase?.() ?? ""];
-  if (!law) return 0;
+  if (!law) return 2;
   switch (law.status) {
     case "PROHIBITED":
     case "PRACTICALLY_PROHIBITED":
@@ -114,6 +114,7 @@ function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
     value: s1.propertyValue,
     loanAmount: s1.loanAmount > 0 ? s1.loanAmount : s1.propertyValue * 0.75,
     rent: s1.rent,
+    annualRatePct: s1.rate,
     ficoBand: s2.ficoBand ? FICO_TO_ENGINE[s2.ficoBand] : "680-719",
     borrowerType: s2.borrowerType ?? undefined,
     investmentConfirmed: s1.investmentConfirmed,
@@ -121,8 +122,37 @@ function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
 }
 
 // ─── Engine-backed DSCR helpers ───────────────────────────────────────────────
-// The modal delegates all math to quickDscrEstimate (uses 0.5% ins, 1.2% tax,
-// 75% LTV, 360-mo term — matches the rest of the product).
+// The modal delegates all result math to qualify(), using the visitor's actual
+// loan amount and entered rate. One calculation now drives the live preview,
+// result formula, levers, rate range, and persisted audit payload.
+
+function classifyQuickDscr(dscr: number): {
+  tier: QuickDscrTier;
+  label: string;
+} {
+  if (dscr >= 1.25) {
+    return {
+      tier: "LIKELY_QUALIFIES",
+      label: "Stronger estimated payment cushion",
+    };
+  }
+  if (dscr >= 1.0) {
+    return {
+      tier: "BORDERLINE",
+      label: "Estimated rent covers the payment",
+    };
+  }
+  if (dscr >= 0.85) {
+    return {
+      tier: "SPECIALIST_REQUIRED",
+      label: "Estimated rent is below the payment",
+    };
+  }
+  return {
+    tier: "UNLIKELY",
+    label: "Material estimated payment shortfall",
+  };
+}
 
 function dscrColor(dscr: number): string {
   if (dscr >= 1.25) return swatch.emerald;
@@ -141,19 +171,19 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
 } {
   const purposeContext: Record<Purpose, { strong: string; borderline: string; low: string }> = {
     purchase: {
-      strong: "For a purchase at this DSCR, you're in a strong position to move forward.",
-      borderline: "Purchases at this DSCR can close — a specialist will confirm the program and structure.",
-      low: "Some purchase programs allow sub-1.0 DSCR with compensating factors like reserves or lower LTV.",
+      strong: "For this purchase scenario, the estimated rent leaves a stronger payment-coverage cushion.",
+      borderline: "For this purchase scenario, the estimated rent is close to the full monthly payment.",
+      low: "For this purchase scenario, reducing the loan amount or payment would improve the estimate.",
     },
     "rate-term": {
-      strong: "Rate & term refinances at this DSCR typically qualify at standard pricing.",
-      borderline: "This DSCR meets the floor for a rate & term refi. A specialist can confirm the best available term.",
-      low: "At this DSCR level, a rate & term refi may require compensating factors. A specialist can review your full picture.",
+      strong: "For this refinance scenario, the estimated rent leaves a stronger payment-coverage cushion.",
+      borderline: "For this refinance scenario, the estimated rent is close to the full monthly payment.",
+      low: "At this level, a lower balance or payment would improve the refinance estimate.",
     },
     "cash-out": {
-      strong: "Cash-out refinances at this DSCR are generally well-supported — your cushion helps.",
-      borderline: "Cash-out refinances at this DSCR are workable. LTV and FICO will affect final approval.",
-      low: "Cash-out refinances require more cushion. A specialist can look at reducing the cash-out amount or LTV to hit threshold.",
+      strong: "For this cash-out scenario, the estimated rent leaves a stronger payment-coverage cushion.",
+      borderline: "For this cash-out scenario, the estimated rent is close to the full monthly payment.",
+      low: "Reducing the cash-out amount or loan-to-value would improve the estimate.",
     },
   };
 
@@ -163,28 +193,28 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
     case "LIKELY_QUALIFIES":
       return {
         tier: "Strong",
-        headline: "This deal looks solid",
-        detail: "Your DSCR clears our standard threshold. You're in a good position to move forward.",
+        headline: "This estimate shows a stronger cushion",
+        detail: "The estimated rent clears the illustrative 1.25x coverage marker used in this tool.",
         purposeNote: ctx?.strong ?? "",
-        nextStep: "Share your contact details and a Greenstreet specialist will send you a full scenario review — typically within one business day.",
+        nextStep: "You can share contact details to request a human review. Product availability, eligibility, timing, and terms still require confirmation by the responsible provider.",
         color: swatch.emerald,
       };
     case "BORDERLINE":
       return {
-        tier: "Qualifies",
-        headline: "This deal meets the standard floor",
-        detail: "Your DSCR is at or above the 1.0x minimum. A specialist can confirm terms and get you to closing.",
+        tier: "At 1.0x+",
+        headline: "This estimate reaches payment coverage",
+        detail: "The estimated rent is at or above the full monthly payment in this scenario. That is not an approval or product-eligibility decision.",
         purposeNote: ctx?.borderline ?? "",
-        nextStep: "A Greenstreet specialist can confirm which programs fit and lock you into terms.",
+        nextStep: "You can request a human review of the assumptions. Any program, rate, approval, or closing path must be confirmed by the responsible provider.",
         color: swatch.rainforest,
       };
     case "SPECIALIST_REQUIRED":
       return {
         tier: "Borderline",
-        headline: "This deal may work with the right structure",
-        detail: "Your DSCR is just below the standard 1.0x floor, but there are programs that accommodate this range — especially with strong credit or reserves.",
-        purposeNote: ctx?.low ?? "A Greenstreet specialist can explore sub-1.0 programs and structuring options — this is not a dead end.",
-        nextStep: "A Greenstreet specialist can explore sub-1.0 programs and structuring options. This is not a dead end.",
+        headline: "This estimate is below full payment coverage",
+        detail: "The estimated rent is below the full monthly payment. A different structure may change the arithmetic, but this tool does not determine product eligibility.",
+        purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
+        nextStep: "You can request a human review of the assumptions. Do not treat this result as evidence that a sub-1.0 product is available.",
         color: "#b8a820",
       };
     case "UNLIKELY":
@@ -192,36 +222,12 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
       return {
         tier: "Below Threshold",
         headline: "This deal needs restructuring",
-        detail: "Your current numbers are below standard DSCR floors, but there may be paths forward — lower LTV, higher rent, or a different structure.",
-        purposeNote: ctx?.low ?? "A specialist can assess whether a restructured deal changes the picture.",
-        nextStep: "A Greenstreet specialist can walk through what adjustments would change the outcome. No commitment required.",
+        detail: "The estimated rent is materially below the full monthly payment. Lowering the payment or increasing verified rent would change the arithmetic.",
+        purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
+        nextStep: "You can request a human review of the inputs. This result is not a decline or a statement that financing is available.",
         color: "#c25b4e",
       };
   }
-}
-
-// Quick band-based rate QUOTE for the modal only. Deliberately named apart from
-// the engine's exported estimateRate(), which uses a different signature and
-// adjustment schedule — do not conflate the two.
-function estimateQuickRate(
-  baseDSCR: number,
-  ficoBand: FicoBand | null,
-  purpose: Purpose | null
-): string {
-  let base = 6.5;
-  // FICO adjustments
-  if (ficoBand === "under-680") base += 1.25;
-  else if (ficoBand === "680-719") base += 0.75;
-  else if (ficoBand === "720-759") base += 0.25;
-  // else 760+ stays at base
-  // Purpose adjustments
-  if (purpose === "cash-out") base += 0.375;
-  else if (purpose === "rate-term") base += 0.0;
-  // DSCR adjustment — sub-1.0 carries a spread
-  if (baseDSCR < 1.0) base += 0.5;
-  const lo = (base - 0.125).toFixed(2);
-  const hi = (base + 0.25).toFixed(2);
-  return `${lo}% – ${hi}%`;
 }
 
 // ─── US States ────────────────────────────────────────────────────────────────
@@ -641,9 +647,9 @@ function Step1({
   const idRent    = `${uid}-rent`;
   const idRate    = `${uid}-rate`;
 
-  // Use engine for all DSCR math (0.5% ins, 1.2% tax, 75% LTV, 360mo)
-  const estimate = quickDscrEstimate(data.propertyValue, data.rent, data.rate);
-  const dscr = estimate.dscr;
+  const qualification = qualify(buildQualifyInput(data, step2));
+  const dscr = qualification.dscr;
+  const estimate = classifyQuickDscr(dscr);
   const col = dscrColor(dscr);
 
   const [shaking, setShaking] = useState(false);
@@ -701,7 +707,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        See if your rental deal qualifies — in 60 seconds
+        Estimate your rental DSCR — in 60 seconds
       </h2>
       <p
         style={{
@@ -722,7 +728,7 @@ function Step1({
             ? "Cash-out refinance — replace your loan with a larger one and take the difference in cash. Pricing is slightly higher than a purchase."
             : step2.purpose === "rate-term"
             ? "Rate & term refinance — replace your current loan to change the rate or term, without taking cash out."
-            : "Are you buying it, refinancing for a better rate, or pulling cash out? Each has different pricing and programs."
+            : "Are you buying it, refinancing for a different rate or term, or modeling cash out? The purpose changes the assumptions shown."
         }
         error={attempted && !step2.purpose ? "Please select a loan purpose to continue." : undefined}
       >
@@ -745,7 +751,7 @@ function Step1({
 
       <FieldGroup
         label="Property type"
-        helper="DSCR loans (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) are available for most rental property types. Short-term rentals and 5–8 unit buildings have specialty programs with higher down-payment requirements."
+        helper="DSCR measures whether the property's rent can cover the full monthly payment. Property type can affect how a responsible provider evaluates income and eligibility; this calculator does not decide either."
         error={attempted && !data.propertyType ? "Please select a property type." : undefined}
       >
         <div role="group" aria-label="Property type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -806,8 +812,8 @@ function Step1({
               {data.propertyValue > 0 ? `${(ltv * 100).toFixed(0)}%` : "—"}
             </strong>
             {ltv > 0.8 && data.propertyValue > 0
-              ? " — above 80%, which may limit programs. Try reducing the loan amount."
-              : ". Most DSCR programs cap around 75–80% LTV."}
+              ? " — above 80%, which increases leverage. Try reducing the loan amount to model a lower payment."
+              : ". Product limits vary and require provider confirmation."}
           </p>
         )}
       </div>
@@ -847,7 +853,8 @@ function Step1({
           style={inputStyle}
         />
         <p style={helperStyle}>
-          Your best guess at the note rate — used to estimate your monthly payment (PITIA). An estimate is fine; a specialist will confirm the real rate for your deal. Current DSCR rates typically run 6.5%–8.5% depending on credit and LTV.
+          Your note-rate assumption is used only to estimate the monthly payment
+          (PITIA). It is not a current market quote or an available rate.
         </p>
       </div>
 
@@ -873,7 +880,8 @@ function Step1({
         <span>
           This is a rental I invest in, not a home I live in (business-purpose / non-owner-occupied).
           <span style={{ display: "block", fontSize: 12, color: swatch.rainforest, opacity: 0.85 }}>
-            DSCR loans are business-purpose only — for rentals, not primary residences. Uncheck if you plan to live there and we'll point you to the right program.
+            This flow is limited to business-purpose rental scenarios and does not
+            evaluate owner-occupied or personal-purpose financing.
           </span>
         </span>
       </label>
@@ -937,12 +945,12 @@ function Step1({
           {dscr > 0 && (
             <div style={{ fontSize: 11, color: swatch.rainforest, fontWeight: 400, marginTop: 4, opacity: 0.75 }}>
               {dscr >= 1.25
-                ? "Strong cushion — good position"
+                ? "Stronger modeled cushion"
                 : dscr >= 1.0
-                ? "Meets the floor — workable"
+                ? "Estimated rent covers payment"
                 : dscr >= 0.85
-                ? "Below 1.0 — programs exist"
-                : "Below floor — needs restructuring"}
+                ? "Estimated rent is below payment"
+                : "Material modeled shortfall"}
             </div>
           )}
         </div>
@@ -1039,8 +1047,8 @@ function Step2({
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
         {data.purpose
-          ? `Your ${purposeLabel[data.purpose]} — these fields let us tailor your rate estimate and flag any state-level rules.`
-          : "These details let us tailor your rate estimate and flag any state-level rules that affect your deal."}
+          ? `Your ${purposeLabel[data.purpose]} — these fields select assumptions for the educational estimate and flag state details for manual review.`
+          : "These details select assumptions for the educational estimate and flag state details for manual review."}
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1068,13 +1076,13 @@ function Step2({
         {attempted && !data.state ? (
           <p style={errorMsgStyle}>Please select the property state.</p>
         ) : (
-          <p style={helperStyle}>Where the property is located — not where you live. Some states have rules (like prepayment penalty restrictions) that limit which lenders participate.</p>
+          <p style={helperStyle}>Where the property is located — not where you live. State law and provider policies may affect a transaction; this estimate does not determine either.</p>
         )}
       </div>
 
       <FieldGroup
         label="Your credit score range (estimate)"
-        helper="We don't pull your credit here — a rough range is all we need. Your score affects your rate tier and minimum down payment. Higher score = lower rate."
+        helper="We don't pull your credit here. The selected range changes the illustrative model band; it is not a credit decision or quote."
         error={attempted && !data.ficoBand ? "Please select a credit score range." : undefined}
       >
         <div
@@ -1096,7 +1104,7 @@ function Step2({
 
       <FieldGroup
         label="Who will be on the loan?"
-        helper="Many DSCR loans close in the name of an LLC or entity rather than a person — both are fine. Some states require an entity. This affects title and liability, not your rate."
+        helper="Borrower vesting can affect legal and product requirements. A responsible provider and qualified counsel must confirm the permitted structure."
         error={attempted && !data.borrowerType ? "Please choose how you'll borrow." : undefined}
       >
         <div role="group" aria-label="Borrower type" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1110,7 +1118,7 @@ function Step2({
 
       <FieldGroup
         label="How many rental properties do you currently own?"
-        helper="Experience can unlock better programs and lower reserve requirements — but first-time investors qualify too. There's no wrong answer."
+        helper="Experience may be considered by a provider. This answer is context for a human review and does not determine eligibility."
         error={attempted && !data.experience ? "Please pick a range." : undefined}
       >
         <div role="group" aria-label="Investor experience" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
@@ -1187,12 +1195,12 @@ function Step3({
   onNext: () => void;
   headingId: string;
 }) {
-  const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
-  const dscr = estimate.dscr;
+  const q = qualify(buildQualifyInput(step1, step2));
+  const dscr = q.dscr;
+  const estimate = classifyQuickDscr(dscr);
   const col = dscrColor(dscr);
   const verdict = dscrVerdict(estimate.tier, step2.purpose);
-  const rate = estimateQuickRate(dscr, step2.ficoBand, step2.purpose);
-  const q = qualify(buildQualifyInput(step1, step2));
+  const rate = fmtRateRange(q.rateLow, q.rateHigh);
   const topLever = q.levers[0];
 
   // Animated count-up for the big DSCR number
@@ -1367,7 +1375,7 @@ function Step3({
           ))}
         </div>
         <p style={{ fontSize: 12, color: swatch.rainforest, margin: "10px 0 0", lineHeight: 1.5 }}>
-          PITIA is the full monthly payment — principal, interest, taxes, insurance, and any HOA dues. Your DSCR = ${fmtUsd(step1.rent)} rent ÷ {fmtUsd(q.pitia)} PITIA = {(step1.rent / q.pitia).toFixed(2)}x.
+          PITIA is the full monthly payment — principal, interest, taxes, insurance, and any HOA dues. Your DSCR = {fmtUsd(step1.rent)} rent ÷ {fmtUsd(q.pitia)} PITIA = {(step1.rent / q.pitia).toFixed(2)}x.
         </p>
       </div>
 
@@ -1391,7 +1399,7 @@ function Step3({
             marginBottom: 4,
           }}
         >
-          Indicative rate range
+          Illustrative model range
         </div>
         <div
           style={{
@@ -1408,7 +1416,9 @@ function Step3({
         <p style={{ fontSize: 12, color: swatch.rainforest, margin: 0 }}>
           Based on credit {step2.ficoBand ?? "range"},{" "}
           {step2.purpose ? purposeLabel[step2.purpose].toLowerCase() : "your loan type"},{" "}
-          {step2.state || "your state"}. A specialist will confirm the exact rate for your deal.
+          {step2.state || "your state"}. This is a model assumption, not a quote,
+          available product, or rate lock. A responsible provider must confirm any
+          financing terms.
         </p>
       </div>
 
@@ -1455,7 +1465,9 @@ function Step3({
 
       {/* (e) Preliminary disclaimer */}
       <p style={{ fontSize: 11, color: swatch.rainforest, opacity: 0.65, marginBottom: 20, lineHeight: 1.5 }}>
-        Preliminary estimate — not a commitment to lend or a credit decision. Subject to full underwriting review.
+        Preliminary educational estimate — not a commitment to lend, rate quote,
+        approval, or credit decision. Any financing requires review by the
+        responsible licensed provider.
       </p>
 
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
@@ -1463,7 +1475,7 @@ function Step3({
           ← Back
         </button>
         <button className="qm-btn-primary" style={btnPrimary} onClick={onNext}>
-          Get my full scenario review →
+          Request a human review →
         </button>
       </div>
     </div>
@@ -1543,8 +1555,9 @@ function Step4({
         Where should we send your scenario review?
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        A Greenstreet specialist will review your exact numbers and follow up
-        within one business day. Your information is used only to prepare your quote — no spam, no credit pull.
+        Submit only the contact details you want the review team to use. The
+        site does not promise a response time, quote, program match, or financing
+        outcome, and this form does not pull credit.
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1559,6 +1572,7 @@ function Step4({
           className="qm-input"
           style={touched.name && !nameValid ? inputErrorStyle : inputStyle}
           autoComplete="name"
+          maxLength={100}
         />
         {touched.name && !nameValid && (
           <p style={errorMsgStyle}>Please enter your full name.</p>
@@ -1577,12 +1591,13 @@ function Step4({
           className="qm-input"
           style={touched.email && !emailValid ? inputErrorStyle : inputStyle}
           autoComplete="email"
+          maxLength={200}
           required
         />
         {touched.email && !emailValid ? (
           <p style={errorMsgStyle}>Please enter a valid email address.</p>
         ) : (
-          <p style={helperStyle}>We'll send your quote here.</p>
+          <p style={helperStyle}>Use an address where you can receive a response to this request.</p>
         )}
       </div>
 
@@ -1597,9 +1612,20 @@ function Step4({
           className="qm-input"
           style={inputStyle}
           autoComplete="tel"
+          maxLength={30}
         />
-        <p style={helperStyle}>Prefer a call? Add your number and we'll reach out directly.</p>
+        <p style={helperStyle}>Add a number only if you consent to a phone response.</p>
       </div>
+
+      <input
+        type="text"
+        name="website"
+        value={data.website}
+        onChange={(e) => onChange({ website: e.target.value })}
+        autoComplete="new-password"
+        tabIndex={-1}
+        hidden
+      />
 
       <FieldGroup
         label="When do you need to close?"
@@ -1617,7 +1643,7 @@ function Step4({
 
       <FieldGroup
         label="What best describes you?"
-        helper="Helps us match the right program for your situation."
+        helper="Provides context for the requested human review."
       >
         <div
           role="group"
@@ -1637,9 +1663,10 @@ function Step4({
       </FieldGroup>
 
       {/* Trust bar with lock icon */}
-      <TrustBar text="No credit pull · no obligation · no spam. Your details are used only to prepare your quote." />
+      <TrustBar text="No credit pull · no obligation. Do not submit SSNs, bank details, or identity documents." />
 
-      {/* Consent — contact required, SMS optional (TCPA-safe, not pre-checked) */}
+      {/* Contact consent is required. SMS is intentionally not offered until a
+          verified messaging provider and opt-out workflow are documented. */}
       <label
         style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10, cursor: "pointer", fontSize: 12, color: swatch.midnight, lineHeight: 1.5 }}
       >
@@ -1656,20 +1683,8 @@ function Step4({
         </span>
       </label>
       {touched.submit && !data.contactConsent && (
-        <p style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so we can send your result.</p>
+        <p style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so the team can respond to this request.</p>
       )}
-      <label
-        style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20, cursor: "pointer", fontSize: 12, color: swatch.rainforest, lineHeight: 1.5 }}
-      >
-        <input
-          type="checkbox"
-          checked={data.smsConsent}
-          onChange={(e) => onChange({ smsConsent: e.target.checked })}
-          style={{ marginTop: 1, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
-        />
-        <span>Text me updates about my deal (optional). Msg &amp; data rates may apply; reply STOP to opt out.</span>
-      </label>
-
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>
           ← Back
@@ -1684,7 +1699,7 @@ function Step4({
           onAnimationEnd={() => setShaking(false)}
         >
           {submitting && <span className="qm-spinner" aria-hidden="true" />}
-          {submitting ? "Sending…" : "Send my scenario — get a specialist review →"}
+          {submitting ? "Sending…" : "Send my scenario for review →"}
         </button>
       </div>
       {submissionError && (
@@ -1700,9 +1715,9 @@ function Step4({
 function Step5({ name, onClose, headingId }: { name: string; onClose: () => void; headingId: string }) {
   const firstName = name.split(" ")[0] || "there";
 
-  const handleBookTime = () => {
+  const handleAnotherEstimate = () => {
     onClose();
-    window.history.pushState({}, "", "/rate-quiz");
+    window.history.pushState({}, "", "/dscr-calculator");
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
@@ -1745,7 +1760,9 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.55,
         }}
       >
-        A Greenstreet specialist will review your numbers, check program fit, and send you a full scenario write-up — typically within one business day. No obligation.
+        The configured intake accepted your request. This confirms delivery only;
+        it does not promise a response time, program match, quote, or financing
+        outcome.
       </p>
       <p
         style={{
@@ -1756,8 +1773,9 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.5,
         }}
       >
-        This is not a loan approval or commitment to lend. Your quote will be
-        based on a full review of your scenario.
+        This is not a loan application, approval, rate quote, or commitment to
+        lend. Do not rely on the submitted estimate to make a transaction
+        decision.
       </p>
 
       <div
@@ -1768,8 +1786,8 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           alignItems: "center",
         }}
       >
-        <button className="qm-btn-primary" style={btnPrimary} onClick={handleBookTime}>
-          Schedule a call with a specialist →
+        <button className="qm-btn-primary" style={btnPrimary} onClick={handleAnotherEstimate}>
+          Run another estimate →
         </button>
         <button
           onClick={onClose}
@@ -1783,7 +1801,7 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
             fontFamily: font.family,
           }}
         >
-          I'll wait for the email — close
+          Close
         </button>
       </div>
     </div>
@@ -1819,7 +1837,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     role: null,
     timeline: null,
     contactConsent: false,
-    smsConsent: false,
+    website: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -1934,19 +1952,28 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmissionError(null);
-    // Use engine math for the persisted payload (matches the displayed result)
-    const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
-    const verdict = dscrVerdict(estimate.tier);
-    const rateEstimate = estimateQuickRate(estimate.dscr, step2.ficoBand, step2.purpose);
-    const q = qualify(buildQualifyInput(step1, step2));
+
+    if (
+      !step1.propertyType ||
+      !step2.purpose ||
+      !step2.ficoBand ||
+      !step2.borrowerType ||
+      !step2.experience ||
+      !step4.timeline
+    ) {
+      setSubmissionError(
+        "Some required scenario details are missing. Your information was not sent; please review the earlier steps."
+      );
+      setSubmitting(false);
+      return;
+    }
 
     const payload = {
-      name: step4.name,
-      email: step4.email,
-      phone: step4.phone,
-      role: step4.role,
+      name: step4.name.trim(),
+      email: step4.email.trim(),
+      phone: step4.phone.trim(),
+      ...(step4.role ? { role: step4.role } : {}),
       timeline: step4.timeline,
-      // deal
       propertyType: step1.propertyType,
       propertyValue: step1.propertyValue,
       loanAmount: step1.loanAmount,
@@ -1958,59 +1985,25 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       borrowerType: step2.borrowerType,
       experience: step2.experience,
       investmentConfirmed: step1.investmentConfirmed,
-      // engine result snapshot (frozen at submit — audit trail)
-      dscr: estimate.dscr,
-      verdict: verdict.headline,
-      verdictTier: verdict.tier,
-      rateEstimate,
-      qualify: {
-        ltv: q.ltv,
-        pitia: q.pitia,
-        piMonthly: q.piMonthly,
-        dscr: q.dscr,
-        outcome: q.outcome,
-        reasons: q.reasons,
-        rateRange: fmtRateRange(q.rateLow, q.rateHigh),
-        needsHumanReview: q.needsHumanReview,
-      },
-      // consent record (TCPA/ECOA audit)
-      consent: {
-        contact: step4.contactConsent,
-        sms: step4.smsConsent,
-        timestamp: new Date().toISOString(),
-        policyVersion: "2026-06",
-      },
+      contactConsent: step4.contactConsent,
       page: typeof window !== "undefined" ? window.location.pathname : "/",
-      // NOTE: field name must match firestore.rules `/leads` create rule,
-      // which requires `submittedAt` (not `createdAt`). Keep this in sync
-      // with firestore.rules so a delivered request is not rejected.
-      submittedAt: new Date().toISOString(),
+      website: step4.website,
     };
 
-    const firebaseConfigured = Boolean(
-      import.meta.env.VITE_FIREBASE_API_KEY &&
-      import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
-      import.meta.env.VITE_FIREBASE_PROJECT_ID &&
-      import.meta.env.VITE_FIREBASE_APP_ID
-    );
-
-    if (!firebaseConfigured) {
-      setSubmissionError(
-        "Secure request delivery is not configured yet. Your information was not sent; please try again later."
-      );
-      setSubmitting(false);
-      return;
-    }
-
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12_000);
     try {
-      // Firebase is imported lazily so its ~524 kB client SDK is NOT pulled into
-      // the initial bundle (QualifyModal mounts globally on the home page). It
-      // loads only when a visitor actually submits a lead.
-      const [{ db }, { collection, addDoc }] = await Promise.all([
-        import("../firebase"),
-        import("firebase/firestore"),
-      ]);
-      await addDoc(collection(db, "leads"), payload);
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        throw new Error(`Lead endpoint returned ${response.status}`);
+      }
       setStep(5);
     } catch (err) {
       // Do not store loan scenarios or contact details in a visitor's browser,
@@ -2023,6 +2016,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         "We could not securely deliver your request. Your information was not sent; please try again later."
       );
     } finally {
+      window.clearTimeout(timeout);
       setSubmitting(false);
     }
   };

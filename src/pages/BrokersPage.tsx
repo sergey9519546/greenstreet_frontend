@@ -71,7 +71,7 @@ export default function BrokersPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "For Investors | Greenstreet Finance";
+    document.title = "For Brokers | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 

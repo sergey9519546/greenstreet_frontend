@@ -4,6 +4,7 @@ import ToolReliabilityHoldPage from "./components/ToolReliabilityHoldPage";
 import { TOOL_RELIABILITY_HOLDS } from "./components/toolReliabilityHolds";
 import MarketingHome from "./marketing/MarketingHome";
 import NotFoundPage from "./pages/NotFoundPage";
+import { applyRouteMetadata, getRouteMetadata } from "./seo/routeMetadata";
 
 // Route module importers — the SINGLE source for both React.lazy and the idle
 // prefetch (warmAllRoutes) below. Each page is its own chunk (small initial
@@ -14,13 +15,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 const routeModules = {
   ComplianceDashboard: () => import("./components/ComplianceDashboard"),
   DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
-  StateLawsPage: () => import("./pages/StateLawsPage"),
   FAQPage: () => import("./pages/FAQPage"),
   BlogPage: () => import("./pages/BlogPage"),
   BlogPostPage: () => import("./pages/BlogPostPage"),
-  RateQuizPage: () => import("./pages/RateQuizPage"),
-  STRUnderwritingPage: () => import("./pages/STRUnderwritingPage"),
-  DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
   BorrowerProfilesPage: () => import("./pages/BorrowerProfilesPage"),
   BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
   InvestorsPage: () => import("./pages/InvestorsPage"),
@@ -43,13 +40,9 @@ function warmAllRoutes() {
 
 const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
 const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
-const StateLawsPage = lazy(routeModules.StateLawsPage);
 const FAQPage = lazy(routeModules.FAQPage);
 const BlogPage = lazy(routeModules.BlogPage);
 const BlogPostPage = lazy(routeModules.BlogPostPage);
-const RateQuizPage = lazy(routeModules.RateQuizPage);
-const STRUnderwritingPage = lazy(routeModules.STRUnderwritingPage);
-const DealAnalyzerPage = lazy(routeModules.DealAnalyzerPage);
 const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
 const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
 const InvestorsPage = lazy(routeModules.InvestorsPage);
@@ -97,6 +90,11 @@ const CLIENT_WORKSPACE_CONFIGURED = Boolean(
 
 const RELIABILITY_HOLD_VIEWS = new Set<PageView>([
   "decision-support",
+  "deal-analyzer",
+  "rate-quiz",
+  "state-laws",
+  "str-underwriting",
+  "structure-optimizer",
   "tax-engine",
   "refi-tracker",
   "portfolio",
@@ -147,6 +145,7 @@ function viewToPath(view: PageView): string {
     case "returns":           return "/tools/returns";
     case "tax-engine":        return "/tools/tax-engine";
     case "stress-matrix":     return "/tools/stress-matrix";
+    case "structure-optimizer": return "/tools/structure-optimizer";
     case "decision-support":  return "/tools/decision-support";
     case "str-underwriting":  return "/tools/str-underwriting";
     case "portfolio":         return "/tools/portfolio";
@@ -183,6 +182,11 @@ export default function App() {
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
+
+  useEffect(
+    () => applyRouteMetadata(getRouteMetadata({ pathname, view })),
+    [pathname, view],
+  );
 
   // Warm every route chunk during idle, right after first paint. After this runs,
   // navigation never hits a Suspense fallback — the chunk is already cached, so
@@ -294,7 +298,7 @@ export default function App() {
       case "dscr-calculator":
         return <DSCRCalculatorPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
-        return <StateLawsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stateRules} onNavigate={navigateFromReliabilityHold} />;
       case "faq":
         return <FAQPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "blog":
@@ -304,9 +308,9 @@ export default function App() {
       case "case-studies":
         return <CaseStudiesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "rate-quiz":
-        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.rateQuiz} onNavigate={navigateFromReliabilityHold} />;
       case "deal-analyzer":
-        return <DealAnalyzerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.dealAnalyzer} onNavigate={navigateFromReliabilityHold} />;
       case "borrower-profiles":
         return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers":
@@ -344,7 +348,9 @@ export default function App() {
       case "decision-support":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
       case "str-underwriting":
-        return <STRUnderwritingPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.strUnderwriting} onNavigate={navigateFromReliabilityHold} />;
+      case "structure-optimizer":
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.structureOptimizer} onNavigate={navigateFromReliabilityHold} />;
       case "portfolio":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.portfolioRefi} onNavigate={navigateFromReliabilityHold} />;
       case "external":

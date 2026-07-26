@@ -20,6 +20,7 @@ export type PageView =
   | "returns"
   | "tax-engine"
   | "stress-matrix"
+  | "structure-optimizer"
   | "decision-support"
   | "str-underwriting"
   | "portfolio"
@@ -39,8 +40,8 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/investgo": "portal",
   "/investgo/analyze": "portal",
   "/investgo/sensitivity": "portal",
-  "/investgo/optimize": "portal",
-  "/investgo/state": "portal",
+  "/investgo/optimize": "structure-optimizer",
+  "/investgo/state": "state-laws",
   "/investgo/history": "portal",
   "/investgo/settings": "portal",
 
@@ -93,7 +94,7 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/tools/workspace": "portal",
   "/tools/deal-workspace": "portal",
   "/tools/sensitivity": "portal",
-  "/tools/structure-optimizer": "portal",
+  "/tools/structure-optimizer": "structure-optimizer",
   "/tools/scenario-history": "portal",
 };
 
@@ -116,7 +117,7 @@ export function resolveRoute(href: string): PageView {
       const slug = path.replace("/tools/", "").replace(/\/$/, "");
       if (slug === "workspace" || slug === "deal-workspace") return "portal";
       if (slug === "sensitivity") return "portal";
-      if (slug === "structure-optimizer") return "portal";
+      if (slug === "structure-optimizer") return "structure-optimizer";
       if (slug === "scenario-history") return "portal";
       if (slug === "refi-tracker") return "refi-tracker";
       if (slug === "arm-reset" || slug === "arm") return "arm-reset";

@@ -562,16 +562,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   ] as const;
 
   const navTools = [
-    { key: "state",      icon: <MapPin className="w-4 h-4" />,     label: "State Rules" },
-    { key: "stress",     icon: <Shield className="w-4 h-4" />,     label: "Stress Matrix" },
-    { key: "refi",       icon: <RefreshCw className="w-4 h-4" />,  label: "Refi Tracker" },
-    { key: "returns",    icon: <TrendingUp className="w-4 h-4" />, label: "Returns / IRR" },
-    { key: "arm",        icon: <Sparkles className="w-4 h-4" />,   label: "ARM Reset" },
-    { key: "montecarlo", icon: <BarChart2 className="w-4 h-4" />,  label: "Monte Carlo" },
-    { key: "tax",        icon: <CheckCircle className="w-4 h-4" />,label: "Tax Engine" },
-    { key: "decision",   icon: <Search className="w-4 h-4" />,     label: "Decision Support" },
-    { key: "str",        icon: <Settings2 className="w-4 h-4" />,  label: "STR" },
-    { key: "portfolio",  icon: <Shield className="w-4 h-4" />,     label: "Portfolio" },
+    // Decision-producing tools are deliberately not reachable from the
+    // workspace while their public routes are on reliability hold. Their
+    // direct URLs resolve to the corresponding availability page instead.
     { key: "settings",   icon: <Settings2 className="w-4 h-4" />,  label: "Workspace Settings" },
   ] as const;
 
