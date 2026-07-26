@@ -25,6 +25,8 @@ export interface QualifyInput {
   value: number;
   loanAmount: number;
   rent: number;
+  /** Entered annual note rate as a percent (for example, 7.125). */
+  annualRatePct?: number;
   taxesAnnual?: number;
   insuranceAnnual?: number;
   hoaMonthly?: number;
@@ -120,6 +122,14 @@ function ficoAdj(b: FicoBand): number {
  */
 function ratePI(input: QualifyInput, ltv: number): number {
   const p = QUALIFY_POLICY;
+  if (
+    Number.isFinite(input.annualRatePct) &&
+    (input.annualRatePct ?? 0) > 0
+  ) {
+    const enteredRate = (input.annualRatePct ?? 0) / 100;
+    return Math.min(Math.max(enteredRate, p.rateClamp.min), p.rateClamp.max);
+  }
+
   let r = p.baseRate + ficoAdj(input.ficoBand) / 100;
   if (input.purpose === "cash-out") r += 0.00375;
   if (ltv > 0.8) r += 0.005;

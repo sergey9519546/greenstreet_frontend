@@ -39,7 +39,7 @@ Removing Webflow and preserving the design are separate operations. Rewriting th
 | Stress Matrix | Inconsistent base definitions | Reliability hold |
 | Structure Optimizer | Unverified schedules/rate units/ranking | Reliability hold and API 503 |
 | Business identity and licensing disclosures | Owner evidence missing | Must be supplied before making lender/broker claims |
-| Case-study substantiation | Owner evidence missing | Relabel composites or provide source evidence |
+| Case-study substantiation | Owner evidence missing | Published only as constructed teaching examples; replace with verified evidence before presenting customer results |
 
 ## Corrections implemented in this release
 
@@ -78,6 +78,35 @@ This preserves the accepted output while allowing React to own the page. It is n
 - Held tools and stale paths are removed from the sitemap.
 - `/.well-known/security.txt` is published.
 - Unsafe route modules are no longer warmed in the initial idle prefetch.
+
+### Post-release hardening
+
+- The scenario intake now uses the entered loan amount and note rate in one
+  engine result. The live preview, displayed PITIA, displayed DSCR formula,
+  improvement lever, model range, and stored audit payload can no longer be
+  driven by competing calculations.
+- The intake language no longer promises qualification, a quote, a rate lock,
+  closing, a one-business-day response, or a particular program. The displayed
+  rate band is labeled as an illustrative model assumption.
+- The unverified SMS opt-in was removed until a messaging provider, consent
+  record, and opt-out workflow are documented.
+- Route metadata is resolved from one typed registry. Canonical links,
+  descriptions, robots rules, and minimal JSON-LD now update on SPA navigation;
+  held, private, and unknown routes fail closed with `noindex,nofollow`.
+- Desktop mega menus now use native disclosure buttons with keyboard support.
+  Mobile and desktop menus close on Escape and restore focus, current links use
+  `aria-current`, and navigation landmarks are labeled.
+- The About page no longer invents an executive team, headquarters, founding
+  story, investors, or direct-lending identity.
+- The Careers page no longer publishes unverified job openings.
+- Case-study names, quotes, approvals, savings, and timing are now explicitly
+  constructed teaching examples rather than customer endorsements.
+- React-page footers and legal copy no longer claim an unverified funding
+  relationship, direct origination role, or Equal Housing Lender status.
+- The accepted homepage markup remains unchanged and contract-protected. Its
+  visible business, pricing, security, customer, and performance claims still
+  require owner evidence; visual fidelity is not evidence that those claims are
+  true.
 
 ## Critical business and trust issues requiring owner evidence
 
@@ -160,7 +189,7 @@ Add a visible provenance drawer to every legal, pricing, tax, and state result. 
 ### Still open in released educational surfaces
 
 - The Rate Quiz maps self-selected answers to static program/rate bands. It must not be described as live pricing.
-- The qualification modal contains a lightweight estimate path that must stay labeled preliminary and must not conflict with the full calculator.
+- The qualification modal is reconciled with its entered financing assumptions and stays labeled as an educational estimate. Its model-rate band still needs an approved, versioned source before it can be described as market pricing.
 - State-law content includes time-sensitive summaries, including Minnesota material, that require legal review and dated primary sources.
 - Reassessment, reserves, insurance, and tax assumptions are estimates, not property-specific facts.
 - “NOI_PI” style internal names should be removed where the calculation is actually gross rent divided by principal and interest.

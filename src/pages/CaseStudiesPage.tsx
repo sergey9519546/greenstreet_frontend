@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
 // ── Case studies data ─────────────────────────────────────────────────────────
 interface StudyMetric {
@@ -26,11 +26,11 @@ interface Study {
 const STUDIES: Study[] = [
   {
     slug: "vela-capital",
-    company: "Vela Capital",
+    company: "Portfolio operations scenario",
     location: "Buy-and-hold investor",
     type: "Portfolio investor",
     num: "01",
-    headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
+    headline: "Modeling how a repeatable workflow could reduce time per file.",
     metrics: [
       { v: "4×", k: "Throughput increase" },
       { v: "6 min", k: "Decision per file (was 25)" },
@@ -39,20 +39,20 @@ const STUDIES: Study[] = [
     challenge:
       "Running 120+ DSCR files a month. Every file meant two spreadsheets rebuilt by hand — one showing what qualified, another showing what the deal would actually return after vacancy and management fees. The underwriting desk had become the ceiling on growth.",
     solution:
-      "Every file moved to Greenstreet's Dual-Track engine. Track 1 returns the lender-qualifying DSCR (whether the property's rent can cover the loan payment) the moment the file lands. Track 2 stress-tests investor survival with vacancy, management, and CapEx in the same pass — no second spreadsheet. The right program surfaces automatically. One application, one set of conditions.",
+      "The scenario compares a manual two-spreadsheet process with one shared calculation path. Track 1 estimates lender DSCR while Track 2 adds vacancy, management, and capital-reserve assumptions.",
     result:
-      "Decision time dropped from 25 minutes to 6 per file. The team scaled 4× without adding a single underwriter.",
+      "Under the stated hypothetical timing assumptions, a six-minute review instead of a 25-minute review would represent roughly four times the file throughput. This is arithmetic, not a reported customer result.",
     quote:
-      "Greenstreet surfaced a 1.11x DSCR pass and had us rate-locked fast. We stopped running parallel Excel models the same week.",
-    program: "DSCR 1-4 Standard",
+      "A shared definition for rent, payment, and operating costs makes the two views easier to compare without rebuilding the scenario in separate spreadsheets.",
+    program: "Illustrative 1–4 unit assumptions",
   },
   {
     slug: "northshore-non-qm",
-    company: "Northshore Non-QM",
+    company: "Active investor scenario",
     location: "Real estate investor",
     type: "Active investor",
     num: "02",
-    headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
+    headline: "Modeling a deal that passes lender DSCR but fails the investor view.",
     metrics: [
       { v: "Same-day", k: "Rate lock" },
       { v: "12%", k: "Vacancy gap caught by Track 2" },
@@ -61,16 +61,16 @@ const STUDIES: Study[] = [
     challenge:
       "Evaluating multiple property types — DSCR 1–4, multi-family — with no single view of how they stacked up. Pipeline lived in scattered spreadsheets. The investor-survival question (what does the deal actually earn after vacancy?) almost never made it into the analysis before money was committed.",
     solution:
-      "One file runs through Greenstreet and routes across programs in a single pass. Dual-Track DSCR runs automatically on every file, so a vacancy gap that would sink a deal surfaces before any money is committed.",
+      "The scenario calculates lender DSCR and then applies a vacancy assumption in the investor view so the difference is visible before the user relies on the headline ratio.",
     result:
-      "Same-day rate lock on clean files. On one file that sailed through Track 1 at 1.18x, Track 2 caught a 12% effective vacancy gap and killed it at the desk — before appraisal, before earnest money.",
+      "In this hypothetical, Track 1 remains above 1.0x while the additional vacancy assumption weakens the investor result. No rate lock or transaction outcome is claimed.",
     quote:
-      "Dual-Track saved a deal our own analysis would have waved through. Track 2 caught a 12% vacancy gap before it ever cost us money.",
-    program: "DSCR Multi / 1-4",
+      "The scenario demonstrates why a qualifying ratio should not be presented as proof that a property will cash-flow after operating assumptions.",
+    program: "Illustrative multifamily assumptions",
   },
   {
     slug: "quintero-co",
-    company: "Quintero & Co.",
+    company: "Global borrower scenario",
     location: "Buy-and-hold investor",
     type: "Investor / Foreign national",
     num: "03",
@@ -78,41 +78,41 @@ const STUDIES: Study[] = [
     metrics: [
       { v: "3", k: "Deals killed pre-appraisal" },
       { v: "$14,800", k: "Hard costs avoided" },
-      { v: "3 min", k: "ITIN approval on Global program" },
+      { v: "3 min", k: "Hypothetical review target" },
     ],
     challenge:
       "Discovering deals were marginal only after the appraisal was ordered. On paper the rent covered the payment. In reality, vacancy and management quietly pushed properties underwater on Track 2. Paying $3,000–7,000 per appraisal to get bad news that could have arrived on day one.",
     solution:
-      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit, funded through our wholesale lending partner, Cake.",
+      "The scenario applies the expense-aware Track 2 view before diligence costs are committed. Any foreign-national or ITIN eligibility would require confirmation from the responsible licensed provider.",
     result:
-      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A foreign-national ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
+      "If three unsuitable deals each carried the stated diligence costs, screening them earlier could avoid $14,800. This is a hypothetical cost illustration, not an approval or reported savings claim.",
     quote:
-      "Foreign-national ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
-    program: "DSCR Global",
+      "Early scenario screening can identify which assumptions require lender confirmation before appraisal or other diligence spending.",
+    program: "Illustrative global-borrower assumptions",
   },
 ];
 
 const AURORA_STORY = {
   slug: "aurora",
-  company: "Aurora",
+  company: "Blanket portfolio scenario",
   location: "Portfolio operator",
   type: "Portfolio investor",
   num: "04",
-  headline: "One blended view of 40 doors got the blanket line approved.",
+  headline: "Modeling a blended view across a 40-property portfolio.",
   metrics: [
-    { v: "$18M", k: "Blanket line approved" },
+    { v: "$18M", k: "Hypothetical balance" },
     { v: "1.11x", k: "Blended DSCR" },
-    { v: "1 wk", k: "To approval" },
+    { v: "1 wk", k: "Hypothetical review" },
   ],
   challenge:
-    "Submitting properties one at a time with no consolidated view. Each property evaluated in isolation — the portfolio's true debt-service strength was invisible to Greenstreet's underwriters.",
+    "Reviewing properties one at a time makes it difficult to see the portfolio's combined debt-service coverage and concentration assumptions.",
   solution:
-    "The portfolio tool showed blended DSCR (combined rent ÷ combined payments across all 40 properties), aggregate equity, and weighted rate in a single view — the same format a blanket underwriter builds when evaluating your book.",
+    "The illustrative model combines rent and payments across 40 properties to show blended DSCR, aggregate equity, and weighted rate in one view.",
   result:
-    "The blanket line was approved in a week. No more one-at-a-time submissions.",
+    "The modeled output shows how a consolidated view could support a preliminary portfolio discussion. It does not claim an approval, closing, or timeline.",
   quote:
-    "One blended view replaced a spreadsheet stack that took two days to compile. The underwriter saw exactly what they needed.",
-  program: "DSCR Portfolio / Blanket",
+    "A consolidated portfolio view makes the assumptions easier to inspect before submission to a qualified provider.",
+  program: "Illustrative portfolio assumptions",
 };
 
 const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
@@ -316,7 +316,7 @@ function StudyRow({
             letterSpacing: "-0.01em",
           }}
         >
-          {s.company} · {s.type} · {s.location}
+          Illustrative composite · {s.type} · {s.location}
         </div>
       </div>
 
@@ -425,7 +425,7 @@ function StudyDetail({
                 gap: 6,
               }}
             >
-              ← All case studies
+              ← All illustrative scenarios
             </button>
             <div
               style={{
@@ -531,8 +531,8 @@ function StudyDetail({
         <div style={{ maxWidth: 780, margin: "0 auto" }}>
           {[
             ["The situation", s.challenge],
-            ["What we did", s.solution],
-            ["The outcome", s.result],
+            ["Modeled approach", s.solution],
+            ["Illustrative outcome", s.result],
           ].map(([heading, body]) => (
             <div key={heading} style={{ marginBottom: 32 }}>
               <div
@@ -561,7 +561,7 @@ function StudyDetail({
             </div>
           ))}
 
-          {/* Illustrative quote */}
+          {/* Scenario takeaway — explicitly not a customer testimonial. */}
           <div
             style={{
               padding: "18px 28px",
@@ -582,7 +582,7 @@ function StudyDetail({
                 margin: "0 0 12px",
               }}
             >
-              "{s.quote}"
+              {s.quote}
             </p>
             <div
               style={{
@@ -592,7 +592,7 @@ function StudyDetail({
                 fontStyle: "normal",
               }}
             >
-              — {s.company} team · {s.program}
+              Illustrative composite takeaway · {s.program}
             </div>
           </div>
 
@@ -627,7 +627,9 @@ function StudyDetail({
                 margin: "0 0 20px",
               }}
             >
-              Enter your property's rent and loan details — get a preliminary DSCR estimate, Greenstreet program match, and rate range in under a minute. No W-2s or tax returns required.
+              Enter your property's rent and loan details to receive an educational
+              DSCR estimate and request a preliminary scenario review. Final
+              eligibility and pricing require independent confirmation.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
               {/* Dominant lemon CTA */}
@@ -768,10 +770,10 @@ export default function CaseStudiesPage({
                   marginBottom: 20,
                 }}
               >
-                Investor outcomes
+                Illustrative scenarios
               </div>
               <H1 style={{ margin: 0 }}>
-                What changed when investors ran their deals through Greenstreet.
+                How DSCR deal assumptions change the outcome.
               </H1>
             </div>
             <div>
@@ -784,13 +786,26 @@ export default function CaseStudiesPage({
               >
                 Four illustrative scenarios — faster decisions, avoided appraisal
                 costs, and deals caught before they failed. Each shows the
-                situation, what we did, and the measurable outcome.
+                assumptions, modeled approach, and hypothetical outcome.
               </Lead>
               {/* Dominant lemon CTA */}
-              <Btn
-                label="Price your deal now →"
+              <button
                 onClick={() => onNavigate("dscr-calculator")}
-              />
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  background: dc.lemon,
+                  color: dc.dark,
+                  border: 0,
+                  borderRadius: 6,
+                  padding: "13px 24px",
+                  font: "inherit",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Price your deal now →
+              </button>
             </div>
           </div>
 
@@ -823,7 +838,7 @@ export default function CaseStudiesPage({
               {[
                 { label: "Throughput improvement", value: "4×" },
                 { label: "Hard costs avoided", value: "$14,800" },
-                { label: "Same-day rate lock", value: "Yes" },
+                { label: "Hypothetical screening", value: "Early" },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -911,9 +926,9 @@ export default function CaseStudiesPage({
                 lineHeight: 1.6,
               }}
             >
-              Three steps: price the deal in under a minute, surface the right
-              Greenstreet program, then prove every number with a traceable
-              source. No phone calls required to get started.
+              Three steps: enter a scenario, inspect both DSCR views, then use
+              the result as the start of a preliminary review. Final programs,
+              terms, and eligibility require confirmation.
             </p>
           </div>
 
@@ -939,13 +954,13 @@ export default function CaseStudiesPage({
                   step: "Price",
                   stepColor: dc.dark,
                   heading: "Price the deal like you already know the answer.",
-                  body: "Enter seven numbers. Get DSCR (rent ÷ full monthly payment), PITIA (the total monthly cost of the loan), cash flow, and a program match — in under a minute.",
+                  body: "Enter the core property and loan assumptions. Get an educational DSCR, full monthly payment, and expense-aware cash-flow view.",
                 },
                 {
                   step: "Match",
                   stepColor: dc.rain,
-                  heading: "Surface the right program before you commit.",
-                  body: "Greenstreet's program matrix ranks product fit by FICO floors, LTV caps, and state rules — no cold calls, no portal re-entry.",
+                  heading: "Identify what still needs confirmation.",
+                  body: "See which inputs are driving the result and which product, state, or borrower details require review by the responsible provider.",
                 },
                 {
                   step: "Prove",
@@ -1022,7 +1037,7 @@ export default function CaseStudiesPage({
               margin: `0 0 clamp(48px,6vw,72px)`,
             }}
           >
-            The situations, the work, the outcomes.
+            The assumptions, the model, the hypothetical outcomes.
           </h2>
 
           {/* Illustrative disclaimer */}
@@ -1046,9 +1061,9 @@ export default function CaseStudiesPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Illustrative composite scenarios based on real deal patterns.
-              Company names are representative examples, not verified named
-              customers. Individual results will vary.
+              These are constructed teaching examples, not customer histories.
+              Names, quotes, figures, approvals, timelines, and outcomes are
+              hypothetical. Individual results will vary.
             </p>
           </div>
 

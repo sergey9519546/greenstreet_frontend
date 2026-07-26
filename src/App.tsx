@@ -4,6 +4,7 @@ import ToolReliabilityHoldPage from "./components/ToolReliabilityHoldPage";
 import { TOOL_RELIABILITY_HOLDS } from "./components/toolReliabilityHolds";
 import MarketingHome from "./marketing/MarketingHome";
 import NotFoundPage from "./pages/NotFoundPage";
+import { applyRouteMetadata, getRouteMetadata } from "./seo/routeMetadata";
 
 // Route module importers — the SINGLE source for both React.lazy and the idle
 // prefetch (warmAllRoutes) below. Each page is its own chunk (small initial
@@ -183,6 +184,11 @@ export default function App() {
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
+
+  useEffect(
+    () => applyRouteMetadata(getRouteMetadata({ pathname, view })),
+    [pathname, view],
+  );
 
   // Warm every route chunk during idle, right after first paint. After this runs,
   // navigation never hits a Suspense fallback — the chunk is already cached, so
