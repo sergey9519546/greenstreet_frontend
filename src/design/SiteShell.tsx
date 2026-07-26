@@ -100,7 +100,9 @@ const NAV_DD_CSS = `
 `;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
+  const [announcementVisible, setAnnouncementVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuViewportTop, setMenuViewportTop] = useState(120);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const mobileRef = useRef<HTMLDivElement | null>(null);
@@ -129,6 +131,14 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const itemActive = (it: NavItem) => !!it.path && it.path !== "/" && path === it.path.replace(/\/$/, "");
   const menuActive = (m: NavMenu) => path === m.path || m.items.some(itemActive);
   const menuPanelId = (label: string) => `site-nav-menu-${label.toLowerCase().replace(/\s+/g, "-")}`;
+  const toggleMobileMenu = () => {
+    setMenuOpen((open) => {
+      if (!open) {
+        setMenuViewportTop(Math.ceil(navRef.current?.getBoundingClientRect().bottom ?? 120));
+      }
+      return !open;
+    });
+  };
 
   // Escape always closes the active disclosure and restores focus to the
   // control that opened it. This is important on mobile, where otherwise a
@@ -264,12 +274,35 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   return (
     <>
       <style>{NAV_DD_CSS}</style>
+      {announcementVisible && (
+        <div className="announcement gs-site-announcement u-container u-theme-light">
+          <a
+            className="link-block w-inline-block"
+            href="/blog/greenstreet-go-launch"
+            aria-label="Read the InvestGO announcement"
+          />
+          <div className="announcement-txt w-richtext">
+            <p><strong>⎋</strong> Greenstreet Finance announces <strong>InvestGO</strong> — the unified DSCR loan platform</p>
+          </div>
+          <button
+            type="button"
+            className="announcement-close"
+            aria-label="Dismiss announcement"
+            onClick={() => setAnnouncementVisible(false)}
+          >
+            <svg className="svg" fill="none" viewBox="0 0 11 11" width="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <line stroke="currentColor" strokeWidth="1.3" x1="0.664698" x2="9.95041" y1="0.458349" y2="9.74406" />
+              <line stroke="currentColor" strokeWidth="1.3" x1="0.459814" x2="9.74553" y1="9.74741" y2="0.461698" />
+            </svg>
+          </button>
+        </div>
+      )}
       <nav ref={navRef} className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" aria-label="Primary navigation" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
             <div className="nav-logo w-embed">
-              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.01em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
+              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: 30, fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.01em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
             </div>
           </a>
           <div className="nav-links-contain" hide-t="">
@@ -281,19 +314,23 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
 
               {renderMenu(NAV_MENUS[0])}
               {renderMenu(NAV_MENUS[1])}
+              <a className="nav-link w-inline-block" href="/partners" onClick={go("brokers-partner")} aria-current={path === "/partners" ? "page" : undefined}>
+                <div className="nav-link-background" aria-hidden="true" />
+                <div className="nav_links_text">Partnerships</div>
+              </a>
               {renderMenu(NAV_MENUS[2])}
               <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}><div className="nav-link-background" aria-hidden="true" /><div>Login</div></a>
               {/* Solid, always-visible CTA (matches the home nav button). */}
               <a className="nav-btn" href="/book-demo" onClick={go("book-demo")} aria-current={path === "/book-demo" ? "page" : undefined}
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, background: MIDNIGHT, color: PISTACHIO, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "12px 22px", borderRadius: 8, whiteSpace: "nowrap" }}>
-                Request a review
+                Book a demo
                 <svg fill="none" height="16" viewBox="0 0 24 25" width="16" xmlns="http://www.w3.org/2000/svg">
                   <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path>
                 </svg>
               </a>
             </div>
           </div>
-          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen((open) => !open)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <div className="burger-line top" aria-hidden="true"></div>
             <div className="burger-line middle" aria-hidden="true"></div>
             <div className="burger-line bottom" aria-hidden="true"></div>
@@ -301,7 +338,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         </div>
       </div>
       {menuOpen && (
-        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap gs-site-mobile-menu" role="navigation" aria-label="Mobile navigation" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "18px var(--gs-page-gutter, 1.125rem) 28px", gap: "4px", zIndex: 49, maxHeight: "calc(100vh - 82px)", overflowY: "auto" }}>
+        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap gs-site-mobile-menu" role="navigation" aria-label="Mobile navigation" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "18px var(--gs-page-gutter, 1.125rem) 28px", gap: "4px", zIndex: 49, maxHeight: `calc(100dvh - ${menuViewportTop}px)`, overflowY: "auto" }}>
           <a href="/investgo" className="nav-link" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>
@@ -311,8 +348,9 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               ))}
             </React.Fragment>
           ))}
+          <a href="/partners" className="nav-link" onClick={go("brokers-partner")} aria-current={path === "/partners" ? "page" : undefined}>Partnerships</a>
           <a href="/investgo" className="nav-link" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}>Login</a>
-          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")} aria-current={path === "/book-demo" ? "page" : undefined}>Request a review</a>
+          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")} aria-current={path === "/book-demo" ? "page" : undefined}>Book a demo</a>
         </div>
       )}
       </nav>

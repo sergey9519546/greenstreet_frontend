@@ -276,6 +276,78 @@ body {
   .nav-btn {
     width: 0rem;
   }
+
+  /* The Webflow animation grows the home CTA from 0 to 14rem. The exported
+     grid sized its second column as max-content, so that growth pushed the
+     entire link row outside the viewport. Constrain the link column to the
+     available rail and let its flex children absorb the transition. */
+  .nav:not(.gs-site-nav) .nav-wrap,
+  .gs-site-nav .nav-wrap {
+    grid-template-columns: max-content minmax(0, 1fr) !important;
+  }
+
+  .nav:not(.gs-site-nav) .nav-links-contain,
+  .nav:not(.gs-site-nav) .nav-links-wrap,
+  .gs-site-nav .nav-links-contain,
+  .gs-site-nav .nav-links-wrap {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .nav:not(.gs-site-nav) .nav-links-wrap,
+  .gs-site-nav .nav-links-wrap {
+    overflow: visible;
+  }
+}
+
+/* Preserve the full link composition at laptop widths. The exported CTA is a
+   14rem enhancement that simply does not fit alongside every navigation item
+   below a wide desktop rail; hiding it is preferable to clipping or silently
+   compressing links out of view. */
+@media only screen and (min-width: 1200px) and (max-width: 1535px) {
+  .nav:not(.gs-site-nav) .nav-link,
+  .gs-site-nav .nav-link {
+    padding-inline: clamp(0.8rem, 1.6vw, 1.15rem) !important;
+  }
+
+  .nav:not(.gs-site-nav) .nav-links-wrap,
+  .gs-site-nav .nav-links-wrap {
+    gap: 0.4rem !important;
+  }
+
+  .nav:not(.gs-site-nav) .nav-btn,
+  .gs-site-nav .nav-btn {
+    display: none !important;
+  }
+}
+
+/* The Webflow export waits until 991px to switch modes, although the complete
+   navigation no longer fits well before then. Use the same burger/menu
+   treatment on small laptops and landscape tablets instead of overflowing. */
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+  .nav:not(.gs-site-nav) .nav-wrap,
+  .gs-site-nav .nav-wrap {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .nav:not(.gs-site-nav) .nav-links-contain,
+  .gs-site-nav .nav-links-contain {
+    display: none !important;
+  }
+
+  .nav:not(.gs-site-nav) .burger-wrap,
+  .gs-site-nav .burger-wrap {
+    display: inline-flex !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /*/ Lenis Smooth Scroll /*/
@@ -1144,6 +1216,76 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   width: auto !important;
   min-width: auto !important;
   flex: 0 0 auto !important;
+}
+
+/* The announcement's Webflow `.u-container` sizing only expands edge-to-edge
+   inside the original homepage wrapper. Routed pages do not have that wrapper,
+   so make the shared version explicitly match the homepage band and give its
+   dismiss control a real hit target instead of a zero-sized button. */
+.gs-site-announcement {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 38px;
+  padding: 8px var(--gs-page-gutter, clamp(1rem, 4.6vw, 1.25rem)) !important;
+  background: #d8d958 !important;
+  color: #003738 !important;
+}
+
+.gs-site-announcement .announcement-close {
+  position: absolute !important;
+  top: 50% !important;
+  right: max(0.25rem, calc(var(--gs-page-gutter, 1.25rem) - 0.5rem)) !important;
+  width: 44px !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  z-index: 5;
+}
+
+.gs-site-announcement .announcement-close .svg {
+  position: static !important;
+  inset: auto !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* React owns this disclosure at every breakpoint where its burger is shown.
+   The Webflow homepage's `.menu-mobile-wrap { inset: 0 }` otherwise collapses
+   it to a one-line slice between 992px and 1199px. */
+.gs-site-mobile-menu {
+  inset: auto !important;
+  top: 100% !important;
+  right: 0 !important;
+  bottom: auto !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 1199px) {
+  .gs-site-mobile-menu .nav-link,
+  .gs-site-mobile-menu .gs-mnav-section {
+    display: flex !important;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 9px !important;
+  }
+
+  .gs-site-mobile-menu .gs-mnav-section {
+    margin: 12px 0 0;
+    border-top: 1px solid rgba(0, 55, 56, 0.14);
+    font-size: 11px;
+    letter-spacing: 0.09em;
+  }
+
+  .gs-site-mobile-menu .nav-link:last-child {
+    justify-content: center;
+    min-height: 48px;
+  }
 }
 
 /* ── Routed-page mobile shell ──────────────────────────────────────────────
