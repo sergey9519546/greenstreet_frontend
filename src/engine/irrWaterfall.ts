@@ -44,7 +44,14 @@ import type {
   IRRWaterfallExit,
   WaterfallSign,
 } from './types';
-import { calculatePI } from './engine';
+import {
+  calculatePI,
+  TRACK2_LT_VACANCY_PCT,
+  TRACK2_STR_VACANCY_PCT,
+  TRACK2_MTR_VACANCY_PCT,
+  TRACK2_MANAGEMENT_PCT,
+  TRACK2_MAINTENANCE_PCT,
+} from './engine';
 
 // ============================================================
 // MAIN ENTRY POINT
@@ -58,7 +65,7 @@ import { calculatePI } from './engine';
  * @param loan         Loan structure (for LTV reference)
  * @param strategy     Rental strategy (drives vacancy assumption)
  * @param solvedRate   Solved interest rate (%)
- * @param qualifyingRent  Monthly qualifying rent
+ * @param monthlyGrossRent  Raw monthly strategy rent before Track 1 or Track 2 haircuts
  * @param loanAmount   Loan principal
  * @param cashInvested Initial cash outflow (down payment + closing costs)
  * @param prepayPenaltyAtExit  Prepay penalty paid at exit
@@ -70,21 +77,29 @@ export function computeIRRWaterfall(
   loan: LoanStructure,
   strategy: RentalStrategy,
   solvedRate: number,
-  qualifyingRent: number,
+  monthlyGrossRent: number,
   loanAmount: number,
   cashInvested: number,
   prepayPenaltyAtExit: number,
 ): IRRWaterfallResult {
-  // ── Track 2 haircut assumptions (per strategy) ──
-  const vacancyPct = strategy === 'STR' ? 25 : strategy === 'MTR' ? 12 : 8;
-  const managementPct = 8;
-  const maintenancePct = 5;
+  // ── Track 2 expense assumptions (per strategy) ──
+  // This waterfall is an investor cash-flow view, so it must start with the
+  // raw strategy rent. `solveDSCR().track1.qualifyingRent` is already reduced
+  // for STR/MTR lender qualification and would apply a second vacancy haircut
+  // here. Management and maintenance also follow Track 2 and are calculated
+  // from gross scheduled rent, not rent remaining after vacancy.
+  const vacancyPct = strategy === 'STR'
+    ? TRACK2_STR_VACANCY_PCT
+    : strategy === 'MTR'
+    ? TRACK2_MTR_VACANCY_PCT
+    : TRACK2_LT_VACANCY_PCT;
+  const managementPct = TRACK2_MANAGEMENT_PCT;
+  const maintenancePct = TRACK2_MAINTENANCE_PCT;
 
   const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
   const termMonths = termYears * 12;
 
   // ── Year 1 base figures ──
-  const monthlyGrossRent = qualifyingRent;
   const annualGrossRent = monthlyGrossRent * 12;
   const annualVacancy = annualGrossRent * (vacancyPct / 100);
   const grossEffectiveRent = annualGrossRent - annualVacancy;
@@ -93,8 +108,8 @@ export function computeIRRWaterfall(
   // both already MONTHLY (see calculatePITIA in engine.ts) — ×12 annualizes them
   // here so they combine correctly with the already-annual property.annualInsurance.
   const annualInsurance = property.annualInsurance + property.floodInsurance * 12 + property.hoa * 12;
-  const annualMgmt = grossEffectiveRent * (managementPct / 100);
-  const annualMaint = grossEffectiveRent * (maintenancePct / 100);
+  const annualMgmt = annualGrossRent * (managementPct / 100);
+  const annualMaint = annualGrossRent * (maintenancePct / 100);
   const noi = grossEffectiveRent - annualTaxes - annualInsurance - annualMgmt - annualMaint;
 
   // ── Debt service breakdown (Year 1) ──
@@ -191,8 +206,8 @@ export function computeIRRWaterfall(
   const totalGrossEff = totalGrossRent - totalVacancy;
   const totalTaxes = annualTaxes * holdYears;
   const totalIns = annualInsurance * holdYears;
-  const totalMgmt = annualMgmt * holdYears * (1 + rentGrowthPct);
-  const totalMaint = annualMaint * holdYears * (1 + rentGrowthPct);
+  const totalMgmt = totalGrossRent * (managementPct / 100);
+  const totalMaint = totalGrossRent * (maintenancePct / 100);
   const totalNOI = totalGrossEff - totalTaxes - totalIns - totalMgmt - totalMaint;
   const totalInterest = annualInterest * holdYears * 0.85;  // interest declines over time
   const totalPrincipal = annualADSPiOnly * holdYears - totalInterest;
@@ -289,13 +304,13 @@ function buildYear1Stages(
     });
   };
 
-  push('Gross Scheduled Rent', grossRent, 'ADD', `12 × $${(grossRent / 12).toFixed(0)}/mo qualifying rent`);
+  push('Gross Scheduled Rent', grossRent, 'ADD', `12 × $${(grossRent / 12).toFixed(0)}/mo raw strategy rent`);
   push('Vacancy Loss', vacancy, 'SUBTRACT', `${vacancy > grossRent * 0.15 ? '25%' : vacancy > grossRent * 0.08 ? '12%' : '8%'} vacancy assumption (Track 2 haircut)`);
   push('Gross Effective Rent', grossEff, 'SUBTOTAL', 'Rent actually collected after vacancy');
   push('Property Taxes', taxes, 'SUBTRACT', `Annual property tax bill`);
   push('Insurance + HOA + Flood', insurance, 'SUBTRACT', `Property insurance + HOA dues + flood insurance`);
-  push('Property Management', mgmt, 'SUBTRACT', `8% of gross effective rent`);
-  push('Maintenance & Repairs', maint, 'SUBTRACT', `5% of gross effective rent`);
+  push('Property Management', mgmt, 'SUBTRACT', `8% of gross scheduled rent`);
+  push('Maintenance & Repairs', maint, 'SUBTRACT', `5% of gross scheduled rent`);
   push('Net Operating Income (NOI)', noi, 'SUBTOTAL', 'Gross effective rent minus all operating expenses');
   push('Interest', interest, 'SUBTRACT', `Year-1 mortgage interest at solved rate`);
   push('Principal', principal, 'SUBTRACT', `Year-1 principal paydown (builds equity, but cash outflow)`);

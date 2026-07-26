@@ -233,19 +233,23 @@ describe('bug audit #3 — v11Runner must not double-scale the after-tax IRR', (
 // not double it via `cum += amount` on top of an already-equal running total.
 // ─────────────────────────────────────────────────────────────────────────────
 describe('bug audit #4 — waterfall SUBTOTAL/TOTAL rows must not double-count the cumulative column', () => {
-  function buildWaterfall(holdYears = 3) {
-    const { property, loan, strategy } = buildEngineInputs({
-      purchasePrice: 400_000, monthlyRent: 3_000, state: 'TX', ltv: 75, ficoScore: 740,
+  function buildWaterfall(
+    holdYears = 3,
+    strategy: 'LTR' | 'STR' | 'MTR' = 'LTR',
+    monthlyGrossRent = 3_000,
+  ) {
+    const { property, loan } = buildEngineInputs({
+      purchasePrice: 400_000, monthlyRent: monthlyGrossRent, state: 'TX', ltv: 75, ficoScore: 740,
     });
     const loanAmount = 300_000;
     const solvedRate = 7.0;
     const annualADS = calculatePI(loanAmount, solvedRate, 360) * 12;
     const taxProfile = makeTaxProfile({ expectedHoldYears: holdYears });
     const afterTaxIRRResult = computeAfterTaxIRR(
-      400_000, loanAmount, 3_000, 30_000, annualADS, 2_500, taxProfile, 0, solvedRate, 360,
+      400_000, loanAmount, monthlyGrossRent, 30_000, annualADS, 2_500, taxProfile, 0, solvedRate, 360,
     );
     return computeIRRWaterfall(
-      afterTaxIRRResult, property, loan, strategy, solvedRate, 3_000, loanAmount, 100_000, 0,
+      afterTaxIRRResult, property, loan, strategy, solvedRate, monthlyGrossRent, loanAmount, 100_000, 0,
     );
   }
 
@@ -291,6 +295,51 @@ describe('bug audit #4 — waterfall SUBTOTAL/TOTAL rows must not double-count t
     // decimal (e.g. 0.15) unconverted, this would report "0.15%" instead of "15.xx%".
     expect(reportedPct).toBeCloseTo(waterfall.holdTotal.afterTaxIRR * 100, 1);
     expect(Math.abs(reportedPct)).toBeGreaterThan(1); // sanity: not a sub-1% artifact of the old bug
+  });
+
+  it.each([
+    { strategy: 'LTR' as const },
+    { strategy: 'STR' as const },
+    { strategy: 'MTR' as const },
+  ])('matches solveDSCR Track 2 for raw $strategy rent and operating expenses', ({ strategy }) => {
+    const monthlyGrossRent = 5_000;
+    const { property, borrower, loan } = buildEngineInputs({
+      purchasePrice: 400_000,
+      monthlyRent: monthlyGrossRent,
+      strProjectedRent: monthlyGrossRent,
+      state: 'TX',
+      ltv: 75,
+      ficoScore: 740,
+      strategy,
+    });
+    const dscr = solveDSCR(property, borrower, loan, strategy);
+    const track2 = dscr.dualTrackDSCR.track2;
+    const rawMonthlyRent = track2.qualifyingRent;
+    const annualGrossRent = rawMonthlyRent * 12;
+    const annualADS = calculatePI(dscr.loanAmount, dscr.solvedRate, 360) * 12;
+    const afterTaxIRR = computeAfterTaxIRR(
+      property.purchasePrice, dscr.loanAmount, rawMonthlyRent, 30_000, annualADS, 2_500,
+      makeTaxProfile({ expectedHoldYears: 3 }), 0, dscr.solvedRate, 360,
+    );
+    const waterfall = computeIRRWaterfall(
+      afterTaxIRR, property, loan, strategy, dscr.solvedRate, rawMonthlyRent, dscr.loanAmount, 100_000, 0,
+    );
+    const stage = (label: string) => waterfall.year1.stages.find(s => s.label === label)!;
+
+    // Track 1 qualifying rent is haircut for STR/MTR; Track 2 retains raw
+    // strategy rent. The waterfall's investor view must match Track 2 exactly.
+    expect(rawMonthlyRent).toBe(monthlyGrossRent);
+    expect(stage('Gross Scheduled Rent').amount).toBe(annualGrossRent);
+    expect(stage('Gross Scheduled Rent').detail).toContain('raw strategy rent');
+    expect(stage('Vacancy Loss').amount).toBeCloseTo(annualGrossRent * track2.vacancyApplied / 100, 2);
+    expect(stage('Property Management').amount).toBeCloseTo(annualGrossRent * track2.managementApplied / 100, 2);
+    expect(stage('Maintenance & Repairs').amount).toBeCloseTo(annualGrossRent * track2.maintenanceApplied / 100, 2);
+
+    const totalGrossRent = waterfall.holdTotal.stages.find(s => s.label === 'Total Gross Rent')!;
+    const totalMgmt = waterfall.holdTotal.stages.find(s => s.label === 'Total Property Management')!;
+    const totalMaint = waterfall.holdTotal.stages.find(s => s.label === 'Total Maintenance & Repairs')!;
+    expect(totalMgmt.amount).toBeCloseTo(totalGrossRent.amount * track2.managementApplied / 100, 0);
+    expect(totalMaint.amount).toBeCloseTo(totalGrossRent.amount * track2.maintenanceApplied / 100, 0);
   });
 });
 
