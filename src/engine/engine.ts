@@ -232,11 +232,11 @@ export function getDSCRGradient(dscr: number): DSCRGradient {
 // ============================================================
 
 // Track 2 default expense rates
-const TRACK2_LT_VACANCY_PCT = 8;
-const TRACK2_STR_VACANCY_PCT = 8;
-const TRACK2_MTR_VACANCY_PCT = 8;
-const TRACK2_MANAGEMENT_PCT = 8;
-const TRACK2_MAINTENANCE_PCT = 5;
+export const TRACK2_LT_VACANCY_PCT = 8;
+export const TRACK2_STR_VACANCY_PCT = 8;
+export const TRACK2_MTR_VACANCY_PCT = 8;
+export const TRACK2_MANAGEMENT_PCT = 8;
+export const TRACK2_MAINTENANCE_PCT = 5;
 
 // STR haircut for Track 1 qualification
 const STR_QUALIFYING_HAIRCUT_PCT = 20; // ~20% standard haircut
