@@ -1,0 +1,121 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Open Data Urls
+summary: "https://capitalmarkets.fanniemae.com/credit-risk-transfer/single-family-credit-risk-transfer/fannie-mae-single-family-loan-performance-data"
+entities:
+  - data/fred
+  - data/zillow
+  - regulation/cfpb
+  - regulation/hmda
+  - topic/multifamily
+  - topic/str
+tags:
+  - topic/apex
+  - topic/default-rate
+  - topic/flood-insurance
+source: output/apex3_dispatch/open_data/open_data_urls.txt
+vaulted_at: 2026-06-20
+---
+https://capitalmarkets.fanniemae.com/credit-risk-transfer/single-family-credit-risk-transfer/fannie-mae-single-family-loan-performance-data
+https://datadynamics.fanniemae.com/data-dynamics/#/reportMenu;category=HP
+https://capitalmarkets.fanniemae.com/credit-risk-transfer/multifamily-credit-risk-transfer/multifamily-loan-performance-data
+https://www.freddiemac.com/research/datasets/sf-loanlevel-dataset
+https://claritydownload.fmapps.freddiemac.com/CRT/
+http://bulk.ginniemae.gov/
+https://www.ginniemae.gov/data_and_reports/disclosure_data/Pages/bulk_data_download.aspx
+https://ffiec.cfpb.gov/data-publication/modified-lar
+https://www.cfpb.gov/data-research/hmda/
+https://github.com/cfpb/HMDA_Data_Science_Kit
+https://www.fhfa.gov/data/public-use-database
+https://catalog.data.gov/dataset/enterprise-public-use-database-pudb
+https://www.fhfa.gov/data/nmdb
+https://www.fhfa.gov/data/dashboard/nmdb-outstanding-residential-mortgage-statistics
+https://www.fhfa.gov/data/nsmo
+https://www.consumerfinance.gov/data-research/mortgage-performance-trends/
+https://www.consumerfinance.gov/data-research/mortgage-performance-trends/download-the-data/
+https://www.mba.org/news-and-research/research-and-economics/single-family-research/national-delinquency-survey
+https://www.mba.org/news-and-research/research-and-economics/commercial-multifamily-research/commercial-multifamily-mortgage-delinquency-rates
+https://www.ice.com/fixed-income-data-services/mortgage-data-solutions/mcdash
+https://mortgagetech.ice.com/resources/data-reports
+https://www.aei.org/housing/aei-housing-center-indicators/
+https://www.fhfa.gov/data/hpi
+https://www.fhfa.gov/data/hpi/datasets
+https://www.fhfa.gov/about/fhfa-policies/api-terms-of-service
+https://www.zillow.com/research/data/
+https://www.apartmentlist.com/research/national-rent-data
+https://www.huduser.gov/portal/datasets/fmr.html
+https://www.huduser.gov/portal/dataset/fmr-api.html
+https://catalog.data.gov/dataset/fair-market-rents-geospatial
+https://hudgis-hud.opendata.arcgis.com/datasets/fair-market-rents
+https://www.huduser.gov/portal/datasets/fmr/smallarea/index.html
+https://www.census.gov/data/developers/data-sets/acs-5year.html
+https://www.census.gov/programs-surveys/acs/data/data-via-api.html
+https://aws.amazon.com/public-datasets/us-census-acs/
+https://www.bls.gov/developers/home.htm
+https://www.bls.gov/cpi/factsheets/owners-equivalent-rent-and-rent.htm
+https://www.bls.gov/bls/api_features.htm
+https://www.bls.gov/developers/api_signature_v2.htm
+https://www.bls.gov/pir/new-tenant-rent.htm
+https://www.realtor.com/research/data/
+https://www.redfin.com/news/data-center/
+https://www.freddiemac.com/pmms
+https://www.fanniemae.com/data-and-insights/surveys-indices/fannie-mae-home-price-index
+https://www.fanniemae.com/data-and-insights/surveys/mortgage-lender-sentiment-survey
+https://fred.stlouisfed.org/
+https://fred.stlouisfed.org/docs/api/fred/
+https://www.bea.gov/
+https://www.bea.gov/open-data
+https://www.census.gov/data/developers.html
+https://api.census.gov/data/key_signup.html
+https://www.newyorkfed.org/microeconomics/hhdc
+https://www.newyorkfed.org/microeconomics/databank.html
+https://www.newyorkfed.org/medialibrary/interactives/householdcredit/data/pdf/HHDC_2025Q4
+https://www.federalreserve.gov/releases/g19/current/
+https://www.federalreserve.gov/releases/DSR/default.htm
+https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?type=daily_treasury_yield_curve
+https://www.eia.gov/opendata/
+https://www.irs.gov/statistics
+https://www.fema.gov/flood-maps/products-tools/national-risk-index
+https://www.fema.gov/about/openfema/api
+https://experience.arcgis.com/experience/376770c1113943b6b5f6b58ff1c2fb5c/page/FEMA-NRI
+https://www.fema.gov/openfema-data-page/fema-web-disaster-declarations-v1
+https://www.fema.gov/openfema-data-page/fima-nfip-redacted-claims-v2
+https://www.fema.gov/openfema-data-page/fima-nfip-redacted-policies-v2
+https://www.ncei.noaa.gov/stormevents/
+https://www.ncei.noaa.gov/stormevents/ftp.jsp
+https://www.ncei.noaa.gov/pub/data/swdi/stormevents/csvfiles/
+https://www.ncei.noaa.gov/products/severe-weather-data-inventory
+https://www.usgs.gov/programs/national-geospatial-program
+https://www.fema.gov/glossary/national-flood-hazard-layer-nfhl
+https://www.huduser.gov/portal/datasets/usps.html
+https://www.huduser.gov/apps/public/usps/login
+https://regrid.com/
+https://www.attomdata.com/
+https://www.attomdata.com/data/property-data/assessor-data/
+https://api.developer.attomdata.com/docs
+https://catalog.data.gov/dataset/?tags=parcel
+https://catalog.data.gov/dataset/?tags=sdat
+http://bbs.miamidade.gov/
+https://www.montgomerycountypa.gov/departments/board-assessment-appeals/property-data-data-requests
+https://www.stlouiscountymn.gov/departments-a-z/assessor/property-information/property-details-search
+https://www.ice.com/fixed-income-data-services
+https://researchdatacatalog.iu.edu/concern/data_sets/7dc5cf82-26df-4e89-83b4-4c5e1c2e04de
+https://www.fhfa.gov/data/uad
+https://www.fhfa.gov/data/uad/puf
+https://www.fema.gov/about/reports-and-data/openfema
+https://www.fema.gov/openfema-data-page/openfema-data-sets-v1
+https://www.huduser.gov/portal/pdrdatas_landing.html
+https://www.huduser.gov/portal/datasets/lihtc.html
+https://www.huduser.gov/portal/datasets/mfh.html
+https://www.openstreetmap.org/
+https://download.geofabrik.de/
+https://alfred.stlouisfed.org/
+https://fraser.stlouisfed.org/
+https://www.bea.gov/itable
+https://www.fdic.gov/quarterly-banking-profile
+https://www.federalreserve.gov/econres/scf_2007.htm
+https://www.freddiemac.com/research/datasets/cofi
+https://www.fanniemae.com/data-and-insights/surveys-indices/refinance-application-level-index
+https://www.fanniemae.com/data-and-insights/surveys-indices/home-price-expectations-survey-hpes

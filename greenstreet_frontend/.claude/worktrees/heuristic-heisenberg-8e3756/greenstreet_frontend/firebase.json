@@ -1,0 +1,80 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": ".",
+    "runtime": "nodejs20",
+    "predeploy": [
+      "npm run build"
+    ],
+    "ignore": [
+      "node_modules",
+      "**/node_modules/**",
+      ".git",
+      ".agents",
+      ".gemini",
+      "src",
+      "public",
+      "hf-deal",
+      "hf-dscr",
+      "hf-lender",
+      "hf-montecarlo",
+      "hf-returns",
+      "hf-statelaws",
+      "hf-step1",
+      "hf-step2",
+      "hf-step3",
+      "hf-step4",
+      "hf-step5",
+      "hf-stress",
+      "hf-tax",
+      ".cake_matrices",
+      "animations",
+      "assets",
+      "docs",
+      "graphify-out",
+      "scripts",
+      "_regen_tmp",
+      "pgliteData",
+      "dist/assets",
+      "dist/img",
+      "dist/video",
+      "dist/index.html",
+      "dist/server.cjs.map",
+      "dist/engineWorker.cjs.map",
+      "dist/function.cjs.map",
+      "review-logos-standalone.html",
+      "review-logos.html",
+      ".trash",
+      ".minimax",
+      ".qodo",
+      "*.png",
+      "*.jpg",
+      "*.html",
+      "*.ps1",
+      "*.log",
+      "vite.config.ts",
+      "tsconfig.json"
+    ]
+  },
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": "api"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

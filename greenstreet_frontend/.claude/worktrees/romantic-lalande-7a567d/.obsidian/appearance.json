@@ -1,0 +1,12 @@
+{
+  "baseFontSize": 16,
+  "interfaceFontFamily": "Inter",
+  "textFontFamily": "Inter",
+  "monospaceFontFamily": "JetBrains Mono",
+  "theme": "moonstone",
+  "cssTheme": "moonstone",
+  "baseColor": "#1a1d24",
+  "accentColor": "#ff6b35",
+  "translucency": false,
+  "enabledCssSnippets": []
+}

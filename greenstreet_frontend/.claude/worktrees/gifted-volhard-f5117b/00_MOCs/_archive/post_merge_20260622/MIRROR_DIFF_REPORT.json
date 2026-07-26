@@ -1,0 +1,3081 @@
+{
+  "generated_at": "2026-06-22T04:31:47.393592",
+  "total_files": 341,
+  "by_category": {
+    "NO_CANONICAL": 124,
+    "HIGH_SIMILARITY": 214,
+    "MEDIUM_SIMILARITY": 2,
+    "LOW_SIMILARITY": 1
+  },
+  "results": [
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA10_Compliance_Verifier_Slice.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA10_Compliance_Verifier_Slice.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA10_Marketing_Strategy_Slice.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA10_Marketing_Strategy_Slice.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA1_Public_Approval_Case_Files.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA1_Public_Approval_Case_Files.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA2_Lender_Matrix_Approval_Criteria.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA2_Lender_Matrix_Approval_Criteria.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA3_Unconventional_Personas.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA3_Unconventional_Personas.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA4_compliance_filter_verified.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA4_compliance_filter_verified.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA5_Credit_Profile_Heat_Map.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA5_Credit_Profile_Heat_Map.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA7_Self_Employed_Archetypes.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA7_Self_Employed_Archetypes.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA8_REI_Archetypes.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA8_REI_Archetypes.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/ads_targeting/SA9_Ads_Platform_Personas.md",
+      "mirror_name": "_research",
+      "rel_path": "ads_targeting/SA9_Ads_Platform_Personas.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/deep_research/INDEX.md",
+      "mirror_name": "_research",
+      "rel_path": "deep_research/INDEX.md",
+      "canonical_path": "RESEARCH/deep_research_20260618/INDEX.md",
+      "size_diff_pct": 11.21972412294993,
+      "similarity": 0.9931714719271624,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/deep_research/_ROUND_15_text.md",
+      "mirror_name": "_research",
+      "rel_path": "deep_research/_ROUND_15_text.md",
+      "canonical_path": "RESEARCH/deep_research_20260618/_ROUND_15_text.md",
+      "size_diff_pct": 14.555792466240227,
+      "similarity": 0.9940425531914894,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/AI Algorithm Improvement Prompt.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/AI Algorithm Improvement Prompt.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/AI Algorithm Improvement Prompt2.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/AI Algorithm Improvement Prompt2.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Architecting the Advisor-Grade DSCR Engine_ A Blueprint for Institutional-Grade Real Estate Decision Intelligence.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Architecting the Advisor-Grade DSCR Engine_ A Blueprint for Institutional-Grade Real Estate Decision Intelligence.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Beyond the DSCR_ A Blueprint for an Adversarially-Robust, Dual-Ledger Decision Engine for Real Estate Investment.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Beyond the DSCR_ A Blueprint for an Adversarially-Robust, Dual-Ledger Decision Engine for Real Estate Investment.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Beyond the Rulebook_ Building a Competitive Edge by Integrating Dynamic Data into Cake Mortgage's Underwriting Framework.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Beyond the Rulebook_ Building a Competitive Edge by Integrating Dynamic Data into Cake Mortgage's Underwriting Framework.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Beyond the Rulebook_ Building a Probabilistic Underwriting Engine with Graphs, Conformal Prediction, and Tabular Foundation Models.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Beyond the Rulebook_ Building a Probabilistic Underwriting Engine with Graphs, Conformal Prediction, and Tabular Foundation Models.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Beyond_Rulebook_1.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Beyond_Rulebook_1.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Beyond_Rulebook_2.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Beyond_Rulebook_2.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Build_vs_Buy_API_Dataset_Replacements_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Build_vs_Buy_API_Dataset_Replacements_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Build_vs_Buy_API_Dataset_Replacements_v2_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Build_vs_Buy_API_Dataset_Replacements_v2_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/FCRA Adverse Action Engine for Institutional Compliance.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/FCRA Adverse Action Engine for Institutional Compliance.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Black Box to Glass Box_ A Blueprint for Building an Adversarially-Hardened, Regulator-Compliant DSCR Decision Engine.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Black Box to Glass Box_ A Blueprint for Building an Adversarially-Hardened, Regulator-Compliant DSCR Decision Engine.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Blueprint to Sovereign Engine_ Hardening TimesFM for Real Estate Credit Risk.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Blueprint to Sovereign Engine_ Hardening TimesFM for Real Estate Credit Risk.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Calculation to Counsel_ Architecting an Advisor-Grade DSCR Engine Through Adversarial Validation and Quantitative Innovation.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Calculation to Counsel_ Architecting an Advisor-Grade DSCR Engine Through Adversarial Validation and Quantitative Innovation.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Calculator to Containment_ Adversarial Hardening of the AEGIS DSCR Engine.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Calculator to Containment_ Adversarial Hardening of the AEGIS DSCR Engine.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Calculator to Counselor_ A Blueprint for an Advisor-Grade DSCR Decision Engine Driven by Adversarial Validation.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Calculator to Counselor_ A Blueprint for an Advisor-Grade DSCR Decision Engine Driven by Adversarial Validation.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Policy to Profit_ A Dynamic Decision Engine for Cake Mortgage's 2026 Non-QM and DSCR Lending Strategies.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Policy to Profit_ A Dynamic Decision Engine for Cake Mortgage's 2026 Non-QM and DSCR Lending Strategies.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Restriction to Dominance_ A Guide to Cake Mortgage's 2026 Non-QM Arbitrage and Underwriting Advantage.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Restriction to Dominance_ A Guide to Cake Mortgage's 2026 Non-QM Arbitrage and Underwriting Advantage.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/From Static Snapshot to Dynamic Trajectory_ Designing an Adversarially-Hardened, Dual-Ledger DSCR Engine for True Investment Risk Assessment.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/From Static Snapshot to Dynamic Trajectory_ Designing an Adversarially-Hardened, Dual-Ledger DSCR Engine for True Investment Risk Assessment.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Master_Plan_v11_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Master_Plan_v11_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Open_Decisions_Master_Plan_v112_20260621.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Open_Decisions_Master_Plan_v112_20260621.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Regulatory_Front_Watch_20260620.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Regulatory_Front_Watch_20260620.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/The DSCR Sovereign OS Upgrade_ A Blueprint for Validating TimesFM 2.5 LoRA's Impact on Forecast Accuracy, Compliance, and Credit Risk Modeling.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/The DSCR Sovereign OS Upgrade_ A Blueprint for Validating TimesFM 2.5 LoRA's Impact on Forecast Accuracy, Compliance, and Credit Risk Modeling.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/The Future of DSCR Lending.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/The Future of DSCR Lending.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_D_Master_Plan_v11_Outline.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_D_Master_Plan_v11_Outline.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_E_AI_ML_Production_Reality_Audit_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_E_AI_ML_Production_Reality_Audit_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_F_AGPL3_Tier4_SaaS_Exposure_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_F_AGPL3_Tier4_SaaS_Exposure_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_G_LendingPad_vs_Encompass_DSCR_DeepDive_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_G_LendingPad_vs_Encompass_DSCR_DeepDive_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_H_OGC_1071_Broker_Exempt_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_H_OGC_1071_Broker_Exempt_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_I_Pilot_Broker_Profile_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_I_Pilot_Broker_Profile_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_J_v056_Ship_Spec_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_J_v056_Ship_Spec_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_K_Insula_Sales_Call_Prep_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_K_Insula_Sales_Call_Prep_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_L_Pilot_Broker_Outreach_Playbook_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_L_Pilot_Broker_Outreach_Playbook_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_M_Tier4_Pricing_Model_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_M_Tier4_Pricing_Model_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_N_Work_Audit_20_Step_Plan_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_N_Work_Audit_20_Step_Plan_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_O_What_We_Have_Inventory_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_O_What_We_Have_Inventory_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_P_DSCR_Data_Acquisition_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_P_DSCR_Data_Acquisition_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Thread_Q_Tier4_v1_Product_Spec_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Thread_Q_Tier4_v1_Product_Spec_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/Tier4_DeepDive_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "extractions/Tier4_DeepDive_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/TimesFM_Architecting the DSCR Sovereign OS_ A Seven-Week Sprint to Resolve Eight Critical Gaps in TimesFM 2.5.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/TimesFM_Architecting the DSCR Sovereign OS_ A Seven-Week Sprint to Resolve Eight Critical Gaps in TimesFM 2.5.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/extractions/TimesFM_From Signal Processor to Institutional Simulator_ Architecting a Multi-Engine DSCR Sovereign OS for Commercial Real Estate Credit Risk.txt",
+      "mirror_name": "_research",
+      "rel_path": "extractions/TimesFM_From Signal Processor to Institutional Simulator_ Architecting a Multi-Engine DSCR Sovereign OS for Commercial Real Estate Credit Risk.txt",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/DSCR_Sovereign_OS_Live_Research_Execution_\u2014_Sprint_0_&_1_Findings.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/DSCR_Sovereign_OS_Live_Research_Execution_\u2014_Sprint_0_&_1_Findings.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/DSCR_Sovereign_OS_Sprint_2_\u2014_PPP_State_Matrix,_STR_Legality_Database_&_40-Year_Amortization.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/DSCR_Sovereign_OS_Sprint_2_\u2014_PPP_State_Matrix,_STR_Legality_Database_&_40-Year_Amortization.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/DSCR_Sovereign_OS_Sprint_3_\u2014_Lender_Intelligence,_Securitization_Pool_Data_&_Competitive_Moat_Analysis.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/DSCR_Sovereign_OS_Sprint_3_\u2014_Lender_Intelligence,_Securitization_Pool_Data_&_Competitive_Moat_Analysis.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/DSCR_Sovereign_OS_Sprint_4_\u2014_Full_Tax_Engine,_Insurance_Kill_Criterion,_Flood_Gate_&_Compliance_Stack.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/DSCR_Sovereign_OS_Sprint_4_\u2014_Full_Tax_Engine,_Insurance_Kill_Criterion,_Flood_Gate_&_Compliance_Stack.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/DSCR_Sovereign_OS_Sprint_5_\u2014_Live_Data_APIs,_Rate_Anchors,_Property_Tax_Matrix_&_Full_System_Architecture.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/DSCR_Sovereign_OS_Sprint_5_\u2014_Live_Data_APIs,_Rate_Anchors,_Property_Tax_Matrix_&_Full_System_Architecture.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/DSCR_Sovereign_OS_Sprint_6_\u2014_Computation_Engines,_Monte_Carlo,_After-Tax_IRR,_IC_Memo,_1031_Exit_Module_&_XGBoost_ML_Layer.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/DSCR_Sovereign_OS_Sprint_6_\u2014_Computation_Engines,_Monte_Carlo,_After-Tax_IRR,_IC_Memo,_1031_Exit_Module_&_XGBoost_ML_Layer.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/Sprint_01.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/Sprint_01.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/Sprint_02.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/Sprint_02.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/Sprint_03.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/Sprint_03.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/Sprint_04.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/Sprint_04.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/Sprint_05.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/Sprint_05.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/Sprint_06.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/Sprint_06.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/sprints/Sprint_07.md",
+      "mirror_name": "_research",
+      "rel_path": "sprints/Sprint_07.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/00_meta/Deeper_Audit_Report_20260622.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/00_meta/Deeper_Audit_Report_20260622.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/00_meta/Round19_T3_T4_T11_synthesis.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/00_meta/Round19_T3_T4_T11_synthesis.md",
+      "canonical_path": "RESEARCH/godmode_20260618/00_meta/Round19_T3_T4_T11_synthesis.md",
+      "size_diff_pct": 14.203292041405058,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/00_meta/Round20_T5_T7_T9_T10_T12_T13_T15_synthesis.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/00_meta/Round20_T5_T7_T9_T10_T12_T13_T15_synthesis.md",
+      "canonical_path": "RESEARCH/godmode_20260618/00_meta/Round20_T5_T7_T9_T10_T12_T13_T15_synthesis.md",
+      "size_diff_pct": 17.609136120832567,
+      "similarity": 0.9900808229243203,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/00_meta/Round21_final_wrap.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/00_meta/Round21_final_wrap.md",
+      "canonical_path": "RESEARCH/godmode_20260618/00_meta/Round21_final_wrap.md",
+      "size_diff_pct": 12.79929798169738,
+      "similarity": 0.9986788298206983,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/00_meta/T1_T2_synthesis_20260618.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/00_meta/T1_T2_synthesis_20260618.md",
+      "canonical_path": "RESEARCH/godmode_20260618/00_meta/T1_T2_synthesis_20260618.md",
+      "size_diff_pct": 9.980723923752409,
+      "similarity": 0.9929475100942127,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_01_dscr_rent_over_pitia.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_01_dscr_rent_over_pitia.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_01_dscr_rent_over_pitia.md",
+      "size_diff_pct": 4.572522330923012,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_02_pitia_formula.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_02_pitia_formula.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_02_pitia_formula.md",
+      "size_diff_pct": 6.77515422250585,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_03_rent_min_lease_1007.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_03_rent_min_lease_1007.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_03_rent_min_lease_1007.md",
+      "size_diff_pct": 3.1704551057640153,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_04_payment_factor_7pct_360.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_04_payment_factor_7pct_360.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_04_payment_factor_7pct_360.md",
+      "size_diff_pct": 4.320224255915575,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_05_fannie_form_1007_vacancy.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_05_fannie_form_1007_vacancy.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_05_fannie_form_1007_vacancy.md",
+      "size_diff_pct": 4.106706489275048,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_06_kbra_3pct_nonqm.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_06_kbra_3pct_nonqm.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_06_kbra_3pct_nonqm.md",
+      "size_diff_pct": 6.977034448327508,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_07_nonqm_239b_2025.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_07_nonqm_239b_2025.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_07_nonqm_239b_2025.md",
+      "size_diff_pct": 4.126743990586653,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_08_dscr_28pct_of_nonqm.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_08_dscr_28pct_of_nonqm.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_08_dscr_28pct_of_nonqm.md",
+      "size_diff_pct": 3.428395726035821,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_09_trepp_cmbs_755.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_09_trepp_cmbs_755.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_09_trepp_cmbs_755.md",
+      "size_diff_pct": 5.37810773480663,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/01_T1_tier1_sweep/claim_10_cotality_fraud_q1_2026.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/01_T1_tier1_sweep/claim_10_cotality_fraud_q1_2026.md",
+      "canonical_path": "RESEARCH/godmode_20260618/01_T1_tier1_sweep/claim_10_cotality_fraud_q1_2026.md",
+      "size_diff_pct": 3.4890641273619996,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_01_str_default_academic.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_01_str_default_academic.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_01_str_default_academic.md",
+      "size_diff_pct": 6.969805466046068,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_02_dscr_cure_24mo.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_02_dscr_cure_24mo.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_02_dscr_cure_24mo.md",
+      "size_diff_pct": 6.784690953745395,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_03_pennymac_dscr_fico.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_03_pennymac_dscr_fico.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_03_pennymac_dscr_fico.md",
+      "size_diff_pct": 37.23157732118029,
+      "similarity": 0.7664049163537043,
+      "category": "MEDIUM_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_04_str_regulation_50_states.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_04_str_regulation_50_states.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_04_str_regulation_50_states.md",
+      "size_diff_pct": 7.245962555380878,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_05_lender_price_flex.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_05_lender_price_flex.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_05_lender_price_flex.md",
+      "size_diff_pct": 7.312220195655779,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_06_uwm_apr_2026.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_06_uwm_apr_2026.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_06_uwm_apr_2026.md",
+      "size_diff_pct": 7.04037864221269,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_07_deephaven_reverify.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_07_deephaven_reverify.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_07_deephaven_reverify.md",
+      "size_diff_pct": 6.117963121260227,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/provisional_08_rocket_pro_tpo.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/provisional_08_rocket_pro_tpo.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/provisional_08_rocket_pro_tpo.md",
+      "size_diff_pct": 6.804150794693288,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/02_T2_tier2_resolution/T2_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/02_T2_tier2_resolution/T2_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/02_T2_tier2_resolution/T2_summary.md",
+      "size_diff_pct": 7.98333911836168,
+      "similarity": 0.9979687772038768,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g4_01_levered_irr.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g4_01_levered_irr.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g4_01_levered_irr.md",
+      "size_diff_pct": 8.112502032189887,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g4_02_xirr_vs_irr.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g4_02_xirr_vs_irr.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g4_02_xirr_vs_irr.md",
+      "size_diff_pct": 6.216307277628032,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g4_03_noi_geometric_growth.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g4_03_noi_geometric_growth.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g4_03_noi_geometric_growth.md",
+      "size_diff_pct": 8.344054401764382,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g4_04_exit_cap_sensitivity.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g4_04_exit_cap_sensitivity.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g4_04_exit_cap_sensitivity.md",
+      "size_diff_pct": 6.7374762206721615,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g4_05_cap_rate_drift.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g4_05_cap_rate_drift.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g4_05_cap_rate_drift.md",
+      "size_diff_pct": 7.9742011140428035,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g4_06_modified_dietz.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g4_06_modified_dietz.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g4_06_modified_dietz.md",
+      "size_diff_pct": 6.0919379628335895,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g5_01_t_copula_df5_7.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g5_01_t_copula_df5_7.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g5_01_t_copula_df5_7.md",
+      "size_diff_pct": 6.121125664634937,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g5_02_gaussian_vs_student_t.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g5_02_gaussian_vs_student_t.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g5_02_gaussian_vs_student_t.md",
+      "size_diff_pct": 7.171371542629028,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g5_03_sobol_qmc_convergence.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g5_03_sobol_qmc_convergence.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g5_03_sobol_qmc_convergence.md",
+      "size_diff_pct": 6.550883607556369,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g5_04_cvar_es_coherent.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g5_04_cvar_es_coherent.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g5_04_cvar_es_coherent.md",
+      "size_diff_pct": 6.861239119303636,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g6_01_loan_tape_kbra.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g6_01_loan_tape_kbra.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g6_01_loan_tape_kbra.md",
+      "size_diff_pct": 8.253968253968253,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g6_02_msr_fair_value.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g6_02_msr_fair_value.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g6_02_msr_fair_value.md",
+      "size_diff_pct": 7.41267787839586,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g6_03_gain_on_sale.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g6_03_gain_on_sale.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g6_03_gain_on_sale.md",
+      "size_diff_pct": 4.663271080928126,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g6_04_cecl_lifetime_ecl.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g6_04_cecl_lifetime_ecl.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g6_04_cecl_lifetime_ecl.md",
+      "size_diff_pct": 6.768459434822242,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g6_05_capital_stack.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g6_05_capital_stack.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g6_05_capital_stack.md",
+      "size_diff_pct": 5.697202166064982,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g7_01_insurance_escalation.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g7_01_insurance_escalation.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g7_01_insurance_escalation.md",
+      "size_diff_pct": 7.301378857518056,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g7_02_nfhl_zone_determination.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g7_02_nfhl_zone_determination.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g7_02_nfhl_zone_determination.md",
+      "size_diff_pct": 7.158625039419741,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g7_03_nfip_coverage_limits.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g7_03_nfip_coverage_limits.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g7_03_nfip_coverage_limits.md",
+      "size_diff_pct": 8.433349335893743,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g7_04_rr20_11_39pct_decline.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g7_04_rr20_11_39pct_decline.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g7_04_rr20_11_39pct_decline.md",
+      "size_diff_pct": 7.037089268086307,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g8_01_ca_prop13_2pct.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g8_01_ca_prop13_2pct.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g8_01_ca_prop13_2pct.md",
+      "size_diff_pct": 10.363153232949513,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g8_02_mill_rate_by_county.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g8_02_mill_rate_by_county.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g8_02_mill_rate_by_county.md",
+      "size_diff_pct": 10.990269032627362,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g8_03_ltv_min_purchase.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g8_03_ltv_min_purchase.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g8_03_ltv_min_purchase.md",
+      "size_diff_pct": 7.987980468260925,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g8_04_dscr_lgd_25_32.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g8_04_dscr_lgd_25_32.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g8_04_dscr_lgd_25_32.md",
+      "size_diff_pct": 7.465408130430119,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/03_T3_math_verification/math_g8_05_cure_rate_24mo.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/03_T3_math_verification/math_g8_05_cure_rate_24mo.md",
+      "canonical_path": "RESEARCH/godmode_20260618/03_T3_math_verification/math_g8_05_cure_rate_24mo.md",
+      "size_diff_pct": 7.712242147817975,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_01_t_copula_monte_carlo.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_01_t_copula_monte_carlo.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_01_t_copula_monte_carlo.md",
+      "size_diff_pct": 5.111006140765234,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_02_sobol_qmc.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_02_sobol_qmc.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_02_sobol_qmc.md",
+      "size_diff_pct": 5.339757101274716,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_03_brent_brentq.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_03_brent_brentq.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_03_brent_brentq.md",
+      "size_diff_pct": 4.581316119777658,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_04_cvar_expected_shortfall.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_04_cvar_expected_shortfall.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_04_cvar_expected_shortfall.md",
+      "size_diff_pct": 4.290680912405664,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_05_merton_dd.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_05_merton_dd.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_05_merton_dd.md",
+      "size_diff_pct": 4.898503764414372,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_06_timesfm_25.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_06_timesfm_25.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_06_timesfm_25.md",
+      "size_diff_pct": 4.602960969044415,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_07_longstaff_schwartz_lsm.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_07_longstaff_schwartz_lsm.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_07_longstaff_schwartz_lsm.md",
+      "size_diff_pct": 4.3299620733249045,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/04_T4_algorithm_validation/algo_08_defeasance_npv.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/04_T4_algorithm_validation/algo_08_defeasance_npv.md",
+      "canonical_path": "RESEARCH/godmode_20260618/04_T4_algorithm_validation/algo_08_defeasance_npv.md",
+      "size_diff_pct": 4.815309301290609,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/T5_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/T5_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/T5_summary.md",
+      "size_diff_pct": 7.315175097276265,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_01_dual_track_dscr.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_01_dual_track_dscr.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_01_dual_track_dscr.md",
+      "size_diff_pct": 17.91907514450867,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_02_math_spine.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_02_math_spine.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_02_math_spine.md",
+      "size_diff_pct": 15.800661313179026,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_03_pre_tax_returns.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_03_pre_tax_returns.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_03_pre_tax_returns.md",
+      "size_diff_pct": 19.282670454545457,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_04_after_tax_returns.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_04_after_tax_returns.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_04_after_tax_returns.md",
+      "size_diff_pct": 19.74503409427809,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_05_rates_pricing.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_05_rates_pricing.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_05_rates_pricing.md",
+      "size_diff_pct": 15.713912816496997,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_06_golden_tests.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_06_golden_tests.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_06_golden_tests.md",
+      "size_diff_pct": 13.548018292682926,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_07_monte_carlo.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_07_monte_carlo.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_07_monte_carlo.md",
+      "size_diff_pct": 19.395390601616285,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_08_lender_matrix.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_08_lender_matrix.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_08_lender_matrix.md",
+      "size_diff_pct": 18.907131862493586,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_09_str_income.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_09_str_income.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_09_str_income.md",
+      "size_diff_pct": 14.688469128841275,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_10_evidence_vault.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_10_evidence_vault.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_10_evidence_vault.md",
+      "size_diff_pct": 15.961665565102445,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_11_50state_ppp.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_11_50state_ppp.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_11_50state_ppp.md",
+      "size_diff_pct": 17.091836734693878,
+      "similarity": 0.9985326485693323,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_12_arm_reset.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_12_arm_reset.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_12_arm_reset.md",
+      "size_diff_pct": 22.17692621280065,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_13_ai_ml_layer.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_13_ai_ml_layer.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_13_ai_ml_layer.md",
+      "size_diff_pct": 22.644497228820267,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_14_cost_stack.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_14_cost_stack.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_14_cost_stack.md",
+      "size_diff_pct": 17.819940476190478,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_15_market_intel.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_15_market_intel.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_15_market_intel.md",
+      "size_diff_pct": 21.691056910569106,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_16_property_tax.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_16_property_tax.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_16_property_tax.md",
+      "size_diff_pct": 24.517788255465067,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_17_compliance_insurance.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_17_compliance_insurance.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_17_compliance_insurance.md",
+      "size_diff_pct": 19.111461619348056,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_18_ic_memo.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_18_ic_memo.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_18_ic_memo.md",
+      "size_diff_pct": 18.40407470288625,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_19_ocr_pipeline.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_19_ocr_pipeline.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_19_ocr_pipeline.md",
+      "size_diff_pct": 18.759811616954476,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/05_T5_corpus_coherence/topic_20_build_order.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/05_T5_corpus_coherence/topic_20_build_order.md",
+      "canonical_path": "RESEARCH/godmode_20260618/05_T5_corpus_coherence/topic_20_build_order.md",
+      "size_diff_pct": 23.169107856191744,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_01_credit_application_incomplete.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_01_credit_application_incomplete.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_01_credit_application_incomplete.md",
+      "size_diff_pct": 11.247443762781186,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_02_insufficient_credit_references.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_02_insufficient_credit_references.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_02_insufficient_credit_references.md",
+      "size_diff_pct": 12.768110076891947,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_03_unacceptable_credit_references.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_03_unacceptable_credit_references.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_03_unacceptable_credit_references.md",
+      "size_diff_pct": 16.41086186540732,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_04_unable_to_verify_credit_references.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_04_unable_to_verify_credit_references.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_04_unable_to_verify_credit_references.md",
+      "size_diff_pct": 15.451434588049487,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_05_temporary_irregular_employment.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_05_temporary_irregular_employment.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_05_temporary_irregular_employment.md",
+      "size_diff_pct": 15.985339723710176,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_06_unable_to_verify_employment.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_06_unable_to_verify_employment.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_06_unable_to_verify_employment.md",
+      "size_diff_pct": 18.517319520880545,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_07_length_of_employment.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_07_length_of_employment.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_07_length_of_employment.md",
+      "size_diff_pct": 14.115204981837051,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_08_income_insufficient_for_credit.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_08_income_insufficient_for_credit.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_08_income_insufficient_for_credit.md",
+      "size_diff_pct": 17.26856561546287,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_09_excessive_obligations.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_09_excessive_obligations.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_09_excessive_obligations.md",
+      "size_diff_pct": 20.926517571884983,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_10_unable_to_verify_income.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_10_unable_to_verify_income.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_10_unable_to_verify_income.md",
+      "size_diff_pct": 14.163979732842009,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_11_length_of_residence.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_11_length_of_residence.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_11_length_of_residence.md",
+      "size_diff_pct": 17.07167025530606,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_12_temporary_residence.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_12_temporary_residence.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_12_temporary_residence.md",
+      "size_diff_pct": 17.980840088430362,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_13_unable_to_verify_residence.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_13_unable_to_verify_residence.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_13_unable_to_verify_residence.md",
+      "size_diff_pct": 19.588336192109775,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_14_no_credit_file.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_14_no_credit_file.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_14_no_credit_file.md",
+      "size_diff_pct": 14.875802400223275,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_15_limited_credit_experience.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_15_limited_credit_experience.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_15_limited_credit_experience.md",
+      "size_diff_pct": 17.897452434698486,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_16_poor_credit_with_us.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_16_poor_credit_with_us.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_16_poor_credit_with_us.md",
+      "size_diff_pct": 19.00826446280992,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_17_delinquent_credit_obligations.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_17_delinquent_credit_obligations.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_17_delinquent_credit_obligations.md",
+      "size_diff_pct": 15.271549576482313,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_18_collection_or_judgment.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_18_collection_or_judgment.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_18_collection_or_judgment.md",
+      "size_diff_pct": 18.22250639386189,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_19_garnishment_or_attachment.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_19_garnishment_or_attachment.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_19_garnishment_or_attachment.md",
+      "size_diff_pct": 20.903747244673035,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_20_foreclosure_or_repossession.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_20_foreclosure_or_repossession.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_20_foreclosure_or_repossession.md",
+      "size_diff_pct": 15.102639296187684,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_21_bankruptcy.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_21_bankruptcy.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_21_bankruptcy.md",
+      "size_diff_pct": 12.709171785638636,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_22_excessive_inquiries.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_22_excessive_inquiries.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_22_excessive_inquiries.md",
+      "size_diff_pct": 19.752236751548523,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_23_collateral_value_or_type.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_23_collateral_value_or_type.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_23_collateral_value_or_type.md",
+      "size_diff_pct": 15.213400642496557,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_24_other_specify.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_24_other_specify.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_24_other_specify.md",
+      "size_diff_pct": 13.96414342629482,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_25_fico_below_minimum.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_25_fico_below_minimum.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_25_fico_below_minimum.md",
+      "size_diff_pct": 28.167672276913308,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_26_ltv_too_high.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_26_ltv_too_high.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_26_ltv_too_high.md",
+      "size_diff_pct": 17.491684601839168,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_27_reserves_insufficient.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_27_reserves_insufficient.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_27_reserves_insufficient.md",
+      "size_diff_pct": 21.424936386768447,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_28_dscr_below_minimum.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_28_dscr_below_minimum.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_28_dscr_below_minimum.md",
+      "size_diff_pct": 18.82946518668012,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_29_property_type_unacceptable.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_29_property_type_unacceptable.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_29_property_type_unacceptable.md",
+      "size_diff_pct": 18.466497812571955,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_30_loan_amount_exceeds_max.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_30_loan_amount_exceeds_max.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_30_loan_amount_exceeds_max.md",
+      "size_diff_pct": 23.888711224816117,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_31_flood_insurance_missing.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_31_flood_insurance_missing.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_31_flood_insurance_missing.md",
+      "size_diff_pct": 21.486676016830295,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_32_property_insurance_insufficient.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_32_property_insurance_insufficient.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_32_property_insurance_insufficient.md",
+      "size_diff_pct": 21.723937099592312,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_33_vesting_entity_unacceptable.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_33_vesting_entity_unacceptable.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_33_vesting_entity_unacceptable.md",
+      "size_diff_pct": 18.118279569892472,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_34_state_regulatory_restriction.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_34_state_regulatory_restriction.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_34_state_regulatory_restriction.md",
+      "size_diff_pct": 18.56750686298977,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_35_prepayment_penalty_restricted.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_35_prepayment_penalty_restricted.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_35_prepayment_penalty_restricted.md",
+      "size_diff_pct": 21.70133498913381,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_36_cash_out_seasoning.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_36_cash_out_seasoning.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_36_cash_out_seasoning.md",
+      "size_diff_pct": 22.4143894846074,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_37_state_not_covered.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_37_state_not_covered.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_37_state_not_covered.md",
+      "size_diff_pct": 24.22776330480089,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_38_loan_purpose_not_eligible.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_38_loan_purpose_not_eligible.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_38_loan_purpose_not_eligible.md",
+      "size_diff_pct": 22.252191503708698,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_39_title_exception_unresolved.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_39_title_exception_unresolved.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_39_title_exception_unresolved.md",
+      "size_diff_pct": 18.887218045112782,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/code_40_itin_fn_documentation.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/code_40_itin_fn_documentation.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/code_40_itin_fn_documentation.md",
+      "size_diff_pct": 16.364952932657495,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/compliance_expansion_python_spec.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/compliance_expansion_python_spec.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/compliance_expansion_python_spec.md",
+      "size_diff_pct": 3.098230475833177,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/07_T7_compliance_expansion/T7_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/07_T7_compliance_expansion/T7_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/07_T7_compliance_expansion/T7_summary.md",
+      "size_diff_pct": 5.636830477100376,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_01_rate_zero.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_01_rate_zero.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_01_rate_zero.md",
+      "size_diff_pct": 15.026075619295959,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_02_rate_100pct.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_02_rate_100pct.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_02_rate_100pct.md",
+      "size_diff_pct": 11.661721068249257,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_03_term_one_month.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_03_term_one_month.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_03_term_one_month.md",
+      "size_diff_pct": 14.449104079298515,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_04_term_600_months.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_04_term_600_months.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_04_term_600_months.md",
+      "size_diff_pct": 14.256075874333135,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_05_loan_zero.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_05_loan_zero.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_05_loan_zero.md",
+      "size_diff_pct": 12.667876588021779,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_06_loan_negative_one.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_06_loan_negative_one.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_06_loan_negative_one.md",
+      "size_diff_pct": 13.967310549777118,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_07_term_float.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_07_term_float.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_07_term_float.md",
+      "size_diff_pct": 9.785267735797772,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_08_term_string.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_08_term_string.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_08_term_string.md",
+      "size_diff_pct": 13.06799336650083,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_09_rate_micro.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_09_rate_micro.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_09_rate_micro.md",
+      "size_diff_pct": 11.37940605051346,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_10_rate_50pct.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_10_rate_50pct.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_10_rate_50pct.md",
+      "size_diff_pct": 14.150217892847989,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_11_pitia_zero.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_11_pitia_zero.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_11_pitia_zero.md",
+      "size_diff_pct": 12.672391360915952,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_12_rent_zero.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_12_rent_zero.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_12_rent_zero.md",
+      "size_diff_pct": 13.804713804713806,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_13_rent_negative.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_13_rent_negative.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_13_rent_negative.md",
+      "size_diff_pct": 14.114600194237617,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_14_vacancy_above_one.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_14_vacancy_above_one.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_14_vacancy_above_one.md",
+      "size_diff_pct": 11.626139817629179,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_15_mgmt_negative.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_15_mgmt_negative.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_15_mgmt_negative.md",
+      "size_diff_pct": 15.867418899858956,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_16_vac_plus_mgmt.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_16_vac_plus_mgmt.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_16_vac_plus_mgmt.md",
+      "size_diff_pct": 12.278061992175743,
+      "similarity": 0.9996901146575767,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_17_dscr_exactly_one.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_17_dscr_exactly_one.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_17_dscr_exactly_one.md",
+      "size_diff_pct": 10.751784964300715,
+      "similarity": 0.9995657837603127,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_18_dscr_1005_bankers.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_18_dscr_1005_bankers.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_18_dscr_1005_bankers.md",
+      "size_diff_pct": 9.065679925994448,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_19_dscr_below_one.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_19_dscr_below_one.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_19_dscr_below_one.md",
+      "size_diff_pct": 12.183908045977011,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_20_dual_track_all_zero.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_20_dual_track_all_zero.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_20_dual_track_all_zero.md",
+      "size_diff_pct": 15.557020435069216,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_21_deal_break_extreme_target.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_21_deal_break_extreme_target.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_21_deal_break_extreme_target.md",
+      "size_diff_pct": 11.88644202706288,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_22_deal_break_extreme_rent.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_22_deal_break_extreme_rent.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_22_deal_break_extreme_rent.md",
+      "size_diff_pct": 14.787042591481702,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_23_max_purchase_no_fixed.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_23_max_purchase_no_fixed.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_23_max_purchase_no_fixed.md",
+      "size_diff_pct": 12.063492063492063,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_24_max_purchase_ltv.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_24_max_purchase_ltv.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_24_max_purchase_ltv.md",
+      "size_diff_pct": 16.70488044546348,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_25_max_purchase_zero_yield.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_25_max_purchase_zero_yield.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_25_max_purchase_zero_yield.md",
+      "size_diff_pct": 14.163226421086058,
+      "similarity": 0.9996721311475409,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_26_obba_bonus_zero_basis.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_26_obba_bonus_zero_basis.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_26_obba_bonus_zero_basis.md",
+      "size_diff_pct": 9.862167300380229,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_27_cost_seg_no_5yr.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_27_cost_seg_no_5yr.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_27_cost_seg_no_5yr.md",
+      "size_diff_pct": 8.402567975830816,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_28_section_179_zero.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_28_section_179_zero.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_28_section_179_zero.md",
+      "size_diff_pct": 8.772321428571427,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_29_qoz_post_2026.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_29_qoz_post_2026.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_29_qoz_post_2026.md",
+      "size_diff_pct": 7.472043375127075,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/edge_30_section_1031_no_replacement.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/edge_30_section_1031_no_replacement.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/edge_30_section_1031_no_replacement.md",
+      "size_diff_pct": 6.90257754477938,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/09_T9_edge_cases/T9_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/09_T9_edge_cases/T9_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/09_T9_edge_cases/T9_summary.md",
+      "size_diff_pct": 5.301446609248265,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/10_T10_forward_calendar/T10_calendar.json",
+      "mirror_name": "_research",
+      "rel_path": "godmode/10_T10_forward_calendar/T10_calendar.json",
+      "canonical_path": "RESEARCH/godmode_20260618/10_T10_forward_calendar/T10_calendar.json",
+      "size_diff_pct": 4.784030287385992,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/10_T10_forward_calendar/T10_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/10_T10_forward_calendar/T10_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/10_T10_forward_calendar/T10_summary.md",
+      "size_diff_pct": 12.868217054263567,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/11_T11_hardcore_algos/01_longstaff_schwartz_lsm.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/11_T11_hardcore_algos/01_longstaff_schwartz_lsm.md",
+      "canonical_path": "RESEARCH/godmode_20260618/11_T11_hardcore_algos/01_longstaff_schwartz_lsm.md",
+      "size_diff_pct": 4.7286547640091925,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/11_T11_hardcore_algos/02_defeasance_npv.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/11_T11_hardcore_algos/02_defeasance_npv.md",
+      "canonical_path": "RESEARCH/godmode_20260618/11_T11_hardcore_algos/02_defeasance_npv.md",
+      "size_diff_pct": 5.356773526370217,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/11_T11_hardcore_algos/03_nss_svensson_yield_curve.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/11_T11_hardcore_algos/03_nss_svensson_yield_curve.md",
+      "canonical_path": "RESEARCH/godmode_20260618/11_T11_hardcore_algos/03_nss_svensson_yield_curve.md",
+      "size_diff_pct": 4.636912383391257,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/11_T11_hardcore_algos/04_hull_white_1factor.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/11_T11_hardcore_algos/04_hull_white_1factor.md",
+      "canonical_path": "RESEARCH/godmode_20260618/11_T11_hardcore_algos/04_hull_white_1factor.md",
+      "size_diff_pct": 5.18756496267599,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/11_T11_hardcore_algos/05_cecl_lifetime_ecl.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/11_T11_hardcore_algos/05_cecl_lifetime_ecl.md",
+      "canonical_path": "RESEARCH/godmode_20260618/11_T11_hardcore_algos/05_cecl_lifetime_ecl.md",
+      "size_diff_pct": 5.5587581322572674,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/11_T11_hardcore_algos/06_vasicek_cir_short_rate.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/11_T11_hardcore_algos/06_vasicek_cir_short_rate.md",
+      "canonical_path": "RESEARCH/godmode_20260618/11_T11_hardcore_algos/06_vasicek_cir_short_rate.md",
+      "size_diff_pct": 3.808769529843761,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/12_T12_50state_str_regulation/50_state_matrix.csv",
+      "mirror_name": "_research",
+      "rel_path": "godmode/12_T12_50state_str_regulation/50_state_matrix.csv",
+      "canonical_path": "RESEARCH/godmode_20260618/12_T12_50state_str_regulation/50_state_matrix.csv",
+      "size_diff_pct": 3.489633558341369,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/12_T12_50state_str_regulation/region_breakdown.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/12_T12_50state_str_regulation/region_breakdown.md",
+      "canonical_path": "RESEARCH/godmode_20260618/12_T12_50state_str_regulation/region_breakdown.md",
+      "size_diff_pct": 9.583926031294453,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/12_T12_50state_str_regulation/state_sources.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/12_T12_50state_str_regulation/state_sources.md",
+      "canonical_path": "RESEARCH/godmode_20260618/12_T12_50state_str_regulation/state_sources.md",
+      "size_diff_pct": 5.832292678414505,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/12_T12_50state_str_regulation/T12_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/12_T12_50state_str_regulation/T12_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/12_T12_50state_str_regulation/T12_summary.md",
+      "size_diff_pct": 9.160455080423697,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/12_T12_50state_str_regulation/T12_Tier5_NC_Verification_20260622.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/12_T12_50state_str_regulation/T12_Tier5_NC_Verification_20260622.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/13_T13_50state_usury_caps/50_state_matrix.csv",
+      "mirror_name": "_research",
+      "rel_path": "godmode/13_T13_50state_usury_caps/50_state_matrix.csv",
+      "canonical_path": "RESEARCH/godmode_20260618/13_T13_50state_usury_caps/50_state_matrix.csv",
+      "size_diff_pct": 7.149309588333979,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/13_T13_50state_usury_caps/state_sources.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/13_T13_50state_usury_caps/state_sources.md",
+      "canonical_path": "RESEARCH/godmode_20260618/13_T13_50state_usury_caps/state_sources.md",
+      "size_diff_pct": 8.343976160068115,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/13_T13_50state_usury_caps/T13_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/13_T13_50state_usury_caps/T13_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/13_T13_50state_usury_caps/T13_summary.md",
+      "size_diff_pct": 10.743201162549305,
+      "similarity": 0.9893925800833817,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/15_T15_real_time_data/12_source_inventory.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/15_T15_real_time_data/12_source_inventory.md",
+      "canonical_path": "RESEARCH/godmode_20260618/15_T15_real_time_data/12_source_inventory.md",
+      "size_diff_pct": 5.908363910057391,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/15_T15_real_time_data/real_time_data_feed.json",
+      "mirror_name": "_research",
+      "rel_path": "godmode/15_T15_real_time_data/real_time_data_feed.json",
+      "canonical_path": "RESEARCH/godmode_20260618/15_T15_real_time_data/real_time_data_feed.json",
+      "size_diff_pct": 7.148389952417837,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/godmode/15_T15_real_time_data/T15_summary.md",
+      "mirror_name": "_research",
+      "rel_path": "godmode/15_T15_real_time_data/T15_summary.md",
+      "canonical_path": "RESEARCH/godmode_20260618/15_T15_real_time_data/T15_summary.md",
+      "size_diff_pct": 8.820215676806695,
+      "similarity": 0.9926795913442201,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_1/fema_nfhl_zone_lookup_template.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_1/fema_nfhl_zone_lookup_template.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_1/flood_insurance_quote_template.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_1/flood_insurance_quote_template.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_1/RESEARCH_DOMAIN_1_INSURANCE_FEMA.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_1/RESEARCH_DOMAIN_1_INSURANCE_FEMA.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_10/RESEARCH_DOMAIN_10_1031_QOZ.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_10/RESEARCH_DOMAIN_10_1031_QOZ.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_11/portfolio_lender_matrix.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_11/portfolio_lender_matrix.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_11/RESEARCH_DOMAIN_11_PORTFOLIO_DSCR.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_11/RESEARCH_DOMAIN_11_PORTFOLIO_DSCR.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_12/cure_rate_by_month.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_12/cure_rate_by_month.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_12/foreclosure_timeline_by_state.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_12/foreclosure_timeline_by_state.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_12/lgd_by_property_type_state.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_12/lgd_by_property_type_state.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_12/RESEARCH_DOMAIN_12_LGD_BENCHMARKS.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_12/RESEARCH_DOMAIN_12_LGD_BENCHMARKS.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_13/borrower_journey_map.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_13/borrower_journey_map.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_13/dscr_borrower_personas.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_13/dscr_borrower_personas.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_13/RESEARCH_DOMAIN_13_BORROWER_DEMOGRAPHICS.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_13/RESEARCH_DOMAIN_13_BORROWER_DEMOGRAPHICS.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_14/adverse_action_reason_library.json",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_14/adverse_action_reason_library.json",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_14/RESEARCH_DOMAIN_14_ADVERSE_ACTION.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_14/RESEARCH_DOMAIN_14_ADVERSE_ACTION.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_14/shap_to_reason_mapping.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_14/shap_to_reason_mapping.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_2/RESEARCH_DOMAIN_2_STATE_LICENSING.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_2/RESEARCH_DOMAIN_2_STATE_LICENSING.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_2/state_lender_licensing_matrix.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_2/state_lender_licensing_matrix.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_acra_lending_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_acra_lending_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_ad_mortgage_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_ad_mortgage_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_american_heritage_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_american_heritage_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_angel_oak_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_angel_oak_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_crosscountry_mortgage_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_crosscountry_mortgage_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_deephaven_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_deephaven_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_defy_mortgage_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_defy_mortgage_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_easy_street_capital_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_easy_street_capital_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_griffin_funding_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_griffin_funding_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_insula_capital_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_insula_capital_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_kiavi_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_kiavi_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_lima_one_capital_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_lima_one_capital_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_newfi_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_newfi_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_new_silver_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_new_silver_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_ocmbc_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_ocmbc_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_pennymac_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_pennymac_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_ready_capital_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_ready_capital_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_rocket_pro_tpo_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_rocket_pro_tpo_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_uwm_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_uwm_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/lender_visio_lending_profile.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/lender_visio_lending_profile.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_3/RESEARCH_DOMAIN_3_LENDER_PROFILES.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_3/RESEARCH_DOMAIN_3_LENDER_PROFILES.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_4/ppe_vendor_comparison.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_4/ppe_vendor_comparison.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_4/RESEARCH_DOMAIN_4_PPE_API.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_4/RESEARCH_DOMAIN_4_PPE_API.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_5/empirical_calibration_dataset.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_5/empirical_calibration_dataset.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_5/EMPIRICAL_REFRESH_2026Q2.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_5/EMPIRICAL_REFRESH_2026Q2.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_5/mc_distribution_params.json",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_5/mc_distribution_params.json",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_5/RESEARCH_DOMAIN_5_CALIBRATION.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_5/RESEARCH_DOMAIN_5_CALIBRATION.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_6/RESEARCH_DOMAIN_6_STR_DATA.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_6/RESEARCH_DOMAIN_6_STR_DATA.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_6/str_default_rate_empirical.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_6/str_default_rate_empirical.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_6/str_saturation_index.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_6/str_saturation_index.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_6/str_seasonality_by_msa.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_6/str_seasonality_by_msa.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_7/loan_tape_schema.json",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_7/loan_tape_schema.json",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_7/pool_eligibility_template.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_7/pool_eligibility_template.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_7/RESEARCH_DOMAIN_7_CAPITAL_MARKETS.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_7/RESEARCH_DOMAIN_7_CAPITAL_MARKETS.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_8/insurance_aggregator_apis.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_8/insurance_aggregator_apis.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_8/insurance_quotes_by_geography.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_8/insurance_quotes_by_geography.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_8/RESEARCH_DOMAIN_8_INSURANCE_QUOTES.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_8/RESEARCH_DOMAIN_8_INSURANCE_QUOTES.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_9/RESEARCH_DOMAIN_9_TAX_VALIDATION.md",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_9/RESEARCH_DOMAIN_9_TAX_VALIDATION.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/domains/domain_9/tax_engine_validation_table.csv",
+      "mirror_name": "_research",
+      "rel_path": "domains/domain_9/tax_engine_validation_table.csv",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/deep_research/A_stale_propagations/DR_20260618_A_TOPICAL_INDEX_propagation.md",
+      "mirror_name": "_research",
+      "rel_path": "deep_research/A_stale_propagations/DR_20260618_A_TOPICAL_INDEX_propagation.md",
+      "canonical_path": "RESEARCH/deep_research_20260618/A_stale_propagations/DR_20260618_A_TOPICAL_INDEX_propagation.md",
+      "size_diff_pct": 8.034458509142054,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/deep_research/B_single_source/DR_20260618_B_single_source_verifications.md",
+      "mirror_name": "_research",
+      "rel_path": "deep_research/B_single_source/DR_20260618_B_single_source_verifications.md",
+      "canonical_path": "RESEARCH/deep_research_20260618/B_single_source/DR_20260618_B_single_source_verifications.md",
+      "size_diff_pct": 89.81135514444546,
+      "similarity": 0.4944709277815611,
+      "category": "LOW_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/deep_research/C_subscription_gated/DR_20260618_C_subscription_gated_deferred.md",
+      "mirror_name": "_research",
+      "rel_path": "deep_research/C_subscription_gated/DR_20260618_C_subscription_gated_deferred.md",
+      "canonical_path": "RESEARCH/deep_research_20260618/C_subscription_gated/DR_20260618_C_subscription_gated_deferred.md",
+      "size_diff_pct": 47.76943462897527,
+      "similarity": 0.7203858039142241,
+      "category": "MEDIUM_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/deep_research/C_subscription_gated/DR_20260621_C_outreach_pack.md",
+      "mirror_name": "_research",
+      "rel_path": "deep_research/C_subscription_gated/DR_20260621_C_outreach_pack.md",
+      "canonical_path": null,
+      "size_diff_pct": null,
+      "similarity": null,
+      "category": "NO_CANONICAL"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_research/deep_research/D_regulatory/DR_20260618_D_regulatory_impacts.md",
+      "mirror_name": "_research",
+      "rel_path": "deep_research/D_regulatory/DR_20260618_D_regulatory_impacts.md",
+      "canonical_path": "RESEARCH/deep_research_20260618/D_regulatory/DR_20260618_D_regulatory_impacts.md",
+      "size_diff_pct": 6.588383639372684,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_APEX2_Calibration_Memo_20260619.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_APEX2_Calibration_Memo_20260619.md",
+      "canonical_path": "output/DSCR_APEX2_Calibration_Memo_20260619.md",
+      "size_diff_pct": 7.13811105837684,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_APEX3_Opensource_Discovery_Report_20260619.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_APEX3_Opensource_Discovery_Report_20260619.md",
+      "canonical_path": "output/DSCR_APEX3_Opensource_Discovery_Report_20260619.md",
+      "size_diff_pct": 6.579745300181929,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_APEX_Mode_Deep_Research_Report_20260619.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_APEX_Mode_Deep_Research_Report_20260619.md",
+      "canonical_path": "output/DSCR_APEX_Mode_Deep_Research_Report_20260619.md",
+      "size_diff_pct": 2.713543067132742,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Compliance_Fix_Ship_Memo_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Compliance_Fix_Ship_Memo_20260620.md",
+      "canonical_path": "output/DSCR_Compliance_Fix_Ship_Memo_20260620.md",
+      "size_diff_pct": 1.082771896053898,
+      "similarity": 0.9649159400942806,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Drift_Audit_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Drift_Audit_20260620.md",
+      "canonical_path": "output/DSCR_Drift_Audit_20260620.md",
+      "size_diff_pct": 4.904973255946285,
+      "similarity": 0.9999419347346418,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Gap_Audit_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Gap_Audit_20260620.md",
+      "canonical_path": "output/DSCR_Gap_Audit_20260620.md",
+      "size_diff_pct": 9.048995858404313,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Gap_Audit_v2_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Gap_Audit_v2_20260620.md",
+      "canonical_path": "output/DSCR_Gap_Audit_v2_20260620.md",
+      "size_diff_pct": 6.954370533260033,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Gap_Audit_v3_Found_In_Folder_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Gap_Audit_v3_Found_In_Folder_20260620.md",
+      "canonical_path": "output/DSCR_Gap_Audit_v3_Found_In_Folder_20260620.md",
+      "size_diff_pct": 8.660629965001943,
+      "similarity": 0.9999442617468368,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Gap_Audit_v4_Comprehensive_Folder_Sweep_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Gap_Audit_v4_Comprehensive_Folder_Sweep_20260620.md",
+      "canonical_path": "output/DSCR_Gap_Audit_v4_Comprehensive_Folder_Sweep_20260620.md",
+      "size_diff_pct": 9.65694928193139,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Slice2_P02_Conformal_Vault_Ship_Memo_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Slice2_P02_Conformal_Vault_Ship_Memo_20260620.md",
+      "canonical_path": "output/DSCR_Slice2_P02_Conformal_Vault_Ship_Memo_20260620.md",
+      "size_diff_pct": 9.55870379417033,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Slice2_P04_ARM_Reset_Ship_Memo_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Slice2_P04_ARM_Reset_Ship_Memo_20260620.md",
+      "canonical_path": "output/DSCR_Slice2_P04_ARM_Reset_Ship_Memo_20260620.md",
+      "size_diff_pct": 6.9317489335770865,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Sprint1_Ship_Memo_20260620.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Sprint1_Ship_Memo_20260620.md",
+      "canonical_path": "output/DSCR_Sprint1_Ship_Memo_20260620.md",
+      "size_diff_pct": 8.281042863455589,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/DSCR_Wide_Research_Report_20260619.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "DSCR_Wide_Research_Report_20260619.md",
+      "canonical_path": "output/DSCR_Wide_Research_Report_20260619.md",
+      "size_diff_pct": 4.3145938995642545,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/tournament_text.txt",
+      "mirror_name": "_deliverables",
+      "rel_path": "tournament_text.txt",
+      "canonical_path": "output/tournament_text.txt",
+      "size_diff_pct": 5.153067447249664,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/v3_extracted_text.txt",
+      "mirror_name": "_deliverables",
+      "rel_path": "v3_extracted_text.txt",
+      "canonical_path": "output/v3_extracted_text.txt",
+      "size_diff_pct": 3.24771598012502,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/firecrawl_mortgage/firecrawl_mortgage_REPORT.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/firecrawl_mortgage/firecrawl_mortgage_REPORT.md",
+      "canonical_path": "output/apex3_dispatch/firecrawl_mortgage/firecrawl_mortgage_REPORT.md",
+      "size_diff_pct": 7.6138457488812845,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/firecrawl_mortgage/firecrawl_mortgage_urls.txt",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/firecrawl_mortgage/firecrawl_mortgage_urls.txt",
+      "canonical_path": "output/apex3_dispatch/firecrawl_mortgage/firecrawl_mortgage_urls.txt",
+      "size_diff_pct": 15.953440602533378,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/github/github_DATASETS_REPORT.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/github/github_DATASETS_REPORT.md",
+      "canonical_path": "output/apex3_dispatch/github/github_DATASETS_REPORT.md",
+      "size_diff_pct": 7.857863468221052,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/github/github_TOOLS_REPORT.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/github/github_TOOLS_REPORT.md",
+      "canonical_path": "output/apex3_dispatch/github/github_TOOLS_REPORT.md",
+      "size_diff_pct": 3.1738035264483626,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/github/github_urls.txt",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/github/github_urls.txt",
+      "canonical_path": "output/apex3_dispatch/github/github_urls.txt",
+      "size_diff_pct": 5.851672815163465,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/open_data/open_data_REPORT.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/open_data/open_data_REPORT.md",
+      "canonical_path": "output/apex3_dispatch/open_data/open_data_REPORT.md",
+      "size_diff_pct": 2.28870156832337,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/open_data/open_data_urls.txt",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/open_data/open_data_urls.txt",
+      "canonical_path": "output/apex3_dispatch/open_data/open_data_urls.txt",
+      "size_diff_pct": 8.548191728672782,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/quant_libs/quant_libs_REPORT.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/quant_libs/quant_libs_REPORT.md",
+      "canonical_path": "output/apex3_dispatch/quant_libs/quant_libs_REPORT.md",
+      "size_diff_pct": 5.670572916666667,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/quant_libs/quant_libs_urls.txt",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/quant_libs/quant_libs_urls.txt",
+      "canonical_path": "output/apex3_dispatch/quant_libs/quant_libs_urls.txt",
+      "size_diff_pct": 21.09795479009688,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/reddit_forums/reddit_forums_REPORT.md",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/reddit_forums/reddit_forums_REPORT.md",
+      "canonical_path": "output/apex3_dispatch/reddit_forums/reddit_forums_REPORT.md",
+      "size_diff_pct": 3.481401782969567,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/reddit_forums/reddit_forums_urls.txt",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/reddit_forums/reddit_forums_urls.txt",
+      "canonical_path": "output/apex3_dispatch/reddit_forums/reddit_forums_urls.txt",
+      "size_diff_pct": 5.2314640572073765,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/reddit_forums/_raw_1rdtfg9.json",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/reddit_forums/_raw_1rdtfg9.json",
+      "canonical_path": "output/apex3_dispatch/reddit_forums/_raw_1rdtfg9.json",
+      "size_diff_pct": 0.21694943814308132,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_deliverables/apex3_dispatch/reddit_forums/_raw_hn_dscr.json",
+      "mirror_name": "_deliverables",
+      "rel_path": "apex3_dispatch/reddit_forums/_raw_hn_dscr.json",
+      "canonical_path": "output/apex3_dispatch/reddit_forums/_raw_hn_dscr.json",
+      "size_diff_pct": 0.5802467675345724,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/content_gap_analysis_20260618.md",
+      "mirror_name": "_analysis",
+      "rel_path": "content_gap_analysis_20260618.md",
+      "canonical_path": "ANALYSIS/content_gap_analysis_20260618.md",
+      "size_diff_pct": 5.39611617116343,
+      "similarity": 0.9963900985560394,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/deep_research_plan_20260618.md",
+      "mirror_name": "_analysis",
+      "rel_path": "deep_research_plan_20260618.md",
+      "canonical_path": "ANALYSIS/deep_research_plan_20260618.md",
+      "size_diff_pct": 7.883880825057296,
+      "similarity": 0.9830034748451427,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/fcra_adverse_action_extract.txt",
+      "mirror_name": "_analysis",
+      "rel_path": "fcra_adverse_action_extract.txt",
+      "canonical_path": "ANALYSIS/fcra_adverse_action_extract.txt",
+      "size_diff_pct": 2.608862459236524,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/godmode_research_plan_20260618.md",
+      "mirror_name": "_analysis",
+      "rel_path": "godmode_research_plan_20260618.md",
+      "canonical_path": "ANALYSIS/godmode_research_plan_20260618.md",
+      "size_diff_pct": 5.236379054483782,
+      "similarity": 0.9992534660504799,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/godmode_research_plan_20260618_v2.md",
+      "mirror_name": "_analysis",
+      "rel_path": "godmode_research_plan_20260618_v2.md",
+      "canonical_path": "ANALYSIS/godmode_research_plan_20260618_v2.md",
+      "size_diff_pct": 3.577272821426352,
+      "similarity": 0.9991233745903864,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/GOLDEN_VECTORS.md",
+      "mirror_name": "_analysis",
+      "rel_path": "GOLDEN_VECTORS.md",
+      "canonical_path": "ANALYSIS/GOLDEN_VECTORS.md",
+      "size_diff_pct": 2.8571992733591345,
+      "similarity": 0.9999120531199156,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/MASTER_ANALYSIS.md",
+      "mirror_name": "_analysis",
+      "rel_path": "MASTER_ANALYSIS.md",
+      "canonical_path": "ANALYSIS/MASTER_ANALYSIS.md",
+      "size_diff_pct": 0.6153904550425721,
+      "similarity": 0.9993555162171083,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/pennymac_dscr_product_profile.txt",
+      "mirror_name": "_analysis",
+      "rel_path": "pennymac_dscr_product_profile.txt",
+      "canonical_path": "ANALYSIS/pennymac_dscr_product_profile.txt",
+      "size_diff_pct": 1.2425960219963528,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/research_plan_20260618.md",
+      "mirror_name": "_analysis",
+      "rel_path": "research_plan_20260618.md",
+      "canonical_path": "ANALYSIS/research_plan_20260618.md",
+      "size_diff_pct": 5.428351981400369,
+      "similarity": 0.9922920724379429,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/TOPICAL_INDEX.md",
+      "mirror_name": "_analysis",
+      "rel_path": "TOPICAL_INDEX.md",
+      "canonical_path": "ANALYSIS/TOPICAL_INDEX.md",
+      "size_diff_pct": 6.24463790945275,
+      "similarity": 0.976361868384786,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_analysis/v16_consolidated_extract.md",
+      "mirror_name": "_analysis",
+      "rel_path": "v16_consolidated_extract.md",
+      "canonical_path": "ANALYSIS/v16_consolidated_extract.md",
+      "size_diff_pct": 1.7696386730792946,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_code/README.md",
+      "mirror_name": "_code",
+      "rel_path": "README.md",
+      "canonical_path": "DSCR_SOVEREIGN_OS/README.md",
+      "size_diff_pct": 16.115702479338843,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_code/packages/dscr-core/AUDIT_20260618.md",
+      "mirror_name": "_code",
+      "rel_path": "packages/dscr-core/AUDIT_20260618.md",
+      "canonical_path": "DSCR_SOVEREIGN_OS/packages/dscr-core/AUDIT_20260618.md",
+      "size_diff_pct": 4.888300770607924,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_code/packages/dscr-core/README.md",
+      "mirror_name": "_code",
+      "rel_path": "packages/dscr-core/README.md",
+      "canonical_path": "DSCR_SOVEREIGN_OS/packages/dscr-core/README.md",
+      "size_diff_pct": 15.233668990446683,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_code/packages/dscr-stress/README.md",
+      "mirror_name": "_code",
+      "rel_path": "packages/dscr-stress/README.md",
+      "canonical_path": "DSCR_SOVEREIGN_OS/packages/dscr-stress/README.md",
+      "size_diff_pct": 23.040567152422213,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    },
+    {
+      "mirror_path": "_obsidian_vault/_code/packages/dscr-core/tests/golden_vectors.json",
+      "mirror_name": "_code",
+      "rel_path": "packages/dscr-core/tests/golden_vectors.json",
+      "canonical_path": "DSCR_SOVEREIGN_OS/packages/dscr-core/tests/golden_vectors.json",
+      "size_diff_pct": 19.268063809821708,
+      "similarity": 1.0,
+      "category": "HIGH_SIMILARITY"
+    }
+  ]
+}

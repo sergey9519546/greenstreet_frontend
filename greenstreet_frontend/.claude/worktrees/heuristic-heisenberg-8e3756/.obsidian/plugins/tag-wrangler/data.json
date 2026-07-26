@@ -1,0 +1,15 @@
+/* Tag Wrangler community plugin - pre-installed config */
+/* To enable: install "Tag Wrangler" plugin from Obsidian Community Plugins */
+{
+  "useCustomTagStyle": true,
+  "customTagPrefix": "#tag/",
+  "customTagStyle": "obsidian",
+  "showTagCount": true,
+  "tagCase": "lowercase",
+  "renameTags": false,
+  "collapseEmpty": false,
+  "showIcons": true,
+  "showFullPath": false,
+  "highlightInEditor": true,
+  "highlightInPreview": true
+}

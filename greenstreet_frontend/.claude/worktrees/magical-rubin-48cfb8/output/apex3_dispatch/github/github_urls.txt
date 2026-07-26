@@ -1,0 +1,183 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Github Urls
+summary: "https://github.com/vinecopulib/pyvinecopulib https://github.com/tnagler/VineCopula"
+entities:
+  - concept/arm
+  - data/fred
+  - data/zillow
+  - math/copula
+  - ml/conformal
+  - ml/mapie
+  - ml/tabpfn
+  - ml/timesfm
+  - topic/str
+tags:
+  - topic/apex
+  - topic/cecl
+  - topic/default-rate
+  - topic/lgd
+source: output/apex3_dispatch/github/github_urls.txt
+vaulted_at: 2026-06-20
+---
+https://github.com/vinecopulib/pyvinecopulib
+https://github.com/tnagler/VineCopula
+https://github.com/VU-IVM/VineCopulas
+https://github.com/KempnerInstitute/DVC
+https://github.com/KempnerInstitute/vine-denoising-copula
+https://github.com/sdv-dev/Copulas
+https://github.com/bashtage/arch
+https://github.com/statsmodels/statsmodels
+https://github.com/jack-tobin/mvgarch
+https://github.com/AdrienC21/garch-model-analysis
+https://github.com/sprasadhpy/Time-Series-Models-using-python
+https://github.com/Auquan/Tutorials
+https://github.com/ritvikmath/Time-Series-Analysis
+https://github.com/google-research/timesfm
+https://github.com/amazon-science/chronos-forecasting
+https://github.com/sktime/pytorch-forecasting
+https://github.com/Nixtla/neuralforecast
+https://github.com/Nixtla/statsforecast
+https://github.com/thuml/OpenLTM
+https://github.com/benman1/time-series
+https://github.com/biswajitsahoo1111/forecasting
+https://github.com/scikit-learn-contrib/MAPIE
+https://github.com/donlnz/nonconformist
+https://github.com/koulanurag/conformal
+https://github.com/emanuelepesce/Simply-Conformal-Prediction
+https://github.com/aangelopoulos/conformal-time-series
+https://github.com/salesforce/online_conformal
+https://github.com/xqnwang/conformalForecast
+https://github.com/xqnwang/cpts
+https://github.com/juliatrustworthyai/ConformalPrediction.jl
+https://github.com/Jayaos/TCPTS
+https://github.com/Rose-STL-Lab/CPTC
+https://github.com/MichaelAllen1966/conformal_prediction
+https://github.com/pharmbio/plot_utils
+https://github.com/PriorLabs/tabpfn
+https://github.com/priorlabs/tabpfn-extensions
+https://github.com/PriorLabs/awesome-tabpfn
+https://github.com/sprasadhpy/Credit-Risk-Models-PD-LGD-EAD-Expected-Loss
+https://github.com/levist7/Credit_Risk_Modelling
+https://github.com/allmeidaapedro/Lending-Club-Credit-Scoring
+https://github.com/abhashpanwar/credit-risk-modeling
+https://github.com/Rohitku123/Credit-Risk-Modelling
+https://github.com/Mrinal-g/credit-risk-modeling
+https://github.com/rkhuran/CECL-Modelling-Implementation
+https://github.com/erdcpatel/CECL
+https://github.com/rkhuran/CECL---Modelling---SAS
+https://github.com/oneapi-src/loan-default-risk-prediction
+https://github.com/JensBender/loan-default-prediction
+https://github.com/Kridosz/Loan-Default-Prediction_Model
+https://github.com/yanhan-si/LendingClub-Loan-Default-Prediction
+https://github.com/IamMultivac/house-default-credit
+https://github.com/mukund14/Credit-default
+https://github.com/hussainalmahmud/Loan-Prediction-Challenge
+https://github.com/stphnma/agency-loan-level
+https://github.com/brendancovington/agency-loan-level
+https://github.com/dataquestio/loan-prediction
+https://github.com/ovinueza/MortgageDelinquency
+https://github.com/ferrarisf50/Fannie-Mae-single-family-mortgage-loan-data
+https://github.com/chaitanyachadha12/Fannie-Mae---Single-Family-LPD
+https://github.com/finos-labs/open-mortgage-data-pipeline
+https://github.com/adrian-io/mortgage-default-prediction
+https://github.com/qoolfly/prepayments
+https://github.com/anyantudre/ML-Pipeline-for-Mortgage-Loans-Prepayment-Risk-Prediction
+https://github.com/tech-girl-lead/Predicting-Mortgage-Backed-Securities-Prepayment-Risk
+https://github.com/Technocolabs100/Mortgage-Prepayment-Analysis-and-Prediction
+https://github.com/wania96/Mortgage_backed_securities
+https://github.com/mirsaidl/the-mortgage-backed-securities-prepayment-risk
+https://github.com/timxiao1203/prepayment.html
+https://github.com/lballabio/quantlib
+https://github.com/lballabio/QuantLib-SWIG
+https://github.com/AI4Finance-Foundation/FinRL
+https://github.com/wilsonfreitas/awesome-quant
+https://github.com/leoncuhk/awesome-quant-ai
+https://github.com/awesomelistsio/awesome-finance
+https://github.com/PyPatel/Quant-Finance-Resources
+https://github.com/gbeced/pyalgotrade
+https://github.com/robcarver17/pysystemtrade
+https://github.com/mhallsmoore/qstrader
+https://github.com/jsmidt/QuantPy
+https://github.com/ICEMortgageTechnology
+https://github.com/QuantEcon
+https://github.com/chunziwang/zillow-rent-forecast
+https://github.com/bonniema/House-Price-Prediction-with-Time-Series
+https://github.com/sanjitva/Zillow-TimeSeries-Modeling
+https://github.com/Mohshaikh23/House-Rent-Prediction
+https://github.com/tanishq-ctrl/House-price-prediction-and-visualization
+https://github.com/etewiah/awesome-real-estate
+https://github.com/Deal-Scale/awesome-real-estate-investing
+https://github.com/berkcankapusuzoglu/Rental-Property-Deal-Analyzer
+https://github.com/jsrpy/NYC-Property-Regression
+https://github.com/ayush-1998/Real-Estate-Price-Prediction
+https://github.com/karlyndiary/Real-Estate-Price-Prediction
+https://github.com/vignesh05p/Real-estate
+https://github.com/izaanz/ML-Indian-House-Prediction
+https://github.com/GameRuiner/Housing-Prices-Prediction
+https://github.com/chizeni24/ML-Property-Price-Predictions
+https://github.com/kb22/House-Price-Predictions
+https://github.com/topics/debt-service
+https://github.com/topics/mortgage-calculator
+https://github.com/topics/mortgage
+https://github.com/topics/mortgage-planning
+https://github.com/topics/loan-approval
+https://github.com/topics/loans
+https://github.com/topics/home-purchase
+https://github.com/topics/mortgage-servicing
+https://github.com/topics/mortgages
+https://github.com/topics/commercial-real-estate
+https://github.com/topics/real-estate-data
+https://github.com/topics/real-estate-tech
+https://github.com/topics/fixed-income
+https://github.com/topics/quantlib
+https://github.com/topics/quant
+https://github.com/topics/quantitative-finance
+https://github.com/topics/conformal-prediction
+https://github.com/topics/credit-risk-modeling
+https://github.com/topics/expected-credit-losses
+https://github.com/topics/disclosure-quality
+https://github.com/topics/timesfm
+https://github.com/topics/loan-prediction
+https://github.com/topics/loan-prediction-analysis
+https://github.com/topics/real-estate-price-prediction
+https://github.com/topics/real-estate
+https://github.com/topics/housing-price-prediction
+https://github.com/topics/home-credit-default-risk
+https://github.com/topics/copulas
+https://github.com/topics/timeseries-prediction
+https://github.com/dgunning/edgartools
+https://github.com/lennardwelslau/eu-debt-sustainability-analysis
+https://github.com/LSEG-API-Samples/Article.DataLibrary.Python.DebtStructure
+https://github.com/jdtuck/fdasrsf_python
+https://github.com/david-cortes/recometrics
+https://github.com/sindresorhus/awesome
+https://github.com/Moneyhunter2020/awesome-quant
+https://github.com/robotmasterkris/awesome-quant
+https://github.com/toddwschneider/mortgages-into-millions
+https://capitalmarkets.fanniemae.com/credit-risk-transfer/single-family-credit-risk-transfer/fannie-mae-single-family-loan-performance-data
+https://www.freddiemac.com/research/datasets/sf-loanlevel-dataset
+https://www.kaggle.com/c/home-credit-default-risk
+https://www.kaggle.com/c/GiveMeSomeCredit
+https://www.kaggle.com/datasets/wordsforthewise/lending-club
+https://arxiv.org/abs/2506.13318
+https://arxiv.org/abs/2508.02739
+https://arxiv.org/abs/2310.10688
+https://arxiv.org/abs/2310.04948
+https://arxiv.org/abs/2307.16895
+https://cs230.stanford.edu/projects_fall_2019/reports/26259259.pdf
+https://toddwschneider.com/posts/mortgages-are-about-math-open-source-loan-level-analysis-of-fannie-and-freddie/
+https://vinecopulib.github.io/pyvinecopulib/
+https://www.math.cit.tum.de/en/math/research/groups/statistics/vine-copula-models/packages-libraries/
+https://pypi.org/project/pyvinecopulib/
+https://anaconda.org/conda-forge/pyvinecopulib
+https://pypi.org/project/arch/
+https://mapie.readthedocs.io/en/v0.9.1/
+https://research.google/blog/a-decoder-only-foundation-model-for-time-series-forecasting/
+https://www.quantlib.org/
+https://donlnz.github.io/nonconformist/
+https://priorlabs.ai/tabpfn
+https://huggingface.co/Prior-Labs/TabPFN-v2-clf
+https://huggingface.co/google/timesfm-1.0-200m

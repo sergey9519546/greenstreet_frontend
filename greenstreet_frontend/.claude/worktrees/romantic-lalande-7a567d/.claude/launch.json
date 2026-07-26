@@ -1,0 +1,30 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "greenstreet-portal",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "greenstreet_frontend"],
+      "port": 3000,
+      "autoPort": true
+    },
+    {
+      "name": "external-check-audit",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "99_external_check", "--", "-p", "3001"],
+      "port": 3001
+    },
+    {
+      "name": "dscr-engine",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "99_engine_egnine", "--", "-p", "3002"],
+      "port": 3002
+    },
+    {
+      "name": "dscr-website-static",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dscr-website/server/server.js"],
+      "port": 3003
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+# Greenstreet Finance - robots.txt with LLM Crawler Policy
+# Last updated: 2026-07-15
+
+# AI CRAWLER POLICY (Split Strategy)
+# Allow retrieval, block training
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+# Standard crawlers
+User-agent: *
+Allow: /
+
+# Block internal routes
+Disallow: /api/
+Disallow: /investgo
+Disallow: /dashboard
+Disallow: /broker-portal
+
+Sitemap: https://greenstreet.com/sitemap.xml

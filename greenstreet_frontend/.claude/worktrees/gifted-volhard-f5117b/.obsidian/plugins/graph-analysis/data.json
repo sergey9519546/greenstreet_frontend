@@ -1,0 +1,28 @@
+/* Graph Analysis community plugin - pre-installed config */
+/* To enable: install "Graph Analysis" plugin from Obsidian Community Plugins */
+{
+  "showInSidebar": true,
+  "showNodeTooltips": true,
+  "centerOnSelect": true,
+  "showAttachments": false,
+  "showUnresolved": false,
+  "showOrphans": true,
+  "showInternalLinkType": true,
+  "internalLinkColor": "#5e81ac",
+  "showBacklinks": true,
+  "backlinkColor": "#88c0d0",
+  "showOutgoingLinks": true,
+  "outgoingLinkColor": "#a3be8c",
+  "showTags": true,
+  "tagColor": "#ebcb8b",
+  "showAttachments": false,
+  "showExistingFilesOnly": false,
+  "collapseDuplicates": false,
+  "openOnClick": true,
+  "closeOnOpen": false,
+  "highlight": true,
+  "dim": false,
+  "searchOn": false,
+  "caseSensitive": false,
+  "search": ""
+}

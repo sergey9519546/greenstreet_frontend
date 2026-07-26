@@ -1,0 +1,1250 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Pennymac Dscr Product Profile
+summary: "Investment Property with DSCR >= 1.00 Maximum Max Purpose Minimum Credit Score"
+entities:
+  - concept/appreciation
+  - concept/arm
+  - concept/cltv
+  - concept/dscr
+  - concept/itia
+  - concept/ltv
+  - concept/pitia
+  - data/cotality
+  - data/fannie-mae
+  - data/fred
+  - data/freddie-mac
+  - lender/pennymac
+  - state/ca
+  - state/fl
+  - state/hi
+  - state/il
+  - state/ny
+  - tax/1031
+  - tax/pal
+  - topic/2-4-unit
+  - topic/condo
+  - topic/condotel
+  - topic/non-qm
+  - topic/str
+tags:
+  - topic/compliance
+  - topic/default-rate
+  - topic/flood-insurance
+  - topic/foreclosure
+  - topic/insurance
+  - topic/llpa
+  - topic/portfolio
+  - topic/ppp
+  - topic/reserves
+  - topic/short-rate
+  - topic/tax
+source: ANALYSIS/pennymac_dscr_product_profile.txt
+vaulted_at: 2026-06-20
+---
+=== PAGE 1 ===
+Pennymac Correspondent
+Non-QM DSCR Product Profile
+6.12.26
+Fixed Rate and Hybrid ARM
+Investment Property with DSCR >= 1.00
+Maximum Max
+Purpose Minimum Credit Score
+Loan Amount LTV/CLTV
+1,000,000 80% 720
+1,000,000 75% 680
+1,000,000 70% 660
+1,500,000 75% 700
+1,500,000 70% 680
+Purchase / Rate & Term
+1,500,000 65% 660
+2,000,000 75% 720
+2,000,000 70% 700
+2,000,000 65% 680
+2,000,000 60% 660
+1,000,000 75% 720
+1,000,000 65% 660
+Cash-Out 1,500,000 70% 700
+1,500,000 60% 660
+2,000,000 60% 700
+
+=== PAGE 2 ===
+Fixed Rate and Hybrid ARM
+Investment Property with DSCR >= 0.75
+Maximum Max
+Purpose Minimum Credit Score
+Loan Amount LTV/CLTV
+1,000,000 75% 700
+1,000,000 70% 680
+Purchase / Rate & Term 1,000,000 60% 660
+1,500,000 70% 700
+2,000,000 65% 700
+1,000,000 70% 720
+1,000,000 60% 660
+Cash-Out
+1,500,000 65% 700
+2,000,000 60% 740
+Fixed Rate and Hybrid ARM
+Investment Property with No DSCR Ratio
+Maximum Max
+Purpose Minimum Credit Score
+Loan Amount LTV/CLTV
+1,000,000 75% 740
+1,000,000 70% 720
+1,000,000 65% (Purch) 60% (Refi) 680
+Purchase / Rate & Term 1,000,000 60% 660
+1,500,000 70% 740
+1,500,000 65% 700
+2,000,000 65% 740
+1,000,000 65% 740
+1,000,000 60% 660
+Cash-Out
+1,500,000 60% 700
+2,000,000 60% 740
+
+=== PAGE 3 ===
+Additional Criteria
+Loan Scenario / Feature Eligibility
+Min DSCR Ratio >=0.75 OR No Ratio
+Short Term Rental Income Used Max 70% LTV/CLTV and DSCR>=1.0
+Interest Only Min 700 FICO, Max 75% LTV/CLTV for Ratios >=1.0,
+Min 700 FICO, Max 70% LTV/CLTV for Ratios >=0.75,
+Not Eligible For No Ratio Option
+Temporary Interest Rate Buydowns Not Eligible
+Escrow Impound Waivers Eligible (see Escrow/Impounds section )
+Any scenario in which an employee of the lender, Not Eligible
+broker, correspondent, or originator is a party to the
+subject loan
+Additional Criteria
+Borrower Eligibility
+First Time Investors Min 700 FICO, DSCR > 1.0, No Exceptions
+First Time Homebuyer Not Eligible
+Non-Permanent Resident Alien Max 75% LTV/ CLTV, No Cash Out
+Maximum Financed Residential 1-4 Unit Properties and UPB No borrower or guarantor may have more than 20 financed
+properties
+No borrower or guarantor may have more than 10
+properties or $7.5M UPB serviced by Pennymac
+Also see Borrower Eligibility Section below
+Property Type
+2-4 Units Max 75% LTV/CLTV
+Warrantable Condos Max 75% LTV/CLTV
+
+=== PAGE 4 ===
+Non-Warrantable Condos Max 75% LTV/CLTV
+Rural Properties Not Eligible
+Declining Markets Reduced Max LTV/CLTV by 5%
+Also see Property - Eligible Types and Property - Ineligible Types below
+Cash-Out Requirements
+LTV > 60% Max Cash Out $500K
+LTV <= 60% No Limit
+Cash out proceeds must not be used for personal use.
+Reserves
+Loan Amount Minimum Reserve Requirements for the Subject Property
+<= $500,000 3 months
+$500,001 to $2,000,000 6 months
+See Reserves section for additional reserve requirements
+Occupancy
+Principal Residence or Second Homes Not Eligible
+Investment Property Gift funds not permitted for LTV/CLTV > 80%
+● All loans are not subject to the general ATR underwriting standards (12 C.F.R. 1026.43(c)).
+● All loans within the DSCR program must be non-owner occupied and for a business purpose.
+● All bo rrowers must execute the Occupancy Certification indicating they will not occupy the subject property as a
+principal residence or second home, and will not occupy the property for more than 14 days in any calendar year.
+Ability To Repay
+● All individuals signing the note or providing a personal guaranty must execute a Business Purpose & Occupancy
+Affidavit.
+● For cash out transactions, cash out proceeds must not be utilized for personal use, and the borrower must provide
+an LOE detailing t he purpose and use of the proceeds.
+
+=== PAGE 5 ===
+● For new and existing construction, credit documents must be no more than 120 days on the date the note is signed,
+including credit reports and employment, income and asset documents.
+● Appraisal reports must be dated no more than 120 days from the note date.
+○ Any appraisal dated greater than 120 days from the note date will require a recertification of value completed
+Age of Documents by the original licensed appraiser, is good for an additional 120 days and must be completed prior to the note
+date.
+○ If the loan does not close within the initial recertification, then another update may be obtained but the
+original appraisal must be dated within 12 months of the note date.
+● Preliminary Title Policies must be no more than 120 days old on the date the note is signed.
+● Property inspection waivers are not eligible
+● All appraisals must comply with applicable regulations and standards, including but not limited to USPAP, FIRREA,
+AIR, HVCC, and HPML compliance.
+○ If two appraisals are required they must be obtained from a different appraiser and appraisal company.
+● One full appraisal for loan amounts up to $2,000,000
+● Two full appraisals for loan amounts > $2,000,000 or HPML flip transactions.
+○ If two appraisals are obtained, the lower value must be used for the LTV/CLTV.
+● All single appraisal transactions must have a secondary valuation assessment completed prior to the delivery date
+with one of the following conditions satisfied. For TPO Non-Del the secondary valuation meeting one of the following
+conditions must be completed prior to the note date:
+○ A Fannie Mae Collateral Underwriter® (CU) score <= 2.5 or Freddie Mac Loan Collateral Advisor® (LCA)
+score <= 2.5
+■ If a CU or LCA score is used as the secondary valuation, the Submission Summary Report (SSR)
+must be included in the file.
+■ If both are run, they must be done at the same time; Only one needs to have a passing score
+○ If neither the CU score nor the LCA score is <=2.5, a Clear Capital Collateral Desktop Analysis (CDA) or
+Appraisals
+Stewart Valuation Appraisal Risk Review (ARR) with a value that is:
+■ > 90% of the appraisal value if LTV <= 85% or
+■ > 95% of the appraisal value if the LTV > 85%
+■ Correspondent must deliver a Submission Summary Report (SSR) regardless of CU or LCA score
+○ If the CDA or ARR supports the appraised value the report must be retained in the loan file
+○ Field Review with a value that is not less than 90% of the original appraised value
+○ If the field review supports the original appraised value, the report must be retained in the loan file
+○ If none of the secondary valuations conditions above can be met, a second full appraisal is required
+■ The lower of the first (original) and second appraisal values must be used as the appraised value in
+the LTV/CLTV calculation
+○ A secondary valuation, other than a second full appraisal, is never used to determine the value of the subject
+property. Secondary valuation products are provided only to support the value of the appraisal and are not
+meant to be used as a substitute value for the property.
+● Unpermitted additions/alterations and deferred maintenance must meet Fannie Mae requirements
+● All 1-unit investment property transactions require Form 1007
+● For 2-4 unit properties, Fannie Mae form 1025 Small Residential Income Property Appraisal report is required
+
+=== PAGE 6 ===
+● Accessory units are acceptable
+○ Must follow all Fannie Mae requirements and restrictions for ADUs
+● Appraisal must reflect zoning compliance is legal
+○ Legal non-conforming zoned properties must indicate that the subject property can be 100% rebuilt if it is
+severely damaged or destroyed.
+● Declining Markets
+○ A declining market is defined as one in which the appraiser has indicated the market is declining in the
+housing trends of the appraisal report
+■ In the event there are two appraisals, this condition is satisfied if either of the two appraisers
+indicates the market is declining
+○ If a property is in a declining market, the following applies:
+■ The Max LTV is reduced by 5% (points) from the max LTV for the specific scenario (i.e. 5 points lower
+than the most restrictive max LTV given the loan scenario).
+● Rural Properties
+○ Defined by the appraiser in Neighborhood Characteristic Location
+■ In the event there are two appraisals, any conflict with the Neighborhood Characteristic Location
+must be reconciled.
+General Asset Requirements
+● Full asset documentation is required for both funds to close and reserves.
+○ For most asset types, this would include all pages of the most recent one-month’s statement, the most
+recent quarterly statement, or FNMA approved third party direct pull services, dated within 90 days of the
+note date.
+● Follow Fannie Mae Selling Guide requirements if funds require liquidation when used for the down payment or
+closing costs , and if the funds are being used for reserves.
+● Large deposits should be in line and consistent with the borrower’s overall credit and may require a signed LOE.
+Business Assets
+● Business assets are an acceptable source of funds for down payment, closing costs, and reserves for self-employed
+borrowers; all of the following must be met:
+Assets
+○ The borrowers on the loan must have a minimum of 25% ownership of the business and must be owners on
+the business account
+○ Ownership percentage must be documented via CPA letter, Operating Agreement, or equivalent
+○ All non-borrowing owners of the business must provide a signed and dated letter acknowledging the
+transaction and confirming the borrower’s access to funds in the account
+○ The balance of the business assets must be multiplied by the ownership percentage to determine the
+owner’s portion of business assets allowed for the transaction
+Gift Funds
+● Gift funds are eligible for down payment and closing costs with the following requirements:
+○ Gift funds from family members, as defined by Fannie Mae, are eligible
+○ Purchase transactions only
+
+=== PAGE 7 ===
+○ Ineligible for investor properties >80% LTV/CLTV
+○ Acceptable as 100% downpayment for loans <75% LTV/CLTV
+○ Acceptable for loans >= 75% LTV/CLTV, however the underlying borrowers must contribute a minimum of 5%
+of the transaction from their own funds (lower of purchase price or appraised value).
+○ See Additional Criteria section for LTV/CLTV limitations
+● Gifts must be evidenced by a gift letter signed by the donor. The gift letter must:
+○ Specify the dollar amount of the gift;
+○ Include the donor’s statement that no repayment is expected; and
+○ In dicate the donor’s name, address, telephone number, and relationship to the borrower.
+Other Asset Sources
+● Life insurance policy current cash value or loan against the cash value may be used for down payment, closing
+costs, or reserves.
+● Non - borrowing spousal accounts are allowed for downpayment, closing costs, and reserves:
+○ Fully executed relationship letter required.
+● Assets held in foreign accounts are acceptable for down payment, closing costs, and reserves subject to the
+following:
+○ Must be 60 days seasoned with 2 most recent bank statements (all pages); and
+○ When the source of funds originates from assets located outside the U.S., those assets require:
+■ Documented evidence of the foreign assets translated into English and exchanged into U.S. dollars
+and held in a U.S. or state regulated financial institutions; and
+■ Verification of the funds in U.S. dollars prior to closing the loan.
+○ Assets from countries under OFAC sanctions are not permitted
+● Funds held by a 1031 exchange administrator or permitted for downpayment and closing costs
+● Proceeds from the sale of personal assets are an acceptable source of funds for the down payment, closing costs,
+and reserves p rovided the individual purchasing the assets is not a party to the property sale transaction or the
+mortgage financing transaction.
+○ Documentation required supporting borrower ownership of the asset, independent valuation of the asset,
+ownership transfer of the asset and borrower’s receipt of sale proceeds
+● Employer assistance in the form of a grant, direct fully repayable second mortgage, forgivable second mortgage or
+deferred payment second mortgage or unsecured loan, and shared appreciation down payment assistance are
+permitted.
+○ Funds must come directly from the employer, may be used for down payment / closing costs subject to
+minimum Borrower contributions.
+○ May be used for reserves except for unsecured loans and are only eligible for primary residence .
+○ Any obligation for the borrower that arises from receipt of this assistance must be included in qualifying the
+borrower.
+● Bitcoin and other forms of cryptocurrency are eligible for downpayment, closing costs, and reserves, subject to the
+following:
+○ It has been exchanged into U.S. dollars
+
+=== PAGE 8 ===
+○ There must be sufficient documentation to verify that the funds originated from the borrower’s
+cryptocurrency/virtual currency account.
+○ Seasoning requirements not applicable given liquidation
+○ For reserves, liquidation is not required. The following is required:
+■ Documentation proving ownership of the crypto assets.
+■ The current valuation must be sourced exclusively from Coinbase, and the valuation must be dated
+within 30 days of the Note date.
+■ Up to 60% may be used for reserves
+Ineligible Asset Types:
+● Assets derived from the production or sale of marijuana
+● Gift of equity
+● Builder profits
+● Rent credits
+● Cash-on-hand.
+● Sweat equity.
+● Uns ecured loans (except employer assistance funds as defined above) or cash advances.
+Reserves
+● Refer to the Reserves sections of the product profile for calculation and minimum reserve requirements
+● Net proceeds from a cash-out refinance transaction may be used as reserves. Refer to the Reserves section of the
+product profile for additional requirements.
+● Publicly traded stocks, bonds, mutual funds, 100% of the account(s) value may be used for reserves.
+● Vested retirement accounts (e.g., IRA, 401k, Keogh, 403b), 100% of the vested balance may be used for reserves.
+● Ine ligible assets for reserves
+○ Gift funds.
+○ Restricted stock
+○ Retirement accounts <100% vested
+○ 1031 exchange assets
+○ Employer assistance received in the form of an unsecured loan.
+○ E mployer assistance received for second homes and investment properties
+● All loans must be registered with MERS at time of delivery to Pennymac and a MERS transfer of beneficial rights and
+Assignment of
+transfer of servicing right must be initiated by the Seller, to Pennymac Loan Services, LLC (#1007159), within
+Mortgages
+24-hours of purchase.
+● AUS not utilized, manual underwriting only.
+AUS / Underwriting
+● All loan files should contain underwriter worksheets which detail the qualifying income calculations and debt
+Method
+obligations considered or not considered (and reason for exclusion)
+
+=== PAGE 9 ===
+● The DSCR program is eligible for professional investors only
+○ Professional investors must have at least 12 months experience owning and/or managing income producing
+real estate within the most recent 36 months from the note date of the subject transaction
+■ A signed LOE by the borrower/guarantor is required to detail relevant real estate experience
+■ Pennymac reserves the right to request specific documentation to validate the LOE
+■ First time investors allowed, refer to Additional Criteria section above (if any borrower or guarantor
+doesn’t meet the 12 month experience requirement follow the first-time investor rules, including the
+prohibition on first-time homebuyers).
+● All borrowers must execute a personal guaranty agreement if the Note is not being signed individually. See Entity
+Signature Requirements section below
+● Maximum number of borrowers is four
+● U.S. citizens
+● Permanent Resident Aliens, with proof of one of the following:
+○ I-151 Permanent Resident Card (Green Card) that does not have an expiration date on the back (also known
+as a green card)
+○ I-551 Permanent Resident Card (Green Card) that is issued for 10 years that has not expired.
+○ I-551 Conditional Permanent Resident Card (Green Card) issued for two years that has an expiration date, if it
+is acc ompanied by a copy of USCIS form I-751 requesting removal of conditions
+○ Un -expired Foreign Passport that contains an un-expired stamp reading as follows: “Processed for I-551
+Temporary Evidence of Lawful Admission for Permanent Residence. Valid until [mm-dd-yy]. Employment
+Borrower Eligibility
+Authorized.”
+● Non - Permanent Resident Aliens:
+○ If any borrower is a Non-Permanent Resident Alien, then all of the following requirements apply.
+○ Borrower Eligibility:
+■ All borrowers must have a valid Social Security Number and established US credit history
+■ No Asylum
+○ Employment Status Documentation:
+■ The following VISA types are acceptable: E-1, E-2, E-3, EB-5, G-1 thru G-5, H-1B, L-1, NATO, O-1, R-1,
+TN(NAFTA)R-1
+■ Copies of the Borrower’s passport and unexpired visa must be obtained. Acceptable alternative
+documentation to verify visa classification is an I-797 form (Notice of Action) with valid extension
+dates and an I-94 form (Arrival / Departure Record).
+■ A valid employment authorization document (EAD) must be obtained if the visa is not sponsored by
+the Borrower’s current employer. If the visa will expire within six (6) months of note date, it is
+acceptable to obtain a letter from the employer documenting the Borrower’s continued employment
+and continued visa renewal sponsorship (employer on the loan application must be the same as on
+the unexpired visa)
+■ If a non-U.S. citizen is borrowing with a U.S. citizen, the visa or residency requirements still must be
+met. Individuals in possession of spouse or family member visas are to qualify as co-Borrowers only.
+A valid EAD must be provided to use income for qualification
+
+=== PAGE 10 ===
+○ See Additional Criteria Section for other requirements
+● Limited Partnerships (LP), General Partnership (GP), Corporations (CORP), and Limited Liability Companies(LLC)
+○ Business purpose loans only
+○ Entities must be formed for the purpose of ownership and management of real estate
+○ Maximum of 4 entity owners allowed
+○ All eligible Guarantors (noted below) must be disclosed and credit qualified
+■ All Borrower(s) must execute the Occupancy Certification
+■ Guarantor(s) must be a managing member or majority owner as confirmed by the Operating
+Agreement (or equivalent) and have at least 25% ownership of the business entity (as confirmed by
+the operating agreement or equivalent). Said guarantor is subject to the same underwriting
+requirements as the individual borrower.
+■ Personal Guaranty is required when Note is not being signed individually
+■ All Guarantors must sign all closing documents and disclosures
+■ All borrowers will be required to provide personal recourse
+■ Consent of Spouse Form is required in community property states when loan is signed with a
+Personal Guaranty and spouse is not included on the loan
+● Form must be executed at loan closing and dated the same date as the Note
+○ No additional individuals may be included on title or be obligated on the subject loan.
+○ The following entity documents are required:
+■ Articles of Incorporation
+■ Operating Agreement (or equivalent)
+■ Tax Identification Number
+■ Certificate of Good Standing, must be dated within 30 days of closing
+○ Layered entities are permitted up to two layers as long as the ownership structure is consistent from top to
+bottom with no discrepancies. For exampl e, if the borrower is ABC LLC which is 100% owned by XYZ LLC,
+and John and Mary Smith are the sole owners of XYZ LLC, then John and Mary Smith must be the
+borrowers/guarantors. The ownership chain must be clear and aligned.
+■ Entities layered with a trust are not eligible
+■ Guideline requirements must be met for each entity
+○ Entity Signature Requirements
+■ The note must be signed by the guarantor in their individual capacity and/or as a member, and/or as
+a managing member as follows: Guarantor(s) sign the note as (a) member(s) or managing
+member(s) of the entity. In this case, each Guarantor must also sign the Personal Guaranty
+Agreement as an individual.
+● Borrower(s) may sign the note as (an) individual(s). In this case, the borrower(s) do not
+need to sign a Personal Guaranty Agreement.
+● Borrower(s) may sign the note both as (an) individual(s) and as (a) member(s) or managing
+member(s) of the entity (two signatures per person) In this case, the borrower(s) do not
+need to sign a Personal Guaranty Agreement.
+
+=== PAGE 11 ===
+■ The Mortgage / Deed of Trust / security instrument should be signed by the
+borrower(s)/guarantor(s) of the entity in their capacity as member(s) and/or managing member of
+the entity.
+■ Note:
+● Ms Penny Mac (individual signature if person is not signing a Personal guaranty)
+● Ms Penny Mac, as member of ABC Property, LLC
+■ Mortgage / Deed of Trust
+● Ms Penny Mac, as member of ABC Property, LLC
+■ Personal Guaranty Agreement
+● Ms Penny Mac (Personal Guaranty Agreement must always be signed as an individual)
+The following borrower and vesting types are ineligible:
+● Borrowers with diplomatic immunity
+● Borrowers with asylum status
+● Illinois land trust
+● Blind trusts
+● Land trusts
+● Irrevocable trust
+● Layered Entities with a Trust
+● Non-profit Organizations
+● Borrowers in any country not permitted to do business in the United States
+● Persons from OFAC sanctioned countries or persons sanctioned by OFAC
+● Individuals on OFAC’s SDN list
+● Tenants in Common, unless all parties vested match the actual borrowers on the loan
+● F o reign Nationals
+● Refinance only
+CEMA
+● Lost Note Affidavits (LNAs) are not allowed for prior or current notes
+● Condominiums can be either approved as Warrantable or under the Non-Warrantable guidelines in this section
+● Warrantable Condo Project reviews must follow the Fannie Mae Selling Guide and any additional criteria specified in
+this section, and Non-Warrantable reviews must follow the Full Condo Project Review except for flexibilities allowed
+under the “Restrictions for Non-Warrantable Condominium Projects” section below
+● A Condominium Project Certification form along with the Condo Project Questionnaire, and all supporting
+documentation required to determine eligibility must be included and retained in the file.
+○ A new questionnaire is required for each loan transaction.
+Condominiums
+Full Condo Project Review:
+● See Additional Criteria section for LTV/CLTV limitations
+● Warrantable Condo projects must meet all condo warrantability requirements in the Fannie Mae Selling Guide and
+any additional requirements in this section
+● The following must have a Full Project Review
+o Attached Condo Unit in a New or Newly Converted Project must meet Fannie Mae eligibility requirements
+
+=== PAGE 12 ===
+o Projects that are deemed ineligible for Limited Review must complete a Full Project Review
+o Non-Warrantable Projects
+● Condominium Project Manager (CPM) Approval
+o The project must have a valid, unexpired CPM Certification as of the date of the Note, and such certification
+must be retained in the Mortgage loan file. The CPM status must reflect a designation that is eligible for
+sale to Fannie Mae
+o In addition, there must not be any change of circumstances since the project information was submitted to
+CPM that would result in the project not satisfying Fannie Mae’s or Pennymac’s eligibility criteria.
+o Evidence that the project continues to meet Fannie Mae’s insurance requirements is required
+Limited Project Review:
+● To be eligible for a Limited Review, the unit securing the mortgage must be an attached unit in an Established Condo
+Project
+● Attached units in Established Projects located in Florida may be subject to more restrictive LTV ratio requirements
+under the Limited Review process, per the Fannie Mae guidelines
+● The project and the unit must meet the following eligibility requirements:
+○ The project meets the general requirements for condos or PUDs
+○ The project does not include manufactured homes
+○ No more than 15% of the units have special assessments that are 60 or more days past due
+○ The project does not exhibit any characteristics that would classify it as an ineligible condominium project
+under Fannie Mae’s guidelines.
+○ If the LTV, CLTV, or HCLTV ratios exceed the limits, or if any of the factors making the project ineligible under
+the Limited Review are present, another review method must be used and the project must meet all the
+eligibility requirements for that method.
+Fannie Mae Project Eligibility Review Service (PERS) Approval:
+○ New and Existing Condominium Project approvals are acceptable
+○ Evidence of the PERS final project approval must be current through the Note Date and be included in the
+Mortgage loan file
+Project Review Waiver
+● Project review is waived for the following project types but must still follow all Fannie Mae guidelines for
+acceptability
+○ Detached unit in a New or Established Condo Project
+○ Units in a new or established condo projects with 10 units or less, subject to the following:
+■ Projects with five to ten units must not be part of a master association or larger development
+■ Borrower/guarantor may not own more than 50% total units
+■ The priority of common expense assessments applies
+■ The standard insurance requirements apply
+■ The project is not in Condo Project Manager (CPM) with a status of “Unavailable”
+■ There are no unaddressed critical repairs outstanding or projects with evacuation orders
+
+=== PAGE 13 ===
+○ Unit in a PUD project, except PUD projects consisting of single-width or multi-width manufactured homes
+subject to a community land trust, deed restriction, ground lease, or shared equity arrangement
+Project Review Process Employed Expiration of Project Review
+Must have been completed within one year prior to the note
+● Limited Review
+date
+● Full Review for Established Projects CPM/PERS must have been completed within one year prior
+to the note date
+CPM/PERS must have been completed within 180 days
+● Full Review for New Projects
+prior to the note date
+● Approved by Fannie Mae as Reflected in CPM CPM/PERS must be valid (unexpired) as of the note date
+● PCG Del Only: Loans secured by units in projects that did not meet Fannie Mae’s eligibility requirements as of the
+Note Date may still be delivered after the project becomes compliant, provided all of the following are met:
+○ The project meets applicable Fannie Mae eligibility requirements at the time of delivery
+○ All Pennymac mortgage seasoning and other loan-specific requirements are satisfied
+○ Example: If a loan closes in a new project that does not yet meet Fannie Mae’s pre-sale requirement, the loan
+may be delivered once the pre-sale threshold is met and all other criteria are fulfilled.
+Restrictions to Non -Warrantable Condominium Projects:
+▪ See Additional Criteria section for LTV/CLTV limitations
+▪ Risk stacking of non-warrantable features are not permitted
+▪ Single entity ownership is limited to 30% of a project
+▪ Commercial space must be typical to the market, have no negative impact, and comprise 49% or
+less of a project space
+▪ Investor concentration is limited to 70% of a project
+▪ No more than 25% of the total units in the project can be 60 days or more past due on condo/HOA
+dues. This figure includes delinquencies for special assessments.
+▪ Properties with significant deferred maintenance or critical repairs must adhere to FNMA criteria
+▪ Common areas must be 100% complete
+▪ HOA should be in control of the association. Projects under builder, developer control may be
+considered on a case-by-case basis and will require an exception approval
+▪ HOA reserves must demonstrate a minimum of 10%.
+▪ The project documents do not give a unit owner or any other party priority over the rights of the first
+mortgagee, such as right of first refusal.
+▪ Mandatory dues are not allowed
+▪ Projects involved in litigation are acceptable provided the lawsuit(s):
+● are not structural in nature
+● do not affect the marketability of the project units and
+
+=== PAGE 14 ===
+● potential damages do not exceed 25% of HOA reserves or with documentation from the
+insurance carrier or attorney representing the insurance carrier that the insurance carrier has
+agreed to conduct defense and the HOA insurance policy is sufficient to cover the litigation
+expense
+Florida Condominiums:
+● Condo projects subject to Florida’s SB-4D requirements will be considered on a case-by-case basis and require
+Pennymac approval.
+● The following applies to Florida condos that are three (3) or more stories high and thirty (30) years or older (25 years
+or older if the building is within 3 miles of the coastline):
+o Evidence is required that the building has completed the required inspections outlined in FL SB-4D
+■ If the required inspections have not been completed, the property is ineligible
+o If the inspection revealed substantial structural deterioration or any unsafe or dangerous conditions,
+evidence that the required repairs have been completed is required. If the required repairs have not been
+completed, the property is ineligible.
+o Evidence is required that the Association has completed the required structural integrity reserve study and
+the budget contains adequate reserves
+■ The monthly HOA fee should be consistent with the budget
+Condo Project Documentation
+● The following must be obtained and retained in the file:
+o Condo Project Certification Form (all projects)
+o Condo Project Questionnaire, Limited or Full as applicable
+o Copy of Fannie Mae Condo Project Manager (CPM) project status (regardless of approval type)
+o Project’s current annual budget (Full Review)
+o Current balance sheet, dated within 60 days the note date (Full Review)
+o Evidence of master policy and, if required, HO6 insurance coverage, or individual property insurance policy,
+as applicable for all projects. See Property Insurance section.
+o Evidence new condo projects meet Fannie Mae presale ratios
+o All project inspections completed within the last 36 months
+o Project legal documents as required by Project Type
+o All other documents required to determine condo project eligibility. Refer to the Fannie Mae Selling Guide for
+documentation examples.
+Critical Repairs / Significant Deferred Maintenance
+● Projects in need of critical repairs, or that have significant deferred maintenance, or have received a directive from a
+regulatory or inspection agency to mark repairs due to unsafe conditions are not eligible for purchase.
+○ Projects in need of critical repairs are those needing repairs or replacements that significantly impact the
+safety, soundness, structural integrity or habitability of the project's building(s), or the financial viability or
+marketability of the project. Critical repairs include conditions such as, but not limited to:
+■ Material deficiencies, which if left uncorrected, have the potential to result in or contribute to critical
+element or system failure within one year;
+■ Any mold, water intrusions or potentially damaging leaks to the project's building(s);
+■ Advanced physical deterioration;
+
+=== PAGE 15 ===
+■ Any project that failed to pass state, county, or other jurisdictional mandatory inspections or
+certifications specific to structural safety, soundness, and habitability; or
+■ Any unfunded repairs costing more than $10,000 per unit that should be undertaken within the next
+12 months (does not include repairs made by the unit owner or repairs funded through a special
+assessment).
+○ A project with an evacuation order due to an unsafe condition, either for a partial or total evacuation of the
+project's building(s), is ineligible until the unsafe condition has been remediated and the building(s) is
+deemed safe for occupancy.
+Special Assessments
+● Special assessments may be current or planned. Lenders must obtain and review the following information for each
+special assessment to determine if it addresses a critical repair:
+○ What is the purpose of the special assessment,
+○ When was the special assessment approved and is it planned (approved by the unit owners, but not yet
+initiated by the board) or already being executed,
+○ What was the original amount of the special assessment and the remaining amount to be collected, and
+○ When the expected date the special assessment will be paid in full.
+● If the special assessment is associated with a critical repair and the issue is not remediated, the project is ineligible.
+● A Tri-merge credit report from is required from all borrower's
+● Classic FICO credit score model for qualification and pricing is required. No exceptions.
+● Credit rescores are allowed and must be completed prior to loan lock with Pennymac.
+○ In the event of a disputed item or valid error, a rescore is allowed after the time of lock.
+○ Documentation must be provided to support the reason that a credit rescore was performed.
+● No credit bureaus may be frozen. Borrowers must unfreeze all bureaus, and a new tri-merge credit report obtained
+reflecting information from all three bureaus.
+● The loan level Representative Credit Score is computed by:
+○ Selecting a representative score for each borrower using:
+■ the middle score for each borrower if 3 scores are available or the lower score when only 2 scores
+are available.
+○ Selecting the representative score from the borrower with the highest percentage ownership. In the case
+where two borrowers or more borrowers have the same highest percentage ownership, the loan level
+Credit Representative Credit Score will be the lowest borrower representative score amongst these borrowers.
+● The borrower with the highest percentage ownership must have at least two credit scores. In the case that more than
+one borrower has the same highest percentage ownership , all such borrowers must have at least two credit scores.
+● Borrowers currently enrolled in credit counseling or debt management plans are not permitted.
+● Tradelines
+○ Each borrower who is using income to qualify must have:
+■ at least 2 tradelines reporting at least 12 months of history in the last 24 months, or a combined
+credit profile between Borrower and co-Borrower with a minimum of three tradelines showing at
+least 12 months of history in the last 24 months
+■ Tradeline activity is not required, and the tradelines can be opened or closed.
+○ The following are not acceptable to be counted as tradelines:
+■ Tradeline in a deferment status
+■ Accounts discharged through bankruptcy
+■ Authorized user accounts
+
+=== PAGE 16 ===
+■ Charge-offs
+■ Collection accounts
+■ Foreclosures
+■ DIL
+■ Short sales
+■ Pre-fo reclosure sales
+● Fraud Report (i.e. DataVerify, Fraudguard, Corelogic, TransUnion TLPxp, LexisNexis: SmartLinx, or Instant ID) is
+required on all transactions.
+○ The following transaction participants must be included in the fraud report: borrowers, property sellers, and
+settlement agents
+○ All High and Red Flag potential findings must be satisfactorily addressed/cleared prior to close. “High”
+alerts or “Red Flags” may be addressed through the vendor’s solution or with a signed attestation. The
+attestation must address each “high” alert, or “red flag” noted in the fraud report.
+● Housing Payment History
+○ The housing payment history must reflect 0x30x12 for the subject property and each borrower’s/guarantor’s
+primary residence for the most recent 12 months, regardless of whether the borrower/guarantor is on the
+note or vested on title.
+■ Housing payment history for the subject and each borrower’s/guarantor’s primary residence must be
+evidenced by 12 months proof of payment via cancelled checks, bank debits, VOR/VOM, or the credit
+report may also be used if the housing payment history is reported.
+● When the housing payment history for the subject property or the borrower’s/guarantor's
+primary residence involves a private party mortgage, or is evidenced by a non-institutional
+VOM or VOR, at least one of the following is also required to validate the payment history:
+○ The most recent six months: Cancelled checks, or bank statements (all pages), or
+ACH payments, or bank transfer/wire, or electronic payment method.
+● A borrower’s/guarantor’s primary residence may be documented as free and clear.
+○ Housing Payment History Other REO (does not include the borrower’s/guarantor’s primary residence)
+■ Mortgages appearing on the credit report or other documentation in the file must reflect 0x30x12
+■ No validation is required for mortgages that do not appear on the credit report or other
+documentation in the file). The mortgages must be reflected in the REO count and UPB limit for the
+maximum number of financed properties.
+○ Rolling late payments are not considered a single event. Each occurrence of a contractual delinquency is
+considered individually.
+○ All mortgage and rental payments reflected on the credit report or other documentation in the file must be
+current at the time of closing (note date). This includes the subject property, the borrower’s/guarantor’s
+primary residence, and other REO. If the credit report or VOR / VOM reflects a past-due status, updated
+documentation is required to verify the account is current.
+○ Payments missed under forbearance agreements must be counted as late payments for the purposes of the
+housing payment history
+○ Passed due balloon payments are considered a 1x30 delinquency provided the delinquency was cured within
+180 days of maturity.
+○ If the subject property has delinquent taxes that are more than 1 year delinquent as of the subject note date,
+an exception is required.
+○ If borrower is living rent free as a dependent with family and a 12 month housing history is not applicable,
+the following apply:
+■ A rent-free letter is required
+
+=== PAGE 17 ===
+● Credit: Disputed Tradelines
+○ Disputed accounts may require an LOE
+● Credit: Liabilities
+○ Housing and mortgage related obligations, including property taxes, insurance premiums, mortgage
+insurance and similar charges that are required by creditor, ground rents, and leasehold payments must be
+fully documented on the Scheduled of REO section of the 1003 for the subject property .
+■ These obligations must be verified using reasonable reliable records such as taxing authority, or
+local government records, homeowner’s association billing statements, or information obtained from
+a valid and legally executed contract.
+○ Property taxes estimates for new construction
+■ Utilized 1.25% for properties in California
+■ For states other than California, use 1.5%
+■ Use of other property tax rates are allowed provided the rates are documented in the file
+● OFAC Search
+○ The following individuals involved in the transactions must be screened through OFAC’s SDN list: all
+borrowers/guarantors, property sellers, and settlement agents.
+○ If the borrower is an entity, guarantors and all members/managers of the entity must be included in the OFAC
+search.
+● Solar Leases
+○ Installment debt from financed or leased payments associated with solar panels must be included in th e
+DSCR ratio.
+○ Must conform to Fannie Mae guidelines
+○ PACE, HERO, or any similar loans with payments included in the property tax payments or take lien priority
+are not eligible and require proof of payoff.
+■ Using loan proceeds to pay off a PACE, HERO, or similar loan is considered cash-out.
+● Individual collections and charge offs in the last 3 years (as of the application date) exceeding $5,000 (individually or
+in aggregate) must be paid in full prior to or at closing. Exceptions to this are:
+○ Medical collections less than $15,000 in aggregate
+● All open judgements, garnishments, and all outstanding liens affecting title must be paid off prior to or at closing.
+● All past due accounts must be brought current prior to closing.
+● Income tax liens (federal, state, and local) must be paid off prior to or at closing unless all the requirements listed
+below are met:
+○ The file must contain a copy of the approved IRS tax payment plan with the terms of repayment, including
+the monthly payment amount and total amount due
+○ As of closing, the borrower is current on the payment plan
+Derogatory Credit
+○ The tax payment plan does not carry a lien on any property
+● The following derogatory credit events require a 36+ month seasoning
+○ Derogatory credit events include all REOs
+
+=== PAGE 18 ===
+Derogatory Credit Event Seasoning Period
+Foreclosure, Short Sale, Pre-Foreclosure, Deed-in-Lieu Property resolution date (completion date) to the
+subject note date
+Chapter 7, 11, and 13 Bankruptcies Discharge/dismissal date to the subject note date
+Modifications (Due to Default) Date modification was signed to subject note date
+Notice of Default or Lis Pendens The date of the notice to the subject note date
+120+ Day Delinquency Date the loan was brought current to the subject note
+date
+Balloon payments that are more than 180 days past Date the balloon payment was made to the subject note
+maturity date
+○ Bankruptcies require evidence of resolution.
+○ Multiple bankruptcies are not permitted.
+○ A second or junior lien that has been charged off is subject to this seasoning period based off the charge off
+date.
+○ Timeshares are treated as a consumer installment loan not as a Derogatory Credit Event defined in the table
+above.
+● Any revolving or installment account that was more than 60 days delinquent in the four years from the subject's note
+date must be fully explained and documented in the file.
+● Derogatory credit belonging to an ex-spouse can be excluded if late payments occurred after the divorce /separation,
+and the divorce/separation agreement indicates the derogatory accounts belong solely to the ex-spouse
+● If the appraisal was completed prior to the disaster,
+○ An appraisal update for final inspection from the appraiser must be obtained.
+■ If two appraisals had been obtained, the condition above must be met for the appraisal with the
+lowest value.
+○ Any damage that impacts the safety or habitability of the property or damage in excess of $2,000 must be
+repaired and re-inspected.
+● If the appraisal was completed after the disaster, the appraiser must comment on the adverse event and an effect on
+marketability or value.
+Disaster Policy
+○ Any damage that impacts the safety or habitability of the property or damage in excess of $2,000 must be
+repaired and re-inspected.
+○ Requirement applies for 90 days following the incident period ending date or the date the adverse event
+occurred, whichever is later.
+● Pennymac may require a post-disaster inspection when the disaster occurred after closing but prior to purchase.
+○ If a post-disaster inspection is required, a Post Disaster Inspection (PDI) Report from Clear Capital or
+Damage Assessment Report (DAR) from Pro Teck must be provided
+○ Any indication of damage reflected on the report will require a re-inspection by the appraiser.
+
+=== PAGE 19 ===
+■ If two appraisals were used, the re-inspection must be performed by the appraiser from the lowest
+value appraisal.
+○ Any damage that impacts the safety or habitability of the property or damage in excess of $2,000 must be
+repaired and re-inspected.
+Eligible
+● Fully Amortizing Fixed: 15 Yr, 30 Yr
+● Fixed Interest Only: 30 Yr or 40 Yr term, including 10 Year IO Term
+● Hybrid ARMs
+○ Fully Amortizing Hybrid ARM: 5/6 30 Yr 2-1-5, 7/6 30Yr 5-1-5, 10/6 30 Yr 5-1-5
+○ Interest Only ARMs:
+■ 30 Yr (with 10 Yr IO and 20 Yr Amort Term): 5/6 2-1-5 ,7/6 5-1-5, 10/6 5-1-5
+○ Index : 30 Day Average SOFR Index as published by the New York Federal Reserve
+○ Adjustment Reset Period: 6 months
+○ ARM Floor = ARM Margin
+Eligible / Ineligible
+○ Lookback Period: 45 days
+Mortgage Products and
+○ ARM Margin: 5.00%
+Features
+○ Fully Indexed Rate is the sum of the index plus margin, rounded to the nearest 0.125%
+○ See Qualifying Payment section for further details
+Ineligible
+● Assignment of Contracts
+● Construction loans
+● Builder bailout
+● Conversion loans
+● Lease option
+● Daily Simple Interest loans
+● Reverse 1031 exchange transactions
+eMortgages &
+● eMortgages and eNotarization are ineligible
+eNotarization
+Employment/Income
+● Not required
+Verification
+Escrow Holdbacks ● Escrow holdbacks are ineligible.
+● Escrow waivers are eligible subject to the following:
+Escrow/Impounds
+○ Escrow waiver is subject to an LLPA adjustment, see rate sheet for program specific adjustments
+● If a borrower is participating in the transaction (i.e. borrower is acting as their own agent) is considered an
+interested party and their contributed funds must be counted against the IPC limits. Note: The transaction is
+Financing Concessions ineligible if an employee of the lender, broker, correspondent, or originator is a party to the subject loan .
+● Maximum IPCs: 6%.
+● Follow all other Fannie Mae guidelines.
+First-time Homebuyer ● First -time homebuyers (FTHB) are ineligible (no borrower/guarantor can be a FTHB).
+
+=== PAGE 20 ===
+● Any loan scenario meeting the definition of “high cost” “high risk”, “covered”, “subprime” or any similar designation
+High Cost / Higher under state or local laws are not eligible.
+Priced ● Cured High Cost loans are not eligible
+● All loan files must contain documentation evidencing compliance with this section
+● See Additional Criteria for additional constraints
+Interest Only
+● See Qualifying Payment section for details on how to compute the qualifying payment for Fixed and ARM IOs.
+● Proceeds from the transaction are used to finance the acquisition of the subject property.
+● LTV / CLTV is based upon the lesser of the sales price or appraised value, except for:
+○ Refinance of a land contract is considered a purchase and the LTV/CLTV should be calculated using the
+purchase price
+● The loan file must include a fully executed agreement (purchase contract) of sale and counteroffer (if applicable)
+reflecting the following:
+Loan Purpose: ○ The purchase contract cannot be expired.
+Purchase ○ Borrower as the purchaser of the property.
+● Sellers must have owned the property more than 12 months, otherwise the transaction is subject to review as a Flip
+Transaction. See 1 Flips section.
+● Transactions that meet the definition of a Flip Transaction as defined in the Property Flips section of the product
+profile must meet the requirements provided in that section.
+● Non - arm’s length transactions are ineligible, refer to the Non-arms Length transaction section of the product profile
+for details.
+
+=== PAGE 21 ===
+Cash Out Requirements
+LTV > 60% Max Cash-out $500K
+LTV <- 60% No limit
+● A refinance that does not meet the definition of a rate/term transaction is considered cash-out.
+● Cash -out must be for business purposes only, and the borrower must provide and LOE detailing the purpose and use
+of the proceeds.
+● Cash -out amount includes funds received at closing as cash back, the payoff of any debt outside that which was
+used for the original purchase
+● A mortgage secured by a property currently owned free and clear is considered cash-out.
+● Cash-out may be used to satisfy the reserve requirement
+● Borrower must have owned the property for a minimum of 6 months measured from acquisition date to note date
+● Refinance of a previous loan that provided cash out will be considered a cash out refinance if the loan being
+refinanced is seasoned for less than 12 months (measured from note date to note date)
+● Refinance of a land contract is considered a purchase and ineligible as a cash-out refi.
+● The payoff of delinquent real estate taxes (60 days or more past due) is considered cash-out.
+● Refinances of inherited properties and properties legally awarded to the borrower are allowed. This includes divorce,
+separation and dissolution of a domestic partnership. Ownership seasoning requirements do not apply, and the
+following guides must be met:
+○ Written agreement signed by all parties stating the terms of the buyout and property transfer must be
+Loan Purpose:
+obtained
+Refinance - Cash-Out
+○ Equity owners must be paid through subject loan’s settlement
+○ Subject property has cleared probate and property is vested in the borrower’s name
+○ Current appraised value is used to determine LTV/CLTV
+● Loans with Power of Attorney are ineligible
+● Delayed purchase financing is eligible when a property was purchased by a borrower for cash within 180 days of the
+note date , subject to the following:
+○ The transaction is considered a cash-out refinance for pricing and eligibility.
+○ The original purchase transaction was an arms-length transaction.
+○ The source of funds for the purchase transaction are documented (such as bank statements, personal loan
+documents, or a HELOC on another property).
+○ The maximum LTV/CLTV ratio for the transaction is based upon the lower of the current appraised value or
+the property’s purchase price plus fully documented improvements.
+■ Invoices and/or receipts for work performed must be documented and confirmed by the appraiser.
+■ The prior settlement statement will be required for proof of purchase price
+○ The preliminary title search or report must confirm that there are no existing liens on the subject property
+○ The new loan amount can be no more than the actual documented amount of the borrower’s initial
+investment subject to the maximum LTV/CLTV for cash-out transactions.
+● While maintaining the property is an acceptable use for cashout proceeds, major renovations, rehabilitations, etc.
+that would render the property uninhabitable are not permitted on the subject property
+● See Recently Listed Properties section for additional constraints
+
+=== PAGE 22 ===
+● A Rate and Term refinance transaction is one in which the new loan amount is limited to the payoff of a present
+mortgage on the s u bject property for the purpose of changing the interest rate and/or term with no additional cash
+or advancing of new money in excess of the limited account amount (see below)
+● A rate and term may also pay off an existing subordinate lien on the subject property subject to the following:
+○ The subordinate lien was a closed-end mortgage and was used to acquire the property, or
+○ The subordinate lien is a HELOC and less than $5,000 has been drawn in the past 12 months (12 months
+measured in arrears from the subject’s note date)
+■ Withdrawal activity must be documented with a transaction history from the HELOC
+● Cash back includes cash received at closing and funds to pay off debt other than the subject property’s first and
+second lien (as allowed above), and must not exceed the lesser of 2% of the new loan amount or $5,000
+Loan Purpose:
+○ For any amount greater than this, the transaction is considered a cash-out
+Refinance - Rate &
+● The appraised value will be used to determine LTV/CLTV.
+Term
+● Refinance of a previous loan that provided cash out will be considered a cash out refinance if the loan being
+refinanced is seasoned for less than 12 months (measured from note date to note date)
+● The rate / term refinance of a construction loan is eligible with the following conditions:
+○ If the lot was acquired twelve (12) or more months before applying for the subject loan (acquisition date to
+application date), the LTV / CLTV is based on the current appraised value of the property
+○ If the lot was acquired less than twelve (12) months before applying for the construction financing
+(acquisition date to application date), the LTV / CLTV is based on the lesser of (i) the current appraised value
+of the property and (ii) the total acquisition costs
+● Refinance of a land contract is considered a purchase and ineligible for a rate & term refinance
+● See Recently Listed Properties section for additional constraints
+Minimum Loan Amount ● $ 125,000
+Mortgage Insurance ● Mortgage insurance is not required
+● The maximum number of financed residential 1-4 unit properties to any one borrower or guarantor is limited to 20
+● The maximum number of financed residential 1-4 unit properties to any one borrower or guarantor that are serviced
+by Pennymac is limited to 10 and the maximum aggregate unpaid principal balance of such financed residential 1-4
+Multiple Financed
+units properties serviced by Pennymac is limited to $7.5M.
+Properties ● The financed property and UPB limits in this section include all residential 1-4 unit mortgages serviced by Pennymac,
+mortgages disclosed on the credit report, and mortgage disclosed on the URLA, bank statements, or elsewhere in the
+loan file.
+● Non-arm’s length transactions are ineligible
+○ Non - arm’s length transactions are purchase transactions in which there is a relationship or business
+affiliation between the seller and the buyer of the property. Examples of non-arm’s length transactions
+Non-Arms Length
+include, but are not limited to, family sales, property in an estate, employer/employee sales, and flip
+Transactions
+transactions.
+○ When the property seller is a corporation, partnership, or any other business entity, it must be ensured that
+the borrower is not an owner of the business entity selling the property.
+
+=== PAGE 23 ===
+● Investment property only
+○ Borrower does not occupy the property
+○ All borrower(s) must execute the Occupancy Certification form
+○ For non-owner occupied properties with a Guarantor, the individual(s) providing the guaranty must execute
+Occupancy
+the Personal Guaranty Agreement
+○ The spouse of a guarantor must sign the Consent of Spouse form if the property is in a community property
+state ( AK, AZ, CA, FL, ID, KY, LA, NV, NM, NY, SD, TN, TX, WA and WI)
+○ See Additional Criteria section for additional requirements
+● A limited Power of Attorney (POA) is acceptable when all the following are met:
+○ It is specific to the transaction;
+○ It is recorded with the Mortgage/Deed of Trust;
+○ It contains an expiration date;
+Power of Attorney ○ It is used to execute only the final loan documents;
+(POA) ○ The Borrower who executed the POA signed the initial FNMA Form 1003;
+○ An interested party to the transaction (such as seller, broker, loan officer, realtor, etc.) may not act as Power
+of Attorney.
+● POA’s are not eligible for cash-out transactions.
+● POA’s are not permitted for Entities: LLC, Corporations, Entity Borrowers, etc.
+
+=== PAGE 24 ===
+● A prepayment penalty is acceptable on where permitted by applicable law and regulations
+● Total points, fees, and APR may not exceed current state and federal high-cost threshold
+● Not allowed on primary residence or second homes or investment property cash out transactions where the
+proceeds will be used for personal use
+● Acceptable prepayment penalty structures are:
+Prepayment Prepayment Penalty Prepayment Penalty Definition
+Penalty Percent Penalty Terms
+Period (in Conditions Conditions
+Yrs)
+● 5%-5%-5%-5%-5% ● Prepayment Penalty Period commences
+A
+● 5%-4%-3%-2%-1% on the Note Date and ends on the N th
+5
+year anniversary of the Note Date, where
+● 6 Months Interest B N is the Prepayment Penalty Period in
+Years selected at closing, ranging from
+● 5%-5%-5%-5% 1-5 years.
+A
+● 5%-4%-3%-2% ● A prepayment penalty fee will apply in
+4
+the event any unscheduled principal is
+● 6 Months Interest B A received (a Curtailment) within the
+Prepayment Penalty Term, including
+● 5%-5%-5%
+A when the loan is paid off in full for any
+Prepayment Penalty ● 5%-4%-3%
+reason.
+3
+● The prepayment penalty fee is equal to
+● 6 Months Interest
+B the Prepayment Penalty Percent in
+effect at the time of the prepayment,
+which may change each year on
+● 5%-5%
+A anniversary of the Note Date, multiplied
+● 5%-4%
+by the Curtailment amount
+2
+● 6 Months Interest
+B ● Prepayment Penalty Period commences
+on the Note Date and on ends the N th
+year anniversary of the Note Date, where
+● 5% A
+N is the Prepayment Penalty Period in
+1 Years selected at closing, ranging from
+● 6 Months Interest
+B 1-5 years.
+● A prepayment penalty fee will apply
+B
+when unscheduled principal is received
+(This Curtailment) within the
+Prepayment Penalty Term that, when
+added to all other prior unscheduled
+principal received within 12 months
+immediately preceding the date of This
+Curtailment, exceeds 20% of the original
+
+=== PAGE 25 ===
+principal amount of the note (Twelve
+Months Excess Curtailments). This
+Curtailment includes scenarios where
+the loan is paid off in full for any
+reason.
+● The prepayment penalty fee is equal to
+the 6 months advanced interest (at the
+Note Rate) on the Twelve Months
+Excess Curtailments amount
+State Restrictions:
+● Prepayment penalties are not allowed in AK, KS, MD, MI, MN, NM, RI
+● MS : For 1-unit properties, prepayment penalties must be declining (e.g. 5%-4%-3%-2%-1%, or 5%-4%-3%)
+● IL : Prepayment penalties only allowed on loans made to LLCs, General Partnerships, Limited Partnerships, and
+Corporations
+○ Cook County: Only allowed where Loan Amount > $250K (all state restrictions also apply)
+● NJ: Prepayment Penalties are only allowed on loans made to an S-Corp or C-Corp
+● OH: Prepayment penalties not allowed on 1 or 2 unit properties
+● PA: Penalties not allowed on 1-2 unit properties with loan amounts less than $319,777 (Adjusts annually)
+● Single Family Detached
+● Single Family Attached
+Property: ● PUDs
+Eligible Types ● Low - rise and High-rise condominiums (see Condominium section)
+● Leasehold Properties
+● 2 -4 Units (s ee Additional Criteria section above)
+● Manufactured or Mobile homes
+● Properties with fractional ownership
+● Units in a co-op development
+● Single Family properties < 700 sq. ft
+● Properties > 20.00 acres (no truncating allowed)
+● Properties with zoning violations or illegal use
+● Working farms
+● Properties zoned agricultural, commercial, or industrial
+● Properties with agricultural features (e.g., vineyards, farms, hobby farms, ranches, orchards, equestrian facilities)
+Property:
+● Properties under construction
+Ineligible Types
+● Properties with mandatory Country Club Memberships
+● Ineligible condo projects /features:
+○ Condotels
+○ Units subject to timeshare arrangements
+○ Any project in litigation, arbitration, mediation, or other dispute regarding safety, soundness, habitability or
+functional use of the project .
+○ Condos projects with registration services or restrictions on owner’s ability to occupy
+○ Live / Work Condos
+
+=== PAGE 26 ===
+○ Assisted Living / Continuing Care Facilities
+○ Any project that requires Private Transfer Fees as a part of the transaction, and those fees do not benefit the
+association
+● Properties used for the cultivation, distribution, manufacture, or sale of marijuana
+● Condition rating of C6 on the appraisal
+● Vacant land or land development properties
+● Mixed -Use properties (including those with daycare, doctor’s office, etc)
+● Unique Properties
+● Multi - family units where a single deed conveys ownership of more than one, or all of the units
+● Properties used as boarding houses, bed/breakfast, or single room occupancy
+● Properties used as healthcare facilities (e.g., assisted living, elder care, recovery/treatment)
+● Properties used as group homes
+● Properties with more than 4 units
+● Dome or geodesic properties
+● Earth berm homes
+● Properties on Native American Land (Reservations) or Hawaiian Home Lands
+● Log homes
+● Hawaii properties located in lava zones 1 and/or 2
+● Houseboats
+● Properties with solar panels and other energy efficient items financed with a PACE or HERO loan are not eligible
+unless the loan is paid off at or prior to closing.
+● Builder model leaseback
+● Multiple dwellings on a single lot (legal ADU acceptable, limited to one)
+● Zoning Violations
+● Theme Par k Resort Properties
+● Barndominiums
+● Rural properties
+1-4 Unit Properties:
+● Policies must provide for coverage on a replacement cost basis, except for roofs.
+● Roofs must be insured. Policies that provide for coverage on an actual cash value (ACV) basis are acceptable for
+roofs, personal property, and structures that are not buildings.
+● The maximum deductible for all required perils is 5% of the property insurance coverage amount.
+Master Property Insurance for Condominium and PUD 1 Projects:
+● The master property insurance policy must provide coverage on a replacement cost basis, with the exception of
+roofs.
+Property Insurance
+● Roofs must be insured. Policies that provide coverage on an actual cash value (ACV) basis are acceptable for roofs,
+personal property, and certain property elements.
+● The master property insurance policy coverage amount must equal at least 100% of the estimated replacement cost
+value (RCV) of the project improvements, including common elements and residential structures. One of the
+following must be used to document coverage sufficiency:
+o Guaranteed replacement cost coverage, or its equivalent;
+o Extended replacement cost coverage, or its equivalent;
+o A replacement cost value estimate provided by the insurer;
+
+=== PAGE 27 ===
+o The project’s insurance risk appraisal; or
+o A statement validating the coverage amount is at least 100% of the RCV of the project’s improvements,
+common elements, and residential structures from the insurer or other applicable professional with
+appropriate expertise to make such a determination.
+● The maximum deductible for all required perils is 5% of the master property insurance coverage amount. Refer to the
+Fannie Mae Selling Guide for per unit deductible requirements when applicable.
+Individual Unit Property Insurance (HO-6)
+● The HO-6 policy must provide coverage on a replacement cost basis.
+● If the master property insurance policy includes a per unit deductible applicable to a specific required peril, the unit
+owner’s property insurance policy must include coverage for that peril.
+● The maximum deductible for all required property insurance perils is the greater of 5% of the property insurance
+coverage amount or $2,500.
+Note: An HO-6 policy cannot be used to satisfy insufficient master property insurance coverage. Building Ordinance or Law
+Coverage cannot be used to offset insufficient master property insurance coverage.
+1 Applies to PUD projects where the project’s legal documents provide for a master property insurance policy that covers both the
+common elements and residential structures.
+Flood Insurance
+● Flood insurance is required when a loan is secured by a property located in a:
+○ Special Flood Hazard Area (SFHA); or
+○ Coastal Barrier Resource System (CBRS) or Otherwise Protected Area (OPA)
+○ Must meet all Fannie Mae requirements.
+Rent Loss Insurance
+● Rent loss insurance for the subject property is required and must equal at least 6 months of local average monthly
+rents
+○ Blanket policies covering the subject are permitted.
+Vacant Properties
+● Properties that are vacant must have the appropriate hazard insurance policy for vacant properties
+Follow Fannie Mae policy for items not addressed.
+● When the subject property is being resold within 365 days of its acquisition by the seller and the sales price has
+increased more than ten (10%), the transaction is considered a “flip”.
+○ To determine the three hundred sixty-five (365) day period, the acquisition date (the day the seller became
+the legal owner of the property) and the purchase date (the day both parties executed the purchase
+Property Flips
+agreement) should be used
+● Flip transactions are subject to the following requirements:
+○ All transactions must be arm’s length, with no identity of interest between the buyer and property seller or
+other parties participating in the sales transaction. See Non-Arms Length Transactions section
+
+=== PAGE 28 ===
+○ No pattern of previous flipping activity may exist in the last 12 months. Exceptions to ownership transfers
+may include newly constructed properties, sales by government agencies, properties inherited or acquired
+through divorce, and sales by the holder of a defaulted loan
+○ The property was marketed openly and fairly, through a multiple listing service, auction, for sale by owner
+offering (documented) or developer marketing
+○ The property seller must be the owner of record
+○ No assignments of the contract to another buyer
+○ Increases in value should be documented with commentary from the appraiser and recent comparable sales.
+■ Sufficient documentation to validate the actual cost to construct or renovate (e.g., purchase
+contracts, plans and specifications, receipts, invoices, lien waivers, etc.) must be provided, if
+applicable.
+○ If the property is being purchased for more than 5% above the appraised value, a signed letter of
+acknowledgement from the Borrower must be obtained
+○ A second appraisal is required, prior to closing, in the following circumstances:
+■ Greater than ten (10%) increase in sales price if seller acquired the property in the past 90 days
+■ Greater than twenty (20%) increase in sales price if seller acquired the property in the past 180 days
+■ The second appraisal must be dated prior to the loan consummation/note date.
+■ The Borrower may not pay for the 2nd appraisal
+○ Flip transactions must comply with the HPML appraisal rules in Regulation Z.
+● Bank owned REO and Corporate Relocations are eligible and not considered a flip transaction.
+● The qualifying rate is the note rate for fixed rate and ARM transactions.
+○ For ARM transactions in MN, the qualifying rate is the higher of the fully indexed rate or the note rate
+● The qualifying payment is based on the principal and interest payment along with 1/12th of the annual real estate
+taxes, property insurance, other insurance premiums, and any associated dues.
+Qualifying Payment
+○ The Qualifying payment is based upon the amortization term
+● For interest only loans,
+○ The qualifying payment is the interest payment, calculated at the qualifying rate, along with 1/12th of the
+annual real estate taxes, property insurance, other insurance, and any associated dues.
+● The Debt Service Coverage Ratio (DSCR)
+○ Gross Rental Income / Qualifying Payment
+DSCR Ratio
+● Minimum DSCR Ratio >= 0.75. No Ratio is also permitted
+● See Rental Income section for requirements to determine the Gross Rental Income
+● Refinance Transactions
+○ Properties that have been listed for sale by the borrower less than or equal to 6 months from the note date
+Recently Listed
+may not be currently listed at the time of loan application and will require a LOE signed by the borrower and
+Properties
+evidence the listing is cancelled.
+■ Multiple listings within 12 months of the note date are ineligible
+
+=== PAGE 29 ===
+Long-term Rental Income
+● Gross Rental Income is calculated using the lower of:
+○ Executed Lease Agreement or 1007/1025 Market rent from a ppraisal (both must be included in the loan file)
+■ Note: The executed lease agreement is not required for purchase transactions where the lease is not
+being transferred or there is no lease in place.
+○ If the executed lease agreement reflects a higher monthly rent than the appraisal, it may be used in the
+calculation provided that the most recent three consecutive months of receipt can be documented with
+cancelled checks or other electronic records
+Short-term Rental Income
+● Short -Term Rental Income
+○ Eligibility
+■ Short-term rental income is permitted for both purchase and refinance transactions
+■ Short-term rental income must be legally permitted and considered common for the area, as
+confirmed by the appraisal and/or property location
+■ LTV/CLTV limits and DSCR floors specified in Additional Criteria are met
+○ Documentation Requirements
+■ Short-term rental income may be documented using a supplemental appraisal form completed by
+the licensed appraiser who performed the original appraisal. The form must accompany and be
+part of the original appraisal.
+■ Income must be verified through a third-party property management provider
+Rental Income
+● Vendors such as Airbnb, VRBO, and HomeAway are acceptable
+● Documentation must include the property address or a unique property ID specific to the
+subject property
+○ Calculation
+■ Purchase Transactions
+● Gross rent is 100% of the estimated market rent from:
+o Form 1007/1025 OR
+o Supplemental appraisal form completed by the appraiser of record
+■ Refinances
+● Use the lower of the following:
+○ 100% of the estimated market rent from:
+■ Form 1007/1025 OR
+■ Supplemental appraisal form completed by the appraiser of record
+AND
+○ 100% of the actual 12-month short-term rental income history, supported with
+documentation from Airbnb, VRBO, HomeAway, or a third-party management
+provider.
+■ A full 12 month history is required for refinance transactions
+Vacant Properties For Refinance Transactions
+● Vacant properties are not eligible for refinance transactions unless:
+
+=== PAGE 30 ===
+○ The subject property recently underwent renovations or rehab with the intention of being rented out soon
+AND
+○ The appraiser confirms that renovations/rehab were recently completed and provides visual evidence.
+● If the foregoing conditions are met, utilize the market rent from the 1007/1025 or supplemental appraisal form
+completed by the appraiser of record
+Assignment of Rents
+● The 1-4 Family Rider (Fannie Mae Form 3170) must be in the file
+Loan Amount Minimum Reserve Requirements For Subject Property
+<= $500,000 3 months
+$500,001 to $2,000,000 6 months
+Reserves
+● Reserves are calculated off the actual P&I plus taxes, insurance, and HOA fees (if any) (PITIA)
+● Reserves for Interest Only loans are based upon the initial interest only payment (ITIA)
+● Reserves are only required for the subject property.
+● See Asset section for documentation requirements
+● Cash out proceeds may be used to satisfy the reserve requirement
+● PACE loans (or any similar loans with payments that are included in property taxes or take lien priority) are not
+eligible
+Solar Panels
+● Follow all Fannie Mae guidelines
+State Restrictions ● See Prepayment Penalty Section
+Subordinate Financing ● Not permitted (new and existing)
+Tax Transcripts ● 4506-Cs not required/not applicable
+Temporary Interest Rate
+● Not Eligible
+Buydowns
+● A title policy or attorney opinion letter meeting all of Fannie Mae’s requirements is required
+● UCC filings must be removed or subordinated
+● All judgements or liens affecting title must b e paid, including but not limited to PACE liens or other liens on title tied
+to energy efficient improvements must be removed.
+○ Subordination is not acceptable.
+Title
+● Loans with private transfer fee covenants are ineligible unless such covenants are “excepted transfer fee covenants”.
+Excepted transfer fee covenants are covenants that:
+○ Require payment of a private transfer fee to a covered association (homeowner associations,
+condominiums, etc.) and limits the use of such transfer fees exclusively to purposes which provide a direct
+benefit to the real property encumbered by the private transfer fee covenants
+Pennymac will originate in accordance with the applicable underlying Investor requirements unless otherwise noted in the Pennymac
+guidelines. Pennymac does not discriminate in any aspect of a credit transaction on the basis of sex, gender identity or expression, sexual
+orientation, marital status, familial status, race, color, ethnicity, religion, national origin, age, handicap or disability status, income derived from
+public assistance, military status or the good faith exercise of rights under the Consumer Credit Protection Act.

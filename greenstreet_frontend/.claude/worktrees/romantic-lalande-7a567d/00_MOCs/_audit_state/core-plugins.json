@@ -1,0 +1,28 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Core Plugins
+entities:
+  - tax/pal
+source: _obsidian_vault/.obsidian/core-plugins.json
+vaulted_at: 2026-06-20
+---
+[
+  "file-explorer",
+  "global-search",
+  "switcher",
+  "graph",
+  "backlink",
+  "outgoing-link",
+  "tag-pane",
+  "page-preview",
+  "daily-notes",
+  "templates",
+  "note-composer",
+  "command-palette",
+  "markdown-importer",
+  "outline",
+  "word-count",
+  "file-info"
+]

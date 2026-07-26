@@ -1,0 +1,21 @@
+# Unique Content Review
+
+- Row key: dc7fe668a4
+- Source path: 01_research_notes/The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md
+- Archived path: 01_research_notes/_archive/superseded_by_docs_research_2026-06-28/The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md
+- Replacement path: docs/research/specs/The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md
+- Coverage decision: BORDERLINE_REVIEW
+- Block coverage: 0.9762
+- Unique words: 125
+- Preliminary classification: ROOT_NOTE_UNIQUE_CONTENT_REVIEW
+- Review copy: 00_MOCs\reconciliation_unique_review_verified_2026-06-28\restored_for_review\dc7fe668a4__01_research_notes__The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md
+
+## Unique Headings
+- None found by heading comparison.
+
+## First Unique Blocks
+
+### Block 1
+```text
+--- type: research status: drafted confidence: 3 title: "The 2026 DSCR Master Knowledge Paper: A Comprehensive Blueprint for the 20X DSCR Deal Engine" summary: This Master Knowledge Paper synthesizes all available documentation regarding the Debt Service Coverage Ratio (DSCR) lending landscape, the entities: - concept/cap-rate - concept/dscr - concept/io - concept/itia - concept/ltv - concept/pitia - ml/xgboost - regulation/ecoa - tax/pal - topic/str tags: - concept/io - ml/xgboost - topic/architecture - topic/compliance - topic/insurance - topic/llpa - topic/monte-carlo - topic/portfolio - topic/ppp - topic/reserves - topic/short-rate - topic/stress-test - topic/tax source: The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md vaulted_at: 2026-06-20 --- # The 2026 DSCR Master Knowledge Paper: A Comprehensive Blueprint for the 20X DSCR Deal Engine
+```

@@ -1,0 +1,1538 @@
+
+
+===== PAGE 1 =====
+
+From Signal Processor to Institutional
+Simulator: Architecting a Multi-Engine
+DSCR Sovereign OS for Commercial Real
+Estate Credit Risk
+Hardening the EGI Forecasting Engine: Resolving
+Technical and Mathematical Gaps
+The foundation of the Debt Service Coverage Ratio (DSCR) Sovereign OS lies in its ability
+to generate highly accurate and probabilistically sound forecasts of Effective Gross
+Income (EGI). This requires transforming Google's TimesFM 2.5 from a general-purpose
+time-series model into an institutionally robust engine capable of withstanding the rigors
+of real-world data and extreme market stress 187. The initial blueprint correctly identifies
+TimesFM as a powerful tool for revenue prediction, but moving towards a production-
+grade system necessitates addressing eight critical technical gaps that span tokenization,
+distributional integrity, and computational efficiency 8 295. These issues, if left
+unaddressed, would render any subsequent credit analysis based on the EGI forecast
+fundamentally flawed and non-defensible. The first track of the research plan, therefore,
+focuses exclusively on hardening the core forecasting engine before integrating it with
+more complex structural models.
+A primary mathematical pitfall identified is the "Log-Return Error Compounding Trap"
+10. The initial approach of forecasting log returns (yt=log(rentt/rentt−1)) and
+reconstructing the rent path via a cumulative product is a known issue in quantitative
+finance for multi-step forecasting horizons 45. Because variance is additive over time, the
+uncertainty of the cumulative sum grows proportionally with the forecast horizon. When
+this cumulated sum is exponentiated to revert to the original scale of raw rents, the right
+tail (P90) explodes to unrealistic levels, while the left tail (P10) collapses towards zero
+6 . This phenomenon makes the model's stress-test outputs useless, as it suggests a
+property could either become wildly profitable or completely worthless overnight. The
+recommended solution is not to abandon the log-scale entirely but to leverage TimesFM's
+native architectural features more effectively. The model incorporates Reversible Instance
+Normalization (RevIN), which scales each instance in the context window to have a mean
+
+===== PAGE 2 =====
+
+of zero and a standard deviation of one before processing 47176. This internal
+normalization is mathematically superior to manual log-transforms for preventing tail
+explosion over a long horizon, such as a 12-month projection 105. An alternative, equally
+valid approach is to forecast MSA-detrended rents, calculated as Rent /
+MSA_Zillow_Rent_Index 12220. This method removes macroeconomic drift while
+preserving the local variance of the property's rent trajectory, allowing the model to focus
+on idiosyncratic performance relative to its market. Both approaches—relying on RevIN
+or using detrended inputs—are demonstrably more robust than the naive log-return
+reconstruction method.
+Beyond mathematical correctness, the practical implementation of TimesFM's
+architecture presents significant challenges related to data topology and tokenization.
+The model uses a patch-based tokenizer similar to PatchTST, where the input sequence is
+divided into fixed-length patches 23. If the configured context_len (the historical
+period fed into the model) is smaller than the model's default patch_len, the input is
+heavily zero-padded. This dilutes the attention mechanism, causing the model to treat
+"no data" as "zero rent," which corrupts its understanding of the underlying patterns 20.
+To resolve this, the context_len must be explicitly aligned to be a multiple of the
+patch_len. For example, if the model's patch_len is 32, a context length of 24
+months must be adjusted to 32 or 64 months. This can be achieved by either truncating
+older data or padding with a "property age" covariate. Crucially, the custom dataset
+loader must generate an explicit attention_mask tensor. This binary mask tells the
+Transformer to ignore the padded portions of the input, preventing the model from
+learning spurious correlations from the zeros 43. Another critical implementation detail
+is the strict separation of past and future covariates. TimesFM 2.0+ architecture has
+separate channels for past_covariates and future_covariates. Mixing these two
+types of variables into a single tensor will silently corrupt the cross-attention mechanism,
+leading to subtle lookahead bias where the model inadvertently uses future information
+to predict the present 43. The data loader must be meticulously designed to route
+variables correctly: past_covariates should include lagged features like trailing
+vacancy rates and delinquency flags, while future_covariates should contain
+deterministic information like SOFR forward curves, seasonality indicators, and the
+aforementioned MSA-level macro anchors 159.
+Furthermore, real-world property management data is inherently messy, often containing
+periods of missingness due to unit renovations or administrative oversights 20. Treating
+these "dark months" as null values or imputing them naively (e.g., with a simple forward-
+fill) can destroy the model's understanding of local variance and lead it to interpret a
+planned renovation as a catastrophic market crash. The proposed upgrade is to introduce
+
+===== PAGE 3 =====
+
+a Missingness Indicator Covariate, a binary flag that signals whether a given month's data
+was observed or imputed 20. While the raw rent data itself can be forward-filled, the
+attention mechanism will now see the is_missing flag. The model can learn to
+automatically widen the P10-P90 confidence bands during periods marked by this flag,
+thereby accurately reflecting the higher uncertainty of the data during those times. This
+nuanced handling of missing data is essential for building trust in the model's
+probabilistic outputs.
+Finally, the probabilistic nature of the forecast must be managed rigorously to ensure
+mathematical validity for downstream applications like Monte Carlo simulation. Standard
+quantile regression heads, optimized independently with Pinball loss, are prone to
+"quantile crossing," where a higher quantile (e.g., P90) becomes lower than a lower one
+(e.g., P50) for volatile properties or thin markets 14. This violates the axioms of
+probability theory and breaks any logic built upon the joint distribution of outcomes,
+potentially resulting in negative variances or other nonsensical results. One solution is to
+add a non-crossing penalty term to the loss function, such as lambda⋅max(0,qlow−qhigh)
+112. However, a more elegant and robust solution is to shift from predicting discrete
+quantiles to parameterizing a full probability distribution. By configuring the TimesFM
+head to output the parameters of a Student-T distribution (μ, σ, ν)—the location,
+scale, and degrees of freedom—the model can be optimized using Negative Log-
+Likelihood (NLL) 101. The Student-T distribution is particularly well-suited for modeling
+CRE data, which is known to exhibit heavy tails and excess kurtosis compared to a
+normal distribution 3 8 . Once the distribution is fitted, the P10, P50, and P90 quantiles
+can be analytically derived from its cumulative distribution function, guaranteeing they
+are strictly monotonic by construction 114276. This ensures the mathematical consistency
+required for feeding reliable, behaviorally realistic scenarios into the broader credit
+simulation framework. The table below summarizes the key upgrades for the TimesFM
+engine.
+
+===== PAGE 4 =====
+
+Gap / Problem Description Recommended Upgrade
+Blindspot
+Log-Return Forecasting and exponentiating log returns causes Forecast Raw Rents or MSA-Detrended Rents (Rent /
+Trap severe tail-risk explosion over multi-step horizons, MSA_ZRI) and rely on TimesFM's native Reversible Instance
+making stress tests unrealistic. Normalization (RevIN) for scaling. 10 47105
+Patch Context lengths smaller than the model's patch size Align context_len to be a multiple of the patch_len (e.g., 32,
+Alignment lead to excessive zero-padding, diluting attention 64 months). Use an attention_mask to ignore padded
+and degrading accuracy. timesteps. 23361
+Covariate Mixing past and future covariates in a single tensor Implement a custom data collator that strictly separates
+Routing corrupts the causal cross-attention mechanism, past_covariates and future_covariates into their own
+creating subtle lookahead bias. tensors. 43
+Missingness Treating unreported or offline months as null or 0 Introduce a Missingness Indicator Covariate (binary flag).
+Handling destroys local variance and can signal false crashes. Forward-fill rent data but let the model condition uncertainty on
+the flag. 20
+Quantile Independent optimization of quantile heads can Replace discrete quantile heads with a Distributional Head that
+Crossing produce illogical results (e.g., P90 < P50), predicts parameters of a Student-T distribution (μ,σ,ν) using NLL
+breaking downstream Monte Carlo logic. loss. 14101113
+By systematically addressing these eight technical and mathematical gaps, the TimesFM
+engine is transformed from a clever forecasting pipeline into an institutionally robust
+component of the Sovereign OS. It becomes a source of trustworthy, mathematically
+consistent, and computationally efficient EGI forecasts, setting a solid foundation upon
+which the more complex structural and behavioral models of Track B can be built.
+Enhancing Spatial and Regime Awareness for Cross-
+Sectional Generalization
+While resolving the immediate technical flaws of the TimesFM engine is crucial, true
+production readiness requires equipping the model with the ability to understand its
+economic and market context. A model that treats every property as an isolated universe
+fails to capture the shared macroeconomic forces that drive entire markets, limiting its
+generalization capability and scalability 12. Furthermore, financial and real estate
+markets are subject to structural breaks and regime shifts, where the statistical properties
+of asset returns change abruptly. A monolithic model trained across different regimes will
+inevitably produce a "mushy" average that performs poorly in any single environment.
+The second phase of the research plan addresses these limitations by introducing two
+powerful concepts: Cross-Sectional Macro Anchors for spatial generalization and Regime-
+Blended LoRA adapters for dynamic adaptation to changing market conditions. Finally,
+the entire optimized model must be deployed using high-performance inference tools like
+
+===== PAGE 5 =====
+
+ONNX and TensorRT to meet the stringent latency requirements of a real-time
+underwriting API.
+The most significant limitation of a purely autoregressive model is its blindness to
+geography. TimesFM, in its vanilla form, learns patterns within a single property's history
+but lacks any awareness of its surroundings. A duplex in Austin and another in Miami are
+treated as completely unrelated entities, forcing the model to relearn basic economic
+principles like supply and demand for every single asset it encounters 20. This severely
+hampers its ability to generalize out-of-sample, especially when dealing with new MSAs
+or thin markets. The solution is to inject Cross-Sectional Anchors directly into the
+model's input. This involves feeding MSA-level macroeconomic indicators, such as the
+Zillow Rent Index (ZRI) or local MSA vacancy rates, into the future_covariates
+channel for every property within that MSA 12220. By doing so, the model's attention
+mechanism receives a powerful "macro anchor," enabling it to learn that when MSA
+vacancy spikes, the rent trajectory of a specific property in that area is likely to follow suit
+12. This technique leverages the principle of cross-domain transfer learning, where
+knowledge from a dense domain (MSA-level indices) helps inform predictions in a sparse
+domain (individual property rents) 67. The effectiveness of this approach can be
+rigorously tested using a Geographic Hold-Out Test, where the model is trained on 90%
+of MSAs and validated on the remaining 10%. The success metric would be a significant
+reduction in Mean Absolute Percentage Error (MAPE) on the hold-out MSAs compared to
+a baseline model without these macro anchors, demonstrating improved spatial
+generalization 20.
+Equally important is the model's ability to adapt to changing market regimes. The period
+before 2022 was characterized by historically low interest rates and strong capital flows
+into CRE, while the post-2022 era has been defined by aggressive rate hikes and
+economic uncertainty 7 331. A single LoRA adapter trained on a mix of pre- and
+post-2022 data will fail to capture the unique dynamics of either period, producing a
+compromised model that is highly accurate for neither. The proposed solution is Regime-
+Aware Specialist Routing, specifically through the use of Regime-Blended LoRA 61132.
+Instead of one monolithic adapter, the system trains multiple specialized LoRA modules:
+• Adapter A (LoRA-Zero): Fine-tuned exclusively on low-rate regime data (e.g.,
+2015–2021).
+• Adapter B (LoRA-One): Fine-tuned exclusively on high-rate/inflation regime data
+(e.g., 2022–Present).
+
+===== PAGE 6 =====
+
+Both adapters are trained with identical hyperparameters (e.g., rank r=16, alpha α=32)
+on specific layers of the TimesFM model 11243. At inference time, a lightweight gating
+network or a simple heuristic (e.g., based on the current SOFR rate or 10-Year Treasury
+yield) dynamically blends the weights of the two adapters. For instance, the final weight
+update can be calculated as Wfinal=Wbase+γ⋅WZero+(1−γ)⋅WOne, where γ is a
+blending coefficient determined by the current macro environment 62. This creates a
+regime-aware model that can fluidly transition its predictive logic from a "low-rate" mode
+to a "high-rate" mode without requiring continuous retraining. The success of this
+approach is measured by comparing the Continuous Ranked Probability Score (CRPS)
+and Pinball Loss of the blended model against the monolithic model, with a particular
+focus on its performance on recent vintages (e.g., 2023–2024) that straddle the regime
+boundary 328.
+Once the model is architecturally hardened and made aware of its environment, the final
+step is production optimization. Running a 500M parameter transformer via
+HuggingFace's native Python Trainer is far too slow for a real-time underwriting API
+expected to process thousands of applications per minute and run large-scale Monte
+Carlo simulations 188. The latency bottleneck must be addressed head-on. The
+recommended upgrade is to export the merged base model and active LoRA adapters to
+the ONNX format, followed by compilation with NVIDIA TensorRT 258339. This process
+involves several stages. First, the trainable LoRA weights are merged into the frozen base
+model weights, creating a single, larger model ready for deployment 342. Second, this
+merged model is exported to the open-standard ONNX (Open Neural Network Exchange)
+format, which acts as a universal translator for machine learning models 150. Third, the
+ONNX graph is compiled using NVIDIA TensorRT, a high-performance deep learning
+inference optimizer and runtime. TensorRT performs numerous optimizations, including
+layer and tensor fusion, kernel auto-tuning for the target GPU architecture (e.g., A10G/
+A100), and mixed-precision inference using FP16, which can significantly reduce memory
+usage and bandwidth requirements 149151. The success of this stage is measured by
+achieving sub-20ms latency per property for batch sizes relevant to an API call, while also
+ensuring throughput exceeds 500 properties per second. Critically, a TensorRT Parity
+Report must be generated, using cryptographic hashes or statistical tests to prove that the
+optimized inference engine produces outputs that are numerically identical (within a very
+small tolerance, e.g., &lt; 1e^{-3} ) to the original PyTorch model, thus ensuring no
+degradation in forecast accuracy 96189. This combination of architectural intelligence and
+computational speed transforms the forecasting engine into a production-ready
+component capable of powering a scalable, real-time credit decisioning platform.
+
+===== PAGE 7 =====
+
+The NOI Illusion: Simulating Physical Asset Degradation
+and Contractual Risk
+Moving beyond the perfected EGI forecast, the next critical leap is to confront the
+fundamental disconnect between top-line revenue and bottom-line profitability. A
+smooth, continuous time-series of rent payments, which TimesFM excels at predicting,
+does not map cleanly to Net Operating Income (NOI) 17. The gap between EGI and NOI
+is primarily filled by Operating Expenses and Capital Expenditures (CapEx). While
+operating expenses may exhibit some degree of correlation with rent growth, CapEx is a
+distinctly different beast: it is a lumpy, adversarial, and unpredictable shock event 90116.
+A property might experience a decade of flawless rent growth only to face a catastrophic
+failure of its HVAC system or roof replacement in a single year, costing hundreds of
+thousands of dollars. Such an event can instantly crush the DSCR, triggering a technical
+default or depleting a debt service reserve 116. This is the "NOI Illusion": the mistaken
+belief that a stable EGI forecast implies a stable NOI. Pure forecasting models are blind to
+this risk. The solution is to construct a parallel Physical Degradation & CapEx Module
+that simulates these stochastic shocks and subtracts them from the TimesFM-generated
+EGI to produce a more realistic, stressed NOI distribution.
+To model CapEx, the research plan targets "best-in-class" methodologies used by
+institutional real estate investment trusts (REITs) and asset managers 5 . Two prominent
+techniques are Markov-Modulated Poisson Processes (MMPP) and Survival Analysis
+using Weibull distributions 86 88 89. An MMPP is a powerful framework for modeling the
+arrival of events (like equipment failures) whose rate is governed by an underlying
+Markov chain representing the system's state (e.g., "good," "fair," "poor"). For a property,
+the states could be influenced by factors like building age and local weather extremes.
+This allows the model to simulate the probability of a lumpy CapEx event occurring in
+any given period, capturing the "adversarial" nature of asset maintenance 86. Survival
+analysis, on the other hand, models the time-to-failure of specific assets (e.g., a boiler).
+By fitting a Weibull distribution to historical failure data for a piece of equipment, the
+model can estimate the probability of failure at any point in the future, conditioned on its
+age 88. Combining these methods, the CapEx module can draw stochastic shocks from a
+portfolio of potential failure modes, weighted by the property's characteristics. The
+output is not a single value but a full probability distribution of CapEx for each future
+period, which is then subtracted from the corresponding EGI distribution to yield a true,
+distributional NOI.
+
+===== PAGE 8 =====
+
+This need for granular physical modeling extends to the contractual terms governing the
+property's income stream. The research plan correctly identifies a second blindspot:
+Lease Structure Blindness 136273. TimesFM sees a dollar amount on a rent roll but has
+no way of knowing if that rent is protected from inflation and operating expense
+increases. The distinction between a Gross Lease, a Triple Net (NNN) Lease, and a
+Modified Gross Lease is a cornerstone of CRE underwriting 136. In a Gross Lease, the
+landlord is responsible for all operating expenses, including taxes, insurance, and
+maintenance. In a high-inflation regime, the landlord's expenses skyrocket while the
+tenant's rent remains fixed, destroying the DSCR margin. Conversely, in a NNN lease, the
+tenant is contractually obligated to pay these expenses, insulating the landlord from
+much of this risk 273. The fix is twofold. First, the data schema for the Sovereign OS must
+explicitly include a lease_structure_type feature. This can be represented as a
+categorical embedding that provides the model with direct information about the
+contractual risk profile. Second, the model's logic must be adapted to route economic
+indicators accordingly. Inflation indices like CPI and PPI should be passed as future
+covariates to the expense side of the equation, but only for properties with Gross or
+Modified Gross leases. For NNN properties, these indices would have little to no effect on
+the NOI calculation. This allows the OS to dynamically adjust the simulated NOI margin
+based on the specific contractual lease type, providing a far more accurate assessment of
+inflation risk than a model that treats all rent as fungible income.
+The following table details the "best-in-class" research targets and corresponding
+experiments for simulating physical reality and contractual risk.
+Blindspot Domain to Best-in-Class Models / Concepts Experimental Implementation
+Research to Hunt For
+CapEx Reliability Markov-Modulated Poisson Build a parallel CapEx & Expense Shock Engine. Simulate lumpy
+Shocks Engineering & Processes (MMPP), Weibull failure events based on property age and weather data, then
+REIT Operations Survival Curves for building subtract draws from the TimesFM EGI forecast to generate a true,
+components, Monte Carlo stressed Net Operating Income (NOI) distribution.
+simulation of reserve depletion.
+Lease CRE Contract Inflation Pass-Through Elasticity, Incorporate lease_structure_type as a categorical
+Structures Law & Inflation CPI lag models, formulas embedding. Route inflation indices (CPI, PPI) as future covariates
+Modeling quantifying margin degradation in only to the expense side of the NOI calculation for Gross/
+Gross vs. NNN leases. Modified Gross leases.
+By integrating these two modules, the Sovereign OS moves from being a simple revenue
+forecaster to a sophisticated simulator of physical and contractual realities. It
+acknowledges that a commercial property is not just a series of numbers but a physical
+machine bound by legal contracts. This enriched view of the asset's risk profile is essential
+for generating a truly comprehensive credit decision. The resulting simulated NOI
+distribution, which accounts for both the smooth trend from TimesFM and the lumpy
+
+===== PAGE 9 =====
+
+shocks from the degradation module, forms the bedrock of the subsequent valuation and
+optionality analyses. It is a more honest representation of the cash flows a lender is
+actually exposed to, bridging the gap between theoretical forecasting and practical asset
+management.
+Valuation Dynamics and Borrower Behavior at Loan
+Maturity
+Even with a robustly modeled Net Operating Income (NOI), a comprehensive credit
+simulation cannot end there. The ultimate security for a commercial real estate loan is
+the property itself, and its value is determined by a separate set of dynamics largely
+decoupled from the property's operational performance. The third major blind spot is the
+Cap Rate / Valuation Disconnect. Property Value is typically calculated as
+NOI/CapRate 28178. While the Sovereign OS may now forecast a stable or growing
+NOI, the denominator—the capitalization rate—is driven by external factors like bond
+market yields, credit spreads, and institutional investor sentiment 299300. It is entirely
+possible for a property to have a perfect NOI forecast while the broader market
+experiences a liquidity crisis, causing cap rates to expand by 200 basis points and
+cratering the property's value by 30% 335. This sudden drop in collateral value can trigger
+covenant violations even if the DSCR remains healthy, leaving the lender with an
+underwater loan. Therefore, the OS must incorporate a parallel Cap Rate Forecasting
+Model to project the denominator of the valuation equation.
+The research plan targets Vector Autoregression (VAR) models with macro-credit
+spreads as a "best-in-class" methodology for this task 121301. A VAR model allows for the
+simultaneous forecasting of multiple interrelated time series. In this case, the model
+would include not only macroeconomic variables like GDP growth and inflation but also
+key financial market indicators such as the yield on the 10-Year Treasury note plus a
+spread for corporate credit risk (e.g., the option-adjusted spread on high-yield bonds) 225
+366. This approach is grounded in the empirical finding that cap rates are strongly
+correlated with these broader market conditions 269300. By modeling these relationships,
+the OS can generate a forward-looking distribution of cap rates that reflects changes in
+the cost of capital and risk appetite throughout the economy. This projected cap rate
+distribution is then used in conjunction with the simulated NOI distribution to calculate a
+forward-looking property value and, subsequently, the Loan-to-Value (LTV) ratio at
+
+===== PAGE 10 =====
+
+various points in the future. This holistic view of LTV risk is critical for assessing the
+adequacy of the loan's collateral.
+The interaction between value and cash flow culminates at the most dangerous point in a
+CRE loan's life: maturity. This introduces two intertwined risks that pure cash-flow
+models miss: the Maturity Cliff and Strategic Default. The Maturity Cliff refers to the
+massive balloon payment that is characteristic of many CRE loans, which are often
+amortized over 30 years but have terms of only 5, 7, or 10 years 193. A borrower might
+maintain a perfect DSCR for 59 consecutive months, only to find themselves unable to
+refinance the loan at maturity because interest rates are high and/or the property's value
+has dropped 310. They default at maturity, not during the term, a risk completely invisible
+to a standard 60-month horizon forecast. The OS must include a Maturity Risk Classifier
+or Refinancing Wall Hazard Model. This module would simulate the macro-
+environment at the exact month of maturity and calculate the projected LTV and DSCR at
+refinance, outputting a "Probability of Refinance Failure" 236.
+The deeper, more insidious risk is Strategic Default, which challenges the very definition
+of creditworthiness. Traditional models assume default occurs when a borrower cannot
+pay their obligations (i.e., DSCR < 1.0). However, in CRE, strategic default happens
+when a borrower chooses to walk away, typically on a non-recourse loan 21. If the
+property becomes "underwater"—meaning its market value falls below the outstanding
+loan balance (LTV > 100%)—a rational sponsor with sufficient equity reserves may
+decide that continuing to pay mortgage debt on a depreciating asset is economically
+irrational 29. They will simply surrender the keys to the lender. The TimesFM forecast of
+positive cash flow is irrelevant in this scenario. To model this, the OS must integrate a
+Real Options / Valuation Engine based on the Merton Structural Model 239323.
+Originally developed for corporate credit risk, this model frames the borrower's equity as
+a call option on the firm's assets, with the debt acting as the strike price 77282. In the
+context of CRE, the property's value is the underlying asset, and the loan balance is the
+strike price. The model calculates a "distance to default" or "distance to LTV breach." If
+the simulated property value distribution frequently crosses below the loan balance, the
+model exponentially increases the Probability of Default (PD), regardless of how strong
+the TimesFM cashflow forecast remains 240241. This injects a powerful element of
+rational, value-driven behavior into the credit decision, acknowledging that a borrower's
+option to walk away is a real and priced risk. The integration of these three elements—
+cap rate forecasting, maturity wall analysis, and strategic default modeling—transforms
+the OS from a simple cash-flow tester into a sophisticated valuation-aware credit engine.
+
+===== PAGE 11 =====
+
+Adversarial Defense and Systemic Feedback
+Mechanisms
+The final layer of the Sovereign OS architecture must address risks that originate not
+from the property itself, but from the human actors within the system and the system's
+interaction with the broader economy. The first of these is Adversarial Origination, the
+practice of brokers and borrowers "gaming the rent roll" to secure financing 19. Before a
+loan is even originated, a broker might offer hidden concessions, such as "first two
+months free" or substantial tenant improvement allowances, to artificially inflate the
+contracted rent and make the historical DSCR look pristine 22. The 24-month context
+window fed into TimesFM becomes a pro-forma rather than a reflection of sustainable
+performance. The model, having learned this inflated baseline, will project it forward,
+only for the DSCR to collapse immediately after closing once the concessions expire. This
+is a classic case of training data contamination. The defense against this is an Adversarial
+Anomaly Detector that operates as an Origination Anomaly Gate before the TimesFM
+engine is ever invoked. This gate would use unsupervised machine learning algorithms,
+such as Isolation Forests or Time-Series Autoencoders, to vet the submitted rent roll for
+signs of manipulation 73 75. These models excel at identifying outliers and anomalies in
+multivariate data without prior labeling 81347. The detector could be trained to flag
+statistically improbable rent stability, sudden, unnatural spikes in occupancy right before
+origination, or discrepancies between the reported rent roll and corroborating data
+sources like bank transaction feeds (if available via open banking), utility hookups, or
+short-term rental scraping data 158346. By identifying and flagging these "too perfect" or
+suspicious context windows, the system can either reject the application outright or apply
+a significant discount to the valuation, preventing the model from ingesting fraudulent
+pro-formas.
+The second, more abstract risk is Goodhart's Law-induced market contagion. This law
+states that "when a measure becomes a target, it ceases to be a good measure" 78. If the
+DSCR Sovereign OS becomes highly successful and widely adopted by a lending panel, its
+own recommendations could alter the market it is trying to measure. For instance, if the
+OS consistently determines that properties in a certain zip code are risky and the lenders
+pull back capital, this withdrawal of liquidity can cause local vacancies to spike, property
+values to fall, and ultimately trigger the exact crash the model predicted. The model, in
+essence, becomes self-fulfilling. This is a profound systemic risk that is rarely considered
+in credit models. The proposed solution is a Macro-Feedback Simulator 308. Before
+deploying a new credit policy—for example, "Decline all loans with a P10 DSCR below
+1.15"—the OS must first simulate the macroeconomic consequences of that policy. Using
+
+===== PAGE 12 =====
+
+techniques from Spatial Econometrics like the Spatial Durbin Model (SDM) or Agent-
+Based Modeling (ABM), the simulator would test how the withdrawal of capital from
+targeted zip codes affects local vacancy and rent trajectories over the next 24 months 20
+308. The SDM, for example, explicitly models the spillover effects where the economic
+activity in one location is dependent on the activity in neighboring locations 20. This
+allows the system to adjust its baseline TimesFM anchors and recalibrate its risk
+assessments based on the anticipated feedback loop. This adds a crucial layer of stability
+analysis, ensuring that the OS's actions do not destabilize the very market it seeks to
+serve.
+The table below outlines the research targets and experimental approaches for these
+advanced risk mitigation modules.
+Blindspot Domain to Best-in-Class Models / Concepts to Experimental Implementation
+Research Hunt For
+Adversarial Fraud Detection & Isolation Forests, LSTM Deploy an Origination Anomaly Gate that runs before
+Origination Anomaly ML Autoencoders, Benford’s Law applied TimesFM. Flag context windows with statistically
+to rent rolls, comparison with improbable rent stability or occupancy spikes. Reduce
+localized bank account data. "Day-1 Defaults".
+Goodhart's Spatial Spatial Durbin Models (SDM), Agent- Build a Macro-Feedback Simulator. Stress-test policies
+Law / Econometrics & Based Modeling (ABM), Geographic by simulating the withdrawal of capital from specific
+Contagion Complexity Science Hold-Out Tests under simulated areas and measuring the induced rise in local vacancy and
+liquidity shocks. decline in rent. Ensure portfolio stability.
+These two modules elevate the Sovereign OS from a static credit evaluation tool to a
+dynamic, adaptive system that is conscious of its own influence on the market. The
+Adversarial Gate protects the integrity of the input data, while the Feedback Simulator
+promotes systemic stability. Together, they ensure that the credit decisions made by the
+OS are not only sound on an individual property level but also contribute to the health of
+the broader commercial real estate ecosystem. This represents a mature, holistic
+approach to risk management that goes far beyond the capabilities of conventional AI
+models.
+Synthesis, Integration, and Regulatory Defensibility
+Framework
+The culmination of this 16-week research program is the synthesis of five distinct, best-in-
+class engines into a single, unified Monte Carlo simulator. The Sovereign OS is not a
+
+===== PAGE 13 =====
+
+monolithic black box but a federated system where each engine contributes to a specific
+dimension of risk. This modular architecture enhances transparency, debuggability, and
+regulatory defensibility. The final system takes a property's initial characteristics and
+generates a distribution of possible future states, from which regulator-ready credit
+decisions can be mathematically derived. The integration process must be carefully
+orchestrated to ensure the logical flow of information and the mathematical consistency
+of the final outputs. Furthermore, a rigorous governance framework, centered on an
+"Evidence Vault," is paramount to meet the stringent requirements of modern model risk
+management (MRM) frameworks like the revised SR 26-2 203205.
+The logical workflow of the integrated Sovereign OS proceeds as follows: 1. Engine 5:
+Adversarial Gate: The process begins with the vetting of input data. Any newly
+submitted rent roll is first passed through the Adversarial Anomaly Detector to check for
+signs of origination fraud or gaming 75. If flagged, the application may be escalated or
+downgraded. 2. Engine 1: EGI (TimesFM + LoRA): Assuming the data passes
+inspection, the cleaned rent history is fed into the hardened TimesFM forecasting engine.
+This engine generates a full probability distribution for future Effective Gross Income
+(EGI) over the loan's term. 3. Engine 2: CapEx & Expense Shock: Simultaneously, the
+CapEx & Degradation Engine runs in parallel. Based on the property's age, square
+footage, and other attributes, it generates a stochastic distribution of lumpy capital
+expenditure shocks and inflation-linked operating expense increases 86 88. 4. Engine 3:
+Valuation & Cap Rate: The Valuation & Cap Rate Engine concurrently generates a
+distribution of future property values. This is done by combining the simulated NOI (from
+Engine 1 minus Engine 2) with a distribution of future cap rates, forecasted using a VAR
+model sensitive to macroeconomic and credit spread dynamics 121301. 5. Engine 4:
+Optionality & Maturity: The final engine evaluates the borrower's rational choices.
+Based on the joint distribution of simulated property values and loan balances, it
+calculates the probability of strategic default (LTV > 100%) using a Merton-based real
+options framework 29323. It also assesses the probability of refinancing failure at the
+loan's maturity date 236. 6. Monte Carlo Simulation: A Monte Carlo simulation executes
+this entire workflow for 10,000 paths. On each path, it samples a realization from each
+engine's output to create a complete picture of the loan's future trajectory. This process
+generates a final, consolidated distribution of outcomes for key metrics like DSCR over
+time, LTV at each reporting date, and the ultimate outcome of the loan (performing,
+technically defaulted, strategically defaulted, etc.).
+This integrated simulation produces outputs that are not only rich in information but also
+transparent in their derivation. Each engine's contribution can be analyzed and
+challenged, a critical requirement for regulatory scrutiny. To formalize this, the project
+
+===== PAGE 14 =====
+
+delivers a comprehensive DSCR Sovereign OS Model Card and an accompanying
+Evidence Vault 57160. The Model Card serves as the definitive document for regulators
+and internal auditors, detailing every aspect of the model's design and validation. Its
+contents must include:
+• Data Lineage: The exact version control commit hashes for all datasets used in
+training and validation, ensuring full traceability.
+• Hyperparameter Lock: Complete logging of all model and training parameters,
+tracked in a system like MLflow or Weights & Biases.
+• Calibration Backtests: Automated generation of calibration plots, analogous to
+Hosmer-Lemeshow tests, for the model's probabilistic outputs. For example, it must
+demonstrate that over 1,000 forecasts where the P10 DSCR was predicted to be 1.2,
+approximately 10% of actual outcomes fell below 1.2.
+• TensorRT Parity Reports: Statistical or cryptographic proofs verifying that the
+optimized inference engine produces outputs identical to the reference research
+model, ensuring no accuracy is lost in production.
+• Fair Lending Documentation: A detailed report on the monotonic constraints
+applied to the final credit decision layer to ensure compliance with fair lending
+regulations like the Community Reinvestment Act (CRA) 363.
+By adopting this federated architecture and a rigorous governance framework, the DSCR
+Sovereign OS transcends the limitations of pure AI forecasting. It evolves from a signal
+processor into a comprehensive, institutionally robust structural simulation. It models the
+property not as a time-series, but as a physical machine; the loan not as a simple
+obligation, but as a contingent claim on that machine;ctive power.
+Inter-Engine Dependencies and Feedback Loops: Managing Systemic
+Complexity
+The five-engine architecture is elegant in theory, but its practical implementation hinges
+on the careful design of inter-engine dependencies. A simulated hurricane (affecting
+CapEx via Engine 2) will likely increase local vacancy rates, which in turn affects the
+MSA-level ZRI anchor fed into Engine 1. A tightening of credit spreads (from Engine 3's
+VAR model) will increase the cost of capital, which could reduce the probability of
+refinancing (Engine 4) and also impact the borrower's willingness to invest in CapEx
+(Engine 2). Recommendation: The integration phase must include a dedicated "feedback
+loop mapping" exercise. This involves creating a formal dependency graph and
+developing protocols for how shocks propagate between engines, potentially requiring
+iterative, coupled simulations rather than simple sequential execution.
+
+===== PAGE 15 =====
+
+Computational Cost and Latency: The Real-World Bottleneck
+While Track A optimizes the TimesFM inference to sub-20ms, the overall system latency
+will be dominated by the sequential execution of five complex engines, each running
+Monte Carlo simulations. Running 10,000 paths across five engines for thousands of
+loans in real-time is a massive computational undertaking. Recommendation: A detailed
+cost-benefit analysis must be conducted to determine the optimal granularity of the
+simulation. This could involve techniques like importance sampling to focus
+computational resources on the most critical "tail" scenarios, or the use of surrogate
+models for computationally expensive engines (e.g., a fast neural network approximation
+of the full MMPP simulation) to maintain real-time performance.
+Conclusion: From Forecaster to Institutional Sovereign
+– The Future of CRE Debt Underwriting
+The DSCR Sovereign OS research initiative represents far more than a technical upgrade
+to a forecasting model. It embodies a fundamental philosophical shift in how commercial
+real estate debt risk is conceptualized, modeled, and managed. The journey chronicled in
+this report—from the initial identification of eight technical gaps in TimesFM's
+architecture to the final synthesis of five coordinated engines—charts a course from a
+narrow focus on predicting revenue to a holistic simulation of credit risk. This evolution is
+not merely an academic exercise; it is a direct response to the failures of legacy
+underwriting methods that contributed to recent CRE distress, and it is a proactive
+investment in the resilience and stability of the financial system.
+The ultimate realization of the Sovereign OS is that a commercial property is not a simple
+time-series of numbers. It is a physical machine, bound by a legal contract, operated by a
+rational human, and subject to macroeconomic gravity 21116178. TimesFM is not the brain
+of the operation; it is the highly calibrated "revenue sensor" within a much larger,
+institutionally robust structural simulation. The CapEx Engine models the physical decay
+of the building's roof and HVAC systems. The Lease Structure module understands the
+contractual friction that determines who bears the burden of inflation. The Valuation
+Engine marks the asset to market, recognizing that its worth is dictated by bond market
+conditions, not just its rental income. The Optionality Engine models the borrower's
+rational choice to walk away, treating the loan as a financial option rather than a simple
+obligation. And the Adversarial Gate acts as a sentinel, protecting the entire system from
+the distortions of human gaming and fraud.
+
+===== PAGE 16 =====
+
+This multi-agent, federated architecture is the antithesis of the opaque, monolithic "black
+box" AI models that have drawn regulatory scrutiny. Its modular design, governed by the
+rigorous Evidence Vault and documented in the comprehensive Model Card, makes it
+transparent, auditable, and defensible. It transforms the role of the underwriter from a
+passive consumer of a model's output to an active manager of a complex risk simulation,
+empowered with a rich, multidimensional understanding of potential futures.
+Therefore, the DSCR Sovereign OS is not just a piece of software; it is the foundational
+infrastructure for a new generation of institutional-grade, real-time, and regulator-ready
+CRE debt underwriting. Its successful development promises to elevate the entire
+industry's standards for risk management, fostering greater financial stability, more
+efficient capital allocation, and ultimately, a more resilient commercial real estate
+market. The path forward is challenging, demanding deep expertise in time-series
+forecasting, structural finance, reliability engineering, and regulatory compliance. Yet,
+the imperative is clear: in an era of unprecedented complexity and volatility, the future of
+CRE lending belongs not to those who forecast the smoothest path, but to those who can
+most faithfully simulate the full, turbulent spectrum of reality.
+Reference
+1. Mean Reversion and Heavy Tails: Characterizing Time-Series Data ... https://
+www.mdpi.com/1424-8220/26/4/1263
+2. Inference for Non-Stationary Heavy Tailed Time Series - arXiv https://arxiv.org/html/
+2212.11253v3
+3. [PDF] Heavy-Tailed Time Series: Theory and Applications https://
+sites.stat.columbia.edu/rdavis/lectures/Bogota2014_L1-3.pdf
+4. (PDF) Normality tests: a study of residuals obtained on time series ... https://
+www.researchgate.net/publication/
+369779355_Normality_tests_a_study_of_residuals_obtained_on_time_series_tendency
+_modeling
+5. (PDF) Preferences of Institutional Investors in Commercial Real Estate https://
+www.researchgate.net/publication/
+351601526_Preferences_of_Institutional_Investors_in_Commercial_Real_Estate
+6. Tail Risks in Corporate Finance: Simulation-Based Analyses of ... https://
+www.mdpi.com/1911-8074/16/11/469
+
+===== PAGE 17 =====
+
+7. [PDF] Commercial real estate markets after the end of “low for long” - OECD https://
+www.oecd.org/content/dam/oecd/en/publications/reports/2024/12/commercial-
+real-estate-markets-after-the-end-of-low-for-long-risks-and-policy-
+challenges_ead4b203/0f9ae118-en.pdf
+8. [PDF] Real estate risk: heavy tail modelling using Excel - Mathestate https://
+www.mathestate.com/tools/Real%20Estate/RiskAnalysis/ModelingRisk-pub.pdf
+9. TimesFM-2.5: A New Standard for Zero-Shot Forecasting - LinkedIn https://
+www.linkedin.com/posts/yossimatias_we-have-released-timesfm-25-the-new-leader-
+activity-7373505442469097473-Buy_
+10. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v3
+11. Time Series Forecasting with Google's TimesFM 2.5 in MetaTrader 5 https://
+www.mql5.com/en/articles/22096
+12. CPI for Rent vs. New Tenant & Zillow Rent Index | US Prices https://
+en.macromicro.me/collections/5/us-price-relative/49740/us-cpi-rent-zillow-rent-yoy
+13. A novel time series probabilistic prediction approach based on the ... https://
+www.sciencedirect.com/science/article/abs/pii/S0020025523014299
+14. [PDF] Multi-Horizon Time Series Forecasting of Non-Parametric CDFs with ... https://
+ojs.aaai.org/index.php/AAAI/article/view/36986/40948
+15. A novel time series probabilistic prediction approach based on the ... https://
+www.researchgate.net/publication/
+375477074_A_novel_time_series_probabilistic_prediction_approach_based_on_the_m
+onotone_quantile_regression_neural_network
+16. What is debt service coverage ratio (DSCR) in real estate? https://
+www.jpmorgan.com/insights/real-estate/commercial-term-lending/what-is-debt-
+service-coverage-ratio-dscr-in-real-estate
+17. Understanding DSCR in Real Estate Investing - LinkedIn https://www.linkedin.com/
+top-content/real-estate/understanding-real-estate-financing-options/understanding-
+dscr-in-real-estate-investing/
+18. An empirical comparison of classification algorithms for mortgage ... https://
+www.sciencedirect.com/science/article/abs/pii/S0377221715008383
+19. Data-Driven Loan Default Prediction: A Machine Learning Approach ... https://
+www.mdpi.com/2079-8954/13/7/581
+20. A Spatio-Temporal Machine Learning Model for Mortgage Credit Risk https://
+arxiv.org/html/2410.02846v3
+21. (PDF) Mortgage Modification and the Decision to Strategically Default https://
+www.researchgate.net/publication/
+
+===== PAGE 18 =====
+
+256043282_Mortgage_Modification_and_the_Decision_to_Strategically_Default_A_Ga
+me_Theoretic_Approach
+22. Social traits and credit card default: a two-stage prediction framework https://
+link.springer.com/article/10.1007/s10479-022-04859-1
+23. TimesFM时间序列预测模型微调实战：7%精度提升完整复现指南 https://
+adg.csdn.net/6972dfee437a6b40336b3a85.html
+24. How Time Series Forecasting models work - ArcGIS Pro https://pro.arcgis.com/en/
+pro-app/3.4/tool-reference/geoai/how-time-series-forecasting-models-work.htm
+25. Time-Series Modeling for Corporate Financial Crisis Prediction - MDPI https://
+www.mdpi.com/2227-7390/14/4/657
+26. (PDF) A Hybrid Model for Financial Time Series Forecasting https://
+www.researchgate.net/publication/
+340616552_A_Hybrid_Model_for_Financial_Time_Series_Forecasting_-
+_Integration_of_EWT_ARIMA_with_The_Improved_ABC_Optimized_ELM
+27. [PDF] INTEGRATING ARTIFICIAL INTELLIGENCE AND TIME-SERIES ... https://
+hal.science/hal-05402236v1/file/
+13.%2BIntegrating%2BArtificial%2BIntelligence%2Band%2BTime.
+%2B461~477%2B%282498%29.pdf
+28. Commercial real estate finance and the lending cap rate https://
+www.researchgate.net/publication/
+357184280_Commercial_real_estate_finance_and_the_lending_cap_rate
+29. Measuring Credit Risk of Bonds Using Expected Default Frequency ... https://
+www.researchgate.net/publication/
+407003488_Measuring_Credit_Risk_of_Bonds_Using_Expected_Default_Frequency_E
+DF_in_The_KMV-Merton_Model_with_Monte_Carlo_Simulation
+30. Computing PD using structural Merton-based model - LinkedIn https://
+www.linkedin.com/pulse/computing-pd-using-structural-merton-based-model-alexey-
+malashonok
+31. A Structural Credit Risk Model with Jumps Based on Uncertainty ... https://
+www.mdpi.com/2227-7390/13/6/897
+32. Estimating the structural credit risk model when equity prices are ... https://
+ideas.repec.org/a/eee/econom/v150y2009i2p288-296.html
+33. [PDF] Structural Credit Risk Modeling: Merton and Beyond - SOA https://
+www.soa.org/globalassets/assets/library/newsletters/risk-management-newsletter/
+2009/june/jrm-2009-iss16-wang.pdf
+34. Here's the Dirt on the OCC's Update of Its Commercial Real Estate ... https://
+www.linkedin.com/pulse/heres-dirt-occs-update-its-commercial-real-estate-dev-
+strischek
+
+===== PAGE 19 =====
+
+35. 2015_2053 Treatment of trading book positions sensitive to ... https://
+www.eba.europa.eu/single-rule-book-qa/qna/view/publicId/2015_2053
+36. Issues in the Validation of Wholesale Credit Risk Models (Chapter 10) https://
+www.cambridge.org/core/books/validation-of-risk-management-models-for-financial-
+institutions/issues-in-the-validation-of-wholesale-credit-risk-models/
+0956A99B4B0DC8EA973592A5474C33AB
+37. [PDF] Default Process Modeling and Credit Valuation Adjustment - arXiv https://
+arxiv.org/pdf/2309.03311
+38. [PDF] Interpretive issues with respect to the revisions to the market risk ... https://
+www.bis.org/publ/bcbs208.pdf
+39. Fusing Large Language Models with Temporal Transformers for ... https://arxiv.org/
+html/2507.10098v1
+40. TFEformer: Temporal Feature Enhanced Transformer for Multivariate ... https://
+ieeexplore.ieee.org/iel8/6287639/10380310/10717865.pdf
+41. (PDF) TFEformer: Temporal Feature Enhanced Transformer for ... https://
+www.researchgate.net/publication/
+384964760_TFEformer_Temporal_Feature_Enhanced_Transformer_for_Multivariate_
+Time_Series_Forecasting
+42. [PDF] LONG-TERM FORECASTING WITH TRANSFORMERS - OpenReview https://
+openreview.net/pdf?id=Jbdc0vTOcol
+43. Partial Transfer Learning from Patch Transformer to Variate-Based ... https://
+www.mdpi.com/1996-1073/17/24/6452
+44. Financial Fine-tuning a Large Time Series Model - arXiv https://arxiv.org/html/
+2412.09880v1
+45. (PDF) Re(Visiting) Time Series Foundation Models in Finance https://
+www.researchgate.net/publication/
+397872068_ReVisiting_Time_Series_Foundation_Models_in_Finance
+46. Large language model-driven time-series forecasting of financial ... https://
+www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/
+frai.2026.1722121/full
+47. [PDF] REVERSIBLE INSTANCE NORMALIZATION FOR ACCURATE TIME ... https://
+openreview.net/pdf?id=cGDAkQo1C0p
+48. Non-stationary Transformers: Exploring the Stationarity in Time ... https://arxiv.org/
+html/2205.14415v4
+49. Transformer-Based Models for Probabilistic Time Series Forecasting ... https://
+www.mdpi.com/2227-7390/13/5/814
+
+===== PAGE 20 =====
+
+50. (PDF) Transformer-Based Models for Probabilistic Time Series ... https://
+www.researchgate.net/publication/389453974_Transformer-
+Based_Models_for_Probabilistic_Time_Series_Forecasting_with_Explanatory_Variables
+51. [PDF] Are Transformers Effective for Time Series Forecasting? https://ojs.aaai.org/
+index.php/AAAI/article/view/26317/26089
+52. Rethinking the Stationarity in Time Series Forecasting https://
+www.semanticscholar.org/paper/Non-stationary-Transformers%3A-Rethinking-the-in-
+Time-Liu-Wu/f7890aaf985b001e9226da375f8c2289a323db90
+53. Time Series Foundation Models for Multivariate Financial ... - arXiv https://arxiv.org/
+html/2507.07296v1
+54. ENGINEERING ECONOMY Book - pdfcoffee.com https://pdfcoffee.com/engineering-
+economy-book-pdf-free.html
+55. Cross-dataset battery life forecasting with time-series foundation ... https://
+www.sciencedirect.com/science/article/pii/S2666546826000972
+56. Robust Federated Finetuning of LLMs via Alternating Optimization of... https://
+openreview.net/forum?id=e8DrPuJekZ
+57. Fed, OCC, FDIC Update Model Risk Management Guidance - LinkedIn https://
+www.linkedin.com/posts/kareemsaleh_news-the-fed-occ-and-fdic-just-dropped-
+activity-7451061915209949184-uXwf
+58. OCC FDIC Issue New Risk Management Guidance for Banking ... https://
+www.linkedin.com/posts/michaelandrewdawson_agenciesissue-revised-model-risk-
+guidance-activity-7450997887678873600-khd8
+59. Our Take: Bank charters & AI oversight update - PwC https://www.pwc.com/us/en/
+industries/financial-services/library/our-take/bank-charters-capital-ai-oversight-
+regulatory-update-dec-2025.html
+60. Jack Fleischmann - CBRE Capital Markets - LinkedIn https://www.linkedin.com/in/
+jackfleischmann
+61. Regime-Aware Specialist Routing for Volatility Forecasting - arXiv https://arxiv.org/
+html/2604.10402v1
+62. Regime-Aware Stock Index Forecasting Under Latent Market States https://
+www.mdpi.com/2571-9394/8/3/50
+63. (PDF) Forecasting Value-at-Risk Using the Markov-Switching ARCH ... https://
+www.researchgate.net/publication/4897228_Forecasting_Value-at-
+Risk_Using_the_Markov-Switching_ARCH_Model
+64. Infinite hidden markov switching VARs with application to ... https://ideas.repec.org/
+a/eee/intfor/v33y2017i4p1025-1043.html
+65. [PDF] Regime-switching global vector autoregressive models https://
+www.ecb.europa.eu/pub/pdf/scpwps/ecbwp1569.pdf
+
+===== PAGE 21 =====
+
+66. A Comparative Study of Transformer-Based and Classical Models ... https://
+www.mdpi.com/1911-8074/19/3/203
+67. Unify and Anchor: A Context-Aware Transformer for Cross-Domain ... https://
+arxiv.org/abs/2503.01157
+68. (PDF) A Comparative Study of Transformer-Based and Classical ... https://
+www.researchgate.net/publication/
+401749299_A_Comparative_Study_of_Transformer-
+Based_and_Classical_Models_for_Financial_Time-Series_Forecasting
+69. A survey of transformer networks for time series forecasting https://
+www.sciencedirect.com/science/article/pii/S1574013725001595
+70. Crossformer: Transformer Utilizing Cross-Dimension Dependency for... https://
+openreview.net/forum?id=vSVLM2j9eie
+71. Transformers for Multivariate Time Series Forecasting - IEEE Xplore https://
+ieeexplore.ieee.org/iel8/6287639/11323511/11352790.pdf
+72. [PDF] Anomaly Detection for Data Streams Based on Isolation Forest using ... https://
+hal.science/hal-02874869v1/file/mtogbe2020_IForestASD_ScikitMultiFlow.pdf
+73. Anomaly Detection in Time-Series (IsolationForest) - Kaggle https://
+www.kaggle.com/code/ksmooi/anomaly-detection-in-time-series-isolationforest
+74. Online Isolation Forest - arXiv https://arxiv.org/html/2505.09593v1
+75. IsolationForest — scikit-learn 1.9.0 documentation https://scikit-learn.org/stable/
+modules/generated/sklearn.ensemble.IsolationForest.html
+76. A finance approach to climate stress testing - ScienceDirect.com https://
+www.sciencedirect.com/science/article/pii/S0261560622002005
+77. [PDF] Integrating climate risk into credit risk modelling - Reply https://
+www.reply.com/contents/ARF-Climate-Risk-Into-Credit-Risk-Models.pdf
+78. [PDF] ECB report on good practices for climate stress testing https://
+www.bankingsupervision.europa.eu/ecb/pub/pdf/
+ssm.202212_ECBreport_on_good_practices_for_CST~539227e0c1.en.pdf
+79. Real Estate Cycles and Their Strategic Implications for Investors and ... https://
+www.researchgate.net/publication/
+5142058_Real_Estate_Cycles_and_Their_Strategic_Implications_for_Investors_and_Po
+rtfolio_Managers_in_the_Global_Economy
+80. [PDF] Isolation Forest - LAMDA https://www.lamda.nju.edu.cn/publication/
+icdm08b.pdf
+81. Isolation Forest - anomaly detection - 知乎专栏 https://zhuanlan.zhihu.com/p/
+544173846
+
+===== PAGE 22 =====
+
+82. Anomaly Detection Based on Isolation Mechanisms: A Survey - arXiv https://
+arxiv.org/html/2403.10802v1
+83. Anomaly Detection using Isolation Forest - Kaggle https://www.kaggle.com/code/
+tanvikurade/anomaly-detection-using-isolation-forest
+84. What is isolation forest in anomaly detection? - Milvus https://milvus.io/ai-quick-
+reference/what-is-isolation-forest-in-anomaly-detection
+85. Anomalous Behavior Detection Based on the Isolation Forest Model ... https://
+www.mdpi.com/2079-9292/11/21/3640
+86. Markov-Modulated Poisson Process Modeling for Machine-to ... - MDPI https://
+www.mdpi.com/2076-3417/14/18/8561
+87. (PDF) The Markov Modulated Poisson Process and ... - ResearchGate https://
+www.researchgate.net/publication/
+228611705_The_Markov_Modulated_Poisson_Process_and_Markov_Poisson_Cascade_
+With_Applications_to_Web_Traffic_Modelling
+88. [PDF] Modelling and understanding count processes through a Markov ... https://
+arxiv.org/pdf/2003.13888
+89. The Markov Modulated Poisson Process and ... - Semantic Scholar https://
+www.semanticscholar.org/paper/The-Markov-Modulated-Poisson-Process-and-
+Markov-to-Bernardo-Bayarri/b942183e7391d89ffcdb60cbc9f7b3f7b441c782
+90. [PDF] Asian Economic Integration Report 2022 https://www.adb.org/sites/default/
+files/publication/770436/asian-economic-integration-report-2022.pdf
+91. Is a real estate attorney cheaper than a realtor https://www.fsbomidwest.com/real-
+estate-attorney-vs-realtor/is-a-real-estate-attorney-cheaper-than-a-realtor/
+92. Achieving Top Inference Performance with the NVIDIA H100 Tensor ... https://
+developer.nvidia.com/blog/achieving-top-inference-performance-with-the-nvidia-
+h100-tensor-core-gpu-and-nvidia-tensorrt-llm/
+93. Efficient Mixed-Precision Large Language Model Inference ... - arXiv https://arxiv.org/
+html/2508.15601v1
+94. Tune and Deploy LoRA LLMs with NVIDIA TensorRT-LLM https://
+developer.nvidia.com/blog/tune-and-deploy-lora-llms-with-nvidia-tensorrt-llm/
+95. INT8 quantization show no performance gain over FP16 (2) - Jetson ... https://
+forums.developer.nvidia.com/t/jetson-thor-int8-quantization-show-no-performance-
+gain-over-fp16-2/360866
+96. TensorRT Post Training Quantization (INT8) generates incorrect ... https://
+stackoverflow.com/questions/76715132/tensorrt-post-training-quantization-int8-
+generates-incorrect-results
+97. Deploying Quantization Aware Trained models in INT8 using Torch ... https://
+docs.pytorch.org/TensorRT/_notebooks/vgg-qat.html
+
+===== PAGE 23 =====
+
+98. On scientific foundation models: Rigorous definitions, key ... https://
+www.sciencedirect.com/science/article/pii/S0893608026000304
+99. Large Language Model (LLM) for Telecommunications: A ... - arXiv https://arxiv.org/
+html/2405.10825v1
+100. Large Language Model (LLM) for Telecommunications - IEEE Xplore https://
+ieeexplore.ieee.org/iel8/9739/11032135/10685369.pdf
+101. An Observability Perspective on Time Series Foundation Models https://arxiv.org/
+html/2505.14766v1
+102. Deep Learning for Time Series Forecasting: Tutorial and Literature ... https://
+dl.acm.org/doi/full/10.1145/3533382
+103. Modeling Temporal Uncertainty Dynamics for Probabilistic Time ... https://arxiv.org/
+html/2603.24254
+104. Targeting Immunoproteasome in Polarized Macrophages ... - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC11600198/
+105. [PDF] IEEE WCCI 2024 https://confcats-siteplex.s3.us-east-1.amazonaws.com/
+wcci24/IEEE_WCCI_2024_Program_7c48ff24cf.pdf
+106. Edge Machine Learning for AI-Enabled IoT Devices: A Review https://
+www.researchgate.net/publication/341037496_Edge_Machine_Learning_for_AI-
+Enabled_IoT_Devices_A_Review
+107. Sensors, Volume 25, Issue 11 (June-1 2025) – 322 articles https://www.mdpi.com/
+1424-8220/25/11
+108. [PDF] Basel III: Finalising post-crisis reforms https://www.bis.org/bcbs/publ/
+d424.pdf
+109. 【GitHub每日速递250923】 Google 又放大招！TimesFM 2.5 参数减半 https://
+www.cnblogs.com/freedom-w/p/19103696
+110. Commercial Real Estate Rental Index: A Dynamic Panel Data Model ... https://
+www.researchgate.net/publication/
+311229665_Commercial_Real_Estate_Rental_Index_A_Dynamic_Panel_Data_Model_E
+stimation
+111. [PDF] MSCI GLOBAL METHODOLOGY STANDARDS FOR REAL ESTATE ... https://
+www.msci.com/documents/10199/0/
+MSCI+Global+Methodology+Standards+for+Real+Estate+Investment+-
++February+2017.pdf/32443e5f-106a-4d44-bc28-637f7d634b00
+112. [PDF] Adaptive Individual Uncertainty under Out-Of-Distribution Shift with ... https://
+arxiv.org/pdf/2510.15233
+113. Multi-Horizon Time Series Forecasting of non-parametric CDFs with ... https://
+arxiv.org/abs/2511.13756
+
+===== PAGE 24 =====
+
+114. Non-crossing nonlinear regression quantiles by monotone ... https://
+link.springer.com/article/10.1007/s00477-018-1573-6
+115. [PDF] Risk Management of Commercial Real Estate Loans at Banks https://
+www.stern.nyu.edu/sites/default/files/assets/documents/Thesis_L.Kugel_2017.pdf
+116. The Expense Side of Feasibility: Operating Costs Across SBA ... https://
+www.mmcginvest.com/post/the-expense-side-of-feasibility-operating-costs-across-sba-
+usda-and-conventional-lending
+117. RWA Density, Yield and Strategic Positioning for Mutual ADIs https://
+www.linkedin.com/posts/jamescame_rwa-density-yield-and-strategic-positioning-
+activity-7402120201451798528-Dr3R
+118. MAR50 - Credit valuation adjustment framework https://www.bis.org/
+basel_framework/chapter/MAR/50.htm?tldate=20220125
+119. SREP methodology for Interest rate and credit spread risk in the ... https://
+www.bankingsupervision.europa.eu/activities/srep/2024/html/
+ssm.srep202412_IRRBBCSRBBsrepmethodology.en.html
+120. Addressing credit spread risk in the banking book (CSRBB) | McKinsey https://
+www.mckinsey.com/capabilities/risk-and-resilience/our-insights/confronting-new-
+risk-management-guidelines-for-credit-spread-risk-in-banking
+121. Credit Spreads' Term Structure: Stochastic Modeling with CIR ... - arXiv https://
+arxiv.org/html/2409.09179v2
+122. [PDF] Credit-Spread-Risk in the Banking Book (CSRBB) https://assets.kpmg.com/
+content/dam/kpmg/de/pdf/Themen/2021/10/csrbb-english-bf-sdc-v1.pdf
+123. Deep Autocorrelation Modeling for Time-Series Forecasting - arXiv https://arxiv.org/
+html/2603.19899v1
+124. Sensors, Volume 25, Issue 23 (December-1 2025) – 302 articles https://
+www.mdpi.com/1424-8220/25/23
+125. Dictionar Complet | PDF | Nature - Scribd https://www.scribd.com/doc/176831842/
+Dictionar-Complet
+126. Learning Pattern-Specific Experts for Time Series Forecasting Under... https://
+openreview.net/forum?id=CtoIG9Iwas
+127. Learning Pattern-Specific Experts for Time Series Forecasting Under ... https://
+arxiv.org/abs/2410.09836
+128. Learning Pattern-Specific Experts for Time Series Forecasting Under ... https://
+hub.baai.ac.cn/paper/16d361cd-b0bf-4a2f-9632-096df5434be4
+129. [PDF] Fitting procedure for the two-state Batch Markov modulated Poisson ... https://
+arxiv.org/pdf/2401.14561
+
+===== PAGE 25 =====
+
+130. Investigating the Determinants of Credit Spread Using a Markov ... https://
+www.mdpi.com/2071-1050/13/17/9535
+131. Estimation and Forecasting of Sovereign Credit Rating Migration ... https://
+www.researchgate.net/publication/
+335133605_Estimation_and_Forecasting_of_Sovereign_Credit_Rating_Migration_Base
+d_on_Regime_Switching_Markov_Chain
+132. Improving S&P 500 Volatility Forecasting through Regime-Switching ... https://
+arxiv.org/html/2510.03236v1
+133. [PDF] How to predict financial stress? An assessment of Markov switching ... https://
+www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp2057.en.pdf
+134. A Markov Model for the Term Structure of Credit Risk Spreads https://
+ideas.repec.org/r/wsi/wschap/9789812819222_0018.html
+135. [PDF] Regime-Switching Factor Models and Nowcasting with Big Data https://
+www.imf.org/-/media/files/publications/wp/2024/english/wpiea2024190-print-
+pdf.pdf
+136. FS vs. NNN Leases: Which Maximizes Your Profit? https://
+www.suburbanrealestate.com/post/fs-vs-nnn
+137. Press Release of Financial Results for the - SEC.gov https://www.sec.gov/Archives/
+edgar/data/1138118/000113811824000021/cbre-20240725x8kexx991.htm
+138. [PDF] Asset Quality Review – Phase 2 Manual - Banking supervision https://
+www.bankingsupervision.europa.eu/ecb/pub/pdf/
+ssm.assetqualityreviewmanual201806.en.pdf
+139. [PDF] Risk Management & Modelling - PwC https://www.pwc.com/cz/cs/assets/Risk-
+management-and-Modelling-eBook-A4.pdf
+140. [PDF] SPRING - Portfolio Management Research https://pm-research.com/content/
+iijstrfin/27/1/local/complete-issue.pdf
+141. TSPulse: Dual Space Tiny Pre-Trained Models for Rapid ... - arXiv https://arxiv.org/
+html/2505.13033v1
+142. [PDF] FORM 10-K ASSOCIATED BANC-CORP - SEC.gov https://www.sec.gov/
+Archives/edgar/data/7789/000000778925000029/
+asb12312024form_compressed.pdf
+143. words-333333 - cs.Princeton https://www.cs.princeton.edu/courses/archive/
+spring18/cos226/assignments/autocomplete/testing/words-333333.txt
+144. CFAII学习笔记(中文笔记) - Scribd https://www.scribd.com/document/395944676/
+CFAII%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-
+%E4%B8%AD%E6%96%87%E7%AC%94%E8%AE%B0
+145. [PDF] Commercial real estate loan performance at failed US banks https://
+www.bis.org/publ/bppdf/bispap64d.pdf
+
+===== PAGE 26 =====
+
+146. Arxiv今日论文| 2026-06-05 - 闲记算法 http://lonepatient.top/2026/06/05/
+arxiv_papers_2026-06-05.html
+147. Comparing Memory Systems for LLM Agents: Vector, Graph, and ... https://
+www.marktechpost.com/2025/11/10/comparing-memory-systems-for-llm-agents-
+vector-graph-and-event-logs/
+148. cutoff and quantile parameters in TensorRT https://forums.developer.nvidia.com/t/
+cutoff-and-quantile-parameters-in-tensorrt/50977
+149. What Is int8 Quantization and Why Is It Popular for Deep Neural ... https://
+de.mathworks.com/company/technical-articles/what-is-int8-quantization-and-why-is-
+it-popular-for-deep-neural-networks.html
+150. [PDF] arXiv:2501.17343v1 [cs.CV] 28 Jan 2025 https://arxiv.org/pdf/2501.17343
+151. [PDF] Inference Benchmarking of Large Language Models on AI ... - arXiv https://
+arxiv.org/pdf/2411.00136
+152. TensorRT-LLM 发布0.16.0 - AiDocZh https://www.aidoczh.com/TensorRT-LLM/
+release-notes.html
+153. TensorRT-LLM Backend - verl documentation https://verl.readthedocs.io/en/latest/
+workers/trtllm_worker.html
+154. A decoder-only foundation model for time-series forecasting - arXiv https://arxiv.org/
+html/2310.10688v2
+155. In-Context Fine-Tuning for Time-Series Foundation Models https://openreview.net/
+forum?id=uxzgGLWPj2
+156. Project 3 - Data Science Skills - RPubs https://www.rpubs.com/crummettsam/
+1288039
+157. Amit Bhat - Data Analyst | Data Scientist | Python, SQL, Power BI https://
+www.linkedin.com/in/amitbhat-data-analyst
+158. [PDF] API Guide - Oracle Help Center https://docs.oracle.com/en/database/oracle/
+machine-learning/oml4sql/21/dmapi/oracle-machine-learning-sql-api-guide.pdf
+159. Lagged features for time series forecasting - Scikit-learn https://scikit-learn.org/
+stable/auto_examples/applications/plot_time_series_lagged_features.html
+160. Effective Risk Management in Finance Requires Automated Systems https://
+www.linkedin.com/posts/homenestsoftware_top-financial-risk-management-software-
+best-activity-7457750099390111744-qdt2
+161. FIS Launches AI Agent for Financial Crime Investigations with ... https://
+www.linkedin.com/posts/alexandreberkovic_fis-just-announced-its-first-ai-agent-for-
+activity-7459692330636201984-MKjS
+
+===== PAGE 27 =====
+
+162. 2026 Revised Interagency Guidance: Key Changes for Financial ... https://
+www.linkedin.com/posts/jameslglueck_model-risk-management-in-transition-arcsalus-
+activity-7467593113222475776-B1WZ
+163. A novel photovoltaic power probabilistic forecasting model based on ... https://
+www.sciencedirect.com/science/article/abs/pii/S0196890424011609
+164. QUTCC : Quantile Uncertainty Training and Conformal Calibration ... https://
+arxiv.org/html/2507.14760
+165. An Observability Perspective on Time Series Foundation Models https://
+www.researchgate.net/publication/
+391953368_This_Time_is_Different_An_Observability_Perspective_on_Time_Series_F
+oundation_Models
+166. Time Series Foundation Model for Improved Transformer Load ... https://
+www.mdpi.com/1996-1073/18/3/660
+167. Cumulative and Rolling Horizon Prediction of Overall Equipment ... https://
+www.mdpi.com/2504-2289/7/3/138
+168. A Review of Large Language Models Across Academic Disciplines https://arxiv.org/
+html/2509.19580v5
+169. The Risk-Based Capital Test for Fannie Mae and Freddie Mac https://
+www.researchgate.net/publication/228597055_The_Risk-
+Based_Capital_Test_for_Fannie_Mae_and_Freddie_Mac
+170. The Failure of supervisory stress testing: Fannie Mae, Freddie Mac ... https://
+ideas.repec.org/p/fip/fedbwp/15-4.html
+171. [PDF] Stress testing with multiple scenarios: a tale on tails and reverse ... https://
+www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp2941~28e2ec1e42.en.pdf
+172. Zillow Rent Index, 2010-Present - Kaggle https://www.kaggle.com/zillow/rent-index/
+tasks
+173. "Moody's warns of risks in private credit market" | Eric Stoclet posted ... https://
+www.linkedin.com/posts/ericstoclet_private-credits-rapid-evolution-is-raising-
+activity-7396176016500600832-1vTH
+174. Reversible Instance Normalization for Accurate Time-Series... https://openreview.net/
+forum?id=cGDAkQo1C0p
+175. Identifying and Overcoming Transformation Bias in Forecasting ... https://arxiv.org/
+abs/2208.12264
+176. [PDF] 10 时间序列分析进阶深度学习方法 - LAMDA https://www.lamda.nju.edu.cn/
+yehj/TSA2023/Ch10.pdf
+177. (PDF) Integrating Inductive Biases in Transformers via Distillation for ... https://
+www.researchgate.net/publication/
+
+===== PAGE 28 =====
+
+402738780_Integrating_Inductive_Biases_in_Transformers_via_Distillation_for_Financ
+ial_Time_Series_Forecasting
+178. [PDF] Commercial real estate risks - Goldman Sachs Research Newsletter https://
+www.goldmansachs.com/pdfs/insights/pages/top-of-mind/commercial-real-estate-
+risks/report.pdf
+179. [PDF] Financial Stability Review, May 2024 - European Central Bank https://
+www.ecb.europa.eu/pub/pdf/fsr/ecb.fsr202405~7f212449c8.fr.pdf
+180. [PDF] 2026 Long-Term Capital Market Assumptions https://am.jpmorgan.com/
+content/dam/jpm-am-aem/global/en/insights/portfolio-insights/ltcma/noindex/
+ltcma-full-report.pdf
+181. Daily appraisal of commercial real estate a new mixed frequency ... https://
+www.researchgate.net/publication/
+358747238_Daily_appraisal_of_commercial_real_estate_a_new_mixed_frequency_app
+roach
+182. TRACE: Time SeRies PArameter EffiCient FinE-tuning - arXiv https://arxiv.org/html/
+2503.16991v2
+183. [PDF] Constraint LoRA with Dynamic Active Learning for Data-Efficient ... https://
+aclanthology.org/2024.findings-acl.209.pdf
+184. Beyond LoRA: Exploring Efficient Fine-Tuning Techniques for Time ... https://
+arxiv.org/abs/2409.11302
+185. [PDF] DIFFERENTIALLY PRIVATE FINE-TUNING OF LANGUAGE MODELS https://
+openreview.net/pdf?id=Q42f0dfjECO
+186. (PDF) In-Context Fine-Tuning for Time-Series Foundation Models https://
+www.researchgate.net/publication/385443561_In-Context_Fine-Tuning_for_Time-
+Series_Foundation_Models
+187. timesfm - PyPI https://pypi.org/project/timesfm/
+188. Fine-tuning with the Hugging Face ecosystem (TRL) https://rocm.docs.amd.com/
+projects/ai-developer-hub/en/v3.0/notebooks/fine_tune/
+fine_tuning_lora_qwen2vl.html
+189. INT8 Calibration for TensorRT Inference | PDF - Scribd https://www.scribd.com/
+document/640713581/8-Bit-Inference-With-TensorRT
+190. TensorRT——INT8推理- 渐渐的笔记本- 博客园 https://www.cnblogs.com/TaipKang/
+p/15542329.html
+191. Low-Level Details of Post-Training INT8 Quantization and Calibration https://
+community.ultralytics.com/t/low-level-details-of-post-training-int8-quantization-and-
+calibration/1506
+192. TensorRT-LLM 调整和部署LoRA_人工智能 - CSDN-OPC开发者社区 https://
+opc.csdn.net/696df5a8437a6b40336913f9.html
+
+===== PAGE 29 =====
+
+193. The Performance of Option-Based Default Risk Models on ... https://
+www.researchgate.net/publication/247906947_The_Performance_of_Option-
+Based_Default_Risk_Models_on_Commercial_Mortgages
+194. Modeling Commercial Real Estate Loan Credit Risk: An Overview https://
+www.scribd.com/document/471893860/11-03-05-modeling-cre-loan-credit-risk-an-
+overview
+195. [PDF] BIS Annual Economic Report 2025 - Bank for International Settlements https://
+www.bis.org/publ/arpdf/ar2025e.pdf
+196. 1 Introduction - arXiv https://arxiv.org/html/2606.16708v1
+197. [PDF] Tonga: Technical Assistance Report-Macroeconomic Frameworks ... https://
+www.imf.org/-/media/files/publications/tar/2025/english/tarea2025099-source-
+pdf.pdf
+198. [PDF] Macro Trends - Deutsche Bank Research Institute https://
+www.dbresearch.com/PROD/IE-PROD/PROD0000000000535968.pdf
+199. [PDF] A Large-Scale LLM Analysis of Central Bank Communication https://
+www.ecb.europa.eu/press/conferences/shared/pdf/20260323_forecasting/
+Gregarek_paper.pdf
+200. [PDF] Securitization: The Road Ahead - International Monetary Fund https://
+www.imf.org/external/pubs/ft/sdn/2015/sdn1501.pdf
+201. [PDF] BIS Annual Economic Report 2024 - Bank for International Settlements https://
+www.bis.org/publ/arpdf/ar2024e.pdf
+202. [PDF] HANDBOOK OF ARTIFICIAL INTELLIGENCE AND BIG DATA ... https://
+rpc.cfainstitute.org/sites/default/files/-/media/documents/article/rf-brief/ai-and-big-
+data-in-investments.pdf
+203. EU AI Act: Lessons from Banking's Model Risk Journey - LinkedIn https://
+www.linkedin.com/posts/rakesh-rajan-rai-0a79704a_aigovernance-euaiact-modelrisk-
+activity-7469994644865511424-lECg
+204. 5 Systems of AI Agent Architecture in Production - LinkedIn https://
+www.linkedin.com/posts/abhinav-fluidai_agenticai-enterpriseai-ai-
+activity-7447863413852217344-GpPi
+205. FSB Adds Agentic AI to Bank Board Agenda with Deadline - LinkedIn https://
+www.linkedin.com/posts/josuebatista_agenticai-aigovernance-financialstability-
+activity-7471169487271055360-iwMq
+206. Sener Cem Irmak's Post - Koru carousel mon01jun · PDF - LinkedIn https://
+www.linkedin.com/posts/sener-cem-irmak_koru-carousel-mon01jun-pdf-
+activity-7467439889240903680-0CBz
+
+===== PAGE 30 =====
+
+207. Agent Hub: Unified Data Layer for AI Orchestration - LinkedIn https://
+www.linkedin.com/posts/najarian-n_introducing-the-oscilar-agent-hub-oscilar-
+activity-7468034159689605120-rLRg
+208. Short-term load probabilistic forecasting based on non-equidistant ... https://
+www.sciencedirect.com/science/article/abs/pii/S0360544225009818
+209. A Smart Housing Recommender for Students in Timișoara - MDPI https://
+www.mdpi.com/2076-3417/15/14/7869
+210. [PDF] Artificial Intelligence Index Report 2025 - AWS https://hai-
+production.s3.amazonaws.com/files/hai_ai_index_report_2025.pdf
+211. [PDF] IFC Bulletin 57 on Central Bank Statistics https://www.bis.org/ifc/publ/
+ifcb57.pdf
+212. Causal inference and machine learning in power and energy systems https://
+www.sciencedirect.com/science/article/pii/S266654682600100X
+213. Investing in Commercial Real Estate as a Limited Partner - LinkedIn https://
+www.linkedin.com/posts/karlyiacono_commercialrealestate-lpinvesting-
+capitalmarkets-activity-7468011776987766784--ZZS
+214. Fitch to Rate BX Trust 2025-VLT7; Presale Issued https://www.fitchratings.com/
+research/structured-finance/fitch-to-rate-bx-trust-2025-vlt7-presale-issued-30-06-2025
+215. 无主题 https://www.sec.gov/Archives/edgar/data/2056663/000153949725000958/
+n4852_x5-ts.htm
+216. Credit spread determinants: An 85 year perspective - IDEAS/RePEc https://
+ideas.repec.org/a/eee/finmar/v11y2008i2p180-197.html
+217. (PDF) Credit Spread Changes within Switching Regimes https://
+www.researchgate.net/publication/
+24017822_Credit_Spread_Changes_within_Switching_Regimes
+218. A Markov approach to credit rating migration conditional on ... - arXiv https://
+arxiv.org/html/2403.14868v1
+219. Federal Reserve Updates Model Risk Management Guidance with ... https://
+www.linkedin.com/posts/davidetrier_board-of-governors-of-the-federal-reserve-
+activity-7457074767192539137-CgM_
+220. [PDF] The Columbia-CompStak Quality-Adjusted Commercial Real Estate ... https://
+business.columbia.edu/sites/default/files-efs/imce-uploads/svannieuwerburgh/
+papers/CQR_12012025.pdf
+221. (PDF) Lecture Notes Markov Decision Processes - version 2022 https://
+www.researchgate.net/publication/
+359893791_Lecture_Notes_Markov_Decision_Processes_-_version_2022
+222. Presale: J.P. Morgan Chase Commercial Mortgage Se - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/6488660
+
+===== PAGE 31 =====
+
+223. Index Names & Definitions - J.P. Morgan https://www.jpmorgan.com/wealth-
+management/wealth-partners/securities/benchmarks
+224. Rule 424(b)(2) - SEC.gov https://www.sec.gov/Archives/edgar/data/
+19617/000121390023091006/ea165924_424b2.htm
+225. [PDF] Corporate Bond Issuance by Financial Institutions https://www.cuhk.edu.hk/
+fin/event/CUHK-RAPS-RCFS-Conference2024/Papers/CUHK-RAPS-181.pdf
+226. 1 Introduction - arXiv https://arxiv.org/html/2410.11773v3
+227. [PDF] Generative AI and Copyright - European Parliament https://
+www.europarl.europa.eu/RegData/etudes/STUD/2025/774095/
+IUST_STU(2025)774095_EN.pdf
+228. [PDF] FINAL GENERIC ENVIRONMENTAL IMPACT STATEMENT for the ... https://
+dos.ny.gov/system/files/documents/2025/07/2025-6-27-final-geis-with-
+appendices.pdf
+229. [PDF] BIS Papers - No 140 Central banks, macro-financial stability and the ... https://
+www.bis.org/publ/bppdf/bispap140.pdf
+230. Chapter 10. Czech Republic: Transition to the Frontier in - IMF eLibrary https://
+www.elibrary.imf.org/display/book/9781484325940/ch010.xml
+231. [PDF] A time series model of interest rates with the effective lower bound https://
+www.bis.org/publ/work715.pdf
+232. Real Capital Analytics - MSCI https://www.msci.com/data-and-analytics/real-estate/
+real-capital-analytics
+233. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v1
+234. [PDF] CBRE CLARION SECURITIES LLC - Morgan Stanley https://
+www.morganstanley.com/wealth-investmentsolutions/pdfs/adv/cbre_adv.pdf
+235. [PDF] Mean variance asset liability management with regime switching https://
+arxiv.org/pdf/2201.01433
+236. Predicting Prepayment and Default Risks of Unsecured Consumer ... https://
+www.researchgate.net/publication/
+326348319_Predicting_Prepayment_and_Default_Risks_of_Unsecured_Consumer_Loa
+ns_in_Online_Lending
+237. An Empirical Study Based on Mortgage Default Prediction - arXiv https://arxiv.org/
+html/2501.00034v1
+238. A Real Option Approach to the Valuation of the Default Risk ... - MDPI https://
+www.mdpi.com/2227-7072/13/1/31
+
+===== PAGE 32 =====
+
+239. Probability by Using the Merton Model for Structural Credit Risk https://
+www.mathworks.com/help/risk/default-probability-using-the-merton-model-for-
+structural-credit-risk.html
+240. Implied Probabilities and Volatility in Credit Risk: A Merton-Based ... https://
+arxiv.org/html/2506.12694
+241. Modeling Default Probability via Structural Models of Credit Risk in ... https://
+www.researchgate.net/publication/
+322559190_Modeling_Default_Probability_via_Structural_Models_of_Credit_Risk_in_
+Context_of_Emerging_Markets
+242. Quantitative Structural Models to Assess Credit Risk on Individuals https://
+www.scirp.org/journal/paperinformation?paperid=118882
+243. LoRA: Low-Rank Adaptation of Large Language Models - arXiv https://arxiv.org/abs/
+2106.09685
+244. [PDF] Adapters Selector: Cross-domains and Multi-tasks LoRA Modules ... https://
+aclanthology.org/2025.coling-main.40.pdf
+245. (PDF) Serving Heterogeneous LoRA Adapters in Distributed LLM ... https://
+www.researchgate.net/publication/
+398134939_Serving_Heterogeneous_LoRA_Adapters_in_Distributed_LLM_Inference_S
+ystems
+246. [PDF] LORA: LOW-RANK ADAPTATION OF LARGE LAN- GUAGE MODELS https://
+openreview.net/pdf?id=nZeVKeeFYf9
+247. Prof. Hernan Huwyler, MBA CPA CAIO's Post - LinkedIn https://www.linkedin.com/
+posts/hernanwyler_sr-26-2-revised-guidance-on-model-risk-
+activity-7451388367235309568-u5Dd
+248. Unified Training of Universal Time Series Forecasting Transformers https://arxiv.org/
+html/2402.02592v2
+249. [PDF] Forecast collapse of transformer-based models under squared loss ... https://
+hal.science/hal-05573700/document
+250. [PDF] A Learnable Residual-Informed Loss for Time Series Forecasting https://
+ojs.aaai.org/index.php/AAAI/article/view/39832/43793
+251. [PDF] MSTest: An R-Package for Testing Markov Switching Models - arXiv https://
+arxiv.org/pdf/2411.08188
+252. (PDF) Markov-Switching Vector Autoregressive (MS-VAR) Modelling ... https://
+www.researchgate.net/publication/356094534_Markov-
+Switching_Vector_Autoregressive_MS-
+VAR_Modelling_Mean_Adjusted_Application_to_Macroeconomic_data
+253. Re(Visiting) Time Series Foundation Models in Finance - arXiv https://arxiv.org/html/
+2511.18578v1
+
+===== PAGE 33 =====
+
+254. Latest on US Commercial-Property Pricing - MSCI https://www.msci.com/research-
+and-insights/paper/rca-commercial-property-price-indexes-rca-cppi
+255. Real Assets Market Data - MSCI https://www.msci.com/data-and-analytics/real-
+estate/real-assets-market-data
+256. [PDF] Commercial property price indicators https://ec.europa.eu/eurostat/
+documents/7870049/8545612/KS-FT-16-001-TOC.pdf/f0ece873-88c7-4446-
+a999-6421bb341b5b?t=1513604961000
+257. [PDF] RCA CPPI US | MSCI https://www.msci.com/downloads/web/msci-com/
+research-and-insights/paper/rca-commercial-property-price-indexes-rca-cppi/
+2510_RCACPPI_US.pdf
+258. TimesFM生产部署全攻略：从微调到高性能推理 - AtomGit开源社区 https://
+gitcode.csdn.net/6a213b4b10ee7a33f2779237.html
+259. Nuts and Bolts of a Forecasting and Policy Analysis System in https://
+www.elibrary.imf.org/display/book/9781484325940/ch004.xml
+260. Credit Card Default Prediction: An Empirical Analysis on ... - MDPI https://
+www.mdpi.com/1911-8074/18/1/23
+261. Mathematics, Volume 14, Issue 11 (June-1 2026) – 243 articles https://
+www.mdpi.com/2227-7390/14/11
+262. Electronics, Volume 15, Issue 12 (June-2 2026) – 202 articles https://
+www.mdpi.com/2079-9292/15/12
+263. Smart Computing and Communication - Springer Nature https://link.springer.com/
+content/pdf/10.1007/978-3-031-28124-2.pdf
+264. Troubleshooting Common Development Errors | PDF - Scribd https://
+www.scribd.com/document/752533028/cektitle
+265. [PDF] Basel Committee on Banking Supervision https://www.bis.org/bcbs/publ/
+d409.pdf
+266. [PDF] Instance-level Dynamic LoRA Selection and Merging - arXiv https://arxiv.org/
+pdf/2511.07129
+267. Servicing of Financial Assets - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1281761/000128176125000045/R13.htm
+268. [PDF] Multi-regime Markov-switching models with time-varying transition ... https://
+arxiv.org/pdf/2605.14976
+269. Determinants in Commercial Real Estate Credit Spread Models https://
+ideas.repec.org/a/taf/rjelxx/v30y2022i1-2p1-22.html
+270. [PDF] Credit Spreads and the Macroeconomy https://www.bis.org/events/
+conmpfs090910/gilchrist_pres.pdf
+
+===== PAGE 34 =====
+
+271. Convertible lease risk spread modeling with correlation | Request PDF https://
+www.researchgate.net/publication/
+385208608_Convertible_lease_risk_spread_modeling_with_correlation
+272. The dynamic correlation and volatility of real estate price and rental https://
+ideas.repec.org/a/taf/applec/44y2012i23p2985-2995.html
+273. ARCHIVE | Structured Finance | CMBS: G | S&P Global Ratings https://
+www.spglobal.com/ratings/pt/regulatory/article/-/view/sourceId/13160500
+274. [PDF] 2025 Putnam County State of the County and Annual Report https://
+putnamcountyny.gov/images/Departments/County_Exec/sotc/
+2025/2025%20Putnam%20County%20Annual%20Report.pdf
+275. [PDF] Blackstone Mortgage Trust, Inc. https://www.blackstonemortgagetrust.com/
+bxmt-1q-2026-company-presentation/
+276. (PDF) Non-crossing nonlinear regression quantiles by monotone ... https://
+www.researchgate.net/publication/321642530_Non-
+crossing_nonlinear_regression_quantiles_by_monotone_composite_quantile_regressio
+n_neural_network_with_application_to_rainfall_extremes
+277. (PDF) Non-crossing nonlinear regression quantiles by monotone ... https://
+www.researchgate.net/publication/326114672_Non-
+crossing_nonlinear_regression_quantiles_by_monotone_composite_quantile_regressio
+n_neural_network_with_application_to_rainfall_extremes
+278. [PDF] Commercial property price indicators: sources, methods and issues https://
+www.bis.org/ifc/events/isi_wsc_62/ips176_paper2.pdf
+279. Validation of the Merton Distance to the Default Model under ... - MDPI https://
+www.mdpi.com/1911-8074/7/1/13
+280. [2406.18121] The Merton's Default Risk Model for Public Company https://arxiv.org/
+abs/2406.18121
+281. [PDF] Twin default crises - European Central Bank https://www.ecb.europa.eu/pub/
+pdf/scpwps/ecb.wp2414~7e78d5098c.en.pdf
+282. Merton Model: Assessing Corporate Credit Risk with Precision https://
+www.investopedia.com/terms/m/mertonmodel.asp
+283. Country Default Spreads and Risk Premiums - NYU Stern https://pages.stern.nyu.edu/
+~adamodar/New_Home_Page/datafile/ctryprem.html
+284. Credit Union Regulatory Guidance Including: NCUA, CFPB, FDIC ... https://
+podcasts.apple.com/us/podcast/credit-union-regulatory-guidance-including-ncua-
+cfpb/id1723484843
+285. Time-Series Forecasting by Statistical State-Dependent ... - MDPI https://
+www.mdpi.com/2227-7390/14/11/1788
+
+===== PAGE 35 =====
+
+286. Bayesian Inference for a Structural Credit Risk Model with Stochastic ... https://
+www.researchgate.net/publication/
+269690230_Bayesian_Inference_for_a_Structural_Credit_Risk_Model_with_Stochastic
+_Volatility_and_Stochastic_Interest_Rates
+287. [PDF] modelling structural breaks in stock price time series using ... - arXiv https://
+arxiv.org/pdf/2308.11548
+288. Nber Working Paper Series - Policy Commons https://policycommons.net/artifacts/
+44991783/nber-working-paper-series/45890589/
+289. [PDF] arXiv:2301.11233v2 [cs.CV] 20 May 2023 https://arxiv.org/pdf/2301.11233
+290. 9 Background paper Establishing Initial Conditions in Support of ... https://
+www.elibrary.imf.org/display/book/9781589062177/ch009.xml
+291. [PDF] Surveillance by International Institutions (EN) - OECD https://www.oecd.org/
+content/dam/oecd/en/publications/reports/2011/05/surveillance-by-international-
+institutions_g17a1fa1/5kgchzchkvd2-en.pdf
+292. [PDF] IFC Report no 13 on "Use of big data sources and applications at ... https://
+www.hollandfintech.com/ifc/publ/ifc_report_13.pdf
+293. Signature Isolation Forest - arXiv https://arxiv.org/html/2403.04405v1
+294. Introduction to Anomaly Detection and Isolation Forest - RPubs https://rpubs.com/
+feitonyliu/IntroAnomalyDetectionIsolationForest
+295. US commercial real estate overview - Lexology https://www.lexology.com/library/
+detail.aspx?g=9220b72c-533f-49e4-94c8-829bfa5250e9
+296. Real estate capital planning services - JLL https://www.jll.com/en-us/services/
+portfolio-management/capital-planning
+297. CBRE vs. JLL: How the Big Broker Playbook Has Evolved https://
+www.creanalyst.com/insights/cbre-vs.-jll-how-the-big-broker-playbook-has-evolved
+298. https://www.capitaliq.com/ciqdotnet/creditresearch... https://www.capitaliq.com/
+ciqdotnet/creditresearch/spresearch.aspx?artobjectid=9478732&artrevid=10
+299. Cap Rates and Interest Rates in U.S. Commercial Real Estate https://
+www.mmcginvest.com/post/cap-rates-and-interest-rates-in-u-s-commercial-real-estate-
+a-data-note
+300. Capital Markets Impact on Commercial Real Estate Cap Rates https://
+www.researchgate.net/publication/
+247906173_Capital_Markets_Impact_on_Commercial_Real_Estate_Cap_Rates_A_Pract
+itioner's_View
+301. [PDF] Do Corporate Bond Shocks Affect Commercial Bank Lending? https://
+www.imf.org/-/media/files/publications/wp/2023/english/wpiea2023156-print-
+pdf.pdf
+
+===== PAGE 36 =====
+
+302. J.P. Morgan Global Index Research https://www.jpmorgan.com/markets/index-
+research
+303. Bayesian Markov–Switching Vector Autoregressive Process - arXiv https://arxiv.org/
+html/2404.11235v2
+304. (PDF) A Markov Switching Factor-Augmented VAR Model for ... https://
+www.researchgate.net/publication/276261243_A_Markov_Switching_Factor-
+Augmented_VAR_Model_for_Analyzing_US_Business_Cycles_and_Monetary_Policy
+305. [PDF] Interest Rates, Money, and Fed Monetary Policy in a Markov ... https://
+www.kennethmrich.com/s/JMP_KennethMRich_21Dec2021.pdf
+306. [PDF] Forecasting Default with the KMV-Merton Model - NYU Stern https://
+w4.stern.nyu.edu/salomon/docs/Credit2006/shumway_kmvmerton1.pdf
+307. Time-Series Foundation Model for Value-at-Risk - arXiv https://arxiv.org/html/
+2410.11773v1
+308. Hierarchical Markov Chain Monte Carlo Framework for ... - MDPI https://
+www.mdpi.com/2076-3417/15/20/11094
+309. Fitch Ratings Publishes EMEA CMBS and CRE Loan Rating Criteria ... https://
+www.fitchratings.com/research/structured-finance/fitch-ratings-publishes-emea-cmbs-
+cre-loan-rating-criteria-exposure-draft-13-10-2022
+310. DSCR Under Stress: A Three-Method Framework for Institutional ... https://
+www.mmcginvest.com/post/dscr-under-stress-a-three-method-framework-for-
+institutional-underwriting
+311. [PDF] Macroeconomic Forecasting with Large Language Models - arXiv https://
+arxiv.org/pdf/2407.00890
+312. [PDF] Integrated Annual Report 2025 - Investors - DSM-Firmenich https://
+investors.dsm-firmenich.com/en/investors/dsm-firmenich-at-a-glance/sri/integrated-
+annual-report.html
+313. [PDF] The Trustees of Columbia University in the City of New York https://
+www.finance.columbia.edu/sites/default/files/content/Finance%20Documents/
+Financial%20Reports/Columbia_Uniform_Guidance_FAC_FY24_Report_signed.pdf
+314. [PDF] III. The next-generation monetary and financial system https://www.bis.org/
+publ/arpdf/ar2025e3.pdf
+315. [PDF] A Large-Scale LLM Analysis of Central Bank Communication https://
+www.imf.org/-/media/files/publications/wp/2025/english/wpiea2025109-print-
+pdf.pdf
+316. Financial Time Series Forecasting Using Empirical Mode ... - MDPI https://
+www.mdpi.com/2227-9091/6/1/7
+317. Time-Series Foundation Models in Finance: Pretraining Corpora ... https://dl.acm.org/
+doi/full/10.1145/3785706.3785728
+
+===== PAGE 37 =====
+
+318. Mean Reversion and Heavy Tails: Characterizing Time-Series Data ... https://
+pubmed.ncbi.nlm.nih.gov/41755202/
+319. [PDF] Residual-based extreme value estimation for heavy tails - HAL https://
+hal.science/hal-04705855v1/file/Residual_based_extreme_value_estimation.pdf
+320. 3.3 Residual diagnostics | Forecasting: Principles and Practice (2nd ... https://
+otexts.com/fpp2/residuals.html
+321. [PDF] Law School - NYU Law https://www.law.nyu.edu/sites/default/files/
+NYU_Law_Magazine_2004.pdf
+322. When Models Fail: Credit Scoring, Bank Management, and NPL ... https://
+www.mdpi.com/2227-7072/13/3/152
+323. The Merton Structural Model and IRB Compliance - ResearchGate https://
+www.researchgate.net/publication/
+238758929_The_Merton_Structural_Model_and_IRB_Compliance
+324. ï¿½Determining the Number of Regimes in Markov-Switching VAR https://
+ideas.repec.org/p/ven/wpaper/201303.html
+325. [PDF] 基于马尔科夫状态转移模型 - 管理科学 https://glkx.hit.edu.cn/__local/4/1B/
+F7/E12B995B03E3565D40AC88AD55E_AD46DB46_28D42B.pdf
+326. An Extensive Study on Markov Switching Models with Endogenous ... https://
+wise.xmu.edu.cn/info/3621/176341.htm
+327. [PDF] Forecast collapse of transformer-based models under squared loss ... https://
+hal.science/hal-05573700v1/file/main.pdf
+328. [PDF] arXiv:2503.23621v1 [cs.LG] 30 Mar 2025 https://arxiv.org/pdf/2503.23621
+329. Bias-Correction in Time Series Quantile Regression Models https://ideas.repec.org/p/
+svk/wpaper/1094.html
+330. CRED iQ | Commercial Real Estate Data Platform & API https://www.cred-iq.com/
+331. The next five years: Five ways U.S. CRE will differ from the last five https://
+am.jpmorgan.com/tw/en/asset-management/institutional/insights/portfolio-insights/
+alternatives/last-five-next-five/
+332. Forecasting Stock Positions through Monte Carlo Simulation of ... https://
+www.researchgate.net/publication/
+376956394_Forecasting_Stock_Positions_through_Monte_Carlo_Simulation_of_Stocha
+stic_Models
+333. Time-Series Foundation Model for Value-at-Risk Forecasting - arXiv https://arxiv.org/
+html/2410.11773v5
+334. Fitch Ratings Announces 2026 CMBS Multiborrower Market Cap ... https://
+www.fitchratings.com/research/structured-finance/fitch-ratings-announces-2026-
+cmbs-multiborrower-market-cap-rate-assumptions-04-09-2025
+
+===== PAGE 38 =====
+
+335. U.S. CMBS Update Q1 2026: Downgrades Abate As Hea - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/us-cmbs-update-q1-2026-
+downgrades-abate-as-headwinds-persist-s101679698
+336. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v2
+337. iTransformer: Inverted Transformers Are Effective for Time Series... https://
+openreview.net/forum?id=JePfAI8fah
+338. ProofGrid: Extended Technical Report on AI Reasoning Benchmarks https://
+www.linkedin.com/posts/konstantine-arkoudas-23682351_ai-llms-reasoning-
+activity-7453123129981173760-He3I
+339. timesfm/timesfm-forecasting/examples/finetuning · ti/timesfm - GitCode https://
+gitcode.com/GitHub_Trending/ti/timesfm/tree/master/timesfm-forecasting/
+examples/finetuning/
+340. SR 11-7 - MATLAB & Simulink - MathWorks https://www.mathworks.com/discovery/
+sr11-7.html
+341. Federated LoRA Fine-Tuning for LLMs via Collaborative Alignment https://arxiv.org/
+abs/2605.21217
+342. [PDF] Preference-Aligned LoRA Merging: Preserving Subspace Coverage ... https://
+openaccess.thecvf.com/content/CVPR2026/papers/Jeong_Preference-
+Aligned_LoRA_Merging_Preserving_Subspace_Coverage_and_Addressing_Directional_
+Anisotropy_CVPR_2026_paper.pdf
+343. LoRA Fine Tune - Kaggle https://www.kaggle.com/code/waquarahmed1/lora-fine-
+tune
+344. EX-99.1 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1037976/000103797626000016/exhibit991fourthquarter202.htm
+345. [PDF] Isolation Forest in Novelty Detection Scenario - arXiv https://arxiv.org/pdf/
+2505.08489
+346. Isolation Forest Anomaly Detection Algorithm Based On Multi-level ... https://
+www.researchgate.net/publication/
+385255769_Isolation_Forest_Anomaly_Detection_Algorithm_Based_On_Multi-
+level_Sub-subspace_Partition
+347. Isolation Forest Anomaly Detection Algorithm - LinkedIn https://www.linkedin.com/
+posts/danny-butvinik_artificialintelligence-machinelearning-
+activity-7460297849788874752-K3bA
+348. [PDF] Isolation-based Anomaly Detection - LAMDA https://www.lamda.nju.edu.cn/
+publication/tkdd11.pdf
+349. Anomaly Detection for Data Streams Based on Isolation Forest using ... https://
+www.researchgate.net/publication/
+
+===== PAGE 39 =====
+
+343600016_Anomaly_Detection_for_Data_Streams_Based_on_Isolation_Forest_using_
+Scikit-multiflow
+350. On the Improvement of the Isolation Forest Algorithm for Outlier ... https://
+www.mdpi.com/2079-9292/10/13/1534
+351. JPMorgan BetaBuilders U.S. Treasury Bond 1-3 Year ETF-ETF Shares https://
+am.jpmorgan.com/us/en/asset-management/adv/products/jpmorgan-betabuilders-u-
+s-treasury-bond-1-3-year-etf-etf-shares-46654q856
+352. Document 152 - file: R39.htm - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1138118/000113811826000005/R39.htm
+353. [PDF] Treatment of Extensions of Credit to Certain Investment Funds and ... https://
+business.cch.com/BFLD/
+TreatmentofExtensionsofCredittoCertainInvestmentFundsandTheirPortfolioInvestment
+sUnder12CFR215and12CFR363_ExtensionofRevisedInteragencyStatement_OCC.pdf
+354. [PDF] Apollo-Forecast: Overcoming Aliasing and Inference Speed ... https://
+ojs.aaai.org/index.php/AAAI/article/view/34371/36526
+355. Predicting Commercial Real Estate Rent: An Empirical Study https://
+www.researchgate.net/publication/
+339024401_Predicting_Commercial_Real_Estate_Rent_An_Empirical_Study
+356. Commercial Vacancy Prediction Using LSTM Neural Networks - MDPI https://
+www.mdpi.com/2071-1050/13/10/5400
+357. Boosting the Accuracy of Commercial Real Estate Appraisals - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC10031694/
+358. Tropical Geography https://www.rddl.com.cn/EN/current
+359. Urban building change detection on the basis of multitemporal LT-1 https://
+www.ygxb.ac.cn/en/article/doi/10.11834/jrs.20254179/
+360. [PDF] Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/pdf/2602.12147
+361. Deconstructing a Strong Baseline for Time Series Foundation Models https://
+arxiv.org/html/2602.06909v1
+362. Enhancing LLMs for Time Series Forecasting via Structure-Guided ... https://arxiv.org/
+abs/2505.13175
+363. [PDF] COMMUNITY REINVESTMENT ACT PUBLIC FILE - AWS https://trabian-canvas-
+prd-files.s3.amazonaws.com/metcapbank-com/files/document/
+CRA%20Public%20File%20As%20of%204.1.2025.pdf?
+VersionId=19KvclSpISDBao.343OXko7XPWa3x5Xj
+364. [PDF] MSCI Property Indexes Methodology https://www.msci.com/documents/
+1296102/1311232/MSCI+Property+Indexes+Methodology.pdf/a33f5a6c-a5e4-4d18-
+f460-d8c537ded968
+
+===== PAGE 40 =====
+
+365. bbcms 2024-c26 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1541480/000153949724000998/n4194-x12_424b2.htm
+366. Baa Bond-Treasury Credit Spread and Its Diagnostic Expectations. https://
+www.researchgate.net/figure/Baa-Bond-Treasury-Credit-Spread-and-Its-Diagnostic-
+Expectations_fig1_375423486
+367. [PDF] Working Paper No 18 - European Central Bank https://www.ecb.europa.eu/
+pub/pdf/scpwps/ecbwp018.pdf
+368. Economic Policy Uncertainty and Commercial Property Performance https://
+www.mdpi.com/2227-7072/12/3/71
+369. [PDF] The credit portfolio management by structural models - HAL https://
+hal.science/hal-01696009/document
+370. WINTER - Portfolio Management Research https://www.pm-research.com/content/
+iijstrfin/28/4/local/complete-issue.pdf
+371. The-World-Bank-Group-s-support-to-capital-market-development.txt https://
+documents1.worldbank.org/curated/en/349861476995767563/txt/The-World-Bank-
+Group-s-support-to-capital-market-development.txt
+372. [PDF] Attracting institutional investors to low temperature DHC networks https://
+ec.europa.eu/research/participants/documents/downloadPublic?
+documentIds=080166e5db451d60&appId=PPGMS

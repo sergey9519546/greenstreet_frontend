@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #00302e; }
+      body { font-family: "Outfit", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+      svg { display: block; } text { dominant-baseline: middle; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="5" data-width="1920" data-height="1080">
+      <div id="scene" class="clip" data-start="0" data-duration="5" data-track-index="1" style="position:absolute; inset:0;">
+        <svg viewBox="0 0 1920 1080" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="vign" cx="50%" cy="44%" r="80%"><stop offset="0" stop-color="#0a4f4b"/><stop offset="55%" stop-color="#04403d"/><stop offset="100%" stop-color="#012220"/></radialGradient>
+            <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbe9"/><stop offset="1" stop-color="#e4e5c4"/></linearGradient>
+            <linearGradient id="lemonG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9ea72"/><stop offset="1" stop-color="#cdce46"/></linearGradient>
+            <linearGradient id="emerG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#69d6ad"/><stop offset="1" stop-color="#34a279"/></linearGradient>
+            <linearGradient id="panelG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eeefd3" stop-opacity="0.09"/><stop offset="1" stop-color="#eeefd3" stop-opacity="0.03"/></linearGradient>
+            <filter id="glowE" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowL" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="drop" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="14" stdDeviation="20" flood-color="#001a18" flood-opacity="0.4"/></filter>
+            <filter id="dropS" x="-40%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#001a18" flood-opacity="0.4"/></filter>
+            <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" seed="2"/><feColorMatrix type="matrix" values="0 0 0 0 0.93  0 0 0 0 0.94  0 0 0 0 0.83  0 0 0 0.6 0"/></filter>
+            <pattern id="dots" width="46" height="46" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.6" fill="#eeefd3" opacity="0.05"/></pattern>
+          </defs>
+          <rect width="1920" height="1080" fill="url(#vign)"/>
+          <g id="par"><rect x="-40" y="-40" width="2000" height="1160" fill="url(#dots)"/></g>
+          <ellipse cx="960" cy="470" rx="520" ry="320" fill="#0c5e58" opacity="0.22" filter="url(#glowE)"/>
+          <text id="eyebrow" x="960" y="116" text-anchor="middle" class="mono" fill="#eeefd3" opacity="0.66" font-size="25" letter-spacing="8" font-weight="600">40 DOORS · ONE BLENDED VIEW</text>
+
+          <g id="ledger" opacity="0">
+            <rect x="556" y="270" width="808" height="434" rx="22" fill="url(#panelG)" stroke="#eeefd3" stroke-opacity="0.18" stroke-width="2" filter="url(#dropS)"/>
+            <rect x="556" y="270" width="808" height="3" rx="2" fill="#fff" opacity="0.18"/>
+            <text x="588" y="234" fill="#eeefd3" opacity="0.6" font-size="22" font-weight="600" letter-spacing="2">PORTFOLIO LEDGER · 40 PROPERTIES</text>
+          </g>
+
+          <g id="houses"></g>
+
+          <g id="meter" opacity="0" transform="translate(560,762)">
+            <text x="0" y="-6" fill="#eeefd3" opacity="0.6" font-size="22" font-weight="600" letter-spacing="2">BLENDED DSCR</text>
+            <rect x="0" y="14" width="800" height="22" rx="11" fill="#eeefd3" fill-opacity="0.08"/>
+            <rect id="mfill" x="0" y="14" width="0" height="22" rx="11" fill="url(#emerG)" filter="url(#glowE)"/>
+            <rect x="270" y="6" width="3" height="38" fill="#eeefd3" opacity="0.5"/>
+            <text x="271" y="66" text-anchor="middle" class="mono" fill="#eeefd3" opacity="0.5" font-size="18">1.00</text>
+            <text id="mval" x="800" y="0" text-anchor="end" class="mono" fill="#4dbd97" font-size="62" font-weight="800" opacity="0" filter="url(#glowE)">1.11x</text>
+          </g>
+
+          <g id="ribbon" transform="translate(940,912) scale(0)">
+            <rect x="-300" y="-46" width="600" height="92" rx="16" fill="url(#lemonG)" filter="url(#drop)"/>
+            <rect x="-300" y="-46" width="600" height="10" rx="5" fill="#fff" opacity="0.4"/>
+            <text x="-28" y="2" text-anchor="middle" class="mono" fill="#012220" font-size="46" font-weight="800">$18M</text>
+            <text x="128" y="2" text-anchor="middle" fill="#012220" font-size="26" font-weight="700" letter-spacing="1">BLANKET LINE</text>
+          </g>
+          <g id="seal" transform="translate(1540,912) scale(0)"><circle r="54" fill="url(#emerG)" filter="url(#glowE)"/><circle r="54" fill="none" stroke="#fff" stroke-opacity="0.3" stroke-width="3"/><path d="M -23 1 L -6 19 L 25 -21" fill="none" stroke="#012220" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></g>
+
+          <rect width="1920" height="1080" filter="url(#grain)" opacity="0.045" style="mix-blend-mode:overlay"/>
+        </svg>
+      </div>
+    </div>
+
+    <script>
+      const NS="http://www.w3.org/2000/svg";
+      const cont=document.getElementById("houses"); const houses=[];
+      const cols=8,rows=5,sp=92,gx0=612,gy0=322, gcx=gx0+(cols-1)*sp/2, gcy=gy0+(rows-1)*sp/2;
+      for(let i=0;i<40;i++){
+        const ang=i*2.39996323, r=70+i*11.5;
+        const sx=960+Math.cos(ang)*r, sy=500+Math.sin(ang)*r*0.6;
+        const col=i%cols,row=Math.floor(i/cols); const gx=gx0+col*sp, gy=gy0+row*sp;
+        const g=document.createElementNS(NS,"g");
+        g.innerHTML='<polygon points="0,-17 18,-1 -18,-1" fill="url(#lemonG)"/><rect x="-14" y="-1" width="28" height="22" rx="3" fill="url(#cream)"/><rect x="-4" y="7" width="8" height="14" rx="1" fill="#024a45"/>';
+        cont.appendChild(g);
+        const gd=Math.hypot(gx-gcx,gy-gcy); // grid distance from center → emanation delay
+        houses.push({el:g,sx,sy,gx,gy,gd});
+      }
+      const maxGd=Math.max(...houses.map(h=>h.gd));
+
+      window.__timelines=window.__timelines||{};
+      const tl=gsap.timeline({paused:true});
+      houses.forEach(h=>gsap.set(h.el,{x:h.sx,y:h.sy}));
+      tl.fromTo("#par",{x:-12,y:-8},{x:12,y:8,duration:5,ease:"none"},0);
+
+      // float scattered
+      houses.forEach((h,i)=>tl.to(h.el,{y:h.sy+10,duration:0.7,yoyo:true,repeat:1,ease:"sine.inOut"},(i%7)*0.05));
+      // snap to grid — emanate from center (nearest grid-center snaps first), overshoot
+      tl.to("#ledger",{opacity:1,duration:0.4,ease:"power2.out"},1.55);
+      houses.forEach(h=>{ const d=1.7+(h.gd/maxGd)*0.7;
+        tl.to(h.el,{x:h.gx,y:h.gy,duration:0.7,ease:"back.out(1.5)"},d); });
+      // blended meter — 1.11x => (1.11-0.5)/1.5*800 = 325
+      tl.to("#meter",{opacity:1,duration:0.4},2.75)
+        .fromTo("#mfill",{width:0},{width:325,duration:1.0,ease:"power3.out"},2.85)
+        .from("#mval",{opacity:0,y:14,duration:0.5,ease:"power3.out"},3.1).to("#mval",{opacity:1,duration:0.01},3.1);
+      // ribbon + seal
+      tl.to("#ribbon",{scale:1,duration:0.6,ease:"back.out(1.6)"},3.6)
+        .to("#seal",{scale:1,duration:0.55,ease:"back.out(1.8)"},3.95)
+        .to("#seal",{scale:1.08,duration:0.18,yoyo:true,repeat:1,ease:"sine.inOut"},4.5);
+
+      // loop reset
+      tl.to(["#ribbon","#seal"],{scale:0,duration:0.3},4.72)
+        .to(["#meter","#ledger"],{opacity:0,duration:0.3},4.72)
+        .set("#mval",{opacity:0},4.99).set("#mfill",{width:0},4.99);
+      houses.forEach(h=>tl.set(h.el,{x:h.sx,y:h.sy},4.99));
+
+      window.__timelines["main"]=tl;
+    </script>
+  </body>
+</html>

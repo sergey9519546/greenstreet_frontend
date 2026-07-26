@@ -1,0 +1,61 @@
+# Obsidian should ignore these — keeps graph view focused on research notes
+
+# Build artifacts
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.lock
+*.toml
+*.log
+
+# Python source code
+*.py
+
+# Non-markdown data files
+*.json
+*.csv
+*.txt
+*.xlsx
+*.zip
+*.pdf
+*.docx
+*.html
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+
+# Build artifacts + random files at workspace root
+.coverage
+660
+package.json
+
+# New subdirs (non-research folders)
+99_attachments/
+99_build_scripts/
+DSCR_SOVEREIGN_OS/
+output/
+autoresearch/
+
+# RESEARCH subdirs that are data/mirror, not notes
+RESEARCH/pdf_extractions/
+RESEARCH/pdf_short/
+RESEARCH/sprint_short/
+RESEARCH/_archive/
+ANALYSIS/
+
+# Audit/state + post-merge artifacts (machine-readable, not Obsidian notes)
+00_MOCs/_audit_state/
+00_MOCs/_archive/
+
+# Old legacy vault directory (deleted but ignored just in case)
+_obsidian_vault/

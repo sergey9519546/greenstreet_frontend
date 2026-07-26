@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+<script>
+  window.addEventListener('error', function(event) {
+    if (event.error && event.error.message.includes('void element tag')) {
+      fetch('http://localhost:3001/log', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: event.error.message, stack: event.error.stack })
+      });
+    }
+  });
+  const orig = console.error;
+  console.error = function(...args) {
+    if (args[0] && args[0].message && args[0].message.includes('void element tag')) {
+      fetch('http://localhost:3001/log', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ message: args[0].message, stack: args[0].stack })
+      });
+    }
+    orig.apply(this, args);
+  };
+</script><script>
+  const original = console.error;
+  console.error = function(...args) {
+    if (args[0] && args[0].message && args[0].message.includes('void element tag')) {
+      console.log('INTERCEPTED ERROR:', args[0].stack);
+    }
+    original.apply(console, args);
+  }
+</script><script>window.addEventListener("error", e => console.error("ERRRR", e.error.stack));</script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Greenstreet Finance | AI-Native Compliance Software for SEC &amp; FINRA</title>
+    <!-- Webflow Stylesheet -->
+    <link href="https://cdn.prod.website-files.com/67d0a8a9156b7b7bd46ffdfd/css/greenboard-00.shared.57c976e80.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      body {
+        overscroll-behavior-y: none;
+        background-color: #EEEFD3;
+      }
+      .scroll_horizontal_inner, .scroll_horizontal_track { display: flex; }
+      .step-cards-track { overflow: visible; }
+      .step-cards-list { margin-right: -100vw; }
+      .link-item { pointer-events: auto; }
+      .usecase_layout { height: calc(100vh - 7.5rem); }
+      @media screen and (max-width: 479px) {
+        .usecase_layout { height: calc(70vh - 7.5rem); }
+      }
+      .swiper-container { overflow: visible; }
+      .loader { display: flex; }
+      .page_code_wrap { display: none; }
+      .grid-wrapper { display: none; }
+      @media only screen and (min-width: 992px) {
+        .nav-btn { min-width: 0rem; width: 0rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=67d0a8a9156b7b7bd46ffdfd" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.prod.website-files.com/67d0a8a9156b7b7bd46ffdfd/js/greenboard-00.schunk.57706da51b32327c.js" type="text/javascript"></script>
+    <script src="https://cdn.prod.website-files.com/67d0a8a9156b7b7bd46ffdfd/js/greenboard-00.0d162371.8614de198f9d7870.js" type="text/javascript"></script>
+    <script src="https://cdn.prod.website-files.com/gsap/3.15.0/gsap.min.js" type="text/javascript"></script>
+    <script src="https://cdn.prod.website-files.com/gsap/3.15.0/ScrollTrigger.min.js" type="text/javascript"></script>
+    <script src="https://cdn.prod.website-files.com/gsap/3.15.0/Observer.min.js" type="text/javascript"></script>
+    <script src="https://cdn.prod.website-files.com/gsap/3.15.0/Flip.min.js" type="text/javascript"></script>
+    <script type="text/javascript">gsap.registerPlugin(ScrollTrigger,Observer,Flip);</script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+    <script type="text/javascript" src="https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js"></script>
+    <script>
+      function initAnimations() {
+        gsap.registerPlugin(ScrollTrigger);
+        let lenis;
+        let showAnim;
+        let mm = gsap.matchMedia();
+        function isSafari() {
+          return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        }
+
+        //Desktop Only
+
+mm.add("(min-width: 992px)", () => {
+          //NAVBAR BUTTON REVEAL ON SCROLL
+          gsap.set(".nav-btn", { minWidth: "0rem" });
+
+          let tlNavbar = gsap.timeline({
+            paused: true,
+            defaults: { ease: "power3.out" },
+          });
+          tlNavbar.to(".nav-btn", { minWidth: "14rem", duration: 0.55 });
+
+          ScrollTrigger.create({
+            trigger: "body",
+            start: "top+=75 top",
+            onEnter: () => tlNavbar.play(),
+            onLeaveBack: () => {
+              gsap.to(".nav-btn .btn_main_wrap", {
+                opacity: 0,
+                duration: 0.15,
+              });
+              gsap.to(".nav-btn", {
+                minWidth: "0rem",
+                duration: 0.55,
+                ease: 'power3.out',
+                onComplete: () => {
+                  gsap.set(".nav-btn .btn_main_wrap", { opacity: 1 });
+                  tlNavbar.pause(0);
+                },
+              });
+            },
+          });
+        });
+
+        let menuClick = true;
+        let menuMobiletl = gsap.timeline({
+          paused: true,
+          defaults: { duration: 0.4, ease: "power4.inOut" },
+        });
+        menuMobiletl
+          .to(".burger-line.middle", {
+            marginTop: "calc(0rem - 1px)",
+            marginBottom: "calc(0rem - 1px)",
+          })
+          .set(".burger-line.middle", { opacity: 0, duration: 0.2 }, "<0.2")
+          .to(".burger-line.top", { rotate: "45deg" }, "<")
+          .to(".burger-line.bottom", { rotate: "-45deg" }, "<")
+          .set(".menu-mobile-wrap", { display: "flex" }, "<")
+          .from(".menu-mobile-wrap", { opacity: 0, duration: 0.2 }, "<0.1");
+
+        $(".burger-wrap").on("click", function () {
+          if (menuClick) {
+            menuMobiletl.play();
+            menuClick = false;
+          } else {
+            menuMobiletl.reverse();
+            menuClick = true;
+          }
+        });
+
+        $('[class*="drawer-top"], [drawer-top]').on("click", function () {
+          var $element = $(this).closest(".drawer-item, [drawer-parent]");
+          var clickCount = $element.data("clickCount") || 0;
+          if (clickCount === 1) {
+            $element.removeClass("open");
+            setTimeout(function () { ScrollTrigger.refresh(); }, 600);
+          } else {
+            $element.siblings().removeClass("open").data("clickCount", 0);
+            $element.addClass("open");
+            setTimeout(function () { ScrollTrigger.refresh(); }, 600);
+          }
+          clickCount++;
+          if (clickCount > 1) clickCount = 0;
+          $element.data("clickCount", clickCount);
+        });
+
+        $(".swiper").each(function () {
+          let $swiper = $(this);
+          let prev = $swiper.find(".is-prev")[0];
+          let next = $swiper.find(".is-next")[0];
+          let nav  = $swiper.find(".swiper-pagination")[0];
+
+          if (!prev || !next || !nav) {
+            let $wrap = $swiper.closest(".home-swiper-wrap");
+            if ($wrap.length) {
+              prev = prev || $wrap.find(".is-prev")[0];
+              next = next || $wrap.find(".is-next")[0];
+              nav  = nav  || $wrap.find(".swiper-pagination")[0];
+            }
+          }
+
+          if ($swiper.find("div.w-dyn-empty").length) return;
+
+          let loop = $swiper.data("loop") === true;
+          let centered = $swiper.data("centered") === true;
+          let axis = $swiper.data("axis");
+          let autoplay = $swiper.data("autoplay") === true;
+          let speed = $swiper.data("speed") || 600;
+          let delay = $swiper.data("delay") || 5000;
+          let reverseDirection = $swiper.data("reverse") === true;
+
+          new Swiper($swiper.find(".swiper-container")[0], {
+            grabCursor: true,
+            speed: speed,
+            loop: loop,
+            autoplay: autoplay ? { delay: delay, reverseDirection: reverseDirection } : false,
+            centeredSlides: centered,
+            slidesPerView: "auto",
+            slidesPerGroup: 1,
+            navigation: { nextEl: next, prevEl: prev },
+            mousewheel: { forceToAxis: axis !== false, invert: false, sensitivity: 1.5 },
+            pagination: { el: nav, clickable: true },
+          });
+        });
+
+        //SOLUTION LIST HOVER
+        $(".solution_list .list-item").hover(
+          function () {
+            var index = $(this).index();
+            $(".solution_visual_wrap .g_visual_wrap").css("opacity", "0");
+
+$(".solution_visual_wrap .g_visual_wrap").eq(index + 1).css("opacity", "1");
+          },
+          function () {
+            $(".solution_visual_wrap .g_visual_wrap").css("opacity", "0");
+            $(".solution_visual_wrap .g_visual_wrap").first().css("opacity", "1");
+          }
+        );
+
+        //HOW IT WORKS - STEPS SCROLL
+        $(".step_height").each(function (index) {
+          let wrap = $(this);
+          let cardList = wrap.find(".step-cards-list");
+
+          let tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: wrap[0],
+              start: "top -10%",
+              end: "bottom 110%",
+              scrub: 0.1,
+              invalidateOnRefresh: true,
+            },
+            defaults: { ease: "none" },
+          });
+
+          tl.to(cardList[0], {
+            xPercent: -100,
+            x: () => {
+              let tabWidth = wrap.find(".step_tab_content_list_wrap").outerWidth() || 0;
+              return tabWidth;
+            },
+          });
+
+          const triggers = wrap.find(".scroll-horizontal-trigger");
+          triggers.each(function (i) {
+            const $trigger = $(this);
+            const $stepTabLink = wrap.find(".step_tab_link").eq(i);
+            const $highlight = $stepTabLink.find(".step_tab_line_highlighted");
+            const $content = $stepTabLink.find(".step_tab_link_content");
+            const $icon = $stepTabLink.find(".step_tab_link_icon");
+
+            gsap.fromTo(
+              $highlight[0],
+              { width: "0%" },
+              {
+                width: "100%",
+                scrollTrigger: {
+                  trigger: $trigger[0],
+                  start: "top center",
+                  end: "bottom center",
+                  scrub: true,
+                },
+              }
+            );
+
+            const tl2 = gsap.timeline({
+              scrollTrigger: {
+                trigger: $trigger[0],
+                start: "top center",
+                end: "top top",
+                scrub: true,
+              },
+            });
+
+            tl2.fromTo($content[0], { x: "-1.85rem" }, { x: "0rem", ease: "power2.out" }, 0)
+               .fromTo($icon[0], { opacity: 0 }, { opacity: 1, ease: "power2.out" }, 0)
+               .fromTo($stepTabLink[0], { opacity: 0.5 }, { opacity: 1, ease: "power2.out" }, 0);
+
+            const $contentWrap = wrap.find(".step_tab_content_list_wrap").eq(i);
+            const $image = $contentWrap.find(".step_tab_content_visual_image");
+
+            let fromX = 25, toX = -25, start = "top bottom", end = "bottom top";
+            if (i === 0) { fromX = 0; }
+            if (i === triggers.length - 1) { fromX = 25; toX = 0; end = "top top"; }
+
+            gsap.fromTo($image[0], { xPercent: fromX }, {
+              xPercent: toX, ease: "none",
+              scrollTrigger: { trigger: $trigger[0], start: start, end: end, scrub: true },
+            });
+
+            const $layout = wrap.find(".step_layout, .step_layout-cs");
+            ScrollTrigger.create({
+              trigger: $trigger[0],
+              start: "top center",
+              end: "bottom center",
+              onEnter: () => applyColors(i),
+              onEnterBack: () => applyColors(i)
+            });
+
+            function applyColors(idx) {
+              const $targetWrap = wrap.find(".step_tab_content_list_wrap").eq(idx);
+              const textColor = $targetWrap.data("color");
+              const bgColor = $targetWrap.data("background");
+              if (textColor && bgColor) {
+                gsap.to($layout[0], {
+                  backgroundColor: `#${bgColor}`,
+                  color: `#${textColor}`,
+                  duration: 0.5,
+                  overwrite: "auto",
+                  ease: "power2.out"
+                });
+              }
+            }
+          });
+        });
+
+      }
+
+      // Wait for React to finish rendering before running custom DOM logic once
+      window.addEventListener('load', () => { setTimeout(initAnimations, 1000); });
+    </script>
+  </body>
+</html>

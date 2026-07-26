@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #00302e; }
+      body { font-family: "Outfit", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+      svg { display: block; } text { dominant-baseline: middle; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="5" data-width="1920" data-height="1080">
+      <div id="scene" class="clip" data-start="0" data-duration="5" data-track-index="1" style="position:absolute; inset:0;">
+        <svg viewBox="0 0 1920 1080" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="vign" cx="50%" cy="42%" r="75%">
+              <stop offset="0" stop-color="#0a4f4b"/><stop offset="55%" stop-color="#04403d"/><stop offset="100%" stop-color="#012220"/>
+            </radialGradient>
+            <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbe9"/><stop offset="1" stop-color="#e4e5c4"/></linearGradient>
+            <linearGradient id="lemonG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9ea72"/><stop offset="1" stop-color="#cdce46"/></linearGradient>
+            <linearGradient id="emerG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#69d6ad"/><stop offset="1" stop-color="#34a279"/></linearGradient>
+            <linearGradient id="coralG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ef8682"/><stop offset="1" stop-color="#d24f4a"/></linearGradient>
+            <linearGradient id="arcTrack" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eeefd3" stop-opacity="0.06"/><stop offset="1" stop-color="#eeefd3" stop-opacity="0.16"/></linearGradient>
+            <radialGradient id="lens" cx="38%" cy="34%" r="75%"><stop offset="0" stop-color="#eeefd3" stop-opacity="0.30"/><stop offset="55%" stop-color="#04403d" stop-opacity="0.10"/><stop offset="100%" stop-color="#012220" stop-opacity="0.30"/></radialGradient>
+            <filter id="glowE" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowL" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowC" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="drop" x="-40%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#001a18" flood-opacity="0.5"/><feDropShadow dx="0" dy="34" stdDeviation="34" flood-color="#001a18" flood-opacity="0.35"/></filter>
+            <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0.93  0 0 0 0 0.94  0 0 0 0 0.83  0 0 0 0.6 0"/></filter>
+            <pattern id="dots" width="46" height="46" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.6" fill="#eeefd3" opacity="0.05"/></pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="url(#vign)"/>
+          <g id="par"><rect x="-40" y="-40" width="2000" height="1160" fill="url(#dots)"/></g>
+          <ellipse cx="960" cy="470" rx="620" ry="360" fill="#0c5e58" opacity="0.28" filter="url(#glowE)"/>
+
+          <g id="eyebrow" opacity="0">
+            <circle cx="838" cy="118" r="6" fill="url(#lemonG)" filter="url(#glowL)"/>
+            <text x="862" y="120" class="mono" fill="#eeefd3" opacity="0.66" font-size="25" letter-spacing="9" font-weight="600">ONE FILE · TWO DSCRs</text>
+          </g>
+
+          <g id="g1" transform="translate(360,580)">
+            <path d="M -156 0 A 156 156 0 0 1 156 0" fill="none" stroke="url(#arcTrack)" stroke-width="22" stroke-linecap="round"/>
+            <path id="g1arc" d="M -156 0 A 156 156 0 0 1 156 0" fill="none" stroke="url(#emerG)" stroke-width="22" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490" filter="url(#glowE)"/>
+            <g id="g1needle"><polygon points="-7,0 7,0 2.5,-138 -2.5,-138" fill="#eeefd3" filter="url(#glowL)"/></g>
+            <circle r="16" fill="#012220"/><circle r="16" fill="none" stroke="#eeefd3" stroke-opacity="0.5" stroke-width="3"/>
+            <text x="0" y="86" text-anchor="middle" class="mono" fill="#eeefd3" font-size="62" font-weight="700" id="g1val" opacity="0">1.18x</text>
+            <text x="0" y="138" text-anchor="middle" fill="#eeefd3" opacity="0.6" font-size="23" font-weight="600" letter-spacing="2">TRACK 1 · LENDER</text>
+            <g id="g1ok" transform="translate(158,-118) scale(0)"><circle r="40" fill="url(#emerG)" filter="url(#glowE)"/><path d="M -17 1 L -4 15 L 19 -15" fill="none" stroke="#012220" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></g>
+          </g>
+
+          <g id="g2" transform="translate(1560,580)">
+            <path d="M -156 0 A 156 156 0 0 1 156 0" fill="none" stroke="url(#arcTrack)" stroke-width="22" stroke-linecap="round"/>
+            <path id="g2arc" d="M -156 0 A 156 156 0 0 1 156 0" fill="none" stroke="url(#coralG)" stroke-width="22" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490" filter="url(#glowC)"/>
+            <g id="g2needle"><polygon points="-7,0 7,0 2.5,-138 -2.5,-138" fill="#eeefd3" filter="url(#glowL)"/></g>
+            <circle r="16" fill="#012220"/><circle r="16" fill="none" stroke="#eeefd3" stroke-opacity="0.5" stroke-width="3"/>
+            <text x="0" y="86" text-anchor="middle" class="mono" fill="#eeefd3" font-size="62" font-weight="700" id="g2val" opacity="0">0.98x</text>
+            <text x="0" y="138" text-anchor="middle" fill="#eeefd3" opacity="0.6" font-size="23" font-weight="600" letter-spacing="2">TRACK 2 · SURVIVAL</text>
+            <g id="g2stop" transform="translate(158,-118) scale(0)"><circle r="40" fill="url(#coralG)" filter="url(#glowC)"/><path d="M -15 -15 L 15 15 M 15 -15 L -15 15" stroke="#fff" stroke-width="9" stroke-linecap="round"/></g>
+          </g>
+
+          <g id="stage" transform="translate(960,648)">
+            <ellipse cx="0" cy="92" rx="220" ry="26" fill="#001a18" opacity="0.5"/>
+            <g id="beamL"><rect x="-308" y="40" width="298" height="34" rx="12" fill="url(#cream)"/><rect x="-308" y="40" width="298" height="6" rx="3" fill="#fff" opacity="0.5"/></g>
+            <g id="beamR"><rect x="10" y="40" width="298" height="34" rx="12" fill="url(#cream)"/><rect x="10" y="40" width="298" height="6" rx="3" fill="#fff" opacity="0.5"/></g>
+            <path id="crack" d="M 0 40 L -11 53 L 9 65 L -7 76" fill="none" stroke="#012220" stroke-width="6" stroke-linecap="round" opacity="0"/>
+            <g id="house" filter="url(#drop)">
+              <polygon points="-118,-58 0,-156 118,-58" fill="url(#lemonG)"/>
+              <polygon points="-118,-58 0,-156 -8,-150 -110,-58" fill="#fff" opacity="0.28"/>
+              <rect x="-96" y="-58" width="192" height="102" rx="8" fill="url(#cream)"/>
+              <rect x="-96" y="-58" width="192" height="7" rx="3" fill="#fff" opacity="0.55"/>
+              <rect x="-23" y="-20" width="46" height="64" rx="5" fill="#024a45"/>
+              <rect x="-76" y="-42" width="36" height="30" rx="5" fill="#024a45"/><rect x="42" y="-42" width="36" height="30" rx="5" fill="#024a45"/>
+              <circle cx="14" cy="14" r="3.5" fill="#d8d958"/>
+            </g>
+            <g id="coins" opacity="0">
+              <circle cx="-2" cy="98" r="10" fill="url(#lemonG)"/><circle cx="16" cy="120" r="8" fill="url(#lemonG)"/><circle cx="-17" cy="132" r="7" fill="url(#lemonG)"/>
+            </g>
+            <g id="vac" transform="translate(150,72)" opacity="0">
+              <rect x="0" y="-24" width="244" height="48" rx="24" fill="url(#coralG)" filter="url(#glowC)"/>
+              <text x="122" y="1" text-anchor="middle" fill="#fff" font-size="24" font-weight="800" letter-spacing="1">12% VACANCY</text>
+            </g>
+          </g>
+
+          <g id="mag" transform="translate(1280,1240)" opacity="0">
+            <line x1="64" y1="64" x2="138" y2="138" stroke="url(#lemonG)" stroke-width="22" stroke-linecap="round" filter="url(#glowL)"/>
+            <circle r="92" fill="url(#lens)"/>
+            <circle r="92" fill="none" stroke="url(#lemonG)" stroke-width="14" filter="url(#glowL)"/>
+            <path id="glint" d="M -54 -30 A 62 62 0 0 1 -10 -60" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="6" stroke-linecap="round"/>
+          </g>
+
+          <g id="caught" transform="translate(960,252) scale(0)">
+            <rect x="-176" y="-46" width="352" height="92" rx="20" fill="url(#coralG)" filter="url(#drop)"/>
+            <rect x="-176" y="-46" width="352" height="10" rx="5" fill="#fff" opacity="0.35"/>
+            <text x="0" y="2" text-anchor="middle" fill="#fff" font-size="42" font-weight="800" letter-spacing="6">CAUGHT</text>
+          </g>
+          <text id="tagline" x="960" y="1012" text-anchor="middle" fill="#eeefd3" opacity="0" font-size="30" font-weight="500">Track&nbsp;2 stopped it &mdash; before a dollar of diligence.</text>
+
+          <rect width="1920" height="1080" filter="url(#grain)" opacity="0.045" style="mix-blend-mode:overlay"/>
+        </svg>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#par", { x: -12, y: -8 }, { x: 12, y: 8, duration: 5, ease: "none" }, 0);
+      tl.to("#eyebrow", { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.1);
+
+      tl.to("#g1arc", { strokeDashoffset: 168, duration: 1.0, ease: "expo.out" }, 0.3)
+        .to("#g1needle", { rotation: 52, transformOrigin: "0px 0px", duration: 1.05, ease: "back.out(1.4)" }, 0.3)
+        .from("#g1val", { opacity: 0, y: 16, duration: 0.5, ease: "power3.out" }, 0.8)
+        .to("#g1val", { opacity: 1, duration: 0.01 }, 0.8)
+        .to("#g1ok", { scale: 1, duration: 0.6, ease: "back.out(1.9)" }, 1.05);
+
+      tl.to("#beamL", { x: -16, rotation: -1.2, transformOrigin: "100% 50%", duration: 0.55, ease: "power3.out" }, 1.55)
+        .to("#beamR", { x: 16, rotation: 1.2, transformOrigin: "0% 50%", duration: 0.55, ease: "power3.out" }, 1.55)
+        .to("#crack", { opacity: 1, duration: 0.3 }, 1.55)
+        .to("#house", { rotation: 4.5, y: 12, transformOrigin: "0px 40px", duration: 0.7, ease: "back.out(1.2)" }, 1.65)
+        .fromTo("#coins", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 1.85)
+        .fromTo("#coins circle", { y: -26 }, { y: 20, opacity: 0, duration: 0.95, stagger: 0.08, ease: "power1.in" }, 1.9)
+        .fromTo("#vac", { opacity: 0, y: 86, scale: 0.9, transformOrigin: "122px 0px" }, { opacity: 1, y: 72, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, 1.95);
+
+      tl.to("#g2arc", { strokeDashoffset: 330, duration: 0.85, ease: "expo.out" }, 2.45)
+        .to("#g2needle", { rotation: -34, transformOrigin: "0px 0px", duration: 0.9, ease: "back.out(1.3)" }, 2.45)
+        .from("#g2val", { opacity: 0, y: 16, duration: 0.5, ease: "power3.out" }, 2.75)
+        .to("#g2val", { opacity: 1, duration: 0.01 }, 2.75)
+        .to("#g2stop", { scale: 1, duration: 0.6, ease: "back.out(1.9)" }, 2.95);
+
+      tl.to("#mag", { opacity: 1, duration: 0.3 }, 3.05)
+        .to("#mag", { x: 936, y: 712, duration: 0.85, ease: "power3.out" }, 3.05)
+        .to("#mag", { scale: 1.06, duration: 0.3, yoyo: true, repeat: 1, ease: "sine.inOut" }, 3.9)
+        .fromTo("#glint", { opacity: 0, rotation: -40, transformOrigin: "0px 0px" }, { opacity: 1, rotation: 0, duration: 0.5, ease: "power2.out" }, 3.5);
+
+      tl.to("#caught", { scale: 1, duration: 0.6, ease: "back.out(1.6)" }, 3.55)
+        .fromTo("#caught", { y: 232 }, { y: 252, duration: 0.6, ease: "back.out(1.6)" }, 3.55)
+        .to("#tagline", { opacity: 0.9, duration: 0.55, ease: "power2.out" }, 3.85);
+
+      tl.to(["#caught","#mag","#vac","#g2stop","#g1ok","#g2val","#g1val","#tagline","#crack","#coins","#eyebrow"], { opacity: 0, duration: 0.45, ease: "power2.in" }, 4.5)
+        .to("#g1needle", { rotation: 0, duration: 0.45, ease: "power2.inOut" }, 4.5)
+        .to("#g2needle", { rotation: 0, duration: 0.45, ease: "power2.inOut" }, 4.5)
+        .to("#g1arc", { strokeDashoffset: 490, duration: 0.45 }, 4.5)
+        .to("#g2arc", { strokeDashoffset: 490, duration: 0.45 }, 4.5)
+        .to(["#beamL","#beamR"], { x: 0, rotation: 0, duration: 0.45 }, 4.5)
+        .to("#house", { rotation: 0, y: 0, duration: 0.45 }, 4.5)
+        .set(["#caught","#g1ok","#g2stop"], { scale: 0 }, 4.99);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

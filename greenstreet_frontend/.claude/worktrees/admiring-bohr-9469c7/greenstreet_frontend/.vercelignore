@@ -1,0 +1,58 @@
+# Vercel upload exclusions — mirrors .gitignore + untracked large dirs
+
+node_modules/
+dist/
+build/
+coverage/
+
+# Claude Code worktrees (contain full repo copies + datasets — massive)
+.claude/
+
+# Prior Vercel build output (not source)
+.vercel/output/
+
+# Large untracked directories not needed for build
+artifacts/
+output/
+hf-*/
+hf_build/
+docs/
+scripts/
+
+# Python / tooling scripts
+*.py
+*.pyc
+__pycache__/
+
+# Large markdown docs not needed at build time
+non_qm_dscr_master_blueprint_2026_06_26.md
+COPY_DSCR_LANDING.md
+COPY_RECOMMENDATIONS.md
+GREENSTREET_NORTH_STAR.md
+GREENSTREET_TEASER_CUTSHEET.md
+GREENSTREET_TRAILER_PLAN.md
+ad-script-60-seconds.md
+voiceover-script-60-seconds.md
+BACKLOG.md
+README.md
+
+# Misc
+*.log
+*.bak
+*.bak2
+*.zip
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+skills-lock.json
+review-logos.html
+diff-check.ps1
+inspect-state.ps1
+test-internal.ps1
+test-urls.ps1
+verify-content.ps1
+build_standalone_review.py
+chroma_key.py
+generate_flux.py
+regen_logos.py

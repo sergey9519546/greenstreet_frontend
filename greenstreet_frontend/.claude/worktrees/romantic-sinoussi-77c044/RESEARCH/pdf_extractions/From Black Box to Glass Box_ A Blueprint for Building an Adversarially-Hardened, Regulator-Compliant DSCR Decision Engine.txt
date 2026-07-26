@@ -1,0 +1,988 @@
+
+
+===== PAGE 1 =====
+
+From Black Box to Glass Box: A Blueprint
+for Building an Adversarially-Hardened,
+Regulator-Compliant DSCR Decision
+Engine
+Phase I: Empirical Data Calibration and Matrix
+Ingestion
+The foundational mandate of the AEGIS DSCR engine is its commitment to being
+calculation-first, deterministic, and grounded in empirical reality 37 38. This initial phase
+of the research plan is dedicated to moving beyond theoretical formulas and mapping
+them to the messy, dynamic reality of the commercial real estate and lending markets.
+The objective is to replace abstract assumptions with verifiable data, creating a robust
+and defensible foundation for every subsequent analytical layer. This involves three
+critical streams of research: reverse-engineering the fragmented private market lender
+matrix, calibrating stress shocks with geospatial precision, and establishing institutional
+benchmarks for capital expenditures and liquidity reserves.
+The first and most immediate challenge is to map the disparate world of non-QM and
+DSCR lenders into a standardized, machine-readable format. Lenders such as CoreVest,
+Visio, Kiavi, and Deephaven have unique underwriting guidelines that are not publicly
+consolidated 123. This stream of work involves systematically ingesting and parsing rate
+sheets, PDF guideline documents, and other public-facing materials from these
+institutions. The primary task is to extract and structure their specific rules regarding the
+intersection of FICO scores, Loan-to-Value (LTV) ratios, and Debt Service Coverage Ratio
+(DSCR) thresholds 162. Beyond these basic metrics, the research must identify nuanced
+restrictions, including property type classifications (e.g., rural properties, mixed-use
+buildings, condo concentration limits), entity-vesting overlays, and any special
+considerations for different borrower profiles 75146. The expected deliverable is a
+version-controlled database, likely in JSON or YAML format, that represents this complex
+web of lender rules. A crucial component of this deliverable is the implementation of
+automated "staleness" decay functions; for instance, any lender matrix that has not been
+updated within a defined period (e.g., 30 days) would automatically trigger a Gate 0:
+
+===== PAGE 2 =====
+
+Human Review, ensuring the engine operates on current, actionable information rather
+than outdated guidelines . This process transforms a static set of rules into a living,
+breathing component of the engine, directly addressing the weakness of standard
+calculators that often rely on generic or obsolete lender criteria.
+The second stream of calibration focuses on replacing arbitrary percentages in the
+engine's stress-testing scenarios with empirically derived, geographically specific values.
+The Tax Shock DSCR and Insurance Shock DSCR formulas are central to the
+engine's ability to model post-purchase risk, but their effectiveness hinges entirely on
+realistic shock parameters 37. The research plan directs a deep dive into the real-world
+drivers of these shocks. For tax reassessment, this involves researching the significant
+differences between states with disclosure regimes (like Texas, where property taxes are
+assessed annually) and those with non-disclosure protections (like California under Prop
+13) 55. By analyzing local millage rates and understanding the specific triggers for
+reassessment, the team can build a Projected Tax API layer that dynamically adjusts
+the tax shock assumption based on the property's exact coordinates. Similarly, the
+volatility in commercial property insurance requires a sophisticated approach 13. The
+research must integrate multiple data sources: FEMA flood maps to quantify flood risk,
+wildfire risk scores from providers like First Street Foundation to assess fire peril, and
+state-level FAIR plan data to understand the cost of last-resort coverage 68. By combining
+these datasets, the engine can generate a ZIP-code-specific Insurance Shock DSCR
+multiplier, reflecting the true risk profile of a given location. Industry data shows
+premiums have spiked by over 20% in recent years, and insurance costs as a share of
+income receivable have more than doubled since 2018, providing clear quantitative
+anchors for these models 14 34. The final deliverable for this stream is a geospatial risk
+lookup table that serves as a dynamic input for the Scenario & Stress-Test Engine,
+ensuring that stress tests are not generic but tailored to the specific property being
+analyzed.
+The third and final stream of empirical research addresses the long-term health of the
+asset itself by benchmarking capital expenditure (CapEx) and liquidity needs against
+institutional standards. The CapEx Stress DSCR and Liquidity Survival Clock
+are designed to move beyond simplistic OpEx calculations and force investors to account
+for cyclical, major repairs 37. To make these metrics meaningful, they must be calibrated
+against industry best practices. This research involves analyzing institutional operating
+expense benchmarks from respected firms like John Burns and CBRE, as well as the
+formal replacement reserve requirements mandated by government-sponsored
+enterprises (GSEs) like Fannie Mae and Freddie Mac for multifamily assets 37116. The
+output of this analysis will be an asset-class and property-age matrix. For example, the
+
+===== PAGE 3 =====
+
+model could differentiate between the expected lifespan of HVAC systems in a 1980s-era
+building versus a modern one, allowing it to estimate Annualized Major Repair
+Events with greater accuracy . The resulting deliverable is an empirical CapEx reserve
+calculator that can flag user-inputted reserves as being insufficient when they fall below
+the 10th percentile of institutional standards, thereby acting as a guardrail against
+dangerously low maintenance budgets. This entire phase is about grounding the engine's
+logic in the tangible realities of the market, transforming it from a purely theoretical
+construct into a practical tool for professional investors and lenders. It ensures that every
+formula, from the baseline DSCR to the advanced Qualifies-but-Dangerous
+Detector, is built upon a bedrock of verifiable, up-to-date, and context-aware data.
+Research Area Objective Key Actions Expected Deliverable
+Lender Matrix Create a standardized, machine- Parse rate sheets and guideline PDFs; Map Version-controlled JSON/YAML
+Reverse-Engineering readable schema for private DSCR FICO/LTV/DSCR grids and property/ database of lender matrices
+lenders. entity restrictions; Implement automated with decay functions.
+staleness detection.
+Tax & Insurance Replace arbitrary stress Analyze state/federal tax laws (e.g., Prop Geospatial risk lookup table for
+Shock Calibration percentages with geospatial, 13); Integrate FEMA flood zones, wildfire dynamic Tax Shock and
+jurisdictional data. risk scores, and FAIR plan data. Insurance Shock
+multipliers.
+Institutional CapEx & Define CapEx Stress DSCR Analyze GSE and institutional SFR/ Empirical CapEx reserve
+Reserve and Liquidity Survival multifamily expense reports; Create asset- calculator that flags user inputs
+Benchmarking Clock baselines using age matrix for major repair estimation. falling below institutional
+institutional data. percentiles.
+Phase II: Mathematical Proof and Solver Validation
+With the engine's formulas grounded in empirical data, the next critical phase is to
+establish their mathematical rigor and computational stability. This phase moves from the
+question of what to calculate to the question of how to calculate it correctly and reliably.
+The core mandate is to ensure that the engine's innovative features—the Breakpoint
+Solvers and the Fragility Indices—are not just theoretically sound but are also
+numerically stable and computationally proven to be robust across a vast range of
+conditions. This involves two distinct but related tasks: formally proving the convergence
+of the algebraic and numerical solvers used for deal repair, and statistically validating the
+survival and fragility indices against historical financial distress events. This work is
+essential to prevent the engine from producing mathematically invalid or nonsensical
+results, especially in extreme or edge-case scenarios.
+
+===== PAGE 4 =====
+
+The first task, the proof of solver convergence, targets the Deal-Repair Engine,
+which is arguably the engine's most powerful feature for an advisor. Its purpose is to take
+a failing deal and provide precise, actionable solutions, such as the Required Rent
+Improvement or Required Price Reduction 37. These solutions are not simple
+arithmetic; they require solving equations for variables that are embedded within other
+formulas, such as DSCR. The research must begin with a formal algebraic proof that the
+inversion of these formulas is valid. For example, the equation to solve for Required
+Rent must be derived from the base DSCR formula,
+NOI/AnnualDebtService≥DSCRtarget, and solved explicitly for the rent component,
+isolating it on one side of the equation 81. This proves that a direct solution exists.
+However, for more complex or stepped variables, such as the Break-even Refinance
+Rate or the effect of changing the loan amount (which affects both debt service and
+LTV), an algebraic solution may be intractable. In these cases, the engine must rely on
+numerical methods like binary search or Newton-Raphson algorithms 37. The research
+must validate that these iterative methods are implemented correctly and will always
+converge to a solution if one exists, while gracefully handling cases where no solution is
+possible (e.g., a deal that is structurally unsound). The deliverable for this task is a
+comprehensive suite of unit tests—ideally running into the tens of thousands—that
+subject every solver to a wide array of synthetic deals, including extreme edge cases like
+zero interest rates, 100% vacancy, negative NOI, and near-zero cash flows. The goal is to
+exhaustively test for solver convergence, divergence, and graceful degradation, providing
+mathematical assurance that the Breakpoint & Repair Engine will never fail
+catastrophically 151.
+The second task involves the statistical calibration of the engine's forward-looking risk
+indicators: the Composite Fragility Index (CFI) and the Investor Survival
+Score (ISS) 37. While these scores are calculated from deterministic formulas, their
+interpretation and thresholding depend on their demonstrated ability to predict real-
+world outcomes. Therefore, this phase includes a backtesting exercise against historical
+periods of severe financial stress. The research plan specifies looking at events like the
+2008 Global Financial Crisis, the COVID-19 pandemic-induced market freeze, and the
+sharp rate hikes of 2023, all of which caused widespread distress in the CRE and
+mortgage sectors 37125. The process involves gathering historical data on CMBS distress
+rates, SFR delinquency trends, and portfolio credit risk exposures during these periods 32
+46. The engine's calculated CFI and ISS scores for a large sample of loans active during
+those times would then be compared against the actual default and prepayment rates
+observed 30. This allows the research team to create a statistical whitepaper that maps
+the engine's scores to probabilities of default (PD) and loss given default (LGD),
+effectively assigning real-world meaning to the 0-100 score ranges 89. For instance, the
+
+===== PAGE 5 =====
+
+analysis might reveal that deals with an ISS below 50 historically had a 35% probability
+of negative cash flow in month 18, providing a concrete, evidence-based interpretation
+for that score. Furthermore, this phase includes a rigorous review of the formulas
+themselves for potential numerical instabilities. A prime example is the denominator in
+the CFI formula, which must include a guard clause like max(Base Economic DSCR,
+0.01) to prevent a catastrophic division-by-zero error when the economic DSCR is
+hovering right at the 1.00x insolvency line 37. This attention to mathematical detail is
+paramount for ensuring the engine's reliability and defensibility under scrutiny. The
+successful completion of this phase provides the statistical backbone that validates the
+engine's core diagnostic capabilities.
+Phase III: Adversarial Red-Teaming and Model Risk
+Governance
+This phase operationalizes the directive to "act as a hostile model-risk validator," aligning
+the project with established principles of robust AI governance, such as those outlined in
+OCC Bulletin 2026-13 . The goal is not merely to test the engine under normal conditions
+but to actively attempt to break it by injecting flawed, incomplete, or malicious data and
+observing how the system responds. This adversarial red-teaming process rigorously tests
+the engine's defenses, which are embodied in its confidence-scoring mechanisms, dual-
+ledger separation logic, and architectural isolation of its core mathematics. The success of
+this phase is measured by the engine's ability to successfully neutralize all attacks,
+demonstrating its resilience and protecting the end-user from being misled by faulty
+inputs or compromised logic.
+The first major attack vector is Data Poisoning and Confidence Gate Testing. The
+adversary's goal here is to feed the engine a deal with intentionally incorrect or
+misleading data, such as inflated rent comps, stale expense figures, or missing critical
+information like insurance costs. The defense mechanism is the Assumption
+Confidence Score (ACS), which is designed to penalize deals built on weak data 37.
+During this test, the red team will systematically inject various forms of poor-quality data.
+For example, they might provide a rent figure with a source tag of "User" instead of a
+verified lease agreement, or use a lender matrix that is known to be several months out of
+date. The validation objective is twofold: first, to confirm that the ACS algorithm
+correctly calculates a low confidence score (e.g., dropping below a predefined threshold
+of 0.60); and second, to verify that this low score acts as a functional gate, halting the
+recommendation engine and preventing a potentially dangerous recommendation from
+
+===== PAGE 6 =====
+
+being generated. The system should ideally present a bifurcated view, showing the "User-
+Provided View" (with a clear warning about the low ACS) alongside an "Evidence-
+Adjusted View" that might show a much bleaker outcome, empowering the user with
+transparency rather than hiding the flaws . This test validates the engine's primary
+defense against bad faith or uninformed users.
+The second, and most critical, adversarial test is the "Qualifies-but-Dangerous" (QbD)
+Stress Test. This scenario is designed to exploit the very weakness the engine was
+created to solve: the disconnect between lender qualification and investor survival. The
+red team will construct synthetic deals that are perfectly engineered to pass all the
+lender's mathematical hurdles in Ledger 1. This could involve crafting a deal with a
+DSCR that precisely meets the minimum threshold, a price point compliant with the
+lender matrix, and seemingly reasonable expense assumptions. However, these deals will
+contain hidden structural dangers that only surface in Ledger 2. Examples include a
+massive deferred maintenance backlog that will require a large CapEx event shortly after
+purchase, an impending payment shock from an interest-only (IO) loan that ends in year
+five, or a property located in a neighborhood facing a significant, post-sale property tax
+reassessment 37. The validation objective is to see if the QbD detector unequivocally
+identifies these deals as dangerous. It must be shown that the engine accurately captures
+the divergence between the passing DSCR_Lender and the failing DSCR_Economic (or
+low ISS). Crucially, the QbD detector must be able to override a "Pass" verdict from the
+Lender Qualification Engine and issue a strong warning, thus fulfilling its role as the
+ultimate guardrail against mechanically approved but economically doomed investments.
+This test is the ultimate validation of the dual-ledger architecture's efficacy.
+The third attack vector is aimed at the integration of Artificial Intelligence, specifically
+targeting the LLM-based narrative generation layer. The goal is to perform prompt-
+injection attacks, attempting to trick the LLM into overriding the deterministic rules of
+the engine, inventing a new lender overlay, or providing personalized financial advice
+that falls outside the engine's strict advisory scope. The defense is architectural: the LLM
+must be completely isolated from the engine's core logic. The research plan mandates
+that the LLM's access is read-only, limited solely to the outputs of the Audit Log and
+Formula Registry . It cannot modify any variables or bypass any decision gates. The
+LLM's sole function is to act as a sophisticated natural language generator, populating a
+library of locked narrative templates with the specific, deterministic variables produced
+by the engine (e.g., "The primary failure driver is [Tax Shock], which reduces DSCR by
+[0.18x]"). This prevents the LLM from becoming a black box that can be manipulated to
+produce illicit or erroneous conclusions. The validation of this defense involves rigorous
+security reviews of the API contracts and a thorough examination of the narrative
+templates to ensure they are inherently safe and compliant, incapable of being twisted by
+
+===== PAGE 7 =====
+
+external prompts into providing regulated advice or circumventing safety checks 5 95.
+Successfully defending against all three attack vectors demonstrates that the AEGIS DSCR
+engine is not just a collection of smart formulas, but a hardened, robust, and trustworthy
+financial decision-support infrastructure.
+Phase IV: Regulatory Boundary Definition and Fair
+Lending Research
+Deploying a sophisticated decision-support tool in the financial sector carries significant
+regulatory responsibilities. This phase is dedicated to navigating the complex legal
+landscape to ensure the AEGIS DSCR engine operates safely and ethically. The research
+focuses on three critical areas: defining the boundaries for adverse action notices under
+the Equal Credit Opportunity Act (ECOA), establishing clear lines to avoid triggering the
+Truth in Lending Act's Regulation Z (TRID), and proactively auditing the system for
+potential biases to comply with fair lending principles. Failure to address these issues
+could render even the most mathematically perfect engine legally unusable and expose
+the organization to severe penalties. This work transforms the engine from a technical
+artifact into a compliant product ready for professional deployment.
+The first and most legally sensitive area is ECOA and Adverse Action Mapping, guided
+by regulations like CFPB Circular 2022-03 91. If the engine is ever integrated into a
+creditor's workflow, a denial of credit—even if initiated by the borrower using the tool—
+must be accompanied by specific, accurate reasons for the adverse action. The engine's
+abstract scores, such as the Dominant Risk Driver or a low ISS, cannot be the sole
+explanation. The research must focus on creating a one-to-one mapping between the
+engine's outputs and the standard ECOA adverse action reason codes 165. For example, a
+denial based on a Stress DSCR falling below 1.0x due to a modeled tax shock must be
+translatable into compliant, human-readable language that clearly explains the specific
+risk. This requires close collaboration between quantitative researchers and legal experts
+to translate the engine's internal logic into plain English statements that regulators will
+accept. The deliverable is a comprehensive dictionary or mapping file that defines what
+each engine score means in the context of a formal adverse action notice, ensuring that if
+the engine says "No," it can also explain why in a legally defensible manner.
+The second area of focus is defining the boundary between educational modeling and a
+formal credit application under TRID. TRID imposes strict timelines and disclosure
+
+===== PAGE 8 =====
+
+requirements once a creditor receives a complete loan application 74. An improperly
+triggered TRID process can lead to significant compliance failures. The research plan
+mandates a careful definition of the API and UI boundaries that delineate when data
+intake shifts from a user-driven scenario model to a formal application . For instance, the
+system must have hard suppressions that prevent any output resembling a Loan Estimate
+or a guaranteed rate lock unless the data flow is explicitly routed through a compliant
+Loan Origination System (LOS) 112. The research must specify the exact point at which
+the engine transitions from "advisor mode" to "creditor mode." This involves designing
+clear user interfaces that distinguish between hypothetical questions ("What if my rent
+goes down?") and mandatory application fields. The goal is to allow free-form
+educational use while building an impenetrable wall around regulated activities,
+preventing accidental violations of TRID's rules on good faith estimates and closing
+disclosures 49.
+The third pillar of regulatory research is Fair Lending and Bias Auditing. The engine's
+reliance on geospatial data and statistical modeling creates a potential risk for digital
+redlining, where proxies for protected classes inadvertently influence outcomes 41. For
+example, using neighborhood-level vacancy or crime statistics as inputs could
+disproportionately harm applicants from minority groups if those variables correlate with
+race or ethnicity. The research plan calls for a proactive audit of all input variables to
+identify and mitigate such proxy effects. This involves a deep dive into the data sources,
+ensuring that the assumptions used in the engine are not rooted in discriminatory
+practices. The research must explore whether newer technologies like Verifiable
+Credentials and Decentralized Identifiers (VCs/DIDs) could help create more transparent
+and auditable identity systems that reduce the potential for bias 120143. The deliverable is
+a formal fairness impact assessment report, documenting the steps taken to audit the
+model for bias and outlining any mitigation strategies. This proactive stance is crucial for
+maintaining the trust of regulators and the public, and for ensuring the engine promotes
+equitable access to credit rather than perpetuating historical inequities. This entire phase
+is a critical step in translating the engine's powerful quantitative capabilities into a
+responsible and legally compliant financial product.
+
+===== PAGE 9 =====
+
+Phase V: Cryptographic Audit Trail and Explainable AI
+Architecture
+This phase addresses two of the most critical aspects of deploying a high-stakes financial
+decision engine: ensuring absolute trustworthiness through cryptographic immutability
+and making complex, multi-faceted outputs comprehensible to human users. The engine's
+design is fundamentally predicated on being a "glass box," not a "black box," where every
+decision can be traced, reproduced, and understood 37 38. This requires a dual-pronged
+approach. First, a state-of-the-art cryptographic audit trail must be built to provide
+immutable proof of execution, satisfying demands from regulators, auditors, and internal
+governance bodies. Second, a sophisticated Explainable AI (XAI) framework must be
+developed to translate the engine's intricate Delta Ledger and probabilistic scores into
+clear, actionable insights for investors, brokers, and underwriters. Together, these
+components transform the engine from a mere calculator into a defensible and
+trustworthy decision intelligence platform.
+The cornerstone of the engine's trustworthiness is its Immutable Audit Trail. Every
+calculation, input, and decision gate must be recorded in a log that is cryptographically
+secure and tamper-evident 67193. The research plan specifies implementing SHA-256
+hashing on the Audit Log Schema to achieve this . The audit record for any given
+engine run must encapsulate a complete snapshot of the execution environment,
+including the exact version of the engine software, the specific versions of the Formula
+Registry and Lender Matrix Schema used, and the timestamp of the run 99. To
+manage the potentially large volume of log entries efficiently, the plan points towards
+using a Merkle tree data structure 36 70. A Merkle tree allows for efficient and secure
+verification of the integrity of large datasets; one can prove that a specific input or
+calculation was part of a particular engine run without needing to transmit or store the
+entire log. For long-term security and to prepare for future threats like quantum
+computing, the research should also consider incorporating post-quantum cryptographic
+primitives into the design 65 72. The final deliverable is an exportable, machine-readable
+JSON audit file. This file would serve as a permanent, verifiable record, allowing a
+regulator or auditor to perfectly reconstruct the engine's state and logic at the exact
+moment a decision was made, providing a level of defensibility and transparency that is
+increasingly demanded in the financial industry 102210.
+While the cryptographic trail ensures the engine's decisions are defensible, the XAI
+architecture ensures they are understandable. The engine produces a wealth of
+information, including the Delta Ledger which highlights the conflict between lender
+
+===== PAGE 10 =====
+
+and investor realities, the Breakpoint Map showing required fixes, and the Dominant
+Risk Driver identifying the primary threat 37. Presenting this raw data to a user
+would be overwhelming. The solution is a narrative template engineering process. The
+research team must draft a comprehensive library of deterministic narrative blocks, each
+corresponding to a specific recommendation class (e.g., "Strong Deal," "Financeable But
+Fragile," "Qualifies But Dangerous") . These templates are "locked" and cannot be altered
+by an LLM. Instead, the LLM's role is to act as a sophisticated string interpolator,
+populating the templates with the specific, deterministic variables generated by the
+engine. For example, a template for a "Fragile Deal" might contain the sentence: "This
+deal is considered Financeable But Fragile because it fails under stress. The Dominant
+Risk Driver is [Risk Factor], which is projected to reduce the DSCR by [Value]x. The
+Liquidity Survival Clock indicates you would have approximately [Months] of cash
+reserves remaining before breaching the minimum debt service requirement." The
+research must conduct extensive UX testing to find the clearest and most effective way to
+visualize the Delta Ledger conflict, perhaps using color-coding, split-screen views, or
+interactive charts that allow the user to toggle between the Lender View and the
+Economic Reality View 137. The final deliverable is a complete, tested UI/UX
+specification for the 11-part user report, ensuring that the engine's profound analytical
+power is translated into intuitive, actionable intelligence for the end-user.
+Final Synthesis: The Integrated AEGIS DSCR Engine and
+Implementation Roadmap
+The culmination of this research plan is the synthesis of a single, cohesive, and
+production-grade Advisor-grade DSCR Decision Engine. This is not a monolithic
+application but a carefully orchestrated nine-module pipeline, where data flows strictly
+downward from intake to recommendation, with the Audit & Compliance Layer
+acting as an immutable ledger and a final checkpoint at every stage 37. The entire system
+is built on the four pillars of Calculation-First logic, a Dual-Ledger architecture,
+Adversarial Robustness, and Strict Compliance Boundaries. This final section outlines the
+integrated architecture and provides a phased, five-phase roadmap for its development
+and validation, ensuring a disciplined and methodical path from concept to a deployable,
+institution-grade financial infrastructure.
+The engine's architecture is a sequential pipeline of specialized modules: 1. Data Intake
+& Confidence Layer: The entry point where all user inputs are tagged with metadata
+
+===== PAGE 11 =====
+
+detailing their source (e.g., Verified Lease, User-Guessed, Stale API) and timestamp. This
+feeds the Assumption Confidence Score (ACS) algorithm. 2. Deterministic
+Formula Engine: The mathematical core that executes all baseline calculations (NOI,
+PITIA, DSCR, etc.) and the initial Baseline Metrics. 3. Lender Qualification
+Engine: Applies the versioned lender matrix rules to the baseline metrics, acting as the
+first pass/fail gate. 4. Investor Survival Engine: Runs a 36-month monthly cash flow
+simulation based on the deal's specifics, calculating the Liquidity Survival Clock
+(LSC) and the Investor Survival Score (ISS). 5. Scenario & Stress Engine:
+Automatically generates and evaluates Base, Conservative, and Severe stress scenarios,
+recalculating metrics like Tax Shock DSCR and Vacancy Shock DSCR for each. 6.
+Breakpoint & Repair Engine: If the deal fails under certain conditions, this module
+activates to calculate the exact dollar or percentage changes needed to fix the deal
+(Δ_Rent, Δ_Price, Δ_LTV) and assesses the realism of these fixes with the Deal
+Repairability Score (DRS). 7. Risk Diagnosis Engine: Ranks the identified risks
+using the DSCR Fragility Score (DFS) and other diagnostics to determine the
+Dominant Risk Driver. 8. Recommendation Engine: The synthesis layer. It takes
+the outputs from all preceding modules—including the Delta Ledger's conflict signal
+—and applies the gated logic to generate the final, human-readable recommendation. 9.
+Audit & Compliance Layer: The unifying element. It logs every single variable,
+calculation, and decision gate from all modules into a cryptographically secured,
+immutable log before the final recommendation is delivered.
+To manage this complexity and ensure quality, the engineering teams will follow a
+mandated five-phase Minimum Viable Product (MVP) build sequence, with a clear gate to
+proceed to the next phase.
+MVP Focus Area Key Research/Engineering Deliverable Gate to Next Phase
+Phase
+MVP 1 Calculation Core Deterministic Formula Registry, Dual-Ledger Math, 10,000 unit tests pass; no AI math.
+Liquidity Survival Clock.
+MVP 2 Stress & Tax/Ins/Vac/CapEx shocks, Composite Fragility Index Adversarial Red-Team fails to break the stress
+Scenario (CFI), IO Illusion Detector. logic.
+MVP 3 Breakpoint Required Rent/Price/LTV/Rate algebraic & binary Solver convergence proven on edge cases.
+Solver solvers.
+MVP 4 Matrix & QbD Lender Matrix Schema, Delta Ledger, Qualifies-but- Matrix staleness triggers correctly; QbD
+Dangerous (QbD) Detector. overrides Lender Pass.
+MVP 5 Audit & SHA-256 Audit Log, ECOA mapping, TRID boundaries, Legal/Compliance sign-off on narrative
+Compliance XAI UI. templates and disclaimers.
+This structured approach ensures that foundational components are validated before
+being integrated into more complex systems. Upon completion of this entire research and
+
+===== PAGE 12 =====
+
+validation program, the final deliverables will constitute a comprehensive package: the
+upgraded formula library, detailed algorithm architectures, a robust validation
+framework, and implementation-ready specifications. The resulting AEGIS DSCR engine
+will represent a significant advancement in financial technology, delivering maximum
+actionable intelligence through its dual-ledger analysis, stress-testing capabilities,
+breakpoint-solving logic, and, most importantly, its audit-ready, explainable, and
+regulator-compliant nature.
+Reference
+1. Designing a Real-Time Ledger System with Double-Entry Logic https://finlego.com/
+blog/designing-a-real-time-ledger-system-with-double-entry-logic
+2. [PDF] Whitepaper On Distributed Ledger Technology https://www.hkma.gov.hk/
+media/eng/doc/key-functions/finanical-infrastructure/
+Whitepaper_On_Distributed_Ledger_Technology.pdf
+3. Architecting Double-Entry Ledger Systems to Track Multi-Tiered ... https://
+www.researchgate.net/publication/399993572_Architecting_Double-
+Entry_Ledger_Systems_to_Track_Multi-Tiered_Interchange_Fees
+4. Building the World's First Cryptographic Audit Trail for MetaTrader https://dev.to/
+veritaschain/building-the-worlds-first-cryptographic-audit-trail-for-metatrader-a-deep-
+technical-dive-1m9i
+5. (PDF) HDK: Tamper-Evident LLM Audit Trails with Hierarchical Hash ... https://
+www.researchgate.net/publication/400762996_HDK_Tamper-
+Evident_LLM_Audit_Trails_with_Hierarchical_Hash_Genealogy_and_Distributed_Ledg
+er_Anchoring
+6. Ai Decision Audit Cryptographic Integrity Merkle Tree https://
+electronics.alibaba.com/product/ai-decision-audit-cryptographic-integrity-merkle-tree?
+page=2
+7. [PDF] A Merkle Tree Pipeline with Adaptive Chunking - arXiv https://arxiv.org/pdf/
+2605.00065
+8. 1 in 10 Paystubs are Forged: The Cost of Trusting Documents https://
+www.linkedin.com/posts/hmhadi_1-in-10-paystubs-are-forged-the-cost-of-
+activity-7467942136060100610-scDl
+9. Verifiable Credentials Data Model v2.0 - W3C https://www.w3.org/TR/vc-data-
+model-2.0/
+
+===== PAGE 13 =====
+
+10. From Logic Monopoly to Social Contract: Separation of Power and ... https://
+arxiv.org/html/2603.25100v1
+11. [PDF] Encompass Job Aid 2019 https://nationsbranch.com/wp-content/uploads/
+2019/04/Encompass-Job-Aid-2019.pdf
+12. Mortgage lenders'
+50M mistake: ignoring loan officers' needs <a href="https://www.linkedin.com/posts/mobilemichaelkelleher_ive-spent-13-years-watching-mortgage-lenders-activity-7362824073640349696-ic58" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/posts/mobilemichaelkelleher_ive-spent-13-years-watching-mortgage-lenders-activity-7362824073640349696-ic58</span></a></li><li id="ref-13">Rising Commercial Real Estate Insurance Costs: 2025 Analysis ... <a href="https://www.mmcginvest.com/post/a-storm-brewing-in-commercial-real-estate-insurance-costs-soar-across-the-u-s" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.mmcginvest.com/post/a-storm-brewing-in-commercial-real-estate-insurance-costs-soar-across-the-u-s</span></a></li><li id="ref-14">Insurance Has Bigger Bite of Commercial-Property Income - MSCI <a href="https://www.msci.com/research-and-insights/quick-take/insurance-has-bigger-bite-of-commercial-property-income" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.msci.com/research-and-insights/quick-take/insurance-has-bigger-bite-of-commercial-property-income</span></a></li><li id="ref-15">[PDF] Model-based approach for scenario design: stress test severity and ... <a href="https://www.eba.europa.eu/sites/default/files/document_library/Calendar/Conference-Workshop/2019/8th%20annual%20workshop%20documents/6%20Model-based%20approach%20for%20scenario%20design.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.eba.europa.eu/sites/default/files/document_library/Calendar/Conference-Workshop/2019/8th%20annual%20workshop%20documents/6%20Model-based%20approach%20for%20scenario%20design.pdf</span></a></li><li id="ref-16">Credit Risk Stress Scenarios - LinkedIn <a href="https://www.linkedin.com/top-content/finance/credit-risk-evaluation/credit-risk-stress-scenarios/" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/top-content/finance/credit-risk-evaluation/credit-risk-stress-scenarios/</span></a></li><li id="ref-17">Home Equity Lending Surpasses
+1T in 2025 - LinkedIn https://www.linkedin.com/posts/michaelpyatski_study-1t-
+milestones-for-2025-home-equity-activity-7454538689612779521-OxyI
+13. The joint model of default and prepayment for a mortgage loan and ... https://
+www.sciencedirect.com/science/article/abs/pii/S016766872600017X
+14. Beyond the Cox Hazard Ratio: A Targeted Learning Approach to ... https://
+www.tandfonline.com/doi/full/10.1080/19466315.2023.2173644
+15. Relationship Between Coefficients in Parametric Survival Models for ... https://
+www.mdpi.com/2225-1146/13/1/1
+16. Online Updating of Survival Analysis - PMC https://pmc.ncbi.nlm.nih.gov/articles/
+PMC8916746/
+17. How Lenders Can Use Real-World Data to Combat Document Fraud https://
+informediq.com/digital-footprints-how-lenders-can-use-real-world-data-to-combat-
+document-fraud/
+18. KYA: A Framework-Agnostic Trust Layer for Autonomous Systems ... https://arxiv.org/
+html/2605.25376v1
+19. [PDF] KYA: A Framework-Agnostic Trust Layer for Autonomous Systems ... https://
+arxiv.org/pdf/2605.25376
+20. Die Liste Der Abkürzungen Für Den IT-Bereich | PDF - Scribd https://de.scribd.com/
+document/307506856/Die-Liste-Der-Abkurzungen-Fur-Den-IT-Bereich
+21. (PDF) Addressing probationary period within a competing risks ... https://
+www.researchgate.net/publication/
+319466504_Addressing_probationary_period_within_a_competing_risks_survival_mod
+el_for_retail_mortgage_loss_given_default
+22. Competing risks proportional-hazards cure model and generalized ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC9639486/
+23. Covariate Selection for Mortgage Default Analysis Using Survival ... https://
+www.scirp.org/journal/paperinformation?paperid=109039
+24. Competing Risks Models using Mortgage Duration Data under the ... https://
+ideas.repec.org/a/taf/rjerxx/v34y2012i1p1-26.html
+25. Limiting Loss Distribution of Default and Prepayment for Loan ... https://
+www.mdpi.com/2227-9091/13/8/153
+
+===== PAGE 14 =====
+
+26. A tutorial using discrete-time survival analysis - arXiv https://arxiv.org/html/
+2507.15441v1
+27. Fannie Mae, Freddie Mac annual stress tests results - Lexology https://
+www.lexology.com/library/detail.aspx?g=47ec20ae-800d-43ad-8c54-46d8a09b0ec3
+28. The Failure of supervisory stress testing: Fannie Mae, Freddie Mac ... https://
+ideas.repec.org/p/fip/fedbwp/15-4.html
+29. The Climbing Costs to Insure US Commercial Real Estate - MSCI https://
+www.msci.com/research-and-insights/blog-post/the-climbing-costs-to-insure-us-
+commercial-real-estate
+30. Building Tamper-Evident Audit Trails for Algorithmic Trading https://dev.to/
+veritaschain/building-tamper-evident-audit-trails-for-algorithmic-trading-a-deep-dive-
+into-hash-chains-and-3lh6
+31. From Git to Blockchain: How a 'Merkle Tree' (Just a Bunch of Hashes ... https://
+www.linkedin.com/pulse/from-git-blockchain-how-merkle-tree-just-bunch-hashes-
+dmitry-galanov-shllf
+32. From Concept to Ledger: Implementing the AI Banker in Regulated ... https://
+www.linkedin.com/pulse/from-concept-ledger-implementing-ai-banker-regulated-
+finance-shah-bhkhc
+33. Deterministic Reproducibility in Financial AI Systems - ResearchGate https://
+www.researchgate.net/publication/
+400909067_Deterministic_Reproducibility_in_Financial_AI_Systems_A_Formal_Archit
+ectural_Model
+34. Faramesh: A Protocol-Agnostic Execution Control Plane for ... - arXiv https://
+arxiv.org/html/2601.17744v1
+35. Fannie Mae vs. Freddie Mac: Know Your Options, Make Confident ... https://
+blog.enactmi.com/post/fannie-mae-vs-freddie-mac-know-your-options-make-
+confident-decisions
+36. Key Fair Lending Updates From the Fed's 2025 Interagency Webinar https://
+finsights.cooley.com/key-fair-lending-updates-from-the-feds-2025-interagency-
+webinar/
+37. [PDF] Addressing commercial real estate lending risks with borrower ... https://
+www.esrb.europa.eu/pub/pdf/occasional/esrb.op29~5478fd0f14.en.pdf
+38. [PDF] Supervisory and bank stress testing: range of practices https://www.bis.org/
+bcbs/publ/d427.pdf
+39. Survival Analysis for Credit Risk: A Dynamic Approach for Basel IRB ... https://
+www.mdpi.com/2227-9091/13/8/155
+40. Competing risks survival model for mortgage loans with simulated ... https://
+www.researchgate.net/publication/
+
+===== PAGE 15 =====
+
+299440953_Competing_risks_survival_model_for_mortgage_loans_with_simulated_lo
+ss_distributions
+41. Chapter 31. Portfolio Credit Risk and Macroeconomic Shocks https://
+www.elibrary.imf.org/display/book/9781484368589/ch031.xml
+42. A Spatio-Temporal Machine Learning Model for Mortgage Credit Risk https://
+arxiv.org/html/2410.02846v1
+43. FHFA proposes Fannie Mae, Freddie Mac housing goals for 2026 ... https://
+www.doddfrankupdate.com/dfu/articlesdfu/fhfa-proposes-fannie-mae-freddie-mac-
+housing-goals-95646.aspx
+44. Erin Devaney - Business Analyst at The Federal Savings Bank https://
+www.linkedin.com/in/erin-devaney-b792b080
+45. Integrating Real-Time Financial Data Streams to Enhance Dynamic ... https://
+www.researchgate.net/publication/393862286_Integrating_Real-
+Time_Financial_Data_Streams_to_Enhance_Dynamic_Risk_Modeling_and_Portfolio_D
+ecision_Accuracy
+46. PDx—Adaptive Credit Risk Forecasting Model in Digital Lending ... https://arxiv.org/
+html/2512.22305v1
+47. Navigating AI-Driven Financial Forecasting: A Systematic Review of ... https://
+www.mdpi.com/2571-9394/7/3/36
+48. [PDF] Predicting financial market stress with machine learning https://www.bis.org/
+publ/work1250.pdf
+49. Fighting Financial Crime with Live Risk Data - LSEG https://www.lseg.com/en/risk-
+intelligence/resources/white-paper/the-case-for-real-time-risk-intelligence
+50. Tax Challenges Arising from the Digitalisation of the Economy - OECD https://
+www.oecd.org/en/publications/tax-challenges-arising-from-the-digitalisation-of-the-
+economy-consolidated-commentary-to-the-global-anti-base-erosion-model-
+rules-2026_4377e89f-en.html
+51. Fiscal Risks Behind Debt Crises - PFM Blog https://blog-pfm.imf.org/en/pfmblog/
+2026/03/new-page
+52. Operational resilience 2026: progress vs. pressure | EY - Switzerland https://
+www.ey.com/en_ch/insights/cybersecurity/operational-resilience-2026-progress-vs-
+pressure
+53. Top 10 Risks in 2026: Geoeconomic Confrontation Tops the List https://
+www.weforum.org/stories/2026/01/global-risks-2026-top-10-two-and-ten-year-
+horizon/
+54. From Aleatoric to Epistemic: Exploring Uncertainty Quantification ... https://
+arxiv.org/html/2501.03282v1
+
+===== PAGE 16 =====
+
+55. Bayesian RAG: uncertainty-aware retrieval for reliable financial ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12886353/
+56. [PDF] Epistemic Uncertainty Quantification For Pre-Trained Neural Networks https://
+openaccess.thecvf.com/content/CVPR2024/papers/
+Wang_Epistemic_Uncertainty_Quantification_For_Pre-
+Trained_Neural_Networks_CVPR_2024_paper.pdf
+57. (PDF) A Bayesian Deep Learning Framework for RUL Prediction ... https://
+www.researchgate.net/publication/
+359073039_A_Bayesian_Deep_Learning_Framework_for_RUL_Prediction_Incorporati
+ng_Uncertainty_Quantification_and_Calibration
+58. Distributed-Ledger-based Authentication with Decentralized ... - arXiv https://
+arxiv.org/abs/2006.04754
+59. [PDF] IDEA-DAC: Integrity-Driven Editing for Accountable Decentralized ... https://
+openreview.net/pdf?id=32oBtcUTfz
+60. [PDF] Post-Quantum Financial Infrastructure Framework (PQFIF) - SEC.gov https://
+www.sec.gov/files/cft-written-input-daniel-bruno-corvelo-costa-090325.pdf
+61. [PDF] Practical Migration from x86 to Linux on IBM Z https://
+www.redbooks.ibm.com/redbooks/pdfs/sg248217.pdf
+62. [PDF] Technical Submission on Tokenized Collateral, Stablecoins, and 24 ... https://
+www.sec.gov/files/project-blueprint-tokenized-collateral-112725.pdf
+63. Market Segment Outlook: US Commercial Property Insurance https://
+www3.ambest.com/ambv/sales/bwpurchase.aspx?record_code=363514
+64. (PDF) Data Integrity Audit Scheme Based on Quad Merkle Tree and ... https://
+www.researchgate.net/publication/
+367440108_Data_Integrity_Audit_Scheme_Based_on_Quad_Merkle_Tree_and_Blockc
+hain
+65. Transparent Logs for Skeptical Clients - research!rsc https://research.swtch.com/tlog
+66. RAILS: Verification-Native Clearing for Agentic Commerce - arXiv https://arxiv.org/
+html/2606.08790v1
+67. Post-quantum distributed ledger technology: a systematic survey https://
+pmc.ncbi.nlm.nih.gov/articles/PMC10676427/
+68. [PDF] QoreChain: Quantum-Safe AI-Optimized Interchain Architecture https://
+www.authorea.com/users/839872/articles/1350632/master/file/data/
+QORECHAIN__Quantum_Safe_AI_Optimized_Interchain_Architecture/
+QORECHAIN__Quantum_Safe_AI_Optimized_Interchain_Architecture.pdf?inline=true
+69. Ensuring TRID Compliance Under Updated Rule https://blog.docutech.com/ensuring-
+trid-compliance-under-updated-rule
+
+===== PAGE 17 =====
+
+70. [PDF] Avoiding Common Underwriting Errors - Enact MI https://
+content.enactmi.com/documents/training/course/
+AvoidingCommonUWErrors.Presentation.0919.pdf
+71. FAQ – Fannie Mae: QC Corrective Action and the Fannie ... - MQMR https://
+www.mqmresearch.com/blog/faq-fannie-mae-qc-corrective-action-and-the-fannie-
+mae-required-action-plan
+72. Local Traits and Securitized Commercial Mortgage Default https://
+www.researchgate.net/publication/
+257643760_Local_Traits_and_Securitized_Commercial_Mortgage_Default
+73. FHFA, CFPB release loan-level mortgage data from national ... https://
+www.doddfrankupdate.com/dfu/articlesdfu/fhfa-cfpb-release-loanlevel-mortgage-
+data-from-nat-91803.aspx
+74. Evaluating Company Performance: The Role of EBITDA as a Key ... https://
+www.researchgate.net/publication/
+390284121_Evaluating_Company_Performance_The_Role_of_EBITDA_as_a_Key_Fina
+ncial_Metric
+75. Lets get technical for a sec. | Caleb Oguma - LinkedIn https://www.linkedin.com/
+posts/caleb-oguma-643233135_creditrisk-datascience-fintechkenya-
+activity-7394066187107790848-jQEc
+76. How to Calculate DSCR (Debt Service Coverage Ratio) in CRE https://
+www.yardiinvestmentsuite.com/blog/how-to-calculate-dscr-debt-service-coverage-
+ratio-in-commercial-real-estate/
+77. Commentary on “IBM Synthetic Data Tool Targets Fraud on Instant ... https://
+www.linkedin.com/pulse/commentary-ibm-synthetic-data-tool-targets-fraud-pay-
+veeramachaneni-hw4ce
+78. Improvement of Bank Fraud Detection Through Synthetic Data ... https://
+www.mdpi.com/2227-7080/13/4/141
+79. Synthetic Financial Datasets For Fraud Detection - Kaggle https://www.kaggle.com/
+datasets/ealaxi/paysim1
+80. Debt-Service Coverage Ratio (DSCR): How to Use and Calculate It https://
+www.investopedia.com/terms/d/dscr.asp
+81. Debt Service Coverage Ratio Calculator (DSCR) https://www.omnicalculator.com/
+finance/dscr
+82. Multifamily cap rates to decline in 2026, says Federal Reserve Board https://
+www.linkedin.com/posts/credaily_multifamily-cap-rates-are-poised-to-decline-
+activity-7396900523456557056-3jUT
+
+===== PAGE 18 =====
+
+83. (PDF) Uncertainty Quantification in AI-Driven Financial Risk Models ... https://
+www.researchgate.net/publication/403831688_Uncertainty_Quantification_in_AI-
+Driven_Financial_Risk_Models_for_Autonomous_Environments
+84. Quantifying uncertainty of machine learning methods for loss given ... https://
+www.frontiersin.org/journals/applied-mathematics-and-statistics/articles/10.3389/
+fams.2022.1076083/full
+85. Epistemic Uncertainty Quantification To Improve Decisions From... https://
+openreview.net/forum?id=JfiwaTxhI8
+86. [PDF] CFPB-Supervisory-Highlights-Advanced-Technologies-Special ... https://
+business.cch.com/BFLD/CFPB-Supervisory-Highlights-Advanced-Technologies-Special-
+Edition-Issue-38-Winter-2025-01172025.pdf
+87. [PDF] Global Financial Stability Report, April 2025; Chapter 1 https://www.imf.org/-/
+media/files/publications/gfsr/2025/april/english/ch1.pdf
+88. Propensity‐score matching with competing risks in survival analysis https://
+pmc.ncbi.nlm.nih.gov/articles/PMC6900780/
+89. On the calibration of survival models with competing risks - arXiv https://arxiv.org/
+abs/2602.00194
+90. [PDF] Evading Watermark based Detection of AI-Generated Content - arXiv https://
+arxiv.org/pdf/2305.03807
+91. WACV 2026 Open Access Repository https://openaccess.thecvf.com/content/
+WACV2026/html/Yang_SVD-
+Det_A_Lightweight_Framework_for_Video_Forgery_Detection_Using_Semantic_WACV
+_2026_paper.html
+92. Discrepancy Detection in Merkle Tree-Based Hash Aggregation https://
+www.researchgate.net/publication/
+352724729_Discrepancy_Detection_in_Merkle_Tree-Based_Hash_Aggregation
+93. Chicago https://ojs.aaai.org/index.php/AAAI/citationstylelanguage/get/chicago-
+author-date?submissionId=33264&publicationId=31537
+94. Building a Cryptographic Audit Trail for Financial Compliance https://dev.to/
+veritaschain/building-a-cryptographic-audit-trail-for-financial-compliance-from-hash-
+chains-to-multi-regulation-1oph
+95. Verifiable Credentials Implementation Guidelines 1.0 - W3C https://www.w3.org/TR/
+vc-imp-guide/
+96. How To Prepare For An FFIEC Audit A Step by Step Guide - Lexology https://
+www.lexology.com/library/detail.aspx?g=ea259e31-791f-4f8b-aead-0629347895ca
+97. Federal Financial Institutions Examination Council (FFIEC) https://
+learn.microsoft.com/en-us/compliance/regulatory/offering-ffiec-us
+
+===== PAGE 19 =====
+
+98. [PDF] Compendium of Effective Approaches for Financial Consumer ... https://
+www.oecd.org/content/dam/oecd/en/topics/policy-sub-issues/financial-consumer-
+protection/Revised-Compendium-of-Effective-Approaches-March-2026.pdf
+99. Certificateless data integrity auditing with sparse Merkle trees for the ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12603298/
+100. Adaptive Kalman Filter for Real-Time Visual Object Tracking Based ... https://
+www.mdpi.com/2076-3417/14/3/1045
+101. Impact of a Novel Adaptive Optimization Algorithm on 30-Day ... https://
+pubmed.ncbi.nlm.nih.gov/26071616/
+102. [PDF] Adaptive Data Reconciliation for Real Time Operation Optimization https://
+www.researchgate.net/profile/Saeid-Shokri/publication/
+272794417_Adaptive_Data_Reconciliation_for_Real_Time_Operation_Optimization/
+links/54eeed5f0cf2e2830865c10b/Adaptive-Data-Reconciliation-for-Real-Time-
+Operation-Optimization.pdf?origin=scientificContributions
+103. [PDF] A new state estimation approach-Adaptive Fading Cubature Kalman ... https://
+arxiv.org/pdf/2108.11311
+104. DSCR Case Study and Analysis | PDF | Loans | Financial Services https://
+www.scribd.com/document/643754898/DSCR-Case-study-Final
+105. Project Finance DSCR Calculation: Exclude Debt Drawdowns and ... https://
+www.linkedin.com/posts/hilary-smart-ba6bab85_ever-wondered-conceptually-what-
+should-be-activity-7425493889970548737-Ixh4
+106. A Required Debt Service Coverage Ratio Related to the Economic ... https://
+www.scirp.org/journal/paperinformation?paperid=137172
+107. 9 Best Loan Origination Software in 2026: Top Systems Compared https://
+hesfintech.com/blog/top-best-loan-origination-software/
+108. Implicit versus explicit Bayesian priors for epistemic uncertainty ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12306758/
+109. Bayesian calibration, validation, and uncertainty quantification of ... https://
+pubmed.ncbi.nlm.nih.gov/23053536/
+110. BAYESIAN CALIBRATION WITH ADAPTIVE MODEL DISCREPANCY https://
+inria.hal.science/hal-04323574v2
+111. Multifamily housing outlook: PwC https://www.pwc.com/us/en/industries/financial-
+services/asset-wealth-management/real-estate/emerging-trends-in-real-estate-pwc-uli/
+property-type-outlook/multifamily-housing.html
+112. The Risk-Based Capital Test for Fannie Mae and Freddie Mac https://
+www.researchgate.net/publication/228597055_The_Risk-
+Based_Capital_Test_for_Fannie_Mae_and_Freddie_Mac
+
+===== PAGE 20 =====
+
+113. An Analysis of the Systemic Risks Posed by Fannie Mae and ... https://ideas.repec.org/
+a/kap/jfsres/v31y2007i2p75-99.html
+114. Selective disclosure of claims from multiple digital credentials - arXiv https://
+arxiv.org/html/2402.15447v1
+115. AI Agents with Decentralized Identifiers and Verifiable Credentials https://arxiv.org/
+html/2511.02841v1
+116. Challenges of user data privacy in self-sovereign identity verifiable ... https://
+www.frontiersin.org/journals/blockchain/articles/10.3389/fbloc.2024.1374655/full
+117. US Treasury Releases New AI Risk Management ... - Cooley Finsights https://
+finsights.cooley.com/us-treasury-releases-new-ai-risk-management-resources-for-
+financial-institutions/
+118. Form S-1 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2064124/000162828025041837/figuretechnologysolutionsi.htm
+119. figr-20251231 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2064124/000206412426000009/figr-20251231.htm
+120. 2026 commercial real estate outlook | Deloitte Insights https://www.deloitte.com/us/
+en/insights/industry/financial-services/commercial-real-estate-outlook.html
+121. Commercial Real Estate Market Report: Q1 2025 - Baker Tilly https://
+www.bakertilly.com/insights/recap-commercial-real-estate-market-report-q1-2025
+122. [PDF] 2025 stress test of euro area banks – Final results https://
+www.bankingsupervision.europa.eu/ecb/pub/pdf/
+ssm.Report_2025_Stress_Test_202508.en.pdf
+123. Our Take: Stress testing & fintech risks - PwC https://www.pwc.com/us/en/
+industries/financial-services/library/our-take/stress-testing-fintech-risk-regulatory-
+update-oct-2025.html
+124. [PDF] Pareto Optimization for Subset Selection with Dynamic Cost ... https://
+ojs.aaai.org/index.php/AAAI/article/view/4075/3953
+125. Pareto-optimal reinsurance under dependence uncertainty - arXiv https://arxiv.org/
+abs/2512.11430
+126. Pareto-optimal reinsurance under dependence uncertainty https://ideas.repec.org/p/
+arx/papers/2512.11430.html
+127. Pareto-optimal reinsurance for both the insurer and ... - ResearchGate https://
+www.researchgate.net/publication/366561901_Pareto-
+optimal_reinsurance_for_both_the_insurer_and_the_reinsurer_under_the_risk-
+adjusted_value_and_general_premium_principles
+128. [PDF] Pareto-Optimal Reinsurance Policies under TrTVaR Risk Measure https://
+www.scirp.org/pdf/jfrm_2021082715343045.pdf
+
+===== PAGE 21 =====
+
+129. Pareto最优解集 - 工业工程 https://iej.gdut.edu.cn/cn/supplement/
+bdd6f114-1f9c-4322-b1ba-1d7418942c18
+130. A Review of Large Language Models Across Academic Disciplines https://arxiv.org/
+html/2509.19580v5
+131. [PDF] Hong Kong Economic Policy Green Paper 2026 https://www.hkubs.hku.hk/wp-
+content/uploads/2026/01/Green-Paper-Final_English.pdf
+132. ARTIFICIAL INTELLIGENCE IN DATA VISUALIZATION: REVIEWING ... https://
+www.researchgate.net/publication/
+395552492_ARTIFICIAL_INTELLIGENCE_IN_DATA_VISUALIZATION_REVIEWING_D
+ASHBOARD_DESIGN_AND_INTERACTIVE_ANALYTICS_FOR_ENTERPRISE_DECISIO
+N-MAKING
+133. Real-time Forecasting of Time Series in Financial Markets Using ... https://arxiv.org/
+abs/2205.04678
+134. Real-time forecasting of time series in financial markets using ... https://
+www.researchgate.net/publication/369316593_Real-
+time_forecasting_of_time_series_in_financial_markets_using_sequentially_trained_dua
+l-LSTM
+135. [PDF] Building Test-Time Calibration from Experience and Intuition https://
+openaccess.thecvf.com/content/CVPR2026/papers/Guo_Dual-
+level_Adaptation_for_Multi-Object_Tracking_Building_Test-
+Time_Calibration_from_Experience_CVPR_2026_paper.pdf
+136. A Novel Hybrid Model for Financial Forecasting Based on ... - MDPI https://
+www.mdpi.com/2227-7390/12/16/2434
+137. What is FDX (the Financial Data Exchange)? - Stripe https://stripe.com/resources/
+more/what-is-the-financial-data-exchange-fdx-here-is-what-you-should-know
+138. (PDF) Distributed-Ledger-based Authentication with Decentralized ... https://
+www.researchgate.net/publication/347266514_Distributed-Ledger-
+based_Authentication_with_Decentralized_Identifiers_and_Verifiable_Credentials
+139. Verifiable Credentials Working Group Charter - W3C https://www.w3.org/2026/03/
+vc-wg-charter.html
+140. [PDF] FEDERAL HOUSING FINANCE AGENCY https://business.cch.com/BFLD/FHFA-
+AB-2022-03-12192022.pdf
+141. [PDF] Avoiding Common Underwriting Errors - Enact MI https://
+content.enactmi.com/documents/training/course/
+AvoidingCommonUnderwritingErrors.0120.pdf
+142. Executive Order Seeks to Expand Access to Mortgage Credit https://
+finsights.cooley.com/executive-order-seeks-to-expand-mortgage-credit-for-customers-
+of-community-and-smaller-banks/
+
+===== PAGE 22 =====
+
+143. Multi-Objective Optimal Proportional Reinsurance Based on RORAC ... https://
+www.researchgate.net/publication/307530486_Multi-
+Objective_Optimal_Proportional_Reinsurance_Based_on_RORAC_and_MSD
+144. [PDF] Fairness-Aware Insurance Pricing - arXiv https://arxiv.org/pdf/2512.24747
+145. [PDF] The Optimal Strategy of Generalized Underwriting with the Variance ... https://
+aps.ecnu.edu.cn/cn/article/pdf/preview/10.3969/j.issn.1001-4268.2022.04.009.pdf
+146. Multi-Objective Fault-Coverage Based Regression Test Selection ... https://
+www.mdpi.com/2227-7390/11/13/2983
+147. https://unctad.org/publications-search?f[0]=themat... https://unctad.org/
+publications-search?f[0]=thematic%3A1103
+148. Statistical Profiling of Banking Data for Anomaly Identification:An ... https://
+www.researchgate.net/publication/
+404564313_Statistical_Profiling_of_Banking_Data_for_Anomaly_IdentificationAn_App
+lied_Study_Using_a_Synthetic_Banking_Database
+149. Synthetic Tabular Generators Fail to Preserve Behavioral Fraud ... https://arxiv.org/
+abs/2604.13125
+150. KPMG Digital Assets Insights https://kpmg.com/cn/en/events/2025/10/digital-assets-
+forum/kpmg-digital-assets-insights.html
+151. [PDF] KPMG Blockchain Report 2024 https://assets.kpmg.com/content/dam/
+kpmgsites/ch/pdf/kpmg-blockchain-report-2024.pdf.coredownload.pdf
+152. Seize tomorrow's tech to reinvent your business | PwC https://www.pwc.com/gx/
+en.html
+153. Real-Time Parameter Estimation of a Dual-Pol Radar Rain Rate ... https://
+www.mdpi.com/2072-4292/13/12/2365
+154. (PDF) Multiple-model adaptive estimation using a residual ... https://
+www.researchgate.net/publication/224277031_Multiple-
+model_adaptive_estimation_using_a_residual_correlation_Kalman_Filter_Bank
+155. API Reference - FDX Authorization Server - Mastercard Developers https://
+developer.mastercard.com/fdx-dev-hub/documentation/api-reference/
+156. [PDF] Underwriting Guidelines - Enact https://content.enactmi.com/documents/
+national/underwriting-guidelines/UnderwritingGuidelines.083020.pdf
+157. [PDF] FANNIE MAE & FREDDIE MAC - COMPARISON & PRICING ... - LHFS https://
+cdn.lhfs.com/lhfscdn/wholesale/download/Comparison_FNMA_FHLMC.pdf
+158. Sullivan & Cromwell Discusses Federal Reserve Capital Stress ... https://
+clsbluesky.law.columbia.edu/2025/11/05/sullivan-cromwell-discusses-federal-reserve-
+capital-stress-testing/
+
+===== PAGE 23 =====
+
+159. 20th International Probabilistic Workshop - Springer Nature https://
+link.springer.com/content/pdf/10.1007/978-3-031-60271-9.pdf
+160. CFPB Finalizes Significant Changes to Regulation B https://finsights.cooley.com/cfpb-
+finalizes-significant-changes-to-regulation-b/
+161. FIEC IT Examination Handbook & Third-Party Risk - Mitratech https://mitratech.com/
+resource-hub/rc-use-case/ffiec-it-exam-handbook/
+162. Multi-Objective Submodular Maximization by Regret Ratio ... https://ojs.aaai.org/
+index.php/AAAI/article/view/17460
+163. Cumulative Total Equity Returns of Fannie Mae and Freddie Mac ... https://
+www.researchgate.net/figure/Cumulative-Total-Equity-Returns-of-Fannie-Mae-and-
+Freddie-Mac-Relative-to-S-P-500_fig2_274023508
+164. 2024 Market Review and 2025 Outlook | CBRE Asia Pacific - LinkedIn https://
+www.linkedin.com/posts/cbre-asia-pacific_2024-market-review-and-2025-outlook-
+activity-7285861008970035200-6_jE
+165. CBRE Korea Reports Commercial Real Estate Transaction Volume ... https://
+www.cbrekorea.com/en/press-releases/korea-market-outlook-report-2025
+166. Synthetic Tabular Generators Fail to Preserve Behavioral Fraud ... https://arxiv.org/
+html/2604.13125v1
+167. Synthetic Banking Transaction Dataset with Multi-Pattern Fraud ... https://
+data.mendeley.com/datasets/ktbthg777x/1
+168. Synthetic data from a financial payment system - Kaggle https://www.kaggle.com/
+datasets/ealaxi/banksim1
+169. [PDF] Freddie Mac Single-Family Seller/Servicer Guide PDF - LHFS https://
+cdn.lhfs.com/lhfscdn/wholesale/download/FreddieMac_TheGuide.pdf
+170. Adaptive fading Kalman filter based on innovation covariance https://www.sys-
+ele.com/EN/abstract/abstract2505.shtml
+171. Adaptive fading Kalman filter based on innovation covariance https://
+www.researchgate.net/publication/
+268022081_Adaptive_fading_Kalman_filter_based_on_innovation_covariance
+172. A Combination of Classification Robust Adaptive Kalman Filter with ... https://
+www.mdpi.com/2072-4292/17/2/284
+173. CEEMDAN-IPSO-LSTM: A Novel Model for Short-Term Passenger ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC9779204/
+174. [PDF] A new Kalman filter approach for structural parameter tracking - HAL https://
+hal.science/hal-03714262/file/2022_MDKF_accepted_MSSP.pdf
+175. 偏差未补偿自适应边缘化容积卡尔曼滤波跟踪方法 - 电子与信息学报 https://
+jeit.ac.cn/cn/article/doi/10.11999/JEIT240469?viewType=HTML
+
+===== PAGE 24 =====
+
+176. Fault parameter joint estimation based on multiple fading factors ... http://
+jemi.cnjournals.com/jemien/article/abstract/b1801540
+177. RefMan - 深空探测学报(中英文） https://jdse.bit.edu.cn/sktcxbcn/ch/reader/
+article_export.aspx?file_no=20170212&flag=1&export_type=ris
+178. Practical recommendations for reporting Fine‐Gray model analyses ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC5698744/
+179. Modeling the Probability of Default Term Structure Using Different ... https://
+www.mdpi.com/2227-7072/14/3/62
+180. Insights from the Fine and Gray Model and Covariate Adjustments https://
+www.researchgate.net/publication/
+401263525_Of_Ahero_Rice_Survival_Analysis_with_Competing_Risks_Insights_from_t
+he_Fine_and_Gray_Model_and_Covariate_Adjustments
+181. [PDF] A Scorecard Model Using Survival Analysis Framework - arXiv https://
+arxiv.org/pdf/2503.05023
+182. Overview of model validation for survival regression model with ... https://
+atm.amegroups.org/article/view/21020/html
+183. (PDF) FraudX SimS: A Synthetic Dataset for Anomaly Detection in ... https://
+www.researchgate.net/publication/
+398061154_FraudX_SimS_A_Synthetic_Dataset_for_Anomaly_Detection_in_Payment-
+Card_Transactions
+184. NIST SP 800-53 Revision 5 in Security Hub CSPM https://docs.aws.amazon.com/
+securityhub/latest/userguide/standards-reference-nist-800-53.html
+185. NIST 800-53 REFERENCE GUIDE Rev. 5 - TalaTek, LLC https://talatek.com/
+resources/nist-800-53-reference-guide/
+186. Trusted Timestamping (RFC 3161) in Digital Forensics - Metaspike https://
+www.metaspike.com/trusted-timestamping-rfc-3161-digital-forensics/
+187. Digital assets and blockchain technology - KPMG International https://kpmg.com/us/
+en/capabilities-services/financial-services-industry/cryptocurrency-digital-assets-
+blockchain-technology.html
+188. Blockchain Audit Trails - LinkedIn https://www.linkedin.com/top-content/
+technology/blockchain-for-data-management/blockchain-audit-trails/
+189. [PDF] Handbook: Crypto assets - KPMG International https://kpmg.com/kpmg-us/
+content/dam/kpmg/frv/pdf/2026/crypto-assets.pdf
+190. [PDF] A Cryptographic Framework for Accountable Bitcoin Treasuries - arXiv https://
+arxiv.org/pdf/2512.03765
+191. A new state estimation approach-Adaptive Fading Cubature Kalman ... https://
+arxiv.org/abs/2108.11311
+
+===== PAGE 25 =====
+
+192. A Novel Adaptive Factor-Based H∞ Cubature Kalman Filter for ... https://
+www.mdpi.com/2077-1312/10/3/326
+193. A new state estimation approach-Adaptive Fading Cubature Kalman ... https://
+www.researchgate.net/publication/354141712_A_new_state_estimation_approach-
+Adaptive_Fading_Cubature_Kalman_filter
+194. A new state estimation approach-Adaptive Fading Cubature Kalman ... https://
+www.semanticscholar.org/paper/A-new-state-estimation-approach-Adaptive-Fading-
+Narasimhappa/303c2b9e73a15a54370adce6e0db6e48b8aa18dd
+195. [PDF] Dual Ensemble Kalman Filter assimilation method for estimating ... https://
+www.ygxb.ac.cn/rc-pub/front/front-article/download/10660954/lowqualitypdf/
+%E5%8F%8C%E9%9B%86%E5%90%88%E5%8D%A1%E5%B0%94%E6%9B%BC%E
+6%BB%A4%E6%B3%A2%E4%BC%B0%E7%AE%97%E6%97%B6%E9%97%B4%E5%
+BA%8F%E5%88%97LAI.pdf
+196. Low-complexity adaptive cubature Kalman filter algorithm https://
+mc.spacejournal.cn/en/article/id/bjhkhtdxxb_15638
+197. [2106.04826] Verification of a Merkle Patricia Tree Library Using F* https://
+arxiv.org/abs/2106.04826
+198. Data-Driven Multi-objective Optimization With Fairness Constraints https://
+www.researchgate.net/publication/382233650_Data-Driven_Multi-
+objective_Optimization_With_Fairness_Constraints_Balancing_Efficiency_With_Equity
+_in_Algorithmic_Decision-Making
+199. [PDF] Pareto-based Multi-Objective Recommender System with Forgetting ... https://
+arxiv.org/pdf/2312.16868
+200. Mitigating Preference Conflicts in Multi-Objective Alignment https://aclanthology.org/
+2025.findings-acl.574/
+201. Multi-Objective Optimization for Pareto Frontier Sensitivity Analysis ... https://
+www.mdpi.com/2071-1050/16/14/5854
+202. A Maturity Model based on the NIST AI Risk Management Framework https://
+arxiv.org/html/2401.15229v1
+203. Presale: Angel Oak Mortgage Trust 2025-9 | S&P Global Ratings https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/101639567
+204. Competing Risk Analysis | Columbia Public Health https://
+www.publichealth.columbia.edu/research/population-health-methods/competing-risk-
+analysis
+205. [PDF] KPMG's Distributed Ledger Services https://assets.kpmg.com/content/dam/
+kpmg/lu/pdf/lu-en-Distributed-Ledger-Services.pdf
+206. [PDF] Security Models, Migration Patterns, and Case Study - arXiv https://arxiv.org/
+pdf/2512.00110
+
+===== PAGE 26 =====
+
+207. Cryptoassets - KPMG International https://kpmg.com/xx/en/what-we-do/services/
+audit/corporate-reporting-institute/ifrs/revenue/qa-cryptoassets.html
+208. [PDF] Spring 2017 Exam GHC Canada Case Study - SOA https://www.soa.org/
+globalassets/assets/files/edu/2017/spring/edu-2017-04-gh-corc-exam-case-study-
+pm.pdf
+209. [PDF] A macro stress testing framework for assessing systemic risks in the ... https://
+www.ecb.europa.eu/pub/pdf/scpops/ecbocp152.pdf
+210. Financial Shocks and Financial Well-Being: What Builds Resiliency ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC8528660/
+211. [PDF] Fannie Mae and Freddie Mac: Understanding Your Options - Enact MI https://
+content.enactmi.com/documents/training/course/
+UnderstandingOptions.Presentation.0321.pdf
+212. [PDF] Online appendix to FSI Insights No 12 - Stress-testing banks https://
+www.bis.org/fsi/publ/insights12_appendix.pdf

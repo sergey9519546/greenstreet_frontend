@@ -1,0 +1,254 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "date": "2026-06-18",
+    "slice_blocker": "Slice 2 P2-1 (Monte Carlo engine)",
+    "consumed_by": "mc_simulation.py / risk_engine.py",
+    "authoritative_sources": [
+      "KBRA Non-QM Default Study Jun 4 2025 (475,000+ loans, $216.7B, 2015-Apr 2025)",
+      "KBRA Rated-only subset Oct 14 2025",
+      "Zillow ZORI Oct 2025 (50 MSAs, monthly)",
+      "NCREIF NPI 1Q25 + 2Q25 press release",
+      "FRED RRVRUSQ156N Q1 2026 (rental vacancy)",
+      "FRED CUUR0000SEHA (CPI Rent)",
+      "Tax Foundation 2024 effective property tax",
+      "Houlihan Lokey SFR Market Update Aug 2025",
+      "ATTOM Q1 2025 Foreclosure Market Report",
+      "MBA National Delinquency Survey Q1 2025",
+      "FRED DRSFRMACBS Q1 2026 (SFR delinquency, all commercial banks)"
+    ],
+    "supersedes": "TOPIC 7 provisional calibration (T1 Sovereign Master config)"
+  },
+  "marginal_distributions": {
+    "ltr_rent_growth": {
+      "distribution": "Normal",
+      "mu_pct": 2.0,
+      "sigma_pct": 9.5,
+      "msa_tier_overrides": {
+        "High": {"mu_pct": 4.5, "sigma_pct": 8.0, "msa_list": ["San Francisco", "New York", "Chicago", "Boston", "Cleveland", "Virginia Beach", "Milwaukee", "Providence", "Kansas City", "St. Louis", "Minneapolis", "Indianapolis", "Richmond", "Hartford", "Pittsburgh", "Cincinnati", "Columbus", "San Jose", "Oklahoma City"]},
+        "Moderate": {"mu_pct": 2.5, "sigma_pct": 6.0, "msa_list": ["Los Angeles", "Washington", "Philadelphia", "Atlanta", "Riverside", "Seattle", "San Diego", "Baltimore", "Portland", "Sacramento", "Detroit", "Buffalo", "Memphis", "Louisville", "Birmingham"]},
+        "Low": {"mu_pct": 0.7, "sigma_pct": 5.0, "msa_list": ["Dallas", "Houston", "Miami", "Tampa", "Orlando", "Charlotte", "Jacksonville", "Nashville", "Raleigh", "Las Vegas", "Salt Lake City", "New Orleans"]},
+        "Negative": {"mu_pct": -1.7, "sigma_pct": 7.0, "msa_list": ["Austin", "Denver", "Phoenix", "San Antonio"]}
+      },
+      "source": "Zillow ZORI Oct 2025 + 5-yr historical volatility",
+      "confidence": 90,
+      "_comment": "National μ=2.0% σ=9.5% per KBRA DSCR methodology (preserved); MSA tier overrides reflect 2025-2026 divergence"
+    },
+    "ltr_vacancy": {
+      "distribution": "Beta",
+      "alpha": 2,
+      "beta": 22,
+      "mean_pct": 5.3,
+      "msa_tier_overrides": {
+        "Supply_constrained_coastal": {"alpha": 1.5, "beta": 30, "mean_pct": 4.8},
+        "Sun_Belt_oversupplied": {"alpha": 3, "beta": 35, "mean_pct": 8.5},
+        "Midwest_Rust_Belt": {"alpha": 2, "beta": 28, "mean_pct": 6.0},
+        "Energy_Resource": {"alpha": 2, "beta": 25, "mean_pct": 5.5},
+        "Florida": {"alpha": 2, "beta": 30, "mean_pct": 7.0},
+        "California_inland": {"alpha": 2, "beta": 30, "mean_pct": 6.0}
+      },
+      "national_baseline_q1_2026_pct": 7.3,
+      "source": "Census HVS Q1 2026 + FRED RRVRUSQ156N",
+      "confidence": 95,
+      "_comment": "Beta(2,22) preserves TOPIC 7 mean ~5%; Q1 2026 national actual 7.3% reflects Sun Belt supply surge"
+    },
+    "str_revenue": {
+      "distribution": "Lognormal",
+      "mu_pct": 0.0,
+      "sigma_pct": 22.0,
+      "occupancy_mean_pct": 55.0,
+      "occupancy_sigma_pct": 12.0,
+      "source": "AirDNA 2026 Outlook + industry-validated",
+      "confidence": 80,
+      "_comment": "AirDNA reports 2024 occupancy up 6% from 2023; ADR stable; 2025 occupancy slightly higher than 2024"
+    },
+    "str_vacancy": {
+      "distribution": "Beta",
+      "alpha": 3,
+      "beta": 7,
+      "mean_pct": 30.0,
+      "source": "AirDNA (TOPIC 7 preserved)",
+      "confidence": 80
+    },
+    "insurance_escalation": {
+      "distribution": "Lognormal",
+      "mu_pct": 7.0,
+      "sigma_pct": 5.0,
+      "tier_overrides": {
+        "Normal_interior": {"mu_pct": 5.0, "sigma_pct": 3.0},
+        "Suburban": {"mu_pct": 7.0, "sigma_pct": 4.0},
+        "FL_coastal": {"mu_pct": 12.0, "sigma_pct": 8.0, "_comment": "10-30% YoY 2024-2026; 90%+ FL investors missed deals in 2024"},
+        "CA_wildfire": {"mu_pct": 10.0, "sigma_pct": 7.0, "_comment": "15-25% YoY; non-renewal risk"},
+        "TX_Gulf": {"mu_pct": 9.0, "sigma_pct": 6.0, "_comment": "10-20% YoY post-Beryl"},
+        "LA_coastal": {"mu_pct": 10.0, "sigma_pct": 7.0}
+      },
+      "source": "Insurify 2026 + DSCR corpus (TOPIC 15)",
+      "confidence": 75
+    },
+    "property_tax_growth": {
+      "distribution": "Truncated_Normal",
+      "mu_pct": 3.0,
+      "sigma_pct": 1.0,
+      "truncate_min_pct": 0.0,
+      "truncate_max_pct": 8.0,
+      "state_overrides": {
+        "CA": {"mu_pct": 2.0, "cap_pct": 2.0, "_comment": "Prop 13 2%/yr cap (Santa Clara Co. Assessor)"},
+        "TX": {"mu_pct": 3.0, "cap_pct": null, "_comment": "Full reassessment on sale; ongoing market drift"},
+        "FL": {"mu_pct": 3.0, "cap_pct": null, "_comment": "Full reassessment on sale"},
+        "NY": {"mu_pct": 2.5, "cap_pct": 2.0, "_comment": "Varies by class"},
+        "IL": {"mu_pct": 3.5, "cap_pct": null, "_comment": "PTELL limits"},
+        "OH": {"mu_pct": 3.0, "cap_pct": null, "_comment": "10-yr reappraisal cycle"},
+        "NJ": {"mu_pct": 4.0, "cap_pct": null, "_comment": "Highest effective rate (2.23%)"},
+        "AL": {"mu_pct": 1.5, "cap_pct": null, "_comment": "Lowest effective rate (0.33%)"},
+        "HI": {"mu_pct": 1.0, "cap_pct": null, "_comment": "Lowest effective rate (0.32%)"}
+      },
+      "source": "Tax Foundation 2024 + State Assessor offices (CA, NY)",
+      "confidence": 85
+    },
+    "cap_rate_drift": {
+      "distribution": "Normal",
+      "mu_bps_quarterly": 5,
+      "sigma_bps_quarterly": 25,
+      "regime_shift_probability_pct": 5.0,
+      "regime_shift_bps_quarterly": 50,
+      "current_npi_q2_2025_apartment_pct": 4.69,
+      "current_sfr_private_pct": 5.56,
+      "current_sfr_reit_pct": 5.65,
+      "current_mf_reit_pct": 4.74,
+      "source": "NCREIF NPI 1Q25 + 2Q25 + Houlihan Lokey Aug 2025",
+      "confidence": 90
+    },
+    "interest_rate_path": {
+      "model": "CIR",
+      "anchor_series": "FRED MORTGAGE30US + SOFR",
+      "anchor_30yr_mortgage_jun_2026_pct": 6.7,
+      "anchor_sofr_jun_2026_pct": 4.4,
+      "mean_reversion_speed_kappa": 0.5,
+      "long_run_mean_30yr_pct": 6.5,
+      "long_run_volatility_bps": 75,
+      "source": "FRED QuantLib Hull-White calibration",
+      "confidence": 95
+    }
+  },
+  "default_curve": {
+    "source": "KBRA Non-QM Default Study Jun 4 2025 + S&P impairment study Apr 2025",
+    "wa_cumulative_default_all_pct": 3.8,
+    "wa_cumulative_default_kbra_rated_pct": 3.2,
+    "wa_realized_credit_losses_pct": 0.03,
+    "kbra_rated_loss_bps": 5,
+    "baseline_5yr_default_pct": 3.8,
+    "fico_buckets": {
+      "<660": {"5yr_default_pct": 10.0},
+      "660-680": {"5yr_default_pct": 6.5},
+      "680-720": {"5yr_default_pct": 3.8},
+      "720-760": {"5yr_default_pct": 2.5},
+      "760+": {"5yr_default_pct": 1.5}
+    },
+    "ltv_buckets": {
+      "<65": {"5yr_default_pct": 3.5},
+      "65-70": {"5yr_default_pct": 4.1},
+      "70-75": {"5yr_default_pct": 4.1},
+      "75-80": {"5yr_default_pct": 4.2},
+      "80-85": {"5yr_default_pct": 4.5},
+      "85+": {"5yr_default_pct": 5.5}
+    },
+    "vintage_5yr_default_pct": {
+      "2019": 5.5,
+      "2020": 5.0,
+      "2021": 3.8,
+      "2022": 4.0,
+      "2023": 4.1,
+      "2024": 3.7,
+      "2025": 3.5
+    },
+    "documentation_adjustment": {
+      "Full_Doc": 1.00,
+      "DSCR": 1.00,
+      "Bank_Statement": 1.05,
+      "P&L_CPA": 1.05,
+      "WVOE": 0.95,
+      "Asset_Underwritten": 0.95,
+      "Alt_Doc_avg": 1.129,
+      "_comment": "KBRA: Alt Doc +12.9% vs Full Doc; DSCR treated as Full Doc (debt-service qualified)"
+    },
+    "logit_hazard_formula": "logit(p_5yr) = -3.5 + 0.18*FICO_bin + 0.05*LTV_bin + 0.04*vintage_offset + 0.12*doc_offset",
+    "_comment": "FICO_bin ∈ {0,1,2,3,4} where 0=<660, 4=760+; LTV_bin in 65-85+ in 5pt increments"
+  },
+  "cure_rate": {
+    "source": "NBER w15159 (Mayer et al. 2009) + JCHS Cutts/Merrill 2008 + DSCR investor loan estimate",
+    "conforming_owner_occupied_24mo_cum_pct": 72.0,
+    "dscr_investor_24mo_cum_pct": 55.0,
+    "monthly_resolution_pct": {
+      "0-6": 50.0,
+      "6-12": 25.0,
+      "12-24": 10.0,
+      "24+": 5.0
+    },
+    "_comment": "Most cures happen in first 6 months. DSCR borrowers have less equity cushion than conforming owner-occupants, so 24-mo cumulative cure is lower (~55% vs ~72%). Re-verify with internal portfolio data when originations begin."
+  },
+  "loss_given_default": {
+    "source": "KBRA involuntary liquidations + Federal Reserve academic + DSCR LGD estimate",
+    "kbra_involuntary_liquidations_n": 300,
+    "kbra_involuntary_severity_pct": 26.5,
+    "kbra_forbearance_severity_pct": 1.2,
+    "kbra_capitalized_severity_pct": 0.6,
+    "dscr_baseline_lgd_pct": 25.0,
+    "by_property_type_pct": {
+      "SFR": 25.0,
+      "2-4_unit": 22.0,
+      "Condo_warrantable": 28.0,
+      "Condo_nonwarrantable": 32.0,
+      "Condotel": 35.0,
+      "STR": 30.0
+    },
+    "by_state_foreclosure_method_pct": {
+      "judicial": 30.0,
+      "non_judicial": 22.0
+    },
+    "by_ltv_at_default_pct": {
+      "<60": 5.0,
+      "60-70": 12.0,
+      "70-80": 22.0,
+      "80-90": 35.0,
+      "90+": 50.0
+    },
+    "_comment": "See Domain 12 for full 5-property-type × 50-state LGD matrix + foreclosure timeline"
+  },
+  "correlation_matrix_t_copula": {
+    "copula": "Student-t",
+    "df": 6,
+    "matrix": {
+      "rent_growth↔vacancy": -0.55,
+      "rent_growth↔interest_rate": 0.45,
+      "cap_rate↔interest_rate": 0.60,
+      "insurance↔climate_risk": 0.70,
+      "vacancy↔interest_rate": 0.25,
+      "property_tax↔home_value": 0.50,
+      "rent_growth↔property_tax": 0.30,
+      "_comment": "Tail dependence captured by t-copula df=6; higher df = more Gaussian"
+    },
+    "source": "KBRA + industry consensus (TOPIC 7 validated)"
+  },
+  "variance_reduction": {
+    "antithetic_variates": true,
+    "sobol_quasi_monte_carlo": true,
+    "control_variates": ["DSCR median"],
+    "common_random_numbers": true,
+    "iterations_base": 10000,
+    "iterations_securitization": 50000
+  },
+  "action_thresholds": {
+    "p_dscr_below_1_any_month_conditional_go": 0.10,
+    "p_dscr_below_1_any_month_pass": 0.15,
+    "p5_dscr_kill": 0.80,
+    "sharpe_target": 1.0,
+    "cvar_5pct_annual_coverage_floor": 0.85
+  },
+  "dscr_specific_factors": {
+    "str_rate_premium_bps": 25,
+    "str_rate_premium_range_bps": "12.5-50",
+    "_source": "Host Financial 2026 DSCR rate guide (STR = LTR + 0.125% to 0.25%)",
+    "go_docs_dscr_rate_jan_2024_pct": 8.73,
+    "go_docs_dscr_rate_apr_2025_pct": 7.76
+  }
+}

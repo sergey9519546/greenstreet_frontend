@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    @page { size: 794px 1123px; margin: 0; }
+    :root {
+      --c-bg: #0b1220;
+      --c-bg-2: #131d33;
+      --c-accent: #d4a13a;
+      --c-accent-2: #3da9fc;
+      --c-text: #f3f4f6;
+      --c-muted: #94a3b8;
+      --c-footer: #64748b;
+      --c-line: #2a3650;
+    }
+    html, body {
+      margin: 0; padding: 0;
+      width: 794px; height: 1123px;
+      background: var(--c-bg);
+      color: var(--c-text);
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    @media screen {
+      html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-bg); }
+      body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,0.6); }
+    }
+    .cover { width: 794px; height: 1123px; position: relative; box-sizing: border-box; overflow: hidden; }
+
+    /* Layer 1: background grid + watermark */
+    .bg-layer {
+      position: absolute; inset: 0; z-index: 1; overflow: hidden;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(61,169,252,0.07), transparent 42%),
+        radial-gradient(circle at 12% 92%, rgba(212,161,58,0.06), transparent 38%);
+    }
+    .grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .watermark {
+      position: absolute;
+      right: 24px; bottom: 60px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 72pt;
+      font-weight: 700;
+      color: rgba(212,161,58,0.05);
+      letter-spacing: -3px;
+      line-height: 0.85;
+      text-align: right;
+      z-index: 1;
+    }
+
+    /* Layer 2: structure */
+    .vline {
+      position: absolute; left: 50px; top: 95px; bottom: 95px;
+      width: 3px; background: var(--c-accent);
+      z-index: 2;
+    }
+    .corner-tl, .corner-br {
+      position: absolute; width: 24px; height: 24px;
+      z-index: 2;
+    }
+    .corner-tl { top: 60px; right: 60px; border-top: 1.5px solid var(--c-accent-2); border-right: 1.5px solid var(--c-accent-2); }
+    .corner-br { bottom: 60px; left: 50px; border-bottom: 1.5px solid var(--c-accent-2); border-left: 1.5px solid var(--c-accent-2); }
+
+    /* Layer 3: content */
+    .content {
+      position: absolute; left: 100px; right: 95px; top: 0; bottom: 0;
+      z-index: 3;
+    }
+    .label {
+      position: absolute; top: 155px;
+      font-size: 9pt; color: var(--c-accent);
+      letter-spacing: 4px; text-transform: uppercase;
+      font-weight: 500;
+    }
+    .label .dot {
+      display: inline-block; width: 5px; height: 5px;
+      background: var(--c-accent); border-radius: 50%;
+      vertical-align: middle; margin: 0 8px 2px 0;
+    }
+    .title-l1 {
+      position: absolute; top: 230px;
+      font-size: 48pt; font-weight: 900;
+      line-height: 1.05;
+      font-family: 'Playfair Display', serif;
+      color: var(--c-text);
+      letter-spacing: -1.5px;
+      max-width: 600px;
+    }
+    .title-l2 {
+      position: absolute; top: 305px;
+      font-size: 48pt; font-weight: 900;
+      font-style: italic;
+      line-height: 1.05;
+      font-family: 'Playfair Display', serif;
+      color: var(--c-accent);
+      letter-spacing: -1.5px;
+      max-width: 600px;
+    }
+    .subtitle {
+      position: absolute; top: 450px;
+      font-size: 13pt; line-height: 1.55;
+      color: var(--c-muted);
+      max-width: 540px;
+      font-weight: 300;
+    }
+    .subtitle strong { color: var(--c-text); font-weight: 500; }
+
+    /* Six functions block */
+    .functions {
+      position: absolute; top: 590px; left: 0; right: 0;
+    }
+    .functions-label {
+      font-size: 8.5pt; color: var(--c-accent);
+      letter-spacing: 3px; text-transform: uppercase;
+      font-weight: 500; margin-bottom: 14px;
+    }
+    .func-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px;
+    }
+    .func-item {
+      display: flex; align-items: baseline; gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .func-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9pt; color: var(--c-accent-2);
+      font-weight: 500; min-width: 18px;
+    }
+    .func-name {
+      font-size: 10.5pt; color: var(--c-text);
+      font-weight: 500;
+    }
+
+    /* Meta footer */
+    .meta {
+      position: absolute; bottom: 130px; left: 0; right: 0;
+      display: flex; gap: 40px;
+    }
+    .meta-item .meta-label {
+      font-size: 7.5pt; color: var(--c-muted);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 4px; font-weight: 500;
+    }
+    .meta-item .meta-value {
+      font-size: 10pt; color: var(--c-text);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 400;
+    }
+
+    .footer {
+      position: absolute; bottom: 60px; left: 0; right: 0;
+      display: flex; justify-content: space-between;
+      font-size: 8pt; color: var(--c-footer);
+      letter-spacing: 2px; text-transform: uppercase;
+      font-weight: 400;
+    }
+    .footer .left { font-family: 'JetBrains Mono', monospace; }
+    .footer .right { color: var(--c-muted); }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="bg-layer">
+      <div class="grid"></div>
+    </div>
+    <div class="vline"></div>
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
+
+    <div class="content">
+      <div class="label"><span class="dot"></span>STRATEGIC INTELLIGENCE BRIEFING &nbsp;/&nbsp; CLASSIFICATION: INTERNAL</div>
+
+      <div class="title-l1">DSCR GODMODE</div>
+      <div class="title-l2">ULTRAPLAN</div>
+
+      <div class="subtitle">
+        Path to Elite: Mastering the <strong>Six Functions</strong> of a category-defining DSCR lender &mdash; borrower filter, lender/investor fit, file cleanliness, and niche clarity. The lender that survives will not be the one with the flashiest ads, but the one with the cleanest operator doctrine.
+      </div>
+
+      <div class="functions">
+        <div class="functions-label">The Six-Function Doctrine</div>
+        <div class="func-grid">
+          <div class="func-item"><span class="func-num">01</span><span class="func-name">Scenario Accuracy &mdash; 10-min verdict</span></div>
+          <div class="func-item"><span class="func-num">02</span><span class="func-name">Guideline Intelligence &mdash; lender fit</span></div>
+          <div class="func-item"><span class="func-num">03</span><span class="func-name">Borrower Trust &mdash; credible quotes</span></div>
+          <div class="func-item"><span class="func-num">04</span><span class="func-name">Capital Partner Trust &mdash; clean files</span></div>
+          <div class="func-item"><span class="func-num">05</span><span class="func-name">Distribution &mdash; repeatable channels</span></div>
+          <div class="func-item"><span class="func-num">06</span><span class="func-name">Risk Discipline &mdash; early decline</span></div>
+        </div>
+      </div>
+
+      <div class="meta">
+        <div class="meta-item">
+          <div class="meta-label">Version</div>
+          <div class="meta-value">v7.0 / ULTRA-01</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Date</div>
+          <div class="meta-value">2026-06-17</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Horizon</div>
+          <div class="meta-value">365 DAYS</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Status</div>
+          <div class="meta-value">ACTIVE / BUILD</div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="left">DSCR-INTEL // SIX-FUNCTION DOCTRINE</div>
+        <div class="right">PREPARED BY THE OPERATOR DESK</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

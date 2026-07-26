@@ -1,0 +1,20 @@
+# Unique Content Review
+
+- Source path: 01_research_notes/DSCR Sovereign OS  Upgrade Intelligence Report — Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md
+- Archived path: 01_research_notes/_archive/superseded_by_docs_research_2026-06-28/DSCR Sovereign OS  Upgrade Intelligence Report — Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md
+- Replacement path: docs/research/sprints/DSCR Sovereign OS  Upgrade Intelligence Report — Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md
+- Coverage decision: BORDERLINE_REVIEW
+- Block coverage: 0.9909
+- Unique words: 137
+- Preliminary classification: LIKELY_METADATA_OR_MINOR_DIFF_REVIEW
+- Review copy: 00_MOCs\reconciliation_unique_review_2026-06-28\restored_for_review\01_research_notes\DSCR Sovereign OS  Upgrade Intelligence Report — Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md
+
+## Unique Headings
+- None found by heading comparison.
+
+## First Unique Blocks
+
+### Block 1
+```text
+--- type: research status: drafted confidence: 5 title: "DSCR Sovereign OS: Upgrade Intelligence Report" summary: "**Classification:** SOVEREIGN | **Executed:** June 18, 2026 | **Sprint:** 6.5 — Algorithmic Edge Scan" entities: - concept/arm - concept/dscr - concept/itia - data/fred - lender/visio-lending - math/copula - math/t-copula - ml/conformal - ml/timesfm - ml/xgboost - regulation/ecoa - regulation/fcra - regulation/reg-z - tax/1031 - tax/niit - tax/pal - topic/multifamily - topic/str tags: - ml/xgboost - topic/after-tax - topic/architecture - topic/cecl - topic/compliance - topic/ic-memo - topic/insurance - topic/kill-criteria - topic/monte-carlo - topic/ppp - topic/reserves - topic/tax - type/audit source: "DSCR Sovereign OS Upgrade Intelligence Report — Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md" vaulted_at: 2026-06-20 --- # DSCR Sovereign OS: Upgrade Intelligence Report ## Where the Best Algorithms Live, What Wall Street Is Actually Building, and Every Upgrade Path That Beats the Field
+```

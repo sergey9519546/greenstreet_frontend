@@ -1,0 +1,28 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: App
+summary: "\"attachmentFolderPath\": \"_attachments\", \"promptDelete\": true,"
+entities:
+  - lender/newfi
+  - topic/str
+source: _obsidian_vault/.obsidian/app.json
+vaulted_at: 2026-06-20
+---
+{
+  "alwaysUpdateLinks": true,
+  "newLinkFormat": "shortest",
+  "useMarkdownLinks": false,
+  "showInlineTitle": true,
+  "readableLineLength": true,
+  "strictLineBreaks": false,
+  "showFrontmatter": true,
+  "showTags": true,
+  "showRibbon": true,
+  "trashSetting": "trash",
+  "newFileLocation": "current",
+  "attachmentFolderPath": "_attachments",
+  "promptDelete": true,
+  "confirmDeviceSleep": false
+}

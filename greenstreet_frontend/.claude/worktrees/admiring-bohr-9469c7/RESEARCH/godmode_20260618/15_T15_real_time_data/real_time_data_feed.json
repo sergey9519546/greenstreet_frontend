@@ -1,0 +1,253 @@
+---
+type: research
+slice: 2
+status: drafted
+confidence: 3
+title: Real Time Data Feed
+summary: "\"consolidated_at\": \"2026-06-18T00:00:00Z\", \"purpose\": \"Sample consolidated real-time DSCR pricing anchor feed (T15 Slice 2 P0-2)\","
+entities:
+  - concept/arm
+  - concept/dscr
+  - data/apartment-list
+  - data/cotality
+  - data/fred
+  - data/freddie-mac
+  - data/kbra
+  - data/trepp
+  - data/zillow
+  - data/zori
+  - slice/2
+  - topic/condo
+  - topic/multifamily
+  - topic/non-qm
+  - topic/sfr
+  - topic/str
+tags:
+  - topic/foreclosure
+source: RESEARCH/godmode_20260618/15_T15_real_time_data/real_time_data_feed.json
+vaulted_at: 2026-06-20
+---
+{
+  "schema_version": "1.0",
+  "consolidated_at": "2026-06-18T00:00:00Z",
+  "purpose": "Sample consolidated real-time DSCR pricing anchor feed (T15 Slice 2 P0-2)",
+  "data_provenance": {
+    "free_sources_only": true,
+    "replaces_paid": ["Cotality subscription", "Trepp wire", "KBRA Premium", "Bloomberg mortgage data"]
+  },
+  "snapshots": {
+    "fred_rates": {
+      "source": "FRED API (Federal Reserve Bank of St. Louis)",
+      "endpoint": "https://api.stlouisfed.org/fred/series/observations",
+      "auth": "FRED_API_KEY (free)",
+      "as_of": "2026-06-12",
+      "series": {
+        "MORTGAGE30US": {
+          "value": 6.47,
+          "unit": "percent",
+          "frequency": "weekly",
+          "name": "30-Year Fixed Rate Mortgage Average (Freddie PMMS)",
+          "dscr_anchor": true
+        },
+        "MORTGAGE15US": {
+          "value": 5.81,
+          "unit": "percent",
+          "frequency": "weekly",
+          "name": "15-Year Fixed Rate Mortgage Average (Freddie PMMS)"
+        },
+        "DGS10": {
+          "value": 4.28,
+          "unit": "percent",
+          "frequency": "daily",
+          "name": "10-Year Treasury Constant Maturity Rate"
+        },
+        "DGS2": {
+          "value": 3.86,
+          "unit": "percent",
+          "frequency": "daily",
+          "name": "2-Year Treasury Constant Maturity Rate"
+        },
+        "SOFR30DAYAVG": {
+          "value": 4.31,
+          "unit": "percent",
+          "frequency": "daily",
+          "name": "30-Day Average SOFR"
+        },
+        "DFF": {
+          "value": 4.33,
+          "unit": "percent",
+          "frequency": "daily",
+          "name": "Federal Funds Effective Rate"
+        },
+        "CSUSHPISA": {
+          "value": 311.5,
+          "unit": "index (Jan 2000=100)",
+          "frequency": "monthly",
+          "name": "Case-Shiller U.S. National Home Price Index",
+          "dscr_anchor": true
+        },
+        "HOUST": {
+          "value": 685,
+          "unit": "thousands of units SAAR",
+          "frequency": "monthly",
+          "name": "New One-Family Houses Sold: United States"
+        }
+      },
+      "computed_spreads": {
+        "mortgage_minus_10yr_treasury_ppt": 2.19,
+        "mortgage_minus_SOFR_ppt": 2.16
+      }
+    },
+    "ny_fed_sofr": {
+      "source": "NY Fed Markets Data API",
+      "endpoint": "https://markets.newyorkfed.org/api/rates/unsecured/sofr/last/1.json",
+      "auth": "none",
+      "as_of": "2026-06-17",
+      "sofr": 4.32,
+      "sofr_30d_avg": 4.31,
+      "sofr_90d_avg": 4.30,
+      "sofr_180d_avg": 4.28,
+      "unit": "percent",
+      "dscr_anchor": true,
+      "note": "Primary source for SOFR-indexed ARM calculation (replaces LIBOR)"
+    },
+    "freddie_pmms": {
+      "source": "Freddie Mac Primary Mortgage Market Survey",
+      "url": "https://www.freddiemac.com/pmms",
+      "as_of": "2026-06-18",
+      "30yr_FRM": 6.47,
+      "15yr_FRM": 5.81,
+      "5yr_ARM": null,
+      "frequency": "weekly (Thursday 12 PM ET)",
+      "note": "Manual cross-check against FRED MORTGAGE30US — should match within rounding"
+    },
+    "mba_applications": {
+      "source": "MBA Weekly Applications Survey",
+      "url": "https://www.mba.org/news-and-research/research-and-economics/single-family-research/weekly-applications-survey",
+      "as_of": "2026-06-14",
+      "market_composite_index": null,
+      "purchase_index": null,
+      "refinance_index": null,
+      "30yr_fixed_avg": null,
+      "frequency": "weekly (Wednesday)",
+      "note": "Manual fetch — replace nulls with actual MBA-reported values"
+    },
+    "mba_delinquency_q1_2026": {
+      "source": "MBA National Delinquency Survey",
+      "url": "https://www.mba.org/news-and-research/research-and-economics/single-family-research/national-delinquency-survey",
+      "as_of": "Q1 2026 (released ~May 2026)",
+      "frequency": "quarterly",
+      "total_30plus_pct": null,
+      "total_90plus_pct": null,
+      "foreclosure_starts_pct": null,
+      "note": "Manual fetch required; not in free JSON"
+    },
+    "cotality_fraud_q1_2026": {
+      "source": "Cotality National Mortgage Application Fraud Risk Index",
+      "url": "https://www.cotality.com/press-releases/mortgage-fraud-risk-decreased-in-beginning-of-2026",
+      "as_of": "Q1 2026 (released 2026-06-01)",
+      "national_index": 121,
+      "prior_quarter_q4_2025": 133,
+      "yoy_change_pct": -9.3,
+      "fraud_rate_per_applications": "1 in 129",
+      "top_5_riskiest_states": [
+        {"state": "NY", "qoq_change_pct": "<1"},
+        {"state": "FL", "qoq_change_pct": ">3"},
+        {"state": "CT", "qoq_change_pct": ">6"},
+        {"state": "NJ", "qoq_change_pct": "<-6"},
+        {"state": "CA", "qoq_change_pct": "<-8"}
+      ],
+      "next_release": "Q2 2026 expected August 2026"
+    },
+    "trepp_cre_delinquency_q1_2026": {
+      "source": "Trepp (public TreppTalk blog)",
+      "url": "https://www.trepp.com/trepptalk/large-bank-cre-delinquency-rates-drop-sharply-in-q1",
+      "as_of": "Q1 2026 (released 2026-06-16)",
+      "large_banks_100bn_plus_q1_2026_pct": 1.5,
+      "large_banks_100bn_plus_q4_2025_pct": 1.9,
+      "middle_tier_16_40bn_q1_2026_change": "highest increase",
+      "frequency": "monthly commentary + quarterly bank call report analysis"
+    },
+    "kbra_nonqm_imn_2026": {
+      "source": "KBRA (publications)",
+      "url": "https://www.kbra.com/publications/dLCtqfbG/imn-2026-non-qm-forum-recap",
+      "as_of": "2026-06-17 (IMN Non-QM Forum recap)",
+      "summary": "Non-QM issuance at post-GFC highs; investor demand broadening; headwinds from elevated rates, constrained affordability, uneven consumer performance",
+      "frequency": "event-driven recaps + monthly Auto Loan ABS indices"
+    },
+    "census_new_residential_sales": {
+      "source": "U.S. Census Bureau",
+      "url": "https://www.census.gov/housing/hvs/",
+      "as_of": "Latest (manual lookup required)",
+      "frequency": "monthly (~3rd-4th week of each month)"
+    },
+    "zillow_zori_national": {
+      "source": "Zillow Observed Rent Index (ZORI)",
+      "url": "https://files.zillowstatic.com/research/public_csvs/zori/Metro_zori_uc_sfrcondomfr_sm_month.csv",
+      "as_of": "Latest (Zillow updates on 16th of month)",
+      "frequency": "monthly",
+      "geographies": ["National", "State", "Metro", "County", "City", "ZIP"],
+      "dscr_anchor": true
+    },
+    "zillow_zhvi_national": {
+      "source": "Zillow Home Value Index (ZHVI)",
+      "url": "https://files.zillowstatic.com/research/public_csvs/zhvi/Metro_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv",
+      "as_of": "Latest (Zillow updates on 16th of month)",
+      "frequency": "monthly",
+      "geographies": ["National", "State", "Metro", "County", "City", "ZIP"],
+      "dscr_anchor": true
+    },
+    "apartment_list_national_rent": {
+      "source": "Apartment List National Rent Report",
+      "url": "https://www.apartmentlist.com/research/national-rent-data",
+      "as_of": "May 2026 (released 2026-05-27)",
+      "national_median_rent_usd": 1379,
+      "mom_change_pct": 0.5,
+      "yoy_change_pct": -1.5,
+      "multifamily_vacancy_pct": 7.2,
+      "list_to_lease_days": 30,
+      "fastest_growing_metro": "San Francisco (+6.3% YoY)",
+      "fastest_declining_metro": "Austin (-5.1% YoY)",
+      "frequency": "monthly (last week of month)",
+      "dscr_anchor": true
+    }
+  },
+  "dscr_anchor_set": {
+    "definition": "Real-time inputs required for DSCR loan pricing + underwriting",
+    "primary_anchors": [
+      "30-yr Fixed Rate (FRED MORTGAGE30US)",
+      "10-yr Treasury (FRED DGS10)",
+      "SOFR 30-day avg (FRED SOFR30DAYAVG)",
+      "National rent index (ZORI)",
+      "Metro rent index (ZORI per MSA)",
+      "National home value index (ZHVI)",
+      "Metro home value index (ZHVI per MSA)",
+      "Mortgage demand index (MBA WAS Purchase Index)"
+    ],
+    "secondary_anchors": [
+      "Case-Shiller National (FRED CSUSHPISA)",
+      "Federal Funds Effective (FRED DFF)",
+      "Multifamily vacancy (Apartment List)",
+      "List-to-lease time (Apartment List)",
+      "Fraud risk index (Cotality)",
+      "CRE delinquency rate (Trepp)"
+    ],
+    "update_frequency": {
+      "daily": ["SOFR", "Treasury", "Fed Funds"],
+      "weekly": ["30-yr Mortgage", "MBA WAS"],
+      "monthly": ["ZORI", "ZHVI", "Census NRS", "Apartment List"],
+      "quarterly": ["Cotality fraud", "MBA NDS", "Trepp CRE commentary"]
+    }
+  },
+  "monthly_cost_usd": 0.00,
+  "monthly_cost_paid_alternative_usd_estimate": 8000.00,
+  "annual_savings_usd": 96000.00,
+  "coverage_gaps_acknowledged": [
+    "Loan-level CMBS data (requires paid Trepp)",
+    "MSR pricing (requires paid ICE/Bloomberg)",
+    "Non-QM pool-level tape (requires paid KBRA Premium + Intex)",
+    "County-level mortgage performance (requires paid Cotality)",
+    "Full Trepp wire (bank-level commercial mortgage data)"
+  ],
+  "next_refresh_recommendation": "Run fred_api_integration.py weekly (Thursday); zillow_apartmentlist_pull.py monthly (17th); cotality_trepp_pull.py quarterly (Sep / Dec / Mar / Jun)"
+}

@@ -1,0 +1,1291 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Ai Algorithm Improvement Prompt2
+summary: Second DSCR Improvement Loop – 15 iterative passes This document records the second 15‑loop pass designed to harden every formula and algorithm in the
+entities:
+  - concept/arm
+  - concept/cap-rate
+  - concept/dscr
+  - concept/io
+  - concept/itia
+  - concept/ltv
+  - concept/pitia
+  - lender/visio-lending
+  - regulation/cfpb
+  - regulation/ecoa
+  - state/fl
+  - state/tx
+  - tax/pal
+  - topic/multifamily
+  - topic/str
+tags:
+  - topic/adverse-action
+  - topic/apex
+  - topic/compliance
+  - topic/default-rate
+  - topic/flood-insurance
+  - topic/insurance
+  - topic/portfolio
+  - topic/reserves
+  - topic/short-rate
+  - topic/stress-test
+  - topic/tax
+  - topic/yield-curve
+  - type/audit
+source: RESEARCH/pdf_extractions/AI Algorithm Improvement Prompt2.txt
+vaulted_at: 2026-06-20
+---
+
+
+===== PAGE 1 =====
+
+Second DSCR Improvement Loop – 15 iterative
+passes
+This document records the second 15‑loop pass designed to harden every formula and algorithm in the
+AEGIS‑DSCR engine. The previous round produced a high‑level improvement plan. Here each major
+component is subjected to five different improvement modes:
+1. Formula upgrading and hardening – refine the mathematical definitions, incorporate additional
+parameters and boundary conditions, and explicitly tag all assumptions.
+2. Algorithm redesign – re‑architect the computational logic where linear methods were inadequate
+(e.g. discrete lender tiering) and define pseudocode for improved modules.
+3. Synthetic testing – specify adversarial test cases to expose weaknesses in the old formulation and
+prove the new formulation can handle those cases.
+4. Edge‑case attack – identify where the component breaks down under extreme scenarios (macro
+stress, irregular cash‑flows, matrix cliffs) and propose boundary checks.
+5. Final canonical replacement – adopt a new formula/algorithm with an assigned implementation
+priority.
+Each section below corresponds to one component of the engine. For brevity, only one example adversarial
+test case is shown per component, but in practice multiple tests should be coded. Pseudocode is high level
+and can be translated into Python, TypeScript or any production language. Implementation priorities are
+marked [High], [Medium] or [Low] relative to the engine’s critical path.
+DSCR_L (Lender DSCR)
+Original formula
+DSCR_L = lender_accepted_rent / lender_accepted_payment
+where lender_accepted_payment is defined by each lender matrix and may be PITIA (Principal +
+Interest + Taxes + Insurance + Association dues) or ITIA (Interest + Taxes + Insurance + Association dues) for
+interest‑only loans.
+Known weakness
+• Treats taxes and insurance as part of the denominator even when these appear in the numerator via
+operating expenses, creating a double‑counting risk when the wrong denominator is selected.
+• Fails to detect situations where high rent is offset by extraordinary expenses (management, repairs)
+that are ignored in lender DSCR.
+1
+
+===== PAGE 2 =====
+
+Adversarial test case
+Borrower rents a house for \$3 000/month but must pay \$1 500/month in HOA and flood insurance. The lender’s
+PITIA denominator is \$2 000. Under the original DSCR_L the result is 1.5x and the loan qualifies. However,
+the economic DSCR_E is below 1.0x once expenses are considered. The improvement must flag this
+mismatch.
+Improved formula
+1. Preserve DSCR_L exactly as defined by the lender matrix – do not modify its structure since it is
+used solely for eligibility.
+2. Add an L–E delta check:
+delta_DSCR = DSCR_L - DSCR_E
+if delta_DSCR > 0.2 and DSCR_E < 1.0:
+flag = "Qualifies but Dangerous"
+1. Introduce an adjusted lender denominator for IO loans where the lender qualifies using ITIA.
+Compute Adjusted_Pmt = max(PITIA_IO, PITIA_amortizing) and compare both. Use the
+larger denominator for DSCR_L when projecting beyond the IO period.
+Accounting‑boundary rule
+The denominator must not include taxes or insurance if these appear in the numerator’s expense
+breakdown; in that case the proper denominator is Principal + Interest only. If a lender’s matrix
+mandates PITIA, record a boundary violation and run the economic DSCR gate separately to avoid double
+counting.
+Validation test
+1. Unit test: For a loan with rent \$3 000 and payment \$2 000 (PITIA) the DSCR_L should be exactly
+1.5x.
+2. Boundary test: For the same rent and payment when taxes and insurance are moved to the
+numerator, DSCR_L should be computed on PI only and yield 3.0x. The engine should flag the
+boundary mismatch.
+Failure mode
+If DSCR_L is used for investor survival or the numerator and denominator count the same expense, the loan may
+incorrectly appear safe. Avoid using DSCR_L outside the lender ledger.
+Pseudocode
+def compute_dscr_l(rent, payment, taxes_included_in_payment,
+numerator_includes_taxes):
+# adjust denominator if taxes would double count
+2
+
+===== PAGE 3 =====
+
+if taxes_included_in_payment and numerator_includes_taxes:
+denominator = payment - (taxes + insurance)
+else:
+denominator = payment
+return rent / denominator
+Implementation priority: High – DSCR_L is the first gate; boundary checks must be enforced.
+DSCR_E (Economic DSCR / Investor DSCR)
+Original formula
+DSCR_E = (EGI - OpEx_E) / ADS
+where EGI is Effective Gross Income (rent adjusted for vacancy and collection loss) and OpEx_E includes
+post‑sale taxes, insurance, HOA, management, maintenance, CapEx reserves, and other mandatory
+expenses.
+Known weakness
+• Uses a single annual snapshot and fails to respect intra‑year cash‑flow swings; may misrepresent
+seasonal or short‑term rental volatility.
+• Assumes uniform expenses across time; does not reflect deferred maintenance or lumpy CapEx
+events.
+• Does not automatically adjust when the lender defines a different debt service structure (e.g.
+interest‑only vs amortizing vs ARM resets).
+Adversarial test case
+Consider a mountain resort STR property with high revenue in winter and near‑zero revenue in summer. Annual
+EGI is \$120 000, expenses \$60 000, ADS \$40 000 giving DSCR_E = 1.5x. However, monthly analysis reveals
+four consecutive months with negative cash flow. A DSCR_E snapshot fails to capture insolvency risk.
+Improved formula
+1. Maintain the baseline definition but require it to be evaluated monthly as well as annually:
+DSCR_E_monthly_t = (EGI_t - OpEx_t) / ADS_t
+1. Define Seasonal DSCR Minimum as the minimum DSCR_E over the next 12 months and require it to
+exceed a policy floor (e.g. 1.0x). If the minimum is below 1.0x for more than two consecutive months,
+trigger a liquidity failure.
+3
+
+===== PAGE 4 =====
+
+2. Incorporate dynamic debt service for ARM resets: compute ADS_t for each future period using
+expected index + margin + caps.
+3. Introduce egress due to CapEx events by creating a CapEx schedule and subtracting annualised
+CapEx from OpEx_E only if not already included.
+Accounting‑boundary rule
+Do not subtract CapEx twice. If CapEx is included in OpEx_E then it must not be subtracted again when
+calculating Net Cash Flow DSCR. Taxes and insurance should be subtracted once in the numerator and not
+included in the denominator.
+Validation test
+1. Verify that monthly DSCR_E values sum to the annual DSCR_E over 12 periods (within rounding
+error).
+2. For a property with constant rent and expenses each month, monthly DSCR_E should equal annual
+DSCR_E.
+3. Test that the Seasonal DSCR Minimum triggers a flag when the lowest two consecutive months drop
+below 1.0x.
+Failure mode
+DSCR_E may overstate safety if seasonality, CapEx, or variable debt service are ignored. Fails under variable
+rate/IO loans if reset periods increase payment.
+Pseudocode
+def compute_dscr_e_monthly(monthly_rent_list, monthly_expense_list,
+monthly_debt_service_list):
+dscr_series = []
+for rent, expense, debt in zip(monthly_rent_list, monthly_expense_list,
+monthly_debt_service_list):
+dscr_series.append((rent - expense) / debt)
+seasonal_min = min(dscr_series)
+return dscr_series, seasonal_min
+Implementation priority: High – DSCR_E drives investor survival. Monthly analysis and seasonal minimum
+are critical.
+SDSCR (Stabilized DSCR)
+Original formula
+4
+
+===== PAGE 5 =====
+
+SDSCR = Stabilized_NOI / ADS
+where Stabilized_NOI is the effective income minus normalised taxes, insurance, HOA, management,
+maintenance, utilities and CapEx reserves.
+Known weakness
+• Often duplicates CapEx or management charges that are already in OpEx_E , leading to double
+counting.
+• Ignores a property’s actual lease terms and over‑simplifies to long‑term averages.
+Adversarial test case
+An industrial property has a triple‑net lease where the tenant covers taxes and insurance but not
+maintenance. The original SDSCR subtracts taxes and insurance anyway and misrepresents cash flow.
+Improved formula
+1. Define Stabilized Expense Profile per property type and lease structure. For triple‑net, omit taxes,
+insurance, and management from the numerator; for gross leases include them.
+2. Use rolling averages of expenses (e.g. trailing 12 months) to estimate Stabilized_NOI rather
+than fixed assumptions.
+3. Subtract only future recurring expenses; do not include one‑time closing costs or initial CapEx.
+Accounting‑boundary rule
+If a line item is tenant‑paid, do not subtract it in Stabilized_NOI . Guarantee that each expense appears
+exactly once in the equation.
+Validation test
+1. For a triple‑net property, SDSCR and DSCR_E should be nearly identical if the tenant covers taxes,
+insurance and management.
+2. Ensure that substituting a gross lease correctly lowers SDSCR due to additional expenses.
+Failure mode
+SDSCR fails if the underlying lease terms change mid‑projection or if property type assumptions are
+misclassified.
+Pseudocode
+def compute_sdscr(stabilized_noi, annual_debt_service):
+return stabilized_noi / annual_debt_service
+5
+
+===== PAGE 6 =====
+
+Implementation priority: Medium – SDSCR is a secondary metric but needed for conservative
+underwriting.
+RWDSCR (Robust Worst‑Case DSCR)
+Original formula
+RWDSCR = min(Base_DSCR_E, Tax_Shock_DSCR, Insurance_Shock_DSCR,
+Vacancy_Shock_DSCR,
+CapEx_Stress_DSCR, Reset_Safe_DSCR, Combined_Stress_DSCR)
+Known weakness
+• Does not account for correlated macro scenarios (e.g. stagflation vs recession) and may double
+count or omit interacting factors.
+• The minimum operator can over‑penalise if one shock is extremely severe but improbable; there is
+no weighting by likelihood.
+Adversarial test case
+During a hurricane season, insurance premiums spike 80% and property taxes are reassessed. The original
+RWDSCR takes the minimum of Insurance_Shock_DSCR and Tax_Shock_DSCR separately but fails to combine
+them with vacancy losses from evacuation. The true worst case is worse than either individual shock.
+Improved formula
+1. Replace the simple minimum with a scenario library of named correlated shocks (e.g.
+Stagflation , Recession , Climate Event , Local Distress ). Compute DSCR under each
+and take the worst result:
+RWDSCR = min(DSCR_stagflation, DSCR_recession, DSCR_climate_event,
+DSCR_local_distress)
+1. Within each scenario, apply correlated shocks across rent, vacancy, expenses, debt service, cap rate
+and refi assumptions.
+2. Introduce an optional probability‑weighted RWDSCR for internal analysis (not gating), allowing
+management to view expected shortfall relative to probability of occurrence. Do not use for approval
+to avoid black‑box decisions.
+Accounting‑boundary rule
+Every shock must be applied to either numerator or denominator but not both. Ensure correlated scenarios
+do not double count the same input (e.g. do not raise both insurance and debt service if the increased rate
+is already captured in interest shock).
+6
+
+===== PAGE 7 =====
+
+Validation test
+1. Validate that RWDSCR under a Climate Event scenario is lower than or equal to the individual
+Insurance and Tax Shock DSCR if those shocks are combined with vacancy losses.
+2. Check that RWDSCR never exceeds DSCR_E .
+Failure mode
+If correlation patterns are mis‑specified (e.g. combining tax reassessment with rent growth), RWDSCR may
+be overly punitive or overly optimistic. Scenario definitions must be continually calibrated to market data.
+Pseudocode
+def compute_rwdscr(dscr_scenarios):
+return min(dscr_scenarios.values())
+Implementation priority: High – RWDSCR is critical for stress gating.
+Tax Shock DSCR
+Original formula
+Tax_Shock_DSCR = (Stabilized_NOI - ΔTax) / ADS
+where ΔTax = max(0, projected_post_sale_taxes - current_taxes).
+Known weakness
+• Assumes one‑time jump but not incremental tax rises over time.
+• Ignores homestead exemptions, capped reassessment laws and special tax districts.
+Adversarial test case
+In Texas, property tax is capped at 10% per year but reappraisal occurs every three years. A property
+purchased at \$1 000 000 with a previous assessed value of \$500 000 would not see a full doubling of taxes
+in year one; the shock would be phased in. The original formula wrongly subtracts the entire delta
+immediately.
+Improved formula
+1. Include jurisdictional tax rules – step caps, reassessment cycles and exemptions – in the tax
+projection. When the cap is 10% per year, compute ΔTax_year1 = min(0.1 * current_taxes,
+ΔTax_total) , etc.
+7
+
+===== PAGE 8 =====
+
+2. Spread tax shock over the reassessment schedule. If the full delta cannot occur in one year, adjust
+DSCR calculation accordingly.
+3. Permit user override with verified tax estimate (e.g. from county assessor or title company).
+Accounting‑boundary rule
+Subtract only the incremental tax above current taxes; do not subtract full new tax bill if part of it is already
+included in OpEx_E .
+Validation test
+1. For a state with no caps, full tax shock subtraction should match ΔTax .
+2. In a capped jurisdiction, ensure tax increases are phased and DSCR improves in early years.
+Failure mode
+Misclassifying tax rules leads to over‑ or under‑estimating DSCR. Fails if user inputs outdated tax rates.
+Pseudocode
+def compute_tax_shock_dscr(stabilized_noi, ads, tax_projection, current_taxes):
+delta_tax = max(0, tax_projection - current_taxes)
+return (stabilized_noi - delta_tax) / ads
+Implementation priority: Medium – critical for certain markets; must integrate local data sources.
+Insurance Shock DSCR
+Original formula
+Insurance_Shock_DSCR = (Stabilized_NOI - ΔInsurance) / ADS
+where ΔInsurance = Current_Insurance × Shock_% .
+Known weakness
+• Uses a flat shock percentage that may not reflect actual insurance pricing by region or property type.
+• Ignores the difference between hazard insurance (structure) and liability or umbrella policies.
+Adversarial test case
+In Florida, insurance increases may exceed 200% after a hurricane season, while other regions see minimal
+change. A flat 25% shock underestimates risk in high‑risk regions and overstates risk elsewhere.
+8
+
+===== PAGE 9 =====
+
+Improved formula
+1. Pull region‑specific insurance indices (e.g. from state insurance regulators, FEMA hazard zones) to
+calibrate the shock percentage. For high‑risk zones, set shock to 50‑200%; for low‑risk zones, set
+shock to 10–20%.
+2. Separate structure insurance from liability/umbrella in the expense breakdown. Shock only the
+structure portion subject to hazard risk. Do not double count liability policies.
+Accounting‑boundary rule
+Subtract only the increased portion of insurance; do not subtract the full insurance premium twice.
+Validation test
+1. For a Florida rental property, test insurance shock DSCR using a 150% increase and verify DSCR
+declines appropriately.
+2. For a Midwestern property, test a 10% shock and confirm DSCR is minimally affected.
+Failure mode
+Fails when inaccurate hazard zoning or misclassified property type mis‑calibrates the shock.
+Pseudocode
+def compute_insurance_shock_dscr(stabilized_noi, ads, current_insurance,
+shock_percent):
+delta_insurance = current_insurance * shock_percent
+return (stabilized_noi - delta_insurance) / ads
+Implementation priority: Medium – dependent on data quality; integrate hazard risk models gradually.
+Vacancy Shock DSCR and Break‑Even Vacancy
+Original formulas
+Vacancy Shock DSCR
+DSCR_V = [GSI × (1 − v_shock) − OpEx_fixed − variable OpEx] / ADS
+Break‑Even Vacancy
+9
+
+===== PAGE 10 =====
+
+v_BE = 1 − (ADS + OpEx_fixed) / [GSI × (1 − management_rate)]
+Known weakness
+• Assumes linear relationship between vacancy and variable expenses; management may not scale
+linearly for small properties.
+• Break‑Even formula fails when GSI is extremely low or negative, causing division by near‑zero and
+meaningless results.
+Adversarial test case
+A duplex with GSI = \$24 000 , ADS + fixed OpEx = \$22 000 , management fee = 8%. v_BE
+becomes negative (structurally impossible), indicating that even 100% occupancy cannot cover fixed costs.
+The original formula returns v_BE > 1 , causing misinterpretation.
+Improved formula
+1. Add guard clause: if (ADS + OpEx_fixed) ≥ GSI , set v_BE = 0 and flag the property as
+structurally cash‑negative. A negative break‑even vacancy means the deal is impossible without
+repairs or equity injection.
+2. Calibrate management scaling – for small properties (1–4 units), treat management as fixed per
+unit and adjust the variable component accordingly.
+3. For Vacancy Shock DSCR, shock only the revenue side; leave fixed expenses unchanged but scale
+variable expenses (e.g. utilities, maintenance) proportionally to occupancy.
+Accounting‑boundary rule
+Ensure ADS + OpEx_fixed is not subtracted from GSI if those expenses are already included in the
+numerator for other DSCR variants.
+Validation test
+1. For the duplex example, the guard clause should trigger and v_BE should be set to 0 with a
+structural failure flag.
+2. For a large multi‑unit property, verify that v_BE falls between 0 and 1 and scales with
+management_rate .
+Failure mode
+Break‑Even formulas fail when GSI is unverified or drastically overestimated, or when management
+structure is misclassified.
+Pseudocode
+10
+
+===== PAGE 11 =====
+
+def compute_break_even_vacancy(gsi, ads, fixed_op_ex, management_rate):
+if gsi <= ads + fixed_op_ex:
+return 0.0 # structural failure
+numerator = ads + fixed_op_ex
+denominator = gsi * (1 - management_rate)
+return 1 - numerator / denominator
+Implementation priority: High – break‑even metrics guard against unrealistic occupancy assumptions.
+CapEx Stress DSCR
+Original formula
+DSCR_CapEx = [Stabilized_NOI - annualised_capex_event] / ADS
+where annualised_capex_event is a large, one‑off repair cost divided over a single year to simulate its
+impact.
+Known weakness
+• Annualising an event could underestimate the shock if it happens mid‑year (e.g. a \$50 000 roof
+replacement at once).
+• Does not factor in whether reserves are available to absorb the event.
+Adversarial test case
+A \$200 000 HVAC replacement occurs in month 2 of the year and there are only \$80 000 in reserves.
+Annualising to \$200 000/12 = \$16 667 monthly does not reflect the early cash hit and resulting liquidity
+failure.
+Improved formula
+1. Use the Sequential Drawdown Array to model CapEx events at their actual timing and compare the
+resulting cash balance vs reserves. DSCR_CapEx becomes a by‑product of the drawdown rather than
+a separate static ratio.
+2. If using an annualised approach for screening, require that reserves ≥ one full CapEx event; if not,
+trigger a liquidity failure.
+3. Distinguish between planned CapEx (age‑based schedule) and unplanned CapEx (random shock).
+Use distributional assumptions for unplanned events but only for internal risk metrics, not gating.
+Accounting‑boundary rule
+11
+
+===== PAGE 12 =====
+
+Ensure that CapEx is not subtracted both in OpEx_E and again in the stress test. Track CapEx in a separate
+account.
+Validation test
+1. In the adversarial case, the sequential drawdown should show negative cash in month 2 and trigger
+a failure, despite DSCR_CapEx > 1 using annualisation.
+2. Verify that annualised CapEx DSCR approximates the effect of multiple small repairs evenly spaced.
+Failure mode
+Fails if the schedule of CapEx events is mis‑estimated or if reserves are misreported.
+Pseudocode
+def sequential_capex_stress(noi_series, capex_events, ads_series,
+starting_reserves):
+cash_balance = starting_reserves
+for t in range(len(noi_series)):
+cash_balance += noi_series[t] - ads_series[t]
+if t in capex_events:
+cash_balance -= capex_events[t]
+if cash_balance < 0:
+return False # liquidity failure
+return True # survives
+Implementation priority: High – CapEx stress ties into liquidity and reserve adequacy.
+LSC (Liquidity Survival Clock)
+Original formula
+LSC = Verified_Reserves / Monthly_Cash_Drain
+where Monthly_Cash_Drain is PITIA + fixed operating expenses (taxes, insurance, HOA, management,
+maintenance, CapEx reserves) under a zero‑income scenario.
+Known weakness
+• Does not account for variable expenses that may still occur during vacancy or STR off‑season.
+• Fails to model the timing of draws and could misclassify survival length if expenses are lumpy.
+Adversarial test case
+12
+
+===== PAGE 13 =====
+
+Reserves of \$40 000 with monthly cash drain of \$5 000 suggest an LSC of 8 months. However, an
+unexpected \$15 000 repair in month 2 wipes out reserves and bankrupts the borrower. The scalar LSC
+missed this path dependency.
+Improved formula
+1. Use Sequential Drawdown Array to replace the scalar LSC for gating. LSC remains a quick
+diagnostic but not a decision driver.
+2. Incorporate variable expenses into the denominator (e.g. minimal maintenance, utilities) even
+when there is no income.
+3. Introduce Emergency Liquidity Cushion equal to at least one month’s cash drain on top of the base
+reserves.
+Accounting‑boundary rule
+Ensure that the cash drain includes only expenses not recovered from tenants (tenant‑paid utilities are
+excluded). Use PI in the denominator if taxes and insurance are subtracted in the numerator.
+Validation test
+1. Ensure that the sequential drawdown result contradicts the scalar LSC in the adversarial case.
+2. For a property with uniform monthly expenses, scalar and sequential LSC should agree.
+Failure mode
+LSC fails if reserves are over‑reported or if expenses are misclassified as tenant‑paid. Scalar LSC cannot
+detect early shocks.
+Pseudocode
+def compute_lsc(reserves, monthly_cash_drain):
+return reserves / monthly_cash_drain
+def sequential_drawdown(noi_series, expense_series, ads_series, reserves):
+balance = reserves
+for t in range(len(noi_series)):
+balance += noi_series[t] - ads_series[t] - expense_series[t]
+if balance < 0:
+return False
+return True
+Implementation priority: High – liquidity determines survival.
+13
+
+===== PAGE 14 =====
+
+Sequential Drawdown
+Original algorithm
+Simulates monthly cash flow over a projection horizon to see if reserves ever drop below zero. Uses monthly
+NOI (income minus operating expenses), monthly debt service and scheduled CapEx events.
+Known weakness
+• May exclude seasonality or STR troughs from the income series and thus underestimate negative
+cash flows.
+• Fails to incorporate adjustable debt service (ARM resets) and balloon payments.
+Adversarial test case
+STR property with revenue curve [12000, 10000, 8000, 5000, 3000, 1000, 1000, 1000, 3000,
+5000, 8000, 10000] and monthly expenses \$6 000, debt service \$4 000. Reserves are \$20 000. At
+month 7, the cash balance becomes negative due to low rent. The algorithm must detect this.
+Improved algorithm
+1. Include seasonality – supply monthly rent projections using the Seasonality Trough Detector or
+custom curves.
+2. Incorporate debt service resets – compute monthly debt service using the expected interest rate
+path (fixed, ARM, or reset schedule).
+3. Inject scheduled CapEx events – subtract large repairs at their actual month.
+4. If the cash balance drops below zero at any point, set Liquidity Failure = True and flag the deal.
+Accounting‑boundary rule
+Do not subtract taxes and insurance in both the monthly expense series and the debt service; use PI for
+debt and include taxes in the expense series if applicable.
+Validation test
+1. Ensure the sequential drawdown replicates the scalar LSC for flat income/expense series.
+2. Test the STR curve example; confirm the drawdown fails in month 7 even though the annual DSCR
+appears strong.
+Failure mode
+Fails if monthly income and expense forecasts are inaccurate, or if CapEx and resets are mis‑timed. The
+model can over‑penalise if improbable shocks are assumed.
+Pseudocode
+14
+
+===== PAGE 15 =====
+
+def sequential_drawdown(noi_series, debt_service_series, capex_events,
+starting_reserves):
+balance = starting_reserves
+for t in range(len(noi_series)):
+balance += noi_series[t] - debt_service_series[t]
+if t in capex_events:
+balance -= capex_events[t]
+if balance < 0:
+return False
+return True
+Implementation priority: High – drives liquidity survival tests.
+Seasonality Trough / Maximum Cumulative Intra‑Year Deficit
+(MCID)
+Original algorithm
+Computes DSCR_E on an annual basis or at best monthly but does not explicitly measure the maximum
+cash deficit during seasonal low periods.
+Known weakness
+• Fails to calculate cumulative losses across consecutive low‑income months (e.g. winter slump in
+seasonal markets).
+• Does not adjust the required reserves to cover the trough.
+Adversarial test case
+A student housing property collects 90% of its rent in nine months and 10% across the remaining three.
+During the summer recess, the property operates at a loss of \$4 000 per month for three months. Without
+sufficient reserves, the investor fails despite a high annual DSCR.
+Improved algorithm
+1. Compute MCID – simulate monthly net cash flow and track the maximum negative cumulative
+sum from any starting month within a 12‑month window. This value indicates how much reserve is
+needed to survive the worst intra‑year slump.
+2. Add a Seasonality Reserve Requirement equal to MCID. If verified reserves are less than MCID, flag
+the property as failing the seasonality trough test.
+3. Provide a summary metric: Seasonal DSCR Minimum (lowest DSCR_E_monthly), MCID, and required
+reserves.
+Accounting‑boundary rule
+15
+
+===== PAGE 16 =====
+
+Ensure that MCID uses monthly net cash flow after all expenses and debt service, consistent with
+sequential drawdown logic.
+Validation test
+1. For the student housing case, MCID should equal \$12 000 (\$4 000 × 3 months) and require at least
+that amount in reserves.
+2. For a property with flat cash flow, MCID should be zero.
+Failure mode
+Mis‑estimating monthly income or ignoring variable expenses can miscalculate the MCID. The test fails if
+MCID is not recalculated for extended leases or major tenant turnover.
+Pseudocode
+def compute_mcid(monthly_net_cashflow):
+cumulative = 0
+min_cumulative = 0
+for cash in monthly_net_cashflow:
+cumulative += cash
+if cumulative < min_cumulative:
+min_cumulative = cumulative
+return abs(min_cumulative)
+Implementation priority: High – essential for STR/student housing deals.
+IO Reset Cliff
+Original algorithm
+Compares DSCR during interest‑only period to DSCR when amortization begins; sometimes uses a simple
+“payment increase” percentage as a warning.
+Known weakness
+• Does not incorporate principal balance after the IO period; if the loan has negative or partial
+amortization, the reset payment may be higher than a standard amortizing payment.
+• Fails to account for potential rate changes on ARM/IO hybrid products.
+Adversarial test case
+16
+
+===== PAGE 17 =====
+
+Borrower obtains a 7‑year IO loan with a balloon in year 7. Payment is \$3 000 monthly during IO, but the
+refi reset payment at a higher rate jumps to \$7 000. DSCR drops from 1.5x to 0.6x. The original algorithm
+may not catch this if it only looks at a moderate increase percentage.
+Improved algorithm
+1. Compute Reset DSCR using the remaining amortization period and forecast rate at the reset point:
+reset_payment = pmt(remaining_balance, forecast_rate, remaining_term)
+reset_dscr = (stabilized_noi_at_reset) / (reset_payment * 12)
+1. Define Cliff Ratio = DSCR_IO / reset_dscr and Payment Shock = (reset_payment -
+IO_payment)/IO_payment .
+2. Require reset_dscr ≥ policy_dscr_min (e.g. 1.0x). If not, trigger an IO reset failure.
+3. Adjust for ARM rate index if the reset rate is variable; compute worst‑case rate using fully indexed
+rate + lifetime cap.
+Accounting‑boundary rule
+Use P&I payment for reset; do not include taxes/insurance/HOA since those remain constant or already in
+the numerator.
+Validation test
+1. For the adversarial case, verify that reset_dscr = 0.6x and triggers failure.
+2. For a fixed‑rate IO loan converting to amortizing at the same rate, ensure payment shock is
+computed correctly and no unwarranted failure occurs.
+Failure mode
+Fails if forecast rates are underestimated or if the remaining balance is miscalculated due to prepayment or
+partial amortization.
+Pseudocode
+def compute_io_reset_cliff(loan_balance, io_payment, forecast_rate,
+remaining_term, stabilized_noi):
+reset_payment = pmt(loan_balance, forecast_rate, remaining_term)
+reset_dscr = stabilized_noi / (reset_payment * 12)
+cliff_ratio = (stabilized_noi / (io_payment * 12)) / reset_dscr
+return reset_dscr, cliff_ratio
+Implementation priority: High – IO reset failure is a major risk for DSCR loans.
+17
+
+===== PAGE 18 =====
+
+ARM Reset
+Original algorithm
+Handles adjustable‑rate mortgages by using a static rate increase (e.g. +200 bps) or ignoring resets
+altogether.
+Known weakness
+• Does not respect rate caps, floors, or periodic limits. May under‑ or over‑estimate payment changes.
+• Ignores the index (e.g. SOFR, Treasury) volatility and margin; uses one fixed shock rather than a
+range.
+Adversarial test case
+ARM with 2/2/5 caps: 2% first adjustment, 2% periodic, 5% lifetime. Start rate is 5%. If SOFR jumps from 5%
+to 8%, the rate should adjust to 7% (5% + 2%). The original algorithm might incorrectly apply the full 3%
+increase, breaching the cap.
+Improved algorithm
+1. Model ARM contract: store the index (e.g. SOFR), margin, initial rate, adjustment frequency, first
+cap, periodic cap, lifetime cap and floor.
+2. Simulate future resets using a rate forecast (yield curve) plus margin but apply caps and floors at
+each adjustment date.
+3. Compute DSCR at each reset point and ensure DSCR ≥ policy_dscr_min for all periods.
+4. For stress scenarios, test worst‑case rate path using index peaks and lifetime cap.
+Accounting‑boundary rule
+Always use P&I for resets. Taxes and insurance remain constant and belong in the numerator.
+Validation test
+1. Test the adversarial case with 2/2/5 caps; ensure rate stops at 7% when index moves to 8%, not 8%.
+Payment and DSCR should reflect the capped rate.
+2. For a lifetime cap scenario, ensure the rate never exceeds initial rate + lifetime cap.
+Failure mode
+ARM resets fail if contract parameters are misread or index forecasts are unrealistic. Fails if margins or caps
+are misapplied.
+Pseudocode
+18
+
+===== PAGE 19 =====
+
+def simulate_arm_resets(initial_rate, margin, index_forecast, caps, floors,
+terms):
+rates = []
+rate = initial_rate
+for i, index in enumerate(index_forecast):
+# apply margin
+target_rate = index + margin
+# apply periodic caps/floors
+cap = caps['first'] if i == 0 else caps['periodic']
+rate = max(min(rate + cap, target_rate), rate - cap)
+# enforce lifetime cap/floor
+rate = max(min(rate, initial_rate + caps['lifetime']), initial_rate +
+floors['lifetime'])
+rates.append(rate)
+return rates
+Implementation priority: Medium – required for adjustable loans; may be deferred if majority of deals are
+fixed.
+Break‑Even Refi Rate / RRM (Refinance Risk Meter)
+Original algorithm
+Solves for the rate r* at which DSCR_E(r*) = target_dscr using bisection; then computes RRM =
+(r* − current_rate) / current_rate × 100 .
+Known weakness
+• Assumes property value remains constant at current cap rate; fails when rate shocks also increase
+cap rates and thus lower value (LTV risk).
+• Does not consider expiry of interest‑only period or balloon terms.
+Adversarial test case
+Property has NOI = \$60 000; current loan balance = \$800 000; current rate = 6%. If rates rise to 8%, DSCR_E
+remains above 1.0x. However, cap rates simultaneously rise, lowering value to \$700 000. At 70% LTV, the
+max refi loan is \$490 000, below the outstanding balance, requiring \$310 000 cash in. The original RRM
+shows safe refi but ignores LTV failure.
+Improved algorithm
+1. Cap‑Rate Linked Refi (see next section) – compute projected value under a cap_rate_beta
+relationship: ExitCap = CurrentCap + beta × ΔInterestRate .
+2. Compute Projected Refi LTV: LoanBalance_at_refi / ProjectedValue .
+19
+
+===== PAGE 20 =====
+
+3. Solve for the rate r* such that both DSCR_E(r*) ≥ target_dscr and ProjectedRefiLTV ≤
+max_matrix_ltv .
+4. Return both Break_Even_Rate and Break_Even_LTV and the cash_in_required if LTV is
+breached.
+Accounting‑boundary rule
+DSCR should use Stabilized_NOI at the refi year; do not mix base year NOI with future rate and cap
+assumptions.
+Validation test
+1. For the adversarial case, the improved RRM should show a refi LTV > 100% and cash‑in requirement
+> 0, despite a high DSCR_E at 8%.
+2. In stable markets where rates do not strongly affect cap rates, the improved algorithm should
+reduce to the original.
+Failure mode
+Fails if cap_rate_beta is mis‑estimated or if property value assumptions are unrealistic. See Cap‑Rate
+Linked Refi Solver below.
+Pseudocode
+def break_even_refi_rate(noi, loan_balance, current_rate, target_dscr,
+current_cap_rate,
+cap_rate_beta, projected_growth):
+# binary search for rate satisfying DSCR and LTV conditions
+low, high = current_rate, current_rate + 0.2 # search within ±20% range
+for _ in range(50):
+mid = (low + high) / 2
+# compute DSCR at mid rate
+dscr = noi / (pmt(loan_balance, mid, term) * 12)
+# compute projected value and LTV
+projected_cap = current_cap_rate + cap_rate_beta * (mid - current_rate)
+projected_value = noi / projected_cap
+projected_ltv = loan_balance / projected_value
+if dscr >= target_dscr and projected_ltv <= max_ltv:
+high = mid
+else:
+low = mid
+return high
+Implementation priority: High – critical for refi‑dependent deals.
+20
+
+===== PAGE 21 =====
+
+Cap‑Rate Linked Refi Solver
+Original algorithm
+Projected value at refi was assumed constant. Cap rate changes were ignored.
+Known weakness
+• Ignores the relationship between interest rates and cap rates, leading to unrealistic valuations at
+refi.
+• Uses a static cap rate even in macro scenarios where yields shift.
+Adversarial test case
+A market has an average cap rate of 5% when 10‑year Treasury yields are 3%. If the 10‑year yield rises to
+5%, cap rates expand to 7% (given a cap_rate_beta of 1). The original algorithm would incorrectly value
+the property at 5% cap rate.
+Improved algorithm
+1. Define cap_rate_beta representing the sensitivity of cap rates to changes in interest rates. Use
+regression or market studies (e.g. UNC research) to calibrate by asset class.
+2. Compute ProjectedValue = NOI_projected / (CurrentCapRate + cap_rate_beta ×
+ΔRate) where ΔRate = RefiRate − CurrentRate .
+3. For stress scenarios, apply caps on cap rates (e.g. minimum cap rate floor) and calibrate
+cap_rate_beta to local markets (e.g. 0.5 – 1.5 for multifamily). See Matthews 2026 cap‑rate
+research and UNC cap‑rate determinants 1 2 .
+4. Feed ProjectedValue into the break‑even refi solver.
+Accounting‑boundary rule
+Make sure to use projected NOI at refi, accounting for rent growth and expense inflation. Do not reuse
+base‑year NOI.
+Validation test
+1. Validate that property value declines when rates increase if cap_rate_beta > 0 .
+2. Compare valuations across different betas to assess sensitivity.
+Failure mode
+Fails if cap_rate_beta is mis‑estimated or if cap rate resets are not truly correlated with interest rates
+(some markets may have diverging spreads).
+21
+
+===== PAGE 22 =====
+
+Pseudocode
+def projected_value_at_refi(noi, current_cap, refi_rate, current_rate,
+cap_rate_beta):
+projected_cap = current_cap + cap_rate_beta * (refi_rate - current_rate)
+return noi / projected_cap
+Implementation priority: High – used by break‑even refi solver.
+Matrix Grid Solver / Matrix Cliff Solver
+Original algorithm
+Used continuous algebra to solve for required changes in LTV or DSCR when lender matrices are piecewise
+constant.
+Known weakness
+• Misses discrete tier boundaries; may recommend dropping LTV from 80% to 77.3% even though the
+next tier cut‑off is 75%.
+• Fails to optimise across multiple variables (e.g. FICO, LTV, DSCR, rate, points).
+Adversarial test case
+Lender matrix has tiers at 80% and 75% LTV with DSCR minimums of 1.0x and 1.25x, respectively. A deal at
+79.5% LTV and DSCR 1.23x appears to barely miss the 80% tier. The solver suggests dropping LTV to 79% (–
+0.5%) but the borrower still fails the 80% DSCR cut. The solution is to drop to 75% LTV (–4.5%), saving points
+and rate.
+Improved algorithm
+1. Build a state space grid of all discrete combinations of FICO, LTV, DSCR tiers, prepay options, IO vs
+amortizing and property types from the uploaded matrix.
+2. For each node, compute the borrower’s eligibility and pricing and calculate the required changes
+from current state (ΔLTV, ΔRate, ΔReserves). Store the cost or feasibility of each move.
+3. Rank nodes by minimal cost to qualify (e.g. smallest additional down payment or smallest rate
+increase) and return the top solutions. Present the user with the Matrix Cliff recommendation:
+“Drop down payment by \$X to cross the 75% tier and save \$Y in monthly payment.”
+4. Extend the grid solver to handle multi‑variable optimisations – FICO improvement, DSCR
+improvement (via rent or expense reduction), LTV reduction, reserve increase, prepay changes, IO vs
+amortizing. Limit the search space by reasonable bounds.
+22
+
+===== PAGE 23 =====
+
+Accounting‑boundary rule
+Ensure that DSCR used for the matrix grid is DSCR_L and not DSCR_E . Economic DSCR is used separately
+to warn about investor survival.
+Validation test
+1. For the adversarial case, confirm the solver recommends crossing to 75% and not just trimming LTV
+slightly.
+2. Verify that the solver correctly flags infeasible nodes where FICO cannot be improved or reserves
+cannot be raised by the borrower’s available cash.
+Failure mode
+The grid may become large; prune improbable combinations (e.g. FICO improvements beyond a certain
+point). Fails if the matrix is mis‑parsed or stale.
+Pseudocode
+def matrix_grid_solver(matrix, borrower_profile):
+best_options = []
+for node in matrix.nodes():
+if node.is_eligible(borrower_profile):
+cost = compute_cost_to_node(node, borrower_profile)
+best_options.append((cost, node))
+return sorted(best_options)[:3] # return top 3 lowest-cost solutions
+Implementation priority: High – integral to deliver lender‑qualifying advice.
+Breakpoint Solver
+Original algorithm
+Used direct algebra or a continuous solver to compute required rent increase, price reduction or LTV
+reduction to meet a target DSCR.
+Known weakness
+• Only solves one variable at a time; does not consider combined adjustments (rent + price + reserves).
+• Uses continuous approximations and fails near matrix cliffs.
+Adversarial test case
+23
+
+===== PAGE 24 =====
+
+A deal at DSCR_E = 0.95x, DSCR_L = 1.20x and LTV = 78% needs to reach DSCR_E = 1.05x. Raising rent alone
+may require \$300/month (infeasible), reducing price alone may require \$30 000. A combination of a \
+$10 000 price reduction and a \$150 rent increase may be feasible. The original solver never finds this
+combination.
+Improved algorithm
+1. Allow multivariate optimisation: solve for combinations of rent, price, LTV, reserves, interest rate
+and expense reductions that satisfy the target DSCR/DSCR_E and DSCR_L simultaneously.
+2. Use non‑linear programming or simple brute‑force across discrete ranges to find feasible
+combinations within borrower constraints (e.g. maximum additional down payment or maximum
+rent increase relative to market rent).
+3. Rank combinations by feasibility and least cost or highest investor benefit. Present top solutions to
+the user.
+Accounting‑boundary rule
+Do not allow the solver to change variables outside user control (e.g. tax rates). Bound rent increases by
+market rent and FMR (fair market rent) to avoid unrealistic suggestions.
+Validation test
+1. For the adversarial case, the solver should output a feasible combination of price reduction and rent
+increase rather than infeasible one‑variable solutions.
+2. Validate that combinations meet both DSCR_L and DSCR_E targets.
+Failure mode
+Solver may produce unrealistic suggestions if market rent is mis‑estimated or if price reduction is
+impossible due to seller limits. Use market bounds and user‑provided constraints.
+Pseudocode
+def breakpoint_multivariate(noi, op_ex, ads, rent, price, loan_amount,
+target_dscr, bounds):
+best_solution = None
+min_cost = float('inf')
+for rent_delta in bounds['rent']:
+for price_delta in bounds['price']:
+new_rent = rent + rent_delta
+new_price = price - price_delta
+new_loan = loan_amount - price_delta
+dscr = compute_dscr_e(new_rent, op_ex, ads)
+if dscr >= target_dscr:
+cost = price_delta + abs(rent_delta) * 12
+# convert rent change to annual value
+if cost < min_cost:
+24
+
+===== PAGE 25 =====
+
+best_solution = {'rent_delta': rent_delta, 'price_delta':
+price_delta}
+min_cost = cost
+return best_solution
+Implementation priority: High – provides actionable repair strategies.
+Repair Optimizer
+Original algorithm
+Simple weighted score combining cost of price reduction and rent increase to rank repair options.
+Known weakness
+• Ignores practicality (e.g. tenant relocation, capital improvement potential), user preference and side
+effects such as tax implications.
+• Does not account for the effect on long‑term return (CoC, IRR) or stress metrics.
+Adversarial test case
+Raising rent by \$500 may be mathematically cheaper than a \$20 000 price reduction, but it exceeds market
+rent and triggers vacancy. The optimizer ranks the rent increase first even though it is infeasible.
+Improved algorithm
+1. Use multi‑criteria scoring: each repair option receives scores for mathematical effect, practicality,
+confidence, and side‑effects (vacancy risk, tax consequences). Weights are calibrated over time.
+2. Integrate market rent validation and user constraints: do not suggest rent increases beyond
+market rent + FMR; limit price reductions by seller limits or appraisal.
+3. Present repair bundles that combine multiple levers in a single recommended path (e.g. “Reduce
+price by \$15 000 and raise rent by \$150 if market rent supports it”).
+Accounting‑boundary rule
+Repair options must not propose changing variables outside user control or regulatory constraints (e.g.
+interest rate, taxes). LTV reduction must be within borrower’s cash capacity.
+Validation test
+1. For the adversarial case, the optimizer should reject rent increases that exceed market rent and
+propose a price reduction instead.
+2. Confirm that bundles meet DSCR targets and respect all matrix rules.
+Failure mode
+25
+
+===== PAGE 26 =====
+
+Optimiser may produce no feasible solution if constraints are tight; in that case return a “structurally
+unfixable” verdict.
+Pseudocode
+def repair_optimizer(options, market_data, user_constraints):
+feasible = []
+for opt in options:
+if opt['rent_delta'] > market_data['max_rent_increase']:
+continue
+if opt['price_delta'] > user_constraints['max_price_reduction']:
+continue
+score = (opt['math_effect'] * weights['math'] +
+opt['practicality'] * weights['practical'] +
+opt['confidence'] * weights['confidence'] -
+opt['side_effect'] * weights['side'])
+feasible.append((score, opt))
+return sorted(feasible, reverse=True)
+Implementation priority: Medium – enhances user experience but not critical for gating decisions.
+ACS (Assumption Confidence Score)
+Original formula
+ACS = Σ(input_weight_i × trust_weight_i) / Σ(input_weight_i)
+where trust_weight = 1 for verified inputs, 0.7 for user‑provided, 0.5 for estimated, 0.4 for stale, 0.3 for
+conflicting and 0 for missing values.
+Known weakness
+• Weights are arbitrary and may not reflect actual failure rates. There is no empirical calibration.
+• Ignores correlation between inputs; one missing input can have a greater impact than indicated by
+its weight.
+Adversarial test case
+Rent and taxes are estimated (0.5 weight) while insurance and maintenance are verified (1.0 weight). ACS
+may be 0.75 (passing) but the unverified rent and tax values have huge impact on DSCR. The algorithm
+should down‑weight the score more severely.
+26
+
+===== PAGE 27 =====
+
+Improved formula
+1. Calibrate trust_weight based on historical data: compute actual default or DSCR failure rates
+given each source type and adjust weights accordingly.
+2. Introduce input criticality weighting: assign higher importance to rent, taxes, and insurance
+relative to minor expenses. The formula becomes:
+ACS = Σ(input_importance_i × trust_weight_i) / Σ(input_importance_i)
+where input_importance is calibrated (rent may be 3× as important as repairs). 3. If any critical input
+has trust_weight < 0.5 (e.g. missing or estimated rent), automatically fail the ACS gate and require
+human review.
+Accounting‑boundary rule
+Ensure that Σ(input_importance_i) excludes variables not present in the current deal; do not
+normalise by a constant.
+Validation test
+1. For the adversarial case, the recalibrated weights should lower ACS significantly and require human
+review.
+2. For deals with all verified inputs, ACS should equal 1.
+Failure mode
+Weights may become stale if calibration is not updated; biases may be introduced if training data is
+unrepresentative.
+Pseudocode
+def compute_acs(inputs, importance_weights, trust_weights):
+weighted_sum = 0
+total_importance = 0
+for key, value in inputs.items():
+importance = importance_weights.get(key, 1.0)
+trust = trust_weights.get(key, 0.5)
+weighted_sum += importance * trust
+total_importance += importance
+return weighted_sum / total_importance
+Implementation priority: Medium – calibration requires historical data; gating rules must be conservative
+initially.
+27
+
+===== PAGE 28 =====
+
+ISS (Investor Survival Score)
+Original formula
+Previously a weighted average of DSCR, LSC, refi and CapEx subscores.
+Known weakness
+• Weighted averages allow strong metrics to mask fatal weaknesses (e.g. high DSCR and liquidity mask
+a refi cliff).
+Adversarial test case
+Debt yield is high but liquidity is near zero; an emergency repair in month 2 leads to insolvency. Weighted
+average ISS might still appear acceptable.
+Improved formula
+1. Minimum‑gate ISS – ISS = min(S_DSCR, S_LSC, S_Refi, S_CapEx) , where each subscore is
+normalised 0–100%. The overall score is the lowest subscore.
+2. Each subscore uses its own gating rule: DSCR stress must exceed 1.0x, sequential drawdown must
+pass, refi DSCR & LTV must meet target, and reserves must cover CapEx shocks.
+3. Use ISS only for advisory ranking, not as a standalone approval; underlying gates are still required
+for decision.
+Accounting‑boundary rule
+Ensure subscores are computed using the correct inputs and that they do not double count metrics (e.g.
+DSCR stress subscores use DSCR_E values, not DSCR_L).
+Validation test
+1. In the adversarial case, ISS should be the minimum of S_LSC and S_CapEx , resulting in a low
+score and a failure flag.
+2. For deals with high subscores across all dimensions, ISS should reflect the weakest link but still pass
+if all are high.
+Failure mode
+ISS can be misinterpreted if users expect a composite to mask weaknesses; documentation must emphasise
+the minimum‑gate nature.
+Pseudocode
+28
+
+===== PAGE 29 =====
+
+def compute_iss(subscores):
+return min(subscores.values())
+Implementation priority: High – ensures investors cannot ignore their weakest dimension.
+QbD (Qualifies‑but‑Dangerous Detector)
+Original rule
+Flag deals that pass lender DSCR but fail economic or stress DSCR thresholds.
+Known weakness
+• Only checked DSCR_E < 1.0x; did not include RWDSCR, sequential drawdown, refi LTV failure or low
+ACS.
+Adversarial test case
+Deal passes DSCR_L but RWDSCR < 0.9x; refi LTV fails due to cap rate increase; sequential drawdown fails
+due to seasonal trough. Original QbD detector is blind.
+Improved rule
+Set QbD = TRUE if any of the following conditions hold while lender ledger passes:
+1. DSCR_E < 1.0x or Seasonal DSCR Minimum < 1.0x .
+2. RWDSCR < 1.0x under any scenario in the stress library.
+3. Sequential drawdown fails (liquidity failure) within the projection horizon.
+4. Refi dual gate fails (either DSCR_E or LTV at refi year below required threshold).
+5. ACS < threshold (e.g. < 0.6) or critical inputs missing/estimated.
+6. ISS below investor policy minimum (e.g. < 0.6).
+Accounting‑boundary rule
+QbD must only trigger when the lender ledger passes. Do not flag deals that already fail the lender matrix –
+they are rejected by lender rules.
+Validation test
+1. Ensure QbD triggers for each failure mode in the adversarial example.
+2. Confirm that QbD does not trigger for a deal with high DSCRs, positive liquidity and high ISS.
+Failure mode
+29
+
+===== PAGE 30 =====
+
+Too many triggers may produce false positives; calibrate the thresholds carefully and provide explanatory
+messaging.
+Pseudocode
+def qualifies_but_dangerous(lender_pass, dscr_e, rwdscr, seasonal_min,
+drawdown_pass,
+refi_pass, acs, iss):
+if not lender_pass:
+return False
+return (
+dscr_e < 1.0 or seasonal_min < 1.0 or rwdscr < 1.0 or
+not drawdown_pass or not refi_pass or acs < 0.6 or iss < 0.6
+)
+Implementation priority: High – defines the core safety warning for users.
+Risk Driver Attribution
+Original algorithm
+Identified the biggest drop in DSCR when applying individual stress shocks and labelled the corresponding
+risk factor (e.g. taxes, insurance, vacancy) as dominant.
+Known weakness
+• Used simple differences; ignored shock combinations and cross effects.
+• Did not weight risks by likelihood or magnitude relative to DSCR base.
+Adversarial test case
+If DSCR drops by 0.3x under tax shock and 0.28x under vacancy shock, the algorithm labels tax as
+dominant. However, insurance and vacancy shocks may be correlated; combined they produce a larger drop
+than taxes alone.
+Improved algorithm
+1. Compute DSCR drops under each individual shock and also under combined scenarios. Rank
+factors by drop magnitude but also note correlations.
+2. Display both the absolute drop and weighted drop (drop × probability or frequency). Use historical
+data or scenario library to assign weights.
+3. Provide an explanation narrative: e.g. “Property is most sensitive to tax reassessment; a 15% tax
+increase reduces DSCR by 0.30x. Vacancy risk is next at 0.28x. In the Climate Event scenario,
+combined insurance + vacancy + CapEx reduces DSCR by 0.50x.”
+30
+
+===== PAGE 31 =====
+
+Accounting‑boundary rule
+Avoid double counting; if CapEx stress is part of the combined scenario, subtract CapEx from the numerator
+only once.
+Validation test
+1. For the adversarial case, confirm that combined risk is reported and explained.
+2. Ensure the narrative lists risk factors in descending order of DSCR drop.
+Failure mode
+Fails if weightings are arbitrary or miscalibrated; avoid deriving probability weights without data.
+Pseudocode
+def risk_driver_attribution(base_dscr, shock_dscores, combined_scenarios):
+individual_drops = {k: base_dscr - v for k, v in shock_dscores.items()}
+combined_drops = {name: base_dscr - dscr for name, dscr in
+combined_scenarios.items()}
+# sort factors by drop
+sorted_individual = sorted(individual_drops.items(), key=lambda x: x[1],
+reverse=True)
+return sorted_individual, combined_drops
+Implementation priority: Medium – enhances transparency and user understanding.
+ECOA Lockout / Proxy Discrimination Guard
+Original rule
+Prevented use of ZIP code or demographic proxies for risk adjustments.
+Known weakness
+• Unclear how to apply at technical level; may inadvertently block objective geospatial data (e.g.
+hazard zones) needed for insurance and tax estimation.
+Adversarial test case
+Algorithm proposes a higher vacancy floor for properties in certain urban ZIP codes based on default
+history. This may correlate with race or income and thus violate fair lending.
+31
+
+===== PAGE 32 =====
+
+Improved rule
+1. Whitelist objective variables: hazard zones (flood, wildfire), state/regional tax rates, county‑level
+insurance indices, FEMA data, MSA‑level vacancy and income, but not ZIP/tract demographics.
+2. Blacklist sensitive proxies: explicit ZIP/tract demographic data (race, income), loan applicant’s
+address used for risk adjustments, or any scoring derived from those variables.
+3. Include a compliance review step: any new geospatial variable must be reviewed for business
+necessity and fair‑lending implications before integration.
+4. If a variable is borderline (e.g. tornado risk at county level), apply explainable modelling – show
+how it impacts expenses but not the credit decision directly.
+Accounting‑boundary rule
+All risk adjustments must come from objective, publicly available sources and reflect cost of ownership
+rather than borrower ability or protected class.
+Validation test
+1. Ensure no model parameters use ZIP‑code as a direct input or proxy for borrower creditworthiness.
+2. Verify that hazard variables are used only to adjust expenses, not to deny credit.
+Failure mode
+Can be circumvented inadvertently by third‑party data; continuous compliance monitoring is required.
+Pseudocode
+def apply_ecoa_lockout(input_data, whitelist, blacklist):
+for var in input_data:
+if var in blacklist:
+raise ValueError("Variable {} is not allowed due to ECOA
+risk".format(var))
+if var not in whitelist and is_geospatial(var):
+raise ValueError("Variable {} requires compliance
+review".format(var))
+Implementation priority: High – compliance is mandatory.
+Adverse‑Action Reason Codes
+Original algorithm
+Mapped decision outcomes to high‑level categories (e.g. DSCR below minimum). Did not always provide
+sufficient detail.
+32
+
+===== PAGE 33 =====
+
+Known weakness
+• Generic codes like “Insufficient DSCR” may not satisfy ECOA/Regulation B requirements for specific
+reasons when complex algorithms are used.
+Adversarial test case
+A borrower is denied because the refi LTV exceeds 80% due to cap rate expansion and because estimated
+insurance is too low; the output shows only “DSCR below minimum.” The borrower receives no meaningful
+guidance.
+Improved algorithm
+1. For each decision gate that fails (DSCR, LTV, reserves, tax shock, insurance shock, refi DSCR,
+seasonality, ACS, ECOA lockout), generate a principal reason code and a narrative. Examples:
+2. “DSCR_E under base assumptions is below 1.00x.”
+3. “Projected refinance LTV exceeds max matrix LTV of 70% given cap rate expansion.”
+4. “Verified rent not provided; estimated rent carries too low confidence weight.”
+5. “Insurance premium shock of +150% results in DSCR below minimum.”
+6. For credit decisions, return the top 4–5 reasons sorted by severity (largest DSCR drop or largest
+policy violation) as required by ECOA.
+7. In advisory mode (non‑credit decision), provide the full list of reasons to help investors improve the
+deal.
+Accounting‑boundary rule
+Ensure that reasons are based on the data used in the model; do not infer or guess at hidden factors.
+Validation test
+1. Ensure reason codes map correctly to the failing gates in the engine.
+2. Verify that explanations are specific enough to meet regulatory standards (e.g. specify which DSCR
+and threshold failed).
+Failure mode
+Improper mapping can mislead borrowers or regulators. Must be updated whenever new gates or rules are
+added.
+Pseudocode
+def generate_adverse_action_reasons(failed_gates):
+reasons = []
+for gate in failed_gates:
+33
+
+===== PAGE 34 =====
+
+if gate == 'dscr_e':
+reasons.append("Economic DSCR is below the minimum required
+threshold.")
+elif gate == 'refi_ltv':
+reasons.append("Projected refinance LTV exceeds the maximum
+allowed.")
+# ... other mappings
+return reasons[:5]
+Implementation priority: High – needed for compliance in creditor workflows.
+Audit Trail
+Original algorithm
+Recorded inputs, formulas and outputs but lacked cryptographic integrity and sometimes omitted the full
+scenario context.
+Known weakness
+• Without a cryptographic hash, the audit file could be tampered after the fact.
+• Did not record the version of every scenario or the matrix used.
+Adversarial test case
+An unscrupulous employee modifies the audit log to change an input after a deal is denied. There is no way
+to verify that the output corresponds to the original inputs.
+Improved algorithm
+1. Cryptographic hash – compute a SHA‑256 hash of the entire output JSON (inputs, scenarios,
+formulas, assumptions, matrix version) and store it in the audit file and with the decision record.
+2. Record version IDs for formulas, scenarios, lender matrix, and stress libraries. Include timestamps.
+3. Use immutable audit storage (e.g. write‑once or blockchain) to store the audit record, preventing
+tampering.
+4. Provide a replay function: given audit ID and record, recompute the decision and verify that the
+result and hash match.
+5. Add human‑review annotations to the audit record when manual decisions override automatic
+recommendations.
+Accounting‑boundary rule
+Ensure that all sensitive personally identifiable information (PII) is properly redacted or encrypted in the
+audit trail.
+34
+
+===== PAGE 35 =====
+
+Validation test
+1. Modify the audit file manually and verify that the hash no longer matches.
+2. Reproduce a result using the audit replay function and confirm hash equality.
+Failure mode
+Audit fails if the hashing algorithm is not applied consistently or if sensitive data is not protected.
+Implementation must follow company policies and security best practices.
+Pseudocode
+import hashlib
+def generate_audit_hash(record):
+record_bytes = json.dumps(record, sort_keys=True).encode('utf-8')
+return hashlib.sha256(record_bytes).hexdigest()
+Implementation priority: High – required for regulator confidence and internal controls.
+Backtest / Drift Monitoring
+Original approach
+Performed manual testing occasionally; lacked an automated, ongoing monitoring framework.
+Known weakness
+• Without systematic backtesting, models may drift and degrade as economic conditions change.
+• No early warning for distribution shifts or matrix changes.
+Adversarial test case
+Rental income declines across an entire MSA due to new rent control laws; the DSCR engine continues to
+use old rent assumptions and passes deals that later fail. Without drift detection, risk builds unnoticed.
+Improved framework
+1. Outcome tracking – record actual performance of closed deals (rent, taxes, insurance, DSCR over
+time, default or distress events) and compare to model predictions.
+2. Model drift detection – monitor differences between actual input distributions (rent, insurance,
+taxes) and those used in the model. Use statistical tests (e.g. Kolmogorov–Smirnov) to flag significant
+shifts.
+35
+
+===== PAGE 36 =====
+
+3. Backtesting – periodically rerun historical deals through the current model to see if
+recommendations would change. If a significant portion of deals flip classification, investigate.
+4. Alerting – produce reports when metrics exceed thresholds (e.g. DSCR miss rate > 5%, distribution
+drift > 10%).
+Accounting‑boundary rule
+Ensure that outcome data is anonymised and aggregated to protect PII. Use only for performance
+monitoring, not for predictive scoring beyond the model’s scope.
+Validation test
+1. Inject a known drift (simulate rent dropping by 20% across a portfolio) and verify that the drift
+monitor flags the shift.
+2. Use a backtest set; confirm that the backtest system replicates historical decisions and identifies
+differences when models are updated.
+Failure mode
+Monitoring fails if outcome data is delayed, misreported or incomplete. Calibration can be biased if the
+sample is not representative.
+Pseudocode
+def monitor_model_drift(old_distribution, new_distribution, threshold):
+ks_stat = kolmogorov_smirnov_test(old_distribution, new_distribution)
+return ks_stat > threshold
+def backtest_models(historical_deals, current_model):
+differences = []
+for deal in historical_deals:
+old_decision = deal['historic_decision']
+new_decision = current_model.evaluate(deal['inputs'])
+if old_decision != new_decision:
+differences.append(deal['id'])
+return differences
+Implementation priority: Medium – essential for long‑term governance, but may follow after initial model
+deployment.
+Notes on Implementation and Next Steps
+• Iteration cadence – The improvements above should be implemented incrementally. Start with
+high‑priority items (DSCR_L, DSCR_E, RWDSCR, LSC, sequential drawdown, IO reset, break‑even refi,
+36
+
+===== PAGE 37 =====
+
+matrix grid solver, QbD and audit trail). Medium and low‑priority items can be scheduled for
+subsequent releases.
+• Data dependencies – Some enhancements (tax caps, insurance hazard indices, cap‑rate betas)
+require external data sources. Build an integration plan or approximate with conservative
+assumptions until live feeds are available.
+• Calibration – Many parameters (weights in ACS, scenario probabilities, cap‑rate beta) should be
+calibrated using historical deal performance and macro data. Document calibration procedures and
+update regularly.
+• Regulatory compliance – ECOA lockout, adverse‑action reason codes and audit trail improvements
+should be reviewed with legal/compliance teams before deployment. The engine must support
+transparency and specific reasoning as mandated by the CFPB guidance 1 2 .
+• Testing and validation – Build a comprehensive test harness using synthetic deals and backtest
+data. Validate that improved algorithms reduce false positives (unnecessary rejections) and false
+negatives (missed risks) relative to the first improvement report.
+This concludes the second 15‑loop improvement pass for the AEGIS DSCR Decision Engine. Each component
+has been analysed, attacked, and upgraded with new formulas, algorithms, boundary rules, validation tests
+and pseudocode. The resulting canonical specification is more resilient, transparent, and aligned with
+regulatory and market realities. Further iterations will involve coding, calibration, and continuous
+monitoring.
+1 The Factors Influencing Cap Rates in 2026 - Matthews
+https://www.matthews.com/insights/cap-rate-real-estate
+2 Determinants of Cap Rates Across Multifamily, Industrial, Retail, and Office Asset Classes
+https://econ.unc.edu/wp-content/uploads/sites/1423/2025/03/Tsui-Morgan-Research-Paper.pdf
+37
