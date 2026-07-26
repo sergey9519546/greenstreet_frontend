@@ -12,6 +12,7 @@ import {
   calculatePaymentFactor,
   calculatePI,
   calculateIOPayment,
+  calculatePITIA,
   solveDSCR,
   quickDscrEstimate,
 } from './engine';
@@ -89,6 +90,27 @@ describe('calculateIOPayment', () => {
   it('$500k @ 6.00% IO → $2,500/mo', () => {
     const io = calculateIOPayment(500_000, 6.0);
     expect(io).toBeCloseTo(2500, 1);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3b. INTEREST-ONLY ENUM SAFETY
+// ─────────────────────────────────────────────────────────────────────────────
+describe('calculatePITIA — interest-only enum safety', () => {
+  const pitia = (ioPeriod: 'NONE' | '5_YR' | '7_YR' | '10_YR') =>
+    calculatePITIA(300_000, 7.0, 30, ioPeriod, 6_000, 1_800, 100);
+
+  it('treats NONE as a fully amortizing loan', () => {
+    expect(pitia('NONE').isInterestOnly).toBe(false);
+  });
+
+  it.each(['5_YR', '7_YR', '10_YR'] as const)('recognizes supported IO period %s', (ioPeriod) => {
+    expect(pitia(ioPeriod).isInterestOnly).toBe(true);
+  });
+
+  it('rejects malformed IO values instead of treating them as 10-year IO', () => {
+    expect(() => calculatePITIA(300_000, 7.0, 30, '0' as never, 6_000, 1_800, 100))
+      .toThrow('Unsupported interest-only period');
   });
 });
 

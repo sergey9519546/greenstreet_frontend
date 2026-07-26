@@ -32,6 +32,7 @@ import type {
   CashToCloseStack,
   TripleRate,
   DSCRFormulaMethod,
+  IOPeriod,
 } from './types';
 
 // ============================================================
@@ -57,6 +58,22 @@ export function calculatePI(loanAmount: number, annualRate: number, termMonths: 
 
 export function calculateIOPayment(loanAmount: number, annualRate: number): number {
   return loanAmount * (annualRate / 100 / 12);
+}
+
+/**
+ * Converts a supported IO enum to its duration.  This is deliberately
+ * fail-closed: an unknown runtime value is not permitted to become a 10-year
+ * IO loan, which would materially understate the payment and overstate DSCR.
+ */
+function ioPeriodYears(ioPeriod: IOPeriod): number {
+  switch (ioPeriod) {
+    case 'NONE': return 0;
+    case '5_YR': return 5;
+    case '7_YR': return 7;
+    case '10_YR': return 10;
+    default:
+      throw new Error(`Unsupported interest-only period: ${String(ioPeriod)}`);
+  }
 }
 
 // ============================================================
@@ -416,7 +433,7 @@ export function calculatePITIA(
   loanAmount: number,
   rate: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
@@ -424,7 +441,7 @@ export function calculatePITIA(
   mortgageInsurance: number = 0,
 ): PITIABreakdown {
   const termMonths = termYears * 12;
-  const ioYears = ioPeriod === 'NONE' ? 0 : ioPeriod === '5_YR' ? 5 : ioPeriod === '7_YR' ? 7 : 10;
+  const ioYears = ioPeriodYears(ioPeriod);
   const isInterestOnly = ioYears > 0;
 
   let pi: number;
@@ -470,7 +487,7 @@ export function solveDealBreakRate(
   qualifyingRent: number,
   loanAmount: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
@@ -484,7 +501,7 @@ export function solveDealBreakRate(
   if (targetPI <= 0) return 0; // Impossible: fixed expenses exceed income
 
   const termMonths = termYears * 12;
-  const ioYears = ioPeriod === 'NONE' ? 0 : parseInt(ioPeriod) || 0;
+  const ioYears = ioPeriodYears(ioPeriod);
 
   if (ioYears > 0) {
     // IO: targetPI = loanAmount * rate/12 → rate = targetPI * 12 / loanAmount * 100
@@ -517,7 +534,7 @@ export function solveMaxPurchasePrice(
   ltv: number,
   rate: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
@@ -536,7 +553,7 @@ export function solveMaxPurchasePrice(
   // IO qualification: payment = loanAmount * rate/12, so maxLoan = maxPI * 12 / rate.
   // Mirrors solveDealBreakRate's IO branch — previously ioPeriod was accepted but ignored,
   // understating max price for interest-only loans.
-  const ioYears = ioPeriod === 'NONE' ? 0 : parseInt(ioPeriod) || 0;
+  const ioYears = ioPeriodYears(ioPeriod);
   const maxLoan = ioYears > 0 && rate > 0
     ? (maxPI * 12) / (rate / 100)
     : maxPI / calculatePaymentFactor(rate, termMonths);
@@ -551,7 +568,7 @@ export function solveMinDownPayment(
   ltv: number,
   rate: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,

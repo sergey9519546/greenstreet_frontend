@@ -432,12 +432,18 @@ export function computeJointAppraisalRisk(
   const dscrAt5PctShock = qualifyingRent / pitiaAt5;
   const valueFailsAt5 = dscrAt5PctShock < 1.0;
 
+  // rentDropPercent is a cushion: larger values mean rent can fall farther
+  // before DSCR breaks. Risk must therefore decrease as this value rises.
+  // A deal already at/below break-even is critical regardless of appraisal
+  // behavior; a simultaneous rent/value weakness is also critical.
   let baseRating: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
-  if (rentDropPercent >= 15 || (valueFailsAt5 && rentDropPercent >= 10)) {
+  const rentAlreadyBreaks = rentDropPercent <= 0;
+  const thinRentCushion = rentDropPercent < 5;
+  if (rentAlreadyBreaks || (thinRentCushion && valueFailsAt5)) {
     baseRating = 'CRITICAL';
-  } else if (rentDropPercent >= 10 || valueFailsAt5) {
+  } else if (thinRentCushion || valueFailsAt5) {
     baseRating = 'HIGH';
-  } else if (rentDropPercent >= 5) {
+  } else if (rentDropPercent < 10) {
     baseRating = 'MODERATE';
   } else {
     baseRating = 'LOW';

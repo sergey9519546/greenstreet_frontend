@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
+import { analyzePublicLtrDeal, PUBLIC_LTR_DEAL_DEFAULTS } from "../engine/publicDealAnalysis";
 
 interface Props {
   onBack?: () => void;
@@ -20,26 +21,34 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   }, []);
 
   // --- Inputs ---
-  const [price, setPrice] = useState(425000);
-  const [down, setDown] = useState(25);
-  const [rent, setRent] = useState(3000);
-  const [rate, setRate] = useState(7.0);
-  const [tax, setTax] = useState(5000);
-  const [ins, setIns] = useState(2000);
-  const [hoa, setHoa] = useState(0);
+  const [price, setPrice] = useState(PUBLIC_LTR_DEAL_DEFAULTS.purchasePrice);
+  const [down, setDown] = useState(PUBLIC_LTR_DEAL_DEFAULTS.downPaymentPct);
+  const [rent, setRent] = useState(PUBLIC_LTR_DEAL_DEFAULTS.monthlyRent);
+  const [rate, setRate] = useState(PUBLIC_LTR_DEAL_DEFAULTS.annualRatePct);
+  const [tax, setTax] = useState(PUBLIC_LTR_DEAL_DEFAULTS.annualTaxes);
+  const [ins, setIns] = useState(PUBLIC_LTR_DEAL_DEFAULTS.annualInsurance);
+  const [hoa, setHoa] = useState(PUBLIC_LTR_DEAL_DEFAULTS.monthlyHoa);
   const [stateCode, setStateCode] = useState("TX");
 
   // --- Engine computation ---
-  const loan = price * (1 - down / 100);
-  const r = rate / 100 / 12;
-  const piMo = r > 0 ? (loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1) : 0;
-  const pitia = piMo + tax / 12 + ins / 12 + hoa;
-  const dscr = pitia > 0 ? rent / pitia : 0;
-  const cashFlow = rent - pitia;
-  const noi = rent * 0.92 * 12 - tax - ins;
-  const capRate = price > 0 ? (noi / price) * 100 : 0;
-  const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
-  const ltv = 100 - down;
+  const analysis = analyzePublicLtrDeal({
+    purchasePrice: price,
+    downPaymentPct: down,
+    monthlyRent: rent,
+    annualRatePct: rate,
+    annualTaxes: tax,
+    annualInsurance: ins,
+    monthlyHoa: hoa,
+  });
+  const loan = analysis.loanAmount;
+  const piMo = analysis.principalAndInterestMonthly;
+  const pitia = analysis.pitiaMonthly;
+  const dscr = analysis.lenderDscr;
+  const track2Dscr = analysis.track2Dscr;
+  const cashFlow = analysis.investorCashFlowMonthly;
+  const capRate = analysis.capRatePct;
+  const debtYield = analysis.debtYieldPct;
+  const ltv = price > 0 ? (loan / price) * 100 : 0;
 
   // --- Verdict ---
   let vLabel = "DEAL BREAK";
@@ -192,7 +201,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
               <div style={{ width: "100%", height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
               <div style={{ width: "100%", background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Cash flow / mo</div>
+                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Track 2 cash flow / mo</div>
                 <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>
                   {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
                 </Mono>
@@ -327,7 +336,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 {/* 3-metric row */}
                 <div className="da-metrics-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
                   {[
-                    { val: (cashFlow >= 0 ? "+" : "") + fmt(cashFlow), label: "cash flow / mo", sub: cashFlow >= 0 ? "positive" : "shortfall", color: cashFlow >= 0 ? dc.emerald : "#e06363" },
+                    { val: (cashFlow >= 0 ? "+" : "") + fmt(cashFlow), label: "Track 2 cash flow / mo", sub: `${track2Dscr.toFixed(2)}x after vacancy, management & maintenance`, color: cashFlow >= 0 ? dc.emerald : "#e06363" },
                     { val: capRate.toFixed(2) + "%",                    label: "cap rate",       sub: capRate >= 6 ? "healthy" : "thin",         color: capRate >= 6 ? dc.rain : "#e6b84d" },
                     { val: debtYield.toFixed(2) + "%",                  label: "debt yield",     sub: debtYield >= 10 ? "strong" : "marginal",   color: debtYield >= 10 ? dc.rain : "rgba(0,55,56,0.7)" },
                   ].map((m) => (
@@ -343,7 +352,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               {/* LTV + loan summary strip */}
               <div className="gs-reveal" style={{ background: swatch.white, borderRadius: radius.md, border: `1px solid ${swatch.midnightFaded}`, padding: "clamp(14px,1.6vw,20px) clamp(16px,2vw,24px)", display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
                 {[
-                  { label: "LTV (loan ÷ value)", val: ltv + "%", note: ltv <= 75 ? "within standard limits" : "elevated — affects pricing" },
+                  { label: "LTV (loan ÷ value)", val: ltv.toFixed(0) + "%", note: ltv <= 75 ? "within standard limits" : "elevated — affects pricing" },
                   { label: "Loan amount",         val: fmt(loan), note: "" },
                   { label: "P&I / mo",            val: fmt(piMo), note: "" },
                 ].map((item) => (

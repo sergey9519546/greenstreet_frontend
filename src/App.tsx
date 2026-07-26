@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 import QualifyWidget from "./components/QualifyWidget";
+import ToolReliabilityHoldPage from "./components/ToolReliabilityHoldPage";
+import { TOOL_RELIABILITY_HOLDS } from "./components/toolReliabilityHolds";
 import MarketingHome from "./marketing/MarketingHome";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // Route module importers — the SINGLE source for both React.lazy and the idle
 // prefetch (warmAllRoutes) below. Each page is its own chunk (small initial
@@ -16,15 +19,7 @@ const routeModules = {
   BlogPage: () => import("./pages/BlogPage"),
   BlogPostPage: () => import("./pages/BlogPostPage"),
   RateQuizPage: () => import("./pages/RateQuizPage"),
-  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
-  ARMPage: () => import("./pages/ARMPage"),
-  MonteCarloPage: () => import("./pages/MonteCarloPage"),
-  ReturnsPage: () => import("./pages/ReturnsPage"),
-  TaxEnginePage: () => import("./pages/TaxEnginePage"),
-  StressMatrixPage: () => import("./pages/StressMatrixPage"),
-  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
   STRUnderwritingPage: () => import("./pages/STRUnderwritingPage"),
-  PortfolioPage: () => import("./pages/PortfolioPage"),
   DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
   BorrowerProfilesPage: () => import("./pages/BorrowerProfilesPage"),
   BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
@@ -36,6 +31,7 @@ const routeModules = {
   ProductsPage: () => import("./pages/ProductsPage"),
   SolutionsPage: () => import("./pages/SolutionsPage"),
   BrokersPage: () => import("./pages/BrokersPage"),
+  BookDemoPage: () => import("./pages/BookDemoPage"),
 } as const;
 
 let _warmed = false;
@@ -52,15 +48,7 @@ const FAQPage = lazy(routeModules.FAQPage);
 const BlogPage = lazy(routeModules.BlogPage);
 const BlogPostPage = lazy(routeModules.BlogPostPage);
 const RateQuizPage = lazy(routeModules.RateQuizPage);
-const RefiTrackerPage = lazy(routeModules.RefiTrackerPage);
-const ARMPage = lazy(routeModules.ARMPage);
-const MonteCarloPage = lazy(routeModules.MonteCarloPage);
-const ReturnsPage = lazy(routeModules.ReturnsPage);
-const TaxEnginePage = lazy(routeModules.TaxEnginePage);
-const StressMatrixPage = lazy(routeModules.StressMatrixPage);
-const DecisionSupportPage = lazy(routeModules.DecisionSupportPage);
 const STRUnderwritingPage = lazy(routeModules.STRUnderwritingPage);
-const PortfolioPage = lazy(routeModules.PortfolioPage);
 const DealAnalyzerPage = lazy(routeModules.DealAnalyzerPage);
 const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
 const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
@@ -72,6 +60,7 @@ const LegalPage = lazy(routeModules.LegalPage);
 const ProductsPage = lazy(routeModules.ProductsPage);
 const SolutionsPage = lazy(routeModules.SolutionsPage);
 const BrokersPage = lazy(routeModules.BrokersPage);
+const BookDemoPage = lazy(routeModules.BookDemoPage);
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -98,6 +87,24 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
 }
 
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+
+const CLIENT_WORKSPACE_CONFIGURED = Boolean(
+  import.meta.env.VITE_FIREBASE_API_KEY &&
+  import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+  import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+  import.meta.env.VITE_FIREBASE_APP_ID
+);
+
+const RELIABILITY_HOLD_VIEWS = new Set<PageView>([
+  "decision-support",
+  "tax-engine",
+  "refi-tracker",
+  "portfolio",
+  "monte-carlo",
+  "arm-reset",
+  "returns",
+  "stress-matrix",
+]);
 
 function portalTabFromPath(pathname: string): string | undefined {
   const clean = pathname.replace(/\/$/, "");
@@ -149,6 +156,7 @@ function viewToPath(view: PageView): string {
     case "products":          return "/products";
     case "solutions":         return "/solutions";
     case "book-demo":         return "/book-demo";
+    case "not-found":         return "/404";
     case "external":          return "/external";
   }
 }
@@ -259,12 +267,22 @@ export default function App() {
     setPassedEmail(email);
     goTo("portal");
   };
+  const navigateFromReliabilityHold = (nextView: string) =>
+    goTo(nextView as PageView);
 
   const renderPage = () => {
     switch (view) {
       case "marketing":
         return <MarketingHome />;
       case "portal":
+        if (!CLIENT_WORKSPACE_CONFIGURED) {
+          return (
+            <ToolReliabilityHoldPage
+              {...TOOL_RELIABILITY_HOLDS.workspace}
+              onNavigate={navigateFromReliabilityHold}
+            />
+          );
+        }
         return (
           <ComplianceDashboard
             key={pathname}
@@ -308,25 +326,27 @@ export default function App() {
       case "solutions":
         return <SolutionsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "book-demo":
-        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <BookDemoPage key={pathname} onNavigate={goTo} />;
+      case "not-found":
+        return <NotFoundPage key={pathname} onNavigate={goTo} />;
       case "refi-tracker":
-        return <RefiTrackerPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.refiTracker} onNavigate={navigateFromReliabilityHold} />;
       case "arm-reset":
-        return <ARMPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.armReset} onNavigate={navigateFromReliabilityHold} />;
       case "monte-carlo":
-        return <MonteCarloPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.monteCarlo} onNavigate={navigateFromReliabilityHold} />;
       case "returns":
-        return <ReturnsPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.returns} onNavigate={navigateFromReliabilityHold} />;
       case "tax-engine":
-        return <TaxEnginePage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.taxEngine} onNavigate={navigateFromReliabilityHold} />;
       case "stress-matrix":
-        return <StressMatrixPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stressMatrix} onNavigate={navigateFromReliabilityHold} />;
       case "decision-support":
-        return <DecisionSupportPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
       case "str-underwriting":
         return <STRUnderwritingPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "portfolio":
-        return <PortfolioPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.portfolioRefi} onNavigate={navigateFromReliabilityHold} />;
       case "external":
         if (typeof window !== "undefined") {
           window.location.href = "https://www.greenstreet.finance";
@@ -345,7 +365,15 @@ export default function App() {
         <Suspense fallback={null}>
           <PageRenderer />
         </Suspense>
-        {view === "marketing" ? null : <QualifyWidget />}
+        {view === "marketing" ||
+        view === "not-found" ||
+        (view === "portal" && !CLIENT_WORKSPACE_CONFIGURED) ||
+        RELIABILITY_HOLD_VIEWS.has(view) ? null : (
+          <QualifyWidget
+            showTrigger={view !== "book-demo"}
+            autoOpen={view !== "book-demo"}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );

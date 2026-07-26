@@ -324,7 +324,7 @@ export default function STRUnderwritingPage({
         loanAmount,
         rate,
         30,
-        "0",
+        "NONE",
         annualTaxes,
         annualInsurance,
         hoa,

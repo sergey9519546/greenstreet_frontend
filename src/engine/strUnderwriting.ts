@@ -19,6 +19,7 @@ import type {
   DocChecklistItem,
   STRMonthlySeasonality,
   STRMonthBreakdown,
+  IOPeriod,
 } from './types';
 import { STR_RESTRICTION_STATES } from './types';
 import { calculatePI, calculatePITIA, getDSCRGradient } from './engine';
@@ -292,7 +293,7 @@ export function evaluateSTRUnderwriting(
   loanAmount: number,
   rate: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,

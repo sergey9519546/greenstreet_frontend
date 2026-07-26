@@ -60,7 +60,13 @@ function ensureWidgetStyles() {
   document.head.appendChild(el);
 }
 
-export default function QualifyWidget() {
+export default function QualifyWidget({
+  showTrigger = true,
+  autoOpen = true,
+}: {
+  showTrigger?: boolean;
+  autoOpen?: boolean;
+} = {}) {
   const [open, setOpen] = useState(false);
   const autoTriggeredRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,6 +100,8 @@ export default function QualifyWidget() {
 
   // Auto-open logic — runs once per mount; guards against repeated triggers.
   useEffect(() => {
+    if (!autoOpen) return;
+
     const alreadySeen = () => {
       try {
         return localStorage.getItem(STORAGE_KEY) === "1";
@@ -130,12 +138,12 @@ export default function QualifyWidget() {
     }
 
     return cleanup;
-  }, [openModal]);
+  }, [autoOpen, openModal]);
 
   return (
     <>
       {/* Sticky pill trigger — hidden while modal is open */}
-      {!open && (
+      {showTrigger && !open && (
         <button
           onClick={openModal}
           aria-label="See if you qualify"

@@ -1230,7 +1230,7 @@ export const PPP_STATE_LAWS: Record<string, PPPStateLaw> = {
 // Helper: determine the effective status for a given state
 // -----------------------------------------------------------
 function getStateLaw(state: string): PPPStateLaw | null {
-  return PPP_STATE_LAWS[state.toUpperCase()] ?? null;
+  return PPP_STATE_LAWS[state.trim().toUpperCase()] ?? null;
 }
 
 // -----------------------------------------------------------
@@ -1295,18 +1295,28 @@ export function checkPPPLegal(
   unitCount: number,
   productType: 'FIXED' | 'ARM',
 ): PPPCheckResult {
+  const st = state.trim().toUpperCase();
   const law = getStateLaw(state);
 
-  // ── State not in restricted matrix → default ALLOWED ──
+  // ── Unknown state → fail closed until the jurisdiction is verified ──
+  // PPP_STATE_LAWS contains the supported 50-state + DC matrix. A missing
+  // entry therefore means the caller supplied an absent or unrecognized
+  // jurisdiction, not that the jurisdiction has no restrictions.
   if (!law) {
-    return buildAllowedResult(
-      'ALLOWED',
-      `${state.toUpperCase()} has no known PPP restrictions. Standard prepay options available.`,
-      ALL_PREPAY_OPTIONS,
-    );
+    const stateLabel = st || 'UNSPECIFIED';
+    return {
+      allowed: false,
+      status: 'UNKNOWN',
+      reason: `${stateLabel} is not a recognized jurisdiction in the PPP rules matrix. Verify the state before quoting a prepayment-penalty structure.`,
+      adjustedOptions: ['NONE'],
+      noPPPPremiumRate: 0,
+      noPPPPremiumFee: 0,
+      requiresEntityVesting: false,
+      entityNote: '',
+      legalWarning: `⚠️ ${stateLabel}: PPP status is unknown. Do not quote or recommend a prepayment penalty until the jurisdiction is verified.`,
+    };
   }
 
-  const st = state.toUpperCase();
   const isARM = productType === 'ARM';
 
   // ── MN: HF 3437 ENACTED (v11 fix) — context-dependent ──

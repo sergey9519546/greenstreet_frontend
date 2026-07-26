@@ -28,7 +28,8 @@ export type PageView =
   | "legal"
   | "products"
   | "solutions"
-  | "book-demo";
+  | "book-demo"
+  | "not-found";
 
 const ROUTE_MAP: Record<string, PageView> = {
   // Root
@@ -131,10 +132,16 @@ export function resolveRoute(href: string): PageView {
       if (slug === "deal-analyzer") return "deal-analyzer";
       if (slug === "borrower-profiles") return "borrower-profiles";
     }
-    if (url.hostname && url.hostname !== "localhost" && url.hostname !== window.location.hostname) return "external";
-    return "marketing";
+    if (
+      url.hostname &&
+      url.hostname !== "localhost" &&
+      (typeof window === "undefined" || url.hostname !== window.location.hostname)
+    ) {
+      return "external";
+    }
+    return "not-found";
   } catch {
-    return "marketing";
+    return "not-found";
   }
 }
 
