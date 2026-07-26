@@ -377,7 +377,7 @@ export default function App() {
         return <PortfolioPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
-          window.location.href = "https://www.greenstreet.com";
+          window.location.href = "https://www.greenstreet.finance";
         }
         return null;
     }

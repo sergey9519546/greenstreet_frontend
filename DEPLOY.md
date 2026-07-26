@@ -1,71 +1,73 @@
-# Deployment & Firebase configuration
+# Deployment
 
-This repo currently carries **three** deploy paths for the *same* Express app
-(`src/serverApp.ts`). Pick **one** as canonical and remove the others to end the
-ambiguity. Nothing here changes runtime behavior — it documents what exists and
-what you must decide.
+## Canonical production path
 
-## The one app, three wrappers
+Production is deployed through the Vercel project **`greenstreet-frontend`**.
+The canonical public host is **`https://www.greenstreet.finance`**; the apex
+domain redirects to it. Git integration builds preview deployments for branches
+and promotes `main` to production.
 
-| Path | Entry | Config | Notes |
-|---|---|---|---|
-| **Firebase** (hosting + functions) | `src/function.ts` (`api` function) | `firebase.json`, `.firebaserc` | Hosting serves `dist/`; `/api/**` → the `api` function. Most complete. |
-| **Vercel** (serverless) | `api/index.ts` (`export default app`) | `vercel.json` | Rewrites `/api/*` and `/health` to the app. |
-| **Node / Cloud Run** | `server.ts` (`npm start` → `dist/server.cjs`) | `.gcloudignore` | Standalone Express + static `dist/`. Also the local dev server (`npm run dev`). |
+The Vercel function entry point is `api/index.js`. It loads the explicitly
+bundled Express application in `dist/vercel.cjs`, so the serverless runtime does
+not depend on extensionless TypeScript imports. `vercel.json` routes `/api` and
+`/api/*` to that function, `/health` to the health handler, and all remaining
+paths to the SPA entry point.
 
-> `server.ts` is **not** removable — it's the `dev` and `start` scripts. The
-> Firebase-vs-Vercel choice is the real decision.
+## Production runtime configuration
 
-## Firebase project — single source of truth
+These non-secret production settings are configured in Vercel:
 
-The **client** Firebase config is read from environment variables at build time
-(`src/firebase.ts`), not from any committed JSON:
-
+```text
+ALLOWED_ORIGINS=https://www.greenstreet.finance,https://greenstreet.finance
+APP_URL=https://www.greenstreet.finance
+WORKER_POOL_SIZE=0
 ```
-VITE_FIREBASE_PROJECT_ID
-VITE_FIREBASE_APP_ID
-VITE_FIREBASE_API_KEY            # public-by-design Firebase web key (not a secret)
+
+Do not set `PORT`, `NODE_ENV`, or `VERCEL`; Vercel owns those values. `WORKER_POOL_SIZE=0`
+keeps the deterministic engine in-process inside a serverless function rather
+than starting nested worker threads.
+
+## Owner-confirmed settings required before accepting borrower leads
+
+The browser lead form needs one confirmed Firebase project, with all of these
+build-time variables set in Vercel:
+
+```text
+VITE_FIREBASE_API_KEY
 VITE_FIREBASE_AUTH_DOMAIN
+VITE_FIREBASE_PROJECT_ID
 VITE_FIREBASE_STORAGE_BUCKET
 VITE_FIREBASE_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID
 ```
 
-The **deploy** project is `.firebaserc` → `gen-lang-client-0809198072`.
+The historical Firebase configuration files and the legacy local environment
+describe different project identities. Do not copy either into production until
+the owner confirms which project owns the Firestore `leads` collection and its
+rules have been deployed. Until then, the app truthfully reports that a lead was
+not sent rather than storing financial/contact information in the visitor's
+browser.
 
-A now-removed file, `firebase-applet-config.json` (Firebase Studio scaffolding,
-unused by any code), referenced a **different** project. Its values are recorded
-here so nothing is lost — if *this* is your real project, set the `VITE_*` vars
-and `.firebaserc` to match it; otherwise ignore:
+AI narration additionally requires an owner-provided `ANTHROPIC_AUTH_TOKEN`.
+Do not enable `REQUIRE_AUTH` globally until the SPA sends Firebase ID tokens;
+doing so would disable the public calculator endpoints.
 
-```
-name:                Greenstreet DSCR Loan Engine
-projectId:           project-34827ae3-34d1-4d2c-a7d
-appId:               1:979007666870:web:5355368ed0e6da29020417
-apiKey:              AIzaSyDbhJW82HLr2xxCsaMcWT7NicKW3RkXpYo   (public web key)
-authDomain:          project-34827ae3-34d1-4d2c-a7d.firebaseapp.com
-firestoreDatabaseId: ai-studio-ec90656a-daaa-4e6c-89d0-5e4a012cc880
-storageBucket:       project-34827ae3-34d1-4d2c-a7d.firebasestorage.app
-messagingSenderId:   979007666870
-```
+## Other host wrappers
 
-## Decisions needed (human)
+`server.ts` remains the local development and standalone Node entry point.
+Firebase configuration is retained as a historical/alternative deployment path,
+not as the production host. Do not remove either wrapper until the owner confirms
+it is no longer needed.
 
-1. **Pick one host** (Firebase, Vercel, or Node/Cloud Run) and delete the other
-   wrappers/configs — e.g. if Firebase: remove `vercel.json` + `api/index.ts`;
-   if Vercel: remove the `functions` block from `firebase.json` + `src/function.ts`.
-2. **Confirm the Firebase project.** `.firebaserc` (`gen-lang-client-0809198072`)
-   and the `VITE_FIREBASE_PROJECT_ID` you deploy with must be the **same**
-   project, and it must be the one whose Firestore holds `firestore.rules`.
-   Reconcile against the `project-34827ae3-…` id above.
-3. **Set the runtime env** per `.env.production.example` (`ALLOWED_ORIGINS`,
-   `ANTHROPIC_BASE_URL`/`ANTHROPIC_MODEL`, auth flags) — see the backend
-   hardening in `src/serverApp.ts` / `src/routes/narrate.ts`.
+## Release verification
 
-## Verify before deploy
-
-```
+```bash
 npm ci
-npm run lint      # tsc --noEmit (strict)
-npm test          # vitest
-npm run build     # vite + esbuild bundles
+npm run lint
+npm test
+npm run build
+npx vercel build --yes
 ```
+
+Before promoting a release, verify a production-equivalent `/health`, a sample
+`POST /api/dscr/solve`, and a direct SPA route such as `/products/platform`.

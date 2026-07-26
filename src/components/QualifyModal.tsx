@@ -1477,6 +1477,7 @@ function Step4({
   onBack,
   onSubmit,
   submitting,
+  submissionError,
   headingId,
 }: {
   data: StepFourData;
@@ -1484,6 +1485,7 @@ function Step4({
   onBack: () => void;
   onSubmit: () => void;
   submitting: boolean;
+  submissionError: string | null;
   headingId: string;
 }) {
   const uid = useId();
@@ -1685,6 +1687,11 @@ function Step4({
           {submitting ? "Sending…" : "Send my scenario — get a specialist review →"}
         </button>
       </div>
+      {submissionError && (
+        <p role="alert" style={{ ...errorMsgStyle, marginTop: 12, marginBottom: 0 }}>
+          {submissionError}
+        </p>
+      )}
     </div>
   );
 }
@@ -1815,6 +1822,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     smsConsent: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -1925,6 +1933,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setSubmissionError(null);
     // Use engine math for the persisted payload (matches the displayed result)
     const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
     const verdict = dscrVerdict(estimate.tier);
@@ -1973,13 +1982,25 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       },
       page: typeof window !== "undefined" ? window.location.pathname : "/",
       // NOTE: field name must match firestore.rules `/leads` create rule,
-      // which requires `submittedAt` (not `createdAt`). A mismatch here
-      // makes every write DENIED, silently falling through to the visitor's
-      // own localStorage (unreadable by the business) — this was the root
-      // cause of 100% lead loss. Keep this in sync with firestore.rules.
+      // which requires `submittedAt` (not `createdAt`). Keep this in sync
+      // with firestore.rules so a delivered request is not rejected.
       submittedAt: new Date().toISOString(),
-      // TODO: production lead endpoint / CRM
     };
+
+    const firebaseConfigured = Boolean(
+      import.meta.env.VITE_FIREBASE_API_KEY &&
+      import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+      import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+      import.meta.env.VITE_FIREBASE_APP_ID
+    );
+
+    if (!firebaseConfigured) {
+      setSubmissionError(
+        "Secure request delivery is not configured yet. Your information was not sent; please try again later."
+      );
+      setSubmitting(false);
+      return;
+    }
 
     try {
       // Firebase is imported lazily so its ~524 kB client SDK is NOT pulled into
@@ -1989,29 +2010,20 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         import("../firebase"),
         import("firebase/firestore"),
       ]);
-      // Primary path — Firestore allows anonymous create on /leads (see
-      // firestore.rules). This must succeed for every legitimate submission;
-      // localStorage below is a genuine last-resort fallback only, not a
-      // silent default.
       await addDoc(collection(db, "leads"), payload);
+      setStep(5);
     } catch (err) {
-      // This should be rare (offline / network failure). Log loudly — a
-      // lead landing here is NOT visible to the business until manually
-      // recovered from the visitor's own browser storage.
+      // Do not store loan scenarios or contact details in a visitor's browser,
+      // and do not show a success state unless the business received the lead.
       console.error(
-        "[QualifyModal] Firestore lead write FAILED — falling back to localStorage; this lead will NOT reach the business automatically:",
+        "[QualifyModal] Firestore lead write failed; the lead was not delivered:",
         err
       );
-      try {
-        const existing = JSON.parse(localStorage.getItem("gs_leads") || "[]");
-        existing.push(payload);
-        localStorage.setItem("gs_leads", JSON.stringify(existing));
-      } catch (_) {
-        // localStorage unavailable — silently swallow
-      }
+      setSubmissionError(
+        "We could not securely deliver your request. Your information was not sent; please try again later."
+      );
     } finally {
       setSubmitting(false);
-      setStep(5);
     }
   };
 
@@ -2088,6 +2100,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             onBack={() => setStep(3)}
             onSubmit={handleSubmit}
             submitting={submitting}
+            submissionError={submissionError}
             headingId={headingId}
           />
         )}

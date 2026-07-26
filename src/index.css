@@ -4,7 +4,9 @@
    JetBrains Mono (numerics). */
 @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss/theme";
-@import "tailwindcss/utilities";
+/* Scan only the React application. The repository also contains research
+   documents whose citation markers resemble arbitrary Tailwind utilities. */
+@import "tailwindcss/utilities" source("../src");
 
 @theme {
   /* Lead with "Outfit Variable" — the exact font the Webflow home + design system

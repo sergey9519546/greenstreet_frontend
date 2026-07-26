@@ -72,8 +72,11 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/legal/terms-of-service": "legal",
   "/rate-quiz": "rate-quiz",
   "/products": "products",
+  // Legacy marketing URLs that remain in the static landing page.
+  "/products/platform": "products",
   "/solutions": "solutions",
   "/book-demo": "book-demo",
+  "/become-a-partner": "brokers-partner",
   "/partnerships": "brokers-partner",
 
   // Tools routes (canonical /tools/* paths)

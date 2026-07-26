@@ -6,7 +6,58 @@ import type { UserConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: "release-html-sanitizer",
+        enforce: "pre",
+        transformIndexHtml(html) {
+          return html
+            // A stale Webflow export contained an opaque path with no matching
+            // asset. Leaving it in the document causes browsers to fetch the
+            // SPA fallback as JavaScript and emit a production console error.
+            .replace(
+              /<script async="" src="\/wvxwa3jtwetcNjdkMGE4YTkxNTZiN2I3YmQ0NmZmZGZk\/nq6SdY9yd98sJXX5znRjqfSpD1o"><\/script>/,
+              ""
+            )
+            // This static whitepaper form has no delivery backend. Keep its
+            // validation UI but do not pretend a visitor's data was sent.
+            .replace(
+              /(<div class="soa-form-popup">[\s\S]*?<form\b[^>]*\bid="wf-form-System-Action-Form"[^>]*\bonsubmit=")[^"]*(")/,
+              "$1event.preventDefault();var f=event.target;var e=f.parentElement.querySelector('.form_main_error_wrap');if(e){e.style.display='block';}return false;$2"
+            )
+            // This form has no submission endpoint. Keep it out of Webflow's
+            // form bootstrapper, which otherwise emits a misleading runtime
+            // error for a deliberately disabled form.
+            .replace(
+              /(<div class="soa-form-popup">[\s\S]*?<div class="form_main_wrap) w-form(">)/,
+              "$1$2"
+            )
+            .replace(
+              /(<div class="soa-form-popup">[\s\S]*?<div class="form_main_success_text u-text-style-large">)[^<]*(<\/div>)/,
+              "$1This form is not accepting requests yet. No information was sent.$2"
+            )
+            .replace(
+              /(<div class="soa-form-popup">[\s\S]*?<div class="form_main_error_text">)[^<]*(<\/div>)/,
+              "$1This form is not accepting requests yet. No information was sent.$2"
+            )
+            // The markup already points at the correct image; only its stale
+            // responsive source set references a file that was never shipped.
+            .replaceAll(
+              "/img/logos/cs-quintero-co.png",
+              "/img/logos/case-03-hadley-capital-partners.png"
+            )
+            // The Webflow export includes a placeholder phone number. Route
+            // that CTA to the real booking flow instead of publishing fiction.
+            .replaceAll('href="tel:+15550100000"', 'href="/book-demo"')
+            .replaceAll("+1 (555) 010-0000", "Book a demo")
+            // The apex redirects to www; keep canonical and share metadata
+            // aligned with the active production host.
+            .replaceAll("https://greenstreet.com", "https://www.greenstreet.finance");
+        },
+      },
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

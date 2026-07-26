@@ -68,7 +68,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ── Security headers ─────────────────────────────────────────────────────────
-app.use((_req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -80,10 +80,13 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
   }
   // Disable powerful features not used by this API
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  // Defense-in-depth: this app only ever returns JSON API responses (the SPA
-  // itself is served separately by Firebase Hosting), so a strict default-src
-  // is safe here and doesn't need to account for any script/style/font origins.
-  res.setHeader("Content-Security-Policy", "default-src 'none'");
+  // Defense-in-depth for JSON responses. The standalone Node host also serves
+  // the SPA from this same Express app; applying `default-src 'none'` to those
+  // HTML responses blocks the Vite bundle, styles, and the marketing assets.
+  // Keep the API policy narrow without breaking static delivery.
+  if (req.path === "/health" || req.path === "/api" || req.path.startsWith("/api/")) {
+    res.setHeader("Content-Security-Policy", "default-src 'none'");
+  }
   next();
 });
 
