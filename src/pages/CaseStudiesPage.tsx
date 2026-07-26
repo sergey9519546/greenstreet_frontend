@@ -145,6 +145,12 @@ const CS_LINE_CSS = `
     opacity: 0;
   }
 }
+@media (max-width: 700px) {
+  .dc-hero, .dc-band-2, .dc-band-3 { grid-template-columns: 1fr !important; }
+  .dc-hero { min-height: 0 !important; }
+  .dc-band-3 { gap: 12px !important; }
+  .cs-line { display: none; }
+}
 `;
 
 // ── Animated SVG line diagram ─────────────────────────────────────────────────
@@ -616,7 +622,7 @@ function StudyDetail({
                 marginBottom: 12,
               }}
             >
-              See if your deal qualifies
+              Model a DSCR scenario
             </div>
             <p
               style={{
@@ -914,7 +920,7 @@ export default function CaseStudiesPage({
                 marginBottom: 12,
               }}
             >
-              How Greenstreet works
+              How these scenarios are structured
             </div>
             <p
               style={{

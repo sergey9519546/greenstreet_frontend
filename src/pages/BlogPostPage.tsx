@@ -4,10 +4,7 @@ import { DcShell, dc, Mono } from "../design/dc";
 
 // ── Author registry ───────────────────────────────────────────────────────────
 const AUTHOR_META: Record<string, { initials: string; role: string }> = {
-  "Priya Rao":    { initials: "PR", role: "Cofounder & Head of Quant" },
-  "Sara López":   { initials: "SL", role: "Compliance & State Law" },
-  "Marcus Chen":  { initials: "MC", role: "Lending Programs" },
-  "Greenstreet":  { initials: "GS", role: "Greenstreet Finance" },
+  "Greenstreet Editorial": { initials: "GE", role: "Greenstreet Editorial" },
 };
 
 // ── Article-body prose styles (typography only; no shell/nav/glass) ───────────
@@ -23,6 +20,13 @@ const ARTICLE_CSS = `
   @media(max-width: 991px){
     .bp-related-grid{grid-template-columns:1fr !important;}
     .bp-byline{flex-wrap:wrap;}
+  }
+  @media(max-width:600px){
+    .bp-body p{font-size:17px;line-height:1.66;}
+    .bp-body h2{margin-top:34px;}
+    .bp-body blockquote{margin:26px 0;padding:14px 0 14px 18px;}
+    .bp-body li{padding-left:22px;}
+    .bp-card{min-height:0 !important;}
   }
 `;
 
@@ -96,8 +100,8 @@ export default function BlogPostPage({
     .slice(0, 3)
     .map((r, i) => ({ ...r, ...RELATED_PALETTES[i % 3] }));
 
-  const authorName = (post as any).author ?? "Greenstreet";
-  const authorMeta = AUTHOR_META[authorName] ?? AUTHOR_META["Greenstreet"];
+  const authorName = (post as any).author ?? "Greenstreet Editorial";
+  const authorMeta = AUTHOR_META[authorName] ?? AUTHOR_META["Greenstreet Editorial"];
 
   return (
     <DcShell onNavigate={onNavigate} navLinks={navLinks} cta={cta}>
@@ -460,6 +464,10 @@ export default function BlogPostPage({
           </p>
         </div>
 
+        <p style={{ maxWidth: 680, margin: "-22px auto 30px", color: "rgba(0,55,56,0.58)", fontSize: 13, lineHeight: 1.55, fontWeight: 500 }}>
+          Editorial note: This article is educational and may use illustrative assumptions. It is not a loan offer, approval, rate quote, legal advice, or tax advice. Confirm current terms, eligibility, and applicable rules with the relevant lender and qualified professionals.
+        </p>
+
         <article className="bp-body gs-reveal" style={{ maxWidth: 680, margin: "0 auto" }}>
           {post.body.map((b: any, i: number) => {
             if (b.h)     return <h2 key={i}>{b.h}</h2>;
@@ -555,7 +563,7 @@ export default function BlogPostPage({
               color: dc.cream,
             }}
           >
-            See if your deal qualifies.
+            Model a DSCR scenario.
           </h2>
           <p
             style={{
@@ -566,9 +574,8 @@ export default function BlogPostPage({
               letterSpacing: "-0.02em",
             }}
           >
-            Enter your property's rent, purchase price, and loan amount — get a DSCR
-            (whether the property's rent can cover the loan payment), a rate estimate, and a program match in under a minute.
-            No W-2s, no tax returns, no commitment.
+            Explore a DSCR estimate from your stated rent and loan assumptions. It is educational only;
+            confirm current pricing, program availability, and eligibility directly with a lender.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
             <button
@@ -589,7 +596,7 @@ export default function BlogPostPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              See if your deal qualifies →
+              Model a DSCR scenario →
             </button>
             <a
               href="/dscr-calculator"

@@ -163,14 +163,13 @@ const BOOK_DEMO_CSS = `
   }
   @media (max-width: 560px) {
     .bd-hero {
-      padding-top: 56px;
-      padding-bottom: 72px;
+      padding: 44px 16px 56px;
     }
     .bd-card-head,
     .bd-step,
     .bd-actions {
-      padding-left: 22px;
-      padding-right: 22px;
+      padding-left: 20px;
+      padding-right: 20px;
     }
     .bd-step {
       grid-template-columns: 36px 1fr;
@@ -178,6 +177,14 @@ const BOOK_DEMO_CSS = `
     }
     .bd-action {
       width: 100%;
+    }
+    .bd-status {
+      align-items: flex-start;
+      line-height: 1.4;
+    }
+    .bd-status-dot {
+      margin-top: 4px;
+      flex: 0 0 auto;
     }
   }
 `;

@@ -22,8 +22,8 @@ interface LegalDoc {
 const DISCLOSURES: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Terms, privacy, and the fine print.",
-  sub: "Last updated June 24, 2026. Greenstreet's tools produce estimates for business-purpose lending — not financial, legal, or tax advice. Use the navigation on the left to jump to any section.",
-  updated: "June 24, 2026",
+  sub: "Last updated July 25, 2026. Greenstreet's released tools produce educational estimates for business-purpose rental scenarios — not financial, legal, or tax advice. Use the navigation on the left to jump to any section.",
+  updated: "July 25, 2026",
   sections: [
     {
       id: "estimates",
@@ -93,21 +93,21 @@ const DISCLOSURES: LegalDoc = {
 const PRIVACY_DOC: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Privacy Policy.",
-  sub: "How Greenstreet Finance collects, uses, and protects your information. Jump to any section using the navigation on the left.",
-  updated: "June 22, 2026",
+  sub: "How Greenstreet Finance handles information submitted through this website. Jump to any section using the navigation on the left.",
+  updated: "July 25, 2026",
   sections: [
     {
       id: "what-we-collect",
       title: "1. What we collect",
       paras: [
-        "When you use our calculators and tools, we may collect the deal parameters you enter (property price, rent, FICO range, LTV, state). If you request a rate estimate or contact us, we collect your name, email, and phone number. We do not pull your credit or store full Social Security numbers through this website.",
+        "Calculator inputs are used to produce the displayed scenario. If you submit a scenario-review request, the site collects the deal parameters and contact details you choose to send. The public form is not designed for Social Security numbers, bank-account details, identity documents, or other sensitive records.",
       ],
     },
     {
       id: "how-we-use",
       title: "2. How we use it",
       paras: [
-        "We use the information to provide rate estimates, match deals to lenders, respond to your inquiries, and improve our tools. Deal parameters entered into calculators are used to compute results and are not sold.",
+        "Calculator inputs support the educational result shown in the browser. A submitted scenario-review request is stored so an authorized reviewer can respond to the request. It is not a loan application, lender match, credit decision, or rate request.",
       ],
     },
     {
@@ -128,50 +128,50 @@ const PRIVACY_DOC: LegalDoc = {
       id: "your-rights",
       title: "5. Your rights",
       paras: [
-        "You may request access to, correction of, or deletion of your personal information by emailing privacy@greenstreetfinance.com. We respond to verified requests within 30 days.",
+        "A verified privacy-request channel and response-time policy have not yet been supplied for publication. The site owner must publish and monitor that process before promoting the intake at scale. Until then, do not submit sensitive information through the public form.",
       ],
     },
     {
       id: "contact",
       title: "6. Contact",
-      paras: ["Questions about this policy? Email privacy@greenstreetfinance.com."],
+      paras: ["A verified privacy contact channel is pending publication."],
     },
   ],
-  contactLine: "Questions about our privacy practices? Email privacy@greenstreetfinance.com.",
+  contactLine: "Privacy contact channel: pending owner verification and publication.",
 };
 
 const TERMS_DOC: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Terms of Service.",
   sub: "The terms governing your use of Greenstreet Finance tools and website. Jump to any section using the navigation on the left.",
-  updated: "June 22, 2026",
+  updated: "July 25, 2026",
   sections: [
     {
       id: "not-advice",
       title: "1. Not financial or legal advice",
       paras: [
-        "Greenstreet Finance provides educational tools and rate estimates for informational purposes only. Calculator outputs, DSCR figures, rate ranges, and program information are estimates, not commitments, rate locks, or credit approvals. Nothing on this site is legal, tax, or financial advice.",
+        "Greenstreet Finance provides educational scenario tools for informational purposes only. Calculator outputs and DSCR figures are estimates, not commitments, rate locks, or credit approvals. Nothing on this site is legal, tax, or financial advice.",
       ],
     },
     {
       id: "estimates-accuracy",
       title: "2. Estimates and accuracy",
       paras: [
-        "Rate ranges, lender criteria, and state prepay rules reflect our best information as of the date shown and change frequently. Verify all figures with the lender and qualified counsel before acting. We are not liable for decisions made based on estimates.",
+        "The released DSCR Calculator applies the inputs and assumptions shown on screen. Pricing, program, state-law, tax, and other decision tools remain held when their sources or models are not approved. Verify all transaction facts with the responsible provider and qualified professionals before acting.",
       ],
     },
     {
       id: "program-estimates",
-      title: "3. Lending and program estimates",
+      title: "3. Financing decisions",
       paras: [
-        "A pre-screen, quote, or program match is not a commitment to lend, a rate lock, or a credit approval. Final terms must be set by the responsible licensed provider after its review. Program parameters and rate ranges change frequently — verify before acting.",
+        "A scenario estimate is not a pre-screen, quote, program match, commitment to lend, rate lock, or credit approval. Any actual financing terms must be set by the responsible licensed provider after its review.",
       ],
     },
     {
       id: "acceptable-use",
       title: "4. Acceptable use",
       paras: [
-        "You agree not to misuse the tools, scrape data, or attempt to reverse-engineer the engine. The program details, state rules, and content are provided for your business use, not redistribution.",
+        "You agree not to misuse the tools, scrape data, or attempt to reverse-engineer the engine. Published content is provided for your business use, not redistribution.",
       ],
     },
     {
@@ -184,10 +184,10 @@ const TERMS_DOC: LegalDoc = {
     {
       id: "contact",
       title: "6. Contact",
-      paras: ["Questions about these terms? Email legal@greenstreetfinance.com."],
+      paras: ["A verified legal contact channel is pending publication."],
     },
   ],
-  contactLine: "Questions about these terms? Email legal@greenstreetfinance.com.",
+  contactLine: "Legal contact channel: pending owner verification and publication.",
 };
 
 // ─── Path → document resolver ───────────────────────────────────────────────
@@ -312,7 +312,10 @@ export default function LegalPage({
           border-left: 2px solid transparent;
         }
         .lg-toc-link:hover { color: ${MIDNIGHT} !important; }
-        @media (max-width: 767px) { .lg-toc-col { display: none !important; } }
+        @media (max-width: 767px) {
+          .lg-toc-col { display: none !important; }
+          .lg-toc-link { min-height: 44px; display: flex; align-items: center; }
+        }
       `}</style>
 
       {/* ── HERO — mint bg, dark ink ── */}
@@ -410,11 +413,11 @@ export default function LegalPage({
             <div style={{ padding: "14px 18px", background: "rgba(0,55,56,0.04)", borderRadius: 8, border: "1px solid rgba(0,55,56,0.1)", marginBottom: 36, fontSize: 14, color: "rgba(0,55,56,0.65)", lineHeight: 1.6 }}>
               <strong style={{ color: MIDNIGHT }}>Plain summary:</strong>{" "}
               {doc.eyebrow === "Legal & Disclosures" && doc.sections[0]?.id === "estimates" &&
-                "This page explains that Greenstreet's tools produce estimates, not advice. Numbers are computed by code, not AI. State rules may lag recent changes. The tools don't need an account and don't sell your data."}
+                "This page explains that Greenstreet's tools produce estimates, not advice. Released calculations are computed by code. State-rule and other held tools do not publish decision output while review is incomplete."}
               {doc.sections[0]?.id === "what-we-collect" &&
-                "We collect the deal parameters you enter and your contact info if you request a quote. We don't sell your information. You can request deletion at any time."}
+                "The scenario-review intake collects the deal parameters and contact details you choose to submit. Do not submit identity documents, bank details, or government identifiers."}
               {doc.sections[0]?.id === "not-advice" &&
-                "Tool outputs are estimates, not rate locks or credit approvals. Verify everything with Greenstreet before acting. Don't scrape the site or redistribute our data."}
+                "Tool outputs are estimates, not rate locks or credit approvals. Verify financing with the responsible provider and legal, tax, or investment questions with qualified professionals."}
             </div>
             {doc.sections.map((s) => (
               <div
