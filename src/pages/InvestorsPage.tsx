@@ -2,6 +2,16 @@ import React, { useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { MotionWorkbench } from "../design/artifacts";
 
+const INVESTORS_MOBILE_CSS = `
+  @media (max-width: 700px) {
+    .dc-hero, .dc-band-2, .dc-band-3 { grid-template-columns: 1fr !important; }
+    .dc-hero { min-height: 0 !important; }
+    .dc-band-2, .dc-band-3 { gap: 14px !important; }
+    .ix-card { min-height: 0 !important; }
+    button { min-height: 44px; }
+  }
+`;
+
 // ── Five myths — the centrepiece educational content ──────────────────────────
 // Each myth gets a bps-specific rebuttal. Do not dilute or reorder.
 const MYTHS = [
@@ -9,7 +19,7 @@ const MYTHS = [
     num: "01",
     myth: "DSCR is just rent ÷ payment.",
     truth:
-      "That's Track 1 — the lender's qualifying view (DSCR: whether the property's rent can cover the loan payment; 1.00 = rent exactly covers it). Track 2 strips out vacancy, management fees, and CapEx reserves to show what you'll actually cash-flow after real expenses. Most brokers only quote Track 1 because it makes the deal look better than it is. You need both numbers before you sign.",
+      "Track 1 is an educational rent-to-payment view (DSCR: whether estimated rent can cover estimated debt service; 1.00 means they are equal). Track 2 can add vacancy, management, and capital-expenditure assumptions. Neither is a lender's qualification standard, quote, or decision.",
     view: "dscr-calculator",
     cta: "See both tracks on my deal",
   },
@@ -17,7 +27,7 @@ const MYTHS = [
     num: "02",
     myth: "A 0.1x DSCR improvement doesn't matter.",
     truth:
-      "On a $400K deal, 0.1x DSCR moves your rate by 25–50 basis points (bps). That's $80–$150/month. Over a 30-year hold, that's $30K–$50K in interest you didn't have to pay. The calculator surfaces the binding constraint — the one number dragging your DSCR down — in the first 90 seconds.",
+      "A small change in rent, debt, vacancy, taxes, insurance, or operating costs can materially change a scenario. Test the inputs that matter most; public tool results do not determine pricing or eligibility.",
     view: "dscr-calculator",
     cta: "Find my binding constraint",
   },
@@ -25,15 +35,15 @@ const MYTHS = [
     num: "03",
     myth: "All DSCR loans price the same.",
     truth:
-      "Greenstreet programs span high-leverage DSCR, no-ratio DSCR (a program that skips the rent-to-payment test; usually needs more down or reserves), multi-family, short-term rental, and foreign national. Picking the right program moves your rate 100–150 bps. Program Match reads your file parameters and ranks which program fits — without a phone call.",
+      "Providers may use different assumptions, documentation, and terms. Greenstreet does not publish verified program availability, rate effects, or a program-matching service on this page. Confirm actual options directly with an appropriately licensed provider.",
     view: "products",
-    cta: "Match my deal to a program",
+    cta: "Review planning factors",
   },
   {
     num: "04",
     myth: "A 5/6 ARM is free money for the first 5 years.",
     truth:
-      "You're betting SOFR (the benchmark rate ARM payments follow) stays low for 5 years and that you'll sell or refinance before the first reset. The ARM Reset page models 5 SOFR paths from bullish to crisis. In the bear case, the reset rate exceeds 8%. Know your worst-case payment before you sign the note.",
+      "An ARM can change after its fixed period. Use several illustrative rate paths to understand sensitivity, then verify the note, index, margin, caps, and payment schedule with qualified professionals.",
     view: "arm-reset",
     cta: "Model the reset scenarios",
   },
@@ -41,9 +51,9 @@ const MYTHS = [
     num: "05",
     myth: "Cash-out refinance always means waiting 12 months to season.",
     truth:
-      "A cash-out refinance (replace your loan with a larger one and take the difference in cash) typically requires seasoning — many lenders make you wait a full year. Greenstreet seasons cash-out at six months on qualifying files. The STR program is also designed to recycle BRRRR capital faster than a conventional refi timeline.",
+      "A refinance may involve timing, costs, valuation, documentation, and legal requirements that vary by provider and jurisdiction. This page does not state any available refinance product or eligibility rule.",
     view: "products",
-    cta: "See cash-out programs",
+    cta: "Explore refinance questions",
   },
 ];
 
@@ -54,8 +64,8 @@ const VALUE_CARDS = [
     ink: dc.dark,
     body: "rgba(0,55,56,0.62)",
     accent: dc.rain,
-    headline: "Know if the deal works before you spend a dollar on appraisal.",
-    desc: "Plug in the numbers. Track 1 shows what the lender sees (DSCR: does rent cover the full PITIA payment — principal, interest, taxes, insurance, and any HOA dues). Track 2 shows what you'll actually earn after vacancy, management, and CapEx. Most investors only ever see Track 1 — that's the problem. Find the binding constraint in the first 90 seconds.",
+    headline: "Compare assumptions before you commit capital.",
+    desc: "Use estimated rent, PITIA (principal, interest, taxes, insurance, and HOA dues), vacancy, management, and CapEx to explore cash-flow sensitivity. The scenario is educational and does not represent a lender's view or decision.",
     ctaLabel: "Check my deal's DSCR →",
     view: "dscr-calculator",
   },
@@ -64,8 +74,8 @@ const VALUE_CARDS = [
     ink: dc.cream,
     body: "rgba(238,239,211,0.65)",
     accent: dc.lemon,
-    headline: "After-tax IRR. With real depreciation, not a rough estimate.",
-    desc: "Year 1 typically shelters $12K–$20K of taxable income on a $400K deal. IRC §168(k) bonus depreciation is permanent under OBBBA. Rental property depreciation is one of the most valuable tax advantages individual investors have — and most never run the numbers. Don't leave the shield unused.",
+    headline: "Tax scenarios require professional review.",
+    desc: "Tax results depend on facts, law, elections, and the taxpayer's circumstances. Public calculations are not tax advice and must not be treated as a projected deduction, tax benefit, or return.",
     ctaLabel: "Run the Tax Engine →",
     view: "tax-engine",
   },
@@ -74,8 +84,8 @@ const VALUE_CARDS = [
     ink: dc.dark,
     body: "rgba(0,55,56,0.62)",
     accent: dc.rain,
-    headline: "Stress-test before you sign. Not after you close.",
-    desc: "A 2D rate × rent shock grid shows every scenario — rate jumps up, rent drops, or both. Know the break-even DSCR and see which scenario breaks your deal first before you commit capital. If the deal can't survive a 10% rent haircut, you need to know now.",
+    headline: "Stress-test assumptions before you commit.",
+    desc: "An illustrative rate × rent grid can show how assumptions interact. It does not predict market rates, rent, property performance, financing availability, or a transaction outcome.",
     ctaLabel: "Run the stress matrix →",
     view: "stress-matrix",
   },
@@ -168,6 +178,7 @@ export default function InvestorsPage({
       ]}
       cta={{ label: "Run the numbers →", view: "returns" }}
     >
+      <style>{INVESTORS_MOBILE_CSS}</style>
       {/* ── HERO ── solid midnight, 2-col ────────────────────────────────────── */}
       <section style={{ background: dc.dark, color: dc.cream, overflow: "hidden" }}>
         <div
@@ -198,7 +209,7 @@ export default function InvestorsPage({
               For Investors
             </div>
             <H1 style={{ margin: "0 0 24px" }}>
-              Underwrite
+              Analyze
               <br />
               like an
               <br />
@@ -211,7 +222,7 @@ export default function InvestorsPage({
                 margin: "0 0 36px",
               }}
             >
-              DSCR loans (where qualifying is based on the property's rent, not your tax returns) let individual investors grow a rental portfolio without income docs. These tools give you the same analysis a private-fund desk runs — after-tax IRR, 500-path rate simulations, and a 120-cell stress matrix. No signup, no spreadsheet.
+              These tools help individual investors explore rental-property cash-flow assumptions. They are educational scenarios, not tax, legal, investment, credit, underwriting, or financing advice, and they do not establish provider availability or terms.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <PrimaryBtn onClick={() => onNavigate("returns")}>
@@ -352,7 +363,7 @@ export default function InvestorsPage({
                 color: dc.dark,
               }}
             >
-              Institutional analysis, no fund required.
+              Educational analysis for independent review.
             </h2>
             <p
               style={{
@@ -365,7 +376,7 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Five tools below, in the order you'd actually use them — from qualifying
+              Five tools below, in a practical planning order — from modeling
               a deal to modeling the exit.
             </p>
           </div>
@@ -394,7 +405,7 @@ export default function InvestorsPage({
               {
                 num: "02",
                 title: "Monte Carlo rate-path simulation",
-                desc: "500 simulated rate paths show the probability your DSCR (rent-to-payment ratio) breaks below 1.0 before the ARM resets. The model uses a calibrated Vasicek process — the same stochastic framework bank stress teams use — with P10/P50/P90 distributions so you can see best, median and worst case side by side.",
+                desc: "This simulation is held pending independent validation. It must not be used to estimate probabilities, predict rates, evaluate an ARM, or support an investment or financing decision.",
                 cta: "Run the rate simulation",
                 view: "monte-carlo",
                 numBg: dc.dark,
@@ -412,7 +423,7 @@ export default function InvestorsPage({
               {
                 num: "04",
                 title: "Portfolio and blanket view",
-                desc: "When you own multiple rentals, lenders look at blended DSCR — the combined rent-to-payment ratio across all properties. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR across every door, so you can see your book the way a blanket lender actually underwrites it.",
+                desc: "When you own multiple rentals, a blended view can help compare estimated rent, debt, equity, and cash flow. It does not determine how a provider would underwrite or whether any financing is available.",
                 cta: "Build my portfolio view",
                 view: "portfolio",
                 numBg: dc.dark,
@@ -421,7 +432,7 @@ export default function InvestorsPage({
               {
                 num: "05",
                 title: "Refi timing and break-even",
-                desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) makes sense only if the monthly savings pay back the closing costs before you sell or refinance again. The Refi Tracker calculates the break-even month, NPV of savings, and cash-out capacity at 70% LTV (how the loan amount compares to property value) — so you refi when the math says go, not when rates feel low.",
+                desc: "This refinance tool is held pending independent validation. It must not be used to estimate savings, cash-out capacity, break-even timing, eligibility, terms, or a financing decision.",
                 cta: "Find my refi break-even",
                 view: "refi-tracker",
                 numBg: dc.lemon,
@@ -525,7 +536,7 @@ export default function InvestorsPage({
                 marginBottom: 12,
               }}
             >
-              Why Greenstreet
+              Planning discipline
             </div>
             <h2
               style={{
@@ -550,7 +561,9 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Free. No signup. Open a deal and see what the math says.
+              Start with the released arithmetic calculator. Treat held tools
+              and all provider, tax, legal, and investment questions as
+              verification-required.
             </p>
           </div>
 
@@ -676,7 +689,7 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Each one shows up in real deals with real dollar consequences. The rebuttals are basis-point-specific — not marketing copy. Every number is reproducible in the calculator.
+              Each topic is a planning prompt, not a market, legal, tax, pricing, or provider claim. Recheck all inputs and seek advice appropriate to your situation before acting.
             </p>
           </div>
 
@@ -870,7 +883,7 @@ export default function InvestorsPage({
               letterSpacing: "-0.01em",
             }}
           >
-            No signup required. Every tool is free. Open a deal and see what the math says.{" "}
+            The public calculator requires no signup. Open a scenario and inspect the stated assumptions.{" "}
             <button
               onClick={() => onNavigate("solutions")}
               style={{
@@ -887,7 +900,7 @@ export default function InvestorsPage({
                 textUnderlineOffset: 3,
               }}
             >
-              See who else uses Greenstreet →
+              Review illustrative scenarios →
             </button>
           </p>
           <button
@@ -962,9 +975,9 @@ export default function InvestorsPage({
                 margin: "0 0 16px",
               }}
             >
-              Stop hoping the deal works.
+              Test the assumptions.
               <br />
-              Know before you close.
+              Verify before you commit.
             </h2>
             <p
               style={{
@@ -977,9 +990,8 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Run the DSCR Calculator, Tax Engine, and Returns model on your next deal —
-              all free, no credit pull, no email required. Start with the DSCR check,
-              then layer in the tax shield and returns.
+              Use the DSCR Calculator and other tools to compare illustrative assumptions.
+              Verify any financing, tax, legal, insurance, or investment decision with qualified professionals.
             </p>
           </div>
           <div

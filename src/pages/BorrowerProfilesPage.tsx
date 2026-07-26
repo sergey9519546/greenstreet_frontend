@@ -41,7 +41,11 @@ const JUMP_NAV_CSS = `
   outline: none;
 }
 @media (max-width: 767px) {
-  .bp-jumplink { font-size: 12px; padding: 6px 11px; }
+  .bp-jumpnav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bp-jumplink { font-size: 12px; padding: 10px 11px; min-height: 44px; display: flex; align-items: center; }
+  .bp-spec-row { align-items: flex-start; gap: 8px; }
+  .bp-spec-row > :last-child { text-align: right; }
+  .bp-cta, .bp-cta-ghost { min-height: 44px; justify-content: center; }
 }
 
 /* Segment section anchor offset for sticky nav */
@@ -199,30 +203,30 @@ const DOCS = [
   },
   {
     doc: "1007 / 1025 appraisal with rent schedule",
-    note: "The Form 1007 establishes the market rent Greenstreet uses to compute DSCR — a lease alone isn't enough.",
+    note: "A Form 1007 is commonly used as a market-rent reference; the applicable provider decides what documentation it requires.",
   },
   {
     doc: "12 months bank statements (all pages)",
-    note: "Liquid reserves post-closing. Retirement accounts count at 70% if age 59½+; crypto is $0.",
+    note: "Reserve and asset-treatment requirements vary by provider; verify them independently.",
   },
   {
     doc: "Credit report (tri-merge, ≤90 days)",
-    note: "Medical collections usually ignored; recent 30-day lates flag underwriting.",
+    note: "Credit-report treatment varies by provider and must be confirmed with an appropriately licensed professional.",
   },
   {
     doc: "Entity docs (LLC / Corp / Trust)",
-    note: "All owners ≥51% on the loan. Max 4 owners in the borrowing entity.",
+    note: "Ownership and entity requirements vary by provider and jurisdiction; obtain legal advice where appropriate.",
   },
   {
     doc: "Insurance binder (hazard + liability)",
-    note: "Lender = loss payee on hazard. STRs require commercial liability, not personal homeowners.",
+    note: "Confirm insurance requirements and coverage directly with an insurer and the relevant provider.",
   },
 ];
 
 const MISTAKES = [
   {
     mistake: "Not vesting in an LLC",
-    fix: "Most DSCR programs require entity vesting. Going individual adds 25–50 bps and can disqualify business-purpose loans.",
+    fix: "Entity-vs.-individual ownership can affect legal, tax, insurance, and financing considerations. Verify them before acting.",
   },
   {
     mistake: "Rate-shopping over weeks instead of days",
@@ -230,15 +234,15 @@ const MISTAKES = [
   },
   {
     mistake: "Down payment from a gift",
-    fix: "Some programs accept gift funds with a 2-year donor letter; cash-out proceeds from another property are cleaner.",
+    fix: "Source-of-funds requirements vary. Confirm documentation requirements with the relevant provider before relying on funds.",
   },
   {
     mistake: "Outdated LLC operating agreement",
-    fix: "Add a 'real estate investment' purpose clause. Stale OAs slow underwriting by days.",
+    fix: "Have entity documents reviewed and kept current by qualified legal advisers.",
   },
   {
     mistake: "Closing mid-month",
-    fix: "Per-diem interest from the 25th to month-end can cost $300–500. Aim for the 1st–5th.",
+    fix: "Closing costs and timing vary. Obtain a written, verified estimate from the relevant parties before scheduling.",
   },
 ];
 
@@ -304,7 +308,7 @@ export default function BorrowerProfilesPage({
             Who Greenstreet serves
           </div>
           <H1 style={{ margin: "0 0 18px", maxWidth: "22ch" }}>
-            Direct DSCR lending for every type of real estate investor.
+            Educational DSCR planning for real estate investors.
           </H1>
           {/* DSCR glossed on first use */}
           <Lead
@@ -314,7 +318,7 @@ export default function BorrowerProfilesPage({
               margin: "0 0 28px",
             }}
           >
-            DSCR (Debt-Service Coverage Ratio) loans qualify on what the property earns — not your W-2. Greenstreet originates every loan directly — one underwriting desk, funded through our wholesale lending partner, Cake. Pick your investor segment below.
+            DSCR (Debt-Service Coverage Ratio) is a way to compare estimated property income with estimated debt service. Greenstreet provides educational scenarios here; its provider role, licensing, terms, availability, and counterparties are not verified on this page. Pick an investor segment below.
           </Lead>
 
           {/* ── Jump-nav ── */}
@@ -351,31 +355,31 @@ export default function BorrowerProfilesPage({
               Buy-and-Hold Investors
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              The workhorse of DSCR lending. You hold the property, a tenant covers PITIA (Principal + Interest + Taxes + Insurance + HOA), and we qualify on that monthly ratio — zero income docs. Standard 30-year fixed or 5/1 ARM.
+              A buy-and-hold scenario compares estimated rent with PITIA (Principal + Interest + Taxes + Insurance + HOA). It is a planning exercise, not a qualification test or a statement of available financing.
             </p>
 
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR 1-4 Standard" },
-                { k: "Rate range", v: "6.75 – 7.25%" },
-                { k: "DSCR minimum", v: "≥ 1.00x" },
-                { k: "LTV", v: "≤ 80%" },
-                { k: "FICO", v: "660+" },
-                { k: "Loan size", v: "$75K – $3.5M" },
+                { k: "Scenario type", v: "Buy-and-hold example" },
+                { k: "Rate", v: "Illustrative assumption" },
+                { k: "DSCR", v: "Planning metric" },
+                { k: "LTV", v: "Input to verify" },
+                { k: "Credit", v: "Input to verify" },
+                { k: "Loan size", v: "Input to verify" },
               ]}
             />
 
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut text="DSCR of exactly 1.00x sits at the threshold — a vacancy month or HOA increase flips you sub-1.0. We have a sub-1.0 program, but pricing steps up ~50 bps. Know your cushion before you lock." />
-            <WatchOut text="LTV pricing bands are firm at 75% and 80%. A deal at 81% costs 25–50 bps more; appraisals that come in light can move you across a band." />
+            <WatchOut text="A narrow cash-flow cushion can disappear when rent, vacancy, taxes, insurance, or HOA dues change. Stress-test more than one assumption." />
+            <WatchOut text="Actual terms, pricing, appraisal treatment, and eligibility are not published or verified here; confirm them independently before acting." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
               <button className="bp-cta-ghost" onClick={calc}>Run DSCR Calculator</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Preliminary estimate only — not a commitment to lend.
+              Educational scenario only — not a quote, application, approval, or commitment.
             </p>
           </div>
 
@@ -383,7 +387,7 @@ export default function BorrowerProfilesPage({
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <DscrGauge value={1.18} size={200} label={true} />
             <div style={{ textAlign: "center", fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.5)" }}>
-              Typical buy-and-hold DSCR
+              Illustrative buy-and-hold DSCR
             </div>
             <div
               style={{
@@ -399,7 +403,7 @@ export default function BorrowerProfilesPage({
               }}
             >
               <strong style={{ display: "block", marginBottom: 4, fontSize: 12, letterSpacing: "0.03em", textTransform: "uppercase" as const, color: dc.rain }}>Entity tip</strong>
-              Vest in an LLC before submitting. Individual vesting adds 25–50 bps and removes business-purpose protections.
+              Entity, ownership, and legal requirements vary. Confirm them with qualified legal and financing advisers before submitting anything.
             </div>
           </div>
         </div>
@@ -425,40 +429,40 @@ export default function BorrowerProfilesPage({
               <RiskFlame level="high" size={28} />
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              Greenstreet's DSCR Global program is a no-ratio DSCR product — meaning income is not documented or used in underwriting at all. Qualification rests entirely on the property's rent-to-PITIA ratio, your passport ID, and a larger down payment.
+              International-investor scenarios can involve different documentation, tax, currency, and legal considerations. This page does not state whether any provider offers a foreign-national product or what its requirements may be.
               <br /><br />
               <em>Foreign national</em> = non-US-citizen / non-permanent-resident investor with no ITIN or US-bureau credit file.
             </p>
 
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR Global (no-ratio)" },
-                { k: "Rate range", v: "7.50 – 8.25%" },
-                { k: "DSCR minimum", v: "≥ 0.75x" },
-                { k: "Down payment", v: "30% minimum" },
-                { k: "Credit", v: "Passport + alt reference" },
-                { k: "LLC required", v: "Yes" },
+                { k: "Scenario type", v: "International example" },
+                { k: "Rate", v: "Illustrative assumption" },
+                { k: "DSCR", v: "Planning metric" },
+                { k: "Cash", v: "Input to verify" },
+                { k: "Documentation", v: "Input to verify" },
+                { k: "Entity", v: "Input to verify" },
               ]}
             />
 
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
             <WatchOut
-              text="30% down is the floor — some loan sizes and markets push to 35%. Have reserves verified before you engage an attorney or wire an earnest-money deposit."
+              text="International transactions can add documentation, currency, tax, and timing risk. Obtain advice appropriate to the jurisdictions involved before committing funds."
               flame
             />
             <WatchOut
-              text="Wire transfer of the down payment from a foreign account triggers Bank Secrecy Act sourcing requirements. Allow 10–15 business days for funds verification; budget wire fees of $50–200 per transfer."
+              text="Verify the receiving institution, transfer process, documentation, and fees directly with the relevant provider and advisers; this page does not publish those requirements."
               flame
             />
-            <WatchOut text="Rate premium vs. a US-citizen buyer is typically 75–100 bps. Factor that into your DSCR math before contracting." />
+            <WatchOut text="Do not infer a rate, eligibility, or product availability from this example. Use only verified terms from an appropriately licensed provider." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>View loan programs</button>
+              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>Explore planning examples</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Preliminary estimate only — not a commitment to lend.
+              Educational scenario only — not a quote, application, approval, or commitment.
             </p>
           </div>
 
@@ -481,7 +485,7 @@ export default function BorrowerProfilesPage({
                 <span style={{ color: dc.cream, fontSize: 14, fontWeight: 600 }}>Higher complexity</span>
               </div>
               <div style={{ fontSize: 13, color: "rgba(238,239,211,0.6)", lineHeight: 1.55 }}>
-                Fewer lenders offer this program. Greenstreet underwrites it directly — no broker layering, no referral to a third-party correspondent.
+                Provider availability and roles are not verified on this page. Confirm them directly with an appropriately licensed provider.
               </div>
             </div>
             <div
@@ -496,7 +500,7 @@ export default function BorrowerProfilesPage({
               }}
             >
               <strong style={{ display: "block", marginBottom: 4, fontSize: 12, letterSpacing: "0.03em", textTransform: "uppercase" as const, color: dc.rain }}>What "no-ratio" means</strong>
-              No-ratio DSCR = your personal income is never entered into underwriting. The property's gross rent ÷ PITIA is the only income metric. Your passport replaces a US credit report.
+              This term can be used differently by providers. Do not treat this educational label as a statement of documentation, underwriting, or eligibility requirements.
             </div>
           </div>
         </div>
@@ -522,37 +526,37 @@ export default function BorrowerProfilesPage({
               <RiskFlame level="med" size={26} />
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              STR (Short-Term Rental) income swings month-to-month. Greenstreet's DSCR — STR program uses the <em>Form 1007 rent schedule</em> as a qualifying floor, then applies a 75% haircut to the trailing 12-month revenue history. The lower of the two sets your DSCR.
+              STR (Short-Term Rental) income can swing month-to-month. Use conservative rent, vacancy, operating-cost, and tax assumptions when planning; this page does not state any provider's qualifying method or available product.
               <br /><br />
               State and municipal STR licensing rules vary sharply — check <button onClick={() => onNavigate("state-laws")} style={{ background: "none", border: "none", color: dc.rain, fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 15 }}>State Rules</button> before you contract.
             </p>
 
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR — STR" },
-                { k: "Rate range", v: "7.10 – 7.75%" },
-                { k: "Qualifying rent", v: "1007 schedule floor" },
-                { k: "Revenue haircut", v: "75% of 12-mo history" },
-                { k: "LTV", v: "≤ 75%" },
-                { k: "FICO", v: "660+" },
+                { k: "Scenario type", v: "STR example" },
+                { k: "Rate", v: "Illustrative assumption" },
+                { k: "Rent", v: "Input to verify" },
+                { k: "Revenue", v: "Input to verify" },
+                { k: "LTV", v: "Input to verify" },
+                { k: "Credit", v: "Input to verify" },
               ]}
             />
 
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
             <WatchOut
-              text="Seasonality risk: a beach cottage in the off-season might carry a DSCR of 0.6x — well below 1.00. Underwriting uses the annual average, but your cash flow doesn't. Build 3–4 months of reserves."
+              text="Seasonality can materially change actual cash flow. Test several revenue and expense cases rather than relying on a single projection."
               flame
             />
-            <WatchOut text="HOA restrictions and local STR permit bans can void your income model mid-loan. Confirm permit status and HOA bylaws before appraisal." />
-            <WatchOut text="Insurance: standard homeowners policies exclude STR commercial activity. You need a hybrid or commercial landlord policy — and it must be in place before close." />
+            <WatchOut text="HOA restrictions and local STR rules can change. Confirm current requirements with the relevant authority and association." />
+            <WatchOut text="Confirm insurance coverage and exclusions directly with an insurer before relying on any rental-income plan." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
               <button className="bp-cta-ghost" onClick={() => onNavigate("state-laws")}>Check state STR rules</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Preliminary estimate only — not a commitment to lend.
+              Educational scenario only — not a quote, application, approval, or commitment.
             </p>
           </div>
 
@@ -620,24 +624,24 @@ export default function BorrowerProfilesPage({
               Vacation &amp; Second Homes
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              Vacation and second-home properties straddle two underwriting worlds: if you plan to rent it out, we structure it as an investment/DSCR loan rather than a second-home conventional loan — which means no personal income docs, but rental income must cover PITIA. Mixed personal-use/rental is allowed; occupancy averaging applies.
+              Vacation and second-home use can create distinct tax, insurance, HOA, local-rule, and financing questions. This page provides planning ideas only; it does not state a provider's underwriting approach or available financing.
             </p>
 
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR 1-4 / DSCR STR" },
-                { k: "Rate range", v: "7.00 – 7.75%" },
-                { k: "DSCR minimum", v: "≥ 1.00x (rental days)" },
-                { k: "LTV", v: "≤ 75%" },
-                { k: "FICO", v: "660+" },
-                { k: "Personal-use days", v: "Up to 14 days/yr or 10%" },
+                { k: "Scenario type", v: "Mixed-use example" },
+                { k: "Rate", v: "Illustrative assumption" },
+                { k: "DSCR", v: "Planning metric" },
+                { k: "LTV", v: "Input to verify" },
+                { k: "Credit", v: "Input to verify" },
+                { k: "Use", v: "Input to verify" },
               ]}
             />
 
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut text="Personal-use exceeding 14 days or 10% of rental days may reclassify the loan to a second-home or primary product — which re-introduces income documentation. Confirm occupancy intent before submitting." />
-            <WatchOut text="Seasonal rental markets (ski, beach) carry the same revenue-haircut rules as STR. If the property is listed on Airbnb/VRBO, the STR program applies." />
+            <WatchOut text="Personal use can affect tax, insurance, HOA, and financing treatment. Confirm the applicable rules before submitting anything." />
+            <WatchOut text="Seasonal rental markets require conservative revenue assumptions. Do not infer any provider's treatment from this example." />
             <WatchOut text="Homeowners / vacation rental insurance must cover short-term rental activity. Personal umbrella policies generally don't extend to paying guests." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
@@ -645,7 +649,7 @@ export default function BorrowerProfilesPage({
               <button className="bp-cta-ghost" onClick={calc}>Model the DSCR →</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Preliminary estimate only — not a commitment to lend.
+              Educational scenario only — not a quote, application, approval, or commitment.
             </p>
           </div>
 
@@ -698,7 +702,7 @@ export default function BorrowerProfilesPage({
                 lineHeight: 1.55,
               }}
             >
-              Greenstreet underwrites both DSCR-standard and DSCR-STR programs for vacation properties — we pick the fit at intake, no second desk.
+              This page does not determine product fit or state whether any provider offers financing for a vacation property.
             </div>
           </div>
         </div>
@@ -710,7 +714,7 @@ export default function BorrowerProfilesPage({
       <SegSection id="portfolio" label="Segment 05 · Portfolio Builders" bg={dc.cream}>
         <div className="bp-seg-grid">
           <div>
-            <IsThisYou text="You already own 10+ doors and need one underwriting desk, bulk terms, or a blanket cross-collateral structure." />
+            <IsThisYou text="You already own multiple properties and want to compare them in one planning view." />
             <h2
               style={{
                 fontSize: "clamp(26px,3vw,40px)",
@@ -723,32 +727,32 @@ export default function BorrowerProfilesPage({
               Portfolio Builders
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              Once you cross 10 doors, conventional financing stops scaling. Greenstreet's DSCR Portfolio / Blanket program underwrites 2–20 properties in a single loan — one approval, one close, one monthly payment. DSCR is assessed at the portfolio level: a strong property offsets a thin-margin one.
+              A portfolio view can help you compare estimated income, debt, and cash flow across properties. It is not an application, approval, underwriting result, or statement that multi-property financing is available.
             </p>
 
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR Portfolio / Blanket" },
-                { k: "Rate range", v: "6.99 – 7.50%" },
-                { k: "Loan size", v: "To $3.5M per note" },
-                { k: "Portfolio DSCR", v: "≥ 1.25x (blended)" },
-                { k: "LTV", v: "≤ 75%" },
-                { k: "Doors", v: "2 – 20 in one note" },
+                { k: "Scenario type", v: "Portfolio example" },
+                { k: "Rate", v: "Illustrative assumption" },
+                { k: "Loan size", v: "Input to verify" },
+                { k: "Portfolio DSCR", v: "Planning metric" },
+                { k: "LTV", v: "Input to verify" },
+                { k: "Properties", v: "Input to verify" },
               ]}
             />
 
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut text="Blended DSCR of 1.25x is the portfolio floor. One under-performing property drags the blended figure. Bring rent rolls for every address before the pre-qual call." />
-            <WatchOut text="Cross-collateralization means all properties secure the loan jointly. Selling one door mid-term requires a release price (typically 110–115% of that property's allocated loan balance)." />
-            <WatchOut text="Entity structure matters at scale. Multi-member LLCs with side partners can stall underwriting. Consolidate ownership structure before submitting a portfolio package." />
+            <WatchOut text="A blended metric can conceal a weak property. Review each property's downside scenario as well as the total." />
+            <WatchOut text="Cross-collateralization can have material consequences. Seek legal and financing advice before accepting any such structure." />
+            <WatchOut text="Entity and ownership structures can create legal and tax issues. Obtain professional advice before submitting a portfolio for financing." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>View loan programs</button>
+              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>Explore planning examples</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Preliminary estimate only — not a commitment to lend.
+              Educational scenario only — not a quote, application, approval, or commitment.
             </p>
           </div>
 
@@ -756,7 +760,7 @@ export default function BorrowerProfilesPage({
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <DscrGauge value={1.32} size={200} label={true} />
             <div style={{ textAlign: "center", fontSize: 12, color: "rgba(0,55,56,0.4)" }}>
-              Target blended portfolio DSCR
+              Illustrative blended portfolio DSCR
             </div>
             <div
               style={{
@@ -770,10 +774,10 @@ export default function BorrowerProfilesPage({
                 Why portfolio beats per-property
               </div>
               {[
-                "One credit pull, one approval",
-                "One closing — not 10",
-                "Blended DSCR absorbs thin-margin doors",
-                "Multiple doors in a single note",
+                "One planning view for multiple properties",
+                "Compare individual and blended assumptions",
+                "Test thin-margin properties separately",
+                "Verify any financing structure independently",
               ].map((item) => (
                 <div key={item} style={{ display: "flex", gap: 8, padding: "6px 0", fontSize: 13, color: dc.dark, alignItems: "flex-start" }}>
                   <span style={{ color: dc.rain, fontWeight: 800, flexShrink: 0 }}>✓</span>
@@ -816,10 +820,10 @@ export default function BorrowerProfilesPage({
                 margin: "0 0 14px",
               }}
             >
-              What Greenstreet needs from you.
+              Organize a scenario-review checklist.
             </h2>
             <p style={{ fontSize: "clamp(15px,1.25vw,17px)", fontWeight: 500, color: "rgba(0,55,56,0.62)", margin: 0, lineHeight: 1.6, maxWidth: "56ch" }}>
-              No W-2s or tax returns — but DSCR loans do have a document list. Have these ready before you submit.
+              A document checklist can help organize due diligence, but actual requirements vary and are not published or verified here.
             </p>
           </div>
 
@@ -880,7 +884,7 @@ export default function BorrowerProfilesPage({
                 margin: "0 0 14px",
               }}
             >
-              Five mistakes that slow or kill a DSCR closing.
+              Five planning issues to review before a transaction.
             </h2>
             <p style={{ fontSize: "clamp(15px,1.25vw,17px)", fontWeight: 500, color: "rgba(0,55,56,0.62)", margin: 0, lineHeight: 1.6, maxWidth: "56ch" }}>
               These surface on almost every submission desk. Check your file against each one before you submit.
@@ -947,7 +951,7 @@ export default function BorrowerProfilesPage({
               margin: "0 0 16px",
             }}
           >
-            See if your deal qualifies.
+            Model your deal assumptions.
           </h2>
           <p
             style={{
@@ -960,7 +964,7 @@ export default function BorrowerProfilesPage({
               letterSpacing: "-0.01em",
             }}
           >
-            Enter your property details and get a preliminary DSCR estimate, rate range, and program match — no income docs, no commitment, result in under two minutes.
+            Enter property assumptions to build an educational DSCR scenario. It does not provide market pricing, a program match, a quote, an approval, or a financing commitment.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             <button
@@ -1005,7 +1009,7 @@ export default function BorrowerProfilesPage({
             </button>
           </div>
           <p style={{ fontSize: 12, color: "rgba(238,239,211,0.35)", marginTop: 16 }}>
-            Preliminary estimate only — not a commitment to lend. Book a demo for a full pre-qualification.
+            Educational scenario only — not a quote, application, approval, or commitment. Verify actual financing facts with an appropriately licensed provider.
           </p>
         </div>
       </section>

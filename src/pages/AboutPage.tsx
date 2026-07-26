@@ -57,6 +57,12 @@ const ABOUT_CSS = `
   @media (max-width: 900px) {
     .about-principles, .about-capabilities { grid-template-columns: 1fr; }
   }
+  @media (max-width: 600px) {
+    .about-principles, .about-capabilities { gap: 12px; }
+    .about-card { padding: 24px !important; }
+    .about-capabilities article { min-height: 0 !important; }
+    .about-capabilities button { min-height: 44px; }
+  }
 `;
 
 export default function AboutPage({

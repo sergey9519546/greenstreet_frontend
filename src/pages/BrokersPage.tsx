@@ -1,6 +1,15 @@
 import React, { useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
+const BROKERS_MOBILE_CSS = `
+  @media (max-width: 700px) {
+    .dc-hero, .dc-band-2 { grid-template-columns: 1fr !important; }
+    .dc-hero { min-height: 0 !important; }
+    .dc-band-2 { gap: 24px !important; }
+    button { min-height: 44px; }
+  }
+`;
+
 // ── Use-case rows — numbered vertical list (signature section) ────────────────
 interface UseCase {
   num: string;
@@ -15,26 +24,26 @@ interface UseCase {
 const USECASES: UseCase[] = [
   {
     num: "01",
-    title: "Price the deal in under a minute",
-    desc: "Enter the property address, rent, rate and costs. Get DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) on both tracks: Track 1 is what the lender uses to qualify you; Track 2 adds vacancy, management fees and CapEx to show what you'll actually pocket. No login, no guesswork.",
-    cta: "See if my deal qualifies",
+    title: "Model a rental scenario",
+    desc: "Enter estimated rent, rate assumptions, and costs to explore DSCR (whether estimated rent can cover an estimated payment). The result is educational planning information, not a provider's qualification or credit decision.",
+    cta: "Model my scenario",
     view: "dscr-calculator",
     numBg: dc.lemon,
     numInk: dc.dark,
   },
   {
     num: "02",
-    title: "Match the right Greenstreet program before your first call",
-    desc: "Your file is scored against every Greenstreet DSCR program: FICO floors, LTV caps (how the loan amount compares to the property value — lower = more equity = better terms), DSCR minimums, state coverage and entity rules — ranked by fit score. Know which program funds your deal before you make an offer.",
-    cta: "Find the best program for my file",
+    title: "Organize questions for a provider",
+    desc: "Compare your estimated LTV, DSCR, entity structure, and property facts before contacting a provider. Greenstreet does not publish verified program availability, fit scores, or funding terms here.",
+    cta: "Review planning factors",
     view: "products",
     numBg: dc.dark,
     numInk: dc.lemon,
   },
   {
     num: "03",
-    title: "Check the state rule before it kills the deal",
-    desc: "Prepayment-penalty fees (a fee some loans charge if you pay the loan off or refinance early), usury caps and short-term-rental rules for all 50 states — each traced to a statutory citation. Know if a deal is clean in NJ or needs restructuring before you make an offer.",
+    title: "Identify questions to verify locally",
+    desc: "Prepayment terms, usury rules, and short-term-rental restrictions may affect a deal. The public tools are not a current legal source; confirm requirements with qualified local advisers and authorities.",
     cta: "Look up state rules for my deal",
     view: "state-laws",
     numBg: dc.lemon,
@@ -42,8 +51,8 @@ const USECASES: UseCase[] = [
   },
   {
     num: "04",
-    title: "Stress-test the rate and the rent",
-    desc: "A 120-cell rate × rent shock grid shows you exactly how far the deal can bend before DSCR breaks below 1.00. Run it in seconds — then keep it as a defensible page in your deal package.",
+    title: "Stress-test assumptions",
+    desc: "An illustrative rate × rent grid can show how assumed changes affect a planning DSCR. It does not predict pricing, availability, qualification, or a provider decision.",
     cta: "Run the stress matrix",
     view: "stress-matrix",
     numBg: dc.dark,
@@ -51,8 +60,8 @@ const USECASES: UseCase[] = [
   },
   {
     num: "05",
-    title: "Hand the lender everything they need to say yes",
-    desc: "The investment-committee memo, the state compliance check, and the stress matrix — all generated in one pass, all citable. Submit a clean package and close faster, because the lender isn't waiting on missing documents.",
+    title: "Create a planning package",
+    desc: "Collect your scenario, assumptions, and questions in one place for your own review. It is not a submission, legal review, credit package, or promise of a financing outcome.",
     cta: "Build the deal package",
     view: "deal-analyzer",
     numBg: dc.lemon,
@@ -60,7 +69,6 @@ const USECASES: UseCase[] = [
   },
 ];
 
-const AS_OF = "Jun 22, 2026";
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function BrokersPage({
@@ -85,6 +93,7 @@ export default function BrokersPage({
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
       accent={dc.dark}
     >
+      <style>{BROKERS_MOBILE_CSS}</style>
       {/* ── HERO: 2-col — content left, product panel right ────────────────── */}
       <section
         style={{
@@ -130,9 +139,9 @@ export default function BrokersPage({
             <H1 style={{ margin: 0 }}>
               One deal.
               <br />
-              We underwrite
+              Model the
               <br />
-              your deal.
+              assumptions.
             </H1>
             <Lead
               style={{
@@ -141,11 +150,9 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Greenstreet originates direct to you. Five tools price, qualify,
-              and stress-test your DSCR rental deal — no income docs, no income
-              tax returns, no middleman. Price a deal in under 60 seconds; we
-              underwrite in-house and fund through our wholesale lending partner,
-              Cake.
+              Five educational tools help you model and stress-test rental-property
+              assumptions. Greenstreet does not state a direct-lending, underwriting,
+              funding, licensing, program-availability, or pricing role on this page.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Btn
@@ -171,7 +178,7 @@ export default function BrokersPage({
                   minHeight: 44,
                 }}
               >
-                See my rate in 5 questions →
+                Explore assumptions →
               </button>
             </div>
           </div>
@@ -202,7 +209,7 @@ export default function BrokersPage({
                   marginBottom: 16,
                 }}
               >
-                Greenstreet DSCR programs
+                Educational scenario tools
               </div>
               <div
                 style={{
@@ -269,7 +276,7 @@ export default function BrokersPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                In-house underwriting · direct
+                Educational · verification required
               </span>
               <span
                 style={{
@@ -283,7 +290,7 @@ export default function BrokersPage({
                   borderRadius: 4,
                 }}
               >
-                Live programs
+                No live program data
               </span>
             </div>
           </div>
@@ -310,7 +317,7 @@ export default function BrokersPage({
                 color: dc.dark,
               }}
             >
-              Five steps from first look to funded file.
+              Five planning steps before independent review.
             </h2>
             <p
               style={{
@@ -323,7 +330,7 @@ export default function BrokersPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              DSCR loans qualify on rental income, not the borrower's pay stubs (business-purpose / non-owner-occupied — a rental you invest in, not a home you live in). These tools handle every step of that process.
+              DSCR is an educational cash-flow metric. These tools model assumptions for a rental property; they do not handle applications, approvals, underwriting, funding, or closing.
             </p>
           </div>
 
@@ -459,7 +466,7 @@ export default function BrokersPage({
                 marginBottom: 14,
               }}
             >
-              Direct · in-house underwriting
+              Educational scenario planning
             </div>
             <h2
               style={{
@@ -484,9 +491,8 @@ export default function BrokersPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Book a 15-minute walkthrough — we'll run a real file through the
-              Greenstreet engine together, from pricing to submission, so you see
-              exactly what you will see before you fund.
+              Book a 15-minute walkthrough to review a sample scenario and its assumptions.
+              This is not a quote, program match, application, approval, or financing commitment.
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
@@ -508,7 +514,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              See my rate in 5 questions →
+              Explore assumptions →
             </button>
             {/* Secondary: transparent + FADED border, per contract */}
             <button
@@ -528,7 +534,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              Get a rate in 5 questions →
+              Explore rate assumptions →
             </button>
           </div>
         </div>
@@ -573,10 +579,10 @@ export default function BrokersPage({
                 color: dc.dark,
               }}
             >
-              Reviewed
+              Verification required
             </span>
             <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
-              Page refreshed {AS_OF} · program lineup + fees reviewed · next review Jul 22, 2026
+              Terms, availability, pricing, licensing, and provider role are not verified on this page.
             </span>
           </div>
 

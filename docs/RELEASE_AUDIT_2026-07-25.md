@@ -129,6 +129,50 @@ This preserves the accepted output while allowing React to own the page. It is n
   embedded rate/state outputs fail closed. Visual fidelity is not treated as
   evidence that a claim is true.
 
+### Mobile system and routed-page consistency
+
+- Three dedicated mobile implementation passes covered the shared shell,
+  calculator/intake flow, and public routed pages.
+- A Webflow compatibility rule set `inset: 0` on `.menu-mobile-wrap` and
+  collapsed the React disclosure menu into a narrow strip. The React menu now
+  has an explicit `.gs-site-mobile-menu` geometry contract and scrolls below
+  the 82 px header.
+- React routes now share a 16–20 px mobile page rail, 44 px minimum navigation
+  and footer targets, single-column grid hooks, and full-width mobile actions.
+- The calculator no longer squeezes its desktop workbench into a phone
+  viewport. Inputs remain first, calculator modes stay accessible, result
+  actions stack, and the fixed qualification pill no longer covers inputs.
+- The intake modal is bounded by the dynamic viewport, uses one internal scroll
+  surface, keeps controls at usable sizes, and brings submission errors into
+  view.
+- Public feature grids, FAQ rows, jump navigation, legal content, blog cards,
+  and reliability-hold surfaces were hardened without changing their desktop
+  composition or turning them into homepage copies.
+- Independent 320 px and 390 × 844 verification found no horizontal overflow on the
+  homepage, calculator, About, Products, Borrower Profiles, FAQ, Blog, State
+  Rules hold, or scenario-review route. The open mobile menu began at 82 px,
+  had a 762 px viewport, and every measured link was at least 44 px high.
+- Escape closes both the mobile menu and intake modal and restores focus to the
+  control that opened them. The completed intake step remains within the
+  dynamic viewport and scrolls internally instead of moving controls off-page.
+
+### Public content consistency
+
+- Routed audience and product pages still contained direct-lender, in-house
+  underwriting, funding-partner, live-program, exact-rate, approval, and
+  closing language after the homepage had been sanitized. Those claims now use
+  educational scenario language or an explicit reliability hold.
+- The Products page now distinguishes the released arithmetic-only DSCR
+  Calculator from ten held tools and held workspace views.
+- The public FAQ was replaced with a small educational set; the stale
+  provider-specific FAQ dataset and date-review promise were removed rather
+  than left dormant in source.
+- Blog articles retain their editorial structure but no longer present
+  Greenstreet-specific programs, rate tiers, 50-state checks, funding, or legal
+  and tax conclusions as verified facts. They carry a visible verification
+  note, conditional guidance, and one generic `Greenstreet Editorial` byline
+  instead of unverified named authors.
+
 ## Critical business and trust issues requiring owner evidence
 
 These cannot be truthfully invented in code.

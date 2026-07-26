@@ -301,7 +301,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         </div>
       </div>
       {menuOpen && (
-        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap" role="navigation" aria-label="Mobile navigation" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "6px", zIndex: 49, maxHeight: "80vh", overflowY: "auto" }}>
+        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap gs-site-mobile-menu" role="navigation" aria-label="Mobile navigation" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "18px var(--gs-page-gutter, 1.125rem) 28px", gap: "4px", zIndex: 49, maxHeight: "calc(100vh - 82px)", overflowY: "auto" }}>
           <a href="/investgo" className="nav-link" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>

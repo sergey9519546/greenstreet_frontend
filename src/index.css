@@ -1146,6 +1146,135 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
   flex: 0 0 auto !important;
 }
 
+/* ── Routed-page mobile shell ──────────────────────────────────────────────
+   The marketing home is the visual source of truth: open full-bleed bands,
+   a 16–20px rail, firm dark/mint/pistachio surfaces, and controls generous
+   enough to use with a thumb.  Scope these final overrides to React chrome so
+   the preserved Webflow homepage keeps its own responsive choreography. */
+@media (max-width: 767px) {
+  .gs-site-nav {
+    min-height: 82px !important;
+    isolation: isolate;
+  }
+
+  .gs-site-nav .nav-contain {
+    padding-inline: var(--gs-page-gutter, clamp(1rem, 4.6vw, 1.25rem)) !important;
+  }
+
+  .gs-site-nav .nav-wrap {
+    /* .nav-contain retains the home's 16px vertical breathing room.  A 50px
+       inner rail therefore gives the compact, still generous 82px mobile bar. */
+    min-height: 50px !important;
+    gap: 10px;
+  }
+
+  .gs-site-nav .nav-logo > span {
+    font-size: clamp(1.55rem, 7.2vw, 1.8rem) !important;
+  }
+
+  .gs-site-nav .burger-wrap {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    display: inline-flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-right: -8px;
+    border-radius: 8px;
+  }
+
+  .gs-site-nav .burger-wrap:focus-visible {
+    outline: 2px solid #d8d958;
+    outline-offset: 2px;
+  }
+
+  .gs-site-mobile-menu {
+    /* The Webflow homepage base rule uses `inset: 0`; that turns this
+       React-owned absolute disclosure into a 47px viewport slice.  Restore
+       its intended below-nav geometry without changing the home menu. */
+    inset: auto !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: 0 !important;
+    bottom: auto !important;
+    height: auto !important;
+    overscroll-behavior: contain;
+  }
+
+  .gs-site-mobile-menu .nav-link,
+  .gs-site-mobile-menu .gs-mnav-section {
+    display: flex !important;
+    align-items: center;
+    min-height: 44px;
+    padding-block: 9px !important;
+  }
+
+  .gs-site-mobile-menu .gs-mnav-section {
+    margin: 12px 0 0;
+    border-top: 1px solid rgba(0, 55, 56, 0.14);
+    font-size: 11px;
+    letter-spacing: 0.09em;
+  }
+
+  .gs-site-mobile-menu .nav-link:last-child {
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  .dc-shell .footer_logo > span {
+    font-size: clamp(1.85rem, 9vw, 2.25rem) !important;
+    max-width: 100%;
+  }
+
+  .dc-shell .footer_contain {
+    padding-top: clamp(3rem, 12vw, 4rem) !important;
+    padding-inline: var(--gs-page-gutter, clamp(1rem, 4.6vw, 1.25rem)) !important;
+  }
+
+  .dc-shell .footer_layout,
+  .dc-shell .footer_group_list.u-grid-column-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .dc-shell .footer_layout {
+    gap: 28px !important;
+    margin-top: 34px;
+  }
+
+  .dc-shell .footer_group_wrap,
+  .dc-shell .footer_group_wrap.u-column-2 {
+    grid-column: auto !important;
+    min-width: 0;
+  }
+
+  .dc-shell .footer_group_title {
+    margin-bottom: 8px !important;
+  }
+
+  .dc-shell .footer_link_wrap {
+    display: flex !important;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .dc-shell .footer_bottom_contain {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 20px;
+    padding-inline: var(--gs-page-gutter, clamp(1rem, 4.6vw, 1.25rem)) !important;
+  }
+
+  .dc-shell .footer_bottom_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+  }
+}
+
 @media (max-width: 991px) {
   .pr-special-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;

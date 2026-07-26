@@ -43,6 +43,15 @@ const WIDGET_CSS = `
   .qw-pill:active {
     transform: translateY(1px);
   }
+  @media (max-width: 479px) {
+    .qw-pill {
+      position: static !important;
+      width: calc(100% - 32px);
+      min-height: 48px;
+      justify-content: center;
+      margin: 16px;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .qw-pill {
       transition: none !important;
@@ -100,7 +109,9 @@ export default function QualifyWidget({
 
   // Auto-open logic — runs once per mount; guards against repeated triggers.
   useEffect(() => {
-    if (!autoOpen) return;
+    // A blocking form is disruptive while someone is editing a compact tool;
+    // the in-flow mobile CTA remains available without interrupting the task.
+    if (!autoOpen || window.matchMedia("(max-width: 479px)").matches) return;
 
     const alreadySeen = () => {
       try {
@@ -146,7 +157,7 @@ export default function QualifyWidget({
       {showTrigger && !open && (
         <button
           onClick={openModal}
-          aria-label="See if you qualify"
+          aria-label="Request a scenario review"
           className="qw-pill"
           style={{
             position: "fixed",
@@ -170,7 +181,7 @@ export default function QualifyWidget({
             // We don't add floating/pulsing motion per brand rules.
           }}
         >
-          ✓ See if you qualify
+          Request a scenario review →
         </button>
       )}
 

@@ -14,7 +14,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius } from "../theme";
+import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius, space } from "../theme";
 import { SiteNav, SiteFooter } from "./SiteShell";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -66,7 +66,9 @@ export const dc = {
   // ~20px side padding) so page bodies line up edge-to-edge with the shared
   // nav/footer and carry the home's full-width feel.
   maxW: 1728,
-  pad: "clamp(1.1rem, 2.4vw, 1.25rem)",
+  // The 16–20px mobile rail is the homepage's recurring visual anchor.  Use
+  // this for page bands, panels and shell chrome instead of ad-hoc page pads.
+  pad: space.pageGutter,
   r: radius,
 } as const;
 
@@ -116,6 +118,23 @@ export const DC_CSS = `
 @media (max-width: 640px){
   .hp-card{min-height:680px !important;aspect-ratio:auto !important;}
   .hp-main-grid,.hp-input-grid,.hp-logic-row,.hp-logic-grid{grid-template-columns:1fr !important;}
+}
+/* Mobile contracts for React routes.  These are deliberately opt-in class
+   hooks, so individual pages can inherit the homepage rhythm without a
+   fragile selector that turns every dense tool panel into a card stack. */
+.dc-mobile-band{padding-inline:var(--gs-page-gutter,${space.pageGutter});}
+.dc-mobile-stack{min-width:0;}
+.dc-mobile-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.dc-mobile-card{border-radius:${radius.md};box-shadow:none;}
+@media (max-width:767px){
+  .dc-mobile-stack,.dc-mobile-grid-2,.dc-mobile-grid-3{grid-template-columns:minmax(0,1fr) !important;}
+  .dc-mobile-actions{align-items:stretch;flex-direction:column;}
+  .dc-mobile-actions>*{width:100%;min-height:${space.touchTarget};}
+  .dc-shell main>*{min-width:0;}
+  .dc-shell :where(img,svg,canvas){max-width:100%;}
+  .dc-shell :where(p,h1,h2,h3,h4,li,a,button){overflow-wrap:anywhere;}
+  .dc-shell :where(button,[role="button"],.btn_main_wrap,.g_clickable_link,.dc-cta){min-height:${space.touchTarget};}
+  .dc-shell .gs-range{min-height:${space.touchTarget};}
 }
 @media (prefers-reduced-motion:reduce){
   [class*="gsFloat"],.gs-bar{animation:none !important;}
@@ -480,13 +499,25 @@ export function DcShell({
   const scope = useRef<HTMLDivElement>(null);
   useDcGsap(scope);
   return (
-    <div ref={scope} style={{ background: PISTACHIO, color: MIDNIGHT, fontFamily: font.family, minHeight: "100vh", overflowX: "hidden", letterSpacing: "-0.02em" }}>
+    <div
+      ref={scope}
+      className="dc-shell"
+      style={{
+        background: PISTACHIO,
+        color: MIDNIGHT,
+        fontFamily: font.family,
+        minHeight: "100vh",
+        overflowX: "clip",
+        letterSpacing: "-0.02em",
+        "--gs-page-gutter": dc.pad,
+      } as React.CSSProperties}
+    >
       <style>{DC_CSS}</style>
       {/* Shared site chrome (same nav + footer as the marketing home) so every
           page is framed identically. Per-page navLinks/cta/accent are no longer
           used for the shell — kept in the signature for back-compat only. */}
       <SiteNav onNavigate={onNavigate} />
-      <main>{children}</main>
+      <main className="dc-main">{children}</main>
       <SiteFooter onNavigate={onNavigate} />
     </div>
   );

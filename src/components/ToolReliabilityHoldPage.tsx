@@ -71,6 +71,8 @@ export default function ToolReliabilityHoldPage({
           .trh-layout, .trh-actions {
             grid-template-columns: 1fr !important;
           }
+          .trh-layout { border-radius: ${radius.md}; }
+          .trh-action { min-height: 64px; }
         }
       `}</style>
 

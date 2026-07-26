@@ -354,10 +354,36 @@ const ANIMATION_CSS = `
     }
   }
 
-  /* Mobile: tighter card padding */
+  /* Mobile: retain a single, usable scroll surface inside the viewport. */
   @media (max-width: 479px) {
     .qm-card {
-      padding: 20px 18px !important;
+      width: calc(100vw - 32px) !important;
+      max-height: calc(100dvh - 32px) !important;
+      padding: 20px 16px 18px !important;
+      border-radius: 12px !important;
+      scroll-padding: 16px;
+      overscroll-behavior: contain;
+    }
+    .qm-card .qm-input {
+      min-height: 44px;
+      font-size: 16px !important;
+    }
+    .qm-card .qm-pill,
+    .qm-card .qm-btn-primary,
+    .qm-card .qm-btn-secondary {
+      min-height: 44px;
+    }
+    .qm-card .qm-pill {
+      flex: 1 1 132px;
+      padding-left: 12px !important;
+      padding-right: 12px !important;
+    }
+    .qm-card .qm-close-btn {
+      min-height: 36px;
+      min-width: 36px;
+      padding: 4px !important;
+      top: 10px !important;
+      right: 10px !important;
     }
   }
 `;
@@ -1898,6 +1924,18 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       }, 80);
     }
   }, [open, step, headingId]);
+
+  // Keep a failed submission explanation in view on compact screens.
+  useEffect(() => {
+    if (!open || !submissionError) return;
+    const timer = window.setTimeout(() => {
+      cardRef.current?.querySelector<HTMLElement>('[role="alert"]')?.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [open, submissionError]);
 
   // Reset to step 1 when closed
   useEffect(() => {
