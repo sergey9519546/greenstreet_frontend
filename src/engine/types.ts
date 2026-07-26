@@ -190,6 +190,7 @@ export interface PPPStateLaw {
 }
 
 export type PPPStateStatus =
+  | 'UNKNOWN'              // state code is missing/unrecognized; verify before quoting
   | 'PROHIBITED'           // KS, NM, MD (effectively)
   | 'PRACTICALLY_PROHIBITED' // MN (so narrow it's effectively prohibited)
   | 'ENTITY_ONLY'          // NJ individuals restricted

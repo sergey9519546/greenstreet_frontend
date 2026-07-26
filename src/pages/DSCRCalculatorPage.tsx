@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, H1, H2, Lead, Btn, HeroProof, Mono } from "../design/dc";
 import { PISTACHIO, MIDNIGHT, LEMON, FADED, font, swatch, radius } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
-import { calculatePaymentFactor } from "../engine";
+import {
+  analyzePublicLtrDeal,
+  PUBLIC_LTR_DEAL_DEFAULTS,
+  solvePublicMaxPurchasePrice,
+} from "../engine/publicDealAnalysis";
 
 interface Props {
   onBack?: () => void;
@@ -21,29 +25,42 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   }, []);
 
   const [tab, setTab] = useState<'dscr'|'maxprice'>('dscr');
-  const [price, setPrice] = useState(425000);
-  const [down, setDown] = useState(25);
-  const [rent, setRent] = useState(3000);
-  const [rate, setRate] = useState(7.0);
-  const [tax, setTax] = useState(5000);
-  const [ins, setIns] = useState(2000);
-  const [hoa, setHoa] = useState(0);
+  const [price, setPrice] = useState(PUBLIC_LTR_DEAL_DEFAULTS.purchasePrice);
+  const [down, setDown] = useState(PUBLIC_LTR_DEAL_DEFAULTS.downPaymentPct);
+  const [rent, setRent] = useState(PUBLIC_LTR_DEAL_DEFAULTS.monthlyRent);
+  const [rate, setRate] = useState(PUBLIC_LTR_DEAL_DEFAULTS.annualRatePct);
+  const [tax, setTax] = useState(PUBLIC_LTR_DEAL_DEFAULTS.annualTaxes);
+  const [ins, setIns] = useState(PUBLIC_LTR_DEAL_DEFAULTS.annualInsurance);
+  const [hoa, setHoa] = useState(PUBLIC_LTR_DEAL_DEFAULTS.monthlyHoa);
 
   const [mRent, setMRent] = useState(3000);
   const [mRate, setMRate] = useState(7.0);
   const [mDown, setMDown] = useState(25);
   const [mTax, setMTax] = useState(5000);
   const [mIns, setMIns] = useState(2000);
+  const [mHoa, setMHoa] = useState(0);
   const [target, setTarget] = useState(1.10);
 
   // ── Core calculations ───────────────────────────────────────────────────────
-  const loan = price * (1 - down / 100);
-  const pAndI = loan * calculatePaymentFactor(rate, 360);
-  const pitia = pAndI + tax / 12 + ins / 12 + hoa;
-  const dscr = pitia > 0 ? rent / pitia : 0;
-  const cashFlow = rent - pitia;
-  const noi = (rent * 0.92 * 12) - tax - ins;
-  const capRate = noi / price * 100;
+  const analyzeScenario = (overrides: Partial<{
+    price: number; down: number; rent: number; rate: number; tax: number; ins: number; hoa: number;
+  }> = {}) => analyzePublicLtrDeal({
+    purchasePrice: overrides.price ?? price,
+    downPaymentPct: overrides.down ?? down,
+    monthlyRent: overrides.rent ?? rent,
+    annualRatePct: overrides.rate ?? rate,
+    annualTaxes: overrides.tax ?? tax,
+    annualInsurance: overrides.ins ?? ins,
+    monthlyHoa: overrides.hoa ?? hoa,
+  });
+  const analysis = analyzeScenario();
+  const loan = analysis.loanAmount;
+  const pAndI = analysis.principalAndInterestMonthly;
+  const pitia = analysis.pitiaMonthly;
+  const dscr = analysis.lenderDscr;
+  const track2Dscr = analysis.track2Dscr;
+  const cashFlow = analysis.investorCashFlowMonthly;
+  const capRate = analysis.capRatePct;
 
   // ── Verdict ─────────────────────────────────────────────────────────────────
   let verdictLabel = 'BELOW FLOOR';
@@ -75,13 +92,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const riskLevel = riskFromDscr(dscr);
 
   // ── Sensitivity ─────────────────────────────────────────────────────────────
-  const dscrWith = (o: { price?: number; down?: number; rent?: number; rate?: number; tax?: number; ins?: number }) => {
-    const p = o.price ?? price, d = o.down ?? down, r = o.rent ?? rent;
-    const rt = o.rate ?? rate, t = o.tax ?? tax, i = o.ins ?? ins;
-    const l = p * (1 - d / 100);
-    const pit = l * calculatePaymentFactor(rt, 360) + t / 12 + i / 12 + hoa;
-    return pit > 0 ? r / pit : 0;
-  };
+  const dscrWith = (o: { price?: number; down?: number; rent?: number; rate?: number; tax?: number; ins?: number; hoa?: number }) =>
+    analyzeScenario(o).lenderDscr;
   const sd = (v: number) => { const x = v - dscr; return (x >= 0 ? '+' : '') + x.toFixed(2); };
   const sc = (v: number) => v >= dscr ? '#4dbd97' : '#e88a8a';
   const sens = [
@@ -92,10 +104,11 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
   // ── PITIA breakdown rows ────────────────────────────────────────────────────
   const rows = [
-    { label: 'Loan amount',   val: fmt(loan),       color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, loan / price * 100).toFixed(0) + '%',          barColor: swatch.emerald },
+    { label: 'Loan amount',   val: fmt(loan),       color: 'rgba(238,239,211,0.6)', weight: 500, pct: price > 0 ? Math.min(100, loan / price * 100).toFixed(0) + '%' : '0%', barColor: swatch.emerald },
     { label: 'P&I monthly',   val: fmt(pAndI),      color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, pAndI / pitia * 100).toFixed(0) + '%',          barColor: '#4dbd97' },
-    { label: 'Taxes /mo',     val: fmt(tax / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (tax / 12) / pitia * 100).toFixed(0) + '%',     barColor: '#9ab87b' },
-    { label: 'Insurance /mo', val: fmt(ins / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (ins / 12) / pitia * 100).toFixed(0) + '%',     barColor: '#9ab87b' },
+    { label: 'Taxes /mo',     val: fmt(analysis.taxesMonthly), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, analysis.taxesMonthly / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' },
+    { label: 'Insurance /mo', val: fmt(analysis.insuranceMonthly), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, analysis.insuranceMonthly / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' },
+    { label: 'HOA /mo',       val: fmt(analysis.hoaMonthly), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, analysis.hoaMonthly / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' },
     { label: 'Total PITIA',   val: fmt(pitia),      color: '#eeefd3',               weight: 700, pct: '100%',                                                         barColor: zoneColor },
   ];
 
@@ -107,14 +120,23 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   ];
 
   // ── Max Purchase ─────────────────────────────────────────────────────────────
-  const maxPITIA = mRent / target;
-  const maxPI    = maxPITIA - mTax / 12 - mIns / 12;
-  const maxLoan  = maxPI > 0 ? maxPI / calculatePaymentFactor(mRate, 360) : 0;
-  const maxPrice = maxLoan / (1 - mDown / 100);
+  const maxPurchase = solvePublicMaxPurchasePrice({
+    monthlyRent: mRent,
+    targetLenderDscr: target,
+    downPaymentPct: mDown,
+    annualRatePct: mRate,
+    annualTaxes: mTax,
+    annualInsurance: mIns,
+    monthlyHoa: mHoa,
+  });
+  const maxPITIA = maxPurchase.maxPitiaMonthly;
+  const maxPI = maxPurchase.maxPrincipalAndInterestMonthly;
+  const maxLoan = maxPurchase.maxLoanAmount;
+  const maxPrice = maxPurchase.maxPurchasePrice;
 
   const mRows = [
     { label: 'Max loan amount', val: fmt(maxLoan) },
-    { label: 'Down payment',    val: fmt(maxPrice - maxLoan) },
+    { label: 'Down payment',    val: fmt(maxPurchase.downPayment) },
     { label: 'Max P&I /mo',     val: fmt(maxPI) },
     { label: 'Max PITIA /mo',   val: fmt(maxPITIA) },
   ];
@@ -399,8 +421,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'rgba(238,239,211,0.1)', borderRadius: radius.lg, overflow: 'hidden', border: '1px solid rgba(238,239,211,0.1)' }}>
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: cashFlow >= 0 ? '#4dbd97' : '#e88a8a' }}>{(cashFlow >= 0 ? '+' : '') + fmt(cashFlow)}</Mono>
-                      <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>monthly cash flow</div>
-                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>{cashFlow >= 0 ? 'Rent exceeds PITIA' : 'Rent falls short of PITIA'}</div>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>Track 2 cash flow / mo</div>
+                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>{track2Dscr.toFixed(2)}x after vacancy, management & maintenance</div>
                     </div>
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: LEMON }}>{capRate.toFixed(2)}%</Mono>
@@ -460,6 +482,13 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <input className="gsr" type="range" step="5" min="20" max="50" value={mDown} onChange={e => setMDown(+e.target.value)} style={{ width: '100%' }} aria-label="Max purchase down payment percentage" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
                   </div>
+                  <label style={{ display: 'block' }}>
+                    <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>HOA /mo</span>
+                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
+                      <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
+                      <input className="gs-num" type="number" min="0" step="50" value={mHoa} onChange={e => setMHoa(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                    </div>
+                  </label>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Note rate</span>

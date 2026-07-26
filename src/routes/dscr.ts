@@ -4,7 +4,6 @@ import { DealRequestSchema, StateRequestSchema } from "./schemas";
 import {
   runSolveDSCR,
   runSensitivity,
-  runOptimize,
   runStateRules,
 } from "../engineService";
 
@@ -30,14 +29,13 @@ dscrRouter.post("/sensitivity", validateBody(DealRequestSchema), async (req, res
   }
 });
 
-// ── Loan Optimizer — offloaded to Worker ─────────────────────────────────────
-dscrRouter.post("/optimize", validateBody(DealRequestSchema), async (req, res, next) => {
-  try {
-    const result = await runOptimize(req.body);
-    res.json(result);
-  } catch (err) {
-    next(err);
-  }
+// ── Loan Optimizer — fail closed pending model validation ────────────────────
+dscrRouter.post("/optimize", validateBody(DealRequestSchema), (_req, res) => {
+  res.status(503).json({
+    error:
+      "Structure recommendations are temporarily unavailable while payment schedules, rate units, and ranking criteria are independently validated.",
+    code: "TOOL_RELIABILITY_HOLD",
+  });
 });
 
 // ── State PPP / Prepay Rules — offloaded to Worker ───────────────────────────

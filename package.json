@@ -13,6 +13,7 @@
     "start": "node dist/server.cjs",
     "lint": "tsc --noEmit",
     "test": "vitest run",
+    "test:home-fidelity": "node scripts/check-home-contract.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {
