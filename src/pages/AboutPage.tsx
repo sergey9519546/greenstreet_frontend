@@ -841,9 +841,9 @@ export default function AboutPage({
             </span>
           </button>
 
-          {/* Card 2: Contact — anchor makes the phone number a real tap target */}
+          {/* Card 2: Booking — the business has not published a support phone number. */}
           <a
-            href="tel:+15550100000"
+            href="/book-demo"
             className="cta-card"
             style={{
               display: "flex",
@@ -883,7 +883,7 @@ export default function AboutPage({
                 alignSelf: "flex-start",
               }}
             >
-              +1 (555) 010-0000 →
+              Book a demo →
             </span>
           </a>
         </div>

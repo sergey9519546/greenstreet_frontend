@@ -613,7 +613,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
 
               {/* Disclaimer */}
               <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
-                Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Contact Greenstreet at +1 (555) 010-0000.
+                Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Book a demo for a live scenario review.
               </p>
             </div>
           </div>

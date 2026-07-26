@@ -687,7 +687,7 @@ export default function PortfolioPage({
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Contact Greenstreet at +1 (555) 010-0000.
+            Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Book a demo for a live scenario review.
           </p>
         </div>
       </section>

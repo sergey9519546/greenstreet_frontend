@@ -685,7 +685,7 @@ export default function StressMatrixPage({
                     {verdict.sub}
                     {stressZone === "DEAL_BREAK" || stressZone === "FRAGILE" ? (
                       <span style={{ display: "block", marginTop: 6, color: "rgba(238,239,211,0.4)", fontStyle: "italic", fontSize: 11 }}>
-                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, contact us at +1 (555) 010-0000.
+                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, book a demo.
                       </span>
                     ) : null}
                   </p>
@@ -903,7 +903,7 @@ export default function StressMatrixPage({
 
               {/* ── Compliance footnote ───────────────────────────────── */}
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.28)", marginTop: 18, lineHeight: 1.55, maxWidth: "60ch" }}>
-                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, contact Greenstreet Finance at +1 (555) 010-0000.
+                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, book a demo.
               </p>
             </div>
           </div>

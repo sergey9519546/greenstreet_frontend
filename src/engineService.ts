@@ -15,7 +15,21 @@ const workerPath = isProd
   ? path.join(process.cwd(), "dist", "engineWorker.cjs")
   : path.resolve("src", "engineWorker.ts");
 
-const WORKER_POOL_SIZE = process.env.WORKER_POOL_SIZE ? parseInt(process.env.WORKER_POOL_SIZE) : 4;
+// A Vercel function is already an isolated execution unit. Creating four
+// nested worker threads per warm instance wastes memory and requires a
+// dynamically addressed worker artifact. Keep the pool for long-lived Node
+// and Firebase runtimes, but use the synchronous deterministic engine on
+// Vercel unless an operator explicitly overrides the setting.
+function configuredWorkerPoolSize(): number {
+  const setting = process.env.WORKER_POOL_SIZE ?? (process.env.VERCEL ? "0" : "4");
+  return Number.parseInt(setting, 10) || 0;
+}
+
+const WORKER_POOL_SIZE = configuredWorkerPoolSize();
+
+function usesWorkerPool(): boolean {
+  return configuredWorkerPoolSize() > 0;
+}
 
 interface Task {
   id: string;
@@ -133,7 +147,7 @@ class WorkerPool {
 const pool = new WorkerPool(WORKER_POOL_SIZE);
 
 export function runSolveDSCR(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const { property, borrower, loan, strategy } = buildEngineInputs(payload);
       const deal = solveDSCR(property, borrower, loan, strategy);
@@ -146,7 +160,7 @@ export function runSolveDSCR(payload: any): Promise<any> {
 }
 
 export function runSensitivity(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const { property, borrower, loan, strategy } = buildEngineInputs(payload);
       const deal = solveDSCR(property, borrower, loan, strategy);
@@ -173,7 +187,7 @@ export function runSensitivity(payload: any): Promise<any> {
 }
 
 export function runOptimize(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const { property, borrower, loan, strategy } = buildEngineInputs(payload);
       const options = generateStructureOptions(property, borrower, loan, strategy);
@@ -186,7 +200,7 @@ export function runOptimize(payload: any): Promise<any> {
 }
 
 export function runStateRules(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const ppp = checkPPPLegal(
         payload.state,

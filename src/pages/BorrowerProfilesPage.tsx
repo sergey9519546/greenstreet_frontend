@@ -1005,7 +1005,7 @@ export default function BorrowerProfilesPage({
             </button>
           </div>
           <p style={{ fontSize: 12, color: "rgba(238,239,211,0.35)", marginTop: 16 }}>
-            Preliminary estimate only — not a commitment to lend. Contact +1 (555) 010-0000 for a full pre-qualification.
+            Preliminary estimate only — not a commitment to lend. Book a demo for a full pre-qualification.
           </p>
         </div>
       </section>

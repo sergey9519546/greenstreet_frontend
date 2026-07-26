@@ -74,11 +74,9 @@ const DISCLOSURES: LegalDoc = {
       id: "licensing",
       title: "7. Licensing & identity",
       paras: [
-        "Greenstreet Finance originates DSCR (Debt-Service Coverage Ratio) loans. These are business-purpose loans secured by investment properties and made to business entities and real estate investors — not consumer, owner-occupied, or personal/family/household-purpose mortgages.",
-        "The identifiers below are required for regulatory compliance and must be completed with Greenstreet Finance's actual, verified information before this page can be considered final — they are not yet filled in:",
-        "NMLS ID: [TODO — insert Greenstreet Finance NMLS ID]",
-        "Licensed in: [TODO — list licensed states]",
-        "Address: [TODO — insert business address]",
+        "Greenstreet tools are intended for business-purpose DSCR scenarios involving investment property. They are not an offer of consumer, owner-occupied, or personal/family/household-purpose mortgage financing.",
+        "This website does not publish an NMLS ID, a state-license list, or a business address. Do not treat the site as a representation that a product is available in any particular jurisdiction.",
+        "Before submitting an application or relying on a program, request Greenstreet Finance's current business identity, licensing information, and state availability directly through the booking flow.",
       ],
     },
     {

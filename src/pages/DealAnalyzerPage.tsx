@@ -388,7 +388,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
-            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Contact Greenstreet at +1 (555) 010-0000 for a formal quote.
+            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Book a demo for a formal quote.
           </p>
         </div>
       </section>

@@ -539,7 +539,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               See if your deal qualifies →
             </button>
             <a
-              href="tel:+15550100000"
+              href="/book-demo"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -556,7 +556,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 border: `1px solid rgba(238,239,211,0.3)`,
               }}
             >
-              Call +1 (555) 010-0000
+              Book a demo
             </a>
           </div>
         </div>

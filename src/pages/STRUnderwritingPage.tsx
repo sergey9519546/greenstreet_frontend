@@ -987,7 +987,7 @@ export default function STRUnderwritingPage({
                       : "is not permitted for qualifying in this state; the engine falls back to World 1 long-term-lease rent"}
                     . Selected scenario: <strong>{result.underwriting.bestWorld}</strong>,
                     qualifying rent used: <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.{" "}
-                    Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                    Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.
                   </div>
                 </>
               )}
@@ -996,7 +996,7 @@ export default function STRUnderwritingPage({
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Contact Greenstreet at +1 (555) 010-0000.
+            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Book a demo for a live scenario review.
           </p>
         </div>
       </section>

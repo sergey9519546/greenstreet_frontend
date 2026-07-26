@@ -271,7 +271,7 @@ function useMinWidth(minPx: number): boolean {
 function Disclaimer() {
   return (
     <p className="text-[10px] leading-relaxed" style={{ color: T.faint, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 10 }}>
-      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Contact us at +1 (555) 010-0000.
+      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Book a demo for a live scenario review.
     </p>
   );
 }

@@ -890,7 +890,7 @@ export default function TaxEnginePage({
                     <strong style={{ color: dc.lemon }}>Tax rules applied:</strong>{" "}
                     IRC §167 straight-line depreciation over 27.5 years · §469 passive-activity-loss rules (limited to $25K for incomes under $100K; phased out to $150K; suspended above unless you qualify as a real estate professional) · §1250 recapture at 25% on depreciation claimed · §1(h) long-term capital gains rates · §1411 net investment income tax 3.8%.{" "}
                     {result.disclaimer}{" "}
-                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Book a demo for a live scenario review.
                   </div>
                 </>
               )}

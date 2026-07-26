@@ -1336,7 +1336,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
             },
             {
               label: "Rates are illustrative",
-              body: "Rate ranges shown are indicative only and based on current Greenstreet program tiers. Final pricing depends on full underwriting. Call +1 (555) 010-0000 for a live scenario review.",
+              body: "Rate ranges shown are indicative only and based on current Greenstreet program tiers. Final pricing depends on full underwriting. Book a demo for a live scenario review.",
             },
           ].map((card) => (
             <div

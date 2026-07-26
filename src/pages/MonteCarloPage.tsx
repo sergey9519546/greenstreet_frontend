@@ -618,7 +618,7 @@ export default function MonteCarloPage({
                   κ={result.modelParameters.meanReversionSpeed} (reversion speed),
                   σ={result.modelParameters.volatility}% (volatility),
                   r₀={result.modelParameters.initialSOFR}% (starting rate).
-                  {" "}<em>Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.</em>
+                  {" "}<em>Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.</em>
                 </div>
               )}
             </div>
