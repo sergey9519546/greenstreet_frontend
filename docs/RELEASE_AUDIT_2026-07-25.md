@@ -165,9 +165,12 @@ Recommended change:
 ### 3. Intake delivery is configuration-dependent
 
 The scenario intake correctly fails closed and does not claim a successful
-delivery. It runs through a Firebase Function with managed Google credentials;
-Vercel proxies the same-origin browser request rather than storing a long-lived
-service-account key. Production still needs an end-to-end owner test proving:
+delivery. The preferred managed Firebase Function path cannot deploy while the
+Google Cloud billing account is closed. The release therefore uses a dedicated
+Firebase service account with the Firestore user role, stored only as an
+encrypted Vercel server secret. Rotate that key and prefer workload identity or
+managed runtime credentials when the infrastructure permits it. Production
+still needs an end-to-end owner test proving:
 
 - the lead is written to the intended project;
 - browsers cannot write the lead collection directly;
