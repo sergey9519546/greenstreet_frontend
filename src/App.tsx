@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 import QualifyWidget from "./components/QualifyWidget";
+import MarketingHome from "./marketing/MarketingHome";
 
 // Route module importers — the SINGLE source for both React.lazy and the idle
 // prefetch (warmAllRoutes) below. Each page is its own chunk (small initial
@@ -199,13 +200,11 @@ export default function App() {
     }
   };
 
-  // Hold the latest goTo + view in refs so the global click listener can be
+  // Hold the latest goTo in a ref so the global click listener can be
   // registered exactly once (below) instead of being torn down and re-added on
   // every render. Listener churn is a subtle source of double-handling.
   const goToRef = useRef(goTo);
   goToRef.current = goTo;
-  const viewRef = useRef(view);
-  viewRef.current = view;
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -217,12 +216,6 @@ export default function App() {
       if (!target) return;
       const anchor = target.closest("a") as HTMLAnchorElement | null;
       if (!anchor) return;
-      // On React (non-marketing) routes, ignore any anchor that lives inside the
-      // hidden Webflow marketing root. Those nav/footer links must never drive
-      // SPA navigation — they can't be user-clicked while hidden, and blocking
-      // them here stops the embedded marketing markup/scripts from hijacking
-      // routing on React pages (the V8 route-drift bug).
-      if (viewRef.current !== "marketing" && anchor.closest("#webflow-root")) return;
       if (anchor.target === "_blank") return;
       if (anchor.hasAttribute("data-external")) return;
       if (anchor.hasAttribute("download")) return;
@@ -254,52 +247,11 @@ export default function App() {
       document.body.style.color = "#003738";
     }
 
-    const isMarketing = view === "marketing";
-    if (isMarketing) {
+    if (view === "marketing") {
       document.documentElement.classList.remove("is-spa-route");
     } else {
       document.documentElement.classList.add("is-spa-route");
     }
-    const wfRoot = document.getElementById("webflow-root");
-    const reactRoot = document.getElementById("root");
-    if (wfRoot) {
-      wfRoot.style.display = isMarketing ? "block" : "none";
-      // Belt-and-suspenders: the hidden marketing root must not intercept
-      // pointer events or be reachable on React routes.
-      wfRoot.style.pointerEvents = isMarketing ? "" : "none";
-      wfRoot.setAttribute("aria-hidden", isMarketing ? "false" : "true");
-      wfRoot.hidden = !isMarketing;
-      (wfRoot as any).inert = !isMarketing;
-    }
-    if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
-
-    const w = window as any;
-    let startTimeoutId: ReturnType<typeof setTimeout> | undefined;
-    if (isMarketing) {
-      // Marketing DOM is now visible — (re)initialize its GSAP/Swiper layer.
-      startTimeoutId = setTimeout(() => {
-        try {
-          if (typeof w.initAnimations === "function") w.initAnimations();
-          if (typeof w.__gsStartMarketing === "function") w.__gsStartMarketing();
-        } catch (e) {
-          console.error("Failed to re-initialize marketing animations:", e);
-        }
-      }, 50);
-    } else {
-      // Leaving (or never entering) marketing: tear down ScrollTrigger /
-      // Swiper / intervals / handlers so the embedded Webflow scripts can't
-      // hijack scroll or history on React pages.
-      try {
-        if (typeof w.__gsStopMarketing === "function") w.__gsStopMarketing();
-      } catch (e) {
-        console.error("Failed to tear down marketing animations:", e);
-      }
-    }
-    // Cancel a still-pending 'start' timeout if `view` changes again (or the
-    // component unmounts) before it fires — otherwise a fast marketing →
-    // non-marketing transition lets the stale timeout re-run initAnimations()/
-    // __gsStartMarketing() against the now-hidden, inert Webflow root.
-    return () => { if (startTimeoutId !== undefined) clearTimeout(startTimeoutId); };
   }, [view]);
 
   const handleLoginClick = () => goTo("portal");
@@ -311,7 +263,7 @@ export default function App() {
   const renderPage = () => {
     switch (view) {
       case "marketing":
-        return null;
+        return <MarketingHome />;
       case "portal":
         return (
           <ComplianceDashboard
@@ -393,8 +345,7 @@ export default function App() {
         <Suspense fallback={null}>
           <PageRenderer />
         </Suspense>
-        {/* QualifyWidget overlays every view — modal + sticky pill */}
-        <QualifyWidget />
+        {view === "marketing" ? null : <QualifyWidget />}
       </div>
     </ErrorBoundary>
   );

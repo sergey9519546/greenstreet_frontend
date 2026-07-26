@@ -1,0 +1,11 @@
+{
+  "source": "index.html at origin/main@7d3274c",
+  "sha256": "61bd761d41afdaa7db27ed1076284440d17cd6b7aafd388f0500b27995cbc5a9",
+  "requiredMarkers": [
+    "class=\"page_wrap\"",
+    "class=\"nav-wrap\"",
+    "class=\"hero_wrap\"",
+    "class=\"footer_wrap\"",
+    "Greenstreet"
+  ]
+}
