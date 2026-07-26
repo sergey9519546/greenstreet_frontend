@@ -83,7 +83,7 @@ const STUDIES: Study[] = [
     challenge:
       "Discovering deals were marginal only after the appraisal was ordered. On paper the rent covered the payment. In reality, vacancy and management quietly pushed properties underwater on Track 2. Paying $3,000–7,000 per appraisal to get bad news that could have arrived on day one.",
     solution:
-      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit and funds in-house.",
+      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit, funded through our wholesale lending partner, Cake.",
     result:
       "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A foreign-national ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
     quote:
@@ -117,12 +117,12 @@ const AURORA_STORY = {
 
 const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
 
-// Logo map — only logos that exist under /img/logos/
-const LOGOS: Record<string, string> = {
-  "vela-capital": "/img/logos/cs-vela-capital.png",
-  "northshore-non-qm": "/img/logos/cs-northshore-nonqm.png",
-  "quintero-co": "/img/logos/cs-quintero-co.png",
-};
+// Logo map — only logos that exist under /img/logos/. Left empty: none of
+// these illustrative case studies have a real logo asset checked in, and the
+// render below is already gated on `LOGOS[s.slug]` being truthy, so an empty
+// map just skips the logo — no broken-image icon next to a disclosed
+// not-a-verified-named-customer case study.
+const LOGOS: Record<string, string> = {};
 
 // ── CSS for SVG stroke-draw animation ────────────────────────────────────────
 const CS_LINE_CSS = `

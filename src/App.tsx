@@ -10,7 +10,6 @@ import QualifyWidget from "./components/QualifyWidget";
 const routeModules = {
   ComplianceDashboard: () => import("./components/ComplianceDashboard"),
   DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
-  LenderIntelPage: () => import("./pages/LenderIntelPage"),
   StateLawsPage: () => import("./pages/StateLawsPage"),
   FAQPage: () => import("./pages/FAQPage"),
   BlogPage: () => import("./pages/BlogPage"),
@@ -47,7 +46,6 @@ function warmAllRoutes() {
 
 const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
 const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
-const LenderIntelPage = lazy(routeModules.LenderIntelPage);
 const StateLawsPage = lazy(routeModules.StateLawsPage);
 const FAQPage = lazy(routeModules.FAQPage);
 const BlogPage = lazy(routeModules.BlogPage);
@@ -124,7 +122,6 @@ function viewToPath(view: PageView): string {
     case "marketing":         return "/";
     case "portal":            return "/investgo";
     case "dscr-calculator":   return "/dscr-calculator";
-    case "lender-intel":      return "/lender-intel";
     case "state-laws":        return "/state-laws";
     case "deal-analyzer":     return "/deal-analyzer";
     case "borrower-profiles": return "/borrower-profiles";
@@ -277,9 +274,10 @@ export default function App() {
     if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
 
     const w = window as any;
+    let startTimeoutId: ReturnType<typeof setTimeout> | undefined;
     if (isMarketing) {
       // Marketing DOM is now visible — (re)initialize its GSAP/Swiper layer.
-      setTimeout(() => {
+      startTimeoutId = setTimeout(() => {
         try {
           if (typeof w.initAnimations === "function") w.initAnimations();
           if (typeof w.__gsStartMarketing === "function") w.__gsStartMarketing();
@@ -297,6 +295,11 @@ export default function App() {
         console.error("Failed to tear down marketing animations:", e);
       }
     }
+    // Cancel a still-pending 'start' timeout if `view` changes again (or the
+    // component unmounts) before it fires — otherwise a fast marketing →
+    // non-marketing transition lets the stale timeout re-run initAnimations()/
+    // __gsStartMarketing() against the now-hidden, inert Webflow root.
+    return () => { if (startTimeoutId !== undefined) clearTimeout(startTimeoutId); };
   }, [view]);
 
   const handleLoginClick = () => goTo("portal");
@@ -320,8 +323,6 @@ export default function App() {
         );
       case "dscr-calculator":
         return <DSCRCalculatorPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
-      case "lender-intel":
-        return <LenderIntelPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
         return <StateLawsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "faq":
@@ -376,7 +377,7 @@ export default function App() {
         return <PortfolioPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
-          window.location.href = "https://www.greenstreet.com";
+          window.location.href = "https://www.greenstreet.finance";
         }
         return null;
     }

@@ -1,12 +1,13 @@
 // Greenstreet DSCR program lineup — real underwriting parameters.
 //
-// Source: live DSCR eligibility matrices from Greenstreet's capital partner
-// (caketpo.com/products, DSCR tab), pulled 2026-06-24.
-// Partner name is NEVER surfaced to customers — Greenstreet underwrites
-// and funds these in-house.
+// Source: live DSCR eligibility matrices from Greenstreet's wholesale lending
+// partner, Cake (caketpo.com/products, DSCR tab), pulled 2026-06-24.
+// Greenstreet originates these programs under its own brand; the loans are
+// funded through our wholesale lending partner, Cake. This relationship is
+// disclosed to customers (see LegalPage + the site footer disclosure).
 //
 // Two data layers per program:
-//   Headline  — minFICO / maxLTV / maxLoan used by LenderIntelPage card filters
+//   Headline  — minFICO / maxLTV / maxLoan used by program card filters
 //   grid      — full FICO × loan-amount LTV table for Deal Analyzer / Rate Quiz
 
 // ---------------------------------------------------------------------------

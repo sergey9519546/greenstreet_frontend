@@ -119,13 +119,14 @@ export default function PortfolioPage({
         ...c,
         address: "",
         monthlyPITIA: c.pitia,
-        track2DSCR: c.dscr * 0.9,
+        loanBalance: c.balance,
+        track2DSCR: c.pitia > 0 ? (c.rent * (1 - 0.08 - 0.08 - 0.05)) / c.pitia : 0,
         isBlanket: false,
         purchasePrice: c.value,
         monthlyRent: c.rent,
       }));
       const borrower = buildEngineInputs({ purchasePrice: 400000, monthlyRent: 2800, state: "TX", ficoScore: 720 }).borrower;
-      return analyzePortfolio(enriched as any, null, borrower, 50000);
+      return analyzePortfolio(enriched, null, borrower, 50000);
     } catch {
       return null;
     }
@@ -191,6 +192,7 @@ export default function PortfolioPage({
       <style>{`
         .pf-in::-webkit-outer-spin-button,.pf-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .pf-in{width:68px;border:none;background:${dc.cream};outline:none;font-family:${dc.mono};color:${dc.dark};text-align:right;border-radius:5px;padding:6px 8px;font-size:13px;font-weight:600;}
+        .pf-in:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
         .pf-row:hover{background:rgba(0,55,56,0.03);}
         .dc-nav a{color:rgba(0,55,56,0.72) !important;}
         .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
@@ -357,7 +359,7 @@ export default function PortfolioPage({
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
               <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Apply with confidence</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                This blended view is what Greenstreet's blanket underwriter builds. Submit it with your application — no guesswork, no surprises. Blanket lines to $25M.
+                This blended view is what Greenstreet's blanket underwriter builds. Submit it with your application — no guesswork, no surprises. Blanket structures available.
               </p>
             </div>
           </div>
@@ -511,6 +513,7 @@ export default function PortfolioPage({
                         <td style={{ padding: "11px 14px", borderBottom: `1px solid ${dc.faded}` }}>
                           <button
                             onClick={() => removeRow(c.id)}
+                            aria-label={`Remove ${c.name || "property"}`}
                             style={{ background: "none", border: "1px solid rgba(211,47,47,0.35)", color: "#d32f2f", borderRadius: dc.r.sm, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: dc.sans }}
                           >
                             ×
@@ -684,7 +687,7 @@ export default function PortfolioPage({
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Contact Greenstreet at +1 (555) 010-0000.
+            Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Book a demo for a live scenario review.
           </p>
         </div>
       </section>

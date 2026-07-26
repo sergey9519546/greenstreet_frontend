@@ -2,11 +2,20 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
 const AS_OF = "Jun 25, 2026";
+// Computed rather than hardcoded so the "next review" promise can't silently
+// lapse the way a fixed date does — bump AS_OF and this follows automatically.
+const REVIEW_CADENCE_DAYS = 27;
+function reviewDateAfter(base: string, days: number): string {
+  const d = new Date(base);
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+const NEXT_REVIEW = reviewDateAfter(AS_OF, REVIEW_CADENCE_DAYS);
 
 // Source attribution per answer — refreshed 2026-06-25.
 // Each `src` is the primary source a curious reader (or AI search engine) can verify.
 // Groups: Basics, Qualification, Income & Property, Refinance, Compliance & Regulatory
-const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: string; action: "calculator" | "qualify" | "state-laws" | "lender-intel" } }[] = [
+const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: string; action: "calculator" | "qualify" | "state-laws" } }[] = [
   // ── GROUP: The basics ─────────────────────────────────────────────────────────
   {
     group: "The basics",
@@ -57,20 +66,20 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "What credit score do I need?",
-    a: "Greenstreet's Core program requires 660+. The Flex program goes to 640 with compensating factors. Going from 660 to 740+ can save 0.75–1.50% in rate and unlock the Premier tier. ITIN borrowers and foreign nationals without a U.S. Social Security Number qualify on the Global program.",
+    a: "Greenstreet's programs start at 620 FICO (Maple and Birch); Cedar and Aspen open at 640, and Oak, Willow, and Magnolia at 660. Higher credit unlocks better leverage and pricing — moving from 660 to 740+ can save roughly 0.75–1.50% in rate and reach the best-priced tier (740+ FICO at 75% LTV). ITIN borrowers and foreign nationals without a U.S. Social Security Number qualify on the Maple, Aspen, Willow, and Magnolia programs, which carry foreign-national paths.",
     src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
   },
   {
     group: "Qualification",
     q: "How much do I need to put down?",
-    a: "The standard minimum is 20% down (80% LTV — how the loan amount compares to the property value). Greenstreet prices its best rates at 75% LTV (25% down). A strong file (740+ FICO, DSCR at or above 1.0, SFR purchase) accesses the Premier tier at that level. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
+    a: "The standard minimum is 20% down (80% LTV — how the loan amount compares to the property value). Greenstreet prices its best rates at 75% LTV (25% down). A strong file (740+ FICO, DSCR at or above 1.0, SFR purchase) reaches the best-priced tier at that level. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
     src: "Greenstreet lender matrix · Apr 2026",
   },
   {
     group: "Qualification",
     q: "How much cash do I need to keep in the bank after closing?",
-    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). At DSCR 1.25 or above: 3 months. At 1.00–1.24: 3–6 months. At 0.75–0.99: 9–12 months. Overlays add extra months for: short-term rentals (+3), condos (+3), credit score below 680 (+3), first-time investors (+3), loans above $1M (+6), foreign nationals (+6). These stack. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
-    src: "Greenstreet reserveEngine.ts · 5-overlay model",
+    a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). Greenstreet's general reserve estimate starts from a DSCR-tiered base: at DSCR 1.25 or above, 3–6 months; at 1.00–1.24, 6–9 months; at 0.75–0.99, 9–12 months; below 0.75, 12 months. On top of that, overlays can add extra months for: short-term rental strategy (+3), credit score below 680 (+3, or +6 below 640), first-time investors (+3), loans above $1M (+3), foreign nationals (+6), LTV above 80% (+1), and California properties (+6, applied to every DSCR tier). Everything is capped at 12 months total. This is a general estimate — the specific program you qualify for may set its own reserve minimum (see that program's page), which governs your actual file. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
+    src: "Greenstreet reserveEngine.ts · DSCR-tiered base + overlay model",
   },
   {
     group: "Qualification",
@@ -81,8 +90,8 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "Can a foreign national or ITIN borrower get a DSCR loan?",
-    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Foreign nationals with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
-    src: "Greenstreet Global program matrix · FIRPTA IRC §897 · Q2 2026",
+    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Foreign nationals with no U.S. credit qualify on Greenstreet's foreign-national programs — Maple, Aspen, Willow, and Magnolia. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
+    src: "Greenstreet foreign-national programs (Maple / Aspen / Willow / Magnolia) · FIRPTA IRC §897 · Q2 2026",
     cta: { label: "See if your file qualifies →", action: "qualify" },
   },
   {
@@ -185,11 +194,10 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
 
 // Resolve a CTA action to the correct navigation target
 function useFaqCtaHandler(onNavigate: (v: string) => void) {
-  return (action: "calculator" | "qualify" | "state-laws" | "lender-intel") => {
+  return (action: "calculator" | "qualify" | "state-laws") => {
     if (action === "qualify") { (window as any).openQualify?.(); return; }
     if (action === "calculator") { onNavigate("dscr-calculator"); return; }
     if (action === "state-laws") { onNavigate("state-laws"); return; }
-    if (action === "lender-intel") { onNavigate("lender-intel"); return; }
   };
 }
 
@@ -457,7 +465,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             Reviewed
           </span>
           <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
-            All answers reviewed {AS_OF} · sources inline · next review Jul 22, 2026
+            All answers reviewed {AS_OF} · sources inline · next review {NEXT_REVIEW}
           </span>
         </div>
       </section>
@@ -531,7 +539,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               See if your deal qualifies →
             </button>
             <a
-              href="tel:+15550100000"
+              href="/book-demo"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -548,7 +556,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 border: `1px solid rgba(238,239,211,0.3)`,
               }}
             >
-              Call +1 (555) 010-0000
+              Book a demo
             </a>
           </div>
         </div>

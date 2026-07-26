@@ -238,6 +238,7 @@ export default function RefiTrackerPage({
       <style>{`
         .rt-num::-webkit-outer-spin-button,.rt-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .rt-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:#eeefd3;letter-spacing:-0.02em;}
+        .rt-num:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
       `}</style>
 
       {/* ── HERO — dark background (matches mockup #002423) ── */}

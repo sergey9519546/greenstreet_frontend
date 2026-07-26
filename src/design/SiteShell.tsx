@@ -25,7 +25,6 @@ const NAV_MENUS: NavMenu[] = [
       { label: INVESTGO_LABEL, view: "portal", path: "/investgo" },
       { label: "Platform", path: "/products/platform" },
       { label: "DSCR Calculator", view: "dscr-calculator", path: "/dscr-calculator" },
-      { label: "Our DSCR Programs", view: "lender-intel", path: "/lender-intel" },
       { label: "State Regulations", view: "state-laws", path: "/state-laws" },
       { label: "Deal Analyzer", view: "deal-analyzer", path: "/deal-analyzer" },
       { label: "Borrower Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
@@ -287,7 +286,7 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <div className="footer_group_list u-grid-column-2">
                 <a className="footer_link_wrap w-inline-block" href="/dscr-calculator" onClick={go("dscr-calculator")}><div className="footer_link_text u-weight-bold">DSCR Calculator</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/deal-analyzer" onClick={go("deal-analyzer")}><div className="footer_link_text u-weight-bold">Deal Analyzer</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={go("lender-intel")}><div className="footer_link_text u-weight-bold">Our DSCR Programs</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/products" onClick={go("products")}><div className="footer_link_text u-weight-bold">DSCR Loan Programs</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={go("state-laws")}><div className="footer_link_text u-weight-bold">State Regulations</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">DSCR Borrower Profiles</div></a>
               </div>
@@ -331,7 +330,12 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
         </div>
         <div className="footer_bottom_wrap">
           <div className="footer_bottom_contain u-container">
-            <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved.</div>
+            <div>
+              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved. Greenstreet DSCR loans are funded through our wholesale lending partner, Cake (caketpo.com). Business-purpose loans only; not a commitment to lend.</div>
+              <div className="footer_bottom_text" style={{ marginTop: 6 }}>
+                Greenstreet Finance is an <strong>Equal Housing Lender</strong>. We do not discriminate on any basis prohibited by the Equal Credit Opportunity Act (ECOA) or the Fair Housing Act.
+              </div>
+            </div>
             <div className="footer_bottom_list">
               <a className="footer_bottom_link_wrap w-inline-block" href="/privacy-policy" onClick={goPath("/privacy-policy")}><div className="footer_bottom_link_text u-text-style-small">Privacy Policy</div></a>
               <a className="footer_bottom_link_wrap w-inline-block" href="/terms-of-service" onClick={goPath("/terms-of-service")}><div className="footer_bottom_link_text u-text-style-small">Terms of Service</div></a>

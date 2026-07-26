@@ -1,3 +1,4 @@
+import "dotenv/config"; // load .env for local dev — nothing else loads it (tsx doesn't)
 import path from "path";
 import dns from "node:dns";
 import express from "express";
@@ -56,5 +57,12 @@ async function startServer() {
   process.on("SIGINT",  () => shutdown("SIGINT"));
 }
 
-startServer();
+process.on("unhandledRejection", (reason) => {
+  logger.error({ reason }, "Unhandled promise rejection");
+});
+
+startServer().catch((err) => {
+  logger.error({ err }, "Fatal: server failed to start");
+  process.exit(1);
+});
 

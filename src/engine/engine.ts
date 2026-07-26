@@ -403,6 +403,15 @@ function buildVerdict(track1: DSCRTrack, track2: DSCRTrack): DualTrackVerdict {
 // PITIA CALCULATION (Section 5.3)
 // ============================================================
 
+/**
+ * UNIT CONVENTION (bug audit #1 — FLOOD-INSURANCE UNIT MISMATCH):
+ *   annualTaxes / annualInsurance are ANNUAL figures → divided by 12 below.
+ *   hoa and floodInsurance are both already MONTHLY (matches DealRequest.hoa /
+ *   DealRequest.floodInsurance in inputs.ts, and irrWaterfall.ts's ×12
+ *   annualization of both) — they are used AS-IS, never divided by 12.
+ *   Previously floodInsurance was wrongly divided by 12 here as if it were
+ *   annual, understating flood cost ~12x and inflating the gating Track-1 DSCR.
+ */
 export function calculatePITIA(
   loanAmount: number,
   rate: number,
@@ -411,7 +420,7 @@ export function calculatePITIA(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see unit convention above)
   mortgageInsurance: number = 0,
 ): PITIABreakdown {
   const termMonths = termYears * 12;
@@ -430,7 +439,8 @@ export function calculatePITIA(
 
   const taxes = annualTaxes / 12;
   const insurance = annualInsurance / 12;
-  const flood = floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY — do NOT divide by 12.
+  const flood = floodInsurance;
   const mi = mortgageInsurance;
 
   const total = pi + taxes + insurance + hoa + flood + mi;
@@ -464,10 +474,11 @@ export function solveDealBreakRate(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see calculatePITIA unit convention)
 ): number {
   // Target: P&I = qualifyingRent - fixedExpenses (for DSCR = 1.0)
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY (like hoa) — do NOT divide by 12.
+  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const targetPI = qualifyingRent - fixedExpenses;
 
   if (targetPI <= 0) return 0; // Impossible: fixed expenses exceed income
@@ -510,19 +521,25 @@ export function solveMaxPurchasePrice(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see calculatePITIA unit convention)
   targetDSCR: number = 1.0,
 ): number {
   // Max PITIA = qualifyingRent / targetDSCR
   const maxPITIA = qualifyingRent / targetDSCR;
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY — do NOT divide by 12.
+  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const maxPI = maxPITIA - fixedExpenses;
 
   if (maxPI <= 0) return 0;
 
   const termMonths = termYears * 12;
-  const factor = calculatePaymentFactor(rate, termMonths);
-  const maxLoan = maxPI / factor;
+  // IO qualification: payment = loanAmount * rate/12, so maxLoan = maxPI * 12 / rate.
+  // Mirrors solveDealBreakRate's IO branch — previously ioPeriod was accepted but ignored,
+  // understating max price for interest-only loans.
+  const ioYears = ioPeriod === 'NONE' ? 0 : parseInt(ioPeriod) || 0;
+  const maxLoan = ioYears > 0 && rate > 0
+    ? (maxPI * 12) / (rate / 100)
+    : maxPI / calculatePaymentFactor(rate, termMonths);
   const maxPrice = maxLoan / (ltv / 100);
 
   return Math.round(maxPrice);
@@ -538,7 +555,7 @@ export function solveMinDownPayment(
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — forwarded to solveMaxPurchasePrice unchanged
   targetDSCR: number = 1.0,
 ): { minDown: number; additionalDown: number } {
   const maxPrice = solveMaxPurchasePrice(
@@ -938,7 +955,7 @@ export function solveDSCR(
   );
 
   // Reserve estimation (simplified — full engine in reserveEngine.ts)
-  const reserveMonths = estimateReserveMonths(dscr, strategy, borrower, loan);
+  const reserveMonths = estimateReserveMonths(dscr, strategy, borrower, loan, loanAmount);
   const reserveMonthsConservative = Math.min(reserveMonths + 3, 12);
   const furnishingBudget = strategy === 'STR' ? 5000 : 0;
   const closingCostPct = 0.03;
@@ -976,14 +993,38 @@ export function solveDSCR(
 }
 
 // ============================================================
-// RESERVE ESTIMATION (simplified — full in reserveEngine.ts)
+// RESERVE ESTIMATION (simplified — full scenario/haircut engine in
+// reserveEngine.ts's computeReserveScenarios)
 // ============================================================
-
-function estimateReserveMonths(
+//
+// v11.14 FIX (audit finding): this function feeds calculateCashToClose for
+// every live DSCR result, but was missing two overlays that the fully-spec'd
+// reserveEngine.ts (src/engine/reserveEngine.ts computeOverlays()) applies:
+//   - low-FICO overlay (FICO < 640 → +6mo; FICO 640-679 → +3mo)
+//   - loan-amount overlay (loan > $1M → +3mo)
+// Both are now applied here, using the SAME months-added values as
+// reserveEngine.ts's computeOverlays(), so the simplified inline estimate and
+// the fully-built scenario engine agree on overlay magnitudes. Unlike
+// reserveEngine.ts (which has no direct loan-amount input and must infer one
+// from monthly PITIA), this function has the real solved loanAmount in scope,
+// so it applies the >$1M test against the actual loan amount rather than an
+// estimate.
+//
+// NOTE (out of scope for this fix): reserveEngine.ts's own overlay table does
+// NOT match the public FAQ copy (FAQPage.tsx) in two respects — FAQ advertises
+// a single "FICO < 680 → +3" overlay (reserveEngine.ts actually splits this
+// into <640 → +6 / 640-679 → +3) and "loans > $1M → +6" (reserveEngine.ts
+// uses +3). FAQ also advertises a "condos → +3" overlay that neither
+// reserveEngine.ts nor this function implements (no property-type input is
+// threaded into either overlay calculation). Those are pre-existing
+// FAQ/reserveEngine.ts spec mismatches, not something introduced or corrected
+// by this change; flagged here for a follow-up audit item.
+export function estimateReserveMonths(
   dscr: number,
   strategy: RentalStrategy,
   borrower: BorrowerProfile,
   loan: LoanStructure,
+  loanAmount: number,
 ): number {
   let months = 6;
   if (dscr >= 1.25) months = 3;
@@ -991,9 +1032,12 @@ function estimateReserveMonths(
   else if (dscr >= 0.75) months = 9;
   else months = 12;
 
-  // Overlays
+  // Overlays (kept in sync with reserveEngine.ts's computeOverlays())
   if (strategy === 'STR') months += 3;
+  if (borrower.ficoScore < 640) months += 6;
+  else if (borrower.ficoScore < 680) months += 3;
   if (borrower.experience === 'FIRST_TIME') months += 3;
+  if (loanAmount > 1_000_000) months += 3;
   if (borrower.isForeignNational) months += 6;
   if (loan.ltv > 80) months += 1;
 

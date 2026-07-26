@@ -1,16 +1,25 @@
 {
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "dist/{vercel,engineWorker}.cjs"
+    }
+  },
   "rewrites": [
     {
+      "source": "/api",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/api/index.js"
     },
     {
       "source": "/health",
-      "destination": "/api/index.ts"
+      "destination": "/api/index.js"
     },
     {
       "source": "/(.*)",
-      "destination": "/$1"
+      "destination": "/index.html"
     }
   ]
 }

@@ -4,7 +4,8 @@ import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifac
 
 // ── Audience segments ─────────────────────────────────────────────────────────
 // Audience: real estate investors, foreign nationals, STR/Airbnb, portfolio
-// builders. We ARE the lender AND the broker — direct to investors.
+// builders. Greenstreet originates direct to investors; loans are funded
+// through our wholesale lending partner, Cake.
 interface Segment {
   tag: string;
   title: string;
@@ -66,7 +67,7 @@ const SEGMENTS: Segment[] = [
     tag: "Portfolio builders",
     title: "One blended view of all your doors",
     desc:
-      "When you own 10+ properties, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket underwriter actually evaluates your book. Blanket and multi-property lines to $25M, single application.",
+      "When you own 10+ properties, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket underwriter actually evaluates your book. Blanket and multi-property structures, single application.",
     cta: "Build my portfolio view →",
     view: "portfolio",
     panelBg: dc.rain,
@@ -76,7 +77,7 @@ const SEGMENTS: Segment[] = [
     statBg: dc.teal,
     dscrPreview: 1.49,
     stats: [
-      { v: "$25M", k: "blanket line capacity" },
+      { v: "$3.5M", k: "max per-note loan size" },
       { v: "1.49×", k: "blended DSCR example" },
       { v: "40+", k: "doors modeled" },
       { v: "1", k: "application" },
@@ -365,7 +366,7 @@ export default function SolutionsPage({
               margin: 0,
             }}
           >
-            Greenstreet is the lender — no middlemen, no broker portals. Whether
+            Greenstreet originates your loan directly — no middlemen, no broker shopping. Whether
             you're closing your first rental, running a short-term rental on
             Airbnb, building a portfolio of 40 doors, or stress-testing an ARM
             reset, every product runs off the same deterministic underwriting

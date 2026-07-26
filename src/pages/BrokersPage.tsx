@@ -27,7 +27,7 @@ const USECASES: UseCase[] = [
     title: "Match the right Greenstreet program before your first call",
     desc: "Your file is scored against every Greenstreet DSCR program: FICO floors, LTV caps (how the loan amount compares to the property value — lower = more equity = better terms), DSCR minimums, state coverage and entity rules — ranked by fit score. Know which program funds your deal before you make an offer.",
     cta: "Find the best program for my file",
-    view: "lender-intel",
+    view: "products",
     numBg: dc.dark,
     numInk: dc.lemon,
   },
@@ -80,7 +80,6 @@ export default function BrokersPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
@@ -133,7 +132,7 @@ export default function BrokersPage({
               <br />
               We underwrite
               <br />
-              and fund it.
+              your deal.
             </H1>
             <Lead
               style={{
@@ -142,10 +141,11 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Greenstreet is the broker and the lender — direct to you. Five tools
-              price, qualify, and stress-test your DSCR rental deal — no income
-              docs, no income tax returns, no middleman. Price a deal in under 60
-              seconds, then we fund it in-house.
+              Greenstreet originates direct to you. Five tools price, qualify,
+              and stress-test your DSCR rental deal — no income docs, no income
+              tax returns, no middleman. Price a deal in under 60 seconds; we
+              underwrite in-house and fund through our wholesale lending partner,
+              Cake.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Btn
@@ -213,7 +213,7 @@ export default function BrokersPage({
               >
                 {[
                   { label: "1–4 Unit Standard", spec: "≥1.00x DSCR" },
-                  { label: "Portfolio / Blanket", spec: "to $25M" },
+                  { label: "Portfolio / Blanket", spec: "multi-door notes" },
                   { label: "Foreign National", spec: "30%+ down" },
                   { label: "STR / Airbnb", spec: "ADR × occ" },
                   { label: "Sub-1.0", spec: "≥0.75x DSCR" },
@@ -471,7 +471,7 @@ export default function BrokersPage({
                 margin: "0 0 16px",
               }}
             >
-              Ready to place your next file?
+              Ready to submit your next deal?
             </h2>
             <p
               style={{

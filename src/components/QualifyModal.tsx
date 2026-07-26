@@ -15,7 +15,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
-import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange } from "../engine";
+import { quickDscrEstimate, qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
 import type {
   QuickDscrTier,
   QualifyPropertyType as PropertyType,
@@ -65,12 +65,52 @@ const FICO_TO_ENGINE: Record<FicoBand, EngineFicoBand> = {
   "760-plus": "760-plus",
 };
 
+// The property-state dropdown stores full state names (e.g. "Florida"), but
+// PPP_STATE_LAWS (statePppLaws.ts) is keyed by 2-letter postal codes (e.g.
+// "FL") — convert before lookup so PPP tier detection actually matches.
+const STATE_NAME_TO_CODE: Record<string, string> = {
+  Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
+  Colorado: "CO", Connecticut: "CT", Delaware: "DE", Florida: "FL", Georgia: "GA",
+  Hawaii: "HI", Idaho: "ID", Illinois: "IL", Indiana: "IN", Iowa: "IA",
+  Kansas: "KS", Kentucky: "KY", Louisiana: "LA", Maine: "ME", Maryland: "MD",
+  Massachusetts: "MA", Michigan: "MI", Minnesota: "MN", Mississippi: "MS",
+  Missouri: "MO", Montana: "MT", Nebraska: "NE", Nevada: "NV",
+  "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY",
+  "North Carolina": "NC", "North Dakota": "ND", Ohio: "OH", Oklahoma: "OK",
+  Oregon: "OR", Pennsylvania: "PA", "Rhode Island": "RI", "South Carolina": "SC",
+  "South Dakota": "SD", Tennessee: "TN", Texas: "TX", Utah: "UT", Vermont: "VT",
+  Virginia: "VA", Washington: "WA", "West Virginia": "WV", Wisconsin: "WI",
+  Wyoming: "WY",
+};
+
+// PPP tier for qualify(): 0 = clear, 2 = confirm-by-hand, 3 = restricted.
+// Derived from the engine's authoritative state-law data (statePppLaws.ts),
+// which qualify() expects via stateTier — it never parses the state string.
+function tierForState(state: string): number {
+  const code = STATE_NAME_TO_CODE[state] ?? state;
+  const law = PPP_STATE_LAWS[code?.toUpperCase?.() ?? ""];
+  if (!law) return 0;
+  switch (law.status) {
+    case "PROHIBITED":
+    case "PRACTICALLY_PROHIBITED":
+      return 3;
+    case "ENTITY_ONLY":
+    case "CONDITIONAL":
+    case "AMBIGUOUS":
+    case "ARM_RESTRICTED":
+      return 2;
+    default:
+      return 0;
+  }
+}
+
 // Build a QualifyInput from modal state (used by the result screen + payload).
 function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
   return {
     propertyType: s1.propertyType ?? "sfr",
     purpose: s2.purpose ?? "purchase",
     state: s2.state,
+    stateTier: tierForState(s2.state),
     value: s1.propertyValue,
     loanAmount: s1.loanAmount > 0 ? s1.loanAmount : s1.propertyValue * 0.75,
     rent: s1.rent,
@@ -160,7 +200,10 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
   }
 }
 
-function estimateRate(
+// Quick band-based rate QUOTE for the modal only. Deliberately named apart from
+// the engine's exported estimateRate(), which uses a different signature and
+// adjustment schedule — do not conflate the two.
+function estimateQuickRate(
   baseDSCR: number,
   ficoBand: FicoBand | null,
   purpose: Purpose | null
@@ -1148,7 +1191,7 @@ function Step3({
   const dscr = estimate.dscr;
   const col = dscrColor(dscr);
   const verdict = dscrVerdict(estimate.tier, step2.purpose);
-  const rate = estimateRate(dscr, step2.ficoBand, step2.purpose);
+  const rate = estimateQuickRate(dscr, step2.ficoBand, step2.purpose);
   const q = qualify(buildQualifyInput(step1, step2));
   const topLever = q.levers[0];
 
@@ -1434,6 +1477,7 @@ function Step4({
   onBack,
   onSubmit,
   submitting,
+  submissionError,
   headingId,
 }: {
   data: StepFourData;
@@ -1441,6 +1485,7 @@ function Step4({
   onBack: () => void;
   onSubmit: () => void;
   submitting: boolean;
+  submissionError: string | null;
   headingId: string;
 }) {
   const uid = useId();
@@ -1642,6 +1687,11 @@ function Step4({
           {submitting ? "Sending…" : "Send my scenario — get a specialist review →"}
         </button>
       </div>
+      {submissionError && (
+        <p role="alert" style={{ ...errorMsgStyle, marginTop: 12, marginBottom: 0 }}>
+          {submissionError}
+        </p>
+      )}
     </div>
   );
 }
@@ -1772,6 +1822,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     smsConsent: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -1882,10 +1933,11 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
 
   const handleSubmit = async () => {
     setSubmitting(true);
+    setSubmissionError(null);
     // Use engine math for the persisted payload (matches the displayed result)
     const estimate = quickDscrEstimate(step1.propertyValue, step1.rent, step1.rate);
     const verdict = dscrVerdict(estimate.tier);
-    const rateEstimate = estimateRate(estimate.dscr, step2.ficoBand, step2.purpose);
+    const rateEstimate = estimateQuickRate(estimate.dscr, step2.ficoBand, step2.purpose);
     const q = qualify(buildQualifyInput(step1, step2));
 
     const payload = {
@@ -1929,9 +1981,26 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         policyVersion: "2026-06",
       },
       page: typeof window !== "undefined" ? window.location.pathname : "/",
-      createdAt: new Date().toISOString(),
-      // TODO: production lead endpoint / CRM
+      // NOTE: field name must match firestore.rules `/leads` create rule,
+      // which requires `submittedAt` (not `createdAt`). Keep this in sync
+      // with firestore.rules so a delivered request is not rejected.
+      submittedAt: new Date().toISOString(),
     };
+
+    const firebaseConfigured = Boolean(
+      import.meta.env.VITE_FIREBASE_API_KEY &&
+      import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+      import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+      import.meta.env.VITE_FIREBASE_APP_ID
+    );
+
+    if (!firebaseConfigured) {
+      setSubmissionError(
+        "Secure request delivery is not configured yet. Your information was not sent; please try again later."
+      );
+      setSubmitting(false);
+      return;
+    }
 
     try {
       // Firebase is imported lazily so its ~524 kB client SDK is NOT pulled into
@@ -1942,21 +2011,19 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         import("firebase/firestore"),
       ]);
       await addDoc(collection(db, "leads"), payload);
+      setStep(5);
     } catch (err) {
-      console.warn(
-        "[QualifyModal] Firestore write failed, falling back to localStorage:",
+      // Do not store loan scenarios or contact details in a visitor's browser,
+      // and do not show a success state unless the business received the lead.
+      console.error(
+        "[QualifyModal] Firestore lead write failed; the lead was not delivered:",
         err
       );
-      try {
-        const existing = JSON.parse(localStorage.getItem("gs_leads") || "[]");
-        existing.push(payload);
-        localStorage.setItem("gs_leads", JSON.stringify(existing));
-      } catch (_) {
-        // localStorage unavailable — silently swallow
-      }
+      setSubmissionError(
+        "We could not securely deliver your request. Your information was not sent; please try again later."
+      );
     } finally {
       setSubmitting(false);
-      setStep(5);
     }
   };
 
@@ -2033,6 +2100,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             onBack={() => setStep(3)}
             onSubmit={handleSubmit}
             submitting={submitting}
+            submissionError={submissionError}
             headingId={headingId}
           />
         )}

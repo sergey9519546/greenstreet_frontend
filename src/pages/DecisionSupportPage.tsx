@@ -490,7 +490,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         Full deal analyzer →
                       </a>
                     </div>
-                    <p style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", margin: "10px 0 0" }}>Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.</p>
+                    <p style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", margin: "10px 0 0" }}>Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.</p>
                   </div>
                 </div>
 
@@ -590,7 +590,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                 <div style={{ padding: "14px 18px", background: "rgba(238,239,211,0.05)", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)", fontSize: 12, color: "rgba(238,239,211,0.55)", lineHeight: 1.6 }}>
                   <strong style={{ color: dc.emerald }}>How PROCEED is decided: </strong>
                   The engine checks DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) above the lender minimum with a small cushion, a second rent-coverage check at 1.0x, a return grade of B or better, at least 50 basis points of rate headroom before the deal breaks, no hard blockers, and at least one eligible Greenstreet program.{" "}
-                  Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting. Contact Greenstreet at +1 (555) 010-0000.
+                  Preliminary estimate — not a commitment to lend. Final terms subject to full underwriting. Book a demo for a live scenario review.
                 </div>
               </div>
             )}

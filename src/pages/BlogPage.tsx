@@ -64,7 +64,7 @@ export const POSTS = [
         "A — HOA dues (if applicable). Full monthly HOA included at face value.",
       ]},
       { h: "What counts as gross rent" },
-      { p: "For a standard long-term rental, lenders use the lower of: (1) the actual signed lease, or (2) the Form 1007 market rent from the appraisal. If there's no lease — vacant property, new acquisition — the 1007 rent stands on its own. That's why 63% of DSCR loans close without a signed lease: the appraisal rent is sufficient." },
+      { p: "For a standard long-term rental, lenders use the lower of: (1) the actual signed lease, or (2) the Form 1007 market rent from the appraisal. If there's no lease — vacant property, new acquisition — the 1007 rent stands on its own. That's why a significant share of DSCR loans close without a signed lease: the appraisal rent is sufficient." },
       { p: "For short-term rentals (Airbnb, VRBO), lenders typically use the lower of: the 1007 long-term rent, AirDNA projected income × 70–80%, or documented 12-month STR gross revenue. See our STR underwriting article for the full logic." },
       { h: "DSCR tiers and what they mean for your deal" },
       { list: [
@@ -624,7 +624,10 @@ export const POSTS = [
 
 // The grid posts (all except the featured one), in reverse-chron order
 const GRID_POSTS = POSTS.filter((p) => !p.featured);
-const FEATURED_POST = POSTS.find((p) => p.featured)!;
+// Fall back to the first post instead of asserting: a future content edit
+// that unmarks the featured post (or forgets to mark a replacement) should
+// degrade to "show the first post," not crash the /blog route.
+const FEATURED_POST = POSTS.find((p) => p.featured) ?? POSTS[0];
 
 // ── Tag filter list ───────────────────────────────────────────────────────────
 const ALL_TAGS = ["All", "Lending", "Tax", "Compliance", "Rates", "Underwriting", "STR", "Process", "Product"];
@@ -674,7 +677,7 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
+        { label: "Loan Programs", view: "products" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}
@@ -785,7 +788,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
       accent={BL_ACCENT}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
+        { label: "Loan Programs", view: "products" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Price a deal →", view: "dscr-calculator" }}

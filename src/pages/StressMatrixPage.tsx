@@ -29,6 +29,17 @@ const ZONE_ACCENT: Record<StressRiskZone, string> = {
   DEAL_BREAK:  "#ff6b6b",
 };
 
+// Per-zone corner glyph so the heatmap doesn't rely on hue discrimination
+// alone to tell zones apart — every zone gets a distinct symbol, not just the
+// two most severe.
+const ZONE_GLYPH: Record<StressRiskZone, string> = {
+  SAFE:        "✓",
+  COMFORTABLE: "◆",
+  MARGINAL:    "!",
+  FRAGILE:     "🔥",
+  DEAL_BREAK:  "🔥",
+};
+
 // ── Plain-English verdict copy ────────────────────────────────────────────────
 function verdictCopy(dscr: number, zone: StressRiskZone): { headline: string; sub: string } {
   if (zone === "SAFE")        return { headline: "Strong — rent easily covers all costs",        sub: "This scenario leaves a comfortable buffer above the lender's minimum." };
@@ -248,12 +259,14 @@ export default function StressMatrixPage({
       <style>{`
         .sm-num::-webkit-outer-spin-button,.sm-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .sm-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
+        .sm-num:focus-visible{outline:2px solid ${LEMON};outline-offset:2px;border-radius:3px;}
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;
           font-family:${dc.mono};font-size:9px;font-weight:700;}
         .sm-cell{display:block;width:100%;}
         /* Slider resets */
         .gs-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;
           border-radius:3px;outline:none;cursor:pointer;background:#003738;}
+        .gs-slider:focus-visible{outline:2px solid ${LEMON};outline-offset:4px;}
         .gs-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
           border-radius:50%;background:${LEMON};border:2px solid #003738;cursor:pointer;
           transition:transform .12s,box-shadow .12s;}
@@ -672,7 +685,7 @@ export default function StressMatrixPage({
                     {verdict.sub}
                     {stressZone === "DEAL_BREAK" || stressZone === "FRAGILE" ? (
                       <span style={{ display: "block", marginTop: 6, color: "rgba(238,239,211,0.4)", fontStyle: "italic", fontSize: 11 }}>
-                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, contact us at +1 (555) 010-0000.
+                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, book a demo.
                       </span>
                     ) : null}
                   </p>
@@ -754,8 +767,6 @@ export default function StressMatrixPage({
                                       const isHovered  = hoverCell !== null &&
                                         hoverCell.rateBps === offsetBps &&
                                         Math.abs(hoverCell.rentPct - cell.rentOffsetPct) < 0.001;
-                                      // danger zone: show flame indicator on high-risk cells
-                                      const isDanger = cell.riskZone === "DEAL_BREAK" || cell.riskZone === "FRAGILE";
                                       return (
                                         <td
                                           key={ci}
@@ -777,8 +788,8 @@ export default function StressMatrixPage({
                                         >
                                           <div className="sm-cell" style={cellStyle(cell.riskZone, isBaseCell, isHovered)}>
                                             {cell.track1DSCR.toFixed(2)}
-                                            {isDanger && !isBaseCell && !isHovered && (
-                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>🔥</span>
+                                            {!isBaseCell && !isHovered && (
+                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>{ZONE_GLYPH[cell.riskZone]}</span>
                                             )}
                                           </div>
                                         </td>
@@ -892,7 +903,7 @@ export default function StressMatrixPage({
 
               {/* ── Compliance footnote ───────────────────────────────── */}
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.28)", marginTop: 18, lineHeight: 1.55, maxWidth: "60ch" }}>
-                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, contact Greenstreet Finance at +1 (555) 010-0000.
+                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, book a demo.
               </p>
             </div>
           </div>

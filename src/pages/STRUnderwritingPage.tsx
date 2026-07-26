@@ -398,7 +398,6 @@ export default function STRUnderwritingPage({
       accent={TEAL}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lenders", view: "lender-intel" },
       ]}
       cta={{ label: "Underwrite STR →", onClick: scrollToTool }}
     >
@@ -988,7 +987,7 @@ export default function STRUnderwritingPage({
                       : "is not permitted for qualifying in this state; the engine falls back to World 1 long-term-lease rent"}
                     . Selected scenario: <strong>{result.underwriting.bestWorld}</strong>,
                     qualifying rent used: <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.{" "}
-                    Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                    Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.
                   </div>
                 </>
               )}
@@ -997,7 +996,7 @@ export default function STRUnderwritingPage({
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Contact Greenstreet at +1 (555) 010-0000.
+            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Book a demo for a live scenario review.
           </p>
         </div>
       </section>
@@ -1032,8 +1031,8 @@ export default function STRUnderwritingPage({
                 Get my rate →
               </a>
               <a
-                href="/lender-intel"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }}
+                href="/products"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("products"); }}
                 style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
               >
                 Browse STR programs

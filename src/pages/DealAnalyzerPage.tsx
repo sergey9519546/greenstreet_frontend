@@ -37,7 +37,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const dscr = pitia > 0 ? rent / pitia : 0;
   const cashFlow = rent - pitia;
   const noi = rent * 0.92 * 12 - tax - ins;
-  const capRate = (noi / price) * 100;
+  const capRate = price > 0 ? (noi / price) * 100 : 0;
   const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
   const ltv = 100 - down;
 
@@ -111,7 +111,6 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       accent={DA_ACCENT}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lenders", view: "lender-intel" },
       ]}
       cta={{ label: "Analyze a deal →", onClick: scrollToTool }}
     >
@@ -255,19 +254,19 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </p>
 
               {([
-                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16 },
-                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16 },
-                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16 },
-                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16 },
-                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16 },
+                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16, min: 1 },
+                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16, min: 0 },
+                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16, min: 0 },
+                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16, min: 0 },
+                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16, min: 0 },
+                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16, min: 0 },
+                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16, min: 0 },
               ] as const).map((f) => (
                 <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
                   <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>{f.label}</span>
                   <div className="da-field">
                     {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.prefix}</span>}
-                    <input className="da-num" type="number" step={f.step} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
+                    <input className="da-num" type="number" step={f.step} min={f.min} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
                     {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.suffix}</span>}
                   </div>
                 </label>
@@ -379,7 +378,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   </div>
                 ))}
                 <div style={{ marginTop: 14 }}>
-                  <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ fontSize: 13, fontWeight: 600, color: dc.rain, textDecoration: "none" }}>
+                  <a href="/products" onClick={(e) => { e.preventDefault(); onNavigate?.("products"); }} style={{ fontSize: 13, fontWeight: 600, color: dc.rain, textDecoration: "none" }}>
                     Full program matcher with FICO + LTV filters →
                   </a>
                 </div>
@@ -389,7 +388,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
-            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Contact Greenstreet at +1 (555) 010-0000 for a formal quote.
+            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Book a demo for a formal quote.
           </p>
         </div>
       </section>
@@ -409,7 +408,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, whiteSpace: "nowrap", minHeight: 44 }}>
                 Get my rate →
               </a>
-              <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, border: `1.5px solid ${swatch.midnightFaded}`, whiteSpace: "nowrap", minHeight: 44 }}>
+              <a href="/products" onClick={(e) => { e.preventDefault(); onNavigate?.("products"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, border: `1.5px solid ${swatch.midnightFaded}`, whiteSpace: "nowrap", minHeight: 44 }}>
                 Browse programs
               </a>
             </div>

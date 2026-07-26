@@ -75,7 +75,7 @@ export const dc = {
 const VIEW_HREF: Record<string, string> = {
   marketing: "/", portal: "/investgo",
   brokers: "/brokers", investors: "/investors", "borrower-profiles": "/borrower-profiles", "brokers-partner": "/partners",
-  "dscr-calculator": "/dscr-calculator", "lender-intel": "/lender-intel", "state-laws": "/state-laws",
+  "dscr-calculator": "/dscr-calculator", "state-laws": "/state-laws",
   "deal-analyzer": "/deal-analyzer", "decision-support": "/decision-support",
   faq: "/faq", blog: "/blog", "case-studies": "/case-studies", about: "/about", careers: "/careers",
   legal: "/legal", "rate-quiz": "/rate-quiz", products: "/products", solutions: "/solutions", "book-demo": "/book-demo",
@@ -128,7 +128,7 @@ export const DC_CSS = `
 // Scroll/entrance animation over a scope. Pages add className="gs-reveal" to sections,
 // id="gs-hero-content" to the hero column, and data-count="N" to count-up numbers.
 // Honors prefers-reduced-motion: numbers snap to final, sections stay fully visible.
-export function useDcGsap(scope: React.RefObject<HTMLElement>) {
+export function useDcGsap(scope: React.RefObject<HTMLElement | null>) {
   useGSAP(
     () => {
       const reduce = prefersReducedMotion();
@@ -212,6 +212,11 @@ export function DcFooter({ bg = MIDNIGHT }: { bg?: string } = {}) {
         <div style={{ fontSize: 20, fontWeight: 600, letterSpacing: "-0.04em", color: PISTACHIO }}>Greenstreet</div>
         <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
       </div>
+      <div style={{ maxWidth: dc.maxW, margin: "14px auto 0", fontSize: 11.5, lineHeight: 1.6, color: "rgba(238,239,211,0.45)" }}>
+        Greenstreet DSCR loans are funded through our wholesale lending partner, Cake (caketpo.com). Business-purpose
+        loans only; not a commitment to lend. Greenstreet Finance is an Equal Housing Lender and does not discriminate
+        on any basis prohibited by the Equal Credit Opportunity Act (ECOA) or the Fair Housing Act.
+      </div>
     </footer>
   );
 }
@@ -236,7 +241,22 @@ export function Btn({ label, onClick, href, variant = "primary", style }: { labe
   return (
     <div className="btn_main_wrap" data-wf--btn-main--style={variant} style={{ display: "inline-block", ...style }}>
       <div className="g_clickable_wrap">
-        <a className="g_clickable_link w-inline-block" {...(href !== undefined ? { href } : {})} onClick={onClick}><span className="g_clickable_text u-sr-only">{label}</span></a>
+        <a
+          className="g_clickable_link w-inline-block"
+          {...(href !== undefined
+            ? { href }
+            : {
+                role: "button" as const,
+                tabIndex: 0,
+                onKeyDown: (e: React.KeyboardEvent) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onClick?.(e as unknown as React.MouseEvent);
+                  }
+                },
+              })}
+          onClick={onClick}
+        ><span className="g_clickable_text u-sr-only">{label}</span></a>
       </div>
       <div className="btn_main_text" onClick={onClick}>{label}</div>
       <div className="btn-arrow-wrap">

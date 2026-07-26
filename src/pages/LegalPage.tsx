@@ -56,14 +56,32 @@ const DISCLOSURES: LegalDoc = {
     },
     {
       id: "lenders",
-      title: "5. Program information",
+      title: "5. Program information & funding partner",
       paras: [
-        "Greenstreet program parameters shown in the tools reflect current guidelines and are updated periodically. They are indicative, not commitments. Final terms are set by Greenstreet Finance after full underwriting.",
+        "Greenstreet program parameters shown in the tools reflect current guidelines and are updated periodically. They are indicative, not commitments. Final terms are set after full underwriting.",
+        "Greenstreet Finance originates its DSCR loan programs under its own brand. These loans are funded through Greenstreet's wholesale lending partner, Cake (caketpo.com). Program guidelines, eligibility matrices, and pricing shown on this site are based on that partner's published DSCR programs and are subject to change.",
+      ],
+    },
+    {
+      id: "fair-lending",
+      title: "6. Fair lending & Equal Housing",
+      paras: [
+        "Greenstreet Finance is an Equal Housing Lender. We do not discriminate against any applicant on the basis of race, color, religion, national origin, sex, marital status, age, disability, or any other basis prohibited by the Equal Credit Opportunity Act (ECOA) or the Fair Housing Act.",
+        "This commitment applies to all Greenstreet Finance lending activity, marketing, and borrower communications, regardless of loan program.",
+      ],
+    },
+    {
+      id: "licensing",
+      title: "7. Licensing & identity",
+      paras: [
+        "Greenstreet tools are intended for business-purpose DSCR scenarios involving investment property. They are not an offer of consumer, owner-occupied, or personal/family/household-purpose mortgage financing.",
+        "This website does not publish an NMLS ID, a state-license list, or a business address. Do not treat the site as a representation that a product is available in any particular jurisdiction.",
+        "Before submitting an application or relying on a program, request Greenstreet Finance's current business identity, licensing information, and state availability directly through the booking flow.",
       ],
     },
     {
       id: "liability",
-      title: "6. Limitation of liability",
+      title: "8. Limitation of liability",
       paras: [
         'Greenstreet is provided "as is." To the maximum extent permitted by law, Greenstreet Finance is not liable for losses arising from reliance on tool outputs. Your use confirms acceptance of these terms.',
       ],

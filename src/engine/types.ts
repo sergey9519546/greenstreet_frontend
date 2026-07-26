@@ -10,10 +10,10 @@ export interface PropertyInputs {
   marketRent: number;       // 1007/1025 appraiser market rent
   strProjectedRent: number; // AirDNA or projected STR gross
   strDocumentedRent: number; // 12-month actual STR history
-  hoa: number;
-  annualTaxes: number;
-  annualInsurance: number;
-  floodInsurance: number;
+  hoa: number;                // MONTHLY
+  annualTaxes: number;        // ANNUAL
+  annualInsurance: number;    // ANNUAL
+  floodInsurance: number;     // MONTHLY (bug audit #1 — do not divide by 12; see calculatePITIA)
   propertyType: PropertyType;
   state: string;
   unitCount: number;        // 1, 2, 3, or 4
@@ -176,7 +176,7 @@ export interface PPPStateLaw {
   reason: string;
   details: string;
   entityRestrictions?: EntityType[];
-  loanThreshold?: number;           // e.g., PA $329,411 for 1-2 unit
+  loanThreshold?: number;           // e.g., PA $319,777 for 1-2 unit (2026)
   thresholdIsIndexed?: boolean;     // PA/OH thresholds adjust annually
   thresholdYear?: number;           // 2026
   armRestriction?: boolean | 'UNVERIFIED';
@@ -216,7 +216,7 @@ export interface PITIABreakdown {
   taxes: number;
   insurance: number;
   hoa: number;
-  floodInsurance: number;
+  floodInsurance: number; // monthly (passthrough — see calculatePITIA unit convention)
   mortgageInsurance: number; // rare for DSCR
   total: number;
   // ITIA variant for IO
@@ -402,7 +402,6 @@ export interface StructureOption {
   prepayPenalty: string;
   prepaySchedule: PrepayPenaltySchedule;
   totalCostOfCapital: number;
-  bestLender: string;
   tags: string[];
   pppAllowed: boolean;
   pppStateNote: string;

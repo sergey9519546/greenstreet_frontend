@@ -12,7 +12,7 @@ const BENEFITS = [
   {
     icon: "02",
     title: "Submit to underwriting",
-    desc: "Once your deal matches a program, send it straight to underwriting from the same screen — we are the lender. No copy-paste, no portal-hop.",
+    desc: "Once your deal matches a program, send it straight to underwriting from the same screen — Greenstreet underwrites in-house, funded through our wholesale lending partner, Cake. No copy-paste, no portal-hop.",
   },
   {
     icon: "03",
@@ -36,25 +36,29 @@ const BENEFITS = [
   },
 ];
 
-// ── Testimonials — role/company attribution only; no fabricated NMLS or hard stats ──
+// ── Testimonials — illustrative composites (same policy as CaseStudiesPage):
+// role-only attribution, no invented named individuals or companies. Replace
+// with verified, permissioned quotes before presenting as real endorsements.
+const TESTIMONIALS_DISCLAIMER =
+  "Illustrative composite quotes reflecting common user feedback — not attributed to verified named individuals.";
 const TESTIMONIALS = [
   {
     quote:
-      "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it — lower down payment, IO for year one. We closed in 19 days.",
-    name: "Alex Stickelman",
-    role: "CCO & COO, Vela Capital",
+      "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it — lower down payment, IO for year one.",
+    name: "Fund operations lead",
+    role: "Illustrative composite",
   },
   {
     quote:
       "The program match and state-rule checks mean I stopped second-guessing my quotes. I price the deal and move on.",
-    name: "Sandra Rivera",
-    role: "Real Estate Investor, Miami FL",
+    name: "Real estate investor, Florida",
+    role: "Illustrative composite",
   },
   {
     quote:
-      "I run eight loans through Greenstreet a week. The CCO actually likes the audit logs — that's new for us.",
-    name: "Robert Hayes",
-    role: "Buy-and-Hold Investor, Austin TX",
+      "I run multiple loans through Greenstreet a week. The compliance team actually likes the audit logs — that's new for us.",
+    name: "Buy-and-hold investor, Texas",
+    role: "Illustrative composite",
   },
 ];
 
@@ -135,7 +139,7 @@ export default function BrokersPortalPage({
 
             {/* Purpose line */}
             <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-              InvestGO is your investor workspace where your priced deals live between sessions. Save a DSCR scenario, come back tomorrow, and Greenstreet underwrites and funds it in-house — all without re-entering data.
+              InvestGO is your investor workspace where your priced deals live between sessions. Save a DSCR scenario, come back tomorrow, and Greenstreet underwrites it in-house — funded through our wholesale lending partner, Cake — all without re-entering data.
             </div>
 
             {/* Sub */}
@@ -446,6 +450,9 @@ export default function BrokersPortalPage({
                 </div>
               </div>
             ))}
+            <p style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", margin: "14px 0 0", lineHeight: 1.5 }}>
+              {TESTIMONIALS_DISCLAIMER}
+            </p>
           </div>
         </div>
       </section>

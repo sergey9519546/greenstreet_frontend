@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
@@ -172,6 +172,7 @@ function Disclosure({ label, children }: { label: string; children: React.ReactN
     <div style={{ borderRadius: dc.r.sm, border: "1px solid rgba(0,55,56,0.12)", overflow: "hidden" }}>
       <button
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
         style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "14px 18px", background: "rgba(0,55,56,0.04)",
@@ -201,6 +202,11 @@ export default function MonteCarloPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  useEffect(() => {
+    document.title = "Monte Carlo Rate Simulation | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
   // ── inputs ────────────────────────────────────────────────────────────────
   const [loanAmount,    setLoanAmount]    = useState(340000);
   const [monthlyRent,   setMonthlyRent]   = useState(3000);
@@ -612,7 +618,7 @@ export default function MonteCarloPage({
                   κ={result.modelParameters.meanReversionSpeed} (reversion speed),
                   σ={result.modelParameters.volatility}% (volatility),
                   r₀={result.modelParameters.initialSOFR}% (starting rate).
-                  {" "}<em>Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.</em>
+                  {" "}<em>Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.</em>
                 </div>
               )}
             </div>

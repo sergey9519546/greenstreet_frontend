@@ -276,7 +276,6 @@ export default function BorrowerProfilesPage({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Get a preliminary estimate →", view: "dscr-calculator" }}
@@ -315,7 +314,7 @@ export default function BorrowerProfilesPage({
               margin: "0 0 28px",
             }}
           >
-            DSCR (Debt-Service Coverage Ratio) loans qualify on what the property earns — not your W-2. Greenstreet is the direct lender: no broker markup, no middleman, one underwriting desk. Pick your investor segment below.
+            DSCR (Debt-Service Coverage Ratio) loans qualify on what the property earns — not your W-2. Greenstreet originates every loan directly — one underwriting desk, funded through our wholesale lending partner, Cake. Pick your investor segment below.
           </Lead>
 
           {/* ── Jump-nav ── */}
@@ -436,7 +435,7 @@ export default function BorrowerProfilesPage({
               rows={[
                 { k: "Program", v: "DSCR Global (no-ratio)" },
                 { k: "Rate range", v: "7.50 – 8.25%" },
-                { k: "DSCR minimum", v: "≥ 1.00x" },
+                { k: "DSCR minimum", v: "≥ 0.75x" },
                 { k: "Down payment", v: "30% minimum" },
                 { k: "Credit", v: "Passport + alt reference" },
                 { k: "LLC required", v: "Yes" },
@@ -456,7 +455,7 @@ export default function BorrowerProfilesPage({
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("lender-intel")}>See rate intel</button>
+              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>View loan programs</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
               Preliminary estimate only — not a commitment to lend.
@@ -732,7 +731,7 @@ export default function BorrowerProfilesPage({
               rows={[
                 { k: "Program", v: "DSCR Portfolio / Blanket" },
                 { k: "Rate range", v: "6.99 – 7.50%" },
-                { k: "Loan size", v: "Up to $25M" },
+                { k: "Loan size", v: "To $3.5M per note" },
                 { k: "Portfolio DSCR", v: "≥ 1.25x (blended)" },
                 { k: "LTV", v: "≤ 75%" },
                 { k: "Doors", v: "2 – 20 in one note" },
@@ -746,7 +745,7 @@ export default function BorrowerProfilesPage({
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
               <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("lender-intel")}>Portfolio rate intel</button>
+              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>View loan programs</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
               Preliminary estimate only — not a commitment to lend.
@@ -774,7 +773,7 @@ export default function BorrowerProfilesPage({
                 "One credit pull, one approval",
                 "One closing — not 10",
                 "Blended DSCR absorbs thin-margin doors",
-                "Up to $25M in a single note",
+                "Multiple doors in a single note",
               ].map((item) => (
                 <div key={item} style={{ display: "flex", gap: 8, padding: "6px 0", fontSize: 13, color: dc.dark, alignItems: "flex-start" }}>
                   <span style={{ color: dc.rain, fontWeight: 800, flexShrink: 0 }}>✓</span>
@@ -1006,7 +1005,7 @@ export default function BorrowerProfilesPage({
             </button>
           </div>
           <p style={{ fontSize: 12, color: "rgba(238,239,211,0.35)", marginTop: 16 }}>
-            Preliminary estimate only — not a commitment to lend. Contact +1 (555) 010-0000 for a full pre-qualification.
+            Preliminary estimate only — not a commitment to lend. Book a demo for a full pre-qualification.
           </p>
         </div>
       </section>
