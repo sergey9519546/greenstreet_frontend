@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DcShell, dc, H1, H2, Lead, Btn, HeroProof, Mono } from "../design/dc";
+import { DcShell, H1, H2, Lead, HeroProof, Mono } from "../design/dc";
 import { PISTACHIO, MIDNIGHT, LEMON, FADED, font, swatch, radius } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import {
@@ -66,27 +66,27 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   let verdictLabel = 'BELOW FLOOR';
   let zoneColor    = '#e06363';
   let zoneChipBg   = 'rgba(224,99,99,0.12)';
-  let verdictText  = 'Most lenders require DSCR ≥ 0.75. Restructure the deal or decline.';
-  let verdictHeadline = 'Rent doesn\'t cover the payment — restructure or decline.';
+  let verdictText  = 'The estimated rent is materially below the modeled full monthly payment.';
+  let verdictHeadline = 'Material payment shortfall in this scenario.';
 
   if (dscr >= 1.20) {
-    verdictLabel = 'GREEN DEAL';
+    verdictLabel = 'STRONGER CUSHION';
     zoneColor    = '#4dbd97';
     zoneChipBg   = 'rgba(77,189,151,0.12)';
-    verdictText  = 'Strong cushion. Qualifies with most DSCR lenders at standard pricing.';
-    verdictHeadline = 'Strong coverage — qualifies at standard pricing.';
+    verdictText  = 'The estimated rent is at least 1.20 times the modeled full monthly payment.';
+    verdictHeadline = 'Stronger estimated payment coverage.';
   } else if (dscr >= 1.00) {
-    verdictLabel = 'QUALIFIES';
+    verdictLabel = 'COVERS PAYMENT';
     zoneColor    = '#d8d958';
     zoneChipBg   = 'rgba(216,217,88,0.12)';
-    verdictText  = 'Meets the 1.00 floor. Verify lender minimums and compensating factors.';
-    verdictHeadline = 'Meets the qualifying floor — check program minimums.';
+    verdictText  = 'The estimated rent covers the modeled full monthly payment, without determining product eligibility.';
+    verdictHeadline = 'Estimated rent reaches payment coverage.';
   } else if (dscr >= 0.75) {
-    verdictLabel = 'SUB-1.0';
+    verdictLabel = 'BELOW PAYMENT';
     zoneColor    = '#e6b84d';
     zoneChipBg   = 'rgba(230,184,77,0.12)';
-    verdictText  = 'Some lenders accept 0.75+ with strong FICO, reserves, or a lower LTV.';
-    verdictHeadline = 'Below 1.0 — sub-1.0 programs may still apply.';
+    verdictText  = 'The estimated rent is below the modeled full monthly payment.';
+    verdictHeadline = 'Payment shortfall in this scenario.';
   }
 
   const riskLevel = riskFromDscr(dscr);
@@ -110,13 +110,6 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     { label: 'Insurance /mo', val: fmt(analysis.insuranceMonthly), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, analysis.insuranceMonthly / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' },
     { label: 'HOA /mo',       val: fmt(analysis.hoaMonthly), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, analysis.hoaMonthly / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' },
     { label: 'Total PITIA',   val: fmt(pitia),      color: '#eeefd3',               weight: 700, pct: '100%',                                                         barColor: zoneColor },
-  ];
-
-  // ── Lender rows ──────────────────────────────────────────────────────────────
-  const lenderRows = [
-    { name: 'Best tier',        rate: Math.max(4, rate - 0.875).toFixed(3) + '%' },
-    { name: 'Standard',         rate: Math.max(4, rate - 0.50).toFixed(3) + '%' },
-    { name: 'Sub-1.0 program',  rate: Math.max(4, rate - 0.125).toFixed(3) + '%' },
   ];
 
   // ── Max Purchase ─────────────────────────────────────────────────────────────
@@ -187,14 +180,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <a href="#gs-calc" onClick={scrollToCalc} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 30px', borderRadius: radius.sm, minHeight: 44 }}>
                 Open the calculator ↓
               </a>
-              <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: radius.sm, border: '1.5px solid rgba(238,239,211,0.28)', minHeight: 44 }}>
-                Find my program →
+              <a href="/book-demo" onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: radius.sm, border: '1.5px solid rgba(238,239,211,0.28)', minHeight: 44 }}>
+                Request a human review →
               </a>
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>7</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>Greenstreet programs</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>state rule sets</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>to a priced deal</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>2</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>clearly labeled DSCR views</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>1</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>shared calculation path</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>0</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 4 }}>credit pulls</div></div>
             </div>
           </div>
           <HeroProof
@@ -222,8 +215,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             </div>
             <div style={{ background: LEMON, padding: 'clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)' }}>
               <Mono style={{ fontSize: 'clamp(32px,4vw,52px)', fontWeight: 600, color: FADED, marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <H2 style={{ marginBottom: 10, lineHeight: 1.1 }}>Match</H2>
-              <Lead style={{ color: MIDNIGHT, margin: 0 }}>Every Greenstreet program ranked by fit. State PPP rule checked. Rate band. No calls needed.</Lead>
+              <H2 style={{ marginBottom: 10, lineHeight: 1.1 }}>Compare</H2>
+              <Lead style={{ color: MIDNIGHT, margin: 0 }}>See lender payment coverage and an expense-aware investor view from the same inputs. No program or pricing claim.</Lead>
             </div>
           </div>
         </div>
@@ -236,15 +229,15 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
           {/* Section header + tab switcher */}
           <div className="gs-reveal" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20, marginBottom: 34 }}>
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 12 }}>Live deal desk</div>
-              <H2 style={{ fontSize: 'clamp(30px,3.8vw,54px)', letterSpacing: '-0.04em', lineHeight: 1.0, maxWidth: '18ch', color: PISTACHIO }}>Price the deal in real time.</H2>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 12 }}>Live scenario model</div>
+              <H2 style={{ fontSize: 'clamp(30px,3.8vw,54px)', letterSpacing: '-0.04em', lineHeight: 1.0, maxWidth: '18ch', color: PISTACHIO }}>Model the deal in real time.</H2>
             </div>
             <div style={{ display: 'inline-flex', gap: 4, background: CARD, padding: 5, borderRadius: radius.sm }}>
               <button onClick={() => setTab('dscr')} style={{ padding: '11px 22px', background: tab === 'dscr' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'dscr' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
                 DSCR Gauge
               </button>
               <button onClick={() => setTab('maxprice')} style={{ padding: '11px 22px', background: tab === 'maxprice' ? LEMON : 'transparent', border: 'none', borderRadius: radius.sm, cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: font.family, letterSpacing: '-0.01em', color: tab === 'maxprice' ? MIDNIGHT : 'rgba(238,239,211,0.6)', transition: 'all .2s', minHeight: 44 }}>
-                Max Purchase
+                Price Solver
               </button>
             </div>
           </div>
@@ -338,7 +331,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <RiskFlame level={riskLevel} size={20} />
                         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.45)' }}>
-                          {riskLevel === 'none' ? 'comfortable cushion' : riskLevel === 'low' ? 'low risk' : riskLevel === 'med' ? 'watch closely' : 'high risk'}
+                          {riskLevel === 'none' ? 'larger payment cushion' : riskLevel === 'low' ? 'positive payment cushion' : riskLevel === 'med' ? 'thin payment cushion' : 'payment shortfall'}
                         </span>
                       </div>
                     </div>
@@ -355,32 +348,31 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   {/* Next step CTA */}
                   <div style={{ background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', borderRadius: radius.sm, padding: '14px 18px', marginBottom: 20 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 6 }}>
-                      {dscr >= 1.0 ? 'Ready to move forward?' : 'Want to explore your options?'}
+                      What this result means
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.65)', margin: '0 0 12px', lineHeight: 1.5 }}>
-                      {dscr >= 1.20
-                        ? 'Your DSCR is strong. Check which programs you qualify for and get a rate quote.'
-                        : dscr >= 1.0
-                        ? 'Your DSCR meets the floor. A specialist can confirm program fit and lock your rate.'
-                        : 'A Greenstreet specialist can look at sub-1.0 programs and structuring options — this is not a dead end.'}
+                      This calculator compares the entered rent with the modeled
+                      full payment and operating assumptions. It does not determine
+                      qualification, program fit, pricing, or credit approval.
                     </p>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       <a
-                        href="/rate-quiz"
-                        onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }}
+                        href="/book-demo"
+                        onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: radius.sm, minHeight: 44 }}
                       >
-                        Find my program →
+                        Request a human review →
                       </a>
                       <button
                         onClick={() => (window as any).openQualify?.()}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.28)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 13, fontFamily: font.family, padding: '10px 16px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}
                       >
-                        Check if I qualify →
+                        Review this scenario →
                       </button>
                     </div>
                     <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.38)', margin: '10px 0 0', lineHeight: 1.4 }}>
-                      Preliminary estimate — not a commitment to lend. Subject to full underwriting review.
+                      Educational estimate — not a quote, approval, legal opinion,
+                      or commitment to lend.
                     </p>
                   </div>
 
@@ -427,31 +419,35 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: LEMON }}>{capRate.toFixed(2)}%</Mono>
                       <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>cap rate</div>
-                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>6%+ is generally healthy</div>
+                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>estimated operating income ÷ price</div>
                     </div>
                     <div style={{ background: CARD, padding: '18px 20px' }}>
                       <Mono style={{ fontSize: 'clamp(22px,2.4vw,30px)', fontWeight: 600, color: '#4dbd97' }}>{100 - down}%</Mono>
                       <div style={{ fontSize: 12, fontWeight: 500, color: 'rgba(238,239,211,0.5)', marginTop: 3 }}>LTV — loan ÷ value</div>
-                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>lower is better; 75% is standard</div>
+                      <div style={{ fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 2 }}>loan amount ÷ property value</div>
                     </div>
                   </div>
 
-                  {/* Lender matches */}
+                  {/* Transparent scope */}
                   <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.1)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>Matched programs</div>
-                    <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.4)', marginBottom: 10, lineHeight: 1.4 }}>Indicative rate offsets from today's note rate. Best-tier pricing requires DSCR ≥ 1.25 and FICO ≥ 740.</p>
-                    {lenderRows.map((lr, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: '1px solid rgba(238,239,211,0.07)' }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#eeefd3', lineHeight: 1.2 }}>{lr.name}</span>
-                        <Mono style={{ fontSize: 14, fontWeight: 700, color: LEMON }}>{lr.rate}</Mono>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 8 }}>What is not calculated</div>
+                    <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.55)', marginBottom: 14, lineHeight: 1.55 }}>
+                      No live rate sheet, lender matrix, state-law decision, or
+                      borrower eligibility rule is used on this page.
+                    </p>
+                    {[
+                      'No program match',
+                      'No market-rate quote',
+                      'No approval or rate lock',
+                    ].map((item) => (
+                      <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 0', borderBottom: '1px solid rgba(238,239,211,0.07)' }}>
+                        <span aria-hidden="true" style={{ color: LEMON }}>—</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#eeefd3', lineHeight: 1.2 }}>{item}</span>
                       </div>
                     ))}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-                      <a href="/products" onClick={(e) => { e.preventDefault(); onNavigate?.('products'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
-                        See all 7 programs →
-                      </a>
-                      <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.('rate-quiz'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: LEMON, textDecoration: 'none', opacity: 0.85 }}>
-                        Which program fits me? →
+                      <a href="/book-demo" onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
+                        Request a human review →
                       </a>
                     </div>
                   </div>
@@ -465,7 +461,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.1)' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Work backwards from rent</div>
-                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.45)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR (the ratio you want to hit — 1.25x is a strong approval threshold). We'll calculate the maximum price you can pay and still hit that ratio.</p>
+                <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.45)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and a target DSCR chosen for your own scenario. The calculator solves the maximum modeled price that reaches that ratio; the target is not a provider requirement or approval threshold.</p>
                 <div style={{ display: 'grid', gap: 22 }}>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Monthly rent</span>
@@ -479,7 +475,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)' }}>Down payment — sets your LTV (loan ÷ value)</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{mDown}%</Mono>
                     </div>
-                    <input className="gsr" type="range" step="5" min="20" max="50" value={mDown} onChange={e => setMDown(+e.target.value)} style={{ width: '100%' }} aria-label="Max purchase down payment percentage" />
+                    <input className="gsr" type="range" step="5" min="20" max="50" value={mDown} onChange={e => setMDown(+e.target.value)} style={{ width: '100%' }} aria-label="Price solver down payment percentage" />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.35)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
                   </div>
                   <label style={{ display: 'block' }}>
@@ -525,13 +521,15 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <div>
                 {/* Headline answer: scrub-able Claude gauge for target */}
                 <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', marginBottom: 20, border: '1px solid rgba(238,239,211,0.1)' }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {target.toFixed(2)}x DSCR</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Modeled purchase price at {target.toFixed(2)}x DSCR</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
                     <div>
                       <Mono style={{ fontSize: 'clamp(42px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 0.95, display: 'block' }}>{fmt(maxPrice)}</Mono>
                       <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.55)', marginTop: 14 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.45)', margin: '10px 0 0', lineHeight: 1.5 }}>
-                        Pay more than this and the rent won't cover the full monthly payment at the target ratio. Use this as your bid ceiling.
+                        Above this modeled price, the entered rent would fall
+                        below the full monthly payment at the selected ratio.
+                        This is scenario arithmetic, not a recommended bid.
                       </p>
                     </div>
                     <ClaudeDscrGauge value={target} size={170} min={0.75} max={1.5} label="Target" onValueChange={setTarget} />
@@ -545,7 +543,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     </div>
                   ))}
                   <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.38)', marginTop: 14, lineHeight: 1.4 }}>
-                    Preliminary estimate — not a commitment to lend. Subject to full underwriting, appraisal and credit approval.
+                    Educational estimate — not a quote, approval, appraisal,
+                    legal opinion, or commitment to lend.
                   </p>
                 </div>
               </div>

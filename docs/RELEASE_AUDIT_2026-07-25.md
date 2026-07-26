@@ -9,7 +9,9 @@ The current homepage is the accepted visual reference. It must not be redesigned
 
 The correct target is:
 
-- Homepage: identical visual output, interactions, type, spacing, media, and responsive behavior.
+- Homepage: identical visual composition, interactions, type, spacing, media,
+  and responsive behavior. Unsupported factual copy may be corrected without
+  redesigning that composition.
 - Other pages: their own information architecture and layouts, using the same Greenstreet visual system.
 - React: owns rendering and routing.
 - Webflow assets: remain temporarily as a compatibility layer until every dependency is mapped and replaced without visual drift.
@@ -22,7 +24,8 @@ Removing Webflow and preserving the design are separate operations. Rewriting th
 |---|---|---|
 | Homepage visual output | Fixed and contract-protected | Release |
 | React ownership of homepage DOM | Fixed | Release |
-| DSCR Calculator / Deal Analyzer basis | Reconciled | Release |
+| DSCR Calculator | Arithmetic-only result; program/pricing claims removed | Release as an educational calculator |
+| Deal Analyzer | Reconciled math still included ungoverned program/pricing conclusions | Reliability hold |
 | STR interest-only input | Fixed | Release |
 | API enum and state validation | Fixed | Release |
 | Sensitivity direction | Fixed | Release |
@@ -38,6 +41,9 @@ Removing Webflow and preserving the design are separate operations. Rewriting th
 | Returns | Unreconciled cash-flow/tax schedule | Reliability hold |
 | Stress Matrix | Inconsistent base definitions | Reliability hold |
 | Structure Optimizer | Unverified schedules/rate units/ranking | Reliability hold and API 503 |
+| Rate Quiz | Static answers were presented as program/rate matching | Reliability hold |
+| STR Underwriting | Selected the most favorable income world and supplied unknown jurisdiction facts | Reliability hold |
+| State Laws / PPP API | Time-sensitive legal summaries lack reviewed effective-date governance | Reliability hold and API 503 |
 | Business identity and licensing disclosures | Owner evidence missing | Must be supplied before making lender/broker claims |
 | Case-study substantiation | Owner evidence missing | Published only as constructed teaching examples; replace with verified evidence before presenting customer results |
 
@@ -51,6 +57,9 @@ Removing Webflow and preserving the design are separate operations. Rewriting th
 - SPA typography no longer leaks into the homepage and changes its measurements.
 - Route pages no longer carry a hidden duplicate homepage DOM.
 - The external Webflow CSS/runtime remains only as an explicit compatibility layer.
+- A typed React rendering boundary replaces unsupported homepage claims and
+  decision widgets without changing the frozen source artifact or abandoning
+  its card, typography, spacing, media, and responsive system.
 
 This preserves the accepted output while allowing React to own the page. It is not the final removal of Webflow.
 
@@ -60,13 +69,19 @@ This preserves the accepted output while allowing React to own the page. It is n
 - Loan, property, strategy, interest-only, and US state inputs use strict schemas.
 - Unknown states no longer receive a favorable prepayment-penalty assumption.
 - Sensitivity risk now decreases as a deal gains rent-loss cushion and becomes critical when already broken.
-- Deal Analyzer and DSCR Calculator use one shared public-analysis function.
+- Deal Analyzer and DSCR Calculator use one shared public-analysis function,
+  but Deal Analyzer remains held because its program/pricing conclusions are
+  not governed.
 - Lender DSCR is explicitly gross rent divided by PITIA.
 - Investor cash flow is explicitly Track 2 operating income less PITIA.
 - Vacancy, management, and maintenance assumptions are visible and consistent across both public calculators.
 - The maximum-purchase solver now includes HOA.
 - Tools with unverified outputs show an honest reliability hold instead of a recommendation.
-- The structure-optimizer API returns `503 TOOL_RELIABILITY_HOLD` instead of an unverified ranking.
+- The structure-optimizer and state-rules APIs return
+  `503 TOOL_RELIABILITY_HOLD` instead of unverified financial or legal output.
+- The public DSCR calculator reports arithmetic coverage/cushion only. It no
+  longer names lender programs, fabricates rate bands, or implies approval,
+  qualification, pricing, or a maximum approved purchase price.
 
 ### Website and release hygiene
 
@@ -83,8 +98,12 @@ This preserves the accepted output while allowing React to own the page. It is n
 
 - The scenario intake now uses the entered loan amount and note rate in one
   engine result. The live preview, displayed PITIA, displayed DSCR formula,
-  improvement lever, model range, and stored audit payload can no longer be
-  driven by competing calculations.
+  improvement lever, and model range can no longer be driven by competing
+  calculations.
+- Contact and scenario data is submitted to a strict, rate-limited server
+  endpoint. The browser no longer writes Firestore directly, cannot supply
+  trusted timestamps or status fields, and does not send the calculated result
+  snapshot. Firestore client access to the lead collection is denied.
 - The intake language no longer promises qualification, a quote, a rate lock,
   closing, a one-business-day response, or a particular program. The displayed
   rate band is labeled as an illustrative model assumption.
@@ -104,9 +123,11 @@ This preserves the accepted output while allowing React to own the page. It is n
 - React-page footers and legal copy no longer claim an unverified funding
   relationship, direct origination role, or Equal Housing Lender status.
 - The accepted homepage markup remains unchanged and contract-protected. Its
-  visible business, pricing, security, customer, and performance claims still
-  require owner evidence; visual fidelity is not evidence that those claims are
-  true.
+  unsupported direct-lender, live-pricing, legal-currentness, security,
+  customer, and performance claims are sanitized before React renders it.
+  Constructed examples are labeled, the fake phone CTA is removed, and the
+  embedded rate/state outputs fail closed. Visual fidelity is not treated as
+  evidence that a claim is true.
 
 ## Critical business and trust issues requiring owner evidence
 
@@ -143,10 +164,13 @@ Recommended change:
 
 ### 3. Intake delivery is configuration-dependent
 
-The scenario intake correctly fails closed when Firebase is not configured and does not claim a successful delivery. Production still needs an end-to-end owner test proving:
+The scenario intake correctly fails closed and does not claim a successful
+delivery. It runs through a Firebase Function with managed Google credentials;
+Vercel proxies the same-origin browser request rather than storing a long-lived
+service-account key. Production still needs an end-to-end owner test proving:
 
 - the lead is written to the intended project;
-- Firestore rules accept only the intended payload;
+- browsers cannot write the lead collection directly;
 - an authorized person receives or monitors the request;
 - privacy/deletion processes work;
 - consent text matches the actual contact workflow.
@@ -171,6 +195,7 @@ Add a visible provenance drawer to every legal, pricing, tax, and state result. 
 | Public calculators disagreed with canonical cash flow | gross-rent and operating-income bases were mixed | shared analysis function and explicit Track 1/Track 2 labels |
 | Visible rate could be ignored | displayed input and model input diverged | public analysis uses the entered rate |
 | Max purchase omitted HOA | understated PITIA and overstated buying power | HOA included in the solver |
+| DSCR calculator fabricated program matches and rate offsets | an arithmetic scenario was presented as lender qualification/pricing | removed program/rate/approval output; retained labeled arithmetic only |
 
 ### Held pending independent validation
 
@@ -185,12 +210,16 @@ Add a visible provenance drawer to every legal, pricing, tax, and state result. 
 | Refinance Tracker | could recommend a new loan smaller than payoff | payoff, costs, cash-to-close, and break-even validation |
 | Portfolio Refinance | used fabricated or incomplete loan-level refinance assumptions | loan-level schedules, seasoning, costs, and concentration checks |
 | Monte Carlo | probabilities looked authoritative without reviewed calibration | documented calibration, reproducible seeds, loan-specific terms, and confidence limits |
+| Rate Quiz | mapped self-selected answers to static program and rate bands | governed program matrices and versioned rate sheets |
+| Deal Analyzer | paired reconciled arithmetic with ungoverned program/pricing conclusions | independently reviewed program eligibility and pricing source |
+| STR Underwriting | selected the best of multiple income worlds and supplied unknown legal/HOA facts | explicit selected income path, evidence for jurisdiction facts, and reviewed rules |
+| State Laws | treated time-sensitive legal summaries as current, including a Minnesota future-effective change | counsel-reviewed sources, effective dates, expiry, and fail-closed provenance |
 
 ### Still open in released educational surfaces
 
-- The Rate Quiz maps self-selected answers to static program/rate bands. It must not be described as live pricing.
-- The qualification modal is reconciled with its entered financing assumptions and stays labeled as an educational estimate. Its model-rate band still needs an approved, versioned source before it can be described as market pricing.
-- State-law content includes time-sensitive summaries, including Minnesota material, that require legal review and dated primary sources.
+- The qualification modal is reconciled with its entered financing assumptions
+  and stays labeled as an educational estimate. Its model-rate band still needs
+  an approved, versioned source before it can be described as market pricing.
 - Reassessment, reserves, insurance, and tax assumptions are estimates, not property-specific facts.
 - “NOI_PI” style internal names should be removed where the calculation is actually gross rent divided by principal and interest.
 
@@ -210,7 +239,9 @@ Add a visible provenance drawer to every legal, pricing, tax, and state result. 
 - The homepage payload is very large and includes many scripts, images, and autoplay videos.
 - The compatibility page still loads Webflow runtime, Finsweet, Swiper, analytics, consent tooling, and external media.
 - The historical implementation warmed nearly every route after first paint; unsafe route modules have now been removed, but the remaining prefetch policy should become intent-based.
-- Firebase remains a large lazy chunk. It should stay lazy and be replaced with a narrow server-side intake endpoint if lead delivery is the only public use.
+- Firebase remains a large lazy chunk for workspace authentication and data.
+  Public lead delivery now uses the narrow server endpoint instead of loading
+  Firestore in the intake flow.
 - The project mixes component styling, injected page CSS, Tailwind utilities, Webflow classes, and token imports.
 - Vite still warns about a non-module Webflow script and a chunk over 500 kB.
 - The local shell currently uses Node 25 while the project contract requires Node 20.x.
@@ -222,7 +253,8 @@ Recommended change:
 2. Inventory every external script and remove it only after its exact behavior has a tested React replacement.
 3. Load route chunks on navigation intent, not all at idle.
 4. Move page CSS into scoped modules or a shared token/component layer.
-5. Replace Firebase client intake with a small authenticated/rate-limited server endpoint.
+5. Keep public intake on the narrow, rate-limited server endpoint and move the
+   in-memory limiter to a distributed store before high-volume promotion.
 6. Establish performance budgets for HTML, JS, images, videos, and third-party hosts.
 
 ### P1 — accessibility

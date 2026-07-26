@@ -6,6 +6,10 @@
   },
   "rewrites": [
     {
+      "source": "/api/leads",
+      "destination": "https://us-central1-gen-lang-client-0809198072.cloudfunctions.net/api/api/leads"
+    },
+    {
       "source": "/api",
       "destination": "/api/index.js"
     },

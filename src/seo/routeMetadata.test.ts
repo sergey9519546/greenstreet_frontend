@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getRouteMetadata, SITE_ORIGIN } from "./routeMetadata";
+import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
 
 describe("public route metadata", () => {
   it("indexes canonical public pages", () => {
@@ -42,5 +43,16 @@ describe("public route metadata", () => {
     ["/unpublished-path", "not-found"],
   ] as const)("keeps protected, held, and unknown paths out of search: %s", (pathname, view) => {
     expect(getRouteMetadata({ pathname, view }).robots).toBe("noindex,nofollow");
+  });
+
+  it("keeps every held tool out of search results", () => {
+    for (const definition of Object.values(TOOL_RELIABILITY_HOLDS)) {
+      const metadata = getRouteMetadata({
+        pathname: definition.path,
+        view: definition.view,
+      });
+      expect(metadata.robots).toBe("noindex,nofollow");
+      expect(metadata.jsonLdKind).toBeUndefined();
+    }
   });
 });

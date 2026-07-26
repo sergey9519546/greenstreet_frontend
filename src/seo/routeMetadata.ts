@@ -196,6 +196,11 @@ const ARTICLE_TITLES: Record<string, string> = {
 
 const HELD_VIEWS = new Set<PageView>([
   "decision-support",
+  "deal-analyzer",
+  "rate-quiz",
+  "state-laws",
+  "str-underwriting",
+  "structure-optimizer",
   "tax-engine",
   "refi-tracker",
   "portfolio",

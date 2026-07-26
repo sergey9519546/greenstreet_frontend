@@ -6,6 +6,7 @@ import { logger, logRequest } from "./logger";
 import { errorHandler } from "./middleware/error";
 import { dscrRouter } from "./routes/dscr";
 import { narrateRouter } from "./routes/narrate";
+import { createLeadsRouter } from "./routes/leads";
 import { verifyFirebaseToken, requireAuth } from "./middleware/auth";
 
 export const app = express();
@@ -20,25 +21,35 @@ const isProd = process.env.NODE_ENV === "production";
 app.set("trust proxy", 1);
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-// Production MUST set ALLOWED_ORIGINS explicitly — there is no placeholder
-// domain to silently fall back to. Only non-production gets a default, and
-// that default is localhost-only.
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean)
-  : isProd
-    ? []
-    : ["http://localhost:3000", "http://localhost:5173"];
+// Keep the canonical first-party origin as the production fail-safe. Deployments
+// can add exact HTTPS origins through ALLOWED_ORIGINS, while local development
+// remains localhost-only.
+function parseAllowedOrigins(value: string | undefined): string[] {
+  const candidates = value
+    ? value.split(",").map((origin) => origin.trim()).filter(Boolean)
+    : isProd
+      ? ["https://www.greenstreet.finance"]
+      : ["http://localhost:3000", "http://localhost:5173"];
 
-if (isProd && allowedOrigins.length === 0) {
-  logger.error(
-    "ALLOWED_ORIGINS is not set in production. No cross-origin browser request will be allowed until it is configured."
-  );
+  return [...new Set(candidates.flatMap((candidate) => {
+    try {
+      const parsed = new URL(candidate);
+      const isAllowedScheme = parsed.protocol === "https:" || (!isProd && parsed.protocol === "http:");
+      return isAllowedScheme && parsed.origin === candidate ? [parsed.origin] : [];
+    } catch {
+      return [];
+    }
+  }))];
 }
+
+const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true,
+    // This merely controls browser response access. /api/leads additionally
+    // enforces Origin server-side because CORS alone cannot stop a forged POST.
+    origin: (origin, callback) => callback(null, !origin || allowedOrigins.includes(origin)),
+    credentials: false,
     methods: ["GET", "POST", "OPTIONS"],
   })
 );
@@ -107,6 +118,13 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const leadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // ── API Routes ────────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
   res.json({
@@ -117,6 +135,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/dscr", apiLimiter, dscrRouter);
+app.use("/api/leads", leadLimiter, createLeadsRouter({ allowedOrigins }));
 // /api/narrate calls a paid third-party LLM. Beyond rate limiting, it must
 // never be reachable anonymously: requireAuth (src/middleware/auth.ts) 401s
 // any request that verifyFirebaseToken did not attach a user to (real, or the

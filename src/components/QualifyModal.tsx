@@ -6,8 +6,8 @@
  * Step 4: Contact capture
  * Step 5: Confirmation
  *
- * PRESERVED: DSCR calc formula, Firestore leads submit + localStorage fallback,
- * trigger pill + window.openQualify + one-time auto-open + localStorage gate.
+ * PRESERVED: DSCR calc formula, trigger pill + window.openQualify +
+ * one-time auto-open + localStorage gate.
  *
  * ADDED: step-enter animation, progress bar transition, result reveal (count-up),
  * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
@@ -53,7 +53,7 @@ interface StepFourData {
   role: Role | null;
   timeline: Timeline | null;
   contactConsent: boolean;
-  smsConsent: boolean;
+  website: string;
 }
 
 // Modal credit bands → engine credit bands (engine separates <660; the modal's
@@ -1572,6 +1572,7 @@ function Step4({
           className="qm-input"
           style={touched.name && !nameValid ? inputErrorStyle : inputStyle}
           autoComplete="name"
+          maxLength={100}
         />
         {touched.name && !nameValid && (
           <p style={errorMsgStyle}>Please enter your full name.</p>
@@ -1590,6 +1591,7 @@ function Step4({
           className="qm-input"
           style={touched.email && !emailValid ? inputErrorStyle : inputStyle}
           autoComplete="email"
+          maxLength={200}
           required
         />
         {touched.email && !emailValid ? (
@@ -1610,9 +1612,20 @@ function Step4({
           className="qm-input"
           style={inputStyle}
           autoComplete="tel"
+          maxLength={30}
         />
         <p style={helperStyle}>Add a number only if you consent to a phone response.</p>
       </div>
+
+      <input
+        type="text"
+        name="website"
+        value={data.website}
+        onChange={(e) => onChange({ website: e.target.value })}
+        autoComplete="new-password"
+        tabIndex={-1}
+        hidden
+      />
 
       <FieldGroup
         label="When do you need to close?"
@@ -1824,7 +1837,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     role: null,
     timeline: null,
     contactConsent: false,
-    smsConsent: false,
+    website: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -1939,19 +1952,28 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmissionError(null);
-    // Persist the exact same engine result shown on Step 3.
-    const q = qualify(buildQualifyInput(step1, step2));
-    const estimate = classifyQuickDscr(q.dscr);
-    const verdict = dscrVerdict(estimate.tier);
-    const rateEstimate = fmtRateRange(q.rateLow, q.rateHigh);
+
+    if (
+      !step1.propertyType ||
+      !step2.purpose ||
+      !step2.ficoBand ||
+      !step2.borrowerType ||
+      !step2.experience ||
+      !step4.timeline
+    ) {
+      setSubmissionError(
+        "Some required scenario details are missing. Your information was not sent; please review the earlier steps."
+      );
+      setSubmitting(false);
+      return;
+    }
 
     const payload = {
-      name: step4.name,
-      email: step4.email,
-      phone: step4.phone,
-      role: step4.role,
+      name: step4.name.trim(),
+      email: step4.email.trim(),
+      phone: step4.phone.trim(),
+      ...(step4.role ? { role: step4.role } : {}),
       timeline: step4.timeline,
-      // deal
       propertyType: step1.propertyType,
       propertyValue: step1.propertyValue,
       loanAmount: step1.loanAmount,
@@ -1963,59 +1985,25 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       borrowerType: step2.borrowerType,
       experience: step2.experience,
       investmentConfirmed: step1.investmentConfirmed,
-      // engine result snapshot (frozen at submit — audit trail)
-      dscr: q.dscr,
-      verdict: verdict.headline,
-      verdictTier: verdict.tier,
-      rateEstimate,
-      qualify: {
-        ltv: q.ltv,
-        pitia: q.pitia,
-        piMonthly: q.piMonthly,
-        dscr: q.dscr,
-        outcome: q.outcome,
-        reasons: q.reasons,
-        rateRange: fmtRateRange(q.rateLow, q.rateHigh),
-        needsHumanReview: q.needsHumanReview,
-      },
-      // consent record (TCPA/ECOA audit)
-      consent: {
-        contact: step4.contactConsent,
-        sms: step4.smsConsent,
-        timestamp: new Date().toISOString(),
-        policyVersion: "2026-06",
-      },
+      contactConsent: step4.contactConsent,
       page: typeof window !== "undefined" ? window.location.pathname : "/",
-      // NOTE: field name must match firestore.rules `/leads` create rule,
-      // which requires `submittedAt` (not `createdAt`). Keep this in sync
-      // with firestore.rules so a delivered request is not rejected.
-      submittedAt: new Date().toISOString(),
+      website: step4.website,
     };
 
-    const firebaseConfigured = Boolean(
-      import.meta.env.VITE_FIREBASE_API_KEY &&
-      import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
-      import.meta.env.VITE_FIREBASE_PROJECT_ID &&
-      import.meta.env.VITE_FIREBASE_APP_ID
-    );
-
-    if (!firebaseConfigured) {
-      setSubmissionError(
-        "Secure request delivery is not configured yet. Your information was not sent; please try again later."
-      );
-      setSubmitting(false);
-      return;
-    }
-
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12_000);
     try {
-      // Firebase is imported lazily so its ~524 kB client SDK is NOT pulled into
-      // the initial bundle (QualifyModal mounts globally on the home page). It
-      // loads only when a visitor actually submits a lead.
-      const [{ db }, { collection, addDoc }] = await Promise.all([
-        import("../firebase"),
-        import("firebase/firestore"),
-      ]);
-      await addDoc(collection(db, "leads"), payload);
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        throw new Error(`Lead endpoint returned ${response.status}`);
+      }
       setStep(5);
     } catch (err) {
       // Do not store loan scenarios or contact details in a visitor's browser,
@@ -2028,6 +2016,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         "We could not securely deliver your request. Your information was not sent; please try again later."
       );
     } finally {
+      window.clearTimeout(timeout);
       setSubmitting(false);
     }
   };
