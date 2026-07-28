@@ -1,6 +1,0 @@
-/img/generated/av1.png
-/img/generated/av2.png
-/img/generated/av3.png
-/img/generated/av4.png
-/img/generated/av5.png
-/img/generated/av6.png
