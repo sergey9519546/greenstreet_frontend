@@ -284,6 +284,22 @@ function repairHomepageSemantics(markup: string): string {
       '<button aria-label="Whitepaper form unavailable" class="u-btn-group u-mt-7" disabled="">',
     )
     .replace(
+      /<form class="hero_form_layout"[^>]*>/,
+      '<div class="hero_form_layout">',
+    )
+    .replace(
+      '</form><div class="form_main_success_wrap is-hero',
+      '</div><div class="form_main_success_wrap is-hero',
+    )
+    .replace(
+      /<form class="form_main_list"[^>]*>/,
+      '<div class="form_main_list">',
+    )
+    .replace(
+      '</form><div class="form_main_success_wrap w-form-done',
+      '</div><div class="form_main_success_wrap w-form-done',
+    )
+    .replace(
       /<a class="link-item w-inline-block" href="([^"]+)"><\/a>(<div class="solution_item"[\s\S]*?<div class="list-item-txt u-text-style-large">([^<]+)<\/div>)/g,
       '<a aria-label="$3" class="link-item w-inline-block" href="$1"></a>$2',
     )
