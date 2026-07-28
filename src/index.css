@@ -68,6 +68,25 @@ html, body { margin: 0; padding: 0; }
 body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 button, input, select, textarea { font: inherit; }
 
+.gs-skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100000;
+  padding: 0.75rem 1rem;
+  border: 2px solid #003738;
+  border-radius: 0.375rem;
+  background: #d8d958;
+  color: #003738;
+  font-weight: 700;
+  transform: translateY(-200%);
+  transition: transform 120ms ease;
+}
+
+.gs-skip-link:focus {
+  transform: translateY(0);
+}
+
 #root .page_wrap h1,
 #root .u-text-style-h1 {
   font-family: var(--font-display) !important;

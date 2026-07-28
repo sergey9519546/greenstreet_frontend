@@ -251,14 +251,14 @@ export default function PortfolioPage({
               Portfolio · Blanket · Multi-property
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
-              How does your whole portfolio look to an underwriter?
+              What do the combined portfolio assumptions show?
             </H1>
             <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 20px" }}>
               Add your properties. The tool calculates a blended DSCR (whether the
               combined rent across all properties can cover the combined loan
               payments — 1.00 = break-even; higher is stronger), total equity,
-              weighted average rate, and total monthly cash flow — exactly the view
-              Greenstreet's blanket underwriter will build when evaluating your book.
+              weighted average rate, and total monthly cash flow in one educational
+              view. Provider analysis and blanket-loan availability are not evaluated.
             </Lead>
             <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
               Add or edit properties in the table below. All numbers compute live. A
@@ -357,9 +357,9 @@ export default function PortfolioPage({
             {/* 03 */}
             <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
               <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Apply with confidence</h3>
+              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Prepare questions for provider review</h3>
               <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0, letterSpacing: "-0.01em" }}>
-                This blended view is what Greenstreet's blanket underwriter builds. Submit it with your application — no guesswork, no surprises. Blanket structures available.
+                Use the blended view to inspect assumptions and prepare questions. It is not an application, underwriting package, or statement that blanket structures are available.
               </p>
             </div>
           </div>
@@ -563,7 +563,7 @@ export default function PortfolioPage({
             >
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>DSCR distribution</div>
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", margin: "0 0 12px", lineHeight: 1.4 }}>
-                How your properties are spread across DSCR buckets. Red bars = lenders may decline; green = comfortable approval zone.
+                How the properties are spread across modeled DSCR buckets. Colors describe payment coverage, not lender approval or decline behavior.
               </p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8, alignItems: "end" }}>
                 {[
@@ -613,7 +613,7 @@ export default function PortfolioPage({
             >
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>Geographic spread</div>
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", margin: "0 0 12px", lineHeight: 1.4 }}>
-                Concentration by state. Over 50% in one state (red) can limit blanket-loan options — Greenstreet's underwriters prefer diversified books.
+                A descriptive view of concentration by state. The color threshold is illustrative and does not represent a provider rule or preference.
               </p>
               {geoConc.slice(0, 5).map((g, i) => {
                 const barColor = g.pct > 50 ? RED : g.pct > 30 ? dc.lemon : dc.emerald;
@@ -687,7 +687,7 @@ export default function PortfolioPage({
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. Blended DSCR and portfolio aggregates are indicative only; final terms subject to full underwriting and credit approval. Book a demo for a live scenario review.
+            Educational estimate only. Blended DSCR and portfolio aggregates reflect entered assumptions and do not provide a quote, program match, approval, underwriting result, or commitment.
           </p>
         </div>
       </section>
@@ -712,14 +712,14 @@ export default function PortfolioPage({
           >
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
-                Ready to finance your portfolio?
+                Ready to review your portfolio assumptions?
               </div>
               <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
-                Greenstreet underwrites your entire book — one application.
+                Organize the portfolio in one educational view.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
-                Blanket and multi-property DSCR files are our specialty. No income docs,
-                no W-2s — qualify on blended rent. Bring the view you just built and
+                Blanket and multi-property financing depends on provider rules and
+                transaction facts. Bring the view you just built and
                 we'll tell you where it fits.
               </p>
             </div>

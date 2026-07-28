@@ -14,6 +14,7 @@ interface Props {
 }
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
+const toNonNegative = (value: string) => Math.max(0, Number(value) || 0);
 
 const PANEL = swatch.darkTeal;
 const CARD  = swatch.midnight;
@@ -288,14 +289,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Purchase price</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
-                      <input className="gs-num" type="number" step="5000" value={price} onChange={e => setPrice(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" step="5000" value={price} onChange={e => setPrice(toNonNegative(e.target.value))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Monthly rent</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
-                      <input className="gs-num" type="number" step="100" value={rent} onChange={e => setRent(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" step="100" value={rent} onChange={e => setRent(toNonNegative(e.target.value))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                   <div className="calc-two-fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -303,14 +304,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Taxes /yr</span>
                       <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="250" value={tax} onChange={e => setTax(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" min="0" step="250" value={tax} onChange={e => setTax(toNonNegative(e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Ins. /yr</span>
                       <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="100" value={ins} onChange={e => setIns(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" min="0" step="100" value={ins} onChange={e => setIns(toNonNegative(e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
                     </label>
                   </div>
@@ -318,7 +319,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>HOA /mo</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
-                      <input className="gs-num" type="number" step="25" value={hoa} onChange={e => setHoa(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" step="25" value={hoa} onChange={e => setHoa(toNonNegative(e.target.value))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                 </div>
@@ -484,7 +485,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Monthly rent</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
-                      <input className="gs-num" type="number" step="100" value={mRent} onChange={e => setMRent(+e.target.value)} style={{ padding: '12px 6px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" step="100" value={mRent} onChange={e => setMRent(toNonNegative(e.target.value))} style={{ padding: '12px 6px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                   <div>
@@ -499,7 +500,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>HOA /mo</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
-                      <input className="gs-num" type="number" min="0" step="50" value={mHoa} onChange={e => setMHoa(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" step="50" value={mHoa} onChange={e => setMHoa(toNonNegative(e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                     </div>
                   </label>
                   <div>
@@ -514,14 +515,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Taxes /yr</span>
                       <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="250" value={mTax} onChange={e => setMTax(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" min="0" step="250" value={mTax} onChange={e => setMTax(toNonNegative(e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Ins. /yr</span>
                       <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="100" value={mIns} onChange={e => setMIns(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" min="0" step="100" value={mIns} onChange={e => setMIns(toNonNegative(e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
                     </label>
                   </div>

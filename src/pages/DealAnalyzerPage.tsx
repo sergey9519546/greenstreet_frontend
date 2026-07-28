@@ -169,7 +169,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
         >
           <div id="gs-hero-content">
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24 }}>
-              Deal Analyzer &middot; Full underwrite
+              Deal Analyzer &middot; Scenario analysis
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
               Plug in 7 numbers.<br />Get the full verdict.
@@ -246,7 +246,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Live deal analyzer</div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven inputs in. A transparent scenario out.</h2>
             <p style={{ fontSize: 15, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.6, maxWidth: "60ch" }}>
               Adjust any number and the DSCR, cash flow, and matched programs update instantly. Estimates are fine.
             </p>
@@ -320,7 +320,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                     <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>DSCR — rent ÷ payment</div>
                     <DscrGauge value={dscr} size={160} />
                     <div style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", textAlign: "center" }}>
-                      {dscr >= 1.25 ? "≥ 1.25x = strong approval tier" : dscr >= 1.0 ? "1.0–1.25x = qualifies, limited" : dscr >= 0.75 ? "0.75–1.0x = sub-1.0 programs only" : "< 0.75x = most lenders decline"}
+                      {dscr >= 1.25 ? "≥ 1.25x = higher modeled coverage" : dscr >= 1.0 ? "1.0–1.25x = modeled payment coverage" : dscr >= 0.75 ? "0.75–1.0x = below modeled payment coverage" : "< 0.75x = material modeled shortfall"}
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -397,7 +397,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
-            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Book a demo for a formal quote.
+            Educational estimate only. This tool does not provide a quote, program match, approval, underwriting result, appraisal, or commitment. Verify all financing facts with the responsible licensed provider.
           </p>
         </div>
       </section>

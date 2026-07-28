@@ -14,6 +14,13 @@ export default defineConfig(() => {
         enforce: "pre",
         transformIndexHtml(html) {
           return html
+            // Optional analytics and de-anonymization are disabled until a
+            // consent owner, retention policy, and verified production domain
+            // are configured. Essential behavior does not depend on this banner.
+            .replace(
+              /<script async="" id="cookieyes"[^>]*><\/script>/,
+              ""
+            )
             // A stale Webflow export contained an opaque path with no matching
             // asset. Leaving it in the document causes browsers to fetch the
             // SPA fallback as JavaScript and emit a production console error.
