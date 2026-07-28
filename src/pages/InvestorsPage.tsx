@@ -57,7 +57,7 @@ const MYTHS = [
   },
 ];
 
-// ── Value cards — the three headline guarantees ───────────────────────────────
+// ── Value cards — three planning disciplines ──────────────────────────────────
 const VALUE_CARDS = [
   {
     bg: dc.mintBg,
@@ -176,7 +176,7 @@ export default function InvestorsPage({
         { label: "Tax Engine", view: "tax-engine" },
         { label: "Returns", view: "returns" },
       ]}
-      cta={{ label: "Run the numbers →", view: "returns" }}
+      cta={{ label: "Apply for a DSCR loan →", view: "book-demo" }}
     >
       <style>{INVESTORS_MOBILE_CSS}</style>
       {/* ── HERO ── solid midnight, 2-col ────────────────────────────────────── */}
@@ -209,11 +209,11 @@ export default function InvestorsPage({
               For Investors
             </div>
             <H1 style={{ margin: "0 0 24px" }}>
-              Analyze
+              Understand
               <br />
-              like an
+              the deal.
               <br />
-              institution.
+              Move it forward.
             </H1>
             <Lead
               style={{
@@ -222,14 +222,16 @@ export default function InvestorsPage({
                 margin: "0 0 36px",
               }}
             >
-              These tools help individual investors explore rental-property cash-flow assumptions. They are educational scenarios, not tax, legal, investment, credit, underwriting, or financing advice, and they do not establish provider availability or terms.
+              Start with the property math, see the assumptions behind the DSCR
+              estimate, and carry the same deal details into a preliminary loan
+              request. Final eligibility, pricing, and terms require review.
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <PrimaryBtn onClick={() => onNavigate("returns")}>
-                See my deal's returns →
+              <PrimaryBtn onClick={() => onNavigate("book-demo")}>
+                Apply for a DSCR loan →
               </PrimaryBtn>
               <GhostBtn onClick={() => onNavigate("dscr-calculator")}>
-                Check DSCR first
+                Check the deal first
               </GhostBtn>
             </div>
           </div>
@@ -338,7 +340,7 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Illustrative. Open the calculator to price your deal.
+              Illustrative. Open the calculator to test your deal inputs.
             </div>
           </div>
         </div>
@@ -405,7 +407,7 @@ export default function InvestorsPage({
               {
                 num: "02",
                 title: "Monte Carlo rate-path simulation",
-                desc: "This simulation is held pending independent validation. It must not be used to estimate probabilities, predict rates, evaluate an ARM, or support an investment or financing decision.",
+                desc: "Explore a range of user-defined rate paths as an educational sensitivity model. The scenarios do not predict rates, assign real-world probabilities, evaluate a specific note, or make an investment or financing decision.",
                 cta: "Run the rate simulation",
                 view: "monte-carlo",
                 numBg: dc.dark,
@@ -432,7 +434,7 @@ export default function InvestorsPage({
               {
                 num: "05",
                 title: "Refi timing and break-even",
-                desc: "This refinance tool is held pending independent validation. It must not be used to estimate savings, cash-out capacity, break-even timing, eligibility, terms, or a financing decision.",
+                desc: "Compare user-entered current-loan and replacement-loan assumptions to explore payment differences and an illustrative break-even period. Provider costs, valuation, eligibility, pricing, and terms require separate confirmation.",
                 cta: "Find my refi break-even",
                 view: "refi-tracker",
                 numBg: dc.lemon,
@@ -561,14 +563,14 @@ export default function InvestorsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Start with the released arithmetic calculator. Treat held tools
-              and all provider, tax, legal, and investment questions as
-              verification-required.
+              Start with the assumptions shown by each model. Treat provider,
+              tax, legal, and investment questions as verification-required
+              before acting on an educational result.
             </p>
           </div>
 
           <div
-            className="dc-band-3"
+            className="dc-band-3 gs-grid-rhythm"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
@@ -578,7 +580,7 @@ export default function InvestorsPage({
             {VALUE_CARDS.map((c) => (
               <div
                 key={c.headline}
-                className="gs-reveal ix-card"
+                className="gs-reveal ix-card gs-card"
                 style={{
                   background: c.bg,
                   border: `1px solid ${dc.faded}`,
@@ -900,7 +902,7 @@ export default function InvestorsPage({
                 textUnderlineOffset: 3,
               }}
             >
-              Review illustrative scenarios →
+              Review borrower stories →
             </button>
           </p>
           <button

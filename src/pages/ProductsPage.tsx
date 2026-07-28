@@ -28,20 +28,20 @@ interface Tool {
 const TOOLS: Tool[] = [
   {
     title: "Deal Analyzer",
-    desc: "Reliability hold. This broader analysis view is not released for decision-making while its calculations and assumptions are reviewed. Use the released DSCR Calculator only for preliminary arithmetic from the inputs you provide.",
-    cta: "View availability",
+    desc: "Model payment coverage, cash flow, cap rate, and debt yield from the property and financing assumptions you enter.",
+    cta: "Analyze a deal",
     view: "deal-analyzer",
-    tag: "Reliability hold",
+    tag: "Input-based",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Deal Analyzer",
-    panelMetric: "HOLD",
-    panelNote: "Calculations and assumptions under review",
+    panelMetric: "5×",
+    panelNote: "Five connected deal measures",
   },
   {
     title: "DSCR Calculator",
-    desc: "Released for arithmetic-only DSCR estimates. Enter income, rate, and property-cost inputs to calculate a payment-based ratio and PITIA breakdown. Results are preliminary and do not determine pricing, eligibility, terms, approval, or underwriting.",
+    desc: "Enter income, rate, and property costs to calculate payment-based DSCR, PITIA, and an expense-aware investor view.",
     cta: "Open DSCR Calculator",
     view: "dscr-calculator",
     panelBg: dc.mintBg,
@@ -49,145 +49,145 @@ const TOOLS: Tool[] = [
     panelBody: "rgba(0,55,56,0.55)",
     panelTag: "DSCR Calculator",
     panelMetric: "DSCR",
-    panelNote: "Released · input-based arithmetic only",
+    panelNote: "Input-based payment coverage",
   },
   {
-    title: "Program Intelligence",
-    desc: "Reliability hold. Program comparisons and matching are unavailable for decision-making while the underlying information is reviewed. This tool does not provide program availability, eligibility, pricing, terms, or approval.",
-    cta: "View availability",
-    view: "products",
+    title: "Loan Profile",
+    desc: "Organize borrower, property, leverage, and coverage inputs into a plain-language financing profile before starting a request. It does not publish live pricing or eligibility.",
+    cta: "Build a loan profile",
+    view: "rate-quiz",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
-    panelTag: "Loan Programs",
-    panelMetric: "HOLD",
-    panelNote: "Program information under review",
+    panelTag: "Loan Profile",
+    panelMetric: "5Q",
+    panelNote: "Five borrower and property inputs",
   },
   {
-    title: "50-State Compliance Rules",
-    desc: "Reliability hold. State-law information and citations are unavailable for legal or compliance decisions while sources are reviewed. Consult qualified legal counsel for advice on a specific transaction.",
-    cta: "View availability",
+    title: "State Rules Reference",
+    desc: "Look up educational prepayment-penalty research by state, inspect the displayed source, and identify questions that require provider or counsel confirmation.",
+    cta: "Open state reference",
     view: "state-laws",
     panelBg: dc.teal,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.6)",
     panelTag: "State Laws",
-    panelMetric: "HOLD",
-    panelNote: "Legal and compliance content under review",
+    panelMetric: "50",
+    panelNote: "State and district reference entries",
   },
   {
-    title: "Monte Carlo Rate Simulation",
-    desc: "Reliability hold. Rate simulations and projected outcomes are unavailable for decision-making while model assumptions and calculations are reviewed. This tool does not provide a forecast or a verified risk assessment.",
-    cta: "View availability",
+    title: "Rate-Path Simulation",
+    desc: "Run repeatable modeled rate paths from explicit assumptions to see a range of possible payment-coverage outcomes. It is a simulation, not a forecast.",
+    cta: "Simulate rate paths",
     view: "monte-carlo",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
     panelBody: "rgba(238,239,211,0.6)",
     panelTag: "Monte Carlo",
-    panelMetric: "HOLD",
-    panelNote: "Model assumptions under review",
+    panelMetric: "1K",
+    panelNote: "Modeled paths from entered assumptions",
   },
   {
     title: "Stress Matrix",
-    desc: "Reliability hold. Sensitivity outputs are unavailable for decision-making while the underlying calculations are reviewed. Do not use this tool as a lending, investment, or risk conclusion.",
-    cta: "View availability",
+    desc: "Change rate, rent, vacancy, and property-cost assumptions to see how each modeled shock changes DSCR.",
+    cta: "Stress a deal",
     view: "stress-matrix",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
     panelTag: "Stress Matrix",
-    panelMetric: "HOLD",
-    panelNote: "Sensitivity calculations under review",
+    panelMetric: "4×10",
+    panelNote: "Rate and rent sensitivity grid",
   },
   {
     title: "After-Tax Returns",
-    desc: "Reliability hold. Return calculations are unavailable for decision-making while their methods and assumptions are reviewed. This tool does not provide verified performance or tax conclusions.",
-    cta: "View availability",
+    desc: "Compare modeled cash flow, equity multiple, and IRR from the acquisition, operations, sale, and tax assumptions you enter.",
+    cta: "Model returns",
     view: "returns",
     panelBg: dc.lemon,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.6)",
     panelTag: "Returns Engine",
-    panelMetric: "HOLD",
-    panelNote: "Return calculations under review",
+    panelMetric: "IRR",
+    panelNote: "Assumption-based return schedule",
   },
   {
-    title: "Tax Engine",
-    desc: "Reliability hold. Tax calculations and explanations are unavailable for tax decisions while their sources and calculations are reviewed. Consult a qualified tax professional for advice about your situation.",
-    cta: "View availability",
+    title: "Tax Scenario Model",
+    desc: "Explore depreciation and sale-tax scenarios using your own rates and assumptions. The output is planning arithmetic for discussion with a tax professional, not tax advice.",
+    cta: "Model a tax scenario",
     view: "tax-engine",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Tax Engine",
-    panelMetric: "HOLD",
-    panelNote: "Tax content and calculations under review",
+    panelMetric: "TAX",
+    panelNote: "User-entered tax assumptions",
   },
   {
-    title: "Short-Term Rental (STR) Underwriting",
-    desc: "Reliability hold. Short-term-rental analysis is unavailable for decision-making while its calculations and assumptions are reviewed. It does not determine income treatment, qualification, or underwriting.",
-    cta: "View availability",
+    title: "Short-Term Rental Model",
+    desc: "Compare long-term rent, projected STR revenue, and documented STR revenue assumptions with month-by-month payment coverage.",
+    cta: "Model STR income",
     view: "str-underwriting",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
     panelBody: "rgba(238,239,211,0.6)",
     panelTag: "STR",
-    panelMetric: "HOLD",
-    panelNote: "STR calculations under review",
+    panelMetric: "STR",
+    panelNote: "Three entered income views",
   },
   {
     title: "ARM Reset Analyzer",
-    desc: "Reliability hold. ARM payment projections are unavailable for decision-making while their calculations and assumptions are reviewed. This tool does not provide future-rate or payment conclusions.",
-    cta: "View availability",
+    desc: "Enter an ARM structure, index assumptions, margin, and caps to model reset payments and DSCR across several rate paths.",
+    cta: "Model an ARM reset",
     view: "arm-reset",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
     panelTag: "ARM Reset",
-    panelMetric: "HOLD",
-    panelNote: "ARM calculations under review",
+    panelMetric: "ARM",
+    panelNote: "Cap-aware reset calculations",
   },
   {
     title: "Refi Tracker",
-    desc: "Reliability hold. Refinance comparisons are unavailable for decision-making while their calculations and assumptions are reviewed. This tool does not provide a refinance recommendation, pricing, or savings conclusion.",
-    cta: "View availability",
+    desc: "Compare an existing loan with a proposed refinance using entered balance, payment, rate, costs, and hold-period assumptions.",
+    cta: "Compare a refinance",
     view: "refi-tracker",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Refi Tracker",
-    panelMetric: "HOLD",
-    panelNote: "Refinance calculations under review",
+    panelMetric: "B/E",
+    panelNote: "Modeled monthly break-even",
   },
 ];
 
 const SPECIAL_TOOLS = [
   {
-    title: "Deal Workspace",
-    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
-    href: "/tools/deal-workspace",
-    label: "View availability",
+    title: "Decision Support",
+    desc: "Reconcile coverage, leverage, liquidity, and return assumptions in one clearly labeled decision worksheet.",
+    view: "decision-support",
+    label: "Open worksheet",
     stat: "01",
   },
   {
-    title: "Sensitivity Lab",
-    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
-    href: "/tools/sensitivity",
-    label: "View availability",
+    title: "Structure Comparison",
+    desc: "Compare amortizing and interest-only payment structures with the same loan, rate, rent, and cost inputs.",
+    view: "structure-optimizer",
+    label: "Compare structures",
     stat: "02",
   },
   {
-    title: "Structure Optimizer",
-    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
-    href: "/tools/structure-optimizer",
-    label: "View availability",
+    title: "Portfolio Model",
+    desc: "Enter multiple rental properties and view blended DSCR, debt, equity, and cash flow from one table.",
+    view: "portfolio",
+    label: "Model a portfolio",
     stat: "03",
   },
   {
-    title: "Scenario History",
-    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
-    href: "/tools/scenario-history",
-    label: "View availability",
+    title: "Deal Workspace",
+    desc: "Use the public deal analyzer as a no-sign-in workspace, then carry the property and requested-loan context into an application.",
+    view: "deal-analyzer",
+    label: "Open workspace",
     stat: "04",
   },
 ] as const;
@@ -406,7 +406,7 @@ function SpecialToolCard({
         </p>
       </div>
       <button
-        onClick={() => onNavigate("portal")}
+        onClick={() => onNavigate(tool.view)}
         style={{
           marginTop: 30,
           justifySelf: "start",
@@ -443,10 +443,10 @@ export default function ProductsPage({
     <DcShell
       onNavigate={onNavigate}
       navLinks={[
-        { label: "Tool availability", view: "products" },
-        { label: "State Rules · on hold", view: "state-laws" },
+        { label: "All tools", view: "products" },
+        { label: "State Rules", view: "state-laws" },
       ]}
-      cta={{ label: "Open DSCR Calculator →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a DSCR loan →", view: "book-demo" }}
     >
       <style>{PRODUCTS_MOBILE_CSS}</style>
       {/* ── HERO: solid dark, left-aligned, eyebrow + display h1 + sub ──────── */}
@@ -486,10 +486,10 @@ export default function ProductsPage({
                 marginBottom: 18,
               }}
             >
-              1 released calculator · 10 tools on hold
+              Connected tools · explicit assumptions
             </div>
             <H1 style={{ margin: 0 }}>
-              DSCR calculation, clearly scoped
+              DSCR tools that show their work
             </H1>
 
             {/* Sub — separate child so hero stagger steps to it after the h1 */}
@@ -500,15 +500,13 @@ export default function ProductsPage({
                 margin: "clamp(24px,3vw,36px) 0 0",
               }}
             >
-              The DSCR Calculator is the currently released tool. It performs
-              preliminary arithmetic from the values you enter. The other tools
-              and workspace views are on reliability hold while their calculations
-              and source data are reviewed. Nothing here provides a live program,
-              pricing, eligibility, legal, tax, underwriting, approval, or
-              performance conclusion.
+              Each tool runs coded calculations from the values you enter and
+              exposes the assumptions behind its output. These are educational
+              scenario models—not live pricing, eligibility, legal or tax advice,
+              underwriting, approval, or a commitment to lend.
             </Lead>
           </div>
-          <MotionWorkbench mode="sim" value="1" label="Released calculator" />
+          <MotionWorkbench mode="sim" value="15" label="Connected tool views" />
         </div>
       </section>
 
@@ -568,7 +566,7 @@ export default function ProductsPage({
                   marginBottom: 14,
                 }}
               >
-                Workspace views · reliability hold
+                Connected comparison views
               </div>
               <h2
                 style={{
@@ -579,7 +577,7 @@ export default function ProductsPage({
                   margin: 0,
                 }}
               >
-                Workspace views are not released for decisions.
+                Move between tools without changing the contract.
               </h2>
             </div>
             <p
@@ -592,7 +590,7 @@ export default function ProductsPage({
                 maxWidth: "54ch",
               }}
             >
-              These linked workspace views remain on reliability hold while their calculations and data are reviewed. Do not use them for analysis, lending, investment, legal, tax, or compliance decisions.
+              These tools keep calculations bounded to visible visitor-entered assumptions. They help organize questions and compare scenarios; a responsible provider and qualified professionals still determine transaction-specific financing, legal, and tax conclusions.
             </p>
           </div>
           <div
@@ -604,7 +602,7 @@ export default function ProductsPage({
             className="pr-special-grid"
           >
             {SPECIAL_TOOLS.map((tool) => (
-              <SpecialToolCard key={tool.href} tool={tool} onNavigate={onNavigate} />
+              <SpecialToolCard key={tool.view} tool={tool} onNavigate={onNavigate} />
             ))}
           </div>
         </div>
@@ -640,7 +638,7 @@ export default function ProductsPage({
                 margin: "0 0 16px",
               }}
             >
-              Start with the released DSCR Calculator.
+              Start with the deal in front of you.
             </h2>
             <p
               style={{
@@ -653,9 +651,9 @@ export default function ProductsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              It provides a preliminary, input-based DSCR calculation and PITIA
-              breakdown. All other listed tools, including the rate quiz, remain
-              on reliability hold and are not for decision-making.
+              Use the calculator for payment coverage, add the relevant stress,
+              structure, return, or portfolio view, then carry the useful facts
+              into a preliminary DSCR loan request.
             </p>
             <button
               onClick={() => onNavigate("solutions")}
@@ -671,12 +669,12 @@ export default function ProductsPage({
                 fontFamily: dc.sans,
               }}
             >
-              See tool availability by role →
+              See the connected loan path →
             </button>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
             <button
-              onClick={() => onNavigate("rate-quiz")}
+              onClick={() => onNavigate("book-demo")}
               style={{
                 background: dc.lemon,
                 color: dc.dark,
@@ -691,7 +689,7 @@ export default function ProductsPage({
                 textAlign: "left" as const,
               }}
             >
-              Rate quiz availability →
+              Apply for a DSCR loan →
             </button>
             <button
               onClick={() => onNavigate("dscr-calculator")}

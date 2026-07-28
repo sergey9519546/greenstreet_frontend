@@ -16,7 +16,6 @@ const ARTICLE_CSS = `
   .bp-body ul{margin:0 0 20px;padding:0;list-style:none;}
   .bp-body li{color:#3f5252;font-size:17px;line-height:1.6;margin-bottom:12px;padding-left:26px;position:relative;}
   .bp-body li::before{content:"→";position:absolute;left:0;color:${dc.rain};font-weight:800;}
-  .bp-card{transition:transform .14s;} .bp-card:hover{transform:translateY(-4px);}
   @media(max-width: 991px){
     .bp-related-grid{grid-template-columns:1fr !important;}
     .bp-byline{flex-wrap:wrap;}
@@ -63,7 +62,7 @@ export default function BlogPostPage({
     { label: "DSCR Calc", view: "dscr-calculator" },
     { label: "FAQ", view: "faq" },
   ];
-  const cta = { label: "Price a deal →", view: "dscr-calculator" };
+  const cta = { label: "Apply for a loan →", view: "book-demo" };
 
   if (!post) {
     return (
@@ -563,7 +562,7 @@ export default function BlogPostPage({
               color: dc.cream,
             }}
           >
-            Model a DSCR scenario.
+            Ready to move this property forward?
           </h2>
           <p
             style={{
@@ -574,8 +573,8 @@ export default function BlogPostPage({
               letterSpacing: "-0.02em",
             }}
           >
-            Explore a DSCR estimate from your stated rent and loan assumptions. It is educational only;
-            confirm current pricing, program availability, and eligibility directly with a lender.
+            Start a preliminary loan request, or check the property math first in
+            the DSCR Calculator. Final eligibility, pricing, and terms require review.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
             <button
@@ -596,7 +595,7 @@ export default function BlogPostPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Model a DSCR scenario →
+              Start my loan request →
             </button>
             <a
               href="/dscr-calculator"
@@ -615,7 +614,7 @@ export default function BlogPostPage({
                 border: "1px solid rgba(238,239,211,0.3)",
               }}
             >
-              Open the Deal Analyzer
+              Open the DSCR Calculator
             </a>
           </div>
         </div>
@@ -643,7 +642,7 @@ export default function BlogPostPage({
           </h2>
 
           <div
-            className="gs-reveal bp-related-grid"
+            className="gs-reveal bp-related-grid gs-grid-rhythm"
             style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}
           >
             {relatedPosts.map((r) => (
@@ -651,7 +650,7 @@ export default function BlogPostPage({
                 key={r.slug}
                 href={`/blog/${r.slug}`}
                 onClick={(e) => { e.preventDefault(); (window.history.pushState({},'',`/blog/${r.slug}`),window.dispatchEvent(new PopStateEvent('popstate'))); }}
-                className="bp-card"
+                className="bp-card gs-card gs-card-equal gs-card-interactive"
                 style={{
                   background: dc.mintBg,
                   borderRadius: 12,
@@ -684,7 +683,7 @@ export default function BlogPostPage({
                     {r.glyph}
                   </Mono>
                 </div>
-                <div style={{ padding: "clamp(18px,2vw,24px)" }}>
+                <div style={{ padding: "clamp(18px,2vw,24px)", display: "flex", flexDirection: "column", flex: 1 }}>
                   <div
                     style={{
                       display: "flex",

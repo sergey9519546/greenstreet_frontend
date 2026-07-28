@@ -24,7 +24,11 @@ const PORT = Number(process.env.PORT) || 3000;
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: process.env.DISABLE_HMR !== "true",
+        watch: process.env.DISABLE_HMR === "true" ? null : {},
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);

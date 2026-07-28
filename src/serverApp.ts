@@ -6,7 +6,11 @@ import { logger, logRequest } from "./logger";
 import { errorHandler } from "./middleware/error";
 import { dscrRouter } from "./routes/dscr";
 import { narrateRouter } from "./routes/narrate";
-import { createLeadsRouter } from "./routes/leads";
+import {
+  createLeadsRouter,
+  createWebhookLeadNotifier,
+  readLeadWebhookConfig,
+} from "./routes/leads";
 import { verifyFirebaseToken, requireAuth } from "./middleware/auth";
 
 export const app = express();
@@ -43,6 +47,11 @@ function parseAllowedOrigins(value: string | undefined): string[] {
 }
 
 const allowedOrigins = parseAllowedOrigins(process.env.ALLOWED_ORIGINS);
+const leadWebhookConfig = readLeadWebhookConfig(process.env);
+const notifyLead = leadWebhookConfig
+  ? createWebhookLeadNotifier(leadWebhookConfig)
+  : undefined;
+const leadIntakeReady = Boolean(notifyLead);
 
 app.use(
   cors({
@@ -127,15 +136,16 @@ const leadLimiter = rateLimit({
 
 // ── API Routes ────────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
-  res.json({
-    status: "ok",
+  res.status(leadIntakeReady ? 200 : 503).json({
+    status: leadIntakeReady ? "ok" : "degraded",
+    leadIntake: leadIntakeReady ? "ready" : "notification_unconfigured",
     version: process.env.npm_package_version || "unknown",
     timestamp: new Date().toISOString(),
   });
 });
 
 app.use("/api/dscr", apiLimiter, dscrRouter);
-app.use("/api/leads", leadLimiter, createLeadsRouter({ allowedOrigins }));
+app.use("/api/leads", leadLimiter, createLeadsRouter({ allowedOrigins, notifyLead }));
 // /api/narrate calls a paid third-party LLM. Beyond rate limiting, it must
 // never be reachable anonymously: requireAuth (src/middleware/auth.ts) 401s
 // any request that verifyFirebaseToken did not attach a user to (real, or the

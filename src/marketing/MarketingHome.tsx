@@ -3,70 +3,76 @@ import { createPortal } from "react-dom";
 import homepageMarkup from "./home-markup.html?raw";
 
 const CLAIM_REPLACEMENTS = [
+  ["Book a demo", "Apply for a loan"],
+  ["Get started", "Apply for a DSCR loan"],
+  ["See InvestGO in action", "Open the deal workspace"],
+  ["Match lenders", "Request facts"],
+  ["State rules", "State checklist"],
+  ["Lock the rate", "Continue request"],
   [
     "DSCR financing for real estate investors — qualify on the property’s rental income, not personal income tax returns.",
-    "DSCR scenario tools for real estate investors — compare a property’s rental income with its estimated monthly payment.",
+    "A clearer path to a DSCR loan — from property math to a preliminary request.",
   ],
   [
     "Direct DSCR lending for real estate investors, foreign nationals, and short-term-rental hosts — we underwrite and fund in-house.",
-    "Educational DSCR modeling for real estate investors, foreign nationals, and short-term-rental hosts — with a path to request human review.",
+    "Model the deal, understand the assumptions, and continue into a preliminary loan request without entering the same facts twice.",
   ],
   [
     "Verified pricing, instant program matching, and 50-state rules in one connected workflow.",
-    "Transparent scenario math, labeled assumptions, and reliability holds in one connected workflow.",
+    "Connected deal tools, transparent assumptions, and one preliminary loan-request flow.",
   ],
   [
     "Run your entire DSCR loan from one unified system — powered by ",
-    "Explore a DSCR scenario in one unified workspace — powered by ",
+    "Move from property numbers to a preliminary DSCR loan request in one connected workflow — powered by ",
   ],
   [
     "Verified pricing across a full suite of wholesale DSCR programs. Trusted by brokers nationwide.",
-    "An illustrative DSCR workflow for brokers and real estate investors.",
+    "A connected DSCR financing workflow for brokers and real estate investors.",
   ],
   [
     '<div class="u-text-style-h1">11 lenders</div>',
-    '<div class="u-text-style-h1">No live rates</div>',
+    '<div class="u-text-style-h1">Property</div>',
   ],
   [
     "Verified wholesale DSCR lenders in the engine — matched by FICO, LTV, DSCR, and property type",
-    "Pricing and provider matching are disabled until governed source data is approved",
+    "Property value, purpose, and type establish the entered loan request",
   ],
   [
     '<div class="u-text-style-h1">6.125%</div>',
-    '<div class="u-text-style-h1">User-entered</div>',
+    '<div class="u-text-style-h1">Rate input</div>',
   ],
   [
     "Best available rate tier for 740+ FICO, ≤75% LTV files — June 2026 rate sheet pull",
-    "The calculator uses the visitor’s rate assumption and does not publish current pricing",
+    "Payment math uses the visitor’s interest-rate and loan-term assumptions",
   ],
   [
     '<div class="u-text-style-h1">50 states</div>',
-    '<div class="u-text-style-h1">Legal hold</div>',
+    '<div class="u-text-style-h1">Location</div>',
   ],
   [
     "PPP and usury rules mapped and updated monthly — including TX, MN, OH, PA, NJ",
-    "State conclusions are disabled pending counsel review and effective-date sourcing",
+    "Property state stays attached so jurisdiction-specific questions remain visible",
   ],
   [
     '<div class="u-text-style-h1">21–30 days</div>',
-    '<div class="u-text-style-h1">No promise</div>',
+    '<div class="u-text-style-h1">Timing</div>',
   ],
   [
     "Typical close time on a clean DSCR file with verified lender match",
-    "No unverified response-time or closing-time commitment is published",
+    "Requested timing carries into the preliminary loan request as a borrower input",
   ],
   [
     "(Composite, based on real Greenstreet broker data)",
-    "(Constructed example; not a customer endorsement)",
+    "(Representative borrower story — fictional example, not a real person or customer endorsement)",
   ],
-  ["Five questions to a real rate tier", "Five questions to organize a scenario"],
+  ["Five questions to a real rate tier", "Five questions to start your loan request"],
   [
     "Answer five questions about your file — FICO, LTV, property type, state, and rent — and get a preliminary rate tier from Greenstreet's matched programs. A preliminary estimate, not a commitment to lend.",
-    "Answer five questions about the property and borrower context. Pricing and program conclusions remain unavailable until approved source data is connected.",
+    "Answer five questions about the property and borrower context, review the preliminary math, and continue into a loan request when you are ready.",
   ],
   [
     "Built on PPP rules, usury caps, and business-purpose requirements for all 50 states — including TX APR ban, MN HF 3437, OH/PA thresholds, and NJ LLC risk. Updated monthly.",
-    "State-specific conclusions are withheld until primary sources, effective dates, counsel review, and an accountable update process are complete.",
+    "Use the property state to open an educational source reference, then confirm the actual transaction with the responsible provider or counsel.",
   ],
   [
     "Bank-grade security and privacy that protect your critical transaction data — with smarter underwriting flows that replace invasive oversight and build trust instead of eroding it.",
@@ -76,66 +82,72 @@ const CLAIM_REPLACEMENTS = [
     "Bank-grade data privacy and secure document storage",
     "Security controls require documented verification",
   ],
-  ["Real results from teams using Greenstreet", "Constructed workflow examples"],
+  ["Real results from teams using Greenstreet", "Borrower request paths Greenstreet is built to support"],
   [
     "Mortgage brokers, lenders, and real estate investors rely on Greenstreet to price loans, run underwriting scenarios, and lock rates across complex rental portfolios.",
-    "These are illustrative teaching scenarios, not customer endorsements, verified transactions, pricing claims, or measured performance results.",
+    "Review fictional borrower stories that show which facts move from property math into a preliminary request. They are workflow examples, not real people, customers, or endorsements.",
   ],
-  ["Est. weekly time saved on manual underwriting", "Illustrative workflow-time input"],
-  ["Greenstreet users", "Illustrative team-size input"],
-  ["MoM headcount growth enabled", "Illustrative growth input"],
-  ["Legacy Spreadsheets Replaced", "Illustrative systems input"],
-  ["Est. Reduction in Loan Origination Cycle Time", "Illustrative cycle-time input"],
-  ["Legacy Platforms Replaced", "Illustrative systems input"],
-  ["Faster lender program matching ", "Illustrative workflow timing"],
+  ["Case study", "Borrower story"],
+  ["See all cases", "Review borrower request paths"],
+  ["Est. weekly time saved on manual underwriting", "Requested loan purpose"],
+  ["Greenstreet users", "Illustrative leverage input"],
+  ["MoM headcount growth enabled", "Modeled payment coverage"],
+  ["Legacy Spreadsheets Replaced", "Properties in the request"],
+  ["Est. Reduction in Loan Origination Cycle Time", "Combined requested balance"],
+  ["Legacy Platforms Replaced", "Income profile"],
+  ["Faster lender program matching ", "Borrower handoff"],
   ["Trusted by DSCR brokers nationwide.", "How to evaluate a DSCR workflow."],
+  [
+    "Why your DSCR lender cares about Track 2 (and you should too)",
+    "What PITIA includes — and why it changes DSCR",
+  ],
   [
     "June 2026 DSCR rate sheet: where the 6.125% specials actually are",
     "How to review a DSCR rate sheet without treating it as a quote",
   ],
-  ["Book a Live Demo", "Request a Scenario Review"],
-  ["Learn More Now<br/>+1 (555) 010-0000", "Request a<br/>Scenario Review"],
-  ['href="tel:+15550100000"', 'href="/book-demo"'],
+  ["Book a Live Demo", "Start a Loan Request"],
+  ["Learn More Now<br/>+1 (555) 010-0000", "Apply for a <br/>DSCR Loan"],
+  ['href="tel:+15550100000"', 'href="/apply"'],
   [
     "Based on sampled user sessions over the past 12 months. Results may vary by content complexity, firm setup, and reviewer availability.",
-    "Illustrative workflow example only; no verified customer performance sample is published.",
+    "Borrower stories are fictional workflow examples, not real people, customer outcomes, or endorsements.",
   ],
   [
     "Based on underwriting cycle times across a sample of customers. Results may vary by deal volume, loan complexity, and firm size.",
-    "Illustrative workflow example only; no verified underwriting-cycle sample is published.",
+    "Displayed timing is a borrower-request input, not a closing-time estimate.",
   ],
   [
     "Based on sampled onboarding data of customers consolidating systems into Greenstreet. Results may vary.",
-    "Illustrative workflow example only; no verified onboarding sample is published.",
+    "Displayed property and balance figures are example inputs, not customer outcomes.",
   ],
   [
     "Based on annual customer retention across paid subscriptions. Customers are considered churned upon cancellation.",
-    "Illustrative workflow example only; no verified retention metric is published.",
+    "Program availability, pricing, eligibility, and terms require provider confirmation.",
   ],
   [
     "The DSCR engine. Deterministic. 50-state clean. Underwriter-defensible.",
-    "Educational DSCR scenarios with explicit assumptions and reliability holds.",
+    "Connected DSCR tools with explicit assumptions and a preliminary loan-request path.",
   ],
   [
     "⎋</strong> Greenstreet Finance announces <strong>InvestGO</strong> — the unified DSCR loan platform",
-    "⎋</strong> Explore <strong>InvestGO</strong> — an educational DSCR workflow concept",
+    "÷</strong> Check your <strong>DSCR</strong> — carry the same deal into a loan request",
   ],
   [
     "All-in-one platform for non-QM and DSCR lending",
-    "Educational scenario tools for rental-property analysis",
+    "Connected DSCR loan tools for rental-property investors",
   ],
-  ["Our DSCR Programs", "Product overview"],
+  ["Our DSCR Programs", "Tools that move a deal forward"],
   [
     "Learn the how and why of Greenstreet in 15 minutes",
-    "Review the educational workflow and its current limitations",
+    "See how the tools carry a deal toward a preliminary loan request",
   ],
   [
     "Get your questions answered by a member of the Greenstreet team",
-    "Request a preliminary review of your scenario assumptions",
+    "Start with your property and requested loan amount",
   ],
   [
     "Match your deal to the right program",
-    "Compare the assumptions that shape a scenario",
+    "Prepare the property details for a loan request",
   ],
   [
     "Filter 7 custom Greenstreet DSCR programs by FICO, LTV, DSCR ratio, and property type. See which program will actually fund this file — underwritten and funded in-house.",
@@ -151,60 +163,75 @@ const CLAIM_REPLACEMENTS = [
   ],
   [
     "50-state rules, always current",
-    "State-rule conclusions are under review",
+    "State research with source verification",
   ],
   [
     "Submit clean. Close fast.",
-    "Prepare a clearer scenario for review",
+    "Move from estimate to loan request",
   ],
+  ["Price the deal in minutes", "Model the deal with visible inputs"],
+  [
+    "Enter the property address, rent, and rate. Get DSCR ratio, Track 1 and Track 2 analysis, break-even rate, and cash-on-cash return — in under 60 seconds.",
+    "Enter the property value, rent, rate, taxes, insurance, and HOA to compare payment coverage and cash-flow assumptions without a timing promise.",
+  ],
+  ["Verified pricing across a full suite of wholesale DSCR programs. Trusted by brokers nationwide.", "Connected DSCR tools for rental-property borrowers and brokers."],
   [
     '"Helps us detect risk and automate more of our DSCR loan than previously possible...easy to use"',
-    "Illustrative workflow: organize inputs, inspect risk assumptions, and identify what still needs human confirmation.",
+    "A first-rental buyer has a non-owner-occupied property under contract. The workflow compares entered rent with the full payment, keeps leverage visible, and carries the same facts into a preliminary purchase-loan request.",
   ],
   [
     '"The personal support, the AI capabilities, and then the backing from the underwriting expertise makes me a lot more comfortable... knowing that we\'re doing things the right way."',
-    "Illustrative workflow: compare the same scenario assumptions across tools before requesting a qualified review.",
+    "A portfolio borrower is refinancing four rentals. The workflow keeps balances, rent, payment coverage, and requested proceeds visible property by property before the borrower chooses which request to discuss first.",
   ],
   [
     "“I can't say they like paperwork, but I can tell you that brokers love Greenstreet”",
-    "Illustrative workflow: make the requested inputs and unresolved questions easier to review.",
+    "A mortgage broker is handing off a borrower file. The workflow keeps the property, requested amount, purpose, timing, and consent together without rebuilding the request.",
   ],
   [
     '"Whatever we came up with for rental scenarios, it had to move as fast as the content creators moved. Huge thanks to the Greenstreet team!"',
-    "Illustrative workflow: revise rental assumptions without presenting the result as a quote or approval.",
+    "A short-term-rental borrower needs to separate long-term rent, projected STR revenue, and documented revenue so modeled income is never mistaken for provider-accepted income.",
   ],
   [
     "“Greenstreet has completely transformed our workflow….its reliability and strong security features give us peace of mind. I highly recommend this platform to any business looking to modernize operations and scale efficiently.”",
-    "Illustrative workflow: keep scenario inputs together while security and provider controls remain subject to independent verification.",
+    "An international borrower is investing through an entity. The workflow surfaces identity and ownership questions early while sensitive documents remain outside the public intake.",
   ],
   [
     '"I can’t say they like paperwork, but I can tell you that brokers love Greenstreet."',
-    "Illustrative workflow: make the requested inputs and unresolved questions easier to review.",
+    "A mortgage broker is handing off a borrower file. The workflow keeps the property, requested amount, purpose, timing, and consent together without rebuilding the request.",
   ],
   [
     '"The personal support, the AI capabilities, and then the backing from the underwriting expertise makes me a lot more comfortable... knowing that we\'re doing things the right way." ',
-    "Illustrative workflow: compare the same scenario assumptions across tools before requesting a qualified review.",
+    "A portfolio borrower is refinancing four rentals. The workflow keeps balances, rent, payment coverage, and requested proceeds visible property by property before the borrower chooses which request to discuss first.",
   ],
-  ["Maya Reynolds", "Constructed scenario"],
-  ["David Chen", "Constructed scenario"],
-  ["Carlos Martinez", "Constructed scenario"],
-  ["Emma Wallace", "Constructed scenario"],
-  ["Layla Kabbani", "Constructed scenario"],
-  ["Nexus Financial", "Illustrative workflow"],
-  ["Hadley Capital Partners", "Illustrative workflow"],
-  ["Marlowe Asset Group", "Illustrative workflow"],
-  ["Sterling Bridge Partners", "Illustrative workflow"],
-  ["Cedar Funding", "Illustrative workflow"],
-  ["(Composite, based on real Greenstreet broker data)", "(Constructed example; not a customer endorsement)"],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">24 hours</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Illustrative</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">70+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Example</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">20%</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Not measured</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">100+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Example</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">3</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Illustrative</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">60%+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Not measured</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">2</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Illustrative</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">Hours</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Not measured</div>'],
-  ['<div class="cs-hero-stat-nb u-text-style-h2">25+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Example</div>'],
+  ["Principal Broker, Nexus Financial", "First-rental request · purchase"],
+  ["Managing Director, Hadley Capital Partners", "Portfolio request · refinance"],
+  ["Broker &amp; COO, Marlowe Asset Group", "Broker-led borrower request"],
+  ["COO &amp; broker, Marlowe Asset Group", "Broker-led borrower request"],
+  ["Broker &amp; COO, Sterling Bridge Partners", "Short-term-rental request · purchase"],
+  ["Director of Originations, Cedar Funding", "International borrower · entity purchase"],
+  ["Maya Reynolds", "First-rental borrower"],
+  ["David Chen", "Portfolio borrower"],
+  ["Carlos Martinez", "Mortgage broker"],
+  ["Emma Wallace", "Short-term-rental borrower"],
+  ["Layla Kabbani", "International borrower"],
+  ["Nexus Financial", "Purchase loan request"],
+  ["Hadley Capital Partners", "Portfolio refinance request"],
+  ["Marlowe Asset Group", "Broker handoff"],
+  ["Sterling Bridge Partners", "Short-term-rental request"],
+  ["Cedar Funding", "Entity purchase request"],
+  [
+    "(Composite, based on real Greenstreet broker data)",
+    "(Representative borrower story — fictional example, not a real person or customer endorsement)",
+  ],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">24 hours</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Purchase</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">70+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">75% LTV</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">20%</div>', '<div class="cs-hero-stat-nb u-text-style-h2">1.18x</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">100+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Timing set</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">3</div>', '<div class="cs-hero-stat-nb u-text-style-h2">4 rentals</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">60%+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">$1.1M</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">2</div>', '<div class="cs-hero-stat-nb u-text-style-h2">STR</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">Hours</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Entity</div>'],
+  ['<div class="cs-hero-stat-nb u-text-style-h2">25+</div>', '<div class="cs-hero-stat-nb u-text-style-h2">Broker</div>'],
   [
     "The whitepaper will be sent to your email inbox shortly!",
     "This form is not connected. No information was sent.",
@@ -219,7 +246,7 @@ const CLAIM_REPLACEMENTS = [
   ],
   [
     '<input class="hero_form_field_input form_main_field_input w-input" data-name="Email 2" id="email-2" maxlength="256" name="email-2" placeholder="Enter your work email address" required="" type="email"/>',
-    '<div class="hero_form_field_input form_main_field_input w-input" role="note">Continue to request a scenario review</div>',
+    '<div class="hero_form_field_input form_main_field_input w-input" role="note">Start a preliminary loan request</div>',
   ],
 ] as const;
 
@@ -231,8 +258,6 @@ function sanitizeUnsupportedHomepageClaims(markup: string): string {
 }
 
 function repairHomepageSemantics(markup: string): string {
-  let bookingIdIndex = 0;
-  let bookingScriptIndex = 0;
   let burgerControlIndex = 0;
   let featuredNavNodeIndex = 0;
   let burgerNodeIndex = 0;
@@ -240,12 +265,58 @@ function repairHomepageSemantics(markup: string): string {
 
   return markup
     .replace(
+      /<div class="home-go-svg w-embed"><svg[\s\S]*?<\/svg><\/div>/,
+      '<span class="home-go-svg u-text-style-h4">Deal workspace</span>',
+    )
+    .replaceAll(
+      'INVEST<span style="opacity:0.5">GO</span>',
+      "Deal workspace",
+    )
+    .replaceAll(">InvestGO<", ">Deal workspace<")
+    .replaceAll(">Login<", ">Deal workspace<")
+    .replace(
+      /<div class="testimonial_client_headshot_wrap"><img\b[^>]*\/><\/div>/g,
+      '<div aria-hidden="true" class="testimonial_client_headshot_wrap" style="display:flex;align-items:center;justify-content:center"><span class="u-text-style-small">Borrower story</span></div>',
+    )
+    .replace(
+      /<img\b(?=[^>]*\bclass="testimonial-logo")[^>]*\/>/g,
+      '<span aria-hidden="true" class="testimonial-logo u-text-style-small">Fictional workflow example</span>',
+    )
+    .replace(
+      /<div class="hero_user_visual_wrap is-home"><img[\s\S]*?<\/div>/g,
+      '<div aria-hidden="true" class="hero_user_visual_wrap is-home" style="display:flex;align-items:center;justify-content:center"><span class="u-text-style-small">Borrower story</span></div>',
+    )
+    .replace(
+      /<img\b(?=[^>]*\bclass="cs-home-logo")[^>]*\/>/g,
+      '<span aria-hidden="true" class="cs-home-logo u-text-style-h5">Illustrative request path</span>',
+    )
+    .replaceAll('href="/book-demo"', 'href="/apply"')
+    .replaceAll('href="/case-studies/vela-capital"', 'href="/borrower-profiles"')
+    .replaceAll('href="/case-studies/northshore-nonqm"', 'href="/borrower-profiles"')
+    .replaceAll('href="/case-studies/quintero-co"', 'href="/borrower-profiles"')
+    .replaceAll(
+      'href="/blog/greenstreet-t3-survey-rating"',
+      'href="/blog/what-is-dscr-how-it-works"',
+    )
+    .replaceAll(
+      'href="/blog/track-2-dscr"',
+      'href="/blog/dscr-pitia-breakdown-qualifying-income"',
+    )
+    .replaceAll(
+      'href="/blog/system-of-action"',
+      'href="/blog/why-no-llm-number-path"',
+    )
+    .replaceAll(
+      'href="/case-studies/northshore-nonqm"',
+      'href="/case-studies/northshore-non-qm"',
+    )
+    .replace(
       '<div class="announcement u-container u-theme-light">',
       '<a class="gs-skip-link" href="#main-content">Skip to main content</a><div class="announcement u-container u-theme-light">',
     )
     .replace(
       '<a class="link-block w-inline-block" href="/blog/greenstreet-go-launch"></a>',
-      '<a aria-label="Read the InvestGO announcement" class="link-block w-inline-block" href="/blog/greenstreet-go-launch"></a>',
+      '<a aria-label="Open the DSCR Calculator" class="link-block w-inline-block" href="/dscr-calculator"></a>',
     )
     .replace(
       '<button class="announcement-close" id="">',
@@ -265,7 +336,7 @@ function repairHomepageSemantics(markup: string): string {
     })
     .replace(
       'href="#"><div class="footer_bottom_link_text u-text-style-small">Cookies Settings</div>',
-      'href="/legal/privacy"><div class="footer_bottom_link_text u-text-style-small">Privacy information</div>',
+      'href="/legal/privacy-policy"><div class="footer_bottom_link_text u-text-style-small">Privacy information</div>',
     )
     .replace(
       'name="firstname" placeholder="First name" required=""',
@@ -315,15 +386,6 @@ function repairHomepageSemantics(markup: string): string {
       '</div><div class="footer_component">',
       '</main><div class="footer_component">',
     )
-    .replace(/#hs-booking/g, ".meetings-iframe-container")
-    .replace(/id="hs-booking"/g, () => {
-      bookingIdIndex += 1;
-      return `id="hs-booking-${bookingIdIndex}"`;
-    })
-    .replace(/getElementById\('hs-booking'\)/g, () => {
-      bookingScriptIndex += 1;
-      return `getElementById('hs-booking-${bookingScriptIndex}')`;
-    })
     .replace(
       / id="w-node-_099235b4-dc1c-00f9-c99c-0ba16fa92a7f-6fa92a72"/g,
       (attribute) => {
@@ -346,11 +408,55 @@ function repairHomepageSemantics(markup: string): string {
         stepContentNodeIndex += 1;
         return stepContentNodeIndex === 1 ? attribute : "";
       },
-    );
+    )
+    .replaceAll("InvestGO", "Deal workspace");
 }
 
-const HELD_RATE_WIDGET = `<section class="gs-rate-widget-section" aria-label="DSCR rate tool availability"><div class="gs-rate-widget-contain"><div class="gs-rate-widget-copy"><div class="eyebrow">Tool availability</div><h2>Rate estimates are under review.</h2><p>We are not displaying rate bands, program tiers, or eligibility conclusions until the underlying pricing data is approved and versioned.</p><a class="gs-rate-widget-cta" href="/dscr-calculator">Open DSCR calculator -&gt;</a></div><div class="gs-rate-widget-card" id="gs-rate-widget-hold"><div class="gs-rate-widget-inner"><div class="gs-rate-widget-top"><div class="gs-rate-widget-kicker">Verification hold</div><div class="gs-rate-widget-progress">Source required</div></div><div><div class="gs-rate-widget-question">No rate or program output is published here.</div></div><div class="gs-rate-widget-options" role="list" aria-label="Requirements before this tool can return results"><div class="gs-rate-widget-option is-selected" role="listitem" aria-disabled="true"><b>Approved rate sheet</b><span>required</span></div><div class="gs-rate-widget-option" role="listitem" aria-disabled="true"><b>Versioned program matrix</b><span>required</span></div><div class="gs-rate-widget-option" role="listitem" aria-disabled="true"><b>Named data owner</b><span>required</span></div><div class="gs-rate-widget-option" role="listitem" aria-disabled="true"><b>Boundary validation</b><span>required</span></div></div><div class="gs-rate-widget-result"><div><small>Status</small><div class="gs-rate-widget-rate">Under review</div></div><div class="gs-rate-widget-pill">No pricing claim</div></div><div class="gs-rate-widget-note">The layout is preserved while unsupported pricing and eligibility output remains disabled.</div></div></div></div></section>`;
-const HELD_STATE_MAP = `<section class="gs-statemap-section" aria-label="State rules tool availability"><div class="gs-statemap-contain u-container"><div class="gs-statemap-head"><div class="u-text-style-h5 u-mb-4">Tool availability</div><h2 class="u-text-style-h2">State-rule conclusions are under review.</h2><p class="u-text-style-large gs-statemap-sub">We are not publishing jurisdiction-specific prepayment-penalty conclusions until counsel review, primary sources, and effective dates are complete.</p></div><div class="gs-statemap-grid"><div class="gs-statemap-canvas" id="gs-state-map-root"><div class="gs-statemap-loading">Loading a neutral map…</div></div><div class="gs-statemap-side"><div class="gs-statemap-legend" id="gs-state-map-legend"></div><a class="gs-statemap-cta" href="/dscr-calculator">Open DSCR calculator →</a><div class="gs-statemap-note">No state is classified and no legal conclusion is shown while review is incomplete.</div></div></div></div></section>`;
+const LOAN_PROFILE_WIDGET = `<section class="gs-rate-widget-section" aria-label="DSCR loan profile tool"><div class="gs-rate-widget-contain"><div class="gs-rate-widget-copy"><div class="eyebrow">Loan profile</div><h2>Organize the deal before you apply.</h2><p>Answer five borrower and property questions, review what each input means, and carry the useful context into a preliminary loan request. The tool does not invent a current rate or program match.</p><a class="gs-rate-widget-cta" href="/rate-quiz">Build a loan profile -&gt;</a></div><div class="gs-rate-widget-card"><div class="gs-rate-widget-inner"><div class="gs-rate-widget-top"><div class="gs-rate-widget-kicker">Five inputs</div><div class="gs-rate-widget-progress">No credit pull</div></div><div><div class="gs-rate-widget-question">Property, credit band, leverage, coverage, borrower context.</div></div><div class="gs-rate-widget-options" role="list" aria-label="Loan profile inputs"><div class="gs-rate-widget-option is-selected" role="listitem"><b>Visible assumptions</b><span>you provide them</span></div><div class="gs-rate-widget-option" role="listitem"><b>Plain-language result</b><span>not a quote</span></div><div class="gs-rate-widget-option" role="listitem"><b>Connected request</b><span>continue when ready</span></div></div><div class="gs-rate-widget-result"><div><small>Next step</small><div class="gs-rate-widget-rate">Your choice</div></div><div class="gs-rate-widget-pill">Application path</div></div><div class="gs-rate-widget-note">Pricing, availability, eligibility, and terms require confirmation from the responsible provider.</div></div></div></div></section>`;
+const STATE_REFERENCE_WIDGET = `<section class="gs-statemap-section" aria-label="State rules research reference"><div class="gs-statemap-contain u-container"><div class="gs-statemap-head"><div class="u-text-style-h5 u-mb-4">State reference</div><h2 class="u-text-style-h2">Start with the jurisdiction and verify the source.</h2><p class="u-text-style-large gs-statemap-sub">Look up educational prepayment-penalty research, inspect the displayed citation, and identify questions that need provider or counsel confirmation for the actual transaction.</p></div><div class="gs-statemap-grid"><div class="gs-statemap-canvas"><div class="gs-statemap-loading">50 states + District of Columbia</div></div><div class="gs-statemap-side"><a class="gs-statemap-cta" href="/state-laws">Open state reference →</a><div class="gs-statemap-note">Research reference only. Law and provider policy can change; this is not legal advice.</div></div></div></div></section>`;
+
+const STEP_SCENE_REPLACEMENTS = [
+  ['"Run the numbers", "Match lenders", "Rate quiz", "State rules", "Lock the rate"', '"Example inputs", "Request facts", "Loan profile", "State checklist", "Request draft"'],
+  ["Track-1 DSCR", "Example DSCR"],
+  ["Qualifies", "Arithmetic only"],
+  ["Greenstreet — Premier", "Property facts"],
+  ["Greenstreet — STR Plus", "Income facts"],
+  ["Greenstreet — No-Ratio", "Borrower facts"],
+  ['<span class="hf-rank">1</span>', '<span class="hf-rank">A</span>'],
+  ['<span class="hf-rank">2</span>', '<span class="hf-rank">B</span>'],
+  ['<span class="hf-rank">3</span>', '<span class="hf-rank">C</span>'],
+  ['<span class="hf-chip">94%</span>', '<span class="hf-chip">Entered</span>'],
+  ['<span class="hf-chip is-teal">82%</span>', '<span class="hf-chip is-teal">Entered</span>'],
+  ['<span class="hf-chip is-ghost">68%</span>', '<span class="hf-chip is-ghost">Verify</span>'],
+  ["FICO 742", "Credit input"],
+  ["LTV 72%", "Leverage input"],
+  ["<b>A&minus;</b>", "<b>Facts</b>"],
+  [">SFR<", ">Property type<"],
+  ["Lease OK", "Rent evidence"],
+  ["APR clear", "Verify APR"],
+  ["Bill checked", "Verify current bill"],
+  ["LLC risk OK", "Verify entity"],
+  ["Scenario saved", "Draft saved"],
+  [
+    '<span class="hf-metric" data-count="6.875" data-suffix="%" data-dec="3">0.000%</span>',
+    '<span class="hf-metric">No rate shown</span>',
+  ],
+  ["30-day lock &middot; clean file", "Provider review required"],
+] as const;
+
+/**
+ * The animated homepage frames are same-origin HTML fetched by step-scroll.js.
+ * Sanitize that source before it becomes iframe srcdoc so the animation remains
+ * intact without publishing a qualification, lender ranking, legal conclusion,
+ * or rate-lock claim.
+ */
+export function sanitizeHomepageStepScene(markup: string): string {
+  return STEP_SCENE_REPLACEMENTS.reduce(
+    (result, [unsupported, replacement]) =>
+      result.replaceAll(unsupported, replacement),
+    markup,
+  );
+}
 
 /**
  * The legacy marketing export includes interactive rate and legal-rule widgets.
@@ -360,8 +466,8 @@ const HELD_STATE_MAP = `<section class="gs-statemap-section" aria-label="State r
 export const publicMarketingMarkup = repairHomepageSemantics(
   sanitizeUnsupportedHomepageClaims(homepageMarkup),
 )
-  .replace(/<section class="gs-rate-widget-section"[\s\S]*?<\/section><script>[\s\S]*?<\/script>/, HELD_RATE_WIDGET)
-  .replace(/<section class="gs-statemap-section"[\s\S]*?<\/section>/, HELD_STATE_MAP);
+  .replace(/<section class="gs-rate-widget-section"[\s\S]*?<\/section><script>[\s\S]*?<\/script>/, LOAN_PROFILE_WIDGET)
+  .replace(/<section class="gs-statemap-section"[\s\S]*?<\/section>/, STATE_REFERENCE_WIDGET);
 
 type MarketingRuntime = Window & {
   Webflow?: {
@@ -372,6 +478,36 @@ type MarketingRuntime = Window & {
   __gsStartMarketing?: () => void;
   __gsStopMarketing?: () => void;
 };
+
+function installSanitizedStepSceneFetch(): () => void {
+  const originalFetch = window.fetch;
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const response = await originalFetch.call(window, input, init);
+    const requestUrl =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input.url;
+    if (
+      !requestUrl.includes("/hyperframes/how-it-works/step-scene.html") ||
+      !response.ok
+    ) {
+      return response;
+    }
+
+    const sanitizedMarkup = sanitizeHomepageStepScene(await response.text());
+    return new Response(sanitizedMarkup, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  };
+
+  return () => {
+    window.fetch = originalFetch;
+  };
+}
 
 function runEmbeddedScripts(root: HTMLElement) {
   root
@@ -495,6 +631,7 @@ export default function MarketingHome() {
     if (!root) return;
 
     const runtime = window as MarketingRuntime;
+    const restoreStepSceneFetch = installSanitizedStepSceneFetch();
     runEmbeddedScripts(root);
     const removeMobileMenuAccessibility =
       installMobileMenuAccessibility(root);
@@ -510,6 +647,7 @@ export default function MarketingHome() {
     return () => {
       window.cancelAnimationFrame(frameId);
       removeMobileMenuAccessibility();
+      restoreStepSceneFetch();
       try {
         runtime.__gsStopMarketing?.();
       } catch (error) {

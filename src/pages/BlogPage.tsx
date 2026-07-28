@@ -7,8 +7,6 @@ const BL_ACCENT = "#eeefd3";
 const BL_NAV_BORDER = "1px solid rgba(0,55,56,0.15)";
 
 const BL_CSS = `
-.bl-card { transition: transform .14s; }
-.bl-card:hover { transform: translateY(-4px); }
 /* Light-nav override: links + wordmark use dark ink on pistachio bg */
 .dc-nav a { color: rgba(0,55,56,0.72) !important; }
 .dc-nav a.dc-cta { background: #003738 !important; color: #eeefd3 !important; }
@@ -27,24 +25,24 @@ const RAW_POSTS = [
   {
     slug: "greenstreet-go-launch",
     date: "June 25, 2026", tag: "Product",
-    title: "InvestGO: an educational DSCR workflow concept",
-    summary: "An educational way to organize DSCR assumptions, stress tests, and questions for a lender or adviser to confirm.",
+    title: "Greenstreet deal workspace: from calculator to loan request",
+    summary: "How Greenstreet's connected tools keep property assumptions visible and carry useful deal facts into a preliminary DSCR loan request.",
     body: [
-      { p: "InvestGO is an educational workflow concept for organizing a DSCR scenario. It can help an investor or broker assemble assumptions before discussing a potential loan with a lender; it is not a lending decision, rate quote, legal determination, or commitment." },
-      { h: "Why InvestGO exists" },
-      { p: "DSCR lending looks simple until a file crosses real-world constraints. Rent, PITIA, credit, LTV, property type, and prepayment terms can all affect an offer. Short-term-rental income may be assessed differently from an owner's projection. A workflow can make those assumptions easier to review, but the lender's current criteria control." },
-      { h: "What the platform does" },
+      { p: "Greenstreet's public deal workspace connects deterministic calculators, planning tools, and a preliminary loan-request flow. It helps an investor or broker organize property facts without turning an estimate into a lending decision, rate quote, legal conclusion, or commitment." },
+      { h: "Why the workspace exists" },
+      { p: "DSCR lending looks simple until a file crosses real-world constraints. Rent, PITIA, credit, LTV, property type, and prepayment terms can all affect a provider's review. Keeping the entered facts connected makes the conversation clearer while the responsible provider's current criteria still control." },
+      { h: "What the connected tools do" },
       { list: [
-        "Separates a lender-style DSCR estimate from an investor's own cash-flow analysis.",
-        "Organizes lender and program variables for comparison; availability and fit require direct provider confirmation.",
-        "Prompts a review of prepayment and usury questions with current, jurisdiction-specific sources or qualified counsel; it is not a 50-state legal check.",
-        "Supports scenario testing for refinance timing, ARM resets, returns, tax assumptions, and portfolio views.",
+        "Calculate payment coverage, pre-tax cash flow, and other arithmetic from visible visitor-entered assumptions.",
+        "Compare refinance timing, ARM resets, return assumptions, stress cases, and portfolio totals without program matching.",
+        "Prepare state-specific verification questions without stating the law or replacing qualified counsel.",
+        "Carry useful property, loan, rent, rate, and cost inputs into a preliminary loan request.",
       ]},
       { h: "No black box in the numbers" },
-      { p: "A calculator can apply the same stated inputs consistently. Its result remains an estimate: pricing, state-law treatment, and underwriting outcomes must be confirmed with the relevant lender and, where appropriate, a qualified professional." },
-      { quote: "Trace each estimate to its inputs and assumptions, then confirm the current terms and rules with the appropriate provider or adviser." },
+      { p: "Each calculator applies the same stated inputs consistently. Its result remains an estimate: pricing, availability, state-law treatment, and underwriting outcomes require confirmation from the responsible provider and, where appropriate, a qualified professional." },
+      { quote: "Enter the property facts once, inspect the arithmetic, and continue only when the assumptions match the deal you want to discuss." },
       { h: "Who it is for" },
-      { p: "Investors can stress-test an acquisition and review the assumptions behind a potential financing path before making a decision." },
+      { p: "Rental-property investors and mortgage partners can use the workspace to prepare a cleaner, more consistent starting point for a financing conversation." },
     ],
     glyph: "GO", glyphColor: dc.lemon, bg: dc.dark,
     author: "Greenstreet Editorial",
@@ -615,30 +613,8 @@ const RAW_POSTS = [
 
 type BlogPost = (typeof RAW_POSTS)[number];
 
-const EDUCATIONAL_REVIEW_BODY = [
-  {
-    p: "This topic can materially affect a rental-property financing scenario, but provider requirements, pricing, documentation, and applicable law vary by transaction and change over time.",
-  },
-  {
-    h: "What this article can do",
-  },
-  {
-    p: "Use the questions below to organize assumptions and identify facts to verify. Do not treat examples, thresholds, ranges, or terminology on this site as a current provider rule, quote, approval standard, legal conclusion, or tax conclusion.",
-  },
-  {
-    h: "What to verify",
-  },
-  {
-    list: [
-      "The responsible provider and its current, dated eligibility and pricing materials.",
-      "The property, borrower, entity, insurance, appraisal, title, and reserve facts for the specific transaction.",
-      "Any jurisdiction-specific or tax conclusion with qualified counsel or a tax professional using current primary sources.",
-    ],
-  },
-  {
-    quote: "A transparent scenario is a list of assumptions to verify, not a financing decision.",
-  },
-] satisfies BlogPost["body"];
+const CURRENT_PROVIDER_CHECK =
+  "Obtain the responsible provider's current, dated eligibility and pricing materials for the specific transaction.";
 
 const EDITORIAL_REVISIONS: Record<
   string,
@@ -647,42 +623,122 @@ const EDITORIAL_REVISIONS: Record<
   "dscr-pitia-breakdown-qualifying-income": {
     title: "PITIA breakdown: five inputs to verify in a DSCR scenario",
     summary: "Learn how principal, interest, taxes, insurance, and HOA assumptions affect payment coverage, then verify the transaction facts with the responsible provider.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "PITIA is the monthly payment stack used in this site's DSCR estimate: principal, interest, property taxes, insurance, and applicable association dues. A small change in any one input changes the modeled coverage ratio." },
+      { h: "Reconcile the payment before relying on the ratio" },
+      { list: [
+        "Confirm the requested loan amount, entered rate, amortization term, and payment structure.",
+        "Use property-specific tax, insurance, and HOA figures when available instead of broad estimates.",
+        "Confirm how the responsible provider treats rent and any expenses not represented in the calculator.",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "A DSCR result is only as useful as the payment and income inputs beneath it." },
+    ],
   },
   "dscr-ltv-down-payment-fico": {
     title: "LTV, down payment, and credit profile: questions to verify",
     summary: "These inputs can affect a provider's review, but this site does not publish current pricing tiers or eligibility matrices.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "Loan-to-value compares the requested loan with the value used for the transaction. Down payment describes the investor's cash contribution; a credit profile is a separate borrower fact. They should not be collapsed into one eligibility signal." },
+      { h: "Questions to take into a financing conversation" },
+      { list: [
+        "Which value controls the calculation: purchase price, appraised value, or another reviewed figure?",
+        "What funds, reserves, entity documents, and credit information must be verified?",
+        "Could occupancy, property type, experience, or transaction purpose change the review?",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "Calculator leverage is arithmetic; eligibility and pricing require transaction review." },
+    ],
   },
   "dscr-refinance-rate-term-cashout-seasoning": {
     title: "DSCR refinance scenarios: questions to verify",
     summary: "Rate-term, cash-out, seasoning, leverage, and payment-coverage requirements depend on current provider rules and transaction facts.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "A refinance request begins with the current debt, requested proceeds, property value, rent, and reason for the transaction. Rate-term and cash-out requests can follow different review paths, so the purpose should be explicit from the start." },
+      { h: "Build a complete refinance fact pattern" },
+      { list: [
+        "Separate the existing payoff from any requested cash-out and estimated closing costs.",
+        "Confirm ownership dates, prior listing or financing activity, and any seasoning questions.",
+        "Recalculate DSCR using the proposed payment rather than the existing payment.",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "A refinance comparison is a planning model, not proof that proceeds or terms are available." },
+    ],
   },
   "dscr-approval-issues-sub-10-fico-reserves": {
     title: "DSCR scenario constraints to discuss before applying",
     summary: "Organize payment coverage, credit, reserves, entity, rent, and state-rule questions without treating them as universal approval standards.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "A modeled ratio below 1.00 means the entered monthly rent is lower than the entered monthly debt-service stack. That arithmetic does not, by itself, describe every provider's decision or identify every issue in a file." },
+      { h: "Surface constraints without inventing an approval rule" },
+      { list: [
+        "Recheck rent, taxes, insurance, HOA, loan amount, rate, and amortization inputs.",
+        "List borrower, entity, liquidity, experience, title, appraisal, insurance, and property facts still needing review.",
+        "Treat credit and reserve bands as facts to discuss, not universal cutoffs published by this site.",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "A constraint list improves the conversation; it does not replace a credit decision." },
+    ],
   },
   "dscr-foreign-nationals-itin": {
     title: "Foreign-national and ITIN DSCR scenarios: questions to verify",
     summary: "Documentation, entity, reserve, sanctions, tax, and eligibility questions require provider-specific and professional review.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "Citizenship, residency, tax-identification, entity, banking, and signing facts can change the documents and professional review needed for a transaction. A DSCR estimate does not resolve those questions." },
+      { h: "Prepare the identity and ownership questions early" },
+      { list: [
+        "Identify each borrower, beneficial owner, vesting entity, and authorized signer.",
+        "Ask which identity, tax, banking, translation, notarization, and funds-verification documents are required.",
+        "Confirm tax and legal implications with qualified professionals using current primary sources.",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "Property cash flow and borrower documentation are connected parts of the request, not substitutes for one another." },
+    ],
   },
   "dscr-loan-document-checklist": {
     title: "DSCR documentation: a provider-confirmation checklist",
     summary: "Use a preliminary checklist to prepare questions, then obtain the exact current document request from the responsible provider.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "A useful preliminary file groups documents by property, transaction, borrower or entity, and funds. The exact request still comes from the responsible provider after the transaction facts are reviewed." },
+      { h: "Organize the file without over-collecting sensitive data" },
+      { list: [
+        "Property: address, contract if applicable, lease or rent support, insurance, taxes, HOA, and property-condition information.",
+        "Transaction: requested loan, purpose, timeline, payoff or title facts, and source-of-funds questions.",
+        "Borrower or entity: identification and formation items requested through an approved secure channel.",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "Do not send sensitive identity or financial documents through a general website form." },
+    ],
   },
   "dscr-loan-process-after-prequalify": {
     title: "After a preliminary DSCR estimate: process questions to ask",
     summary: "A calculator estimate is not a prequalification or timeline. Ask the responsible provider what review, appraisal, documentation, and decision steps apply.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "A calculator result is a starting point. A preliminary loan request should preserve the deal inputs, record the intended purpose and timing, and create a clear handoff for the next financing conversation." },
+      { h: "Clarify the next stage" },
+      { list: [
+        "Ask who will review the request and which additional facts or documents are needed.",
+        "Confirm when appraisal, title, insurance, entity, and credit steps occur and who orders each item.",
+        "Distinguish an estimate, application, approval, rate quote, rate lock, and commitment.",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "A useful next step has an owner, required inputs, and a clear statement of what has—and has not—been decided." },
+    ],
   },
   "how-to-improve-dscr-before-applying": {
     title: "How scenario inputs change modeled DSCR",
     summary: "Compare rate, payment structure, rent, and down-payment assumptions without treating the result as advice, eligibility, pricing, or approval.",
-    body: EDUCATIONAL_REVIEW_BODY,
+    body: [
+      { p: "Modeled DSCR rises when verified income increases or when the modeled monthly payment decreases. The calculator can show sensitivity, but it cannot decide whether a changed assumption is available, advisable, or acceptable." },
+      { h: "Use sensitivity testing as a diagnostic" },
+      { list: [
+        "Correct property-specific rent, tax, insurance, and HOA inputs before testing alternatives.",
+        "Compare requested loan amounts and user-entered rate or amortization assumptions one at a time.",
+        "Record which changes reflect real transaction facts and which are hypothetical.",
+        CURRENT_PROVIDER_CHECK,
+      ] },
+      { quote: "Improve the quality of the inputs before trying to improve the appearance of the ratio." },
+    ],
   },
 };
 
@@ -749,7 +805,7 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
         { label: "Loan Programs", view: "products" },
         { label: "State Rules", view: "state-laws" },
       ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a loan →", view: "book-demo" }}
     >
       {/* Article hero */}
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,64px)` }}>
@@ -799,23 +855,24 @@ function PostDetail({ post, onNavigate }: { post: typeof POSTS[0]; onNavigate: (
             style={{ marginTop: 48, borderRadius: 12, border: `1px solid rgba(0,55,56,0.12)`, background: dc.mintBg, padding: "clamp(24px,3vw,36px) clamp(24px,3vw,40px)" }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 12 }}>
-              Model a DSCR scenario
+              Move this property forward
             </div>
             <p style={{ color: "rgba(0,55,56,0.72)", fontSize: 15, marginBottom: 22, lineHeight: 1.6, fontWeight: 500 }}>
-              Explore a DSCR estimate from your stated rent and loan assumptions. It is educational only; confirm current pricing, program availability, and eligibility directly with a lender.
+              Start a preliminary loan request, or check the property math first.
+              Final eligibility, pricing, and terms require review.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
               <button
                 onClick={() => (window as any).openQualify?.()}
                 style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
               >
-                Model a DSCR scenario →
+                Start my loan request →
               </button>
               <button
                 onClick={() => onNavigate("dscr-calculator")}
                 style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer", padding: "12px 24px", borderRadius: 8, fontFamily: dc.sans, letterSpacing: "-0.01em", minHeight: 44 }}
               >
-                Open the Deal Analyzer →
+                Open the DSCR Calculator →
               </button>
             </div>
           </div>
@@ -864,7 +921,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
         { label: "Loan Programs", view: "products" },
         { label: "State Rules", view: "state-laws" },
       ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a loan →", view: "book-demo" }}
     >
       <style>{BL_CSS}</style>
 
@@ -888,7 +945,7 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
       {/* ── FEATURED ── solid dark fill, no blur, no radial glow ── */}
       <section className="gs-reveal" style={{ background: dc.cream, padding: `0 ${dc.pad} clamp(40px,5vw,64px)` }}>
         <button
-          className="bl-card dc-hero"
+          className="bl-card dc-hero gs-card gs-card-interactive"
           onClick={() => (window.history.pushState({},'',`/blog/${FEATURED_POST.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
           style={{
             display: "grid",
@@ -963,11 +1020,11 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
       {/* ── GRID ── 3 columns desktop, 1 mobile ── */}
       <section style={{ background: dc.cream, padding: `0 ${dc.pad} clamp(72px,10vh,120px)` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="dc-band-3 gs-reveal" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div className="dc-band-3 gs-reveal gs-grid-rhythm" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
             {filtered.map((p) => (
               <button
                 key={p.slug}
-                className="bl-card"
+                className="bl-card gs-card gs-card-interactive"
                 onClick={() => (window.history.pushState({},'',`/blog/${p.slug}`),window.dispatchEvent(new PopStateEvent('popstate')))}
                 style={{
                   background: dc.mintBg,

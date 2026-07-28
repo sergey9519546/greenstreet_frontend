@@ -22,14 +22,14 @@ interface LegalDoc {
 const DISCLOSURES: LegalDoc = {
   eyebrow: "Legal & Disclosures",
   heading: "Terms, privacy, and the fine print.",
-  sub: "Last updated July 25, 2026. Greenstreet's released tools produce educational estimates for business-purpose rental scenarios — not financial, legal, or tax advice. Use the navigation on the left to jump to any section.",
+  sub: "Last updated July 25, 2026. Greenstreet's public tools produce educational estimates for business-purpose rental scenarios — not financial, legal, or tax advice. Use the navigation on the left to jump to any section.",
   updated: "July 25, 2026",
   sections: [
     {
       id: "estimates",
       title: "1. Estimates, not advice",
       paras: [
-        "The released public DSCR and payment calculators produce educational estimates from deterministic arithmetic for business-purpose lending scenarios. Tools whose models have not passed review are held out of service.",
+        "Public tools produce educational estimates from the inputs and assumptions shown on screen. Each result should be read as a model of those inputs, not as a provider decision or a statement of current market terms.",
         "They do not constitute financial, legal, tax, or investment advice. Confirm any figure with a licensed professional before relying on it to close a transaction or file a return.",
       ],
     },
@@ -37,7 +37,7 @@ const DISCLOSURES: LegalDoc = {
       id: "no-llm",
       title: "2. How figures are produced",
       paras: [
-        "The released public DSCR and payment calculators do not use a large language model in their numeric calculation path. Their outputs are computed from the inputs and formulas in the application code.",
+        "The public DSCR and payment calculators do not use a large language model in their numeric calculation path. Their outputs are computed from the inputs and formulas in the application code.",
       ],
     },
     {
@@ -100,44 +100,44 @@ const PRIVACY_DOC: LegalDoc = {
       id: "what-we-collect",
       title: "1. What we collect",
       paras: [
-        "Calculator inputs are used to produce the displayed scenario. If you submit a scenario-review request, the site collects the deal parameters and contact details you choose to send. The public form is not designed for Social Security numbers, bank-account details, identity documents, or other sensitive records.",
+        "Calculator inputs are used to produce the displayed estimate. If you submit a preliminary loan request, the site collects the property, requested-loan, timing, and contact details you choose to send. The public form is not designed for Social Security numbers, bank-account details, identity documents, or other sensitive records.",
       ],
     },
     {
       id: "how-we-use",
       title: "2. How we use it",
       paras: [
-        "Calculator inputs support the educational result shown in the browser. A submitted scenario-review request is stored so an authorized reviewer can respond to the request. It is not a loan application, lender match, credit decision, or rate request.",
+        "Calculator inputs support the preliminary result shown in the browser. A submitted preliminary loan request is stored so Greenstreet can review the property and contact details. This first-stage request is not a completed mortgage application, lender match, credit decision, rate quote, rate lock, or commitment to lend.",
       ],
     },
     {
       id: "sharing",
       title: "3. Sharing",
       paras: [
-        "A scenario-review request is stored by configured infrastructure so it can be reviewed and answered. This policy does not identify or verify every downstream recipient or contractual control. Do not submit Social Security numbers, bank-account numbers, or other sensitive identity documents through the public form.",
+        "A preliminary loan request is stored by configured infrastructure so it can be reviewed. This policy does not identify or verify every downstream recipient or contractual control. Do not submit Social Security numbers, bank-account numbers, or other sensitive identity documents through the public form.",
       ],
     },
     {
       id: "cookies",
       title: "4. Cookies",
       paras: [
-        "The released site uses browser storage only where required for basic application functionality. Optional analytics and de-anonymization tracking are not currently enabled. You can clear browser storage through your browser settings; some signed-in features may then require authentication again.",
+        "The site uses cookies and browser storage for basic application functionality, consent management, and analytics. Analytics behavior may depend on your consent choices and browser settings. You can clear browser storage through your browser settings; some signed-in features may then require authentication again.",
       ],
     },
     {
       id: "your-rights",
       title: "5. Your rights",
       paras: [
-        "A verified privacy-request channel and response-time policy have not yet been supplied for publication. The site owner must publish and monitor that process before promoting the intake at scale. Until then, do not submit sensitive information through the public form.",
+        "Privacy questions may be sent to legal@greenstreetfinance.com. Do not include Social Security numbers, bank-account details, identity documents, or other sensitive identifiers in an email. Applicable rights and response periods depend on governing law.",
       ],
     },
     {
       id: "contact",
       title: "6. Contact",
-      paras: ["A verified privacy contact channel is pending publication."],
+      paras: ["Privacy questions: legal@greenstreetfinance.com."],
     },
   ],
-  contactLine: "Privacy contact channel: pending owner verification and publication.",
+  contactLine: "Privacy questions: legal@greenstreetfinance.com.",
 };
 
 const TERMS_DOC: LegalDoc = {
@@ -157,7 +157,7 @@ const TERMS_DOC: LegalDoc = {
       id: "estimates-accuracy",
       title: "2. Estimates and accuracy",
       paras: [
-        "The released DSCR Calculator applies the inputs and assumptions shown on screen. Pricing, program, state-law, tax, and other decision tools remain held when their sources or models are not approved. Verify all transaction facts with the responsible provider and qualified professionals before acting.",
+        "Greenstreet tools apply the inputs, formulas, and assumptions identified in their interfaces. Educational results do not establish current pricing, program availability, state-law conclusions, tax treatment, eligibility, or terms. Verify transaction facts with the responsible provider and qualified professionals before acting.",
       ],
     },
     {
@@ -184,10 +184,10 @@ const TERMS_DOC: LegalDoc = {
     {
       id: "contact",
       title: "6. Contact",
-      paras: ["A verified legal contact channel is pending publication."],
+      paras: ["Legal questions: legal@greenstreetfinance.com."],
     },
   ],
-  contactLine: "Legal contact channel: pending owner verification and publication.",
+  contactLine: "Legal questions: legal@greenstreetfinance.com.",
 };
 
 // ─── Path → document resolver ───────────────────────────────────────────────
@@ -313,6 +313,7 @@ export default function LegalPage({
         }
         .lg-toc-link:hover { color: ${MIDNIGHT} !important; }
         @media (max-width: 767px) {
+          .lg-content-grid { grid-template-columns: 1fr !important; }
           .lg-toc-col { display: none !important; }
           .lg-toc-link { min-height: 44px; display: flex; align-items: center; }
         }
@@ -373,6 +374,7 @@ export default function LegalPage({
         }}
       >
         <div
+          className="lg-content-grid"
           style={{
             maxWidth: 1080,
             margin: "0 auto",
@@ -413,9 +415,9 @@ export default function LegalPage({
             <div style={{ padding: "14px 18px", background: "rgba(0,55,56,0.04)", borderRadius: 8, border: "1px solid rgba(0,55,56,0.1)", marginBottom: 36, fontSize: 14, color: "rgba(0,55,56,0.65)", lineHeight: 1.6 }}>
               <strong style={{ color: MIDNIGHT }}>Plain summary:</strong>{" "}
               {doc.eyebrow === "Legal & Disclosures" && doc.sections[0]?.id === "estimates" &&
-                "This page explains that Greenstreet's tools produce estimates, not advice. Released calculations are computed by code. State-rule and other held tools do not publish decision output while review is incomplete."}
+                "This page explains that Greenstreet's tools produce educational estimates from visible inputs and coded formulas, not advice, current market terms, or provider decisions."}
               {doc.sections[0]?.id === "what-we-collect" &&
-                "The scenario-review intake collects the deal parameters and contact details you choose to submit. Do not submit identity documents, bank details, or government identifiers."}
+                "The preliminary-loan-request intake collects the property, requested-loan, timing, and contact details you choose to submit. Do not submit identity documents, bank details, or government identifiers."}
               {doc.sections[0]?.id === "not-advice" &&
                 "Tool outputs are estimates, not rate locks or credit approvals. Verify financing with the responsible provider and legal, tax, or investment questions with qualified professionals."}
             </div>
@@ -505,7 +507,7 @@ export default function LegalPage({
               <a href="mailto:legal@greenstreetfinance.com" style={{ color: dc.lemon, textDecoration: "none" }}>
                 legal@greenstreetfinance.com
               </a>
-              . Ready to price a deal? The calculator has no login and takes 30 seconds.
+              . Ready to review a deal? The calculator has no login and shows the assumptions used.
             </p>
           </div>
           <button

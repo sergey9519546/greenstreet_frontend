@@ -1,6 +1,6 @@
 {
-  "source": "index.html at origin/main@7d3274c",
-  "sha256": "61bd761d41afdaa7db27ed1076284440d17cd6b7aafd388f0500b27995cbc5a9",
+  "source": "accepted homepage export after removing legacy booking embeds",
+  "sha256": "999180ca2ad2cab60e0a0c9e8b79c777b36c9a92fcf1d0605edc01a913780b7c",
   "requiredMarkers": [
     "class=\"page_wrap\"",
     "class=\"nav-wrap\"",

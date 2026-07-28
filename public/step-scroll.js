@@ -156,6 +156,15 @@
     var list   = document.querySelector(".step-cards-list");
     if (!height || !stage || !layout || !list) return;
     if (layout.__stepScroll) return;
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      Array.prototype.forEach.call(document.querySelectorAll(".step_height video"), function (video) {
+        video.autoplay = false;
+        video.removeAttribute("autoplay");
+        video.pause();
+        try { video.currentTime = 0; } catch (e) {}
+      });
+    }
 
     var wraps = Array.prototype.slice.call(layout.querySelectorAll(".step_tab_content_list_wrap")).slice(0, 5);
     var tabs  = Array.prototype.slice.call(layout.querySelectorAll(".step_tab_link")).slice(0, 5);
@@ -173,8 +182,8 @@
     var activeFrame = 0;
     var activeStartedAt = performance.now();
 
-    mountHyperFrame(wraps);
-    layout.style.transition = "background-color .45s ease, color .45s ease";
+    if (!reduceMotion) mountHyperFrame(wraps);
+    layout.style.transition = reduceMotion ? "none" : "background-color .45s ease, color .45s ease";
 
     function maxOffset() {
       var c = list.children;
@@ -248,7 +257,7 @@
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", update);
     update();
-    requestAnimationFrame(tickHyperFrame);
+    if (!reduceMotion) requestAnimationFrame(tickHyperFrame);
     setTimeout(update, 400);
   }
 

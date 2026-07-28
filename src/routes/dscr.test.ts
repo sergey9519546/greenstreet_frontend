@@ -24,13 +24,44 @@ async function post(path: string, body: unknown) {
   }
 }
 
-describe("DSCR reliability holds", () => {
-  it.each(["/api/dscr/optimize", "/api/dscr/state"])("returns a 503 hold for %s before validating inputs", async (path) => {
-    const response = await post(path, { state: "not-a-state" });
-
-    expect(response.status).toBe(503);
-    await expect(response.json()).resolves.toMatchObject({
-      code: "TOOL_RELIABILITY_HOLD",
+describe("DSCR tool endpoints", () => {
+  it("runs a deterministic structure comparison for a validated deal", async () => {
+    const response = await post("/api/dscr/optimize", {
+      loanAmount: 300_000,
+      annualRatePct: 7,
+      monthlyRent: 3_200,
+      monthlyNonDebtCosts: 650,
     });
+
+    expect(response.status).toBe(200);
+    const body = await response.json() as { options: unknown[]; disclaimer: string };
+    expect(body.options).toHaveLength(3);
+    expect(body.disclaimer).toContain("not a recommendation");
+  });
+
+  it("returns a sourced state-reference result for a validated state", async () => {
+    const response = await post("/api/dscr/state", {
+      state: "CA",
+      entityType: "LLC",
+      loanAmount: 400_000,
+      unitCount: 1,
+      productType: "FIXED",
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      state: "CA",
+      transactionFacts: {
+        entityType: "LLC",
+        loanAmount: 400_000,
+      },
+      verificationQuestions: expect.any(Array),
+      disclaimer: expect.stringContaining("Verification checklist"),
+    });
+  });
+
+  it.each(["/api/dscr/optimize", "/api/dscr/state"])("validates inputs for %s", async (path) => {
+    const response = await post(path, { state: "not-a-state" });
+    expect(response.status).toBe(400);
   });
 });

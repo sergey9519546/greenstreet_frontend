@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 
-// ── Case studies data ─────────────────────────────────────────────────────────
+// ── Representative borrower stories ──────────────────────────────────────────
 interface StudyMetric {
   v: string;
   k: string;
@@ -18,7 +18,7 @@ interface Study {
   challenge: string;
   solution: string;
   result: string;
-  /** Illustrative composite quote — not attributed to a verified named individual */
+  /** Product-journey takeaway, not a customer quote or endorsement. */
   quote: string;
   program: string;
 }
@@ -26,102 +26,99 @@ interface Study {
 const STUDIES: Study[] = [
   {
     slug: "vela-capital",
-    company: "Portfolio operations scenario",
-    location: "Buy-and-hold investor",
+    company: "Renee Carter",
+    location: "Four-property refinance",
     type: "Portfolio investor",
     num: "01",
-    headline: "Modeling how a repeatable workflow could reduce time per file.",
+    headline: "Bringing four refinance requests into one consistent borrower brief.",
     metrics: [
-      { v: "4×", k: "Modeled throughput ratio" },
-      { v: "6 min", k: "Hypothetical review input (was 25)" },
-      { v: "120+", k: "Hypothetical files / month" },
+      { v: "4", k: "Rental properties" },
+      { v: "$1.1M", k: "Combined requested balance" },
+      { v: "Refi", k: "Loan purpose" },
     ],
     challenge:
-      "Assume a team reviews 120+ DSCR files a month and rebuilds two spreadsheets for each file — one payment-coverage view and another expense-aware view. The duplicate work becomes the modeled workflow constraint.",
+      "Renee is comparing rate-and-term refinance options across four rentals. Each property has a different balance, rent, payment, and expense profile, so she needs to keep the facts separate while seeing the portfolio together.",
     solution:
-      "The scenario compares a manual two-spreadsheet process with one shared calculation path. Track 1 estimates lender DSCR while Track 2 adds vacancy, management, and capital-reserve assumptions.",
+      "She enters each property's current balance, estimated value, rent, payment assumptions, and requested loan amount, then carries the same core facts into a preliminary loan request.",
     result:
-      "Under the stated hypothetical timing assumptions, a six-minute review instead of a 25-minute review would represent roughly four times the file throughput. This is arithmetic, not a reported customer result.",
+      "The connected brief keeps four property records and their modeled coverage visible without implying a quote, program match, approval, or provider response.",
     quote:
-      "A shared definition for rent, payment, and operating costs makes the two views easier to compare without rebuilding the scenario in separate spreadsheets.",
-    program: "Illustrative 1–4 unit assumptions",
+      "Renee's decision point is which properties are ready for a financing conversation and which assumptions still need documentation.",
+    program: "Portfolio refinance journey",
   },
   {
     slug: "northshore-non-qm",
-    company: "Active investor scenario",
-    location: "Real estate investor",
-    type: "Active investor",
+    company: "Jason Kim",
+    location: "First rental purchase",
+    type: "Rental-property buyer",
     num: "02",
-    headline: "Modeling a deal that passes lender DSCR but fails the investor view.",
+    headline: "Checking whether one rental's income covers the full modeled payment.",
     metrics: [
-      { v: "Modeled", k: "Scenario checkpoint" },
-      { v: "12%", k: "Vacancy gap caught by Track 2" },
-      { v: "1", k: "Scenario, multiple assumptions compared" },
+      { v: "$425K", k: "Purchase price" },
+      { v: "75%", k: "Requested LTV" },
+      { v: "1.11x", k: "Modeled DSCR" },
     ],
     challenge:
-      "Evaluating multiple property types — DSCR 1–4, multi-family — with no single view of how they stacked up. Pipeline lived in scattered spreadsheets. The investor-survival question (what does the deal actually earn after vacancy?) almost never made it into the analysis before money was committed.",
+      "Jason has a single-family rental under contract. He wants to compare $3,000 in monthly rent with principal, interest, taxes, insurance, and HOA before deciding whether to continue.",
     solution:
-      "The scenario calculates lender DSCR and then applies a vacancy assumption in the investor view so the difference is visible before the user relies on the headline ratio.",
+      "He uses the deal analyzer to enter the purchase price, down payment, rent, rate, and property costs, then reviews both payment coverage and pre-tax cash flow.",
     result:
-      "In this hypothetical, Track 1 remains above 1.0x while the additional vacancy assumption weakens the investor result. No rate lock or transaction outcome is claimed.",
+      "The modeled 1.11x DSCR comes directly from the displayed assumptions. It is a starting point for a preliminary request, not proof of eligibility or cash-flow performance.",
     quote:
-      "The scenario demonstrates why a qualifying ratio should not be presented as proof that a property will cash-flow after operating assumptions.",
-    program: "Illustrative multifamily assumptions",
+      "Jason can see exactly which rent and payment inputs move the ratio before he shares contact information.",
+    program: "Single-rental purchase journey",
   },
   {
     slug: "quintero-co",
-    company: "Global borrower scenario",
-    location: "Buy-and-hold investor",
-    type: "Investor / Foreign national",
+    company: "Sofia Alvarez",
+    location: "Entity purchase",
+    type: "Foreign-national investor",
     num: "03",
-    headline: "Modeling a hypothetical $14,800 diligence-cost exposure before appraisal.",
+    headline: "Surfacing entity and documentation questions before sensitive files are exchanged.",
     metrics: [
-      { v: "3", k: "Hypothetical scenarios screened" },
-      { v: "$14,800", k: "Modeled diligence-cost exposure" },
-      { v: "3 min", k: "Hypothetical review target" },
+      { v: "Entity", k: "Intended vesting" },
+      { v: "Purchase", k: "Loan purpose" },
+      { v: "Verify", k: "Document path" },
     ],
     challenge:
-      "Assume three marginal scenarios are not identified until after appraisal orders. The payment-coverage view clears its modeled threshold, while vacancy and management assumptions move the expense-aware view below break-even. The example assigns $3,000–7,000 of diligence cost to each scenario.",
+      "Sofia is investing through an entity from outside the United States. She needs ownership, signing-authority, reserve, identity, and property questions identified early without uploading sensitive documents to a public calculator.",
     solution:
-      "The scenario applies the expense-aware Track 2 view before diligence costs are committed. Any foreign-national or ITIN eligibility would require confirmation from the responsible licensed provider.",
+      "She organizes the property and requested-loan facts, uses the state checklist to record what requires current verification, and keeps identity and banking documents outside the public intake.",
     result:
-      "If three unsuitable deals each carried the stated diligence costs, screening them earlier could avoid $14,800. This is a hypothetical cost illustration, not an approval or reported savings claim.",
+      "The journey ends with a clearer question set for a responsible provider. It does not assume foreign-national eligibility, accepted documentation, legal conclusions, or financing terms.",
     quote:
-      "Early scenario screening can identify which assumptions require lender confirmation before appraisal or other diligence spending.",
-    program: "Illustrative global-borrower assumptions",
+      "Sofia's next step is to confirm which entity, identity, reserve, and property documents the actual provider will require.",
+    program: "Foreign-national purchase journey",
   },
 ];
 
 const AURORA_STORY = {
   slug: "aurora",
-  company: "Blanket portfolio scenario",
-  location: "Portfolio operator",
+  company: "Malik Thompson",
+  location: "Six-property portfolio",
   type: "Portfolio investor",
   num: "04",
-  headline: "Modeling a blended view across a 40-property portfolio.",
+  headline: "Reviewing six rental properties without losing the property-level detail.",
   metrics: [
-    { v: "$18M", k: "Hypothetical balance" },
-    { v: "1.11x", k: "Blended DSCR" },
-    { v: "1 wk", k: "Hypothetical review" },
+    { v: "6", k: "Rental properties" },
+    { v: "$1.8M", k: "Entered balances" },
+    { v: "1", k: "Portfolio summary" },
   ],
   challenge:
-    "Reviewing properties one at a time makes it difficult to see the portfolio's combined debt-service coverage and concentration assumptions.",
+    "Malik wants one view of six rentals while retaining each property's rent, balance, value, rate, payment, and modeled coverage.",
   solution:
-    "The illustrative model combines rent and payments across 40 properties to show blended DSCR, aggregate equity, and weighted rate in one view.",
+    "He enters each property separately and uses the portfolio model to calculate aggregate value, debt, equity, rent, payment, weighted rate, and blended DSCR.",
   result:
-    "The modeled output shows how a consolidated view could support a preliminary portfolio discussion. It does not claim an approval, closing, or timeline.",
+    "The consolidated arithmetic highlights which property inputs drive the portfolio totals and prepares a cleaner starting point for a preliminary request.",
   quote:
-    "A consolidated portfolio view makes the assumptions easier to inspect before submission to a qualified provider.",
-  program: "Illustrative portfolio assumptions",
+    "Malik can compare the portfolio total with the individual property rows before deciding what to discuss with a provider.",
+  program: "Portfolio review journey",
 };
 
 const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
 
-// Logo map — only logos that exist under /img/logos/. Left empty: none of
-// these illustrative case studies have a real logo asset checked in, and the
-// render below is already gated on `LOGOS[s.slug]` being truthy, so an empty
-// map just skips the logo — no broken-image icon next to a disclosed
-// not-a-verified-named-customer case study.
+// No logos are used for representative personas. The render is still gated on
+// `LOGOS[s.slug]` so the page cannot imply a real customer affiliation.
 const LOGOS: Record<string, string> = {};
 
 // ── CSS for SVG stroke-draw animation ────────────────────────────────────────
@@ -322,7 +319,7 @@ function StudyRow({
             letterSpacing: "-0.01em",
           }}
         >
-          Illustrative composite · {s.type} · {s.location}
+          Representative borrower · {s.type} · {s.location}
         </div>
       </div>
 
@@ -371,7 +368,7 @@ function StudyRow({
             fontFamily: dc.sans,
           }}
         >
-          Read the full scenario →
+          Read the full story →
         </button>
       </div>
     </div>
@@ -389,7 +386,7 @@ function StudyDetail({
   onNavigate: (v: string) => void;
 }) {
   useEffect(() => {
-    document.title = `${s.company} | Illustrative Scenarios | Greenstreet Finance`;
+    document.title = `${s.company} | Borrower Story | Greenstreet Finance`;
     window.scrollTo(0, 0);
   }, [s.slug]);
 
@@ -398,10 +395,10 @@ function StudyDetail({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Illustrative Scenarios", view: "case-studies" },
+        { label: "Borrower Stories", view: "case-studies" },
         { label: "Portfolio", view: "portfolio" },
       ]}
-      cta={{ label: "Run a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a loan →", view: "book-demo" }}
     >
       {/* Detail hero */}
       <section
@@ -431,7 +428,7 @@ function StudyDetail({
                 gap: 6,
               }}
             >
-              ← All illustrative scenarios
+              ← All borrower stories
             </button>
             <div
               style={{
@@ -537,8 +534,8 @@ function StudyDetail({
         <div style={{ maxWidth: 780, margin: "0 auto" }}>
           {[
             ["The situation", s.challenge],
-            ["Modeled approach", s.solution],
-            ["Illustrative outcome", s.result],
+            ["Connected workflow", s.solution],
+            ["What becomes clearer", s.result],
           ].map(([heading, body]) => (
             <div key={heading} style={{ marginBottom: 32 }}>
               <div
@@ -567,7 +564,7 @@ function StudyDetail({
             </div>
           ))}
 
-          {/* Scenario takeaway — explicitly not a customer testimonial. */}
+          {/* Representative product-journey takeaway, not a customer testimonial. */}
           <div
             style={{
               padding: "18px 28px",
@@ -581,7 +578,7 @@ function StudyDetail({
             <p
               style={{
                 fontSize: "clamp(17px,1.5vw,21px)",
-                fontStyle: "italic",
+                fontStyle: "normal",
                 fontWeight: 500,
                 lineHeight: 1.45,
                 color: dc.dark,
@@ -598,7 +595,7 @@ function StudyDetail({
                 fontStyle: "normal",
               }}
             >
-              Illustrative composite takeaway · {s.program}
+              Representative journey takeaway · {s.program}
             </div>
           </div>
 
@@ -622,7 +619,7 @@ function StudyDetail({
                 marginBottom: 12,
               }}
             >
-              Model a DSCR scenario
+              Move your property forward
             </div>
             <p
               style={{
@@ -633,9 +630,9 @@ function StudyDetail({
                 margin: "0 0 20px",
               }}
             >
-              Enter your property's rent and loan details to receive an educational
-              DSCR estimate and request a preliminary scenario review. Final
-              eligibility and pricing require independent confirmation.
+              Enter the property and requested-loan details to see a preliminary
+              DSCR estimate and continue into a loan request. Final eligibility,
+              pricing, and terms require review.
             </p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
               {/* Dominant lemon CTA */}
@@ -657,7 +654,7 @@ function StudyDetail({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Request a scenario review →
+                Start my loan request →
               </button>
               {/* Secondary — transparent + 1.5px FADED */}
               <button
@@ -708,7 +705,7 @@ export default function CaseStudiesPage({
 
   useEffect(() => {
     if (!study) {
-      document.title = "Illustrative Scenarios | Greenstreet Finance";
+      document.title = "Borrower Stories | Greenstreet Finance";
       window.scrollTo(0, 0);
     }
   }, [study]);
@@ -732,7 +729,7 @@ export default function CaseStudiesPage({
         { label: "Portfolio", view: "portfolio" },
         { label: "Products", view: "products" },
       ]}
-      cta={{ label: "Run a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a loan →", view: "book-demo" }}
     >
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section
@@ -776,10 +773,10 @@ export default function CaseStudiesPage({
                   marginBottom: 20,
                 }}
               >
-                Illustrative scenarios
+                Representative borrower stories
               </div>
               <H1 style={{ margin: 0 }}>
-                How DSCR deal assumptions change the outcome.
+                See how different borrowers move from property facts to a loan request.
               </H1>
             </div>
             <div>
@@ -790,9 +787,9 @@ export default function CaseStudiesPage({
                   margin: "0 0 32px",
                 }}
               >
-                Four constructed teaching scenarios showing how assumptions can
-                change a modeled result. They are not customer histories, measured
-                savings, financing outcomes, or evidence that a provider will act.
+                Four representative personas with specific financing goals,
+                property facts, and next steps. They are product stories—not
+                customer reviews, endorsements, approvals, or reported outcomes.
               </Lead>
               {/* Dominant lemon CTA */}
               <button
@@ -810,7 +807,7 @@ export default function CaseStudiesPage({
                   cursor: "pointer",
                 }}
               >
-                Open the educational calculator →
+                Model your property →
               </button>
             </div>
           </div>
@@ -838,13 +835,13 @@ export default function CaseStudiesPage({
                 color: dc.lemon,
               }}
             >
-              Illustrative outcomes
+              Borrower starting points
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               {[
-                { label: "Throughput improvement", value: "4×" },
-                { label: "Hard costs avoided", value: "$14,800" },
-                { label: "Hypothetical screening", value: "Early" },
+                { label: "Portfolio refinance", value: "4 rentals" },
+                { label: "Single-rental purchase", value: "$425K" },
+                { label: "Entity purchase", value: "Verify" },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -888,7 +885,7 @@ export default function CaseStudiesPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Illustrative composite figures. See individual scenarios below.
+              Representative inputs, not customer outcomes. See each journey below.
             </div>
           </div>
         </div>
@@ -920,7 +917,7 @@ export default function CaseStudiesPage({
                 marginBottom: 12,
               }}
             >
-              How these scenarios are structured
+              How each journey connects
             </div>
             <p
               style={{
@@ -932,9 +929,9 @@ export default function CaseStudiesPage({
                 lineHeight: 1.6,
               }}
             >
-              Three steps: enter a scenario, inspect both DSCR views, then use
-              the result as the start of a preliminary review. Final programs,
-              terms, and eligibility require confirmation.
+              Three steps: enter the property facts, inspect the calculation,
+              then carry the useful inputs into a preliminary loan request.
+              Final programs, terms, and eligibility require confirmation.
             </p>
           </div>
 
@@ -1025,7 +1022,7 @@ export default function CaseStudiesPage({
         </div>
       </section>
 
-      {/* ── CASE STUDY ROWS ───────────────────────────────────────────────── */}
+      {/* ── BORROWER STORY ROWS ───────────────────────────────────────────── */}
       <section
         style={{
           background: dc.dark,
@@ -1043,10 +1040,10 @@ export default function CaseStudiesPage({
               margin: `0 0 clamp(48px,6vw,72px)`,
             }}
           >
-            The assumptions, the model, the hypothetical outcomes.
+            Representative borrowers and the decisions they need to make.
           </h2>
 
-          {/* Illustrative disclaimer */}
+          {/* Representative-persona disclaimer */}
           <div
             style={{
               marginBottom: "clamp(32px,4vw,52px)",
@@ -1067,9 +1064,9 @@ export default function CaseStudiesPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              These are constructed teaching examples, not customer histories.
-              Names, quotes, figures, approvals, timelines, and outcomes are
-              hypothetical. Individual results will vary.
+              These are fictional representative personas, not customer reviews
+              or endorsements. Their entered figures illustrate how the tools
+              connect; no approval, pricing, closing, or provider response is implied.
             </p>
           </div>
 

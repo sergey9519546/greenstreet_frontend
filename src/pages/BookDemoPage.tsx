@@ -5,18 +5,18 @@ import { radius, swatch } from "../theme";
 const REVIEW_STEPS = [
   {
     number: "01",
-    title: "Share the scenario",
-    body: "Property value, requested loan, expected rent, state, and the contact details you want us to use.",
+    title: "Build the property profile",
+    body: "Enter the value, requested loan, expected rent, loan purpose, and property state.",
   },
   {
     number: "02",
-    title: "Receive a file review",
-    body: "The request is delivered through the same secure intake used across Greenstreet's deal tools.",
+    title: "See the preliminary DSCR",
+    body: "Review the estimated payment coverage before you decide whether to share contact details.",
   },
   {
     number: "03",
-    title: "Choose the next step",
-    body: "A conversation can be arranged after the team confirms that the scenario and contact channel are usable.",
+    title: "Submit the loan request",
+    body: "Choose how Greenstreet may follow up and send the property information to the team.",
   },
 ] as const;
 
@@ -195,7 +195,7 @@ export default function BookDemoPage({
   onNavigate: (view: any) => void;
 }) {
   useEffect(() => {
-    document.title = "Request a DSCR Scenario Review | Greenstreet Finance";
+    document.title = "Apply for a DSCR Loan | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -204,7 +204,7 @@ export default function BookDemoPage({
       window.openQualify();
       return;
     }
-    onNavigate("rate-quiz");
+    onNavigate("dscr-calculator");
   };
 
   return (
@@ -213,9 +213,9 @@ export default function BookDemoPage({
       <section className="bd-hero" aria-labelledby="book-demo-heading">
         <div className="bd-layout">
           <div className="bd-copy">
-            <div className="bd-kicker">Scenario review</div>
+            <div className="bd-kicker">Preliminary loan request</div>
             <H1 id="book-demo-heading" style={{ maxWidth: "12ch", marginBottom: 24 }}>
-              Start with the deal. Then arrange the call.
+              Start your DSCR loan request.
             </H1>
             <Lead
               style={{
@@ -224,9 +224,9 @@ export default function BookDemoPage({
                 lineHeight: 1.45,
               }}
             >
-              Greenstreet does not currently publish a working self-scheduling
-              calendar. Send the scenario through the secure intake so the team
-              can review the facts and follow up using your selected consent.
+              Share the core property and requested-loan details once. You will
+              see a preliminary DSCR estimate, then choose whether and how the
+              Greenstreet team may follow up.
             </Lead>
             <p
               style={{
@@ -237,9 +237,8 @@ export default function BookDemoPage({
                 lineHeight: 1.65,
               }}
             >
-              Preliminary review only. Submitting a scenario is not an
-              application, approval, rate lock, tax opinion, or commitment to
-              lend.
+              No credit pull to start. A preliminary request is not an approval,
+              rate quote, rate lock, or commitment to lend.
             </p>
           </div>
 
@@ -247,7 +246,7 @@ export default function BookDemoPage({
             <div className="bd-card-head">
               <span className="bd-status">
                 <span className="bd-status-dot" aria-hidden="true" />
-                Secure scenario intake available
+                Loan-request intake available
               </span>
               <Mono
                 style={{
@@ -260,7 +259,7 @@ export default function BookDemoPage({
                   textTransform: "uppercase",
                 }}
               >
-                Request a live review
+                Apply for DSCR financing
               </Mono>
               <h2
                 style={{
@@ -272,7 +271,7 @@ export default function BookDemoPage({
                   letterSpacing: "-.05em",
                 }}
               >
-                Give the team enough context to be useful.
+                Give the team the deal—not a blank callback request.
               </h2>
             </div>
 
@@ -314,7 +313,7 @@ export default function BookDemoPage({
                 type="button"
                 onClick={openReview}
               >
-                Send my scenario →
+                Start my loan request →
               </button>
               <a
                 className="bd-action bd-action-secondary"
@@ -327,8 +326,8 @@ export default function BookDemoPage({
                 Run the calculator
               </a>
               <p className="bd-note">
-                Contact is optional until you choose to request a review. The
-                intake records the consent options you select.
+                Contact details are optional until the final step. Do not submit
+                SSNs, bank information, or identity documents here.
               </p>
             </div>
           </div>

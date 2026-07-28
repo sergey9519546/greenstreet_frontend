@@ -270,7 +270,7 @@ function useMinWidth(minPx: number): boolean {
 function Disclaimer() {
   return (
     <p className="text-[10px] leading-relaxed" style={{ color: T.faint, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 10 }}>
-      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Book a demo for a live scenario review.
+      Educational estimate from the displayed assumptions — not a rate quote, approval, or commitment to lend. Confirm actual rates and terms with the responsible provider.
     </p>
   );
 }
@@ -452,7 +452,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     return (
       <>
         <SiteNav onNavigate={handleSiteNavigate} />
-        <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ background: swatch.midnight }}>
+        <div className="gs-portal min-h-screen flex flex-col items-center justify-center p-4" style={{ background: swatch.midnight }}>
           <RefreshCw className="w-8 h-8 animate-spin mb-4" style={{ color: swatch.emerald }} />
           <p className="text-sm font-semibold tracking-wider font-mono" style={{ color: swatch.pistachio }}>LOADING ENGINE…</p>
           {requestedTool && (
@@ -468,7 +468,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     return (
       <>
         <SiteNav onNavigate={handleSiteNavigate} />
-        <div className="min-h-screen flex items-center justify-center p-4" style={{ background: T.pageBg }}>
+        <div className="gs-portal min-h-screen flex items-center justify-center p-4" style={{ background: T.pageBg }}>
           <div className="max-w-md w-full p-8" style={{ background: swatch.white, border: `1px solid ${T.cardBorder}`, borderRadius: radius.lg }}>
             <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold mb-6 transition"
               style={{ color: T.muted }}
@@ -485,7 +485,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               <p className="text-xs mt-1.5" style={{ color: T.muted }}>
                 {requestedTool
                   ? `${requestedTool} is part of the InvestGO workspace. Sign in or try demo mode.`
-                  : "Every DSCR engine and calculation in one place. Sign in to start pricing deals."}
+                  : "Keep DSCR calculations and their assumptions in one workspace. Sign in to review a deal."}
               </p>
             </div>
             {authError && (
@@ -562,9 +562,6 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   ] as const;
 
   const navTools = [
-    // Decision-producing tools are deliberately not reachable from the
-    // workspace while their public routes are on reliability hold. Their
-    // direct URLs resolve to the corresponding availability page instead.
     { key: "settings",   icon: <Settings2 className="w-4 h-4" />,  label: "Workspace Settings" },
   ] as const;
 
@@ -690,7 +687,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   return (
     <>
       <SiteNav onNavigate={handleSiteNavigate} />
-      <div className="min-h-screen antialiased font-sans flex flex-col" style={{ background: T.pageBg }}>
+      <div className="gs-portal min-h-screen antialiased font-sans flex flex-col" style={{ background: T.pageBg }}>
 
         {/* Mobile top-bar */}
         <div className="flex items-center justify-between px-4 py-3 md:hidden"
@@ -1293,18 +1290,18 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                           </span>
                           <div>
                             <p className="text-xs font-bold uppercase tracking-[0.08em]" style={{ color: swatch.rainforest }}>
-                              Tool reliability review
+                              Educational comparison
                             </p>
                             <h2 className="mt-2 text-2xl font-bold" style={{ color: T.ink }}>
-                              Structure recommendations are temporarily held.
+                              Compare structures with visible assumptions.
                             </h2>
                             <p className="mt-3 max-w-2xl text-sm leading-6" style={{ color: T.muted }}>
-                              Payment schedules, rate units, and ranking criteria must be independently validated before one loan structure is recommended over another. No optimizer decision output is available right now.
+                              Use the Deal Workspace to review how entered rate, term, amortization, and interest-only assumptions affect payment coverage and modeled cash flow. The workspace does not choose a loan or confirm pricing, eligibility, or terms.
                             </p>
                             <ul className="mt-5 grid gap-2 text-sm" style={{ color: T.muted }}>
-                              <li>• Structure-specific amortization and interest-only schedules</li>
-                              <li>• Verified pricing inputs expressed in one rate unit</li>
-                              <li>• Ranking tests using lender coverage and investor cash flow</li>
+                              <li>• Rate, term, amortization, and interest-only inputs supplied for the scenario</li>
+                              <li>• Payment coverage and modeled cash-flow effects shown from the same inputs</li>
+                              <li>• Provider review required for actual availability, pricing, and terms</li>
                             </ul>
                             <div className="mt-6">
                               <PrimaryBtn onClick={() => switchTab("analyze")}>Open Deal Workspace →</PrimaryBtn>

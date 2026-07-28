@@ -6,7 +6,7 @@
 // Extracted from PageShell so DcShell (every tool/content page) can reuse them.
 import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
-import { PISTACHIO, MIDNIGHT, LEMON, FADED, MINT_BG } from "../theme";
+import { PISTACHIO, MIDNIGHT, LEMON, FADED, MINT_BG, radius } from "../theme";
 
 // ── Shared nav menu model — the SAME dropdowns + pages as the marketing home ──
 // (Product / Who We Serve / Resources). Every inner page renders these, so the
@@ -14,15 +14,13 @@ import { PISTACHIO, MIDNIGHT, LEMON, FADED, MINT_BG } from "../theme";
 type NavItem = { label: React.ReactNode; view?: string; path?: string };
 type NavMenu = { label: string; view: string; path: string; items: NavItem[] };
 
-const INVESTGO_LABEL = (
-  <>INVEST<span style={{ opacity: 0.5 }}>GO</span></>
-);
+const DEAL_WORKSPACE_LABEL = <>Deal workspace</>;
 
 const NAV_MENUS: NavMenu[] = [
   {
     label: "Product", view: "products", path: "/products",
     items: [
-      { label: INVESTGO_LABEL, view: "portal", path: "/investgo" },
+      { label: DEAL_WORKSPACE_LABEL, view: "deal-analyzer", path: "/investgo" },
       { label: "Platform", path: "/products/platform" },
       { label: "DSCR Calculator", view: "dscr-calculator", path: "/dscr-calculator" },
       { label: "State Regulations", view: "state-laws", path: "/state-laws" },
@@ -45,7 +43,7 @@ const NAV_MENUS: NavMenu[] = [
     label: "Resources", view: "blog", path: "/blog",
     items: [
       { label: "Greenstreet Guidance", view: "blog", path: "/blog" },
-      { label: "Illustrative Scenarios", view: "case-studies", path: "/case-studies" },
+      { label: "Borrower Stories", view: "case-studies", path: "/case-studies" },
       { label: "FAQ", view: "faq", path: "/faq" },
       { label: "Support & FAQ", path: "/support" },
       { label: "About", view: "about", path: "/about" },
@@ -88,7 +86,7 @@ const NAV_DD_CSS = `
 .gs-mega::before{content:"";position:absolute;top:-14px;left:0;right:0;height:14px;}
 .gs-mega-inner{padding:16px 0 26px;}
 .gs-mega-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
-.gs-mega-card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:20px;min-height:116px;padding:16px 18px;border-radius:14px;background:${MINT_BG};color:${MIDNIGHT};text-decoration:none;transition:background-color .18s ease,color .18s ease;}
+.gs-mega-card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:20px;min-height:116px;padding:16px 18px;border-radius:${radius.md};background:${MINT_BG};color:${MIDNIGHT};text-decoration:none;transition:background-color .18s ease,color .18s ease;}
 .gs-mega-card:hover,.gs-mega-card:focus-visible{background:${LEMON};color:${MIDNIGHT};outline:none;}
 .gs-mega-card.is-current{background:${LEMON};color:${MIDNIGHT};}
 .gs-mega-title{font-size:18px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;}
@@ -212,9 +210,9 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   );
 
   const renderMenu = (m: NavMenu) => {
-    // First item is the INVESTGO portal -> render as the tall dark feature card
-    // (matches the home mega); the rest fill the 4-col card grid beside it.
-    const hasFeature = m.items[0]?.view === "portal";
+    // The first Product item is the connected deal workspace -> render it as
+    // the tall dark feature card; the rest fill the card grid beside it.
+    const hasFeature = m.items[0]?.view === "deal-analyzer";
     const feature = hasFeature ? m.items[0] : null;
     const cards = hasFeature ? m.items.slice(1) : m.items;
     return (
@@ -253,7 +251,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               <div className="gs-mega-grid">
                 {feature && (
                   <a className="gs-mega-card gs-mega-feature" href={feature.path} onClick={nav(feature)} aria-current={itemActive(feature) ? "page" : undefined}>
-                    <div className="gs-mega-logo">INVEST<span style={{ opacity: 0.5 }}>GO</span></div>
+                    <div className="gs-mega-logo">Deal workspace</div>
                     {arrow}
                   </a>
                 )}
@@ -278,11 +276,12 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         <div className="announcement gs-site-announcement u-container u-theme-light">
           <a
             className="link-block w-inline-block"
-            href="/blog/greenstreet-go-launch"
-            aria-label="Read the InvestGO announcement"
+            href="/dscr-calculator"
+            aria-label="Open the DSCR Calculator"
+            onClick={go("dscr-calculator")}
           />
           <div className="announcement-txt w-richtext">
-            <p><strong>⎋</strong> Explore <strong>InvestGO</strong> — an educational DSCR workflow concept</p>
+            <p><strong>÷</strong> Check your <strong>DSCR</strong> — carry the same deal into a loan request</p>
           </div>
           <button
             type="button"
@@ -307,9 +306,9 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           </a>
           <div className="nav-links-contain" hide-t="">
             <div className="nav-links-wrap">
-              <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}>
+              <a className="nav-link w-inline-block" href="/investgo" onClick={go("deal-analyzer")} aria-current={path === "/investgo" ? "page" : undefined}>
                 <div className="nav-link-background" aria-hidden="true" />
-                <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>{INVESTGO_LABEL}</div>
+                <div className="nav_links_text" style={{ color: MIDNIGHT, fontWeight: 700 }}>{DEAL_WORKSPACE_LABEL}</div>
               </a>
 
               {renderMenu(NAV_MENUS[0])}
@@ -319,11 +318,11 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
                 <div className="nav_links_text">Partnerships</div>
               </a>
               {renderMenu(NAV_MENUS[2])}
-              <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}><div className="nav-link-background" aria-hidden="true" /><div>Login</div></a>
+              <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("deal-analyzer")} aria-current={path === "/investgo" ? "page" : undefined}><div className="nav-link-background" aria-hidden="true" /><div>Deal workspace</div></a>
               {/* Solid, always-visible CTA (matches the home nav button). */}
-              <a className="nav-btn" href="/book-demo" onClick={go("book-demo")} aria-current={path === "/book-demo" ? "page" : undefined}
+              <a className="nav-btn" href="/apply" onClick={go("book-demo")} aria-current={path === "/apply" || path === "/book-demo" ? "page" : undefined}
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, background: MIDNIGHT, color: PISTACHIO, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "12px 22px", borderRadius: 8, whiteSpace: "nowrap" }}>
-                Book a demo
+                Apply for a loan
                 <svg fill="none" height="16" viewBox="0 0 24 25" width="16" xmlns="http://www.w3.org/2000/svg">
                   <path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path>
                 </svg>
@@ -339,7 +338,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
       </div>
       {menuOpen && (
         <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap gs-site-mobile-menu" role="navigation" aria-label="Mobile navigation" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "18px var(--gs-page-gutter, 1.125rem) 28px", gap: "4px", zIndex: 49, maxHeight: `calc(100dvh - ${menuViewportTop}px)`, overflowY: "auto" }}>
-          <a href="/investgo" className="nav-link" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
+          <a href="/investgo" className="nav-link" onClick={go("deal-analyzer")} aria-current={path === "/investgo" ? "page" : undefined} style={{ fontWeight: 700 }}>{DEAL_WORKSPACE_LABEL}</a>
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>
               <a href={m.path} className="gs-mnav-section" onClick={go(m.view)} style={{ textDecoration: "none" }}>{m.label}</a>
@@ -349,8 +348,8 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
             </React.Fragment>
           ))}
           <a href="/partners" className="nav-link" onClick={go("brokers-partner")} aria-current={path === "/partners" ? "page" : undefined}>Partnerships</a>
-          <a href="/investgo" className="nav-link" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}>Login</a>
-          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")} aria-current={path === "/book-demo" ? "page" : undefined}>Book a demo</a>
+          <a href="/investgo" className="nav-link" onClick={go("deal-analyzer")} aria-current={path === "/investgo" ? "page" : undefined}>Deal workspace</a>
+          <a href="/apply" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")} aria-current={path === "/apply" || path === "/book-demo" ? "page" : undefined}>Apply for a loan</a>
         </div>
       )}
       </nav>
@@ -405,7 +404,7 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Resources</h3>
               <div className="footer_group_list">
                 <a className="footer_link_wrap w-inline-block" href="/blog" onClick={go("blog")} aria-current={current("/blog")}><div className="footer_link_text u-weight-bold">Greenstreet Guidance</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/case-studies" onClick={go("case-studies")} aria-current={current("/case-studies")}><div className="footer_link_text u-weight-bold">Illustrative Scenarios</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/case-studies" onClick={go("case-studies")} aria-current={current("/case-studies")}><div className="footer_link_text u-weight-bold">Borrower Stories</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/faq" onClick={go("faq")} aria-current={current("/faq")}><div className="footer_link_text u-weight-bold">FAQ</div></a>
               </div>
             </section>
@@ -415,7 +414,7 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
                 <a className="footer_link_wrap w-inline-block" href="/tools/deal-workspace" onClick={goPath("/tools/deal-workspace")} aria-current={current("/tools/deal-workspace")}><div className="footer_link_text u-weight-bold">Deal Workspace</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/tools/sensitivity" onClick={goPath("/tools/sensitivity")} aria-current={current("/tools/sensitivity")}><div className="footer_link_text u-weight-bold">Sensitivity Lab</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/tools/structure-optimizer" onClick={goPath("/tools/structure-optimizer")} aria-current={current("/tools/structure-optimizer")}><div className="footer_link_text u-weight-bold">Structure Optimizer</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/tools/scenario-history" onClick={goPath("/tools/scenario-history")} aria-current={current("/tools/scenario-history")}><div className="footer_link_text u-weight-bold">Scenario History</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/scenario-history" onClick={goPath("/tools/scenario-history")} aria-current={current("/tools/scenario-history")}><div className="footer_link_text u-weight-bold">Portfolio Summary</div></a>
                 <a className="footer_link_wrap w-inline-block" href="/tools/portfolio" onClick={go("portfolio")} aria-current={current("/tools/portfolio")}><div className="footer_link_text u-weight-bold">Portfolio Analyzer</div></a>
               </div>
             </section>
@@ -424,9 +423,9 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
         <div className="footer_bottom_wrap">
           <div className="footer_bottom_contain u-container">
             <div>
-              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved. Educational business-purpose DSCR tools and preliminary scenario review; not a commitment to lend.</div>
+              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved. Business-purpose DSCR tools and preliminary loan requests; not a credit approval or commitment to lend.</div>
               <div className="footer_bottom_text" style={{ marginTop: 6 }}>
-                This site does not currently publish a legal entity name, NMLS identifier, state-license list, or verified lending-partner disclosure. Confirm the responsible licensed party before relying on a financing offer.
+                Rates, terms, eligibility, and property requirements remain subject to review. Do not submit SSNs, bank information, or identity documents through public tools.
               </div>
             </div>
             <div className="footer_bottom_list">

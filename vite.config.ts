@@ -21,13 +21,6 @@ export default defineConfig(() => {
               /<script async="" id="cookieyes"[^>]*><\/script>/,
               ""
             )
-            // A stale Webflow export contained an opaque path with no matching
-            // asset. Leaving it in the document causes browsers to fetch the
-            // SPA fallback as JavaScript and emit a production console error.
-            .replace(
-              /<script async="" src="\/wvxwa3jtwetcNjdkMGE4YTkxNTZiN2I3YmQ0NmZmZGZk\/nq6SdY9yd98sJXX5znRjqfSpD1o"><\/script>/,
-              ""
-            )
             // This static whitepaper form has no delivery backend. Keep its
             // validation UI but do not pretend a visitor's data was sent.
             .replace(
@@ -109,9 +102,11 @@ export default defineConfig(() => {
             const nid = id.replace(/\\/g, '/');
             if (nid.includes('/react/') || nid.includes('/react-dom/') || nid.includes('/scheduler/')) return 'react';
             if (nid.includes('/gsap/') || nid.includes('/@gsap/')) return 'gsap';
-            // Firebase's bulk lives in the scoped @firebase/* packages, not the
-            // thin `firebase` wrapper — match both (firebase-admin is server-only).
-            if ((nid.includes('/firebase/') || nid.includes('/@firebase/')) && !nid.includes('/firebase-admin/')) return 'firebase';
+            // Keep the conditional InvestGO workspace cacheable without
+            // collapsing Auth and Firestore into one >500 kB client chunk.
+            if (nid.includes('/firebase/firestore') || nid.includes('/@firebase/firestore')) return 'firebase-firestore';
+            if (nid.includes('/firebase/auth') || nid.includes('/@firebase/auth')) return 'firebase-auth';
+            if ((nid.includes('/firebase/') || nid.includes('/@firebase/')) && !nid.includes('/firebase-admin/')) return 'firebase-core';
             if (nid.includes('/@anthropic-ai/')) return 'anthropic';
             // Heavy deps split out of the catch-all so they cache independently
             // and only download with the routes that use them.

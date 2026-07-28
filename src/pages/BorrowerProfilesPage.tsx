@@ -230,7 +230,7 @@ const MISTAKES = [
   },
   {
     mistake: "Rate-shopping over weeks instead of days",
-    fix: "Multiple mortgage inquiries within a 14-day window count as one pull under FICO. Compress all requests into that window.",
+    fix: "Rate-shopping treatment varies by scoring model and timing. Ask the credit provider how multiple inquiries may be treated before applying.",
   },
   {
     mistake: "Down payment from a gift",
@@ -282,7 +282,7 @@ export default function BorrowerProfilesPage({
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "State Rules", view: "state-laws" },
       ]}
-      cta={{ label: "Get a preliminary estimate →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a DSCR loan →", view: "book-demo" }}
     >
       <style>{JUMP_NAV_CSS}</style>
 
@@ -308,7 +308,7 @@ export default function BorrowerProfilesPage({
             Who Greenstreet serves
           </div>
           <H1 style={{ margin: "0 0 18px", maxWidth: "22ch" }}>
-            Educational DSCR planning for real estate investors.
+            Find your path from property math to a DSCR loan request.
           </H1>
           {/* DSCR glossed on first use */}
           <Lead
@@ -318,7 +318,9 @@ export default function BorrowerProfilesPage({
               margin: "0 0 28px",
             }}
           >
-            DSCR (Debt-Service Coverage Ratio) is a way to compare estimated property income with estimated debt service. Greenstreet provides educational scenarios here; its provider role, licensing, terms, availability, and counterparties are not verified on this page. Pick an investor segment below.
+            DSCR (Debt-Service Coverage Ratio) compares estimated property income
+            with estimated debt service. Choose the investor profile that fits,
+            review the planning considerations, then start a preliminary loan request.
           </Lead>
 
           {/* ── Jump-nav ── */}
@@ -375,7 +377,7 @@ export default function BorrowerProfilesPage({
             <WatchOut text="Actual terms, pricing, appraisal treatment, and eligibility are not published or verified here; confirm them independently before acting." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
+              <button className="bp-cta" onClick={qualify}>Start my loan request →</button>
               <button className="bp-cta-ghost" onClick={calc}>Run DSCR Calculator</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
@@ -458,7 +460,7 @@ export default function BorrowerProfilesPage({
             <WatchOut text="Do not infer a rate, eligibility, or product availability from this example. Use only verified terms from an appropriately licensed provider." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
+              <button className="bp-cta" onClick={qualify}>Start my loan request →</button>
               <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>Explore planning examples</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
@@ -552,7 +554,7 @@ export default function BorrowerProfilesPage({
             <WatchOut text="Confirm insurance coverage and exclusions directly with an insurer before relying on any rental-income plan." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
+              <button className="bp-cta" onClick={qualify}>Start my loan request →</button>
               <button className="bp-cta-ghost" onClick={() => onNavigate("state-laws")}>Check state STR rules</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
@@ -645,7 +647,7 @@ export default function BorrowerProfilesPage({
             <WatchOut text="Homeowners / vacation rental insurance must cover short-term rental activity. Personal umbrella policies generally don't extend to paying guests." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
+              <button className="bp-cta" onClick={qualify}>Start my loan request →</button>
               <button className="bp-cta-ghost" onClick={calc}>Model the DSCR →</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
@@ -748,7 +750,7 @@ export default function BorrowerProfilesPage({
             <WatchOut text="Entity and ownership structures can create legal and tax issues. Obtain professional advice before submitting a portfolio for financing." />
 
             <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
+              <button className="bp-cta" onClick={qualify}>Start my loan request →</button>
               <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>Explore planning examples</button>
             </div>
             <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
@@ -985,7 +987,7 @@ export default function BorrowerProfilesPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Get a preliminary estimate →
+              Start my loan request →
             </button>
             <button
               onClick={calc}

@@ -80,6 +80,21 @@ export const StateRequestSchema = z.object({
   productType: z.enum(["FIXED", "ARM"]).optional().default("FIXED"),
 });
 
+export const StructureCompareRequestSchema = z.object({
+  loanAmount: z.number({ message: "loanAmount must be a number" })
+    .positive("loanAmount must be positive")
+    .max(50_000_000, "loanAmount must not exceed $50,000,000"),
+  annualRatePct: z.number({ message: "annualRatePct must be a number" })
+    .min(0, "annualRatePct cannot be negative")
+    .max(25, "annualRatePct must not exceed 25"),
+  monthlyRent: z.number({ message: "monthlyRent must be a number" })
+    .min(0, "monthlyRent cannot be negative")
+    .max(1_000_000, "monthlyRent seems unreasonably high"),
+  monthlyNonDebtCosts: z.number({ message: "monthlyNonDebtCosts must be a number" })
+    .min(0, "monthlyNonDebtCosts cannot be negative")
+    .max(1_000_000, "monthlyNonDebtCosts seems unreasonably high"),
+});
+
 export const NarrateRequestSchema = z.object({
   deal: z.object({
     dscr: z.number({ message: "dscr must be a number" }),

@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
+import React, { useState, useEffect, Component, lazy, Suspense } from "react";
 import QualifyWidget from "./components/QualifyWidget";
-import ToolReliabilityHoldPage from "./components/ToolReliabilityHoldPage";
-import { TOOL_RELIABILITY_HOLDS } from "./components/toolReliabilityHolds";
 import MarketingHome from "./marketing/MarketingHome";
 import NotFoundPage from "./pages/NotFoundPage";
 import { applyRouteMetadata, getRouteMetadata } from "./seo/routeMetadata";
@@ -13,7 +11,6 @@ import { applyRouteMetadata, getRouteMetadata } from "./seo/routeMetadata";
 // synchronously, and the page renders its FINAL layout immediately — no
 // temporary Suspense "shell" flash and no typography/layout reset on route change.
 const routeModules = {
-  ComplianceDashboard: () => import("./components/ComplianceDashboard"),
   DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
   FAQPage: () => import("./pages/FAQPage"),
   BlogPage: () => import("./pages/BlogPage"),
@@ -29,16 +26,20 @@ const routeModules = {
   SolutionsPage: () => import("./pages/SolutionsPage"),
   BrokersPage: () => import("./pages/BrokersPage"),
   BookDemoPage: () => import("./pages/BookDemoPage"),
+  StructureOptimizerPage: () => import("./pages/StructureOptimizerPage"),
+  BoundedGovernedToolsPage: () => import("./pages/BoundedGovernedToolsPage"),
+  BoundedFinanceToolsPage: () => import("./pages/BoundedFinanceToolsPage"),
 } as const;
 
 let _warmed = false;
 function warmAllRoutes() {
   if (_warmed || typeof window === "undefined") return;
   _warmed = true;
-  Object.values(routeModules).forEach((load) => { (load() as Promise<unknown>).catch(() => {}); });
+  Object.values(routeModules).forEach((load) => {
+    (load() as Promise<unknown>).catch(() => {});
+  });
 }
 
-const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
 const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
 const FAQPage = lazy(routeModules.FAQPage);
 const BlogPage = lazy(routeModules.BlogPage);
@@ -54,6 +55,9 @@ const ProductsPage = lazy(routeModules.ProductsPage);
 const SolutionsPage = lazy(routeModules.SolutionsPage);
 const BrokersPage = lazy(routeModules.BrokersPage);
 const BookDemoPage = lazy(routeModules.BookDemoPage);
+const StructureOptimizerPage = lazy(routeModules.StructureOptimizerPage);
+const BoundedGovernedToolsPage = lazy(routeModules.BoundedGovernedToolsPage);
+const BoundedFinanceToolsPage = lazy(routeModules.BoundedFinanceToolsPage);
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -80,40 +84,6 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
 }
 
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
-
-const CLIENT_WORKSPACE_CONFIGURED = Boolean(
-  import.meta.env.VITE_FIREBASE_API_KEY &&
-  import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
-  import.meta.env.VITE_FIREBASE_PROJECT_ID &&
-  import.meta.env.VITE_FIREBASE_APP_ID
-);
-
-const RELIABILITY_HOLD_VIEWS = new Set<PageView>([
-  "decision-support",
-  "deal-analyzer",
-  "rate-quiz",
-  "state-laws",
-  "str-underwriting",
-  "structure-optimizer",
-  "tax-engine",
-  "refi-tracker",
-  "portfolio",
-  "monte-carlo",
-  "arm-reset",
-  "returns",
-  "stress-matrix",
-]);
-
-function portalTabFromPath(pathname: string): string | undefined {
-  const clean = pathname.replace(/\/$/, "");
-  if (clean === "/investgo/analyze" || clean === "/tools/deal-workspace" || clean === "/tools/workspace") return "analyze";
-  if (clean === "/investgo/sensitivity" || clean === "/tools/sensitivity") return "sensitivity";
-  if (clean === "/investgo/optimize" || clean === "/tools/structure-optimizer") return "optimize";
-  if (clean === "/investgo/state") return "state";
-  if (clean === "/investgo/history" || clean === "/tools/scenario-history") return "history";
-  if (clean === "/investgo/settings") return "settings";
-  return undefined;
-}
 
 function navigateTo(view: PageView) {
   const path = viewToPath(view);
@@ -154,7 +124,7 @@ function viewToPath(view: PageView): string {
     case "legal":             return "/legal";
     case "products":          return "/products";
     case "solutions":         return "/solutions";
-    case "book-demo":         return "/book-demo";
+    case "book-demo":         return "/apply";
     case "not-found":         return "/404";
     case "external":          return "/external";
   }
@@ -167,7 +137,6 @@ export default function App() {
     }
     return "marketing";
   });
-  const [passedEmail, setPassedEmail] = useState("");
   const [pathname, setPathname] = useState(() =>
     typeof window !== "undefined" ? window.location.pathname : "/"
   );
@@ -203,20 +172,15 @@ export default function App() {
   // Global link interceptor: any <a href="/internal"> click navigates via
   // React Router instead of doing a full page reload. Unknown paths fall
   // through so external links (HubSpot booking, asset files, etc.) keep working.
-  const goTo = (nextView: PageView) => {
-    navigateTo(nextView);
-    setView(nextView);
+  const goTo = (nextView: string) => {
+    const resolvedView = nextView as PageView;
+    navigateTo(resolvedView);
+    setView(resolvedView);
     if (typeof window !== "undefined") {
       setPathname(window.location.pathname);
       window.scrollTo({ top: 0 });
     }
   };
-
-  // Hold the latest goTo in a ref so the global click listener can be
-  // registered exactly once (below) instead of being torn down and re-added on
-  // every render. Listener churn is a subtle source of double-handling.
-  const goToRef = useRef(goTo);
-  goToRef.current = goTo;
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -243,7 +207,12 @@ export default function App() {
       if (!isKnownRoute(href)) return;
 
       e.preventDefault();
-      goToRef.current(resolveRoute(href));
+      // Preserve the exact path for dynamic routes such as article and
+      // scenario-detail slugs. Converting the href to only a PageView loses
+      // that route detail (for example, every article becomes `/blog`).
+      window.history.pushState({}, "", href);
+      window.dispatchEvent(new PopStateEvent("popstate"));
+      window.scrollTo({ top: 0 });
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -266,39 +235,16 @@ export default function App() {
     }
   }, [view]);
 
-  const handleLoginClick = () => goTo("portal");
-  const handleGetStarted = (email: string) => {
-    setPassedEmail(email);
-    goTo("portal");
-  };
-  const navigateFromReliabilityHold = (nextView: string) =>
-    goTo(nextView as PageView);
-
   const renderPage = () => {
     switch (view) {
       case "marketing":
         return <MarketingHome />;
       case "portal":
-        if (!CLIENT_WORKSPACE_CONFIGURED) {
-          return (
-            <ToolReliabilityHoldPage
-              {...TOOL_RELIABILITY_HOLDS.workspace}
-              onNavigate={navigateFromReliabilityHold}
-            />
-          );
-        }
-        return (
-          <ComplianceDashboard
-            key={pathname}
-            onBackToMarketing={() => goTo("marketing")}
-            initialEmail={passedEmail}
-            initialTab={portalTabFromPath(pathname) as any}
-          />
-        );
+        return <BoundedFinanceToolsPage key={pathname} tool="deal-analyzer" onNavigate={goTo} />;
       case "dscr-calculator":
         return <DSCRCalculatorPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stateRules} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedGovernedToolsPage key={pathname} tool="state-laws" onNavigate={goTo} />;
       case "faq":
         return <FAQPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "blog":
@@ -308,9 +254,9 @@ export default function App() {
       case "case-studies":
         return <CaseStudiesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "rate-quiz":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.rateQuiz} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedGovernedToolsPage key={pathname} tool="rate-quiz" onNavigate={goTo} />;
       case "deal-analyzer":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.dealAnalyzer} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedFinanceToolsPage key={pathname} tool="deal-analyzer" onNavigate={goTo} />;
       case "borrower-profiles":
         return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers":
@@ -334,25 +280,25 @@ export default function App() {
       case "not-found":
         return <NotFoundPage key={pathname} onNavigate={goTo} />;
       case "refi-tracker":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.refiTracker} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedFinanceToolsPage key={pathname} tool="refi-tracker" onNavigate={goTo} />;
       case "arm-reset":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.armReset} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedFinanceToolsPage key={pathname} tool="arm-reset" onNavigate={goTo} />;
       case "monte-carlo":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.monteCarlo} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedFinanceToolsPage key={pathname} tool="monte-carlo" onNavigate={goTo} />;
       case "returns":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.returns} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedFinanceToolsPage key={pathname} tool="returns" onNavigate={goTo} />;
       case "tax-engine":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.taxEngine} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedGovernedToolsPage key={pathname} tool="tax-engine" onNavigate={goTo} />;
       case "stress-matrix":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stressMatrix} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedFinanceToolsPage key={pathname} tool="stress-matrix" onNavigate={goTo} />;
       case "decision-support":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedGovernedToolsPage key={pathname} tool="decision-support" onNavigate={goTo} />;
       case "str-underwriting":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.strUnderwriting} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedGovernedToolsPage key={pathname} tool="str-underwriting" onNavigate={goTo} />;
       case "structure-optimizer":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.structureOptimizer} onNavigate={navigateFromReliabilityHold} />;
+        return <StructureOptimizerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "portfolio":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.portfolioRefi} onNavigate={navigateFromReliabilityHold} />;
+        return <BoundedFinanceToolsPage key={pathname} tool="portfolio" onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
           window.location.href = "https://www.greenstreet.finance";
@@ -372,12 +318,9 @@ export default function App() {
           <PageRenderer />
         </Suspense>
         {view === "marketing" ||
-        view === "not-found" ||
-        (view === "portal" && !CLIENT_WORKSPACE_CONFIGURED) ||
-        RELIABILITY_HOLD_VIEWS.has(view) ? null : (
+        view === "not-found" ? null : (
           <QualifyWidget
             showTrigger={view !== "book-demo"}
-            autoOpen={view !== "book-demo"}
           />
         )}
       </div>

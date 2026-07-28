@@ -37,13 +37,13 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/": "marketing",
 
   // Portal
-  "/investgo": "portal",
-  "/investgo/analyze": "portal",
-  "/investgo/sensitivity": "portal",
+  "/investgo": "deal-analyzer",
+  "/investgo/analyze": "deal-analyzer",
+  "/investgo/sensitivity": "stress-matrix",
   "/investgo/optimize": "structure-optimizer",
   "/investgo/state": "state-laws",
-  "/investgo/history": "portal",
-  "/investgo/settings": "portal",
+  "/investgo/history": "portfolio",
+  "/investgo/settings": "products",
 
   // Audience pages
   "/brokers": "brokers",
@@ -77,6 +77,7 @@ const ROUTE_MAP: Record<string, PageView> = {
   // Legacy marketing URLs that remain in the static landing page.
   "/products/platform": "products",
   "/solutions": "solutions",
+  "/apply": "book-demo",
   "/book-demo": "book-demo",
   "/become-a-partner": "brokers-partner",
   "/partnerships": "brokers-partner",
@@ -91,11 +92,11 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/tools/decision-support": "decision-support",
   "/tools/str-underwriting": "str-underwriting",
   "/tools/portfolio": "portfolio",
-  "/tools/workspace": "portal",
-  "/tools/deal-workspace": "portal",
-  "/tools/sensitivity": "portal",
+  "/tools/workspace": "deal-analyzer",
+  "/tools/deal-workspace": "deal-analyzer",
+  "/tools/sensitivity": "stress-matrix",
   "/tools/structure-optimizer": "structure-optimizer",
-  "/tools/scenario-history": "portal",
+  "/tools/scenario-history": "portfolio",
 };
 
 export function resolveRoute(href: string): PageView {
@@ -112,13 +113,13 @@ export function resolveRoute(href: string): PageView {
       return "blog";
     }
     if (path.startsWith("/case-studies/")) return "case-studies";
-    if (path.startsWith("/book-demo")) return "book-demo";
+    if (path.startsWith("/book-demo") || path.startsWith("/apply")) return "book-demo";
     if (path.startsWith("/tools/")) {
       const slug = path.replace("/tools/", "").replace(/\/$/, "");
-      if (slug === "workspace" || slug === "deal-workspace") return "portal";
-      if (slug === "sensitivity") return "portal";
+      if (slug === "workspace" || slug === "deal-workspace") return "deal-analyzer";
+      if (slug === "sensitivity") return "stress-matrix";
       if (slug === "structure-optimizer") return "structure-optimizer";
-      if (slug === "scenario-history") return "portal";
+      if (slug === "scenario-history") return "portfolio";
       if (slug === "refi-tracker") return "refi-tracker";
       if (slug === "arm-reset" || slug === "arm") return "arm-reset";
       if (slug === "monte-carlo") return "monte-carlo";
@@ -169,7 +170,7 @@ export function isKnownRoute(href: string): boolean {
     const slug = path.replace("/investgo/", "").replace(/\/$/, "");
     return ["analyze", "sensitivity", "optimize", "state", "history", "settings"].includes(slug);
   }
-  if (path.startsWith("/book-demo")) return true;
+  if (path.startsWith("/book-demo") || path.startsWith("/apply")) return true;
   if (path.startsWith("/blog")) return true;
   if (path.startsWith("/case-studies")) return true;
   if (path.startsWith("/tools/")) {

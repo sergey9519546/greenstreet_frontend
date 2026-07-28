@@ -198,8 +198,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
               <a href="#gs-calc" onClick={scrollToCalc} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: LEMON, color: MIDNIGHT, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 30px', borderRadius: radius.sm, minHeight: 44 }}>
                 Open the calculator ↓
               </a>
-              <a href="/book-demo" onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: radius.sm, border: '1.5px solid rgba(238,239,211,0.28)', minHeight: 44 }}>
-                Request a human review →
+              <a href="/apply" onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'transparent', color: PISTACHIO, fontWeight: 600, fontSize: 16, textDecoration: 'none', padding: '15px 26px', borderRadius: radius.sm, border: '1.5px solid rgba(238,239,211,0.28)', minHeight: 44 }}>
+                Apply for a DSCR loan →
               </a>
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
@@ -289,14 +289,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Purchase price</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
-                      <input className="gs-num" type="number" min="0" step="5000" value={price} onChange={e => setPrice(toNonNegative(e.target.value))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" max="100000000" step="5000" value={price} onChange={e => setPrice(Math.min(100000000, toNonNegative(e.target.value)))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Monthly rent</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
-                      <input className="gs-num" type="number" min="0" step="100" value={rent} onChange={e => setRent(toNonNegative(e.target.value))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" max="1000000" step="100" value={rent} onChange={e => setRent(Math.min(1000000, toNonNegative(e.target.value)))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                   <div className="calc-two-fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -304,14 +304,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Taxes /yr</span>
                       <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" min="0" step="250" value={tax} onChange={e => setTax(toNonNegative(e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" min="0" max="10000000" step="250" value={tax} onChange={e => setTax(Math.min(10000000, toNonNegative(e.target.value)))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>Ins. /yr</span>
                       <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ color: 'rgba(238,239,211,0.4)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" min="0" step="100" value={ins} onChange={e => setIns(toNonNegative(e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                        <input className="gs-num" type="number" min="0" max="10000000" step="100" value={ins} onChange={e => setIns(Math.min(10000000, toNonNegative(e.target.value)))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
                       </div>
                     </label>
                   </div>
@@ -319,7 +319,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.5)', marginBottom: 8 }}>HOA /mo</span>
                     <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
                       <span style={{ color: 'rgba(238,239,211,0.4)' }}>$</span>
-                      <input className="gs-num" type="number" min="0" step="25" value={hoa} onChange={e => setHoa(toNonNegative(e.target.value))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
+                      <input className="gs-num" type="number" min="0" max="100000" step="25" value={hoa} onChange={e => setHoa(Math.min(100000, toNonNegative(e.target.value)))} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
                     </div>
                   </label>
                 </div>
@@ -374,18 +374,20 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       qualification, program fit, pricing, or credit approval.
                     </p>
                     <div className="calc-result-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                      <a
-                        href="/book-demo"
-                        onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, color: MIDNIGHT, fontWeight: 700, fontSize: 13, textDecoration: 'none', padding: '10px 18px', borderRadius: radius.sm, minHeight: 44 }}
-                      >
-                        Request a human review →
-                      </a>
                       <button
-                        onClick={() => (window as any).openQualify?.()}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.28)', color: 'rgba(238,239,211,0.8)', fontWeight: 600, fontSize: 13, fontFamily: font.family, padding: '10px 16px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}
+                        onClick={() => window.openQualify?.({
+                          propertyValue: price,
+                          loanAmount: loan,
+                          rent,
+                          rate,
+                          taxesAnnual: tax,
+                          insuranceAnnual: ins,
+                          hoaMonthly: hoa,
+                          purpose: "purchase",
+                        })}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: LEMON, border: `1.5px solid ${LEMON}`, color: MIDNIGHT, fontWeight: 700, fontSize: 13, fontFamily: font.family, padding: '10px 18px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}
                       >
-                        Review this scenario →
+                        Continue with these numbers →
                       </button>
                     </div>
                     <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.38)', margin: '10px 0 0', lineHeight: 1.4 }}>
@@ -464,8 +466,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </div>
                     ))}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-                      <a href="/book-demo" onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
-                        Request a human review →
+                      <a href="/apply" onClick={(e) => { e.preventDefault(); onNavigate?.('book-demo'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
+                        Apply for a DSCR loan →
                       </a>
                     </div>
                   </div>

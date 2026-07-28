@@ -14,13 +14,17 @@ describe("public editorial reliability", () => {
       "how-to-improve-dscr-before-applying",
     ];
 
+    const renderedBodies = new Set<string>();
     for (const slug of revisedSlugs) {
       const post = POSTS.find((candidate) => candidate.slug === slug);
       expect(post, slug).toBeDefined();
       expect(post?.summary, slug).toMatch(/provider|approval|eligibility|advice/i);
-      expect(JSON.stringify(post?.body), slug).toContain(
+      const body = JSON.stringify(post?.body);
+      expect(body, slug).toContain(
         "current, dated eligibility and pricing materials",
       );
+      renderedBodies.add(body);
     }
+    expect(renderedBodies.size).toBe(revisedSlugs.length);
   });
 });

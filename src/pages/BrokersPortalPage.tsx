@@ -11,63 +11,59 @@ const BROKERS_PORTAL_MOBILE_CSS = `
   }
 `;
 
-// ── Workspace feature tiles — ported from "Everything a serious investor needs." ──
+// ── Partner workflow feature tiles ────────────────────────────────────────────
 const BENEFITS = [
   {
     icon: "01",
-    title: "Saved scenarios",
-    desc: "Every deal you price is stored and reopenable. No re-entering data when you come back to it.",
+    title: "One deal intake",
+    desc: "Start with the property, requested loan, rent, purpose, and timing instead of a blank callback form.",
   },
   {
     icon: "02",
-    title: "Prepare a scenario summary",
-    desc: "Keep scenario inputs and notes together for your own review. The workspace does not submit files for underwriting or represent a provider's decision process.",
+    title: "Preliminary DSCR",
+    desc: "Review the modeled payment coverage before you decide whether to submit the borrower request.",
   },
   {
     icon: "03",
-    title: "Shareable deal summary",
-    desc: "Generate a clean deal-summary PDF in 10 seconds — share it with a partner or keep it for your records.",
+    title: "Broker context",
+    desc: "Identify yourself as the mortgage broker so the request reaches review with the right relationship context.",
   },
   {
     icon: "04",
-    title: "Portfolio tracker",
-    desc: "Track every active deal across your pipeline so nothing slips through the cracks.",
+    title: "Clear consent",
+    desc: "Share only the contact details and communication permission appropriate for the financing inquiry.",
   },
   {
     icon: "05",
-    title: "State-rule alerts",
-    desc: "Flag planning assumptions for review. Local rules, prepayment terms, and provider requirements must be verified independently before acting.",
+    title: "No credit pull to start",
+    desc: "The preliminary request begins with deal facts and does not ask for an SSN, bank information, or identity documents.",
   },
   {
     icon: "06",
-    title: "Export-ready deal package",
-    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for underwriting review or your own records.",
+    title: "A usable next step",
+    desc: "Greenstreet receives the core property and loan request before any follow-up conversation begins.",
   },
 ];
 
-// ── Testimonials — illustrative composites (same policy as CaseStudiesPage):
-// role-only attribution, no invented named individuals or companies. Replace
-// with verified, permissioned quotes before presenting as real endorsements.
-const TESTIMONIALS_DISCLAIMER =
-  "Illustrative composite quotes reflecting common user feedback — not attributed to verified named individuals.";
-const TESTIMONIALS = [
+// Representative partner stories explain the intended workflow without
+// presenting invented endorsements or attributed customer claims.
+const PARTNER_STORIES_NOTE =
+  "Representative product journeys, not attributed customer reviews or reported transaction results.";
+const PARTNER_STORIES = [
   {
-    quote:
-      "The scenario view made it easier to compare assumptions and document the questions I still needed to verify.",
-    name: "Fund operations lead",
-    role: "Illustrative composite",
+    story: "Daniel receives a purchase scenario with a signed contract and closing target. He enters the property and requested-loan facts once, checks the payment coverage, and carries the same facts into the borrower request.",
+    name: "Daniel Cho",
+    role: "Mortgage broker · purchase handoff",
   },
   {
-    quote:
-      "The scenario and notes view gave me a cleaner starting point for my own due diligence.",
-    name: "Real estate investor, Florida",
-    role: "Illustrative composite",
+    story: "Priya is comparing two refinance structures for a portfolio client. She uses the same entered rate and expenses to make the payment difference visible before asking the borrower which path to submit.",
+    name: "Priya Shah",
+    role: "Mortgage broker · portfolio refinance",
   },
   {
-    quote:
-      "Keeping multiple property scenarios in one place helps me organize my planning work.",
-    name: "Buy-and-hold investor, Texas",
-    role: "Illustrative composite",
+    story: "Mateo is working with a short-term-rental host. He keeps projected and documented revenue separate, records the borrower’s timeline and consent, and leaves provider income treatment for follow-up.",
+    name: "Mateo Rivera",
+    role: "Referral partner · STR request",
   },
 ];
 
@@ -80,7 +76,7 @@ export default function BrokersPortalPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "InvestGO | Greenstreet Finance";
+    document.title = "Partner With Greenstreet | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -92,7 +88,7 @@ export default function BrokersPortalPage({
         { label: "State Rules", view: "state-laws" },
         { label: "FAQ", view: "faq" },
       ]}
-      cta={{ label: "Sign in →", view: "portal" }}
+      cta={{ label: "Start a borrower request →", view: "book-demo" }}
     >
       <style>{BROKERS_PORTAL_MOBILE_CSS}</style>
       {/* ── HERO — solid dark, two-column: copy left + sign-in card right ─── */}
@@ -127,7 +123,7 @@ export default function BrokersPortalPage({
                 marginBottom: 20,
               }}
             >
-              INVEST<span style={{ opacity: 0.5 }}>GO</span> &middot; Investor Workspace
+              GREENSTREET &middot; Partner workflow
             </div>
 
             {/* H1 */}
@@ -140,16 +136,18 @@ export default function BrokersPortalPage({
                 margin: "0 0 18px",
               }}
             >
-              Your deals,
+              Model the deal once.
               <br />
-              your pipeline,
+              Move the borrower&apos;s
               <br />
-              one login.
+              request forward.
             </h1>
 
             {/* Purpose line */}
             <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-              InvestGO is an investor workspace for saving educational DSCR scenarios between sessions. It does not represent underwriting, program availability, pricing, or funding by Greenstreet or any other provider.
+              For mortgage brokers and referral partners who want to move from
+              property math to a preliminary DSCR loan request without rebuilding
+              the file.
             </div>
 
             {/* Sub */}
@@ -164,7 +162,8 @@ export default function BrokersPortalPage({
                 margin: "0 0 32px",
               }}
             >
-              Access and feature availability are subject to configuration and may change.
+              Start with the deal facts, see the preliminary coverage result, and
+              choose whether to send the request for follow-up.
             </p>
 
             {/* Checklist */}
@@ -177,9 +176,9 @@ export default function BrokersPortalPage({
               }}
             >
               {[
-                "Save and revisit priced deals",
-                "Shareable deal summaries",
-                "Organize scenario notes",
+                "Borrower deal context in one flow",
+                "Preliminary DSCR before contact capture",
+                "No credit pull to start",
               ].map((item) => (
                 <div
                   key={item}
@@ -218,7 +217,7 @@ export default function BrokersPortalPage({
                 marginBottom: 18,
               }}
             >
-              Investor sign-in
+              Submit a borrower deal
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -233,10 +232,12 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Access your saved scenarios and deal summaries in one place. They are planning records, not applications, quotes, or approvals.
+                Start with the property, requested loan amount, expected rent, and
+                borrower context. The final step identifies you as the broker and
+                records the contact consent you choose.
               </p>
               <button
-                onClick={() => onNavigate("portal")}
+                onClick={() => window.openQualify?.({ role: "broker" })}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -255,7 +256,7 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Sign in to INVEST<span style={{ opacity: 0.5 }}>GO</span> →
+                Start a borrower loan request →
               </button>
 
               <div
@@ -268,9 +269,9 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                New to Greenstreet?{" "}
+                Want to check the numbers first?{" "}
                 <button
-                  onClick={() => onNavigate("rate-quiz")}
+                  onClick={() => onNavigate("dscr-calculator")}
                   style={{
                     background: "none",
                     border: "none",
@@ -283,7 +284,7 @@ export default function BrokersPortalPage({
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  Price your first deal free →
+                  Open the DSCR calculator →
                 </button>
               </div>
             </div>
@@ -309,10 +310,11 @@ export default function BrokersPortalPage({
               maxWidth: "18ch",
             }}
           >
-            Everything a serious investor needs.
+            A cleaner partner handoff.
           </h2>
           <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(0,55,56,0.6)", margin: "0 0 36px", maxWidth: "52ch", lineHeight: 1.6 }}>
-            The workspace sits on top of the same DSCR engine you already use — so every saved deal includes the full analysis, not just a rate.
+            Give the financing team enough context to begin productively, while
+            keeping the preliminary calculation and the request clearly labeled.
           </p>
 
           <div
@@ -392,7 +394,7 @@ export default function BrokersPortalPage({
                 marginBottom: 12,
               }}
             >
-              From the field
+              How the flow connects
             </div>
             <h2
               style={{
@@ -403,7 +405,7 @@ export default function BrokersPortalPage({
                 margin: 0,
               }}
             >
-              What investors tell us.
+              Three moments that should not require re-entry.
             </h2>
           </div>
 
@@ -416,13 +418,13 @@ export default function BrokersPortalPage({
               padding: "4px 28px 8px",
             }}
           >
-            {TESTIMONIALS.map((t, i) => (
+            {PARTNER_STORIES.map((t, i) => (
               <div
                 key={i}
                 style={{
                   padding: "20px 0",
                   borderBottom:
-                    i < TESTIMONIALS.length - 1
+                    i < PARTNER_STORIES.length - 1
                       ? `1px solid ${dc.dark}15`
                       : "none",
                 }}
@@ -432,12 +434,11 @@ export default function BrokersPortalPage({
                     fontSize: 15,
                     color: dc.dark,
                     lineHeight: 1.6,
-                    fontStyle: "italic",
                     margin: "0 0 12px",
                     letterSpacing: "-0.01em",
                   }}
                 >
-                  "{t.quote}"
+                  {t.story}
                 </p>
                 <div
                   style={{
@@ -461,7 +462,7 @@ export default function BrokersPortalPage({
               </div>
             ))}
             <p style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", margin: "14px 0 0", lineHeight: 1.5 }}>
-              {TESTIMONIALS_DISCLAIMER}
+              {PARTNER_STORIES_NOTE}
             </p>
           </div>
         </div>
@@ -498,7 +499,7 @@ export default function BrokersPortalPage({
                 marginBottom: 14,
               }}
             >
-              Ready to price your next DSCR deal?
+              Have a borrower deal ready?
             </div>
             <h2
               style={{
@@ -510,9 +511,9 @@ export default function BrokersPortalPage({
                 margin: "0 0 14px",
               }}
             >
-              Open the portal.
+              Start with the property.
               <br />
-              Price and submit in minutes.
+              Submit a clearer request.
             </h2>
             <p
               style={{
@@ -524,8 +525,8 @@ export default function BrokersPortalPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Access and feature availability require verification.
-              with five or more users.
+              The initial request does not pull credit and is not an approval,
+              rate quote, rate lock, or commitment to lend.
             </p>
           </div>
 
@@ -538,7 +539,7 @@ export default function BrokersPortalPage({
             }}
           >
             <button
-              onClick={() => onNavigate("portal")}
+              onClick={() => window.openQualify?.({ role: "broker" })}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -555,7 +556,7 @@ export default function BrokersPortalPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Sign in to portal →
+              Start a borrower request →
             </button>
             <button
               onClick={() => onNavigate("dscr-calculator")}

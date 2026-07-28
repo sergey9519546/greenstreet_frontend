@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { getRouteMetadata, SITE_ORIGIN } from "./routeMetadata";
-import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
 
 describe("public route metadata", () => {
   it("indexes canonical public pages", () => {
@@ -15,10 +14,13 @@ describe("public route metadata", () => {
   it("canonicalizes legacy legal and support aliases to their public pages", () => {
     const privacy = getRouteMetadata({ pathname: "/privacy-policy", view: "legal" });
     const support = getRouteMetadata({ pathname: "/support", view: "faq" });
+    const legacyApply = getRouteMetadata({ pathname: "/book-demo", view: "book-demo" });
 
     expect(privacy.canonical).toBe(`${SITE_ORIGIN}/legal/privacy-policy`);
     expect(privacy.title).toMatch(/Privacy Policy/);
     expect(support.canonical).toBe(`${SITE_ORIGIN}/faq`);
+    expect(legacyApply.canonical).toBe(`${SITE_ORIGIN}/apply`);
+    expect(legacyApply.title).toMatch(/Apply for a DSCR Loan/);
   });
 
   it("only indexes published article slugs", () => {
@@ -36,23 +38,22 @@ describe("public route metadata", () => {
   });
 
   it.each([
-    ["/investgo", "portal"],
-    ["/tools/decision-support", "decision-support"],
-    ["/tools/tax-engine", "tax-engine"],
-    ["/tools/returns", "returns"],
+    ["/investgo/private", "portal"],
     ["/unpublished-path", "not-found"],
-  ] as const)("keeps protected, held, and unknown paths out of search: %s", (pathname, view) => {
+  ] as const)("keeps protected and unknown paths out of search: %s", (pathname, view) => {
     expect(getRouteMetadata({ pathname, view }).robots).toBe("noindex,nofollow");
   });
 
-  it("keeps every held tool out of search results", () => {
-    for (const definition of Object.values(TOOL_RELIABILITY_HOLDS)) {
-      const metadata = getRouteMetadata({
-        pathname: definition.path,
-        view: definition.view,
-      });
-      expect(metadata.robots).toBe("noindex,nofollow");
-      expect(metadata.jsonLdKind).toBeUndefined();
-    }
+  it.each([
+    ["/deal-analyzer", "deal-analyzer", "/deal-analyzer"],
+    ["/tools/decision-support", "decision-support", "/tools/decision-support"],
+    ["/tools/tax-engine", "tax-engine", "/tools/tax-engine"],
+    ["/tools/returns", "returns", "/tools/returns"],
+    ["/investgo", "deal-analyzer", "/deal-analyzer"],
+  ] as const)("indexes a bounded public tool and canonicalizes aliases: %s", (pathname, view, canonicalPath) => {
+      const metadata = getRouteMetadata({ pathname, view });
+      expect(metadata.robots).toBe("index,follow");
+      expect(metadata.canonical).toBe(`${SITE_ORIGIN}${canonicalPath}`);
+      expect(metadata.jsonLdKind).toBe("WebPage");
   });
 });

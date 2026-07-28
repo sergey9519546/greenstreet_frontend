@@ -14,7 +14,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius, space } from "../theme";
+import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, border, font, motion, swatch, radius, space, type } from "../theme";
 import { SiteNav, SiteFooter } from "./SiteShell";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -78,12 +78,13 @@ const VIEW_HREF: Record<string, string> = {
   marketing: "/", portal: "/investgo",
   brokers: "/brokers", investors: "/investors", "borrower-profiles": "/borrower-profiles", "brokers-partner": "/partners",
   "dscr-calculator": "/dscr-calculator", "state-laws": "/state-laws",
-  "deal-analyzer": "/deal-analyzer", "decision-support": "/decision-support",
+  "deal-analyzer": "/deal-analyzer", "decision-support": "/tools/decision-support",
   faq: "/faq", blog: "/blog", "case-studies": "/case-studies", about: "/about", careers: "/careers",
-  legal: "/legal", "rate-quiz": "/rate-quiz", products: "/products", solutions: "/solutions", "book-demo": "/book-demo",
+  legal: "/legal", "rate-quiz": "/rate-quiz", products: "/products", solutions: "/solutions", "book-demo": "/apply",
   "refi-tracker": "/tools/refi-tracker", "arm-reset": "/tools/arm-reset", "monte-carlo": "/tools/monte-carlo",
   returns: "/tools/returns", "tax-engine": "/tools/tax-engine", "stress-matrix": "/tools/stress-matrix",
-  "str-underwriting": "/tools/str-underwriting", portfolio: "/tools/portfolio",
+  "str-underwriting": "/tools/str-underwriting", "structure-optimizer": "/tools/structure-optimizer",
+  portfolio: "/tools/portfolio",
 };
 
 // Shared CSS injected once per page.
@@ -96,7 +97,23 @@ export const DC_CSS = `
 .gs-range::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:${MIDNIGHT};border:3px solid ${LEMON};cursor:pointer;}
 .gs-dot-grid{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.055) 1px,transparent 1px);background-size:34px 34px;pointer-events:none;}
 .gs-mono{font-family:${font.mono};font-variant-numeric:tabular-nums;letter-spacing:-0.03em;}
-.ix-card{transition:transform .14s, background .15s;} .ix-card:hover{transform:translateY(-3px);}
+#root .dc-shell .gs-prose-lead{font-size:${type.lead} !important;line-height:1.48 !important;letter-spacing:-.01em !important;max-width:62ch;}
+#root .dc-shell .gs-body{font-size:${type.main} !important;line-height:1.6 !important;letter-spacing:0 !important;max-width:70ch;}
+.gs-meta{font-size:${type.meta};line-height:1.45;letter-spacing:0;}
+.gs-caption{font-size:${type.caption};line-height:1.4;letter-spacing:0;}
+.gs-eyebrow{font-size:${type.caption};line-height:1.4;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.gs-grid-rhythm{gap:${space.grid} !important;}
+.gs-grid-rhythm-compact{gap:${space.gridCompact} !important;}
+.gs-card{border-radius:${radius.md};box-shadow:none;}
+.gs-card-equal{height:100%;display:flex;flex-direction:column;}
+.gs-card-interactive{transition:transform ${motion.surface} ${motion.easing},border-color ${motion.surface} ${motion.easing},background-color ${motion.surface} ${motion.easing};}
+.gs-card-interactive:hover{transform:translateY(-2px);}
+.gs-card-interactive:focus-visible{outline:2px solid ${LEMON};outline-offset:3px;}
+.gs-surface{background:${MINT_BG};border:1px solid ${border.light};}
+.gs-surface-dark{background:${swatch.darkTeal};border:1px solid ${border.dark};}
+.gs-section-compact{padding-block:${space.sectionCompact};}
+.gs-section-standard{padding-block:${space.sectionStandard};}
+.gs-section-major{padding-block:${space.sectionMajor};}
 .dc-nav a:focus-visible,.dc-nav button:focus-visible,a.dc-cta:focus-visible{outline:2px solid ${LEMON};outline-offset:3px;border-radius:6px;}
 /* Floating/pulsing motion neutralized per design taste (no "flow"/glassmorphism). */
 @keyframes gsFloat{from,to{transform:none;}}
@@ -118,6 +135,9 @@ export const DC_CSS = `
 @media (max-width: 640px){
   .hp-card{min-height:680px !important;aspect-ratio:auto !important;}
   .hp-main-grid,.hp-input-grid,.hp-logic-row,.hp-logic-grid{grid-template-columns:1fr !important;}
+}
+@media (hover:none){
+  .gs-card-interactive:hover{transform:none;}
 }
 /* Mobile contracts for React routes.  These are deliberately opt-in class
    hooks, so individual pages can inherit the homepage rhythm without a
@@ -232,9 +252,8 @@ export function DcFooter({ bg = MIDNIGHT }: { bg?: string } = {}) {
         <div style={{ fontSize: 13, fontWeight: 500 }}>© 2026 Greenstreet Finance</div>
       </div>
       <div style={{ maxWidth: dc.maxW, margin: "14px auto 0", fontSize: 11.5, lineHeight: 1.6, color: "rgba(238,239,211,0.45)" }}>
-        Educational business-purpose DSCR tools and preliminary scenario review; not a commitment to lend. This site
-        does not currently publish a legal entity name, NMLS identifier, state-license list, or verified lending-partner
-        disclosure. Confirm the responsible licensed party before relying on a financing offer.
+        Business-purpose DSCR tools and preliminary loan requests; not a credit approval, rate lock, or commitment to
+        lend. Rates, terms, eligibility, and property requirements remain subject to review.
       </div>
     </footer>
   );
@@ -252,8 +271,11 @@ export const H1 = mk("h1", "u-text-style-h1");
 export const H2 = mk("h2", "u-text-style-h2");
 export const H3 = mk("h3", "u-text-style-h3");
 export const H4 = mk("h4", "u-text-style-h4");
-export const Lead = mk("p", "u-text-style-large");   // section description / lead
-export const Body = mk("p", "u-text-style-h6");       // base body copy
+export const Lead = mk("p", "u-text-style-large gs-prose-lead"); // section description / lead
+export const Body = mk("p", "u-text-style-h6 gs-body");           // base body copy
+export const Meta = mk("p", "gs-meta");
+export const Caption = mk("p", "gs-caption");
+export const Eyebrow = mk("div", "gs-eyebrow");
 
 /** Webflow primary/secondary button (lemon-lime fill, arrow) — matches home. */
 export function Btn({ label, onClick, href, variant = "primary", style }: { label: string; onClick?: (e: React.MouseEvent) => void; href?: string; variant?: "primary" | "secondary"; style?: React.CSSProperties }) {
@@ -351,9 +373,9 @@ export function HeroProof({
   const rightInput = parts[1] || "PITIA";
   const verdictColor = chip?.color || LEMON;
   const signalBars = [
-    { label: "Income cover", width: "82%", value: "82%", color: dc.emerald },
-    { label: "Lender floor", width: "72%", value: "1.00x", color: LEMON },
-    { label: "Reserve drag", width: "28%", value: "18%", color: "#7fb7b5" },
+    { label: "Rent input", width: "82%", value: "set", color: dc.emerald },
+    { label: "Payment load", width: "72%", value: "set", color: LEMON },
+    { label: "DSCR result", width: "58%", value: valueText || "—", color: "#7fb7b5" },
   ];
   return (
     <div ref={proofRef} style={{ position: "relative" }}>
@@ -401,7 +423,7 @@ export function HeroProof({
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: LEMON }}>{eyebrow}</div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "rgba(238,239,211,0.62)", fontSize: 12, fontWeight: 700 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: verdictColor, display: "inline-block" }} />
-              preliminary scenario
+              preliminary estimate
             </div>
           </div>
 
@@ -458,12 +480,12 @@ export function HeroProof({
 
           <div className="hp-panel hp-logic-row">
             <div style={{ display: "grid", gap: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.48)" }}>Matched file logic</div>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.48)" }}>Input trace</div>
               <div className="hp-logic-grid">
-                {["DSCR floor", "LTV band", "State rule"].map((label, i) => (
+                {["Rent ÷ PITIA", "Rate source", "Provider screen"].map((label, i) => (
                   <div key={label} style={{ borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.12)", padding: "9px 10px", background: i === 0 ? "rgba(216,217,88,0.12)" : "rgba(238,239,211,0.06)" }}>
                     <div style={{ fontSize: 10, color: "rgba(238,239,211,0.48)", fontWeight: 700, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 13, color: PISTACHIO, fontWeight: 800 }}>{i === 0 ? "passes" : i === 1 ? "75%" : "screened"}</div>
+                    <div style={{ fontSize: 13, color: PISTACHIO, fontWeight: 800 }}>{i === 0 ? "calculated" : i === 1 ? "user-entered" : "not run"}</div>
                   </div>
                 ))}
               </div>
@@ -508,7 +530,7 @@ export function DcShell({
         fontFamily: font.family,
         minHeight: "100vh",
         overflowX: "clip",
-        letterSpacing: "-0.02em",
+        letterSpacing: "0",
         "--gs-page-gutter": dc.pad,
       } as React.CSSProperties}
     >

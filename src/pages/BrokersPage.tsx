@@ -90,7 +90,7 @@ export default function BrokersPage({
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "State Rules", view: "state-laws" },
       ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Start a borrower request →", view: "book-demo" }}
       accent={dc.dark}
     >
       <style>{BROKERS_MOBILE_CSS}</style>
@@ -134,14 +134,14 @@ export default function BrokersPage({
                 color: dc.lemon,
               }}
             >
-              For Investors
+              For Brokers
             </div>
             <H1 style={{ margin: 0 }}>
               One deal.
               <br />
-              Model the
+              Check the
               <br />
-              assumptions.
+              math. Move forward.
             </H1>
             <Lead
               style={{
@@ -150,17 +150,17 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Five educational tools help you model and stress-test rental-property
-              assumptions. Greenstreet does not state a direct-lending, underwriting,
-              funding, licensing, program-availability, or pricing role on this page.
+              Check the property math, preserve the borrower’s deal inputs, and
+              continue into a preliminary loan request with a clear consent-based
+              handoff.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Btn
-                label="Price my first deal →"
-                onClick={() => onNavigate("dscr-calculator")}
+                label="Start a borrower request →"
+                onClick={() => onNavigate("book-demo")}
               />
               <button
-                onClick={() => onNavigate("rate-quiz")}
+                onClick={() => onNavigate("dscr-calculator")}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -178,7 +178,7 @@ export default function BrokersPage({
                   minHeight: 44,
                 }}
               >
-                Explore assumptions →
+                Check DSCR first →
               </button>
             </div>
           </div>
@@ -478,7 +478,7 @@ export default function BrokersPage({
                 margin: "0 0 16px",
               }}
             >
-              Ready to submit your next deal?
+              Ready to model your next deal?
             </h2>
             <p
               style={{
@@ -491,14 +491,14 @@ export default function BrokersPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Book a 15-minute walkthrough to review a sample scenario and its assumptions.
-              This is not a quote, program match, application, approval, or financing commitment.
+              Carry the property facts and requested loan into a preliminary borrower
+              request. It is not an approval, rate quote, rate lock, or financing commitment.
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
             {/* ONE dominant lemon primary CTA per contract */}
             <button
-              onClick={() => onNavigate("rate-quiz")}
+              onClick={() => onNavigate("book-demo")}
               style={{
                 background: dc.lemon,
                 color: dc.dark,
@@ -514,11 +514,11 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              Explore assumptions →
+              Start a borrower loan request →
             </button>
             {/* Secondary: transparent + FADED border, per contract */}
             <button
-              onClick={() => onNavigate("rate-quiz")}
+              onClick={() => onNavigate("dscr-calculator")}
               style={{
                 background: "transparent",
                 color: dc.cream,
@@ -534,7 +534,7 @@ export default function BrokersPage({
                 minHeight: 44,
               }}
             >
-              Explore rate assumptions →
+              Check DSCR first →
             </button>
           </div>
         </div>

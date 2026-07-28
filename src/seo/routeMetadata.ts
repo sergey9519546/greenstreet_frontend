@@ -25,13 +25,13 @@ type PublicPageDefinition = Omit<RouteMetadata, "canonical" | "robots"> & {
 
 const SITE_NAME = "Greenstreet Finance";
 const DEFAULT_DESCRIPTION =
-  "Educational DSCR loan tools and investor guidance from Greenstreet Finance. Calculator results are estimates, not loan commitments or advice.";
+  "Model a rental property, understand the DSCR, and continue into a preliminary DSCR loan request without starting over.";
 const NOINDEX_ROBOTS: RobotsPolicy = "noindex,nofollow";
 const INDEX_ROBOTS: RobotsPolicy = "index,follow";
 
 const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
   marketing: {
-    title: "Greenstreet Finance | DSCR loan tools for real estate investors",
+    title: "Greenstreet Finance | A clearer path to a DSCR loan",
     description: DEFAULT_DESCRIPTION,
     canonicalPath: "/",
     jsonLdKind: "WebSite",
@@ -44,19 +44,19 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
   },
   "deal-analyzer": {
     title: "Deal Analyzer | Greenstreet Finance",
-    description: "Review lender DSCR and investor cash-flow estimates for a long-term rental scenario.",
+    description: "Model DSCR, PITIA, cash flow, cap rate, and debt yield from visible long-term-rental assumptions.",
     canonicalPath: "/deal-analyzer",
     jsonLdKind: "WebPage",
   },
   "state-laws": {
-    title: "State Rules Reference | Greenstreet Finance",
-    description: "Review educational state-level prepayment-penalty reference information for business-purpose DSCR scenarios.",
+    title: "State Verification Checklist | Greenstreet Finance",
+    description: "Organize state, entity, timing, and prepayment questions to verify for a business-purpose rental-loan request.",
     canonicalPath: "/state-laws",
     jsonLdKind: "WebPage",
   },
   "str-underwriting": {
-    title: "STR Underwriting | Greenstreet Finance",
-    description: "Explore an educational short-term-rental underwriting scenario with clearly stated assumptions.",
+    title: "STR Income Comparison | Greenstreet Finance",
+    description: "Compare user-entered long-term, projected, and documented short-term-rental income assumptions against modeled payment coverage.",
     canonicalPath: "/tools/str-underwriting",
     jsonLdKind: "WebPage",
   },
@@ -68,7 +68,7 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
   },
   brokers: {
     title: "For Brokers | Greenstreet Finance",
-    description: "Learn how Greenstreet Finance supports brokers evaluating business-purpose DSCR scenarios.",
+    description: "Model a borrower deal and start a preliminary business-purpose DSCR loan request with Greenstreet Finance.",
     canonicalPath: "/brokers",
     jsonLdKind: "WebPage",
   },
@@ -80,13 +80,13 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
   },
   investors: {
     title: "For Investors | Greenstreet Finance",
-    description: "Learn about Greenstreet Finance's educational tools for real estate investors evaluating DSCR scenarios.",
+    description: "Use connected DSCR tools to evaluate a rental property and start a preliminary loan request.",
     canonicalPath: "/investors",
     jsonLdKind: "WebPage",
   },
   faq: {
     title: "FAQ | Greenstreet Finance",
-    description: "Find answers about Greenstreet Finance's educational DSCR tools, estimates, and preliminary review process.",
+    description: "Find answers about Greenstreet Finance's DSCR tools, estimates, and preliminary loan-request process.",
     canonicalPath: "/faq",
     jsonLdKind: "WebPage",
   },
@@ -97,20 +97,74 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     jsonLdKind: "CollectionPage",
   },
   "case-studies": {
-    title: "Illustrative Scenarios | Greenstreet Finance",
-    description: "Illustrative DSCR underwriting scenarios that show how assumptions can affect a preliminary review.",
+    title: "Borrower Stories | Greenstreet Finance",
+    description: "Representative DSCR borrower journeys showing how property facts can carry into a preliminary loan request.",
     canonicalPath: "/case-studies",
     jsonLdKind: "CollectionPage",
   },
   "rate-quiz": {
-    title: "DSCR Rate Estimate | Greenstreet Finance",
-    description: "Answer a few questions to receive an educational DSCR rate estimate based on stated assumptions.",
+    title: "DSCR Loan Profile | Greenstreet Finance",
+    description: "Organize five borrower and property facts before starting a preliminary DSCR loan request.",
     canonicalPath: "/rate-quiz",
+    jsonLdKind: "WebPage",
+  },
+  "decision-support": {
+    title: "Deal Decision Worksheet | Greenstreet Finance",
+    description: "Compare payment coverage, leverage, liquidity, and cash-flow facts from visible assumptions without a provider recommendation.",
+    canonicalPath: "/tools/decision-support",
+    jsonLdKind: "WebPage",
+  },
+  "structure-optimizer": {
+    title: "Loan Structure Comparison | Greenstreet Finance",
+    description: "Compare amortizing and interest-only payments using the same user-entered loan, rate, rent, and property-cost assumptions.",
+    canonicalPath: "/tools/structure-optimizer",
+    jsonLdKind: "WebPage",
+  },
+  "tax-engine": {
+    title: "Depreciable Basis Illustration | Greenstreet Finance",
+    description: "Illustrate straight-line depreciable basis from user-entered allocation, recovery-period, and marginal-rate assumptions.",
+    canonicalPath: "/tools/tax-engine",
+    jsonLdKind: "WebPage",
+  },
+  "refi-tracker": {
+    title: "Refinance Break-Even Calculator | Greenstreet Finance",
+    description: "Compare an entered current payment with a proposed amortized payment and calculate closing-cost break-even.",
+    canonicalPath: "/tools/refi-tracker",
+    jsonLdKind: "WebPage",
+  },
+  "portfolio": {
+    title: "Rental Portfolio Model | Greenstreet Finance",
+    description: "Model blended DSCR, equity, debt, and cash flow across user-entered rental properties.",
+    canonicalPath: "/tools/portfolio",
+    jsonLdKind: "WebPage",
+  },
+  "monte-carlo": {
+    title: "Rate-Path Simulation | Greenstreet Finance",
+    description: "Explore a deterministic seeded distribution of modeled rate paths from visible statistical assumptions.",
+    canonicalPath: "/tools/monte-carlo",
+    jsonLdKind: "WebPage",
+  },
+  "arm-reset": {
+    title: "ARM Reset Calculator | Greenstreet Finance",
+    description: "Model an adjustable-rate payment reset from user-entered balance, term, index, margin, and cap assumptions.",
+    canonicalPath: "/tools/arm-reset",
+    jsonLdKind: "WebPage",
+  },
+  returns: {
+    title: "Rental Return Model | Greenstreet Finance",
+    description: "Model pre-tax rental cash flow and equity outcomes from visible acquisition, financing, operating, hold, and sale assumptions.",
+    canonicalPath: "/tools/returns",
+    jsonLdKind: "WebPage",
+  },
+  "stress-matrix": {
+    title: "DSCR Stress Matrix | Greenstreet Finance",
+    description: "Compare how entered rate, rent, vacancy, tax, insurance, and HOA shocks change modeled DSCR.",
+    canonicalPath: "/tools/stress-matrix",
     jsonLdKind: "WebPage",
   },
   about: {
     title: "About Greenstreet Finance",
-    description: "Learn about Greenstreet Finance and its approach to educational DSCR tools and preliminary deal review.",
+    description: "Learn how Greenstreet Finance connects DSCR tools with a preliminary loan-request path.",
     canonicalPath: "/about",
     jsonLdKind: "WebPage",
   },
@@ -128,20 +182,20 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
   },
   products: {
     title: "Products | Greenstreet Finance",
-    description: "Explore Greenstreet Finance's educational DSCR tools and preliminary review workflow.",
+    description: "Explore Greenstreet Finance's DSCR tools and connected preliminary loan-request workflow.",
     canonicalPath: "/products",
     jsonLdKind: "WebPage",
   },
   solutions: {
     title: "Solutions | Greenstreet Finance",
-    description: "Explore Greenstreet Finance solutions for evaluating business-purpose rental-property financing scenarios.",
+    description: "Move from rental-property analysis to a preliminary business-purpose DSCR loan request.",
     canonicalPath: "/solutions",
     jsonLdKind: "WebPage",
   },
   "book-demo": {
-    title: "Request a Review | Greenstreet Finance",
-    description: "Request a preliminary Greenstreet Finance review for a business-purpose DSCR scenario.",
-    canonicalPath: "/book-demo",
+    title: "Apply for a DSCR Loan | Greenstreet Finance",
+    description: "Start a preliminary business-purpose DSCR loan request with the property and requested loan details.",
+    canonicalPath: "/apply",
     jsonLdKind: "WebPage",
   },
 };
@@ -174,7 +228,7 @@ const LEGAL_ALIAS_METADATA: Record<string, PublicPageDefinition> = {
 };
 
 const ARTICLE_TITLES: Record<string, string> = {
-  "greenstreet-go-launch": "InvestGO: an educational DSCR workflow concept",
+  "greenstreet-go-launch": "Greenstreet deal workspace: from calculator to loan request",
   "what-is-dscr-how-it-works": "What is DSCR? The complete guide to how the ratio works and why it matters",
   "dscr-pitia-breakdown-qualifying-income": "PITIA breakdown: five inputs to verify in a DSCR scenario",
   "dscr-ltv-down-payment-fico": "LTV, down payment, and credit profile: questions to verify",
@@ -193,22 +247,6 @@ const ARTICLE_TITLES: Record<string, string> = {
   "dscr-loan-process-after-prequalify": "After a preliminary DSCR estimate: process questions to ask",
   "how-to-improve-dscr-before-applying": "How scenario inputs change modeled DSCR",
 };
-
-const HELD_VIEWS = new Set<PageView>([
-  "decision-support",
-  "deal-analyzer",
-  "rate-quiz",
-  "state-laws",
-  "str-underwriting",
-  "structure-optimizer",
-  "tax-engine",
-  "refi-tracker",
-  "portfolio",
-  "monte-carlo",
-  "arm-reset",
-  "returns",
-  "stress-matrix",
-]);
 
 function normalizePathname(pathname: string): string {
   const path = pathname.split(/[?#]/, 1)[0] || "/";
@@ -256,23 +294,19 @@ export function getRouteMetadata({ pathname, view }: RouteMetadataInput): RouteM
     return noindex("Article not found | Greenstreet Finance", "The requested Greenstreet Finance article was not found.");
   }
 
-  if (path.startsWith("/case-studies/") || (path.startsWith("/book-demo/") && path !== "/book-demo")) {
+  if (
+    path.startsWith("/case-studies/") ||
+    (path.startsWith("/book-demo/") && path !== "/book-demo") ||
+    (path.startsWith("/apply/") && path !== "/apply")
+  ) {
     return noindex("Page not found | Greenstreet Finance", "The requested Greenstreet Finance page was not found.");
   }
 
-  if (path.startsWith("/investgo") || view === "portal") {
+  if (view === "portal") {
     return noindex(
-      "InvestGO Workspace | Greenstreet Finance",
+      "Deal Workspace | Greenstreet Finance",
       "The Greenstreet Finance workspace requires an authorized account.",
       `${SITE_ORIGIN}/investgo`,
-    );
-  }
-
-  if (HELD_VIEWS.has(view)) {
-    return noindex(
-      "Tool unavailable for review | Greenstreet Finance",
-      "This Greenstreet Finance tool is temporarily unavailable while its decision model is under review.",
-      `${SITE_ORIGIN}${path}`,
     );
   }
 
@@ -296,6 +330,25 @@ function upsertMeta(documentRef: Document, name: "description" | "robots", conte
     element.dataset.greenstreetRouteMetadata = "true";
   }
   element.content = content;
+  return element;
+}
+
+type SocialMetaDefinition = {
+  attribute: "name" | "property";
+  key: string;
+  content: string;
+};
+
+function upsertSocialMeta(documentRef: Document, definition: SocialMetaDefinition): HTMLMetaElement {
+  const selector = `meta[${definition.attribute}="${definition.key}"]`;
+  const existing = documentRef.head.querySelector<HTMLMetaElement>(selector);
+  const element = existing ?? documentRef.createElement("meta");
+  if (!existing) {
+    element.setAttribute(definition.attribute, definition.key);
+    element.dataset.greenstreetRouteMetadata = "true";
+    documentRef.head.append(element);
+  }
+  element.content = definition.content;
   return element;
 }
 
@@ -339,11 +392,25 @@ export function applyRouteMetadata(metadata: RouteMetadata, documentRef: Documen
   const priorRobotsContent = priorRobots?.content;
   const priorCanonical = documentRef.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   const priorCanonicalHref = priorCanonical?.href;
+  const socialDefinitions: SocialMetaDefinition[] = [
+    { attribute: "property", key: "og:title", content: metadata.title },
+    { attribute: "property", key: "og:description", content: metadata.description },
+    { attribute: "property", key: "og:url", content: metadata.canonical ?? SITE_ORIGIN },
+    { attribute: "property", key: "og:type", content: metadata.jsonLdKind === "Article" ? "article" : "website" },
+    { attribute: "name", key: "twitter:title", content: metadata.title },
+    { attribute: "name", key: "twitter:description", content: metadata.description },
+  ];
+  const priorSocial = socialDefinitions.map((definition) => {
+    const selector = `meta[${definition.attribute}="${definition.key}"]`;
+    const element = documentRef.head.querySelector<HTMLMetaElement>(selector);
+    return { definition, element, content: element?.content };
+  });
 
   documentRef.title = metadata.title;
   upsertMeta(documentRef, "description", metadata.description);
   upsertMeta(documentRef, "robots", metadata.robots);
   upsertCanonical(documentRef, metadata.canonical);
+  socialDefinitions.forEach((definition) => upsertSocialMeta(documentRef, definition));
 
   documentRef.head.querySelectorAll('script[data-greenstreet-route-metadata="true"]').forEach((node) => node.remove());
   const jsonLd = jsonLdFor(metadata);
@@ -360,6 +427,14 @@ export function applyRouteMetadata(metadata: RouteMetadata, documentRef: Documen
     restoreMeta(documentRef, "description", priorDescription, priorDescriptionContent);
     restoreMeta(documentRef, "robots", priorRobots, priorRobotsContent);
     restoreCanonical(documentRef, priorCanonical, priorCanonicalHref);
+    priorSocial.forEach(({ definition, element, content }) => {
+      if (element) {
+        element.content = content ?? "";
+        return;
+      }
+      const selector = `meta[${definition.attribute}="${definition.key}"][data-greenstreet-route-metadata="true"]`;
+      documentRef.head.querySelector<HTMLMetaElement>(selector)?.remove();
+    });
     cleanupRouteMetadata(documentRef);
   };
 }

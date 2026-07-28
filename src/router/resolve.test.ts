@@ -5,7 +5,13 @@ describe("SPA route resolution", () => {
   it("resolves canonical and legacy paths", () => {
     expect(resolveRoute("/")).toBe("marketing");
     expect(resolveRoute("/dscr-calculator")).toBe("dscr-calculator");
+    expect(resolveRoute("/apply")).toBe("book-demo");
+    expect(resolveRoute("/book-demo")).toBe("book-demo");
     expect(resolveRoute("/lender-intel")).toBe("products");
+    expect(resolveRoute("/investgo")).toBe("deal-analyzer");
+    expect(resolveRoute("/tools/deal-workspace")).toBe("deal-analyzer");
+    expect(resolveRoute("/tools/sensitivity")).toBe("stress-matrix");
+    expect(resolveRoute("/tools/scenario-history")).toBe("portfolio");
     expect(resolveRoute("/tools/structure-optimizer")).toBe("structure-optimizer");
   });
 

@@ -76,9 +76,9 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "State Rules", view: "state-laws" },
-        { label: "How It Works", view: "how-it-works" },
+        { label: "How It Works", view: "solutions" },
       ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a loan →", view: "book-demo" }}
     >
       {/* Accordion transition CSS only — no glassmorphism, no blur, no float */}
       <style>{`
@@ -287,14 +287,15 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               Ready to run your deal?
             </div>
             <p style={{ color: "rgba(238,239,211,0.75)", fontSize: 15, margin: 0, lineHeight: 1.5, maxWidth: "44ch" }}>
-              Build an educational cash-flow scenario. It is not a program match, quote, approval, or commitment.
+              Start a preliminary loan request with the property and requested-loan
+              details needed for a financing conversation.
             </p>
           </div>
           <button
             onClick={() => (window as any).openQualify?.()}
             style={{ display: "inline-flex", alignItems: "center", gap: 7, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "13px 26px", borderRadius: 6, fontFamily: dc.sans, letterSpacing: "-0.01em", flexShrink: 0 }}
           >
-            Build a scenario →
+            Start my loan request →
           </button>
         </div>
 
@@ -378,7 +379,8 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               marginRight: "auto",
             }}
           >
-            Model a cash-flow scenario, then confirm any financing, legal, tax, or property questions with qualified professionals.
+            Start with the property math, then continue into a preliminary loan
+            request without entering the same deal twice.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
             <button
@@ -399,10 +401,14 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 letterSpacing: "-0.01em",
               }}
             >
-              Build a scenario →
+              Start my loan request →
             </button>
             <a
-              href="/book-demo"
+              href="/dscr-calculator"
+              onClick={(event) => {
+                event.preventDefault();
+                onNavigate("dscr-calculator");
+              }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -419,7 +425,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
                 border: `1px solid rgba(238,239,211,0.3)`,
               }}
             >
-              Book a demo
+              Open the DSCR Calculator
             </a>
           </div>
         </div>

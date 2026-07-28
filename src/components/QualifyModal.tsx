@@ -1,13 +1,12 @@
 /**
- * QualifyModal — 5-step value-first micro-commitment lead funnel
+ * QualifyModal — 5-step preliminary DSCR loan-request funnel
  * Step 1: Live DSCR calculator (hook)
  * Step 2: Deal details (purpose / state / FICO)
  * Step 3: Personalized result (the value drop)
  * Step 4: Contact capture
  * Step 5: Confirmation
  *
- * PRESERVED: DSCR calc formula, trigger pill + window.openQualify +
- * one-time auto-open + localStorage gate.
+ * PRESERVED: DSCR calculation formula and the trigger pill + window.openQualify.
  *
  * ADDED: step-enter animation, progress bar transition, result reveal (count-up),
  * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
@@ -15,7 +14,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
-import { qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
+import { qualify, fmtUsd, PPP_STATE_LAWS } from "../engine";
 import type {
   QuickDscrTier,
   QualifyPropertyType as PropertyType,
@@ -23,11 +22,13 @@ import type {
   EngineFicoBand,
   QualifyInput,
 } from "../engine";
+import type { LoanRequestDraft } from "../conversion/loanRequest";
+import { trackLoanRequest } from "../conversion/analytics";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Purpose = "purchase" | "rate-term" | "cash-out";
 type FicoBand = "under-680" | "680-719" | "720-759" | "760-plus";
-type Role = "investor" | "foreign" | "str" | "vacation";
+type Role = "investor" | "broker" | "foreign" | "str" | "vacation";
 type Experience = "0" | "1-3" | "4-9" | "10-plus";
 type Timeline = "exploring" | "under-30" | "30-90" | "refi-soon";
 
@@ -36,6 +37,9 @@ interface StepOneData {
   loanAmount: number;
   rent: number;
   rate: number;
+  taxesAnnual?: number;
+  insuranceAnnual?: number;
+  hoaMonthly?: number;
   propertyType: PropertyType | null;
   investmentConfirmed: boolean;
 }
@@ -115,6 +119,9 @@ function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
     loanAmount: s1.loanAmount > 0 ? s1.loanAmount : s1.propertyValue * 0.75,
     rent: s1.rent,
     annualRatePct: s1.rate,
+    taxesAnnual: s1.taxesAnnual,
+    insuranceAnnual: s1.insuranceAnnual,
+    hoaMonthly: s1.hoaMonthly,
     ficoBand: s2.ficoBand ? FICO_TO_ENGINE[s2.ficoBand] : "680-719",
     borrowerType: s2.borrowerType ?? undefined,
     investmentConfirmed: s1.investmentConfirmed,
@@ -123,8 +130,8 @@ function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
 
 // ─── Engine-backed DSCR helpers ───────────────────────────────────────────────
 // The modal delegates all result math to qualify(), using the visitor's actual
-// loan amount and entered rate. One calculation now drives the live preview,
-// result formula, levers, rate range, and persisted audit payload.
+// loan amount and entered rate. One calculation drives the live preview,
+// result formula, and levers; the server receives only bounded intake fields.
 
 function classifyQuickDscr(dscr: number): {
   tier: QuickDscrTier;
@@ -196,7 +203,7 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This estimate shows a stronger cushion",
         detail: "The estimated rent clears the illustrative 1.25x coverage marker used in this tool.",
         purposeNote: ctx?.strong ?? "",
-        nextStep: "You can share contact details to request a human review. Product availability, eligibility, timing, and terms still require confirmation by the responsible provider.",
+        nextStep: "Continue your preliminary loan request to share the property with the team. Product availability, eligibility, timing, and terms still require review.",
         color: swatch.emerald,
       };
     case "BORDERLINE":
@@ -205,7 +212,7 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This estimate reaches payment coverage",
         detail: "The estimated rent is at or above the full monthly payment in this scenario. That is not an approval or product-eligibility decision.",
         purposeNote: ctx?.borderline ?? "",
-        nextStep: "You can request a human review of the assumptions. Any program, rate, approval, or closing path must be confirmed by the responsible provider.",
+        nextStep: "Continue your preliminary loan request so the team can review the assumptions. Any program, rate, approval, or closing path still requires review.",
         color: swatch.rainforest,
       };
     case "SPECIALIST_REQUIRED":
@@ -214,7 +221,7 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This estimate is below full payment coverage",
         detail: "The estimated rent is below the full monthly payment. A different structure may change the arithmetic, but this tool does not determine product eligibility.",
         purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
-        nextStep: "You can request a human review of the assumptions. Do not treat this result as evidence that a sub-1.0 product is available.",
+        nextStep: "You can still continue your preliminary loan request for a structure review. Do not treat this result as evidence that a sub-1.0 product is available.",
         color: "#b8a820",
       };
     case "UNLIKELY":
@@ -224,7 +231,7 @@ function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
         headline: "This deal needs restructuring",
         detail: "The estimated rent is materially below the full monthly payment. Lowering the payment or increasing verified rent would change the arithmetic.",
         purposeNote: ctx?.low ?? "Adjust the loan amount, rate, or rent assumptions to see how the estimate changes.",
-        nextStep: "You can request a human review of the inputs. This result is not a decline or a statement that financing is available.",
+        nextStep: "You can continue your preliminary loan request if you want the team to review possible changes. This result is not a decline or a statement that financing is available.",
         color: "#c25b4e",
       };
   }
@@ -239,13 +246,14 @@ const US_STATES = [
   "New Hampshire","New Jersey","New Mexico","New York","North Carolina",
   "North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island",
   "South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont",
-  "Virginia","Washington","West Virginia","Wisconsin","Wyoming","Other",
+  "Virginia","Washington","West Virginia","Wisconsin","Wyoming","District of Columbia",
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface QualifyModalProps {
   open: boolean;
   onClose: () => void;
+  initialDraft?: LoanRequestDraft | null;
 }
 
 // ─── Animation CSS injected once ─────────────────────────────────────────────
@@ -264,6 +272,11 @@ const ANIMATION_CSS = `
     40%      { transform: translateX(5px); }
     60%      { transform: translateX(-4px); }
     80%      { transform: translateX(4px); }
+  }
+  @media (max-width: 430px) {
+    .qm-cost-grid {
+      grid-template-columns: 1fr !important;
+    }
   }
   @keyframes qm-spin {
     to { transform: rotate(360deg); }
@@ -672,6 +685,9 @@ function Step1({
   const idPropVal = `${uid}-propval`;
   const idRent    = `${uid}-rent`;
   const idRate    = `${uid}-rate`;
+  const idTaxes   = `${uid}-taxes`;
+  const idInsurance = `${uid}-insurance`;
+  const idHoa     = `${uid}-hoa`;
 
   const qualification = qualify(buildQualifyInput(data, step2));
   const dscr = qualification.dscr;
@@ -702,10 +718,20 @@ function Step1({
     step2.purpose !== null &&
     data.propertyType !== null &&
     data.propertyValue >= 50000 &&
+    data.propertyValue <= 100000000 &&
     data.loanAmount > 0 &&
+    data.loanAmount <= 100000000 &&
     data.loanAmount < data.propertyValue &&
     data.rent > 0 &&
-    data.rate > 0 &&
+    data.rent <= 1000000 &&
+    data.rate >= 2 &&
+    data.rate <= 20 &&
+    (data.taxesAnnual ?? 0) >= 0 &&
+    (data.taxesAnnual ?? 0) <= 10000000 &&
+    (data.insuranceAnnual ?? 0) >= 0 &&
+    (data.insuranceAnnual ?? 0) <= 10000000 &&
+    (data.hoaMonthly ?? 0) >= 0 &&
+    (data.hoaMonthly ?? 0) <= 100000 &&
     data.investmentConfirmed;
 
   const handleNext = () => {
@@ -733,7 +759,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        Estimate your rental DSCR — in 60 seconds
+        Start with the property and requested loan
       </h2>
       <p
         style={{
@@ -743,7 +769,7 @@ function Step1({
           marginTop: 0,
         }}
       >
-        No credit pull &middot; no obligation &middot; instant DSCR estimate
+        See the preliminary DSCR before sharing contact details
       </p>
 
       {/* Loan purpose — first question, sets context for all results */}
@@ -751,7 +777,7 @@ function Step1({
         label="What do you want to do with this property?"
         helper={
           step2.purpose === "cash-out"
-            ? "Cash-out refinance — replace your loan with a larger one and take the difference in cash. Pricing is slightly higher than a purchase."
+            ? "Cash-out refinance — replace the current loan with a larger requested balance and model the difference as cash proceeds. This tool does not compare pricing by purpose."
             : step2.purpose === "rate-term"
             ? "Rate & term refinance — replace your current loan to change the rate or term, without taking cash out."
             : "Are you buying it, refinancing for a different rate or term, or modeling cash out? The purpose changes the assumptions shown."
@@ -799,6 +825,7 @@ function Step1({
           type="number"
           value={data.propertyValue}
           min={50000}
+          max={100000000}
           step={5000}
           onChange={(e) => onChange({ propertyValue: Number(e.target.value) })}
           className="qm-input"
@@ -819,7 +846,8 @@ function Step1({
           id={`${uid}-loan`}
           type="number"
           value={data.loanAmount}
-          min={0}
+          min={1}
+          max={100000000}
           step={5000}
           onChange={(e) => onChange({ loanAmount: Number(e.target.value) })}
           className="qm-input"
@@ -833,7 +861,7 @@ function Step1({
           <p style={errorMsgStyle}>Loan amount can't equal or exceed the property value.</p>
         ) : (
           <p style={helperStyle}>
-            LTV (how the loan amount compares to the property value — lower = more equity = better terms):{" "}
+            LTV (how the requested loan amount compares to the property value — lower means more equity):{" "}
             <strong style={{ color: ltv > 0.8 ? "#c25b4e" : swatch.midnight, fontFamily: font.mono }}>
               {data.propertyValue > 0 ? `${(ltv * 100).toFixed(0)}%` : "—"}
             </strong>
@@ -852,7 +880,8 @@ function Step1({
           id={idRent}
           type="number"
           value={data.rent}
-          min={0}
+          min={1}
+          max={1000000}
           step={50}
           onChange={(e) => onChange({ rent: Number(e.target.value) })}
           className="qm-input"
@@ -884,6 +913,57 @@ function Step1({
         </p>
       </div>
 
+      <FieldGroup
+        label="Property-cost assumptions"
+        helper="These visible costs are included in PITIA. Enter 0 only when you intentionally want that cost excluded from the estimate."
+      >
+        <div className="qm-cost-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 8 }}>
+          {[
+            {
+              id: idTaxes,
+              label: "Annual taxes",
+              value: data.taxesAnnual ?? 0,
+              max: 10000000,
+              step: 250,
+              change: (value: number) => onChange({ taxesAnnual: value }),
+            },
+            {
+              id: idInsurance,
+              label: "Annual insurance",
+              value: data.insuranceAnnual ?? 0,
+              max: 10000000,
+              step: 100,
+              change: (value: number) => onChange({ insuranceAnnual: value }),
+            },
+            {
+              id: idHoa,
+              label: "Monthly HOA",
+              value: data.hoaMonthly ?? 0,
+              max: 100000,
+              step: 25,
+              change: (value: number) => onChange({ hoaMonthly: value }),
+            },
+          ].map((field) => (
+            <label key={field.id} htmlFor={field.id} style={{ display: "block" }}>
+              <span style={{ display: "block", fontSize: 11, fontWeight: font.semibold, color: swatch.rainforest, marginBottom: 5 }}>
+                {field.label}
+              </span>
+              <input
+                id={field.id}
+                type="number"
+                value={field.value}
+                min={0}
+                max={field.max}
+                step={field.step}
+                onChange={(event) => field.change(Math.max(0, Number(event.target.value) || 0))}
+                className="qm-input"
+                style={inputStyle}
+              />
+            </label>
+          ))}
+        </div>
+      </FieldGroup>
+
       {/* Occupancy gate — DSCR is business-purpose, non-owner-occupied only */}
       <label
         style={{
@@ -906,8 +986,8 @@ function Step1({
         <span>
           This is a rental I invest in, not a home I live in (business-purpose / non-owner-occupied).
           <span style={{ display: "block", fontSize: 12, color: swatch.rainforest, opacity: 0.85 }}>
-            This flow is limited to business-purpose rental scenarios and does not
-            evaluate owner-occupied or personal-purpose financing.
+            This preliminary request is for business-purpose rental financing and
+            does not evaluate owner-occupied or personal-purpose loans.
           </span>
         </span>
       </label>
@@ -1073,8 +1153,8 @@ function Step2({
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
         {data.purpose
-          ? `Your ${purposeLabel[data.purpose]} — these fields select assumptions for the educational estimate and flag state details for manual review.`
-          : "These details select assumptions for the educational estimate and flag state details for manual review."}
+          ? `Your ${purposeLabel[data.purpose]} — these details complete the initial property profile and flag items for review.`
+          : "These details complete the initial property profile and flag items for review."}
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1226,7 +1306,6 @@ function Step3({
   const estimate = classifyQuickDscr(dscr);
   const col = dscrColor(dscr);
   const verdict = dscrVerdict(estimate.tier, step2.purpose);
-  const rate = fmtRateRange(q.rateLow, q.rateHigh);
   const topLever = q.levers[0];
 
   // Animated count-up for the big DSCR number
@@ -1405,7 +1484,7 @@ function Step3({
         </p>
       </div>
 
-      {/* Rate estimate */}
+      {/* User-entered rate assumption — never present a generated range as pricing. */}
       <div
         style={{
           background: "#fff",
@@ -1425,7 +1504,7 @@ function Step3({
             marginBottom: 4,
           }}
         >
-          Illustrative model range
+          Entered rate assumption
         </div>
         <div
           style={{
@@ -1437,36 +1516,16 @@ function Step3({
             marginBottom: 4,
           }}
         >
-          {rate}
+          {step1.rate.toFixed(3)}%
         </div>
         <p style={{ fontSize: 12, color: swatch.rainforest, margin: 0 }}>
-          Based on credit {step2.ficoBand ?? "range"},{" "}
-          {step2.purpose ? purposeLabel[step2.purpose].toLowerCase() : "your loan type"},{" "}
-          {step2.state || "your state"}. This is a model assumption, not a quote,
-          available product, or rate lock. A responsible provider must confirm any
-          financing terms.
+          This is the rate you entered for the payment estimate. Greenstreet has
+          not matched it to a program or presented it as a quote, available rate,
+          rate lock, or financing term.
         </p>
       </div>
 
-      {/* (c) How to improve it — top lever */}
-      {topLever && (
-        <div
-          style={{
-            background: "rgba(77,189,151,0.10)",
-            border: `1.5px solid ${swatch.emerald}`,
-            borderRadius: radius.sm,
-            padding: "12px 16px",
-            marginBottom: 12,
-          }}
-        >
-          <div style={{ fontSize: 11, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 }}>
-            Biggest lever to improve this deal — {topLever.label}
-          </div>
-          <p style={{ fontSize: 13, color: swatch.midnight, margin: 0, lineHeight: 1.5 }}>{topLever.detail}</p>
-        </div>
-      )}
-
-      {/* (d) What happens next */}
+      {/* (c) What happens next */}
       <div
         style={{
           fontSize: 13,
@@ -1501,7 +1560,7 @@ function Step3({
           ← Back
         </button>
         <button className="qm-btn-primary" style={btnPrimary} onClick={onNext}>
-          Request a human review →
+          Continue my loan request →
         </button>
       </div>
     </div>
@@ -1535,9 +1594,10 @@ function Step4({
 
   const roles: { val: Role; label: string; helper: string }[] = [
     { val: "investor", label: "Buy & hold investor", helper: "Long-term rental income." },
+    { val: "broker", label: "Mortgage broker", helper: "Submitting a deal for a borrower." },
     { val: "foreign", label: "Foreign national", helper: "Investing from outside the U.S." },
     { val: "str", label: "STR / Airbnb host", helper: "Short-term / vacation rental." },
-    { val: "vacation", label: "Second / vacation home", helper: "A second home I'll also rent." },
+    { val: "vacation", label: "Rental property buyer", helper: "A non-owner-occupied rental investment." },
   ];
   const timelines: { val: Timeline; label: string }[] = [
     { val: "exploring", label: "Just exploring" },
@@ -1547,14 +1607,28 @@ function Step4({
   ];
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim());
-  const nameValid = data.name.trim().length >= 2;
-  const isValid = nameValid && emailValid && data.contactConsent && data.timeline !== null;
+  const nameValid =
+    data.name.trim().length >= 2 &&
+    data.name.trim().length <= 100 &&
+    !/[\u0000-\u001F\u007F]/.test(data.name);
+  const phoneDigits = data.phone.replace(/\D/g, "");
+  const phoneValid =
+    data.phone.trim() === "" ||
+    (/^[0-9+().\-\s]+$/.test(data.phone.trim()) &&
+      phoneDigits.length >= 7 &&
+      data.phone.trim().length <= 30);
+  const isValid =
+    nameValid &&
+    emailValid &&
+    phoneValid &&
+    data.contactConsent &&
+    data.timeline !== null;
 
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
 
   const handleSubmit = () => {
-    setTouched({ name: true, email: true, submit: true });
+    setTouched({ name: true, email: true, phone: true, submit: true });
     if (isValid && !submitting) {
       onSubmit();
     } else if (!isValid) {
@@ -1578,12 +1652,12 @@ function Step4({
           marginTop: 0,
         }}
       >
-        Where should we send your scenario review?
+        Where should we follow up about your loan request?
       </h2>
       <p style={{ fontSize: 13, color: swatch.rainforest, marginBottom: 24, marginTop: 0 }}>
-        Submit only the contact details you want the review team to use. The
-        site does not promise a response time, quote, program match, or financing
-        outcome, and this form does not pull credit.
+        Add only the contact details you want the Greenstreet team to use. This
+        preliminary request does not pull credit and is not an approval, rate
+        lock, or commitment.
       </p>
 
       <div style={{ marginBottom: 16 }}>
@@ -1635,12 +1709,17 @@ function Step4({
           value={data.phone}
           placeholder="(555) 000-0000"
           onChange={(e) => onChange({ phone: e.target.value })}
+          onBlur={() => markTouched("phone")}
           className="qm-input"
-          style={inputStyle}
+          style={touched.phone && !phoneValid ? inputErrorStyle : inputStyle}
           autoComplete="tel"
           maxLength={30}
         />
-        <p style={helperStyle}>Add a number only if you consent to a phone response.</p>
+        {touched.phone && !phoneValid ? (
+          <p style={errorMsgStyle}>Enter a valid phone number or leave this field blank.</p>
+        ) : (
+          <p style={helperStyle}>Add a number only if you consent to a phone response.</p>
+        )}
       </div>
 
       <input
@@ -1669,7 +1748,7 @@ function Step4({
 
       <FieldGroup
         label="What best describes you?"
-        helper="Provides context for the requested human review."
+        helper="Provides context for your preliminary loan request."
       >
         <div
           role="group"
@@ -1703,7 +1782,7 @@ function Step4({
           style={{ marginTop: 1, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
         />
         <span>
-          I agree to be contacted by Greenstreet Finance about my inquiry and accept the{" "}
+          I agree to be contacted by Greenstreet Finance about this financing request and accept the{" "}
           <a href="/privacy-policy" target="_blank" rel="noopener" style={{ color: swatch.rainforest }}>Privacy Policy</a> and{" "}
           <a href="/terms-of-service" target="_blank" rel="noopener" style={{ color: swatch.rainforest }}>Terms</a>.
         </span>
@@ -1725,7 +1804,7 @@ function Step4({
           onAnimationEnd={() => setShaking(false)}
         >
           {submitting && <span className="qm-spinner" aria-hidden="true" />}
-          {submitting ? "Sending…" : "Send my scenario for review →"}
+          {submitting ? "Submitting…" : "Submit my loan request →"}
         </button>
       </div>
       {submissionError && (
@@ -1776,7 +1855,7 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           marginTop: 0,
         }}
       >
-        Request received, {firstName}
+        Loan request received, {firstName}
       </h2>
       <p
         style={{
@@ -1786,9 +1865,9 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.55,
         }}
       >
-        The configured intake accepted your request. This confirms delivery only;
-        it does not promise a response time, program match, quote, or financing
-        outcome.
+        Your preliminary loan request was received. It includes the property,
+        requested loan, timing, and contact details you chose
+        to provide.
       </p>
       <p
         style={{
@@ -1799,9 +1878,9 @@ function Step5({ name, onClose, headingId }: { name: string; onClose: () => void
           lineHeight: 1.5,
         }}
       >
-        This is not a loan application, approval, rate quote, or commitment to
-        lend. Do not rely on the submitted estimate to make a transaction
-        decision.
+        This initial request is not a credit approval, rate quote, rate lock, or
+        commitment to lend. Additional information and review may be required
+        before any financing decision.
       </p>
 
       <div
@@ -1839,15 +1918,19 @@ const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
-export default function QualifyModal({ open, onClose }: QualifyModalProps) {
+export default function QualifyModal({ open, onClose, initialDraft = null }: QualifyModalProps) {
+  const submissionIdRef = useRef(crypto.randomUUID());
   const [step, setStep] = useState(1);
   const [step1, setStep1] = useState<StepOneData>({
     propertyValue: 425000,
     loanAmount: 318750,
     rent: 3000,
     rate: 7,
+    taxesAnnual: 5000,
+    insuranceAnnual: 1800,
+    hoaMonthly: 0,
     propertyType: null,
-    investmentConfirmed: true,
+    investmentConfirmed: false,
   });
   const [step2, setStep2] = useState<StepTwoData>({
     purpose: null,
@@ -1867,6 +1950,32 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+
+  // Carry non-PII deal inputs from a calculator into the loan-request flow.
+  // Keep this in memory only; do not write financial inputs to browser storage.
+  useEffect(() => {
+    if (!open || !initialDraft) return;
+    const positive = (value: number | undefined, fallback: number) =>
+      Number.isFinite(value) && Number(value) > 0 ? Number(value) : fallback;
+    const nonNegative = (value: number | undefined, fallback: number | undefined) =>
+      Number.isFinite(value) && Number(value) >= 0 ? Number(value) : fallback;
+    setStep1((current) => ({
+      ...current,
+      propertyValue: positive(initialDraft.propertyValue, current.propertyValue),
+      loanAmount: positive(initialDraft.loanAmount, current.loanAmount),
+      rent: positive(initialDraft.rent, current.rent),
+      rate: positive(initialDraft.rate, current.rate),
+      taxesAnnual: nonNegative(initialDraft.taxesAnnual, current.taxesAnnual),
+      insuranceAnnual: nonNegative(initialDraft.insuranceAnnual, current.insuranceAnnual),
+      hoaMonthly: nonNegative(initialDraft.hoaMonthly, current.hoaMonthly),
+    }));
+    if (initialDraft.purpose) {
+      setStep2((current) => ({ ...current, purpose: initialDraft.purpose ?? current.purpose }));
+    }
+    if (initialDraft.role) {
+      setStep4((current) => ({ ...current, role: initialDraft.role ?? current.role }));
+    }
+  }, [open, initialDraft]);
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -1911,6 +2020,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   // Autofocus first field on step 1 (or heading on other steps)
   useEffect(() => {
     if (!open) return;
+    trackLoanRequest("loan_request_step_viewed", {
+      step,
+      page: window.location.pathname,
+    });
     if (step === 1) {
       setTimeout(() => firstFieldRef.current?.focus(), 80);
     } else {
@@ -1940,7 +2053,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   // Reset to step 1 when closed
   useEffect(() => {
     if (!open) {
-      const t = setTimeout(() => setStep(1), 300);
+      const t = setTimeout(() => {
+        setStep(1);
+        submissionIdRef.current = crypto.randomUUID();
+      }, 300);
       return () => clearTimeout(t);
     }
   }, [open]);
@@ -1990,6 +2106,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmissionError(null);
+    trackLoanRequest("loan_request_submitted", { page: window.location.pathname });
 
     if (
       !step1.propertyType ||
@@ -2000,7 +2117,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       !step4.timeline
     ) {
       setSubmissionError(
-        "Some required scenario details are missing. Your information was not sent; please review the earlier steps."
+        "Some required loan-request details are missing. Your information was not sent; please review the earlier steps."
       );
       setSubmitting(false);
       return;
@@ -2017,6 +2134,9 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       loanAmount: step1.loanAmount,
       rent: step1.rent,
       rate: step1.rate,
+      ...(step1.taxesAnnual !== undefined ? { taxesAnnual: step1.taxesAnnual } : {}),
+      ...(step1.insuranceAnnual !== undefined ? { insuranceAnnual: step1.insuranceAnnual } : {}),
+      ...(step1.hoaMonthly !== undefined ? { hoaMonthly: step1.hoaMonthly } : {}),
       purpose: step2.purpose,
       state: step2.state,
       ficoBand: step2.ficoBand,
@@ -2025,6 +2145,7 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       investmentConfirmed: step1.investmentConfirmed,
       contactConsent: step4.contactConsent,
       page: typeof window !== "undefined" ? window.location.pathname : "/",
+      submissionId: submissionIdRef.current,
       website: step4.website,
     };
 
@@ -2039,19 +2160,25 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
-      if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.accepted !== true) {
         throw new Error(`Lead endpoint returned ${response.status}`);
       }
+      trackLoanRequest("loan_request_accepted", { page: window.location.pathname });
       setStep(5);
     } catch (err) {
       // Do not store loan scenarios or contact details in a visitor's browser,
       // and do not show a success state unless the business received the lead.
-      console.error(
-        "[QualifyModal] Firestore lead write failed; the lead was not delivered:",
-        err
-      );
+      console.error("[LoanRequest] Submission failed.");
+      trackLoanRequest("loan_request_failed", {
+        page: window.location.pathname,
+        reason:
+          err instanceof DOMException && err.name === "AbortError"
+            ? "timeout"
+            : "delivery",
+      });
       setSubmissionError(
-        "We could not securely deliver your request. Your information was not sent; please try again later."
+        "We could not deliver your request. Your information was not accepted; please try again later."
       );
     } finally {
       window.clearTimeout(timeout);

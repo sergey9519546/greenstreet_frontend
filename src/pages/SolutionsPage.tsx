@@ -97,7 +97,7 @@ const SEGMENTS: Segment[] = [
     statBg: dc.mintBg,
     dscrPreview: 0.92,
     stats: [
-      { v: "5", k: "illustrative scenarios" },
+      { v: "5", k: "borrower profiles" },
       { v: "Rate", k: "assumptions" },
       { v: "DSCR", k: "planning metric" },
       { v: "Verify", k: "note terms" },
@@ -311,14 +311,15 @@ export default function SolutionsPage({
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
         { label: "Tools", view: "portfolio" },
-        { label: "Case Studies", view: "case-studies" },
+        { label: "Borrower Stories", view: "case-studies" },
       ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a loan →", view: "book-demo" }}
     >
       <style>{`
         @media (max-width: 991px) {
           .so-feat { grid-template-columns: 1fr !important; }
           .so-feat > * { order: unset !important; }
+          .so-close-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
           .so-feat { gap: 24px !important; }
@@ -362,7 +363,7 @@ export default function SolutionsPage({
               Who we serve
             </div>
             <H1 style={{ margin: 0, maxWidth: "18ch" }}>
-              Built for real estate investors.
+              Built to move investment-property financing forward.
             </H1>
           </div>
           <Lead
@@ -372,10 +373,9 @@ export default function SolutionsPage({
               margin: 0,
             }}
           >
-            Greenstreet provides educational tools for comparing rental-property assumptions. Whether
-            you're considering a first rental, a short-term rental, a portfolio, or an ARM
-            reset, verify actual provider role, licensing, terms, availability, and requirements
-            before making a decision.
+            Whether this is your first rental, a short-term rental, or part of a
+            portfolio, Greenstreet connects the property math to a preliminary
+            loan request without making you enter the same deal twice.
           </Lead>
         </div>
       </section>
@@ -411,6 +411,7 @@ export default function SolutionsPage({
         }}
       >
         <div
+          className="so-close-grid"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
@@ -432,7 +433,7 @@ export default function SolutionsPage({
                 marginBottom: 16,
               }}
             >
-              Scenario estimate
+              Connected next step
             </div>
             <h2
               style={{
@@ -444,7 +445,7 @@ export default function SolutionsPage({
                 color: dc.cream,
               }}
             >
-              Five questions. Illustrative scenario.
+              One deal. One connected loan request.
             </h2>
             <p
               style={{
@@ -457,13 +458,13 @@ export default function SolutionsPage({
                 maxWidth: "42ch",
               }}
             >
-              Property type, LTV (how the loan compares to the property value),
-              DSCR, FICO, and state can inform an educational scenario. The result is
-              not market pricing, a program match, a quote, a credit decision, or a commitment.
+              Start with the property and requested loan, review a preliminary
+              DSCR estimate, then continue those same facts into a loan request.
+              The estimate is not pricing, approval, a rate lock, or a commitment.
             </p>
             {/* Dominant lemon CTA */}
             <button
-              onClick={() => onNavigate("rate-quiz")}
+              onClick={() => onNavigate("book-demo")}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -481,7 +482,7 @@ export default function SolutionsPage({
                 minHeight: 44,
               }}
             >
-              Explore assumptions →
+              Apply for a DSCR loan →
             </button>
           </div>
 
@@ -502,7 +503,7 @@ export default function SolutionsPage({
             {[
               { label: "Run a deal in the DSCR Calculator →", view: "dscr-calculator" },
               { label: "See the full product catalog →", view: "products" },
-              { label: "Read investor case studies →", view: "case-studies" },
+              { label: "Review borrower stories →", view: "case-studies" },
             ].map(({ label, view }) => (
               <button
                 key={view}

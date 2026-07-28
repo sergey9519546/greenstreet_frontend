@@ -15,8 +15,8 @@ const PRINCIPLES = [
     body: "Results explain their inputs and limitations. They are educational scenario outputs, not approvals, rate locks, legal advice, tax advice, or commitments to lend.",
   },
   {
-    heading: "Unverified tools fail closed",
-    body: "A tool whose model or source data has not passed review is held out of service instead of presenting a polished but unreliable answer.",
+    heading: "Visible assumptions before conclusions",
+    body: "Each public tool exposes the inputs that drive its coded output and separates scenario math from provider, legal, tax, and approval decisions.",
   },
 ];
 
@@ -30,16 +30,16 @@ const LIVE_CAPABILITIES = [
   },
   {
     eyebrow: "Understand",
-    title: "Assumptions and state context",
-    body: "Review the inputs that move a scenario and see state-rule references with explicit unknown and manual-review states.",
-    action: "Review state references",
-    view: "state-laws",
+    title: "A connected deal record",
+    body: "Review the assumptions behind the estimate, then carry the same property and requested-loan inputs into the next step.",
+    action: "See the connected path",
+    view: "solutions",
   },
   {
     eyebrow: "Continue",
-    title: "Preliminary scenario review",
-    body: "Share a business-purpose rental scenario for follow-up. Final eligibility, pricing, disclosures, and availability require confirmation outside the calculator.",
-    action: "Request a review",
+    title: "Preliminary loan request",
+    body: "Share the business-purpose rental details needed to begin a financing conversation. This first-stage request is not an approval, rate quote, rate lock, or commitment.",
+    action: "Start a loan request",
     view: "book-demo",
   },
 ];
@@ -50,10 +50,8 @@ const ABOUT_CSS = `
   .dc-nav { border-bottom: 1px solid rgba(0,55,56,0.15) !important; background: #d8d958 !important; }
   footer { color: rgba(0,55,56,0.55) !important; }
   footer .gs-footer-word { color: #003738 !important; }
-  .about-principles, .about-capabilities { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .about-principles, .about-capabilities { display: grid; grid-template-columns: 1fr 1fr; }
   .about-capabilities { grid-template-columns: repeat(3, 1fr); }
-  .about-card { transition: transform .16s ease, border-color .16s ease; }
-  .about-card:hover { transform: translateY(-3px); border-color: rgba(0,55,56,.3) !important; }
   @media (max-width: 900px) {
     .about-principles, .about-capabilities { grid-template-columns: 1fr; }
   }
@@ -83,7 +81,7 @@ export default function AboutPage({
         { label: "Products", view: "products" },
         { label: "FAQ", view: "faq" },
       ]}
-      cta={{ label: "Check a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Apply for a DSCR loan →", view: "book-demo" }}
     >
       <style>{ABOUT_CSS}</style>
 
@@ -164,10 +162,10 @@ export default function AboutPage({
               Useful enough to act on. Honest enough to question.
             </h2>
           </div>
-          <div className="about-principles">
+          <div className="about-principles gs-grid-rhythm">
             {PRINCIPLES.map((principle) => (
               <article
-                className="about-card"
+                className="about-card gs-card"
                 key={principle.heading}
                 style={{
                   background: dc.mintBg,
@@ -208,7 +206,7 @@ export default function AboutPage({
               marginBottom: 14,
             }}
           >
-            What is available today
+            Connected loan path
           </div>
           <h2
             style={{
@@ -219,9 +217,9 @@ export default function AboutPage({
               maxWidth: "18ch",
             }}
           >
-            A focused path from scenario to review.
+            A focused path from property math to loan request.
           </h2>
-          <div className="about-capabilities">
+          <div className="about-capabilities gs-grid-rhythm">
             {LIVE_CAPABILITIES.map((capability) => (
               <article
                 key={capability.title}
@@ -306,10 +304,11 @@ export default function AboutPage({
             description of the role of any lending or funding partner.
           </p>
           <p style={{ color: "rgba(0,55,56,.7)", lineHeight: 1.65, margin: 0 }}>
-            Until an approved identity block is published, do not treat the
-            site as proof that Greenstreet Finance is licensed, is the lender,
-            or can offer a product in a particular jurisdiction. Calculator and
-            intake output remains preliminary and is not a commitment to lend.
+            Do not treat calculator or intake output as proof that Greenstreet
+            Finance is licensed, is the lender, or can offer a product in a
+            particular jurisdiction. Confirm the legal identity, role,
+            licensing, and state availability of the responsible provider
+            before relying on a financing offer.
           </p>
         </div>
       </section>

@@ -44,7 +44,10 @@ export const type = {
   h4: "24px",
   h5: "20px",
   large: "20px",
+  lead: "clamp(17px, 1.35vw, 20px)",
   main: "16px",
+  meta: "13px",
+  caption: "12px",
   small: "14px",
 } as const;
 
@@ -89,11 +92,47 @@ export const themes = {
 
 export const radius = { sm: "8px", md: "12px", lg: "16px", pill: "999px" } as const;
 
+export const border = {
+  light: "rgba(0,55,56,0.12)",
+  lightStrong: "rgba(0,55,56,0.24)",
+  dark: "rgba(238,239,211,0.14)",
+  darkStrong: "rgba(238,239,211,0.28)",
+} as const;
+
+export const motion = {
+  micro: "180ms",
+  surface: "240ms",
+  easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+} as const;
+
+export const elevation = {
+  none: "none",
+  floating: "0 18px 48px rgba(0,45,46,0.14)",
+} as const;
+
 // Layout primitives shared by every React-routed surface.  The homepage uses
 // open bands and a tight, deliberate mobile rail rather than nested card
 // padding.  Keep the rail token here so routed pages and shell chrome land on
 // the same x-axis at 390px without changing their desktop composition.
 export const space = {
+  x1: "4px",
+  x2: "8px",
+  x3: "12px",
+  x4: "16px",
+  x5: "20px",
+  x6: "24px",
+  x8: "32px",
+  x10: "40px",
+  x12: "48px",
+  x16: "64px",
+  x24: "96px",
+  grid: "clamp(16px, 1.5vw, 24px)",
+  gridCompact: "clamp(12px, 1vw, 16px)",
+  card: "clamp(20px, 2.2vw, 32px)",
+  cardCompact: "clamp(16px, 1.5vw, 24px)",
+  sectionCompact: "clamp(48px, 6vw, 80px)",
+  sectionStandard: "clamp(64px, 8vw, 112px)",
+  sectionMajor: "clamp(80px, 10vw, 144px)",
   section: "clamp(56px, 8vw, 128px)",
   gutter: "clamp(1.5rem, 4vw, 4rem)",
   pageGutter: "clamp(1rem, 4.6vw, 1.25rem)",
