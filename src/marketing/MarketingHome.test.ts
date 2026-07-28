@@ -64,6 +64,12 @@ describe("public marketing reliability holds", () => {
       'id="mobile-navigation"',
     );
     expect(publicMarketingMarkup).not.toContain(
+      '<form class="hero_form_layout"',
+    );
+    expect(publicMarketingMarkup).not.toContain(
+      '<form class="form_main_list"',
+    );
+    expect(publicMarketingMarkup).not.toContain(
       '<a class="link-item w-inline-block"',
     );
     expect(publicMarketingMarkup).not.toContain(
