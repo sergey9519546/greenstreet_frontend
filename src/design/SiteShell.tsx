@@ -282,7 +282,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
             aria-label="Read the InvestGO announcement"
           />
           <div className="announcement-txt w-richtext">
-            <p><strong>⎋</strong> Greenstreet Finance announces <strong>InvestGO</strong> — the unified DSCR loan platform</p>
+            <p><strong>⎋</strong> Explore <strong>InvestGO</strong> — an educational DSCR workflow concept</p>
           </div>
           <button
             type="button"

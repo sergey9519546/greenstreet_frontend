@@ -176,11 +176,11 @@ const LEGAL_ALIAS_METADATA: Record<string, PublicPageDefinition> = {
 const ARTICLE_TITLES: Record<string, string> = {
   "greenstreet-go-launch": "InvestGO: an educational DSCR workflow concept",
   "what-is-dscr-how-it-works": "What is DSCR? The complete guide to how the ratio works and why it matters",
-  "dscr-pitia-breakdown-qualifying-income": "PITIA breakdown: the five numbers that determine whether your DSCR deal qualifies",
-  "dscr-ltv-down-payment-fico": "LTV, down payment, and FICO tiers: how the three dials move your DSCR rate",
-  "dscr-refinance-rate-term-cashout-seasoning": "DSCR refinance: rate-term vs cash-out, seasoning rules, and break-even math",
-  "dscr-approval-issues-sub-10-fico-reserves": "Six things that kill DSCR approvals — and how to fix each one before you submit",
-  "dscr-foreign-nationals-itin": "Foreign nationals and ITIN borrowers: how DSCR qualification actually works",
+  "dscr-pitia-breakdown-qualifying-income": "PITIA breakdown: five inputs to verify in a DSCR scenario",
+  "dscr-ltv-down-payment-fico": "LTV, down payment, and credit profile: questions to verify",
+  "dscr-refinance-rate-term-cashout-seasoning": "DSCR refinance scenarios: questions to verify",
+  "dscr-approval-issues-sub-10-fico-reserves": "DSCR scenario constraints to discuss before applying",
+  "dscr-foreign-nationals-itin": "Foreign-national and ITIN DSCR scenarios: questions to verify",
   "obbba-2025-real-estate-tax-changes": "Tax-law changes and real estate models: questions to verify",
   "mn-hf3437-business-purpose": "Minnesota DSCR loans: questions to verify before structuring",
   "qoz-qrof-permanent-obbba": "Opportunity Zone investing: questions to verify before modeling",
@@ -189,9 +189,9 @@ const ARTICLE_TITLES: Record<string, string> = {
   "fema-rr2-coastal-dscr": "Flood insurance and coastal DSCR scenarios: what to verify",
   "why-no-llm-number-path": "Why deterministic models matter for numerical estimates",
   "dscr-str-airbnb-qualifying-income": "Short-term rental (STR) income in a DSCR scenario",
-  "dscr-loan-document-checklist": "What documents do you need for a DSCR loan? The complete checklist",
-  "dscr-loan-process-after-prequalify": "What happens after you prequalify for a DSCR loan? The step-by-step",
-  "how-to-improve-dscr-before-applying": "How to improve your DSCR before you apply — the four levers with the math",
+  "dscr-loan-document-checklist": "DSCR documentation: a provider-confirmation checklist",
+  "dscr-loan-process-after-prequalify": "After a preliminary DSCR estimate: process questions to ask",
+  "how-to-improve-dscr-before-applying": "How scenario inputs change modeled DSCR",
 };
 
 const HELD_VIEWS = new Set<PageView>([

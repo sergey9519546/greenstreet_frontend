@@ -22,7 +22,7 @@ footer { color: rgba(0,55,56,0.55) !important; }
 `;
 
 // ── Post data (all existing posts preserved) ──────────────────────────────────
-export const POSTS = [
+const RAW_POSTS = [
   // ── DSCR EDUCATION ARTICLES (added 2026-06-25) ──────────────────────────────
   {
     slug: "greenstreet-go-launch",
@@ -612,6 +612,84 @@ export const POSTS = [
     featured: false,
   },
 ];
+
+type BlogPost = (typeof RAW_POSTS)[number];
+
+const EDUCATIONAL_REVIEW_BODY = [
+  {
+    p: "This topic can materially affect a rental-property financing scenario, but provider requirements, pricing, documentation, and applicable law vary by transaction and change over time.",
+  },
+  {
+    h: "What this article can do",
+  },
+  {
+    p: "Use the questions below to organize assumptions and identify facts to verify. Do not treat examples, thresholds, ranges, or terminology on this site as a current provider rule, quote, approval standard, legal conclusion, or tax conclusion.",
+  },
+  {
+    h: "What to verify",
+  },
+  {
+    list: [
+      "The responsible provider and its current, dated eligibility and pricing materials.",
+      "The property, borrower, entity, insurance, appraisal, title, and reserve facts for the specific transaction.",
+      "Any jurisdiction-specific or tax conclusion with qualified counsel or a tax professional using current primary sources.",
+    ],
+  },
+  {
+    quote: "A transparent scenario is a list of assumptions to verify, not a financing decision.",
+  },
+] satisfies BlogPost["body"];
+
+const EDITORIAL_REVISIONS: Record<
+  string,
+  { title: string; summary: string; body: BlogPost["body"] }
+> = {
+  "dscr-pitia-breakdown-qualifying-income": {
+    title: "PITIA breakdown: five inputs to verify in a DSCR scenario",
+    summary: "Learn how principal, interest, taxes, insurance, and HOA assumptions affect payment coverage, then verify the transaction facts with the responsible provider.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "dscr-ltv-down-payment-fico": {
+    title: "LTV, down payment, and credit profile: questions to verify",
+    summary: "These inputs can affect a provider's review, but this site does not publish current pricing tiers or eligibility matrices.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "dscr-refinance-rate-term-cashout-seasoning": {
+    title: "DSCR refinance scenarios: questions to verify",
+    summary: "Rate-term, cash-out, seasoning, leverage, and payment-coverage requirements depend on current provider rules and transaction facts.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "dscr-approval-issues-sub-10-fico-reserves": {
+    title: "DSCR scenario constraints to discuss before applying",
+    summary: "Organize payment coverage, credit, reserves, entity, rent, and state-rule questions without treating them as universal approval standards.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "dscr-foreign-nationals-itin": {
+    title: "Foreign-national and ITIN DSCR scenarios: questions to verify",
+    summary: "Documentation, entity, reserve, sanctions, tax, and eligibility questions require provider-specific and professional review.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "dscr-loan-document-checklist": {
+    title: "DSCR documentation: a provider-confirmation checklist",
+    summary: "Use a preliminary checklist to prepare questions, then obtain the exact current document request from the responsible provider.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "dscr-loan-process-after-prequalify": {
+    title: "After a preliminary DSCR estimate: process questions to ask",
+    summary: "A calculator estimate is not a prequalification or timeline. Ask the responsible provider what review, appraisal, documentation, and decision steps apply.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "how-to-improve-dscr-before-applying": {
+    title: "How scenario inputs change modeled DSCR",
+    summary: "Compare rate, payment structure, rent, and down-payment assumptions without treating the result as advice, eligibility, pricing, or approval.",
+    body: EDUCATIONAL_REVIEW_BODY,
+  },
+};
+
+export const POSTS: BlogPost[] = RAW_POSTS.map((post) => ({
+  ...post,
+  ...EDITORIAL_REVISIONS[post.slug],
+}));
 
 // The grid posts (all except the featured one), in reverse-chron order
 const GRID_POSTS = POSTS.filter((p) => !p.featured);

@@ -32,12 +32,12 @@ const STUDIES: Study[] = [
     num: "01",
     headline: "Modeling how a repeatable workflow could reduce time per file.",
     metrics: [
-      { v: "4×", k: "Throughput increase" },
-      { v: "6 min", k: "Decision per file (was 25)" },
-      { v: "120+", k: "DSCR files / month" },
+      { v: "4×", k: "Modeled throughput ratio" },
+      { v: "6 min", k: "Hypothetical review input (was 25)" },
+      { v: "120+", k: "Hypothetical files / month" },
     ],
     challenge:
-      "Running 120+ DSCR files a month. Every file meant two spreadsheets rebuilt by hand — one showing what qualified, another showing what the deal would actually return after vacancy and management fees. The underwriting desk had become the ceiling on growth.",
+      "Assume a team reviews 120+ DSCR files a month and rebuilds two spreadsheets for each file — one payment-coverage view and another expense-aware view. The duplicate work becomes the modeled workflow constraint.",
     solution:
       "The scenario compares a manual two-spreadsheet process with one shared calculation path. Track 1 estimates lender DSCR while Track 2 adds vacancy, management, and capital-reserve assumptions.",
     result:
@@ -54,9 +54,9 @@ const STUDIES: Study[] = [
     num: "02",
     headline: "Modeling a deal that passes lender DSCR but fails the investor view.",
     metrics: [
-      { v: "Same-day", k: "Rate lock" },
+      { v: "Modeled", k: "Scenario checkpoint" },
       { v: "12%", k: "Vacancy gap caught by Track 2" },
-      { v: "1", k: "Application, multiple programs checked" },
+      { v: "1", k: "Scenario, multiple assumptions compared" },
     ],
     challenge:
       "Evaluating multiple property types — DSCR 1–4, multi-family — with no single view of how they stacked up. Pipeline lived in scattered spreadsheets. The investor-survival question (what does the deal actually earn after vacancy?) almost never made it into the analysis before money was committed.",
@@ -74,14 +74,14 @@ const STUDIES: Study[] = [
     location: "Buy-and-hold investor",
     type: "Investor / Foreign national",
     num: "03",
-    headline: "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
+    headline: "Modeling a hypothetical $14,800 diligence-cost exposure before appraisal.",
     metrics: [
-      { v: "3", k: "Deals killed pre-appraisal" },
-      { v: "$14,800", k: "Hard costs avoided" },
+      { v: "3", k: "Hypothetical scenarios screened" },
+      { v: "$14,800", k: "Modeled diligence-cost exposure" },
       { v: "3 min", k: "Hypothetical review target" },
     ],
     challenge:
-      "Discovering deals were marginal only after the appraisal was ordered. On paper the rent covered the payment. In reality, vacancy and management quietly pushed properties underwater on Track 2. Paying $3,000–7,000 per appraisal to get bad news that could have arrived on day one.",
+      "Assume three marginal scenarios are not identified until after appraisal orders. The payment-coverage view clears its modeled threshold, while vacancy and management assumptions move the expense-aware view below break-even. The example assigns $3,000–7,000 of diligence cost to each scenario.",
     solution:
       "The scenario applies the expense-aware Track 2 view before diligence costs are committed. Any foreign-national or ITIN eligibility would require confirmation from the responsible licensed provider.",
     result:
@@ -389,7 +389,7 @@ function StudyDetail({
   onNavigate: (v: string) => void;
 }) {
   useEffect(() => {
-    document.title = `${s.company} | Case Studies | Greenstreet Finance`;
+    document.title = `${s.company} | Illustrative Scenarios | Greenstreet Finance`;
     window.scrollTo(0, 0);
   }, [s.slug]);
 
@@ -398,7 +398,7 @@ function StudyDetail({
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Case Studies", view: "case-studies" },
+        { label: "Illustrative Scenarios", view: "case-studies" },
         { label: "Portfolio", view: "portfolio" },
       ]}
       cta={{ label: "Run a deal →", view: "dscr-calculator" }}
@@ -657,7 +657,7 @@ function StudyDetail({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Price my deal now →
+                Request a scenario review →
               </button>
               {/* Secondary — transparent + 1.5px FADED */}
               <button
@@ -708,7 +708,7 @@ export default function CaseStudiesPage({
 
   useEffect(() => {
     if (!study) {
-      document.title = "Case Studies | Greenstreet Finance";
+      document.title = "Illustrative Scenarios | Greenstreet Finance";
       window.scrollTo(0, 0);
     }
   }, [study]);
@@ -790,9 +790,9 @@ export default function CaseStudiesPage({
                   margin: "0 0 32px",
                 }}
               >
-                Four illustrative scenarios — faster decisions, avoided appraisal
-                costs, and deals caught before they failed. Each shows the
-                assumptions, modeled approach, and hypothetical outcome.
+                Four constructed teaching scenarios showing how assumptions can
+                change a modeled result. They are not customer histories, measured
+                savings, financing outcomes, or evidence that a provider will act.
               </Lead>
               {/* Dominant lemon CTA */}
               <button
@@ -810,7 +810,7 @@ export default function CaseStudiesPage({
                   cursor: "pointer",
                 }}
               >
-                Price your deal now →
+                Open the educational calculator →
               </button>
             </div>
           </div>
@@ -971,8 +971,8 @@ export default function CaseStudiesPage({
                 {
                   step: "Prove",
                   stepColor: "#9a7b00",
-                  heading: "Prove every number with a cited source.",
-                  body: "Investment-committee memo, state rule, stress matrix — all traceable to a statute. No black box, no LLM math.",
+                  heading: "Separate calculations from facts that need a source.",
+                  body: "The calculator shows its arithmetic and assumptions. Provider rules, state-law conclusions, and transaction facts still require current primary sources and qualified review.",
                 },
               ].map((item) => (
                 <div key={item.step}>

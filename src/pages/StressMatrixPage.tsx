@@ -46,7 +46,7 @@ function verdictCopy(dscr: number, zone: StressRiskZone): { headline: string; su
   if (zone === "COMFORTABLE") return { headline: "Solid — deal still covers costs with margin",  sub: "Rent exceeds the full payment. Lenders typically require DSCR ≥ 1.25." };
   if (zone === "MARGINAL")    return { headline: "Tight — rent just barely covers costs",        sub: `At ${dscr.toFixed(2)}x the deal clears 1.00, but there's little cushion.` };
   if (zone === "FRAGILE")     return { headline: "Cash-flow shortfall — stress this deal hard",  sub: `Rent falls short of the full monthly payment by about ${Math.round((1 - dscr) * 100)}%.` };
-  return { headline: "Deal breaks — rent cannot cover costs in this scenario",                  sub: `DSCR of ${dscr.toFixed(2)}x means the property is cash-flow negative. Lenders won't approve below 1.00.` };
+  return { headline: "Rent does not cover modeled costs in this scenario",                      sub: `DSCR of ${dscr.toFixed(2)}x is below payment coverage in this model. Provider requirements and approval are not evaluated.` };
 }
 
 // ── Mini P&I calculator (used for live stress panel) ─────────────────────────
@@ -685,7 +685,7 @@ export default function StressMatrixPage({
                     {verdict.sub}
                     {stressZone === "DEAL_BREAK" || stressZone === "FRAGILE" ? (
                       <span style={{ display: "block", marginTop: 6, color: "rgba(238,239,211,0.4)", fontStyle: "italic", fontSize: 11 }}>
-                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, book a demo.
+                        This is an educational estimate only, not a rate, approval, or underwriting result. Request a qualified review for transaction-specific facts.
                       </span>
                     ) : null}
                   </p>
@@ -903,7 +903,7 @@ export default function StressMatrixPage({
 
               {/* ── Compliance footnote ───────────────────────────────── */}
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.28)", marginTop: 18, lineHeight: 1.55, maxWidth: "60ch" }}>
-                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, book a demo.
+                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>educational estimates</strong> based on entered assumptions — not a rate, provider rule, approval, underwriting result, or investment advice.
               </p>
             </div>
           </div>

@@ -210,24 +210,24 @@ function decliningMarketAdjustment(isDecliningMarket: boolean): number {
 
 export function getDSCRGradient(dscr: number): DSCRGradient {
   if (dscr >= 1.50) {
-    return { tier: 'ELITE', label: 'Elite Pricing Tier', range: '≥1.50', color: 'emerald', bgClass: 'bg-emerald-500/20', textClass: 'text-emerald-400', borderClass: 'border-emerald-500/50', emoji: '🚀' };
+    return { tier: 'ELITE', label: 'Highest Modeled Coverage', range: '≥1.50', color: 'emerald', bgClass: 'bg-emerald-500/20', textClass: 'text-emerald-400', borderClass: 'border-emerald-500/50', emoji: '🚀' };
   }
   if (dscr >= 1.25) {
-    return { tier: 'STRONG', label: 'Best Pricing Tier', range: '1.25–1.49', color: 'cyan', bgClass: 'bg-cyan-500/20', textClass: 'text-cyan-400', borderClass: 'border-cyan-500/50', emoji: '💎' };
+    return { tier: 'STRONG', label: 'Higher Modeled Coverage', range: '1.25–1.49', color: 'cyan', bgClass: 'bg-cyan-500/20', textClass: 'text-cyan-400', borderClass: 'border-cyan-500/50', emoji: '💎' };
   }
   if (dscr >= 1.10) {
-    return { tier: 'STANDARD', label: 'Standard Approval', range: '1.10–1.24', color: 'green', bgClass: 'bg-green-500/20', textClass: 'text-green-400', borderClass: 'border-green-500/50', emoji: '🟢' };
+    return { tier: 'STANDARD', label: 'Modeled Coverage Above 1.10', range: '1.10–1.24', color: 'green', bgClass: 'bg-green-500/20', textClass: 'text-green-400', borderClass: 'border-green-500/50', emoji: '🟢' };
   }
   if (dscr >= 1.00) {
-    return { tier: 'PREMIUM', label: 'Approval Likely w/ Premium', range: '1.00–1.09', color: 'yellow', bgClass: 'bg-yellow-500/20', textClass: 'text-yellow-400', borderClass: 'border-yellow-500/50', emoji: '🟡' };
+    return { tier: 'PREMIUM', label: 'Near Break-Even Coverage', range: '1.00–1.09', color: 'yellow', bgClass: 'bg-yellow-500/20', textClass: 'text-yellow-400', borderClass: 'border-yellow-500/50', emoji: '🟡' };
   }
   if (dscr >= 0.85) {
-    return { tier: 'SPECIALIST', label: 'Flex/Specialist Lenders Only', range: '0.85–0.99', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
+    return { tier: 'SPECIALIST', label: 'Modeled Coverage Below 1.00', range: '0.85–0.99', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
   }
   if (dscr >= 0.75) {
-    return { tier: 'SPECIALIST', label: 'Deep Flex / No-Ratio Programs', range: '0.75–0.84', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
+    return { tier: 'SPECIALIST', label: 'Low Modeled Coverage', range: '0.75–0.84', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
   }
-  return { tier: 'NO_RATIO', label: 'No-Ratio Programs Only', range: '<0.75', color: 'red', bgClass: 'bg-red-500/20', textClass: 'text-red-400', borderClass: 'border-red-500/50', emoji: '🔴' };
+  return { tier: 'NO_RATIO', label: 'Lowest Modeled Coverage', range: '<0.75', color: 'red', bgClass: 'bg-red-500/20', textClass: 'text-red-400', borderClass: 'border-red-500/50', emoji: '🔴' };
 }
 
 // ============================================================
@@ -403,14 +403,14 @@ function buildVerdict(track1: DSCRTrack, track2: DSCRTrack): DualTrackVerdict {
   let warningRequired = false;
 
   if (track1Passes && track2Passes) {
-    summary = 'Deal qualifies and cash flows after expenses.';
+    summary = 'The modeled coverage threshold is met and the expense-aware view remains positive.';
   } else if (track1Passes && !track2Passes) {
-    summary = `This deal gets approved. It does not cash flow. Track 2 shows -$${Math.abs(track2.monthlyCashFlow).toFixed(0)}/month negative carry. Proceed only if appreciation/tax strategy justifies negative carry.`;
+    summary = `The modeled coverage threshold is met, but the expense-aware view shows -$${Math.abs(track2.monthlyCashFlow).toFixed(0)}/month negative carry. This is not an approval or investment recommendation.`;
     warningRequired = true;
   } else if (!track1Passes && track2Passes) {
-    summary = 'Deal cash flows as an investment but may not qualify for lender DSCR floor. Rescue engine needed.';
+    summary = 'The expense-aware view is positive, but the modeled payment-coverage threshold is not met. Provider requirements are not evaluated here.';
   } else {
-    summary = 'Deal fails both qualification and cash flow. Rescue engine needed.';
+    summary = 'Neither modeled coverage view reaches break-even. Provider eligibility and investment suitability are not evaluated here.';
   }
 
   return { track1Passes, track2Passes, summary, warningRequired };
@@ -786,16 +786,16 @@ export function quickDscrEstimate(
   let label: string;
   if (dscr >= 1.25) {
     tier = 'LIKELY_QUALIFIES';
-    label = 'Likely qualifies — strong DSCR buffer';
+    label = 'Modeled DSCR at or above 1.25';
   } else if (dscr >= 1.00) {
     tier = 'BORDERLINE';
-    label = 'Borderline — meets minimum; lender review required';
+    label = 'Modeled DSCR between 1.00 and 1.25';
   } else if (dscr >= 0.85) {
     tier = 'SPECIALIST_REQUIRED';
-    label = 'Specialist lenders only — below standard threshold';
+    label = 'Modeled DSCR between 0.85 and 1.00';
   } else {
     tier = 'UNLIKELY';
-    label = 'Unlikely — DSCR below typical program minimums';
+    label = 'Modeled DSCR below 0.85';
   }
 
   return {

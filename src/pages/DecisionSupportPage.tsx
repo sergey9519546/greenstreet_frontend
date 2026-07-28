@@ -375,7 +375,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
               {([
                 { label: "Purchase Price", hint: "What you're paying for the property.", value: purchasePrice, set: setPurchasePrice, step: 5000,  prefix: "$", suffix: "" },
-                { label: "Down Payment",   hint: "Your cash in — higher down = lower LTV (how the loan amount compares to the property value; lower = more equity = better terms) = stronger approval odds.", value: downPct, set: setDownPct, step: 1, prefix: "", suffix: "%" },
+                { label: "Down Payment",   hint: "Your cash in — higher down means a lower modeled LTV and more equity. This tool does not predict terms or approval.", value: downPct, set: setDownPct, step: 1, prefix: "", suffix: "%" },
                 { label: "Note Rate",      hint: "The interest rate on the loan. Estimate is fine — use today's market rate.", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%" },
                 { label: "Monthly Rent",   hint: "Expected gross rent. For vacant properties, use market-comparable rent — an estimate is fine.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$", suffix: "" },
                 { label: "FICO Score",     hint: "Your credit score. Affects which programs you qualify for. 620 minimum for most DSCR programs; 740+ unlocks best pricing.", value: fico, set: setFico, step: 5, prefix: "", suffix: "" },

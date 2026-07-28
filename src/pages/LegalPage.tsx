@@ -121,7 +121,7 @@ const PRIVACY_DOC: LegalDoc = {
       id: "cookies",
       title: "4. Cookies",
       paras: [
-        "We use cookies for basic site functionality and analytics. You can control cookie preferences through your browser settings. Some features may not function without essential cookies.",
+        "The released site uses browser storage only where required for basic application functionality. Optional analytics and de-anonymization tracking are not currently enabled. You can clear browser storage through your browser settings; some signed-in features may then require authentication again.",
       ],
     },
     {
