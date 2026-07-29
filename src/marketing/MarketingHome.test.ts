@@ -41,12 +41,46 @@ describe("public marketing reliability holds", () => {
     expect(publicMarketingMarkup).toContain("Request a Scenario Review");
   });
 
+  it("keeps legacy pricing, state-law, security, endorsement, and performance claims suppressed", () => {
+    for (const unsupported of [
+      "Verified wholesale DSCR lenders in the engine — matched by FICO, LTV, DSCR, and property type",
+      "Best available rate tier for 740+ FICO, ≤75% LTV files — June 2026 rate sheet pull",
+      "PPP and usury rules mapped and updated monthly — including TX, MN, OH, PA, NJ",
+      "Built on PPP rules, usury caps, and business-purpose requirements for all 50 states — including TX APR ban, MN HF 3437, OH/PA thresholds, and NJ LLC risk. Updated monthly.",
+      "Bank-grade data privacy and secure document storage",
+      "Mortgage brokers, lenders, and real estate investors rely on Greenstreet to price loans, run underwriting scenarios, and lock rates across complex rental portfolios.",
+      "Est. weekly time saved on manual underwriting",
+      "MoM headcount growth enabled",
+      "Est. Reduction in Loan Origination Cycle Time",
+      "Faster lender program matching ",
+      "The DSCR engine. Deterministic. 50-state clean. Underwriter-defensible.",
+      "The whitepaper will be sent to your email inbox shortly!",
+    ]) {
+      expect(publicMarketingMarkup).not.toContain(unsupported);
+    }
+
+    for (const requiredDisclosure of [
+      "Pricing and provider matching are disabled until governed source data is approved",
+      "The calculator uses the visitor’s rate assumption and does not publish current pricing",
+      "State conclusions are disabled pending counsel review and effective-date sourcing",
+      "State-specific conclusions are withheld until primary sources, effective dates, counsel review, and an accountable update process are complete.",
+      "Security controls require documented verification",
+      "These are illustrative teaching scenarios, not customer endorsements, verified transactions, pricing claims, or measured performance results.",
+      "Illustrative workflow example only; no verified customer performance sample is published.",
+      "(Constructed example; not a customer endorsement)",
+      "This form is not connected. No information was sent.",
+      "The download form is unavailable. Read the overview",
+    ]) {
+      expect(publicMarketingMarkup).toContain(requiredDisclosure);
+    }
+  });
+
   it("repairs the legacy export's core landmarks and unnamed controls", () => {
     expect(publicMarketingMarkup).toContain(
       '<a class="gs-skip-link" href="#main-content">Skip to main content</a>',
     );
     expect(publicMarketingMarkup).toMatch(
-      /<main class="page_main" id="main-content"[^>]*>/,
+      /<main class="page_main" id="main-content" tabindex="-1"[^>]*>/,
     );
     expect(publicMarketingMarkup).toContain('aria-label="Dismiss announcement"');
     expect(publicMarketingMarkup).toContain('id="hs-booking-1"');

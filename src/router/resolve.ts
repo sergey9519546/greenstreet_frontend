@@ -112,7 +112,6 @@ export function resolveRoute(href: string): PageView {
       return "blog";
     }
     if (path.startsWith("/case-studies/")) return "case-studies";
-    if (path.startsWith("/book-demo")) return "book-demo";
     if (path.startsWith("/tools/")) {
       const slug = path.replace("/tools/", "").replace(/\/$/, "");
       if (slug === "workspace" || slug === "deal-workspace") return "portal";
@@ -169,9 +168,8 @@ export function isKnownRoute(href: string): boolean {
     const slug = path.replace("/investgo/", "").replace(/\/$/, "");
     return ["analyze", "sensitivity", "optimize", "state", "history", "settings"].includes(slug);
   }
-  if (path.startsWith("/book-demo")) return true;
-  if (path.startsWith("/blog")) return true;
-  if (path.startsWith("/case-studies")) return true;
+  if (path.startsWith("/blog/")) return true;
+  if (path.startsWith("/case-studies/")) return true;
   if (path.startsWith("/tools/")) {
     const slug = path.replace("/tools/", "").replace(/\/$/, "");
     return [

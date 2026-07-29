@@ -62,17 +62,17 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
   render() {
     if (this.state.error) {
       return (
-        <div style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
+        <main aria-labelledby="application-error-heading" style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
           <div style={{ maxWidth: "480px", padding: "40px", textAlign: "center" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠</div>
-            <h2 style={{ color: "#003738", fontSize: "24px", marginBottom: "12px" }}>Something went wrong</h2>
+            <div aria-hidden="true" style={{ fontSize: "48px", marginBottom: "16px" }}>⚠</div>
+            <h2 id="application-error-heading" style={{ color: "#003738", fontSize: "24px", marginBottom: "12px" }}>Something went wrong</h2>
             <p style={{ color: "#006565", marginBottom: "24px" }}>{(this.state.error as Error).message}</p>
             <button onClick={() => { this.setState({ error: null }); window.history.back(); }}
               style={{ background: "#d8d958", color: "#003738", border: "none", borderRadius: "8px", padding: "12px 28px", fontWeight: 700, cursor: "pointer", fontSize: "15px" }}>
               Go back
             </button>
           </div>
-        </div>
+        </main>
       );
     }
     return this.props.children;
@@ -115,8 +115,7 @@ function portalTabFromPath(pathname: string): string | undefined {
   return undefined;
 }
 
-function navigateTo(view: PageView) {
-  const path = viewToPath(view);
+function navigateTo(view: PageView, path = viewToPath(view)) {
   if (typeof window !== "undefined") {
     window.history.pushState({}, "", path);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -203,8 +202,8 @@ export default function App() {
   // Global link interceptor: any <a href="/internal"> click navigates via
   // React Router instead of doing a full page reload. Unknown paths fall
   // through so external links (HubSpot booking, asset files, etc.) keep working.
-  const goTo = (nextView: PageView) => {
-    navigateTo(nextView);
+  const goTo = (nextView: PageView, path?: string) => {
+    navigateTo(nextView, path);
     setView(nextView);
     if (typeof window !== "undefined") {
       setPathname(window.location.pathname);
@@ -243,7 +242,7 @@ export default function App() {
       if (!isKnownRoute(href)) return;
 
       e.preventDefault();
-      goToRef.current(resolveRoute(href));
+      goToRef.current(resolveRoute(href), href);
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);

@@ -64,6 +64,7 @@ hf-*/skills-lock.json
 .vercel
 
 # Generated / scratch artifacts (CI hygiene)
+.playwright-cli/
 graphify-out/
 _regen_tmp/
 .trash/

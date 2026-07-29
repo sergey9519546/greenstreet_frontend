@@ -529,7 +529,7 @@ function FieldGroup({
       <label style={labelStyle}>{label}</label>
       {children}
       {error ? (
-        <p style={errorMsgStyle}>{error}</p>
+        <p role="alert" style={errorMsgStyle}>{error}</p>
       ) : helper ? (
         <p style={helperStyle}>{helper}</p>
       ) : null}
@@ -550,6 +550,7 @@ function PillBtn({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={active ? "qm-pill qm-pill-active" : "qm-pill"}
       style={{
         padding: "8px 16px",
@@ -670,6 +671,8 @@ function Step1({
 }) {
   const uid = useId();
   const idPropVal = `${uid}-propval`;
+  const idLoan = `${uid}-loan`;
+  const idLoanError = `${idLoan}-error`;
   const idRent    = `${uid}-rent`;
   const idRate    = `${uid}-rate`;
 
@@ -812,17 +815,19 @@ function Step1({
       </div>
 
       <div style={{ marginBottom: 16 }}>
-        <label htmlFor={`${uid}-loan`} style={labelStyle}>
+        <label htmlFor={idLoan} style={labelStyle}>
           Desired loan amount
         </label>
         <input
-          id={`${uid}-loan`}
+          id={idLoan}
           type="number"
           value={data.loanAmount}
           min={0}
           step={5000}
           onChange={(e) => onChange({ loanAmount: Number(e.target.value) })}
           className="qm-input"
+          aria-invalid={attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0 ? true : undefined}
+          aria-describedby={attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0 ? idLoanError : undefined}
           style={
             attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0
               ? inputErrorStyle
@@ -830,7 +835,7 @@ function Step1({
           }
         />
         {attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0 ? (
-          <p style={errorMsgStyle}>Loan amount can't equal or exceed the property value.</p>
+          <p id={idLoanError} role="alert" style={errorMsgStyle}>Loan amount can't equal or exceed the property value.</p>
         ) : (
           <p style={helperStyle}>
             LTV (how the loan amount compares to the property value — lower = more equity = better terms):{" "}
@@ -1011,6 +1016,7 @@ function Step2({
 }) {
   const uid = useId();
   const idState = `${uid}-state`;
+  const idStateError = `${idState}-error`;
   const [attempted, setAttempted] = useState(false);
   const [shaking, setShaking] = useState(false);
 
@@ -1086,6 +1092,8 @@ function Step2({
           value={data.state}
           onChange={(e) => onChange({ state: e.target.value })}
           className="qm-input"
+          aria-invalid={attempted && !data.state ? true : undefined}
+          aria-describedby={attempted && !data.state ? idStateError : undefined}
           style={
             attempted && !data.state
               ? { ...inputStyle, marginTop: 4, borderColor: "#c25b4e" }
@@ -1100,7 +1108,7 @@ function Step2({
           ))}
         </select>
         {attempted && !data.state ? (
-          <p style={errorMsgStyle}>Please select the property state.</p>
+          <p id={idStateError} role="alert" style={errorMsgStyle}>Please select the property state.</p>
         ) : (
           <p style={helperStyle}>Where the property is located — not where you live. State law and provider policies may affect a transaction; this estimate does not determine either.</p>
         )}
@@ -1528,8 +1536,11 @@ function Step4({
 }) {
   const uid = useId();
   const idName  = `${uid}-name`;
+  const idNameError = `${idName}-error`;
   const idEmail = `${uid}-email`;
+  const idEmailError = `${idEmail}-error`;
   const idPhone = `${uid}-phone`;
+  const idContactConsentError = `${uid}-contact-consent-error`;
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [shaking, setShaking] = useState(false);
 
@@ -1596,12 +1607,14 @@ function Step4({
           onChange={(e) => onChange({ name: e.target.value })}
           onBlur={() => markTouched("name")}
           className="qm-input"
+          aria-invalid={touched.name && !nameValid ? true : undefined}
+          aria-describedby={touched.name && !nameValid ? idNameError : undefined}
           style={touched.name && !nameValid ? inputErrorStyle : inputStyle}
           autoComplete="name"
           maxLength={100}
         />
         {touched.name && !nameValid && (
-          <p style={errorMsgStyle}>Please enter your full name.</p>
+          <p id={idNameError} role="alert" style={errorMsgStyle}>Please enter your full name.</p>
         )}
       </div>
 
@@ -1615,13 +1628,15 @@ function Step4({
           onChange={(e) => onChange({ email: e.target.value })}
           onBlur={() => markTouched("email")}
           className="qm-input"
+          aria-invalid={touched.email && !emailValid ? true : undefined}
+          aria-describedby={touched.email && !emailValid ? idEmailError : undefined}
           style={touched.email && !emailValid ? inputErrorStyle : inputStyle}
           autoComplete="email"
           maxLength={200}
           required
         />
         {touched.email && !emailValid ? (
-          <p style={errorMsgStyle}>Please enter a valid email address.</p>
+          <p id={idEmailError} role="alert" style={errorMsgStyle}>Please enter a valid email address.</p>
         ) : (
           <p style={helperStyle}>Use an address where you can receive a response to this request.</p>
         )}
@@ -1700,6 +1715,8 @@ function Step4({
           type="checkbox"
           checked={data.contactConsent}
           onChange={(e) => onChange({ contactConsent: e.target.checked })}
+          aria-invalid={touched.submit && !data.contactConsent ? true : undefined}
+          aria-describedby={touched.submit && !data.contactConsent ? idContactConsentError : undefined}
           style={{ marginTop: 1, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
         />
         <span>
@@ -1709,7 +1726,7 @@ function Step4({
         </span>
       </label>
       {touched.submit && !data.contactConsent && (
-        <p style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so the team can respond to this request.</p>
+        <p id={idContactConsentError} role="alert" style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so the team can respond to this request.</p>
       )}
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>

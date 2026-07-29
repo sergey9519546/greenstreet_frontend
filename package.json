@@ -14,6 +14,7 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:home-fidelity": "node scripts/check-home-contract.mjs",
+    "report:build-artifacts": "node scripts/report-build-artifacts.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {
