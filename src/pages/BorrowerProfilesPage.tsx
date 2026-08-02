@@ -357,7 +357,7 @@ export default function BorrowerProfilesPage({
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR 1-4 Standard" },
+                { k: "Program", v: "DSCR — 1-4 unit" },
                 { k: "Rate range", v: "6.75 – 7.25%" },
                 { k: "DSCR minimum", v: "≥ 1.00x" },
                 { k: "LTV", v: "≤ 80%" },
@@ -425,7 +425,7 @@ export default function BorrowerProfilesPage({
               <RiskFlame level="high" size={28} />
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              Greenstreet's DSCR Global program is a no-ratio DSCR product — meaning income is not documented or used in underwriting at all. Qualification rests entirely on the property's rent-to-PITIA ratio, your passport ID, and a larger down payment.
+              Greenstreet Maple is a no-ratio DSCR product — meaning income is not documented or used in underwriting at all. Qualification rests entirely on the property's rent-to-PITIA ratio, your passport ID, and a larger down payment.
               <br /><br />
               <em>Foreign national</em> = non-US-citizen / non-permanent-resident investor with no ITIN or US-bureau credit file.
             </p>
@@ -433,7 +433,7 @@ export default function BorrowerProfilesPage({
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR Global (no-ratio)" },
+                { k: "Program", v: "Greenstreet Maple (no-ratio)" },
                 { k: "Rate range", v: "7.50 – 8.25%" },
                 { k: "DSCR minimum", v: "≥ 0.75x" },
                 { k: "Down payment", v: "30% minimum" },
@@ -626,7 +626,7 @@ export default function BorrowerProfilesPage({
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR 1-4 / DSCR STR" },
+                { k: "Program", v: "DSCR — 1-4 unit or STR" },
                 { k: "Rate range", v: "7.00 – 7.75%" },
                 { k: "DSCR minimum", v: "≥ 1.00x (rental days)" },
                 { k: "LTV", v: "≤ 75%" },
@@ -723,13 +723,13 @@ export default function BorrowerProfilesPage({
               Portfolio Builders
             </h2>
             <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              Once you cross 10 doors, conventional financing stops scaling. Greenstreet's DSCR Portfolio / Blanket program underwrites 2–20 properties in a single loan — one approval, one close, one monthly payment. DSCR is assessed at the portfolio level: a strong property offsets a thin-margin one.
+              Once you cross 10 doors, conventional financing stops scaling. Greenstreet's portfolio (blanket) loan underwrites 2–20 properties in a single loan — one approval, one close, one monthly payment. DSCR is assessed at the portfolio level: a strong property offsets a thin-margin one.
             </p>
 
             <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>What you qualify on</h3>
             <SpecTable
               rows={[
-                { k: "Program", v: "DSCR Portfolio / Blanket" },
+                { k: "Program", v: "Portfolio / blanket loan" },
                 { k: "Rate range", v: "6.99 – 7.50%" },
                 { k: "Loan size", v: "To $3.5M per note" },
                 { k: "Portfolio DSCR", v: "≥ 1.25x (blended)" },

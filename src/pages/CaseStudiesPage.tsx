@@ -44,7 +44,7 @@ const STUDIES: Study[] = [
       "Decision time dropped from 25 minutes to 6 per file. The team scaled 4× without adding a single underwriter.",
     quote:
       "Greenstreet surfaced a 1.11x DSCR pass and had us rate-locked fast. We stopped running parallel Excel models the same week.",
-    program: "DSCR 1-4 Standard",
+    program: "Greenstreet Aspen",
   },
   {
     slug: "northshore-non-qm",
@@ -66,7 +66,7 @@ const STUDIES: Study[] = [
       "Same-day rate lock on clean files. On one file that sailed through Track 1 at 1.18x, Track 2 caught a 12% effective vacancy gap and killed it at the desk — before appraisal, before earnest money.",
     quote:
       "Dual-Track saved a deal our own analysis would have waved through. Track 2 caught a 12% vacancy gap before it ever cost us money.",
-    program: "DSCR Multi / 1-4",
+    program: "Greenstreet Birch",
   },
   {
     slug: "quintero-co",
@@ -78,17 +78,17 @@ const STUDIES: Study[] = [
     metrics: [
       { v: "3", k: "Deals killed pre-appraisal" },
       { v: "$14,800", k: "Hard costs avoided" },
-      { v: "3 min", k: "ITIN approval on Global program" },
+      { v: "3 min", k: "ITIN approval on Maple" },
     ],
     challenge:
       "Discovering deals were marginal only after the appraisal was ordered. On paper the rent covered the payment. In reality, vacancy and management quietly pushed properties underwater on Track 2. Paying $3,000–7,000 per appraisal to get bad news that could have arrived on day one.",
     solution:
-      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet's Global program takes a passport plus alternative credit, funded through our wholesale lending partner, Cake.",
+      "Run Track 2 — Investor Survival DSCR — before spending a dollar on diligence. Deals that pass Track 1 but fail Track 2 get walked away from at the desk, not at the closing table. For ITIN borrowers, Greenstreet Maple takes a passport plus alternative credit, funded through our wholesale lending partner, Cake.",
     result:
-      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A foreign-national ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
+      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A foreign-national ITIN file that previously took a week to get a straight answer was approved on Maple in under three minutes.",
     quote:
-      "Foreign-national ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
-    program: "DSCR Global",
+      "Foreign-national ITIN flow used to take a week. Greenstreet Maple approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
+    program: "Greenstreet Maple",
   },
 ];
 
@@ -112,7 +112,7 @@ const AURORA_STORY = {
     "The blanket line was approved in a week. No more one-at-a-time submissions.",
   quote:
     "One blended view replaced a spreadsheet stack that took two days to compile. The underwriter saw exactly what they needed.",
-  program: "DSCR Portfolio / Blanket",
+  program: "Portfolio / blanket loan",
 };
 
 const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
