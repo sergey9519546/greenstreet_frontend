@@ -3,15 +3,17 @@ import { DcShell, dc, H1, Lead, ScenePhoto } from "../design/dc";
 
 // ── Static data ───────────────────────────────────────────────────────────────
 
+// Role-only — no invented names. We don't publish fabricated bios/headshots
+// for real people (especially compliance roles) on a regulated lending site.
 const TEAM = [
-  { id: "team-dave",    name: "Dave Feldman",   role: "Cofounder & CEO" },
-  { id: "team-priya",   name: "Priya Rao",      role: "Cofounder & Head of Quant" },
-  { id: "team-marcus",  name: "Marcus Chen",    role: "Head of Lending" },
-  { id: "team-sara",    name: "Sara López",     role: "Head of Compliance" },
-  { id: "team-tobi",    name: "Tobi Okafor",   role: "Staff Engineer, Engine" },
-  { id: "team-anita",   name: "Anita Mehta",   role: "Product Designer" },
-  { id: "team-jordan",  name: "Jordan Brooks",  role: "Account Executive" },
-  { id: "team-hannah",  name: "Hannah Park",   role: "Compliance Counsel" },
+  { id: "team-1", mark: "CE", role: "Cofounder & CEO" },
+  { id: "team-2", mark: "HQ", role: "Cofounder & Head of Quant" },
+  { id: "team-3", mark: "HL", role: "Head of Lending" },
+  { id: "team-4", mark: "HC", role: "Head of Compliance" },
+  { id: "team-5", mark: "SE", role: "Staff Engineer, Engine" },
+  { id: "team-6", mark: "PD", role: "Product Designer" },
+  { id: "team-7", mark: "AE", role: "Account Executive" },
+  { id: "team-8", mark: "CC", role: "Compliance Counsel" },
 ];
 
 const JOBS = [
@@ -50,9 +52,6 @@ const ABOUT_CSS = `
   /* Team grid: 4-col desktop → 2-col mobile */
   .ab-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
   @media (max-width: 767px) { .ab-team-grid { grid-template-columns: repeat(2, 1fr); } }
-  /* Investor logo grid: 3-col desktop → 2-col mobile */
-  .ab-inv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  @media (max-width: 767px) { .ab-inv-grid { grid-template-columns: repeat(2, 1fr); } }
   /* Values, Jobs, CTA 2-col grids → single col on mobile */
   .ab-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   .ab-jobs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px,5vw,72px); align-items: start; }
@@ -149,10 +148,10 @@ export default function AboutPage({
                   marginBottom: 4,
                 }}
               >
-                Founded by
+                Founded in
               </div>
               <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                Dave Feldman and Priya Rao
+                2026
               </div>
             </div>
             <div>
@@ -471,73 +470,53 @@ export default function AboutPage({
                 maxWidth: "18ch",
               }}
             >
-              The people behind the engine.
+              The disciplines behind the engine.
             </h2>
           </div>
 
           <div className="gs-reveal ab-team-grid">
-            {TEAM.map((m) => {
-              // Derive initials: first letter of each word, max 2
-              const initials = m.name
-                .split(" ")
-                .map((w) => w[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase();
-              return (
-                <div key={m.id}>
-                  {/* Monogram avatar — intentional branded element, no photo needed */}
-                  <div
+            {TEAM.map((m) => (
+              <div key={m.id}>
+                {/* Monogram — a functional mark for the discipline, not a person's initials */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    aspectRatio: "1",
+                    marginBottom: 14,
+                    borderRadius: 9,
+                    background: dc.teal,
+                    border: "1px solid rgba(238,239,211,0.10)",
+                  }}
+                >
+                  <span
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                      aspectRatio: "1",
-                      marginBottom: 14,
-                      borderRadius: 9,
-                      background: dc.teal,
-                      border: "1px solid rgba(238,239,211,0.10)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: dc.sans,
-                        fontSize: "clamp(28px,3.5vw,42px)",
-                        fontWeight: 600,
-                        letterSpacing: "-0.03em",
-                        color: dc.lemon,
-                        lineHeight: 1,
-                        userSelect: "none",
-                      }}
-                    >
-                      {initials}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 18,
+                      fontFamily: dc.sans,
+                      fontSize: "clamp(28px,3.5vw,42px)",
                       fontWeight: 600,
-                      letterSpacing: "-0.02em",
-                      color: dc.cream,
+                      letterSpacing: "-0.03em",
+                      color: dc.lemon,
+                      lineHeight: 1,
+                      userSelect: "none",
                     }}
                   >
-                    {m.name}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "rgba(238,239,211,0.62)",
-                      marginTop: 2,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {m.role}
-                  </div>
+                    {m.mark}
+                  </span>
                 </div>
-              );
-            })}
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 600,
+                    letterSpacing: "-0.02em",
+                    color: dc.cream,
+                  }}
+                >
+                  {m.role}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -714,73 +693,6 @@ export default function AboutPage({
                 Austin, Texas · Est. 2026
               </span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── INVESTORS — 6-logo grid ──────────────────────────────────────── */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(56px,7vw,96px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase" as const,
-              color: dc.rain,
-              marginBottom: 14,
-            }}
-          >
-            Our backers
-          </div>
-          <h2
-            style={{
-              fontSize: "clamp(28px,3.4vw,46px)",
-              fontWeight: 600,
-              letterSpacing: "-0.03em",
-              margin: "0 0 40px",
-            }}
-          >
-            Backed by investors who build fintech for the long run.
-          </h2>
-          <div className="ab-inv-grid">
-            {[
-              "Cedar Ventures",
-              "Mistral Capital",
-              "Greylock Bridge",
-              "First Round West",
-              "Founders Co-op",
-              "Range Partners",
-            ].map((inv) => (
-              <div
-                key={inv}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: dc.cream,
-                  borderRadius: dc.r.md,
-                  border: `1px solid ${dc.faded}`,
-                  padding: "38px 24px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "clamp(18px,1.8vw,24px)",
-                    fontWeight: 600,
-                    letterSpacing: "-0.03em",
-                    color: dc.dark,
-                  }}
-                >
-                  {inv}
-                </span>
-              </div>
-            ))}
           </div>
         </div>
       </section>
