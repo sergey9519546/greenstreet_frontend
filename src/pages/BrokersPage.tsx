@@ -60,7 +60,17 @@ const USECASES: UseCase[] = [
   },
 ];
 
-const AS_OF = "Jun 22, 2026";
+const AS_OF = "Aug 2, 2026";
+// Next-review date is computed from AS_OF (mirrors FAQPage.tsx) so the promise
+// can't silently lapse into the past the way a fixed date does — bump AS_OF
+// and this follows automatically.
+const REVIEW_CADENCE_DAYS = 30;
+function reviewDateAfter(base: string, days: number): string {
+  const d = new Date(base);
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+const NEXT_REVIEW = reviewDateAfter(AS_OF, REVIEW_CADENCE_DAYS);
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function BrokersPage({
@@ -576,7 +586,7 @@ export default function BrokersPage({
               Reviewed
             </span>
             <span style={{ fontSize: 13, color: dc.dark, fontWeight: 600 }}>
-              Page refreshed {AS_OF} · program lineup + fees reviewed · next review Jul 22, 2026
+              Page refreshed {AS_OF} · program lineup + fees reviewed · next review {NEXT_REVIEW}
             </span>
           </div>
 
