@@ -187,9 +187,10 @@ export default function App() {
     return () => { if (w.cancelIdleCallback) w.cancelIdleCallback(id); else clearTimeout(id); };
   }, []);
 
-  // Global link interceptor: any <a href="/internal"> click navigates via
-  // React Router instead of doing a full page reload. Unknown paths fall
-  // through so external links (HubSpot booking, asset files, etc.) keep working.
+  // Global link interceptor: any <a href="/internal"> click is handled by this
+  // app's hand-rolled History-API router (there is no react-router dependency)
+  // instead of doing a full page reload. Unknown paths fall through so external
+  // links (HubSpot booking, asset files, etc.) keep working.
   const goTo = (nextView: PageView) => {
     navigateTo(nextView);
     setView(nextView);
