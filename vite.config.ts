@@ -93,7 +93,12 @@ export default defineConfig(() => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        // No `@/` imports exist anywhere in the repo today (verified via
+        // `grep -rn "from ['\"]@/" .` outside node_modules) — this alias is
+        // currently unused. Points at src/ (the conventional target) rather
+        // than repo root so any future `@/foo` import resolves predictably
+        // to src/foo instead of a root-level file.
+        '@': path.resolve(__dirname, './src'),
       },
     },
     server: {
