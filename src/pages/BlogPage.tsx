@@ -349,9 +349,9 @@ const RAW_POSTS = [
     slug: "june-2026-rate-sheet",
     date: "June 18, 2026", tag: "Rates",
     title: "June 2026 DSCR rate sheet: where the 6.125% specials actually are",
-    summary: "The '740 FICO, ≤75% LTV' tier is real on Greenstreet's Premier program — our lowest rate sheet. Here's exactly what it takes to hit it.",
+    summary: "A historical June 2026 scenario showing how FICO, LTV, DSCR, and prepayment terms can affect a written quote.",
     body: [
-      { p: "Everyone advertises a teaser rate. We broke down Greenstreet's June 2026 DSCR 1-4 rate tiers — from the 740-FICO best pricing down to sub-1.0 DSCR — to show who actually hits the headline number, and under what conditions." },
+      { p: "Published teaser rates depend on dated assumptions. This historical June 2026 scenario shows how a quote can change with FICO, LTV, DSCR, property type, points, and prepayment terms; it is not current pricing or a commitment to lend." },
       { h: "The best-tier reality" },
       { list: [
         "The sub-6.5% tier is real, but only at 740+ FICO, ≤75% LTV, DSCR ≥ 1.0, SFR, with a full prepay penalty.",
@@ -444,7 +444,7 @@ const RAW_POSTS = [
       { h: "Reserve overlay for STR" },
       { p: "STR adds 3 months to the baseline reserve requirement. At 1.20x DSCR on an STR, you need 6 months PITIA in reserves minimum (3 standard + 3 STR overlay). At sub-1.0 DSCR on an STR, you're looking at 12–15 months. Make sure the investor is holding these reserves before you take the application." },
       { h: "Which Greenstreet program applies" },
-      { p: "Greenstreet's Core program covers STR 1–4 unit with 12 months history. InvestGO covers STR properties where 1007 long-term rent is used as the qualifying figure (no history required). The Premier tier is available on STR if DSCR ≥ 1.20x using documented history at 740+ FICO, ≤75% LTV. STR condotels and short-term rental condos have additional program restrictions — confirm property type eligibility before the appraisal is ordered." },
+      { p: "The current seven-program matrix includes several STR paths, each with its own FICO, DSCR, leverage, property-type, and documentation rules. Use the program matcher for a preliminary fit, then confirm current eligibility and the controlling rent method with the responsible lender before ordering an appraisal." },
       { h: "The math on a real STR deal" },
       { p: "Example: 3BR SFR in a beach market. AirDNA projected gross: $72,000/year ($6,000/month). 1007 long-term rent: $2,400/month. PITIA: $2,200/month." },
       { p: "Qualifying income hierarchy: (1) 1007 = $2,400 → DSCR 1.09x. (2) AirDNA × 75% = $4,500 → DSCR 2.05x. (3) Documented 12-mo history × 75% — only applies if history exists." },
