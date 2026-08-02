@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 
-const AS_OF = "Jun 25, 2026";
+const AS_OF = "Aug 2, 2026";
 // Computed rather than hardcoded so the "next review" promise can't silently
 // lapse the way a fixed date does — bump AS_OF and this follows automatically.
 const REVIEW_CADENCE_DAYS = 27;
@@ -28,14 +28,14 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
     group: "The basics",
     q: "How is DSCR calculated — what's the actual formula?",
     a: "DSCR = Gross Monthly Rent ÷ Total Monthly PITIA (1.00 = rent exactly covers the payment; higher is stronger). Worked example: rent = $2,500/month. PITIA = $1,420 P&I + $330 taxes + $110 insurance + $60 HOA = $1,920. DSCR = $2,500 ÷ $1,920 = 1.30x — the property generates 30% more income than it costs to carry. A result below 1.0 means the rent doesn't cover the payment. Lenders use the lower of the signed lease or the Form 1007 appraiser market-rent estimate — not the Zillow figure or the listing.",
-    src: "Fannie Mae 1007 form · Greenstreet engine.ts DSCR calc",
+    src: "Fannie Mae 1007 form · Greenstreet DSCR underwriting model",
     cta: { label: "Run the numbers on your deal →", action: "calculator" },
   },
   {
     group: "The basics",
     q: "What goes into the monthly payment lenders calculate (PITIA)?",
     a: "PITIA is the full monthly payment — Principal, Interest, Taxes, Insurance, and HOA dues. P = Principal. I = Interest at the note rate. T = Property taxes (actual annual bill ÷ 12 — use the post-sale assessed value, not the seller's homestead-exempt bill). I = Insurance (hazard + flood if required — get a real quote; coastal properties can run $300–600/month). A = HOA dues (full monthly amount). Taxes and insurance are the two PITIA components that most often surprise borrowers at underwriting.",
-    src: "Greenstreet engine.ts · PITIA model · FEMA RR2.0 coastal data",
+    src: "Greenstreet PITIA model · FEMA RR2.0 coastal data",
   },
   {
     group: "The basics",
@@ -79,7 +79,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
     group: "Qualification",
     q: "How much cash do I need to keep in the bank after closing?",
     a: "Lenders require reserves (months of mortgage payments kept in the bank after closing). Greenstreet's general reserve estimate starts from a DSCR-tiered base: at DSCR 1.25 or above, 3–6 months; at 1.00–1.24, 6–9 months; at 0.75–0.99, 9–12 months; below 0.75, 12 months. On top of that, overlays can add extra months for: short-term rental strategy (+3), credit score below 680 (+3, or +6 below 640), first-time investors (+3), loans above $1M (+3), foreign nationals (+6), LTV above 80% (+1), and California properties (+6, applied to every DSCR tier). Everything is capped at 12 months total. This is a general estimate — the specific program you qualify for may set its own reserve minimum (see that program's page), which governs your actual file. Retirement accounts count at 70% if you are 59½ or older. Cryptocurrency counts as zero.",
-    src: "Greenstreet reserveEngine.ts · DSCR-tiered base + overlay model",
+    src: "Greenstreet reserves model · DSCR-tiered base + overlay",
   },
   {
     group: "Qualification",
@@ -104,14 +104,14 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
     group: "Qualification",
     q: "How can I improve my DSCR before applying?",
     a: "Four levers: (1) Buy down the rate: each 0.25% rate reduction saves ~$15–17/month per $100K of loan. On a $400K loan, buying down 0.50% saves ~$130/month in P&I. Points cost roughly 1% of loan per 0.25% of rate reduction. (2) Switch to interest-only (IO): IO eliminates the principal component, saving roughly $250–350/month on a $400K loan at current rates. Requires 720+ FICO, ≤75% LTV on most programs. (3) Raise the qualifying rent: provide the appraiser with comparable rental data before the inspection; sign a market-rate lease before closing (if vacant); or use documented 12-month STR history if the property is STR-eligible. (4) Increase the down payment: going from 80% to 75% LTV on a $400K deal reduces P&I by ~$85/month AND unlocks the better LTV rate tier, saving an additional 0.25–0.50%. Levers 2 and 4 combined can often take a 0.92x DSCR to 1.10x+ without touching the rent.",
-    src: "Greenstreet engine.ts IO model · LTV pricing matrix · Q2 2026",
+    src: "Greenstreet IO model · LTV pricing matrix · Q2 2026",
     cta: { label: "Model the impact on your deal →", action: "calculator" },
   },
   {
     group: "Qualification",
     q: "What is the deal-break rate?",
     a: "The deal-break rate is the interest rate at which DSCR falls to exactly 1.00x — the lender's hard floor. Below 1.00x, the deal won't qualify. The headroom between your offered rate and the deal-break rate (in basis points) tells you how much rate shock the deal can absorb before it fails — useful for ARM reset modeling and refinance planning. Greenstreet's Deal Analyzer surfaces both numbers on every solve.",
-    src: "Greenstreet engine.ts · dealBreakRate + rateHeadroomBps",
+    src: "Greenstreet underwriting model · deal-break rate & rate-headroom calculation",
   },
   // ── GROUP: Rental income & property ──────────────────────────────────────────
   {
@@ -148,7 +148,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
     group: "Rental income & property",
     q: "Should I take the prepayment penalty option to get a lower rate?",
     a: "Usually yes, if you plan to hold the property for 3 or more years. A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early — typically a declining schedule: 3/2/1% over three years or 5/4/3/2/1% over five) saves 0.50–0.80% in rate vs the no-penalty option. That monthly savings compounds over a multi-year hold and often more than offsets the penalty itself. The math favors accepting the penalty unless you expect to sell or refinance soon. Caution: some states restrict or ban prepayment penalties on investment property loans. Check the State Laws page before assuming the penalty option is available.",
-    src: "Greenstreet statePppLaws.ts · 50-state matrix",
+    src: "Greenstreet state prepayment-penalty rules · 50-state matrix",
     cta: { label: "Check PPP rules in your state →", action: "state-laws" },
   },
   // ── GROUP: Refinance ─────────────────────────────────────────────────────────
@@ -174,7 +174,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
     group: "Refinance",
     q: "How do I know if refinancing actually saves money?",
     a: "Break-even months = Total closing costs ÷ Monthly payment reduction. Example: $8,000 in closing costs on a $300/month payment reduction = 26.7 months to break even. If you sell or refinance again before month 27, the refinance cost you money. Important: if you have a prepayment penalty (a fee some loans charge if you pay off or refinance early) on the existing loan, add the full penalty amount to the closing costs. A 3% penalty on a $400K loan is $12,000 — that adds 40 months to break-even, pushing it past 5.5 years. Run this before you pay the appraisal deposit.",
-    src: "Greenstreet refiTracker.ts · break-even model",
+    src: "Greenstreet refinance model · break-even calculation",
     cta: { label: "See if a refi pencils on your deal →", action: "calculator" },
   },
   // ── GROUP: Compliance & regulatory ───────────────────────────────────────────
@@ -188,7 +188,7 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
     group: "Compliance & regulatory",
     q: "How does OBBBA affect DSCR deal returns?",
     a: "OBBBA makes 100% bonus depreciation permanent (investors can shelter Year-1 taxable income via cost segregation) and raises §179 to $2.56M for 2026. The QBI deduction is raised to 23% and made permanent. For a $400K deal, expect roughly $12K–$20K of Year-1 depreciation shield depending on land/building split — actual outcome depends on your tax situation. Consult a CPA; Greenstreet's Tax Engine models this with OBBBA defaults.",
-    src: "OBBBA 2025 · IRC §168(k) · IRC §179 · Greenstreet taxEngine.ts",
+    src: "OBBBA 2025 · IRC §168(k) · IRC §179 · Greenstreet tax model",
   },
 ];
 
