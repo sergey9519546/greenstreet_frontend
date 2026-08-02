@@ -5,7 +5,11 @@
 // GOLDEN TEST VALUES (must reproduce):
 //   factor 0.0075127 @ 8.25%, 30yr  ← STRESS-LEVEL rate (NOT market typical)
 //   factor 0.006653  @ 7.00%, 30yr  ← TYPICAL market rate (June 2026)
-//   Flagship Track 1: 1.05 @ 7.00%, 0.96 @ 8.25% (8.25% = stress case)
+//   Flagship Track 1 (DSCR at a fixed rate): 1.05 @ 7.00%, 0.96 @ 8.25% (stress)
+//   NOTE: the flagship *solveDSCR* run floors at ~6.125% and yields ~1.25 DSCR
+//   (pinned by modes.test.ts) — the 1.05@7.00% above is an illustrative
+//   fixed-rate DSCR, not the solver's output. verifyGoldenValues() checks the
+//   factor/DSCR primitives; the end-to-end solve is asserted in the test suite.
 //   Rent breakpoint: 4.9% below $3,000
 //   Deal-break rate: 7.67%
 //
@@ -816,7 +820,18 @@ export function solveDSCR(
   if (
     !Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0 ||
     !Number.isFinite(property.leaseRent) || property.leaseRent < 0 ||
-    !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100
+    !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100 ||
+    // Bug audit #11: strProjectedRent is the STR DSCR *numerator*. A NaN there
+    // slips past the `denominator > 0` guard below and surfaces as a NaN DSCR,
+    // so it must be caught here. Also sanitise the PITIA-side inputs (finite,
+    // non-negative) so malformed numbers become a "needs review" result, not
+    // silent garbage. buildEngineInputs() always supplies finite defaults, so
+    // this only rejects genuinely-malformed direct callers.
+    !Number.isFinite(property.strProjectedRent) ||
+    !Number.isFinite(property.annualTaxes) || property.annualTaxes < 0 ||
+    !Number.isFinite(property.annualInsurance) || property.annualInsurance < 0 ||
+    !Number.isFinite(property.hoa) || property.hoa < 0 ||
+    !Number.isFinite(property.floodInsurance) || property.floodInsurance < 0
   ) {
     const zeroPITIA: PITIABreakdown = {
       principalAndInterest: 0, taxes: 0, insurance: 0, hoa: 0,

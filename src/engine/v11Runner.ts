@@ -402,9 +402,11 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     cushionBps: dscr.rateHeadroomBps,
     entryCapRate: returns.entryCapRate,
     year1CoC: returns.year1CashOnCash,
-    preTaxIRR: returns.leveredIRR,
-    preTaxP10: input.monteCarloP10IRR ?? returns.leveredIRR * 0.8,
-    preTaxP90: input.monteCarloP90IRR ?? returns.leveredIRR * 1.2,
+    // bug audit #4: returnsEngine.leveredIRR is PERCENT (e.g. 15.0); this memo's
+    // afterTaxIRR sibling is DECIMAL (0.15). Divide by 100 for scale consistency.
+    preTaxIRR: returns.leveredIRR / 100,
+    preTaxP10: (input.monteCarloP10IRR ?? returns.leveredIRR * 0.8) / 100,
+    preTaxP90: (input.monteCarloP90IRR ?? returns.leveredIRR * 1.2) / 100,
     afterTaxIRR: afterTaxIRR.afterTaxIRR, // already decimal — see IRR scale convention note above (bug audit #3)
     equityMultiple: returns.equityMultiple,
     sellerAnnualTax: input.sellerAnnualTax,

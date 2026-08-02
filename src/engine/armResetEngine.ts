@@ -98,24 +98,25 @@ export const DEFAULT_ARM_PROGRAMS: Record<string, ARMTerms> = {
  * Simulate the ARM reset ladder under a sustained index value, enforcing
  * per-reset caps as a real ARM contract does.
  *
- * Reset rules (standard DSCR ARM contract):
+ * Reset rules (standard DSCR ARM contract). clamp(x, lo, hi) = min(max(x, lo), hi);
+ * the LOWER bound is the contractual `floorRate` (NOT prev_rate — the rate may
+ * step down toward the floor when the index falls). This mirrors the code below
+ * (`newRate = min(fullyIndexed, ceiling); newRate = max(newRate, floorRate)`):
  *   Reset 1 (first reset, at end of fixed period):
  *     new_rate = clamp(
- *       max(floor, index + margin),
- *       prev_rate,                      // floor on increase
+ *       index + margin,
+ *       floorRate,                      // contractual floor (lower bound)
  *       initial + initialCap            // ceiling on first reset
  *     )
  *   Reset 2..N (every resetFrequencyMonths thereafter):
  *     new_rate = clamp(
- *       max(floor, index + margin),
- *       prev_rate,                      // floor on increase
- *       min(prev_rate + periodicCap, initial + lifetimeCap)
+ *       index + margin,
+ *       floorRate,                      // contractual floor (lower bound)
+ *       min(prev_rate + periodicCap, initial + lifetimeCap)   // prev_rate only sets the periodic ceiling
  *     )
  *
- * If `index + margin` falls below the previous rate, the rate can step DOWN
- * subject to the floor — but most DSCR ARMs have a soft floor at the initial
- * rate, so decreases are typically bounded. We model the standard "no floor
- * on decreases except the contractual floor" behavior.
+ * If `index + margin` falls below the previous rate, the rate steps DOWN,
+ * bounded only by the contractual `floorRate` (often set at the initial rate).
  *
  * Returns:
  *   - `trajectory`: array of { resetNumber, year, rate } for each reset

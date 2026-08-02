@@ -402,14 +402,11 @@ export function computePassiveLossAllowance(
 
   let actualAllowableLoss: number;
   if (isRep) {
-    actualAllowableLoss = Math.min(rentalLoss, 0); // REP: unlimited → all losses deductible
-    // If rentalLoss is negative (a loss), all of it is deductible
+    // Real-estate professional: unlimited — all rental losses deductible.
     actualAllowableLoss = rentalLoss;
   } else if (magi <= phaseOutStart) {
-    actualAllowableLoss = Math.max(Math.min(rentalLoss, fullAllowance), rentalLoss);
-    // Allowable = lesser of (rentalLoss, fullAllowance); if loss is negative, that's the deduction
-    actualAllowableLoss = Math.min(Math.abs(rentalLoss), fullAllowance) * Math.sign(rentalLoss < 0 ? -1 : 1);
-    // Simplification: if rental loss is -$15,000 and full allowance is $25,000, deductible = $15,000 (loss offset)
+    // Full $25k allowance available: a loss (negative) is deductible down to
+    // -fullAllowance; a positive result is capped at fullAllowance.
     if (rentalLoss < 0) {
       actualAllowableLoss = Math.max(rentalLoss, -fullAllowance);
     } else {

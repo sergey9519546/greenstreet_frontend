@@ -449,3 +449,44 @@ describe('bug audit #6 — estimateReserveMonths applies the FICO and loan->$1M 
     );
   });
 });
+
+// ── Bug audit #11: malformed inputs must never produce a NaN DSCR ─────────────
+// strProjectedRent is the STR DSCR *numerator*; a NaN there used to slip past the
+// `denominator > 0` guard and surface as NaN. The input guard now rejects it.
+describe('bug audit #11 — NaN inputs cannot yield a NaN DSCR', () => {
+  it('STR deal with NaN projected rent returns a finite needs-review DSCR (0)', () => {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 450_000, monthlyRent: 3_200, state: 'TX',
+      strProjectedRent: 5_000, strategy: 'STR',
+    });
+    const corrupted = { ...property, strProjectedRent: NaN };
+    const r = solveDSCR(corrupted, borrower, loan, strategy);
+    expect(Number.isFinite(r.dscr)).toBe(true);
+    expect(r.dscr).toBe(0);
+    expect(Number.isFinite(r.dualTrackDSCR.track1.dscr)).toBe(true);
+  });
+
+  it('NaN in any PITIA-side input also yields a finite DSCR', () => {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 400_000, monthlyRent: 3_000, state: 'TX',
+    });
+    for (const field of ['annualTaxes', 'annualInsurance', 'hoa', 'floodInsurance'] as const) {
+      const bad = { ...property, [field]: NaN };
+      const r = solveDSCR(bad, borrower, loan, strategy);
+      expect(Number.isFinite(r.dscr)).toBe(true);
+    }
+  });
+});
+
+// ── Bug audit #5: PPP state rules pin real statutory values, not just shape ────
+describe('bug audit #5 — PPP state rules pin real values', () => {
+  it('pins representative state statuses and thresholds', () => {
+    expect(PPP_STATE_LAWS['PA']?.status).toBe('CONDITIONAL');
+    expect(PPP_STATE_LAWS['PA']?.loanThreshold).toBe(319_777); // Act 6 2026 (corrected)
+    expect(PPP_STATE_LAWS['OH']?.status).toBe('CONDITIONAL');
+    expect(PPP_STATE_LAWS['OH']?.loanThreshold).toBe(116_356);
+    expect(PPP_STATE_LAWS['NJ']?.status).toBe('ENTITY_ONLY'); // individuals restricted
+    expect(PPP_STATE_LAWS['CA']?.status).toBe('ALLOWED');      // business-purpose permitted
+    expect(PPP_STATE_LAWS['MS']?.status).toBe('CONDITIONAL');
+  });
+});
