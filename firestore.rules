@@ -43,6 +43,11 @@ service cloud.firestore {
       allow create: if isAuthenticated()
                     && request.resource.data.userId == request.auth.uid
                     && request.resource.data.keys().hasAll(['userId', 'createdAt', 'title'])
+                    // Field allowlist: no client code (src/) writes to /deals yet —
+                    // pin the schema to exactly the required fields above so a
+                    // future writer can't smuggle in extra/unexpected fields.
+                    // Widen this list deliberately if/when a real writer needs more.
+                    && request.resource.data.keys().hasOnly(['userId', 'createdAt', 'title'])
                     && request.resource.data.createdAt is timestamp
                     && request.resource.data.title is string
                     && request.resource.data.title.size() <= 300;
@@ -54,6 +59,8 @@ service cloud.firestore {
                     // Re-assert the same required-field shape so an update can't
                     // silently strip createdAt/title.
                     && request.resource.data.keys().hasAll(['userId', 'createdAt', 'title'])
+                    // Field allowlist — same rationale as create above.
+                    && request.resource.data.keys().hasOnly(['userId', 'createdAt', 'title'])
                     && request.resource.data.createdAt is timestamp
                     && request.resource.data.title is string
                     && request.resource.data.title.size() <= 300;
@@ -90,8 +97,21 @@ service cloud.firestore {
     // to prevent junk/spam writes and oversized document abuse.
     match /leads/{leadId} {
       allow create: if
-        // Must include these fields — extra fields are permitted (Firestore doesn't strip them)
+        // Must include this field.
         request.resource.data.keys().hasAll(['submittedAt']) &&
+        // Field allowlist — pinned to exactly the top-level keys
+        // src/components/QualifyModal.tsx's `payload` object sends (verified
+        // against that file directly). Extra/unexpected fields are now
+        // REJECTED — previously any extra field was silently permitted
+        // (Firestore doesn't strip unknown fields on its own), which let a
+        // malicious anonymous caller pad a lead doc with arbitrary junk.
+        request.resource.data.keys().hasOnly([
+          'name', 'email', 'phone', 'role', 'timeline',
+          'propertyType', 'propertyValue', 'loanAmount', 'rent', 'rate',
+          'purpose', 'state', 'ficoBand', 'borrowerType', 'experience',
+          'investmentConfirmed', 'dscr', 'verdict', 'verdictTier',
+          'rateEstimate', 'qualify', 'consent', 'page', 'submittedAt'
+        ]) &&
         // submittedAt must be a real timestamp (e.g. serverTimestamp()) or an
         // ISO string — this is what the client actually sends; reject junk types.
         (request.resource.data.submittedAt is timestamp || request.resource.data.submittedAt is string) &&
