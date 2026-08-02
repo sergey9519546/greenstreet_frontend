@@ -205,7 +205,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       const factors = [
         { label: "DSCR coverage (30%)", v: dscrScore, note: `${deal.dscr.toFixed(2)}x — ${deal.dscr >= 1.25 ? "comfortable" : deal.dscr >= 1.0 ? "qualifies" : "sub-1.0"}` },
         { label: "Leverage (18%)",      v: levScore,  note: `${100 - downPct}% LTV` },
-        { label: "Est. 5-yr return proxy (20%)", v: irrScore,  note: `${(afterTaxIRR * 100).toFixed(1)}% (proxy, not true IRR)` },
+        { label: "Quick return estimate (20%)", v: irrScore,  note: `${(afterTaxIRR * 100).toFixed(1)}% — directional estimate, not a full after-tax IRR` },
         { label: "Borrower credit (14%)", v: ficoScore, note: `${fico} FICO` },
         { label: "Liquidity (10%)",     v: liqScore,  note: "6-month reserve proxy" },
       ].map((f) => ({ ...f, color: factorColor(f.v), valStr: Math.round(f.v) + "/100", pct: f.v + "%" }));
@@ -570,11 +570,14 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px", background: "rgba(238,239,211,0.1)", borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.1)" }}
                 >
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Return grade</div>
-                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", marginBottom: 10 }}>A = 10%+ IRR proxy · D = below 4%</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Quick Return Grade</div>
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", marginBottom: 10 }}>Directional grade, not a full after-tax IRR · A = 10%+ return proxy · D = below 4%</div>
                     <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: gradeColor(result.grade), lineHeight: 1 }}>
                       {result.grade}
                     </Mono>
+                    <div style={{ fontSize: 10, color: "rgba(238,239,211,0.38)", marginTop: 10, lineHeight: 1.4 }}>
+                      Rough directional estimate — see the Returns tool for a full after-tax IRR.
+                    </div>
                   </div>
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Acquisition score</div>

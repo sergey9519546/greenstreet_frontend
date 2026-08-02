@@ -52,7 +52,7 @@ const TOOLS: Tool[] = [
     panelNote: "Live dual-track coverage + lender shortlist",
   },
   {
-    title: "Program Intelligence",
+    title: "DSCR Loan Programs",
     desc: "Filter all 7 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
     cta: "Match my file to a program",
     view: "products",
