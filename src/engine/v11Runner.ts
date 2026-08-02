@@ -478,6 +478,8 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     cushionBps: dscr.rateHeadroomBps,
     entryCapRate: returns.entryCapRate,
     year1CoC: returns.year1CashOnCash,
+    // returnsEngine reports percentage points (15 = 15%); the memo return
+    // stack uses decimal fractions alongside afterTaxIRR (0.15 = 15%).
     preTaxIRR: returns.leveredIRR / 100,
     preTaxP10: (input.monteCarloP10IRR ?? returns.leveredIRR * 0.8) / 100,
     preTaxP90: (input.monteCarloP90IRR ?? returns.leveredIRR * 1.2) / 100,

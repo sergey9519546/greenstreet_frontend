@@ -5,7 +5,9 @@
 // GOLDEN TEST VALUES (must reproduce):
 //   factor 0.0075127 @ 8.25%, 30yr  ← STRESS-LEVEL rate (NOT market typical)
 //   factor 0.006653  @ 7.00%, 30yr  ← TYPICAL market rate (June 2026)
-//   Flagship Track 1: 1.05 @ 7.00%, 0.96 @ 8.25% (8.25% = stress case)
+//   Flagship Track 1 at fixed rates: 1.05 @ 7.00%, 0.96 @ 8.25% (stress)
+//   The end-to-end solver floors near 6.125% and yields roughly 1.25 DSCR;
+//   modes.test.ts pins that solved result separately from these primitives.
 //   Rent breakpoint: 4.9% below $3,000
 //   Deal-break rate: 7.67%
 //
@@ -875,7 +877,9 @@ export function solveDSCR(
     !Number.isFinite(property.annualTaxes) || property.annualTaxes < 0 ||
     !Number.isFinite(property.annualInsurance) || property.annualInsurance < 0 ||
     !Number.isFinite(property.hoa) || property.hoa < 0 ||
-    !Number.isFinite(property.floodInsurance) || property.floodInsurance < 0
+    !Number.isFinite(property.floodInsurance) || property.floodInsurance < 0 ||
+    (reassessedAnnualTaxOverride !== undefined &&
+      (!Number.isFinite(reassessedAnnualTaxOverride) || reassessedAnnualTaxOverride < 0))
   ) {
     const zeroPITIA: PITIABreakdown = {
       principalAndInterest: 0, taxes: 0, insurance: 0, hoa: 0,

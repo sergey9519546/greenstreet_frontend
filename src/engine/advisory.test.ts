@@ -544,4 +544,31 @@ describe('malformed DSCR inputs fail closed with finite outputs', () => {
       expect(Number.isFinite(result.dualTrackDSCR.track2.dscr)).toBe(true);
     },
   );
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, -1])(
+    'returns a finite needs-review result for malformed reassessed-tax override %s',
+    (reassessedTax) => {
+      const { property, borrower, loan, strategy } = buildEngineInputs({
+        purchasePrice: 400_000,
+        monthlyRent: 3_000,
+        state: 'TX',
+      });
+
+      const result = solveDSCR(
+        property,
+        borrower,
+        loan,
+        strategy,
+        false,
+        0,
+        'GROSS_PITIA',
+        reassessedTax,
+      );
+
+      expect(result.dscr).toBe(0);
+      expect(Number.isFinite(result.monthlyPITIA.total)).toBe(true);
+      expect(Number.isFinite(result.dualTrackDSCR.track1.dscr)).toBe(true);
+      expect(Number.isFinite(result.dualTrackDSCR.track2.dscr)).toBe(true);
+    },
+  );
 });
