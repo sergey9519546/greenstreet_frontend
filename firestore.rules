@@ -19,8 +19,20 @@ service cloud.firestore {
     // Users can only read and write their own profile document.
     match /users/{userId} {
       allow read:  if isOwner(userId);
-      allow create: if isOwner(userId) && isValidEmail();
-      allow update: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidEmail() &&
+        request.resource.data.keys().hasOnly(['email', 'displayName', 'photoURL', 'createdAt', 'updatedAt']) &&
+        (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 200)) &&
+        (!('displayName' in request.resource.data) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 200)) &&
+        (!('photoURL' in request.resource.data) || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 500)) &&
+        (!('createdAt' in request.resource.data) || (request.resource.data.createdAt is timestamp || request.resource.data.createdAt is string)) &&
+        (!('updatedAt' in request.resource.data) || (request.resource.data.updatedAt is timestamp || request.resource.data.updatedAt is string));
+      allow update: if isOwner(userId) &&
+        request.resource.data.keys().hasOnly(['email', 'displayName', 'photoURL', 'createdAt', 'updatedAt']) &&
+        (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 200)) &&
+        (!('displayName' in request.resource.data) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 200)) &&
+        (!('photoURL' in request.resource.data) || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 500)) &&
+        (!('createdAt' in request.resource.data) || (request.resource.data.createdAt is timestamp || request.resource.data.createdAt is string)) &&
+        (!('updatedAt' in request.resource.data) || (request.resource.data.updatedAt is timestamp || request.resource.data.updatedAt is string));
       allow delete: if false; // Soft-delete only — never allow hard delete
     }
 
@@ -30,8 +42,21 @@ service cloud.firestore {
       allow read:   if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isAuthenticated()
                     && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.keys().hasAll(['userId', 'createdAt', 'title']);
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+                    && request.resource.data.keys().hasAll(['userId', 'createdAt', 'title'])
+                    && request.resource.data.createdAt is timestamp
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 300;
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    // Pin ownership: the update cannot reassign this deal to
+                    // another user's uid — new userId must match the existing one.
+                    && request.resource.data.userId == resource.data.userId
+                    // Re-assert the same required-field shape so an update can't
+                    // silently strip createdAt/title.
+                    && request.resource.data.keys().hasAll(['userId', 'createdAt', 'title'])
+                    && request.resource.data.createdAt is timestamp
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 300;
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
@@ -42,25 +67,29 @@ service cloud.firestore {
       allow read:   if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isAuthenticated()
                     && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.keys().hasAll(['userId', 'userEmail', 'type', 'timestamp']);
+                    && request.resource.data.keys().hasAll(['userId', 'userEmail', 'type', 'timestamp'])
+                    // Pin values, not just presence: email must be the caller's own,
+                    // type must be a known event, timestamp must be typed.
+                    && request.resource.data.userEmail == request.auth.token.email
+                    && request.resource.data.type in ['analyze', 'state-rules']
+                    && (request.resource.data.timestamp is timestamp || request.resource.data.timestamp is string);
       allow update: if false;
       allow delete: if false;
     }
 
-    // ── Leads (See If You Qualify form) ────────────────────────────────────────
-    // Anonymous users can submit lead forms. No one can read/update/delete leads.
-    // Field validation: require the minimal expected fields and cap string lengths
-    // to prevent junk/spam writes and oversized document abuse.
+    // ── Per-user app artifacts (ComplianceDashboard audit history + settings) ──
+    // Path shape used by the client: artifacts/{appId}/users/{uid}/{collection}/...
+    // Owner-scoped: a user can only touch their own subtree.
+    match /artifacts/{appId}/users/{userId}/{document=**} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ── Leads (public scenario-review form) ────────────────────────────────────
+    // The browser never writes this collection directly. Public submissions go
+    // through the rate-limited, strictly validated server endpoint; Admin SDK
+    // writes bypass these rules. Client access fails closed in every direction.
     match /leads/{leadId} {
-      allow create: if
-        // Must include these fields — extra fields are permitted (Firestore doesn't strip them)
-        request.resource.data.keys().hasAll(['submittedAt']) &&
-        // Enforce string length caps on common text fields (if present)
-        (!('email' in request.resource.data) || request.resource.data.email is string && request.resource.data.email.size() <= 200) &&
-        (!('name' in request.resource.data)  || request.resource.data.name  is string && request.resource.data.name.size()  <= 200) &&
-        (!('phone' in request.resource.data)  || request.resource.data.phone  is string && request.resource.data.phone.size()  <= 30)  &&
-        (!('message' in request.resource.data) || request.resource.data.message is string && request.resource.data.message.size() <= 2000);
-      allow read, update, delete: if false;
+      allow read, write: if false;
     }
 
     // ── Block everything else ─────────────────────────────────────────────────

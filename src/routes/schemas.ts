@@ -1,6 +1,22 @@
 import { z } from "zod";
 
-export const STATE_REGEX = /^[A-Z]{2}$/;
+export const US_STATE_CODES = [
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+  "DC",
+] as const;
+
+const US_STATE_CODE_SET = new Set<string>(US_STATE_CODES);
+const StateCodeSchema = z.string({ message: "state must be a string" })
+  .trim()
+  .transform((state) => state.toUpperCase())
+  .refine(
+    (state) => US_STATE_CODE_SET.has(state),
+    "state must be a valid 2-letter US state or DC abbreviation",
+  );
 
 export const DealRequestSchema = z.object({
   // Core — always required
@@ -11,9 +27,7 @@ export const DealRequestSchema = z.object({
   monthlyRent: z.number({ message: "monthlyRent must be a number" })
     .min(0, "monthlyRent cannot be negative")
     .max(1_000_000, "monthlyRent seems unreasonably high"),
-  state: z.string({ message: "state must be a string" })
-    .transform((s) => s.trim().toUpperCase().slice(0, 2))
-    .refine((s) => STATE_REGEX.test(s), "state must be a 2-letter US abbreviation"),
+  state: StateCodeSchema,
 
   // Optional — with range guards
   loanAmount:  z.number().positive().max(50_000_000).optional(),
@@ -37,17 +51,19 @@ export const DealRequestSchema = z.object({
   strProjectedRent: z.number().min(0).optional(),
   strDocumentedRent: z.number().min(0).optional(),
 
-  // Enums / booleans — permissive (engine applies defaults for unknown values)
-  propertyType: z.string().optional(),
-  entityType:   z.string().optional(),
-  experience:   z.string().optional(),
-  term:         z.string().optional(),
-  ioPeriod:     z.string().optional(),
-  armType:      z.string().optional(),
-  prepayPreference: z.string().optional(),
-  loanPurpose:  z.string().optional(),
-  strategy:     z.string().optional(),
-  hoaSTRPolicy: z.string().optional(),
+  // Enumerations must match the engine's supported domain values. Rejecting
+  // unknown values prevents a malformed request from being silently modeled as
+  // a different loan structure (especially an interest-only loan).
+  propertyType: z.enum(["SFR", "2-4_UNIT", "CONDO_WARRANTABLE", "CONDO_NON_WARRANTABLE", "CONDOTEL", "RURAL", "5+_UNIT", "MIXED_USE"]).optional(),
+  entityType:   z.enum(["INDIVIDUAL", "LLC", "S_CORP", "C_CORP", "TRUST"]).optional(),
+  experience:   z.enum(["FIRST_TIME", "EXPERIENCED", "VETERAN"]).optional(),
+  term:         z.enum(["30_YR", "40_YR", "15_YR"]).optional(),
+  ioPeriod:     z.enum(["NONE", "5_YR", "7_YR", "10_YR"]).optional(),
+  armType:      z.enum(["FIXED", "5_6_ARM", "7_6_ARM", "10_6_ARM"]).optional(),
+  prepayPreference: z.enum(["NONE", "54321", "4321", "321", "54333", "FLAT_5", "SIX_MONTHS_INTEREST", "SIX_MONTHS_80_PCT", "YIELD_MAINTENANCE", "SOFT_PREPAY"]).optional(),
+  loanPurpose:  z.enum(["PURCHASE", "RATE_TERM", "CASH_OUT"]).optional(),
+  strategy:     z.enum(["LTR", "STR", "MTR"]).optional(),
+  hoaSTRPolicy: z.enum(["ALLOWS", "SILENT", "PROHIBITS", "UNKNOWN"]).optional(),
   isCondotel:   z.boolean().optional(),
   isNonWarrantable: z.boolean().optional(),
   isRural:      z.boolean().optional(),
@@ -57,12 +73,11 @@ export const DealRequestSchema = z.object({
 });
 
 export const StateRequestSchema = z.object({
-  state:       z.string().transform((s) => s.trim().toUpperCase().slice(0, 2))
-               .refine((s) => STATE_REGEX.test(s), "state must be a 2-letter US abbreviation"),
-  entityType:  z.string().optional().default("LLC"),
+  state:       StateCodeSchema,
+  entityType:  z.enum(["INDIVIDUAL", "LLC", "S_CORP", "C_CORP", "TRUST"]).optional().default("LLC"),
   loanAmount:  z.number().positive().max(50_000_000).optional().default(400_000),
   unitCount:   z.number().int().min(1).max(4).optional().default(1),
-  productType: z.string().optional().default("FIXED"),
+  productType: z.enum(["FIXED", "ARM"]).optional().default("FIXED"),
 });
 
 export const NarrateRequestSchema = z.object({
@@ -74,7 +89,7 @@ export const NarrateRequestSchema = z.object({
     dualTrackDSCR: z.object({
       track1: z.object({ passes: z.boolean() }).optional().nullable(),
       track2: z.object({ passes: z.boolean() }).optional().nullable(),
-      verdict: z.object({ summary: z.string().optional() }).optional().nullable(),
+      verdict: z.object({ summary: z.string().max(1000, "summary must be at most 1000 characters").optional() }).optional().nullable(),
     }).optional().nullable(),
   }),
   context: z.string().max(1000, "context must be at most 1000 characters").optional().nullable(),

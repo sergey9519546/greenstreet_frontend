@@ -32,6 +32,7 @@ import type {
   CashToCloseStack,
   TripleRate,
   DSCRFormulaMethod,
+  IOPeriod,
 } from './types';
 
 // ============================================================
@@ -57,6 +58,22 @@ export function calculatePI(loanAmount: number, annualRate: number, termMonths: 
 
 export function calculateIOPayment(loanAmount: number, annualRate: number): number {
   return loanAmount * (annualRate / 100 / 12);
+}
+
+/**
+ * Converts a supported IO enum to its duration.  This is deliberately
+ * fail-closed: an unknown runtime value is not permitted to become a 10-year
+ * IO loan, which would materially understate the payment and overstate DSCR.
+ */
+function ioPeriodYears(ioPeriod: IOPeriod): number {
+  switch (ioPeriod) {
+    case 'NONE': return 0;
+    case '5_YR': return 5;
+    case '7_YR': return 7;
+    case '10_YR': return 10;
+    default:
+      throw new Error(`Unsupported interest-only period: ${String(ioPeriod)}`);
+  }
 }
 
 // ============================================================
@@ -193,24 +210,24 @@ function decliningMarketAdjustment(isDecliningMarket: boolean): number {
 
 export function getDSCRGradient(dscr: number): DSCRGradient {
   if (dscr >= 1.50) {
-    return { tier: 'ELITE', label: 'Elite Pricing Tier', range: '≥1.50', color: 'emerald', bgClass: 'bg-emerald-500/20', textClass: 'text-emerald-400', borderClass: 'border-emerald-500/50', emoji: '🚀' };
+    return { tier: 'ELITE', label: 'Highest Modeled Coverage', range: '≥1.50', color: 'emerald', bgClass: 'bg-emerald-500/20', textClass: 'text-emerald-400', borderClass: 'border-emerald-500/50', emoji: '🚀' };
   }
   if (dscr >= 1.25) {
-    return { tier: 'STRONG', label: 'Best Pricing Tier', range: '1.25–1.49', color: 'cyan', bgClass: 'bg-cyan-500/20', textClass: 'text-cyan-400', borderClass: 'border-cyan-500/50', emoji: '💎' };
+    return { tier: 'STRONG', label: 'Higher Modeled Coverage', range: '1.25–1.49', color: 'cyan', bgClass: 'bg-cyan-500/20', textClass: 'text-cyan-400', borderClass: 'border-cyan-500/50', emoji: '💎' };
   }
   if (dscr >= 1.10) {
-    return { tier: 'STANDARD', label: 'Standard Approval', range: '1.10–1.24', color: 'green', bgClass: 'bg-green-500/20', textClass: 'text-green-400', borderClass: 'border-green-500/50', emoji: '🟢' };
+    return { tier: 'STANDARD', label: 'Modeled Coverage Above 1.10', range: '1.10–1.24', color: 'green', bgClass: 'bg-green-500/20', textClass: 'text-green-400', borderClass: 'border-green-500/50', emoji: '🟢' };
   }
   if (dscr >= 1.00) {
-    return { tier: 'PREMIUM', label: 'Approval Likely w/ Premium', range: '1.00–1.09', color: 'yellow', bgClass: 'bg-yellow-500/20', textClass: 'text-yellow-400', borderClass: 'border-yellow-500/50', emoji: '🟡' };
+    return { tier: 'PREMIUM', label: 'Near Break-Even Coverage', range: '1.00–1.09', color: 'yellow', bgClass: 'bg-yellow-500/20', textClass: 'text-yellow-400', borderClass: 'border-yellow-500/50', emoji: '🟡' };
   }
   if (dscr >= 0.85) {
-    return { tier: 'SPECIALIST', label: 'Flex/Specialist Lenders Only', range: '0.85–0.99', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
+    return { tier: 'SPECIALIST', label: 'Modeled Coverage Below 1.00', range: '0.85–0.99', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
   }
   if (dscr >= 0.75) {
-    return { tier: 'SPECIALIST', label: 'Deep Flex / No-Ratio Programs', range: '0.75–0.84', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
+    return { tier: 'SPECIALIST', label: 'Low Modeled Coverage', range: '0.75–0.84', color: 'orange', bgClass: 'bg-orange-500/20', textClass: 'text-orange-400', borderClass: 'border-orange-500/50', emoji: '🟠' };
   }
-  return { tier: 'NO_RATIO', label: 'No-Ratio Programs Only', range: '<0.75', color: 'red', bgClass: 'bg-red-500/20', textClass: 'text-red-400', borderClass: 'border-red-500/50', emoji: '🔴' };
+  return { tier: 'NO_RATIO', label: 'Lowest Modeled Coverage', range: '<0.75', color: 'red', bgClass: 'bg-red-500/20', textClass: 'text-red-400', borderClass: 'border-red-500/50', emoji: '🔴' };
 }
 
 // ============================================================
@@ -232,11 +249,11 @@ export function getDSCRGradient(dscr: number): DSCRGradient {
 // ============================================================
 
 // Track 2 default expense rates
-const TRACK2_LT_VACANCY_PCT = 8;
-const TRACK2_STR_VACANCY_PCT = 8;
-const TRACK2_MTR_VACANCY_PCT = 8;
-const TRACK2_MANAGEMENT_PCT = 8;
-const TRACK2_MAINTENANCE_PCT = 5;
+export const TRACK2_LT_VACANCY_PCT = 8;
+export const TRACK2_STR_VACANCY_PCT = 8;
+export const TRACK2_MTR_VACANCY_PCT = 8;
+export const TRACK2_MANAGEMENT_PCT = 8;
+export const TRACK2_MAINTENANCE_PCT = 5;
 
 // STR haircut for Track 1 qualification
 const STR_QUALIFYING_HAIRCUT_PCT = 20; // ~20% standard haircut
@@ -386,14 +403,14 @@ function buildVerdict(track1: DSCRTrack, track2: DSCRTrack): DualTrackVerdict {
   let warningRequired = false;
 
   if (track1Passes && track2Passes) {
-    summary = 'Deal qualifies and cash flows after expenses.';
+    summary = 'The modeled coverage threshold is met and the expense-aware view remains positive.';
   } else if (track1Passes && !track2Passes) {
-    summary = `This deal gets approved. It does not cash flow. Track 2 shows -$${Math.abs(track2.monthlyCashFlow).toFixed(0)}/month negative carry. Proceed only if appreciation/tax strategy justifies negative carry.`;
+    summary = `The modeled coverage threshold is met, but the expense-aware view shows -$${Math.abs(track2.monthlyCashFlow).toFixed(0)}/month negative carry. This is not an approval or investment recommendation.`;
     warningRequired = true;
   } else if (!track1Passes && track2Passes) {
-    summary = 'Deal cash flows as an investment but may not qualify for lender DSCR floor. Rescue engine needed.';
+    summary = 'The expense-aware view is positive, but the modeled payment-coverage threshold is not met. Provider requirements are not evaluated here.';
   } else {
-    summary = 'Deal fails both qualification and cash flow. Rescue engine needed.';
+    summary = 'Neither modeled coverage view reaches break-even. Provider eligibility and investment suitability are not evaluated here.';
   }
 
   return { track1Passes, track2Passes, summary, warningRequired };
@@ -403,19 +420,28 @@ function buildVerdict(track1: DSCRTrack, track2: DSCRTrack): DualTrackVerdict {
 // PITIA CALCULATION (Section 5.3)
 // ============================================================
 
+/**
+ * UNIT CONVENTION (bug audit #1 — FLOOD-INSURANCE UNIT MISMATCH):
+ *   annualTaxes / annualInsurance are ANNUAL figures → divided by 12 below.
+ *   hoa and floodInsurance are both already MONTHLY (matches DealRequest.hoa /
+ *   DealRequest.floodInsurance in inputs.ts, and irrWaterfall.ts's ×12
+ *   annualization of both) — they are used AS-IS, never divided by 12.
+ *   Previously floodInsurance was wrongly divided by 12 here as if it were
+ *   annual, understating flood cost ~12x and inflating the gating Track-1 DSCR.
+ */
 export function calculatePITIA(
   loanAmount: number,
   rate: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see unit convention above)
   mortgageInsurance: number = 0,
 ): PITIABreakdown {
   const termMonths = termYears * 12;
-  const ioYears = ioPeriod === 'NONE' ? 0 : ioPeriod === '5_YR' ? 5 : ioPeriod === '7_YR' ? 7 : 10;
+  const ioYears = ioPeriodYears(ioPeriod);
   const isInterestOnly = ioYears > 0;
 
   let pi: number;
@@ -430,7 +456,8 @@ export function calculatePITIA(
 
   const taxes = annualTaxes / 12;
   const insurance = annualInsurance / 12;
-  const flood = floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY — do NOT divide by 12.
+  const flood = floodInsurance;
   const mi = mortgageInsurance;
 
   const total = pi + taxes + insurance + hoa + flood + mi;
@@ -460,20 +487,21 @@ export function solveDealBreakRate(
   qualifyingRent: number,
   loanAmount: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see calculatePITIA unit convention)
 ): number {
   // Target: P&I = qualifyingRent - fixedExpenses (for DSCR = 1.0)
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY (like hoa) — do NOT divide by 12.
+  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const targetPI = qualifyingRent - fixedExpenses;
 
   if (targetPI <= 0) return 0; // Impossible: fixed expenses exceed income
 
   const termMonths = termYears * 12;
-  const ioYears = ioPeriod === 'NONE' ? 0 : parseInt(ioPeriod) || 0;
+  const ioYears = ioPeriodYears(ioPeriod);
 
   if (ioYears > 0) {
     // IO: targetPI = loanAmount * rate/12 → rate = targetPI * 12 / loanAmount * 100
@@ -506,23 +534,29 @@ export function solveMaxPurchasePrice(
   ltv: number,
   rate: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — do not divide by 12 (see calculatePITIA unit convention)
   targetDSCR: number = 1.0,
 ): number {
   // Max PITIA = qualifyingRent / targetDSCR
   const maxPITIA = qualifyingRent / targetDSCR;
-  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  // v11 FIX (bug audit #1): floodInsurance is already MONTHLY — do NOT divide by 12.
+  const fixedExpenses = annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
   const maxPI = maxPITIA - fixedExpenses;
 
   if (maxPI <= 0) return 0;
 
   const termMonths = termYears * 12;
-  const factor = calculatePaymentFactor(rate, termMonths);
-  const maxLoan = maxPI / factor;
+  // IO qualification: payment = loanAmount * rate/12, so maxLoan = maxPI * 12 / rate.
+  // Mirrors solveDealBreakRate's IO branch — previously ioPeriod was accepted but ignored,
+  // understating max price for interest-only loans.
+  const ioYears = ioPeriodYears(ioPeriod);
+  const maxLoan = ioYears > 0 && rate > 0
+    ? (maxPI * 12) / (rate / 100)
+    : maxPI / calculatePaymentFactor(rate, termMonths);
   const maxPrice = maxLoan / (ltv / 100);
 
   return Math.round(maxPrice);
@@ -534,11 +568,11 @@ export function solveMinDownPayment(
   ltv: number,
   rate: number,
   termYears: number,
-  ioPeriod: string,
+  ioPeriod: IOPeriod,
   annualTaxes: number,
   annualInsurance: number,
   hoa: number,
-  floodInsurance: number = 0,
+  floodInsurance: number = 0, // MONTHLY — forwarded to solveMaxPurchasePrice unchanged
   targetDSCR: number = 1.0,
 ): { minDown: number; additionalDown: number } {
   const maxPrice = solveMaxPurchasePrice(
@@ -752,16 +786,16 @@ export function quickDscrEstimate(
   let label: string;
   if (dscr >= 1.25) {
     tier = 'LIKELY_QUALIFIES';
-    label = 'Likely qualifies — strong DSCR buffer';
+    label = 'Modeled DSCR at or above 1.25';
   } else if (dscr >= 1.00) {
     tier = 'BORDERLINE';
-    label = 'Borderline — meets minimum; lender review required';
+    label = 'Modeled DSCR between 1.00 and 1.25';
   } else if (dscr >= 0.85) {
     tier = 'SPECIALIST_REQUIRED';
-    label = 'Specialist lenders only — below standard threshold';
+    label = 'Modeled DSCR between 0.85 and 1.00';
   } else {
     tier = 'UNLIKELY';
-    label = 'Unlikely — DSCR below typical program minimums';
+    label = 'Modeled DSCR below 0.85';
   }
 
   return {
@@ -938,7 +972,7 @@ export function solveDSCR(
   );
 
   // Reserve estimation (simplified — full engine in reserveEngine.ts)
-  const reserveMonths = estimateReserveMonths(dscr, strategy, borrower, loan);
+  const reserveMonths = estimateReserveMonths(dscr, strategy, borrower, loan, loanAmount);
   const reserveMonthsConservative = Math.min(reserveMonths + 3, 12);
   const furnishingBudget = strategy === 'STR' ? 5000 : 0;
   const closingCostPct = 0.03;
@@ -976,14 +1010,38 @@ export function solveDSCR(
 }
 
 // ============================================================
-// RESERVE ESTIMATION (simplified — full in reserveEngine.ts)
+// RESERVE ESTIMATION (simplified — full scenario/haircut engine in
+// reserveEngine.ts's computeReserveScenarios)
 // ============================================================
-
-function estimateReserveMonths(
+//
+// v11.14 FIX (audit finding): this function feeds calculateCashToClose for
+// every live DSCR result, but was missing two overlays that the fully-spec'd
+// reserveEngine.ts (src/engine/reserveEngine.ts computeOverlays()) applies:
+//   - low-FICO overlay (FICO < 640 → +6mo; FICO 640-679 → +3mo)
+//   - loan-amount overlay (loan > $1M → +3mo)
+// Both are now applied here, using the SAME months-added values as
+// reserveEngine.ts's computeOverlays(), so the simplified inline estimate and
+// the fully-built scenario engine agree on overlay magnitudes. Unlike
+// reserveEngine.ts (which has no direct loan-amount input and must infer one
+// from monthly PITIA), this function has the real solved loanAmount in scope,
+// so it applies the >$1M test against the actual loan amount rather than an
+// estimate.
+//
+// NOTE (out of scope for this fix): reserveEngine.ts's own overlay table does
+// NOT match the public FAQ copy (FAQPage.tsx) in two respects — FAQ advertises
+// a single "FICO < 680 → +3" overlay (reserveEngine.ts actually splits this
+// into <640 → +6 / 640-679 → +3) and "loans > $1M → +6" (reserveEngine.ts
+// uses +3). FAQ also advertises a "condos → +3" overlay that neither
+// reserveEngine.ts nor this function implements (no property-type input is
+// threaded into either overlay calculation). Those are pre-existing
+// FAQ/reserveEngine.ts spec mismatches, not something introduced or corrected
+// by this change; flagged here for a follow-up audit item.
+export function estimateReserveMonths(
   dscr: number,
   strategy: RentalStrategy,
   borrower: BorrowerProfile,
   loan: LoanStructure,
+  loanAmount: number,
 ): number {
   let months = 6;
   if (dscr >= 1.25) months = 3;
@@ -991,9 +1049,12 @@ function estimateReserveMonths(
   else if (dscr >= 0.75) months = 9;
   else months = 12;
 
-  // Overlays
+  // Overlays (kept in sync with reserveEngine.ts's computeOverlays())
   if (strategy === 'STR') months += 3;
+  if (borrower.ficoScore < 640) months += 6;
+  else if (borrower.ficoScore < 680) months += 3;
   if (borrower.experience === 'FIRST_TIME') months += 3;
+  if (loanAmount > 1_000_000) months += 3;
   if (borrower.isForeignNational) months += 6;
   if (loan.ltv > 80) months += 1;
 

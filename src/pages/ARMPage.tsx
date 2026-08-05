@@ -160,6 +160,7 @@ export default function ARMPage({
       <style>{`
         .arm-in::-webkit-outer-spin-button,.arm-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .arm-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        .arm-in:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -830,7 +831,7 @@ export default function ARMPage({
                   periodic cap each subsequent reset, and lifetime cap = start rate + life cap.
                   P&amp;I re-amortizes over the remaining term at each reset.
                   CRISIS scenario hits the lifetime cap after {result.cfg.lifetimeCapPct / result.cfg.periodicCapPct + 1} consecutive upward resets.
-                  Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                  Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.
                 </div>
 
                 {/* Terminal CTA */}

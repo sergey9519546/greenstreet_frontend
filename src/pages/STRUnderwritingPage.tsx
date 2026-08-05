@@ -324,7 +324,7 @@ export default function STRUnderwritingPage({
         loanAmount,
         rate,
         30,
-        "0",
+        "NONE",
         annualTaxes,
         annualInsurance,
         hoa,
@@ -398,7 +398,6 @@ export default function STRUnderwritingPage({
       accent={TEAL}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Lenders", view: "lender-intel" },
       ]}
       cta={{ label: "Underwrite STR →", onClick: scrollToTool }}
     >
@@ -549,7 +548,7 @@ export default function STRUnderwritingPage({
               {bestDSCR === null
                 ? "Enter your deal details to see the underwritten DSCR."
                 : bestDSCR >= 1.25
-                ? `DSCR of ${dscrStr} is strong — the selected qualifying rent comfortably covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). Most DSCR programs approve at this level.`
+                ? `DSCR of ${dscrStr} shows higher modeled coverage — the selected rent assumption covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). This does not predict program eligibility or approval.`
                 : bestDSCR >= 1.0
                 ? `DSCR of ${dscrStr} qualifies but is close to the minimum. Check the month-by-month table below — if off-season months dip below 1.0x you'll need cash reserves (months of mortgage payments kept in the bank after closing) to cover the gap.`
                 : `DSCR of ${dscrStr} is below 1.0x — the qualifying rent does not cover the full monthly payment. Consider increasing STR revenue projections, reducing the loan amount, or checking if a no-ratio DSCR program (which skips the rent-to-payment test) applies.`}
@@ -988,7 +987,7 @@ export default function STRUnderwritingPage({
                       : "is not permitted for qualifying in this state; the engine falls back to World 1 long-term-lease rent"}
                     . Selected scenario: <strong>{result.underwriting.bestWorld}</strong>,
                     qualifying rent used: <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.{" "}
-                    Preliminary estimate — not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                    Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.
                   </div>
                 </>
               )}
@@ -997,7 +996,7 @@ export default function STRUnderwritingPage({
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Contact Greenstreet at +1 (555) 010-0000.
+            Educational estimate only. STR revenue projections and seasonality assumptions are not a guarantee of income. This tool does not provide a quote, program match, qualification, approval, underwriting result, or commitment.
           </p>
         </div>
       </section>
@@ -1020,7 +1019,7 @@ export default function STRUnderwritingPage({
                 Get your STR rate from Greenstreet.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
-                We underwrite short-term rentals using the same World 1 / 2 / 3 model this tool runs. Submit once — we handle placement.
+                Compare short-term-rental assumptions across three educational views. Provider review, placement, terms, and availability are outside this tool.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
@@ -1032,8 +1031,8 @@ export default function STRUnderwritingPage({
                 Get my rate →
               </a>
               <a
-                href="/lender-intel"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }}
+                href="/products"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("products"); }}
                 style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
               >
                 Browse STR programs

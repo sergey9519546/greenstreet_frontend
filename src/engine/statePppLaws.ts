@@ -27,7 +27,7 @@ import type {
 // Indexed threshold values (2026)
 // Annually re-confirmed each January per Part E.3
 // -----------------------------------------------------------
-const PA_PPP_THRESHOLD_2026 = 329_411;
+const PA_PPP_THRESHOLD_2026 = 319_777;
 const OH_PPP_THRESHOLD_2026 = 116_356;
 const THRESHOLD_YEAR = 2026;
 
@@ -147,11 +147,11 @@ export const PPP_STATE_LAWS: Record<string, PPPStateLaw> = {
     state: 'PA',
     status: 'CONDITIONAL',
     reason:
-      'Prohibited on 1–2 unit properties below the annually indexed threshold: $329,411 for 2026 (was $319,777).',
+      'Prohibited on 1–2 unit properties below the annually indexed threshold: $319,777 for 2026.',
     details:
       'Pennsylvania prohibits prepayment penalties on 1–2 unit residential properties ' +
       'when the loan amount falls below the annually indexed threshold. ' +
-      'For 2026 the threshold is $329,411 (previously $319,777). ' +
+      'For 2026 the threshold is $319,777. ' +
       'This value adjusts each year. Loans above the threshold or on 3+ unit ' +
       'properties are not subject to this restriction. STORE AS INDEXED VALUE.',
     loanThreshold: PA_PPP_THRESHOLD_2026,
@@ -1230,7 +1230,7 @@ export const PPP_STATE_LAWS: Record<string, PPPStateLaw> = {
 // Helper: determine the effective status for a given state
 // -----------------------------------------------------------
 function getStateLaw(state: string): PPPStateLaw | null {
-  return PPP_STATE_LAWS[state.toUpperCase()] ?? null;
+  return PPP_STATE_LAWS[state.trim().toUpperCase()] ?? null;
 }
 
 // -----------------------------------------------------------
@@ -1295,18 +1295,28 @@ export function checkPPPLegal(
   unitCount: number,
   productType: 'FIXED' | 'ARM',
 ): PPPCheckResult {
+  const st = state.trim().toUpperCase();
   const law = getStateLaw(state);
 
-  // ── State not in restricted matrix → default ALLOWED ──
+  // ── Unknown state → fail closed until the jurisdiction is verified ──
+  // PPP_STATE_LAWS contains the supported 50-state + DC matrix. A missing
+  // entry therefore means the caller supplied an absent or unrecognized
+  // jurisdiction, not that the jurisdiction has no restrictions.
   if (!law) {
-    return buildAllowedResult(
-      'ALLOWED',
-      `${state.toUpperCase()} has no known PPP restrictions. Standard prepay options available.`,
-      ALL_PREPAY_OPTIONS,
-    );
+    const stateLabel = st || 'UNSPECIFIED';
+    return {
+      allowed: false,
+      status: 'UNKNOWN',
+      reason: `${stateLabel} is not a recognized jurisdiction in the PPP rules matrix. Verify the state before quoting a prepayment-penalty structure.`,
+      adjustedOptions: ['NONE'],
+      noPPPPremiumRate: 0,
+      noPPPPremiumFee: 0,
+      requiresEntityVesting: false,
+      entityNote: '',
+      legalWarning: `⚠️ ${stateLabel}: PPP status is unknown. Do not quote or recommend a prepayment penalty until the jurisdiction is verified.`,
+    };
   }
 
-  const st = state.toUpperCase();
   const isARM = productType === 'ARM';
 
   // ── MN: HF 3437 ENACTED (v11 fix) — context-dependent ──
@@ -1444,11 +1454,11 @@ export function checkPPPLegal(
     if (isLowUnitProperty && loanAmount <= threshold) {
       return buildBlockedResult(
         'CONDITIONAL',
-        `Pennsylvania prohibits PPPs on 1–2 unit properties with loan amounts ≤ $${threshold.toLocaleString()} (2026 indexed threshold, was $319,777). Your loan amount of $${loanAmount.toLocaleString()} falls within the restricted range.`,
+        `Pennsylvania prohibits PPPs on 1–2 unit properties with loan amounts ≤ $${threshold.toLocaleString()} (2026 indexed threshold). Your loan amount of $${loanAmount.toLocaleString()} falls within the restricted range.`,
         {
           legalWarning:
             `⚠️ PA: PPP prohibited for this loan ($${loanAmount.toLocaleString()} ≤ $${threshold.toLocaleString()} threshold on 1–2 unit properties). ` +
-            `Threshold is indexed annually (2026: $${threshold.toLocaleString()}, previously $319,777). ` +
+            `Threshold is indexed annually (2026: $${threshold.toLocaleString()}). ` +
             `Consider higher loan amounts or 3+ unit properties.`,
         },
       );
@@ -1465,7 +1475,7 @@ export function checkPPPLegal(
       {
         legalWarning:
           `ℹ️ PA: PPP permitted for this loan configuration.${thresholdNote} ` +
-          `Threshold is indexed annually (2026: $${threshold.toLocaleString()}, previously $319,777).`,
+          `Threshold is indexed annually (2026: $${threshold.toLocaleString()}).`,
       },
     );
   }

@@ -2,8 +2,6 @@ import { Worker } from "worker_threads";
 import path from "path";
 import {
   solveDSCR,
-  matchLenders,
-  scoreLenderMatch,
   checkPPPLegal,
   computeBreakevenResult,
   generateStructureOptions,
@@ -17,7 +15,21 @@ const workerPath = isProd
   ? path.join(process.cwd(), "dist", "engineWorker.cjs")
   : path.resolve("src", "engineWorker.ts");
 
-const WORKER_POOL_SIZE = process.env.WORKER_POOL_SIZE ? parseInt(process.env.WORKER_POOL_SIZE) : 4;
+// A Vercel function is already an isolated execution unit. Creating four
+// nested worker threads per warm instance wastes memory and requires a
+// dynamically addressed worker artifact. Keep the pool for long-lived Node
+// and Firebase runtimes, but use the synchronous deterministic engine on
+// Vercel unless an operator explicitly overrides the setting.
+function configuredWorkerPoolSize(): number {
+  const setting = process.env.WORKER_POOL_SIZE ?? (process.env.VERCEL ? "0" : "4");
+  return Number.parseInt(setting, 10) || 0;
+}
+
+const WORKER_POOL_SIZE = configuredWorkerPoolSize();
+
+function usesWorkerPool(): boolean {
+  return configuredWorkerPoolSize() > 0;
+}
 
 interface Task {
   id: string;
@@ -25,6 +37,7 @@ interface Task {
   payload: any;
   resolve: (value: any) => void;
   reject: (reason?: any) => void;
+  worker?: Worker;
 }
 
 class WorkerPool {
@@ -69,19 +82,36 @@ class WorkerPool {
       this.processQueue();
     });
 
+    // Node fires 'error' then 'exit' for a single fatal crash — guard so the
+    // cleanup below (reject stranded tasks, respawn, drain queue) runs once.
+    let crashHandled = false;
+    const handleWorkerDeath = () => {
+      if (crashHandled) return;
+      crashHandled = true;
+      this.workers = this.workers.filter(w => w !== worker);
+      // Fail fast: any task already dispatched to this worker will never get
+      // a "message" response now, so reject it immediately instead of leaving
+      // its Promise hanging until an external timeout (or forever).
+      for (const [id, task] of this.activeTasks) {
+        if (task.worker === worker) {
+          this.activeTasks.delete(id);
+          task.reject(new Error("Worker crashed/exited before completing this task"));
+        }
+      }
+      this.createWorker();
+      this.processQueue();
+    };
+
     worker.on("error", (err) => {
       console.error("Worker error:", err);
-      // Restart worker
-      this.workers = this.workers.filter(w => w !== worker);
-      this.createWorker();
+      handleWorkerDeath();
     });
 
     worker.on("exit", (code) => {
       if (code !== 0) {
         console.error(`Worker stopped with exit code ${code}`);
       }
-      this.workers = this.workers.filter(w => w !== worker);
-      this.createWorker();
+      handleWorkerDeath();
     });
 
     this.workers.push(worker);
@@ -99,6 +129,7 @@ class WorkerPool {
     
     const task = this.taskQueue.shift();
     if (task) {
+      task.worker = worker;
       this.activeTasks.set(task.id, task);
       worker.postMessage({ id: task.id, type: task.type, payload: task.payload });
     }
@@ -116,20 +147,11 @@ class WorkerPool {
 const pool = new WorkerPool(WORKER_POOL_SIZE);
 
 export function runSolveDSCR(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const { property, borrower, loan, strategy } = buildEngineInputs(payload);
       const deal = solveDSCR(property, borrower, loan, strategy);
-      const fitResults = matchLenders(property, borrower, loan, strategy, deal.solvedRate);
-      const scoreResult = scoreLenderMatch(fitResults, loan, borrower, strategy);
-      const topLenders = scoreResult.topPicks.map((p) => ({
-        name: p.lenderName,
-        score: p.totalScore,
-        tier: p.tier,
-        rank: p.rankAmongEligible,
-        topReasons: p.topReasons.slice(0, 2),
-      }));
-      return Promise.resolve({ deal, topLenders });
+      return Promise.resolve({ deal });
     } catch (err) {
       return Promise.reject(err);
     }
@@ -138,7 +160,7 @@ export function runSolveDSCR(payload: any): Promise<any> {
 }
 
 export function runSensitivity(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const { property, borrower, loan, strategy } = buildEngineInputs(payload);
       const deal = solveDSCR(property, borrower, loan, strategy);
@@ -165,7 +187,7 @@ export function runSensitivity(payload: any): Promise<any> {
 }
 
 export function runOptimize(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const { property, borrower, loan, strategy } = buildEngineInputs(payload);
       const options = generateStructureOptions(property, borrower, loan, strategy);
@@ -178,7 +200,7 @@ export function runOptimize(payload: any): Promise<any> {
 }
 
 export function runStateRules(payload: any): Promise<any> {
-  if (process.env.WORKER_POOL_SIZE === "0") {
+  if (!usesWorkerPool()) {
     try {
       const ppp = checkPPPLegal(
         payload.state,

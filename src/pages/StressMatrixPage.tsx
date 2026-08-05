@@ -29,13 +29,24 @@ const ZONE_ACCENT: Record<StressRiskZone, string> = {
   DEAL_BREAK:  "#ff6b6b",
 };
 
+// Per-zone corner glyph so the heatmap doesn't rely on hue discrimination
+// alone to tell zones apart — every zone gets a distinct symbol, not just the
+// two most severe.
+const ZONE_GLYPH: Record<StressRiskZone, string> = {
+  SAFE:        "✓",
+  COMFORTABLE: "◆",
+  MARGINAL:    "!",
+  FRAGILE:     "🔥",
+  DEAL_BREAK:  "🔥",
+};
+
 // ── Plain-English verdict copy ────────────────────────────────────────────────
 function verdictCopy(dscr: number, zone: StressRiskZone): { headline: string; sub: string } {
   if (zone === "SAFE")        return { headline: "Strong — rent easily covers all costs",        sub: "This scenario leaves a comfortable buffer above the lender's minimum." };
   if (zone === "COMFORTABLE") return { headline: "Solid — deal still covers costs with margin",  sub: "Rent exceeds the full payment. Lenders typically require DSCR ≥ 1.25." };
   if (zone === "MARGINAL")    return { headline: "Tight — rent just barely covers costs",        sub: `At ${dscr.toFixed(2)}x the deal clears 1.00, but there's little cushion.` };
   if (zone === "FRAGILE")     return { headline: "Cash-flow shortfall — stress this deal hard",  sub: `Rent falls short of the full monthly payment by about ${Math.round((1 - dscr) * 100)}%.` };
-  return { headline: "Deal breaks — rent cannot cover costs in this scenario",                  sub: `DSCR of ${dscr.toFixed(2)}x means the property is cash-flow negative. Lenders won't approve below 1.00.` };
+  return { headline: "Rent does not cover modeled costs in this scenario",                      sub: `DSCR of ${dscr.toFixed(2)}x is below payment coverage in this model. Provider requirements and approval are not evaluated.` };
 }
 
 // ── Mini P&I calculator (used for live stress panel) ─────────────────────────
@@ -248,12 +259,14 @@ export default function StressMatrixPage({
       <style>{`
         .sm-num::-webkit-outer-spin-button,.sm-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .sm-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};letter-spacing:-0.02em;}
+        .sm-num:focus-visible{outline:2px solid ${LEMON};outline-offset:2px;border-radius:3px;}
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;
           font-family:${dc.mono};font-size:9px;font-weight:700;}
         .sm-cell{display:block;width:100%;}
         /* Slider resets */
         .gs-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;
           border-radius:3px;outline:none;cursor:pointer;background:#003738;}
+        .gs-slider:focus-visible{outline:2px solid ${LEMON};outline-offset:4px;}
         .gs-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
           border-radius:50%;background:${LEMON};border:2px solid #003738;cursor:pointer;
           transition:transform .12s,box-shadow .12s;}
@@ -672,7 +685,7 @@ export default function StressMatrixPage({
                     {verdict.sub}
                     {stressZone === "DEAL_BREAK" || stressZone === "FRAGILE" ? (
                       <span style={{ display: "block", marginTop: 6, color: "rgba(238,239,211,0.4)", fontStyle: "italic", fontSize: 11 }}>
-                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, contact us at +1 (555) 010-0000.
+                        This is an educational estimate only, not a rate, approval, or underwriting result. Request a qualified review for transaction-specific facts.
                       </span>
                     ) : null}
                   </p>
@@ -754,8 +767,6 @@ export default function StressMatrixPage({
                                       const isHovered  = hoverCell !== null &&
                                         hoverCell.rateBps === offsetBps &&
                                         Math.abs(hoverCell.rentPct - cell.rentOffsetPct) < 0.001;
-                                      // danger zone: show flame indicator on high-risk cells
-                                      const isDanger = cell.riskZone === "DEAL_BREAK" || cell.riskZone === "FRAGILE";
                                       return (
                                         <td
                                           key={ci}
@@ -777,8 +788,8 @@ export default function StressMatrixPage({
                                         >
                                           <div className="sm-cell" style={cellStyle(cell.riskZone, isBaseCell, isHovered)}>
                                             {cell.track1DSCR.toFixed(2)}
-                                            {isDanger && !isBaseCell && !isHovered && (
-                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>🔥</span>
+                                            {!isBaseCell && !isHovered && (
+                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>{ZONE_GLYPH[cell.riskZone]}</span>
                                             )}
                                           </div>
                                         </td>
@@ -892,7 +903,7 @@ export default function StressMatrixPage({
 
               {/* ── Compliance footnote ───────────────────────────────── */}
               <p style={{ fontSize: 11, color: "rgba(238,239,211,0.28)", marginTop: 18, lineHeight: 1.55, maxWidth: "60ch" }}>
-                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, contact Greenstreet Finance at +1 (555) 010-0000.
+                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>educational estimates</strong> based on entered assumptions — not a rate, provider rule, approval, underwriting result, or investment advice.
               </p>
             </div>
           </div>

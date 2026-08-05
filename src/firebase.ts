@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously } from "firebase/auth";
-import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, where, DocumentData, getDocs } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 
 // Firebase config — values are read from environment variables.
 // In development, set these in your .env file (see .env.example).

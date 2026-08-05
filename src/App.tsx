@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, Component, lazy, Suspense } from "react";
 import QualifyWidget from "./components/QualifyWidget";
+import ToolReliabilityHoldPage from "./components/ToolReliabilityHoldPage";
+import { TOOL_RELIABILITY_HOLDS } from "./components/toolReliabilityHolds";
+import MarketingHome from "./marketing/MarketingHome";
+import NotFoundPage from "./pages/NotFoundPage";
+import { applyRouteMetadata, getRouteMetadata } from "./seo/routeMetadata";
 
 // Route module importers — the SINGLE source for both React.lazy and the idle
 // prefetch (warmAllRoutes) below. Each page is its own chunk (small initial
@@ -10,22 +15,9 @@ import QualifyWidget from "./components/QualifyWidget";
 const routeModules = {
   ComplianceDashboard: () => import("./components/ComplianceDashboard"),
   DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
-  LenderIntelPage: () => import("./pages/LenderIntelPage"),
-  StateLawsPage: () => import("./pages/StateLawsPage"),
   FAQPage: () => import("./pages/FAQPage"),
   BlogPage: () => import("./pages/BlogPage"),
   BlogPostPage: () => import("./pages/BlogPostPage"),
-  RateQuizPage: () => import("./pages/RateQuizPage"),
-  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
-  ARMPage: () => import("./pages/ARMPage"),
-  MonteCarloPage: () => import("./pages/MonteCarloPage"),
-  ReturnsPage: () => import("./pages/ReturnsPage"),
-  TaxEnginePage: () => import("./pages/TaxEnginePage"),
-  StressMatrixPage: () => import("./pages/StressMatrixPage"),
-  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
-  STRUnderwritingPage: () => import("./pages/STRUnderwritingPage"),
-  PortfolioPage: () => import("./pages/PortfolioPage"),
-  DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
   BorrowerProfilesPage: () => import("./pages/BorrowerProfilesPage"),
   BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
   InvestorsPage: () => import("./pages/InvestorsPage"),
@@ -36,6 +28,7 @@ const routeModules = {
   ProductsPage: () => import("./pages/ProductsPage"),
   SolutionsPage: () => import("./pages/SolutionsPage"),
   BrokersPage: () => import("./pages/BrokersPage"),
+  BookDemoPage: () => import("./pages/BookDemoPage"),
 } as const;
 
 let _warmed = false;
@@ -47,22 +40,9 @@ function warmAllRoutes() {
 
 const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
 const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
-const LenderIntelPage = lazy(routeModules.LenderIntelPage);
-const StateLawsPage = lazy(routeModules.StateLawsPage);
 const FAQPage = lazy(routeModules.FAQPage);
 const BlogPage = lazy(routeModules.BlogPage);
 const BlogPostPage = lazy(routeModules.BlogPostPage);
-const RateQuizPage = lazy(routeModules.RateQuizPage);
-const RefiTrackerPage = lazy(routeModules.RefiTrackerPage);
-const ARMPage = lazy(routeModules.ARMPage);
-const MonteCarloPage = lazy(routeModules.MonteCarloPage);
-const ReturnsPage = lazy(routeModules.ReturnsPage);
-const TaxEnginePage = lazy(routeModules.TaxEnginePage);
-const StressMatrixPage = lazy(routeModules.StressMatrixPage);
-const DecisionSupportPage = lazy(routeModules.DecisionSupportPage);
-const STRUnderwritingPage = lazy(routeModules.STRUnderwritingPage);
-const PortfolioPage = lazy(routeModules.PortfolioPage);
-const DealAnalyzerPage = lazy(routeModules.DealAnalyzerPage);
 const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
 const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
 const InvestorsPage = lazy(routeModules.InvestorsPage);
@@ -73,6 +53,7 @@ const LegalPage = lazy(routeModules.LegalPage);
 const ProductsPage = lazy(routeModules.ProductsPage);
 const SolutionsPage = lazy(routeModules.SolutionsPage);
 const BrokersPage = lazy(routeModules.BrokersPage);
+const BookDemoPage = lazy(routeModules.BookDemoPage);
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -81,17 +62,17 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
   render() {
     if (this.state.error) {
       return (
-        <div style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
+        <main aria-labelledby="application-error-heading" style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
           <div style={{ maxWidth: "480px", padding: "40px", textAlign: "center" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠</div>
-            <h2 style={{ color: "#003738", fontSize: "24px", marginBottom: "12px" }}>Something went wrong</h2>
+            <div aria-hidden="true" style={{ fontSize: "48px", marginBottom: "16px" }}>⚠</div>
+            <h2 id="application-error-heading" style={{ color: "#003738", fontSize: "24px", marginBottom: "12px" }}>Something went wrong</h2>
             <p style={{ color: "#006565", marginBottom: "24px" }}>{(this.state.error as Error).message}</p>
             <button onClick={() => { this.setState({ error: null }); window.history.back(); }}
               style={{ background: "#d8d958", color: "#003738", border: "none", borderRadius: "8px", padding: "12px 28px", fontWeight: 700, cursor: "pointer", fontSize: "15px" }}>
               Go back
             </button>
           </div>
-        </div>
+        </main>
       );
     }
     return this.props.children;
@@ -99,6 +80,29 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
 }
 
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+
+const CLIENT_WORKSPACE_CONFIGURED = Boolean(
+  import.meta.env.VITE_FIREBASE_API_KEY &&
+  import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+  import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+  import.meta.env.VITE_FIREBASE_APP_ID
+);
+
+const RELIABILITY_HOLD_VIEWS = new Set<PageView>([
+  "decision-support",
+  "deal-analyzer",
+  "rate-quiz",
+  "state-laws",
+  "str-underwriting",
+  "structure-optimizer",
+  "tax-engine",
+  "refi-tracker",
+  "portfolio",
+  "monte-carlo",
+  "arm-reset",
+  "returns",
+  "stress-matrix",
+]);
 
 function portalTabFromPath(pathname: string): string | undefined {
   const clean = pathname.replace(/\/$/, "");
@@ -111,8 +115,7 @@ function portalTabFromPath(pathname: string): string | undefined {
   return undefined;
 }
 
-function navigateTo(view: PageView) {
-  const path = viewToPath(view);
+function navigateTo(view: PageView, path = viewToPath(view)) {
   if (typeof window !== "undefined") {
     window.history.pushState({}, "", path);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -124,7 +127,6 @@ function viewToPath(view: PageView): string {
     case "marketing":         return "/";
     case "portal":            return "/investgo";
     case "dscr-calculator":   return "/dscr-calculator";
-    case "lender-intel":      return "/lender-intel";
     case "state-laws":        return "/state-laws";
     case "deal-analyzer":     return "/deal-analyzer";
     case "borrower-profiles": return "/borrower-profiles";
@@ -142,6 +144,7 @@ function viewToPath(view: PageView): string {
     case "returns":           return "/tools/returns";
     case "tax-engine":        return "/tools/tax-engine";
     case "stress-matrix":     return "/tools/stress-matrix";
+    case "structure-optimizer": return "/tools/structure-optimizer";
     case "decision-support":  return "/tools/decision-support";
     case "str-underwriting":  return "/tools/str-underwriting";
     case "portfolio":         return "/tools/portfolio";
@@ -151,6 +154,7 @@ function viewToPath(view: PageView): string {
     case "products":          return "/products";
     case "solutions":         return "/solutions";
     case "book-demo":         return "/book-demo";
+    case "not-found":         return "/404";
     case "external":          return "/external";
   }
 }
@@ -178,6 +182,11 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
+  useEffect(
+    () => applyRouteMetadata(getRouteMetadata({ pathname, view })),
+    [pathname, view],
+  );
+
   // Warm every route chunk during idle, right after first paint. After this runs,
   // navigation never hits a Suspense fallback — the chunk is already cached, so
   // React.lazy resolves synchronously and the page renders its FINAL layout
@@ -193,8 +202,8 @@ export default function App() {
   // Global link interceptor: any <a href="/internal"> click navigates via
   // React Router instead of doing a full page reload. Unknown paths fall
   // through so external links (HubSpot booking, asset files, etc.) keep working.
-  const goTo = (nextView: PageView) => {
-    navigateTo(nextView);
+  const goTo = (nextView: PageView, path?: string) => {
+    navigateTo(nextView, path);
     setView(nextView);
     if (typeof window !== "undefined") {
       setPathname(window.location.pathname);
@@ -202,13 +211,11 @@ export default function App() {
     }
   };
 
-  // Hold the latest goTo + view in refs so the global click listener can be
+  // Hold the latest goTo in a ref so the global click listener can be
   // registered exactly once (below) instead of being torn down and re-added on
   // every render. Listener churn is a subtle source of double-handling.
   const goToRef = useRef(goTo);
   goToRef.current = goTo;
-  const viewRef = useRef(view);
-  viewRef.current = view;
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -220,12 +227,6 @@ export default function App() {
       if (!target) return;
       const anchor = target.closest("a") as HTMLAnchorElement | null;
       if (!anchor) return;
-      // On React (non-marketing) routes, ignore any anchor that lives inside the
-      // hidden Webflow marketing root. Those nav/footer links must never drive
-      // SPA navigation — they can't be user-clicked while hidden, and blocking
-      // them here stops the embedded marketing markup/scripts from hijacking
-      // routing on React pages (the V8 route-drift bug).
-      if (viewRef.current !== "marketing" && anchor.closest("#webflow-root")) return;
       if (anchor.target === "_blank") return;
       if (anchor.hasAttribute("data-external")) return;
       if (anchor.hasAttribute("download")) return;
@@ -241,7 +242,7 @@ export default function App() {
       if (!isKnownRoute(href)) return;
 
       e.preventDefault();
-      goToRef.current(resolveRoute(href));
+      goToRef.current(resolveRoute(href), href);
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
@@ -257,45 +258,10 @@ export default function App() {
       document.body.style.color = "#003738";
     }
 
-    const isMarketing = view === "marketing";
-    if (isMarketing) {
+    if (view === "marketing") {
       document.documentElement.classList.remove("is-spa-route");
     } else {
       document.documentElement.classList.add("is-spa-route");
-    }
-    const wfRoot = document.getElementById("webflow-root");
-    const reactRoot = document.getElementById("root");
-    if (wfRoot) {
-      wfRoot.style.display = isMarketing ? "block" : "none";
-      // Belt-and-suspenders: the hidden marketing root must not intercept
-      // pointer events or be reachable on React routes.
-      wfRoot.style.pointerEvents = isMarketing ? "" : "none";
-      wfRoot.setAttribute("aria-hidden", isMarketing ? "false" : "true");
-      wfRoot.hidden = !isMarketing;
-      (wfRoot as any).inert = !isMarketing;
-    }
-    if (reactRoot) reactRoot.style.display = isMarketing ? "none" : "block";
-
-    const w = window as any;
-    if (isMarketing) {
-      // Marketing DOM is now visible — (re)initialize its GSAP/Swiper layer.
-      setTimeout(() => {
-        try {
-          if (typeof w.initAnimations === "function") w.initAnimations();
-          if (typeof w.__gsStartMarketing === "function") w.__gsStartMarketing();
-        } catch (e) {
-          console.error("Failed to re-initialize marketing animations:", e);
-        }
-      }, 50);
-    } else {
-      // Leaving (or never entering) marketing: tear down ScrollTrigger /
-      // Swiper / intervals / handlers so the embedded Webflow scripts can't
-      // hijack scroll or history on React pages.
-      try {
-        if (typeof w.__gsStopMarketing === "function") w.__gsStopMarketing();
-      } catch (e) {
-        console.error("Failed to tear down marketing animations:", e);
-      }
     }
   }, [view]);
 
@@ -304,12 +270,22 @@ export default function App() {
     setPassedEmail(email);
     goTo("portal");
   };
+  const navigateFromReliabilityHold = (nextView: string) =>
+    goTo(nextView as PageView);
 
   const renderPage = () => {
     switch (view) {
       case "marketing":
-        return null;
+        return <MarketingHome />;
       case "portal":
+        if (!CLIENT_WORKSPACE_CONFIGURED) {
+          return (
+            <ToolReliabilityHoldPage
+              {...TOOL_RELIABILITY_HOLDS.workspace}
+              onNavigate={navigateFromReliabilityHold}
+            />
+          );
+        }
         return (
           <ComplianceDashboard
             key={pathname}
@@ -320,10 +296,8 @@ export default function App() {
         );
       case "dscr-calculator":
         return <DSCRCalculatorPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
-      case "lender-intel":
-        return <LenderIntelPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
-        return <StateLawsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stateRules} onNavigate={navigateFromReliabilityHold} />;
       case "faq":
         return <FAQPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "blog":
@@ -333,9 +307,9 @@ export default function App() {
       case "case-studies":
         return <CaseStudiesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "rate-quiz":
-        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.rateQuiz} onNavigate={navigateFromReliabilityHold} />;
       case "deal-analyzer":
-        return <DealAnalyzerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.dealAnalyzer} onNavigate={navigateFromReliabilityHold} />;
       case "borrower-profiles":
         return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers":
@@ -355,28 +329,32 @@ export default function App() {
       case "solutions":
         return <SolutionsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "book-demo":
-        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <BookDemoPage key={pathname} onNavigate={goTo} />;
+      case "not-found":
+        return <NotFoundPage key={pathname} onNavigate={goTo} />;
       case "refi-tracker":
-        return <RefiTrackerPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.refiTracker} onNavigate={navigateFromReliabilityHold} />;
       case "arm-reset":
-        return <ARMPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.armReset} onNavigate={navigateFromReliabilityHold} />;
       case "monte-carlo":
-        return <MonteCarloPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.monteCarlo} onNavigate={navigateFromReliabilityHold} />;
       case "returns":
-        return <ReturnsPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.returns} onNavigate={navigateFromReliabilityHold} />;
       case "tax-engine":
-        return <TaxEnginePage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.taxEngine} onNavigate={navigateFromReliabilityHold} />;
       case "stress-matrix":
-        return <StressMatrixPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stressMatrix} onNavigate={navigateFromReliabilityHold} />;
       case "decision-support":
-        return <DecisionSupportPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
       case "str-underwriting":
-        return <STRUnderwritingPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.strUnderwriting} onNavigate={navigateFromReliabilityHold} />;
+      case "structure-optimizer":
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.structureOptimizer} onNavigate={navigateFromReliabilityHold} />;
       case "portfolio":
-        return <PortfolioPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.portfolioRefi} onNavigate={navigateFromReliabilityHold} />;
       case "external":
         if (typeof window !== "undefined") {
-          window.location.href = "https://www.greenstreet.com";
+          window.location.href = "https://www.greenstreet.finance";
         }
         return null;
     }
@@ -392,8 +370,15 @@ export default function App() {
         <Suspense fallback={null}>
           <PageRenderer />
         </Suspense>
-        {/* QualifyWidget overlays every view — modal + sticky pill */}
-        <QualifyWidget />
+        {view === "marketing" ||
+        view === "not-found" ||
+        (view === "portal" && !CLIENT_WORKSPACE_CONFIGURED) ||
+        RELIABILITY_HOLD_VIEWS.has(view) ? null : (
+          <QualifyWidget
+            showTrigger={view !== "book-demo"}
+            autoOpen={view !== "book-demo"}
+          />
+        )}
       </div>
     </ErrorBoundary>
   );

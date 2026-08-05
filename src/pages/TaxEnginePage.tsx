@@ -27,7 +27,6 @@ export default function TaxEnginePage({
   const [rate, setRate] = useState(7.0);
   const [ltv, setLtv] = useState(75);
   const [holdYears, setHoldYears] = useState(5);
-  const [rentGrowth, setRentGrowth] = useState(3);
   const [magi, setMagi] = useState(150000);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("MFJ");
   const [isRep, setIsRep] = useState(false);
@@ -86,7 +85,6 @@ export default function TaxEnginePage({
     rate,
     ltv,
     holdYears,
-    rentGrowth,
     magi,
     filingStatus,
     isRep,
@@ -137,6 +135,7 @@ export default function TaxEnginePage({
         .te-num::-webkit-outer-spin-button,.te-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .te-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
         .te-sel{width:100%;border:none;outline:none;font-family:${dc.sans};-webkit-appearance:none;cursor:pointer;background:transparent;color:${dc.cream};letter-spacing:-0.02em;}
+        .te-num:focus-visible,.te-sel:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
       `}</style>
 
       {/* ── HERO — lemon field, dark ink ── */}
@@ -891,7 +890,7 @@ export default function TaxEnginePage({
                     <strong style={{ color: dc.lemon }}>Tax rules applied:</strong>{" "}
                     IRC §167 straight-line depreciation over 27.5 years · §469 passive-activity-loss rules (limited to $25K for incomes under $100K; phased out to $150K; suspended above unless you qualify as a real estate professional) · §1250 recapture at 25% on depreciation claimed · §1(h) long-term capital gains rates · §1411 net investment income tax 3.8%.{" "}
                     {result.disclaimer}{" "}
-                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Book a demo for a live scenario review.
                   </div>
                 </>
               )}

@@ -43,6 +43,15 @@ const WIDGET_CSS = `
   .qw-pill:active {
     transform: translateY(1px);
   }
+  @media (max-width: 479px) {
+    .qw-pill {
+      position: static !important;
+      width: calc(100% - 32px);
+      min-height: 48px;
+      justify-content: center;
+      margin: 16px;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .qw-pill {
       transition: none !important;
@@ -60,7 +69,13 @@ function ensureWidgetStyles() {
   document.head.appendChild(el);
 }
 
-export default function QualifyWidget() {
+export default function QualifyWidget({
+  showTrigger = true,
+  autoOpen = true,
+}: {
+  showTrigger?: boolean;
+  autoOpen?: boolean;
+} = {}) {
   const [open, setOpen] = useState(false);
   const autoTriggeredRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -94,6 +109,10 @@ export default function QualifyWidget() {
 
   // Auto-open logic — runs once per mount; guards against repeated triggers.
   useEffect(() => {
+    // A blocking form is disruptive while someone is editing a compact tool;
+    // the in-flow mobile CTA remains available without interrupting the task.
+    if (!autoOpen || window.matchMedia("(max-width: 479px)").matches) return;
+
     const alreadySeen = () => {
       try {
         return localStorage.getItem(STORAGE_KEY) === "1";
@@ -130,15 +149,15 @@ export default function QualifyWidget() {
     }
 
     return cleanup;
-  }, [openModal]);
+  }, [autoOpen, openModal]);
 
   return (
     <>
       {/* Sticky pill trigger — hidden while modal is open */}
-      {!open && (
+      {showTrigger && !open && (
         <button
           onClick={openModal}
-          aria-label="See if you qualify"
+          aria-label="Request a scenario review"
           className="qw-pill"
           style={{
             position: "fixed",
@@ -162,7 +181,7 @@ export default function QualifyWidget() {
             // We don't add floating/pulsing motion per brand rules.
           }}
         >
-          ✓ See if you qualify
+          Request a scenario review →
         </button>
       )}
 

@@ -63,7 +63,7 @@ export function analyzePortfolio(
   const totalDebtYield = totalLoanBalance > 0 ? totalNOI / totalLoanBalance : 0;
 
   // Cash-on-Cash (Track 2 income)
-  const totalCashInvested = allProperties.reduce((sum, p) => sum + p.loanBalance * 0.25, 0); // estimate 25% down
+  const totalCashInvested = allProperties.reduce((sum, p) => sum + p.loanBalance * (0.25 / 0.75), 0); // estimate 25% down at ~75% LTV (down/loan = 0.25/0.75)
   const annualTrack2CF = totalNOI - totalAnnualDebtService;
   const weightedCashOnCash = totalCashInvested > 0 ? annualTrack2CF / totalCashInvested : 0;
 

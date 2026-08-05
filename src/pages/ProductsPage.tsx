@@ -28,169 +28,181 @@ interface Tool {
 const TOOLS: Tool[] = [
   {
     title: "Deal Analyzer",
-    desc: "The full picture in one pass. Track 1 shows what the lender uses to qualify the file (DSCR: whether rent covers the full monthly PITIA payment — principal, interest, taxes, insurance, HOA). Track 2 strips out vacancy, management fees and CapEx reserves to show what you'll actually earn. Also computes break-even rate and cash-on-cash — before you wire earnest money.",
-    cta: "Analyze my deal",
+    desc: "Reliability hold. This broader analysis view is not released for decision-making while its calculations and assumptions are reviewed. Use the released DSCR Calculator only for preliminary arithmetic from the inputs you provide.",
+    cta: "View availability",
     view: "deal-analyzer",
-    tag: "Most used",
+    tag: "Reliability hold",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Deal Analyzer",
-    panelMetric: "1.11×",
-    panelNote: "Dual-track DSCR · lender + investor",
+    panelMetric: "HOLD",
+    panelNote: "Calculations and assumptions under review",
   },
   {
     title: "DSCR Calculator",
-    desc: "Quick DSCR check and max-purchase-price. Enter the rent, rate and property costs; get the PITIA breakdown (full monthly payment), rate tier guidance, and which Greenstreet programs fit — when you need an answer in 60 seconds, not 60 minutes.",
-    cta: "Check my DSCR",
+    desc: "Released for arithmetic-only DSCR estimates. Enter income, rate, and property-cost inputs to calculate a payment-based ratio and PITIA breakdown. Results are preliminary and do not determine pricing, eligibility, terms, approval, or underwriting.",
+    cta: "Open DSCR Calculator",
     view: "dscr-calculator",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
     panelTag: "DSCR Calculator",
-    panelMetric: "1.25×",
-    panelNote: "Live dual-track coverage + lender shortlist",
+    panelMetric: "DSCR",
+    panelNote: "Released · input-based arithmetic only",
   },
   {
     title: "Program Intelligence",
-    desc: "Filter all 19 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
-    cta: "Match my file to a program",
-    view: "lender-intel",
+    desc: "Reliability hold. Program comparisons and matching are unavailable for decision-making while the underlying information is reviewed. This tool does not provide program availability, eligibility, pricing, terms, or approval.",
+    cta: "View availability",
+    view: "products",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
-    panelTag: "Lender Intel",
-    panelMetric: "19",
-    panelNote: "Programs ranked by fit score",
+    panelTag: "Loan Programs",
+    panelMetric: "HOLD",
+    panelNote: "Program information under review",
   },
   {
     title: "50-State Compliance Rules",
-    desc: "50-state matrix with statutory citations covering prepayment penalties (a fee some loans charge if you pay off or refinance early), usury caps, and short-term-rental restrictions. Covers the traps that kill deals after you think you're done: OH/PA thresholds, NJ LLC risk, TX APR ban, MN HF 3437.",
-    cta: "Check my state's rules",
+    desc: "Reliability hold. State-law information and citations are unavailable for legal or compliance decisions while sources are reviewed. Consult qualified legal counsel for advice on a specific transaction.",
+    cta: "View availability",
     view: "state-laws",
     panelBg: dc.teal,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.6)",
     panelTag: "State Laws",
-    panelMetric: "50",
-    panelNote: "Cited PPP & usury rule sets",
+    panelMetric: "HOLD",
+    panelNote: "Legal and compliance content under review",
   },
   {
     title: "Monte Carlo Rate Simulation",
-    desc: "500 simulated rate paths show the probability your DSCR (rent-to-payment ratio) breaks below 1.0 before the ARM resets. Uses a calibrated Vasicek stochastic model — the same framework bank stress teams use — giving P10/P50/P90 distributions so you can see best, median and worst case in one view.",
-    cta: "Simulate my rate risk",
+    desc: "Reliability hold. Rate simulations and projected outcomes are unavailable for decision-making while model assumptions and calculations are reviewed. This tool does not provide a forecast or a verified risk assessment.",
+    cta: "View availability",
     view: "monte-carlo",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
     panelBody: "rgba(238,239,211,0.6)",
     panelTag: "Monte Carlo",
-    panelMetric: "500×",
-    panelNote: "Stochastic rate-path simulation",
+    panelMetric: "HOLD",
+    panelNote: "Model assumptions under review",
   },
   {
     title: "Stress Matrix",
-    desc: "A 120-cell grid shows every combination of rent haircut and rate shock — so you can see exactly where DSCR breaks before a lender asks. Run it in seconds; share it as a defensible page in the loan package.",
-    cta: "Run the stress matrix",
+    desc: "Reliability hold. Sensitivity outputs are unavailable for decision-making while the underlying calculations are reviewed. Do not use this tool as a lending, investment, or risk conclusion.",
+    cta: "View availability",
     view: "stress-matrix",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
     panelTag: "Stress Matrix",
-    panelMetric: "120",
-    panelNote: "Sensitivity cells: rent × rate",
+    panelMetric: "HOLD",
+    panelNote: "Sensitivity calculations under review",
   },
   {
     title: "After-Tax Returns",
-    desc: "Levered IRR (return on your cash invested after debt), equity multiple (total returned ÷ invested), and after-tax IRR accounting for the full depreciation stack: §167 straight-line depreciation, §469 passive-activity-loss, §1250 recapture at sale, and §1411 net investment income tax. The real net return, every line traceable.",
-    cta: "Run my returns",
+    desc: "Reliability hold. Return calculations are unavailable for decision-making while their methods and assumptions are reviewed. This tool does not provide verified performance or tax conclusions.",
+    cta: "View availability",
     view: "returns",
     panelBg: dc.lemon,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.6)",
     panelTag: "Returns Engine",
-    panelMetric: "IRR",
-    panelNote: "After-tax IRR, equity multiple, fully traced",
+    panelMetric: "HOLD",
+    panelNote: "Return calculations under review",
   },
   {
     title: "Tax Engine",
-    desc: "Rental property's biggest advantage is depreciation — the IRS lets you deduct a portion of the building each year. The Tax Engine runs the full stack: §167 straight-line depreciation, §469 passive-activity-loss rules with the real-estate-professional exception, §1250 recapture at 25%, and §1411 NIIT. Every line traceable to a code section.",
-    cta: "Calculate my tax shield",
+    desc: "Reliability hold. Tax calculations and explanations are unavailable for tax decisions while their sources and calculations are reviewed. Consult a qualified tax professional for advice about your situation.",
+    cta: "View availability",
     view: "tax-engine",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Tax Engine",
-    panelMetric: "§§",
-    panelNote: "Depreciation · PAL · recapture · NIIT",
+    panelMetric: "HOLD",
+    panelNote: "Tax content and calculations under review",
   },
   {
     title: "Short-Term Rental (STR) Underwriting",
-    desc: "Short-term rental (Airbnb / VRBO) income is modeled on average daily rate (ADR) × occupancy with seasonal haircuts — the income methodology lenders actually accept, not the optimistic projections Airbnb shows hosts. Runs against the STR program parameters so you can see the qualifying DSCR before you list the property.",
-    cta: "Underwrite my STR",
+    desc: "Reliability hold. Short-term-rental analysis is unavailable for decision-making while its calculations and assumptions are reviewed. It does not determine income treatment, qualification, or underwriting.",
+    cta: "View availability",
     view: "str-underwriting",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
     panelBody: "rgba(238,239,211,0.6)",
     panelTag: "STR",
-    panelMetric: "ADR×",
-    panelNote: "ADR × occupancy · seasonal haircut",
+    panelMetric: "HOLD",
+    panelNote: "STR calculations under review",
   },
   {
     title: "ARM Reset Analyzer",
-    desc: "Adjustable-rate mortgages (ARMs) have a fixed period — e.g., 5 years on a 5/1 ARM — then reset based on an index (usually SOFR) plus a margin, subject to periodic and lifetime caps. The ARM Reset Analyzer computes the payment at every future reset date so you know the worst-case payment before your client signs.",
-    cta: "Model my ARM resets",
+    desc: "Reliability hold. ARM payment projections are unavailable for decision-making while their calculations and assumptions are reviewed. This tool does not provide future-rate or payment conclusions.",
+    cta: "View availability",
     view: "arm-reset",
     panelBg: dc.mintBg,
     panelAccent: dc.rain,
     panelBody: "rgba(0,55,56,0.55)",
     panelTag: "ARM Reset",
-    panelMetric: "5/1",
-    panelNote: "Index + margin + cap schedule",
+    panelMetric: "HOLD",
+    panelNote: "ARM calculations under review",
   },
   {
     title: "Refi Tracker",
-    desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) pencils only if the monthly savings pay back closing costs before you sell or refinance again. The Refi Tracker shows break-even month, NPV of savings, and the minimum rate drop that justifies closing costs — so you refinance when the math confirms it, not when rates feel low.",
-    cta: "Find my refi break-even",
+    desc: "Reliability hold. Refinance comparisons are unavailable for decision-making while their calculations and assumptions are reviewed. This tool does not provide a refinance recommendation, pricing, or savings conclusion.",
+    cta: "View availability",
     view: "refi-tracker",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
     panelBody: "rgba(238,239,211,0.55)",
     panelTag: "Refi Tracker",
-    panelMetric: "NPV",
-    panelNote: "Break-even month · min rate delta",
+    panelMetric: "HOLD",
+    panelNote: "Refinance calculations under review",
   },
 ];
 
 const SPECIAL_TOOLS = [
   {
     title: "Deal Workspace",
-    desc: "The workspace-only version of the analyzer: inputs, lender match, sensitivity, optimization, and saved scenarios in one operating screen.",
+    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
     href: "/tools/deal-workspace",
-    label: "Open workspace",
+    label: "View availability",
     stat: "01",
   },
   {
     title: "Sensitivity Lab",
-    desc: "Rent breakpoints, rate headroom, appraisal stress, and structure changes after a deal has been priced.",
+    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
     href: "/tools/sensitivity",
-    label: "Open sensitivity lab",
+    label: "View availability",
     stat: "02",
   },
   {
     title: "Structure Optimizer",
-    desc: "Compare interest-only, amortization, rate, and cost structures against qualifying DSCR and investor cash flow.",
+    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
     href: "/tools/structure-optimizer",
-    label: "Optimize structure",
+    label: "View availability",
     stat: "03",
   },
   {
     title: "Scenario History",
-    desc: "Saved deal runs, state checks, and output logs for repeat analysis and audit trails inside InvestGO.",
+    desc: "Reliability hold. This workspace view is not released for analysis or decision-making while its calculations and data are reviewed.",
     href: "/tools/scenario-history",
-    label: "View saved scenarios",
+    label: "View availability",
     stat: "04",
   },
 ] as const;
+
+const PRODUCTS_MOBILE_CSS = `
+  @media (max-width: 700px) {
+    .pr-feat, .dc-hero, .dc-split, .dc-band-2 { grid-template-columns: 1fr !important; }
+    .pr-feat { gap: 24px !important; }
+    .pr-feat > * { order: unset !important; }
+    .pr-visual-panel { aspect-ratio: auto !important; min-height: 250px; }
+    .pr-special-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .pr-special-grid > * { min-height: 0 !important; }
+    .dc-hero > *:last-child { max-width: 100%; }
+  }
+`;
 
 // ── Feature row ───────────────────────────────────────────────────────────────
 // Each row is a 2-col grid that alternates text/visual side.
@@ -295,6 +307,7 @@ function FeatureRow({
       {/* Visual panel */}
       <div style={{ order: textFirst ? 2 : 1 }}>
         <div
+          className="pr-visual-panel"
           style={{
             position: "relative",
             borderRadius: dc.r.lg,
@@ -430,12 +443,12 @@ export default function ProductsPage({
     <DcShell
       onNavigate={onNavigate}
       navLinks={[
-        { label: "All tools", view: "products" },
-        { label: "Lender Intel", view: "lender-intel" },
-        { label: "State Rules", view: "state-laws" },
+        { label: "Tool availability", view: "products" },
+        { label: "State Rules · on hold", view: "state-laws" },
       ]}
-      cta={{ label: "Price a deal →", view: "dscr-calculator" }}
+      cta={{ label: "Open DSCR Calculator →", view: "dscr-calculator" }}
     >
+      <style>{PRODUCTS_MOBILE_CSS}</style>
       {/* ── HERO: solid dark, left-aligned, eyebrow + display h1 + sub ──────── */}
       {/* id="pr-hero" matches the mockup; useDcGsap animates #gs-hero-content   */}
       {/* children — here we put everything inside one wrapper so both the       */}
@@ -473,10 +486,10 @@ export default function ProductsPage({
                 marginBottom: 18,
               }}
             >
-              11 tools · one engine
+              1 released calculator · 10 tools on hold
             </div>
             <H1 style={{ margin: 0 }}>
-              The DSCR Engine
+              DSCR calculation, clearly scoped
             </H1>
 
             {/* Sub — separate child so hero stagger steps to it after the h1 */}
@@ -487,14 +500,15 @@ export default function ProductsPage({
                 margin: "clamp(24px,3vw,36px) 0 0",
               }}
             >
-              Eleven tools for DSCR rental-loan underwriting — from a 60-second
-              deal check to a full after-tax returns model. Every tool runs off the
-              same deterministic core: versioned math, statutory citations, no
-              AI-generated numbers. Brokers typically use three tools. Investors
-              use five. Funds use all eleven. Start anywhere.
+              The DSCR Calculator is the currently released tool. It performs
+              preliminary arithmetic from the values you enter. The other tools
+              and workspace views are on reliability hold while their calculations
+              and source data are reviewed. Nothing here provides a live program,
+              pricing, eligibility, legal, tax, underwriting, approval, or
+              performance conclusion.
             </Lead>
           </div>
-          <MotionWorkbench mode="sim" value="11" label="Connected tools" />
+          <MotionWorkbench mode="sim" value="1" label="Released calculator" />
         </div>
       </section>
 
@@ -554,7 +568,7 @@ export default function ProductsPage({
                   marginBottom: 14,
                 }}
               >
-                Special tools
+                Workspace views · reliability hold
               </div>
               <h2
                 style={{
@@ -565,7 +579,7 @@ export default function ProductsPage({
                   margin: 0,
                 }}
               >
-                Workspace-only tools, now directly linked.
+                Workspace views are not released for decisions.
               </h2>
             </div>
             <p
@@ -578,7 +592,7 @@ export default function ProductsPage({
                 maxWidth: "54ch",
               }}
             >
-              These are the deeper InvestGO workbench views that used to live only inside the platform sidebar. They now have stable public routes and sit beside the standalone engines.
+              These linked workspace views remain on reliability hold while their calculations and data are reviewed. Do not use them for analysis, lending, investment, legal, tax, or compliance decisions.
             </p>
           </div>
           <div
@@ -626,7 +640,7 @@ export default function ProductsPage({
                 margin: "0 0 16px",
               }}
             >
-              Not sure which tool to start with?
+              Start with the released DSCR Calculator.
             </h2>
             <p
               style={{
@@ -639,9 +653,9 @@ export default function ProductsPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              New to DSCR? Start with the Deal Analyzer — it covers everything a
-              first-time investor or broker needs in a single screen. Or see the
-              recommended workflow for your role, or book a 15-minute walkthrough.
+              It provides a preliminary, input-based DSCR calculation and PITIA
+              breakdown. All other listed tools, including the rate quiz, remain
+              on reliability hold and are not for decision-making.
             </p>
             <button
               onClick={() => onNavigate("solutions")}
@@ -657,7 +671,7 @@ export default function ProductsPage({
                 fontFamily: dc.sans,
               }}
             >
-              See tools by role →
+              See tool availability by role →
             </button>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
@@ -677,7 +691,7 @@ export default function ProductsPage({
                 textAlign: "left" as const,
               }}
             >
-              See my rate in 5 questions →
+              Rate quiz availability →
             </button>
             <button
               onClick={() => onNavigate("dscr-calculator")}

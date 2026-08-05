@@ -62,3 +62,13 @@ hf-*/skills-lock.json
 .tmp/
 .design-ref/
 .vercel
+
+# Generated / scratch artifacts (CI hygiene)
+.playwright-cli/
+graphify-out/
+_regen_tmp/
+.trash/
+.firebase/
+audit-frames/
+audit-frames-v*/
+lint_output.txt

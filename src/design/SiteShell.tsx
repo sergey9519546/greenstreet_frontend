@@ -25,7 +25,6 @@ const NAV_MENUS: NavMenu[] = [
       { label: INVESTGO_LABEL, view: "portal", path: "/investgo" },
       { label: "Platform", path: "/products/platform" },
       { label: "DSCR Calculator", view: "dscr-calculator", path: "/dscr-calculator" },
-      { label: "Our DSCR Programs", view: "lender-intel", path: "/lender-intel" },
       { label: "State Regulations", view: "state-laws", path: "/state-laws" },
       { label: "Deal Analyzer", view: "deal-analyzer", path: "/deal-analyzer" },
       { label: "Borrower Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
@@ -46,9 +45,9 @@ const NAV_MENUS: NavMenu[] = [
     label: "Resources", view: "blog", path: "/blog",
     items: [
       { label: "Greenstreet Guidance", view: "blog", path: "/blog" },
-      { label: "Customer Stories", view: "case-studies", path: "/case-studies" },
+      { label: "Illustrative Scenarios", view: "case-studies", path: "/case-studies" },
       { label: "FAQ", view: "faq", path: "/faq" },
-      { label: "Customer Support", path: "/support" },
+      { label: "Support & FAQ", path: "/support" },
       { label: "About", view: "about", path: "/about" },
       { label: "Careers", view: "careers", path: "/careers" },
       { label: "Security & Privacy", view: "legal", path: "/legal" },
@@ -64,7 +63,7 @@ const NAV_DD_CSS = `
 .gs-dd-item{display:block;padding:10px 13px;border-radius:8px;color:${MIDNIGHT};font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background-color .2s ease,box-shadow .2s ease;}
 .gs-dd-item:hover,.gs-dd-item:focus-visible{background:${MINT_BG};outline:none;}
 .gs-dd-item.is-active{background:${MINT_BG};box-shadow:inset 3px 0 0 ${LEMON};}
-.gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:none;border:none;font-family:inherit;position:relative;}
+.gs-dd-toggle{display:inline-flex;align-items:center;gap:6px;padding:0;cursor:pointer;background:none;border:none;color:inherit;font-family:inherit;text-align:inherit;appearance:none;position:relative;}
 .gs-dd-caret{transition:transform .18s ease;}
 .gs-dd-wrap.is-open .gs-dd-caret{transform:rotate(180deg);}
 /* Active section / current page = the mint hover pill (matches the home's
@@ -101,10 +100,15 @@ const NAV_DD_CSS = `
 `;
 
 export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
+  const [announcementVisible, setAnnouncementVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuViewportTop, setMenuViewportTop] = useState(120);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const mobileRef = useRef<HTMLDivElement | null>(null);
+  const navRef = useRef<HTMLElement | null>(null);
+  const mobileToggleRef = useRef<HTMLButtonElement | null>(null);
+  const menuTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const closeTimer = useRef<number | null>(null);
   const path = typeof window !== "undefined" ? (window.location.pathname.replace(/\/$/, "") || "/") : "/";
 
@@ -113,19 +117,66 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const openNow = (label: string) => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; } setOpenMenu(label); };
   const scheduleClose = (label: string) => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = window.setTimeout(() => setOpenMenu((cur) => (cur === label ? null : cur)), 400); };
 
-  const closeAll = () => { setMenuOpen(false); setOpenMenu(null); };
+  const restoreFocus = (target: HTMLElement | null) => {
+    window.requestAnimationFrame(() => target?.focus());
+  };
+  const closeAll = (restoreTarget?: HTMLElement | null) => {
+    setMenuOpen(false);
+    setOpenMenu(null);
+    if (restoreTarget) restoreFocus(restoreTarget);
+  };
   const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); closeAll(); };
   const goPath = (p: string) => (e: React.MouseEvent) => { e.preventDefault(); window.history.pushState({}, "", p); window.dispatchEvent(new PopStateEvent("popstate")); closeAll(); };
   const nav = (it: NavItem) => it.view ? go(it.view) : goPath(it.path || "/");
   const itemActive = (it: NavItem) => !!it.path && it.path !== "/" && path === it.path.replace(/\/$/, "");
   const menuActive = (m: NavMenu) => path === m.path || m.items.some(itemActive);
+  const menuPanelId = (label: string) => `site-nav-menu-${label.toLowerCase().replace(/\s+/g, "-")}`;
+  const toggleMobileMenu = () => {
+    setMenuOpen((open) => {
+      if (!open) {
+        setMenuViewportTop(Math.ceil(navRef.current?.getBoundingClientRect().bottom ?? 120));
+      }
+      return !open;
+    });
+  };
 
-  // Esc closes any open dropdown.
+  // Escape always closes the active disclosure and restores focus to the
+  // control that opened it. This is important on mobile, where otherwise a
+  // keyboard user can be left in a now-hidden menu.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenMenu(null); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (menuOpen) {
+        e.preventDefault();
+        closeAll(mobileToggleRef.current);
+        return;
+      }
+      if (openMenu) {
+        e.preventDefault();
+        closeAll(menuTriggerRefs.current[openMenu]);
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [menuOpen, openMenu]);
+
+  // Browser back/forward and SPA route changes must not leave a detached
+  // disclosure visually open over the destination page.
+  useEffect(() => {
+    setMenuOpen(false);
+    setOpenMenu(null);
+  }, [path]);
+
+  // Mouse users should be able to dismiss a mega menu by clicking elsewhere;
+  // avoid changing focus because the pointer destination owns it.
+  useEffect(() => {
+    if (!openMenu) return;
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!navRef.current?.contains(event.target as Node)) setOpenMenu(null);
+    };
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
+  }, [openMenu]);
 
   // GSAP: premium dropdown open (panel slide+fade, then staggered items).
   // Reduced-motion safe — skips entirely and leaves the panel fully visible.
@@ -171,32 +222,43 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         key={m.label}
         className={`gs-dd-wrap${openMenu === m.label ? " is-open" : ""}`}
         onMouseEnter={() => openNow(m.label)}
-        onMouseLeave={() => scheduleClose(m.label)}
+        onMouseLeave={(event) => {
+          if (!event.currentTarget.contains(document.activeElement)) scheduleClose(m.label);
+        }}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) scheduleClose(m.label);
+        }}
       >
-        <a
+        <button
+          ref={(element) => { menuTriggerRefs.current[m.label] = element; }}
+          type="button"
           className={`nav-link gs-dd-toggle w-inline-block${menuActive(m) ? " is-active" : ""}`}
-          href={m.path}
-          aria-haspopup="true"
+          aria-controls={menuPanelId(m.label)}
           aria-expanded={openMenu === m.label}
-          onClick={go(m.view)}
-          onFocus={() => openNow(m.label)}
+          onClick={() => setOpenMenu((current) => current === m.label ? null : m.label)}
+          onKeyDown={(event) => {
+            if (event.key !== "ArrowDown") return;
+            event.preventDefault();
+            openNow(m.label);
+            window.requestAnimationFrame(() => panelRef.current?.querySelector<HTMLAnchorElement>("a")?.focus());
+          }}
         >
           <div className="nav-link-background" aria-hidden="true" />
           <div className="nav_links_text">{m.label}</div>
           {caret}
-        </a>
+        </button>
         {openMenu === m.label && (
-          <div ref={panelRef} className="gs-mega" role="menu" aria-label={m.label}>
+          <div ref={panelRef} id={menuPanelId(m.label)} className="gs-mega" role="group" aria-label={`${m.label} links`}>
             <div className="gs-mega-inner">
               <div className="gs-mega-grid">
                 {feature && (
-                  <a className="gs-mega-card gs-mega-feature" href={feature.path} onClick={nav(feature)}>
+                  <a className="gs-mega-card gs-mega-feature" href={feature.path} onClick={nav(feature)} aria-current={itemActive(feature) ? "page" : undefined}>
                     <div className="gs-mega-logo">INVEST<span style={{ opacity: 0.5 }}>GO</span></div>
                     {arrow}
                   </a>
                 )}
                 {cards.map((it, i) => (
-                  <a key={i} role="menuitem" className={`gs-mega-card${itemActive(it) ? " is-current" : ""}`} href={it.path} onClick={nav(it)}>
+                  <a key={i} className={`gs-mega-card${itemActive(it) ? " is-current" : ""}`} href={it.path} onClick={nav(it)} aria-current={itemActive(it) ? "page" : undefined}>
                     <div className="gs-mega-title">{it.label}</div>
                     {arrow}
                   </a>
@@ -212,27 +274,54 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   return (
     <>
       <style>{NAV_DD_CSS}</style>
-      <nav className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
+      {announcementVisible && (
+        <div className="announcement gs-site-announcement u-container u-theme-light">
+          <a
+            className="link-block w-inline-block"
+            href="/blog/greenstreet-go-launch"
+            aria-label="Read the InvestGO announcement"
+          />
+          <div className="announcement-txt w-richtext">
+            <p><strong>⎋</strong> Explore <strong>InvestGO</strong> — an educational DSCR workflow concept</p>
+          </div>
+          <button
+            type="button"
+            className="announcement-close"
+            aria-label="Dismiss announcement"
+            onClick={() => setAnnouncementVisible(false)}
+          >
+            <svg className="svg" fill="none" viewBox="0 0 11 11" width="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <line stroke="currentColor" strokeWidth="1.3" x1="0.664698" x2="9.95041" y1="0.458349" y2="9.74406" />
+              <line stroke="currentColor" strokeWidth="1.3" x1="0.459814" x2="9.74553" y1="9.74741" y2="0.461698" />
+            </svg>
+          </button>
+        </div>
+      )}
+      <nav ref={navRef} className="nav gs-site-nav" data-wf--nav-main--variant="greenstreet" aria-label="Primary navigation" style={{ position: "sticky", top: 0, zIndex: 50, background: PISTACHIO, borderBottom: `1px solid ${FADED}` }}>
       <div className="nav-contain u-container">
         <div className="nav-wrap">
           <a className="nav-logo-wrap w-inline-block" href="/" onClick={go("marketing")}>
             <div className="nav-logo w-embed">
-              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.01em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
+              <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: 30, fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.01em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
             </div>
           </a>
           <div className="nav-links-contain" hide-t="">
             <div className="nav-links-wrap">
-              <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")}>
+              <a className="nav-link w-inline-block" href="/investgo" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}>
                 <div className="nav-link-background" aria-hidden="true" />
                 <div className="nav_links_text font-go" style={{ color: MIDNIGHT, fontWeight: 700 }}>{INVESTGO_LABEL}</div>
               </a>
 
               {renderMenu(NAV_MENUS[0])}
               {renderMenu(NAV_MENUS[1])}
+              <a className="nav-link w-inline-block" href="/partners" onClick={go("brokers-partner")} aria-current={path === "/partners" ? "page" : undefined}>
+                <div className="nav-link-background" aria-hidden="true" />
+                <div className="nav_links_text">Partnerships</div>
+              </a>
               {renderMenu(NAV_MENUS[2])}
-              <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")}><div className="nav-link-background" aria-hidden="true" /><div>Login</div></a>
+              <a className="nav-link is-underline w-inline-block" href="/investgo" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}><div className="nav-link-background" aria-hidden="true" /><div>Login</div></a>
               {/* Solid, always-visible CTA (matches the home nav button). */}
-              <a className="nav-btn" href="/book-demo" onClick={go("book-demo")}
+              <a className="nav-btn" href="/book-demo" onClick={go("book-demo")} aria-current={path === "/book-demo" ? "page" : undefined}
                 style={{ display: "inline-flex", alignItems: "center", gap: 8, background: MIDNIGHT, color: PISTACHIO, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "12px 22px", borderRadius: 8, whiteSpace: "nowrap" }}>
                 Book a demo
                 <svg fill="none" height="16" viewBox="0 0 24 25" width="16" xmlns="http://www.w3.org/2000/svg">
@@ -241,7 +330,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               </a>
             </div>
           </div>
-          <button type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={() => setMenuOpen(!menuOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <div className="burger-line top" aria-hidden="true"></div>
             <div className="burger-line middle" aria-hidden="true"></div>
             <div className="burger-line bottom" aria-hidden="true"></div>
@@ -249,18 +338,19 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
         </div>
       </div>
       {menuOpen && (
-        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "16px 24px 24px", gap: "6px", zIndex: 49, maxHeight: "80vh", overflowY: "auto" }}>
-          <a href="/investgo" className="nav-link" onClick={go("portal")} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
+        <div ref={mobileRef} id="mobile-nav" className="menu-mobile-wrap gs-site-mobile-menu" role="navigation" aria-label="Mobile navigation" style={{ display: "flex", flexDirection: "column", position: "absolute", top: "100%", left: 0, right: 0, background: PISTACHIO, borderBottom: `1px solid ${FADED}`, padding: "18px var(--gs-page-gutter, 1.125rem) 28px", gap: "4px", zIndex: 49, maxHeight: `calc(100dvh - ${menuViewportTop}px)`, overflowY: "auto" }}>
+          <a href="/investgo" className="nav-link" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined} style={{ fontWeight: 700 }}>{INVESTGO_LABEL}</a>
           {NAV_MENUS.map((m) => (
             <React.Fragment key={m.label}>
               <a href={m.path} className="gs-mnav-section" onClick={go(m.view)} style={{ textDecoration: "none" }}>{m.label}</a>
               {m.items.map((it, i) => (
-                <a key={i} href={it.path} className="nav-link" onClick={nav(it)} style={{ paddingLeft: 8 }}>{it.label}</a>
+                <a key={i} href={it.path} className="nav-link" onClick={nav(it)} aria-current={itemActive(it) ? "page" : undefined} style={{ paddingLeft: 8 }}>{it.label}</a>
               ))}
             </React.Fragment>
           ))}
-          <a href="/investgo" className="nav-link" onClick={go("portal")}>Login</a>
-          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")}>Book a demo</a>
+          <a href="/partners" className="nav-link" onClick={go("brokers-partner")} aria-current={path === "/partners" ? "page" : undefined}>Partnerships</a>
+          <a href="/investgo" className="nav-link" onClick={go("portal")} aria-current={path === "/investgo" ? "page" : undefined}>Login</a>
+          <a href="/book-demo" className="nav-link" style={{ background: LEMON, textAlign: "center", borderRadius: "8px", padding: "12px", fontWeight: 700, marginTop: 6 }} onClick={go("book-demo")} aria-current={path === "/book-demo" ? "page" : undefined}>Book a demo</a>
         </div>
       )}
       </nav>
@@ -271,6 +361,8 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
 export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void }) {
   const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); };
   const goPath = (p: string) => (e: React.MouseEvent) => { e.preventDefault(); window.history.pushState({}, "", p); window.dispatchEvent(new PopStateEvent("popstate")); };
+  const path = typeof window !== "undefined" ? (window.location.pathname.replace(/\/$/, "") || "/") : "/";
+  const current = (href: string) => href.includes("#") ? undefined : path === href.replace(/\/$/, "") ? "page" : undefined;
   return (
     <div className="footer_component">
       <footer className="footer_wrap">
@@ -281,57 +373,62 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
               <span style={{ fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif', fontSize: "22px", fontWeight: 700, fontVariationSettings: '"wght" 700', letterSpacing: "-0.04em", color: "currentColor", whiteSpace: "nowrap", lineHeight: 0.98, display: "inline-block" }}>Greenstreet<span style={{ fontWeight: 400, fontVariationSettings: '"wght" 400' }}> Finance</span><span style={{ color: LEMON, fontSize: "1.2em" }}>.</span></span>
             </div>
           </a>
-          <nav className="footer_layout u-grid-autofit">
+          <nav className="footer_layout u-grid-autofit" aria-label="Footer navigation">
             <section className="footer_group_wrap u-column-2">
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Product</h3>
               <div className="footer_group_list u-grid-column-2">
-                <a className="footer_link_wrap w-inline-block" href="/dscr-calculator" onClick={go("dscr-calculator")}><div className="footer_link_text u-weight-bold">DSCR Calculator</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/deal-analyzer" onClick={go("deal-analyzer")}><div className="footer_link_text u-weight-bold">Deal Analyzer</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/lender-intel" onClick={go("lender-intel")}><div className="footer_link_text u-weight-bold">Our DSCR Programs</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={go("state-laws")}><div className="footer_link_text u-weight-bold">State Regulations</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")}><div className="footer_link_text u-weight-bold">DSCR Borrower Profiles</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/dscr-calculator" onClick={go("dscr-calculator")} aria-current={current("/dscr-calculator")}><div className="footer_link_text u-weight-bold">DSCR Calculator</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/deal-analyzer" onClick={go("deal-analyzer")} aria-current={current("/deal-analyzer")}><div className="footer_link_text u-weight-bold">Deal Analyzer</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/products" onClick={go("products")} aria-current={current("/products")}><div className="footer_link_text u-weight-bold">Product Overview</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/state-laws" onClick={go("state-laws")} aria-current={current("/state-laws")}><div className="footer_link_text u-weight-bold">State Regulations</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles" onClick={go("borrower-profiles")} aria-current={current("/borrower-profiles")}><div className="footer_link_text u-weight-bold">DSCR Borrower Profiles</div></a>
               </div>
             </section>
             <section className="footer_group_wrap">
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3>
               <div className="footer_group_list">
-                <a className="footer_link_wrap w-inline-block" href="/investors" onClick={go("investors")}><div className="footer_link_text u-weight-bold">Real Estate Investors</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#foreign-nationals" onClick={goPath("/borrower-profiles#foreign-nationals")}><div className="footer_link_text u-weight-bold">Foreign Nationals</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#str-airbnb" onClick={goPath("/borrower-profiles#str-airbnb")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/rate-quiz" onClick={go("rate-quiz")}><div className="footer_link_text u-weight-bold">Rate Quiz</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/investors" onClick={go("investors")} aria-current={current("/investors")}><div className="footer_link_text u-weight-bold">Real Estate Investors</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#foreign-nationals" onClick={goPath("/borrower-profiles#foreign-nationals")} aria-current={current("/borrower-profiles#foreign-nationals")}><div className="footer_link_text u-weight-bold">Foreign Nationals</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/borrower-profiles#str-airbnb" onClick={goPath("/borrower-profiles#str-airbnb")} aria-current={current("/borrower-profiles#str-airbnb")}><div className="footer_link_text u-weight-bold">STR &amp; Airbnb</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/rate-quiz" onClick={go("rate-quiz")} aria-current={current("/rate-quiz")}><div className="footer_link_text u-weight-bold">Rate Quiz</div></a>
               </div>
             </section>
             <section className="footer_group_wrap">
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Company</h3>
               <div className="footer_group_list">
-                <a className="footer_link_wrap w-inline-block" href="/about" onClick={go("about")}><div className="footer_link_text u-weight-bold">About</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/careers" onClick={go("careers")}><div className="footer_link_text u-weight-bold">Jobs</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/legal" onClick={go("legal")}><div className="footer_link_text u-weight-bold">Security &amp; Privacy</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/about" onClick={go("about")} aria-current={current("/about")}><div className="footer_link_text u-weight-bold">About</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/careers" onClick={go("careers")} aria-current={current("/careers")}><div className="footer_link_text u-weight-bold">Careers</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/legal" onClick={go("legal")} aria-current={current("/legal")}><div className="footer_link_text u-weight-bold">Security &amp; Privacy</div></a>
               </div>
             </section>
             <section className="footer_group_wrap">
               <h3 className="footer_group_title u-text-style-h4 u-mb-2">Resources</h3>
               <div className="footer_group_list">
-                <a className="footer_link_wrap w-inline-block" href="/blog" onClick={go("blog")}><div className="footer_link_text u-weight-bold">Greenstreet Guidance</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/case-studies" onClick={go("case-studies")}><div className="footer_link_text u-weight-bold">Customer Stories</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/faq" onClick={go("faq")}><div className="footer_link_text u-weight-bold">FAQ</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/blog" onClick={go("blog")} aria-current={current("/blog")}><div className="footer_link_text u-weight-bold">Greenstreet Guidance</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/case-studies" onClick={go("case-studies")} aria-current={current("/case-studies")}><div className="footer_link_text u-weight-bold">Illustrative Scenarios</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/faq" onClick={go("faq")} aria-current={current("/faq")}><div className="footer_link_text u-weight-bold">FAQ</div></a>
               </div>
             </section>
             <section className="footer_group_wrap u-column-2">
-              <h3 className="footer_group_title u-text-style-h4 u-mb-2">Special Tools</h3>
+              <h3 className="footer_group_title u-text-style-h4 u-mb-2">Tools</h3>
               <div className="footer_group_list u-grid-column-2">
-                <a className="footer_link_wrap w-inline-block" href="/tools/deal-workspace" onClick={goPath("/tools/deal-workspace")}><div className="footer_link_text u-weight-bold">Deal Workspace</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/tools/sensitivity" onClick={goPath("/tools/sensitivity")}><div className="footer_link_text u-weight-bold">Sensitivity Lab</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/tools/structure-optimizer" onClick={goPath("/tools/structure-optimizer")}><div className="footer_link_text u-weight-bold">Structure Optimizer</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/tools/scenario-history" onClick={goPath("/tools/scenario-history")}><div className="footer_link_text u-weight-bold">Scenario History</div></a>
-                <a className="footer_link_wrap w-inline-block" href="/tools/portfolio" onClick={go("portfolio")}><div className="footer_link_text u-weight-bold">Portfolio Analyzer</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/deal-workspace" onClick={goPath("/tools/deal-workspace")} aria-current={current("/tools/deal-workspace")}><div className="footer_link_text u-weight-bold">Deal Workspace</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/sensitivity" onClick={goPath("/tools/sensitivity")} aria-current={current("/tools/sensitivity")}><div className="footer_link_text u-weight-bold">Sensitivity Lab</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/structure-optimizer" onClick={goPath("/tools/structure-optimizer")} aria-current={current("/tools/structure-optimizer")}><div className="footer_link_text u-weight-bold">Structure Optimizer</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/scenario-history" onClick={goPath("/tools/scenario-history")} aria-current={current("/tools/scenario-history")}><div className="footer_link_text u-weight-bold">Scenario History</div></a>
+                <a className="footer_link_wrap w-inline-block" href="/tools/portfolio" onClick={go("portfolio")} aria-current={current("/tools/portfolio")}><div className="footer_link_text u-weight-bold">Portfolio Analyzer</div></a>
               </div>
             </section>
           </nav>
         </div>
         <div className="footer_bottom_wrap">
           <div className="footer_bottom_contain u-container">
-            <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved.</div>
+            <div>
+              <div className="footer_bottom_text">© 2026 Greenstreet Finance. All rights reserved. Educational business-purpose DSCR tools and preliminary scenario review; not a commitment to lend.</div>
+              <div className="footer_bottom_text" style={{ marginTop: 6 }}>
+                This site does not currently publish a legal entity name, NMLS identifier, state-license list, or verified lending-partner disclosure. Confirm the responsible licensed party before relying on a financing offer.
+              </div>
+            </div>
             <div className="footer_bottom_list">
               <a className="footer_bottom_link_wrap w-inline-block" href="/privacy-policy" onClick={goPath("/privacy-policy")}><div className="footer_bottom_link_text u-text-style-small">Privacy Policy</div></a>
               <a className="footer_bottom_link_wrap w-inline-block" href="/terms-of-service" onClick={goPath("/terms-of-service")}><div className="footer_bottom_link_text u-text-style-small">Terms of Service</div></a>

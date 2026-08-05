@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useId } from "react";
 import { auth, db, loginWithGoogle, logoutUser, loginAnonymously } from "../firebase";
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
@@ -8,7 +8,7 @@ import {
   Calculator, TrendingUp, BarChart2, Settings2, Zap, ChevronDown, Menu, X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import type { DSCRResult, BreakevenResult, StructureOption, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
+import type { DSCRResult, BreakevenResult, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
 import type { AuditLog } from "../engine/types";
 import { swatch, radius } from "../theme";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor as artifactDscrColor } from "../design/artifacts";
@@ -84,9 +84,8 @@ const fmtPct = (n: number) => `${n.toFixed(3)}%`;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface SolveResult { deal: DSCRResult; topLenders: { name: string; score: number; tier: string; rank: number | null; topReasons: string[] }[] }
+interface SolveResult { deal: DSCRResult }
 interface SensResult { sensitivity: BreakevenResult }
-interface OptResult { options: StructureOption[] }
 interface StateResult { state: string; ppp: PPPCheckResult }
 
 interface DealForm {
@@ -169,11 +168,14 @@ function GhostBtn({ children, onClick, className = "" }:
 }
 
 /** Flat label input */
-function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; helper?: string }) {
+function FieldInput({ label, helper, id, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; helper?: string }) {
+  const generatedId = useId();
+  const fieldId = id ?? generatedId;
   return (
     <div className="space-y-1">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <label htmlFor={fieldId} className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
       <input {...props}
+        id={fieldId}
         className="w-full px-3 py-2.5 text-sm font-mono outline-none transition-colors"
         style={{
           background: T.inputBg,
@@ -190,11 +192,14 @@ function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLI
 }
 
 /** Flat label select */
-function FieldSelect({ label, helper, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; helper?: string }) {
+function FieldSelect({ label, helper, children, id, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; helper?: string }) {
+  const generatedId = useId();
+  const fieldId = id ?? generatedId;
   return (
     <div className="space-y-1">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <label htmlFor={fieldId} className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
       <select {...props}
+        id={fieldId}
         className="w-full px-3 py-2.5 text-sm outline-none transition-colors appearance-none"
         style={{
           background: T.inputBg,
@@ -265,7 +270,7 @@ function useMinWidth(minPx: number): boolean {
 function Disclaimer() {
   return (
     <p className="text-[10px] leading-relaxed" style={{ color: T.faint, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 10 }}>
-      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Contact us at +1 (555) 010-0000.
+      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Book a demo for a live scenario review.
     </p>
   );
 }
@@ -304,10 +309,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [isRunning, setIsRunning] = useState(false);
   const [solveError, setSolveError] = useState<string | null>(null);
   const [sensError, setSensError] = useState<string | null>(null);
-  const [optError, setOptError] = useState<string | null>(null);
   const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
   const [sensResult, setSensResult] = useState<SensResult | null>(null);
-  const [optResult, setOptResult] = useState<OptResult | null>(null);
   const [stateInput, setStateInput] = useState("FL");
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [stateError, setStateError] = useState<string | null>(null);
@@ -338,28 +341,38 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
       setAuditLogs(logs);
     });
     return () => unsub();
-  }, [currentUser]);
+  }, [currentUser, demoMode]);
 
   useEffect(() => {
     if (!currentUser && !demoMode) return;
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
-    getDoc(ref).then(snap => { if (snap.exists()) setBrokerConfig(snap.data() as any); });
-  }, [currentUser]);
+    getDoc(ref)
+      .then(snap => { if (snap.exists()) setBrokerConfig(prev => ({ ...prev, ...(snap.data() as Partial<typeof prev>) })); })
+      .catch(err => console.error("Failed to load broker settings", err));
+  }, [currentUser, demoMode]);
 
   const saveBrokerConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser && !demoMode) return;
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
-    await setDoc(ref, brokerConfig);
-    setBrokerSaved(true);
-    setTimeout(() => setBrokerSaved(false), 3000);
+    try {
+      await setDoc(ref, brokerConfig);
+      setBrokerSaved(true);
+      setTimeout(() => setBrokerSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save broker settings", err);
+    }
   };
 
   const deleteLog = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if ((!currentUser && !demoMode) || !id) return;
-    await deleteDoc(doc(db, "artifacts", "default-app-id", "users", userUid, "audits", id));
-    if (selectedLog?.id === id) setSelectedLog(null);
+    try {
+      await deleteDoc(doc(db, "artifacts", "default-app-id", "users", userUid, "audits", id));
+      if (selectedLog?.id === id) setSelectedLog(null);
+    } catch (err) {
+      console.error("Failed to delete audit log", err);
+    }
   };
 
   const saveLog = async (type: AuditLog["type"], title: string, input: string, output: any) => {
@@ -383,22 +396,20 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const handleAnalyze = useCallback(async () => {
     const payload = buildPayload();
     setIsRunning(true);
-    setSolveResult(null); setSensResult(null); setOptResult(null);
-    setSolveError(null); setSensError(null); setOptError(null);
+    setSolveResult(null); setSensResult(null);
+    setSolveError(null); setSensError(null);
     try {
-      const [solveRes, sensRes, optRes] = await Promise.all([
+      const [solveRes, sensRes] = await Promise.all([
         fetch("/api/dscr/solve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
         fetch("/api/dscr/sensitivity", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
-        fetch("/api/dscr/optimize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
       ]);
-      const [solve, sens, opt] = await Promise.all([solveRes.json(), sensRes.json(), optRes.json()]);
+      const [solve, sens] = await Promise.all([solveRes.json(), sensRes.json()]);
       if (!solveRes.ok) throw new Error(solve.error || "Solve failed");
       setSolveResult(solve);
       if (sensRes.ok) { setSensResult(sens); } else { setSensError(sens.error || "Sensitivity engine failed. Re-run from Deal Workspace."); }
-      if (optRes.ok) { setOptResult(opt); } else { setOptError(opt.error || "Optimizer engine failed. Re-run from Deal Workspace."); }
-      await saveLog("analyze",
+      saveLog("analyze",
         `DSCR ${solve.deal.dscr.toFixed(2)}x — ${dealForm.propertyType} ${dealForm.state} ${dscrLabel(solve.deal.dscr)}`,
-        JSON.stringify(payload), solve);
+        JSON.stringify(payload), solve).catch(err => console.error("Failed to save audit log", err));
     } catch (err: any) {
       setSolveError(err.message || "Engine error. Check your inputs and try again.");
     } finally {
@@ -510,12 +521,14 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               className="space-y-3">
               <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
                 placeholder="you@email.com"
+                aria-label="Email"
                 className="w-full px-4 py-3 text-sm outline-none transition-colors"
                 style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
                 onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
                 onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
               <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)}
                 placeholder="Password"
+                aria-label="Password"
                 className="w-full px-4 py-3 text-sm outline-none transition-colors font-mono"
                 style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
                 onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
@@ -549,16 +562,9 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   ] as const;
 
   const navTools = [
-    { key: "state",      icon: <MapPin className="w-4 h-4" />,     label: "State Rules" },
-    { key: "stress",     icon: <Shield className="w-4 h-4" />,     label: "Stress Matrix" },
-    { key: "refi",       icon: <RefreshCw className="w-4 h-4" />,  label: "Refi Tracker" },
-    { key: "returns",    icon: <TrendingUp className="w-4 h-4" />, label: "Returns / IRR" },
-    { key: "arm",        icon: <Sparkles className="w-4 h-4" />,   label: "ARM Reset" },
-    { key: "montecarlo", icon: <BarChart2 className="w-4 h-4" />,  label: "Monte Carlo" },
-    { key: "tax",        icon: <CheckCircle className="w-4 h-4" />,label: "Tax Engine" },
-    { key: "decision",   icon: <Search className="w-4 h-4" />,     label: "Decision Support" },
-    { key: "str",        icon: <Settings2 className="w-4 h-4" />,  label: "STR" },
-    { key: "portfolio",  icon: <Shield className="w-4 h-4" />,     label: "Portfolio" },
+    // Decision-producing tools are deliberately not reachable from the
+    // workspace while their public routes are on reliability hold. Their
+    // direct URLs resolve to the corresponding availability page instead.
     { key: "settings",   icon: <Settings2 className="w-4 h-4" />,  label: "Workspace Settings" },
   ] as const;
 
@@ -814,7 +820,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         <div className="flex flex-col gap-4">
                           {/* Compliance status */}
                           <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: `1px solid ${swatch.midnight}`, borderRadius: radius.md }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance</div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance (preview)</div>
                             {([
                               { label: "17a-4 WORM archive", status: "Active" },
                               { label: "IC memos generated", status: "6 / 6" },
@@ -1060,40 +1066,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                   ))}
                                 </div>
 
-                                {/* Top Programs */}
-                                {solveResult!.topLenders.length > 0 && (
-                                  <WhiteCard style={{ padding: "20px" }}>
-                                    <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
-                                      <div>
-                                        <h4 className="font-bold text-sm" style={{ color: T.ink }}>Top Matching Programs</h4>
-                                        <p className="text-[11px] mt-0.5" style={{ color: T.faint }}>Programs ranked by fit score for this deal. Ready to submit to underwriting.</p>
-                                      </div>
-                                      <GhostBtn onClick={() => switchTab("optimize")}>
-                                        See all structures →
-                                      </GhostBtn>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {solveResult!.topLenders.map((l, i) => (
-                                        <div key={i} className="px-3 py-1.5 text-xs"
-                                          style={{ background: T.inputBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.sm }}>
-                                          <span className="font-bold" style={{ color: T.ink }}>{l.name}</span>
-                                          <span className="ml-2 font-mono" style={{ color: T.faint }}>{l.score}/100</span>
-                                          {l.tier && <span className="ml-2 font-semibold uppercase text-[9px]" style={{ color: swatch.rainforest }}>{l.tier}</span>}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </WhiteCard>
-                                )}
-
                                 {/* Quick-nav */}
-                                {(sensResult || optResult) && (
+                                {sensResult && (
                                   <div className="flex flex-wrap gap-3">
-                                    {sensResult && (
-                                      <GhostBtn onClick={() => switchTab("sensitivity")}>View Sensitivity Lab →</GhostBtn>
-                                    )}
-                                    {optResult && (
-                                      <GhostBtn onClick={() => switchTab("optimize")}>View Structure Optimizer →</GhostBtn>
-                                    )}
+                                    <GhostBtn onClick={() => switchTab("sensitivity")}>View Sensitivity Lab →</GhostBtn>
                                   </div>
                                 )}
                               </>
@@ -1307,105 +1283,35 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── STRUCTURE OPTIMIZER ── */}
                   {activeTab === "optimize" && (
                     <TabPane id="optimize">
-                      <div className="pb-1">
-                        <p className="text-sm" style={{ color: T.muted }}>
-                          Compares every loan structure Greenstreet offers — 30yr P&amp;I, interest-only, 40yr amort — ranked by DSCR so you can see which structure gives the deal the most room. Run <strong>Analyze</strong> in Deal Workspace first; optimizer runs in the same call.
-                        </p>
-                      </div>
-
-                      {/* Loading */}
-                      {isRunning && (
-                        <Card style={{ padding: "28px" }}>
-                          <div className="flex items-center gap-3 mb-5">
-                            <RefreshCw className="w-5 h-5 animate-spin" style={{ color: swatch.rainforest }} />
-                            <span className="text-sm font-semibold" style={{ color: T.ink }}>Evaluating loan structures…</span>
+                      <Card style={{ padding: "clamp(28px, 5vw, 52px)" }}>
+                        <div className="flex items-start gap-4">
+                          <span
+                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold"
+                            style={{ background: swatch.lemon, color: swatch.midnight }}
+                          >
+                            01
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.08em]" style={{ color: swatch.rainforest }}>
+                              Tool reliability review
+                            </p>
+                            <h2 className="mt-2 text-2xl font-bold" style={{ color: T.ink }}>
+                              Structure recommendations are temporarily held.
+                            </h2>
+                            <p className="mt-3 max-w-2xl text-sm leading-6" style={{ color: T.muted }}>
+                              Payment schedules, rate units, and ranking criteria must be independently validated before one loan structure is recommended over another. No optimizer decision output is available right now.
+                            </p>
+                            <ul className="mt-5 grid gap-2 text-sm" style={{ color: T.muted }}>
+                              <li>• Structure-specific amortization and interest-only schedules</li>
+                              <li>• Verified pricing inputs expressed in one rate unit</li>
+                              <li>• Ranking tests using lender coverage and investor cash flow</li>
+                            </ul>
+                            <div className="mt-6">
+                              <PrimaryBtn onClick={() => switchTab("analyze")}>Open Deal Workspace →</PrimaryBtn>
+                            </div>
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {[1,2,3].map(i => <Skeleton key={i} h={160} rounded={radius.md} />)}
-                          </div>
-                        </Card>
-                      )}
-
-                      {/* Error */}
-                      {optError && !isRunning && (
-                        <ErrorBanner message={optError} onRetry={() => switchTab("analyze")} />
-                      )}
-
-                      {!isRunning && !optError && !optResult ? (
-                        <Card style={{ padding: "64px 24px", textAlign: "center" }}>
-                          <Zap className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
-                          <p className="text-sm font-semibold" style={{ color: T.muted }}>No structure data yet.</p>
-                          <p className="text-xs mt-1 mb-5" style={{ color: T.faint }}>Go to Deal Workspace, fill in the deal inputs, and run Analyze. The optimizer evaluates all structures in the same pass.</p>
-                          <div className="mt-5"><PrimaryBtn onClick={() => switchTab("analyze")}>Go to Deal Workspace →</PrimaryBtn></div>
-                        </Card>
-                      ) : !isRunning && optResult ? (
-                        <>
-                          <p className="text-xs" style={{ color: T.faint }}>
-                            {optResult.options.length} structures evaluated — sorted by Track 1 DSCR, highest first
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {[...optResult.options].sort((a, b) => b.track1DSCR - a.track1DSCR).map((opt, i) => {
-                              const isBest = i === 0;
-                              const optRisk = riskFromDscr(opt.track1DSCR);
-                              return (
-                                <div key={opt.name}
-                                  style={{
-                                    padding: "20px",
-                                    borderRadius: radius.md,
-                                    background: isBest ? swatch.midnight : swatch.white,
-                                    border: `1px solid ${isBest ? swatch.midnight : T.cardBorder}`,
-                                  }}>
-                                  <div className="flex items-start justify-between mb-3">
-                                    <div>
-                                      <p className="font-bold text-sm mb-1" style={{ color: isBest ? swatch.pistachio : T.ink }}>{opt.name}</p>
-                                      {isBest && (
-                                        <span className="text-[10px] font-bold px-2 py-0.5"
-                                          style={{ background: swatch.lemon, color: swatch.midnight, borderRadius: radius.pill }}>
-                                          BEST DSCR
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-2xl font-extrabold font-mono"
-                                        style={{ color: isBest ? swatch.emerald : artifactDscrColor(opt.track1DSCR), fontVariantNumeric: "tabular-nums" }}>
-                                        {opt.track1DSCR.toFixed(2)}x
-                                      </span>
-                                      {!isBest && optRisk !== "none" && <RiskFlame level={optRisk} size={18} />}
-                                    </div>
-                                  </div>
-                                  <div className="space-y-1.5">
-                                    {[
-                                      { label: "Rate",             value: fmtPct(opt.rate) },
-                                      { label: "Monthly P&I",     value: fmt$(opt.monthlyPayment) },
-                                      { label: "Monthly Cash Flow", value: `${opt.monthlyCashFlow >= 0 ? "+" : ""}${fmt$(opt.monthlyCashFlow)}` },
-                                      { label: "Track 2 DSCR",    value: `${opt.track2DSCR.toFixed(2)}x` },
-                                    ].map(({ label, value }) => (
-                                      <div key={label} className="flex justify-between text-xs">
-                                        <span style={{ color: isBest ? `${swatch.pistachio}80` : T.muted }}>{label}</span>
-                                        <span className="font-mono font-semibold" style={{ color: isBest ? swatch.pistachio : T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  {opt.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 pt-2 mt-2" style={{ borderTop: `1px solid ${isBest ? swatch.pistachio + "18" : T.cardBorder}` }}>
-                                      {opt.tags.slice(0, 3).map(tag => (
-                                        <span key={tag} className="text-[10px] px-1.5 py-0.5 font-semibold"
-                                          style={{
-                                            borderRadius: radius.sm,
-                                            background: isBest ? `${swatch.pistachio}12` : T.inputBg,
-                                            color: isBest ? swatch.pistachio : T.muted,
-                                          }}>
-                                          {tag}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </>
-                      ) : null}
+                        </div>
+                      </Card>
                     </TabPane>
                   )}
 
@@ -1605,7 +1511,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               <h3 className="font-bold text-sm mb-0.5" style={{ color: T.ink }}>{selectedLog.title}</h3>
                               <p className="text-[10px] mb-4" style={{ color: T.faint }}>{new Date(selectedLog.timestamp).toLocaleString()}</p>
                               {/* Human-readable summary if analyze type */}
-                              {selectedLog.type === "analyze" && selectedLog.output?.deal && (() => {
+                              {selectedLog.type === "analyze" && selectedLog.output?.deal && typeof selectedLog.output.deal.dscr === "number" && (() => {
                                 const d = selectedLog.output.deal as DSCRResult;
                                 return (
                                   <div className="space-y-2 mb-4 pb-4" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>

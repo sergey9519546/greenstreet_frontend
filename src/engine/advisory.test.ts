@@ -1,0 +1,500 @@
+/**
+ * DSCR Engine — Bug-Audit Regression Suite
+ *
+ * Golden tests for the four numbered financial-math fixes (plus the PA Act 6
+ * threshold correction) verified in the 2026-07-23 audit. Every expected value
+ * below is hand-derived from the underlying formula (shown in comments), not
+ * copied from the code under test, so these tests fail loudly if any of the
+ * bugs are reintroduced.
+ */
+
+import { describe, it, expect } from 'vitest';
+import {
+  calculatePI,
+  calculatePITIA,
+  solveDealBreakRate,
+  solveMaxPurchasePrice,
+  estimateReserveMonths,
+  solveDSCR,
+} from './engine';
+import { buildEngineInputs } from './inputs';
+import { computeAfterTaxIRR } from './taxEngine';
+import { computeIRRWaterfall } from './irrWaterfall';
+import { runV11Analysis } from './v11Runner';
+import { computeReturnGrade } from './decisionSupport';
+import { PPP_STATE_LAWS, checkPPPLegal } from './statePppLaws';
+import type { TaxProfile, BorrowerProfile, LoanStructure } from './types';
+
+function makeTaxProfile(overrides: Partial<TaxProfile> = {}): TaxProfile {
+  return {
+    ordinaryIncomeBrackets: [],
+    magi: 150_000,
+    filingStatus: 'MFJ',
+    stateTaxRatePct: 5,
+    isRealEstateProfessional: false,
+    yearsREP: 0,
+    landAllocationPct: 20,
+    costSegStudyCompleted: false,
+    costSegReclassifiedPct: 0,
+    acquisitionDate: '2026-01-01',
+    placedInServiceDate: '2026-01-01',
+    expectedHoldYears: 2,
+    exitSellingCostsPct: 6,
+    exitCapRatePct: 6.5,
+    section1031Exchange: false,
+    ...overrides,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG #1 — FLOOD-INSURANCE UNIT MISMATCH
+// Contract (inputs.ts DealRequest.floodInsurance): MONTHLY. calculatePITIA must
+// use it as-is (like `hoa`), never divide by 12.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('bug audit #1 — flood insurance is MONTHLY, not annual', () => {
+  it('calculatePITIA: $240/mo flood insurance adds exactly $240 to PITIA (not $20)', () => {
+    // Hand-computed: PI(300000, 7.00%, 360mo) = 1995.907485537547 (verified via
+    // the same closed-form payment-factor formula as calculatePaymentFactor).
+    const withFlood = calculatePITIA(300_000, 7.0, 30, 'NONE', 6_000, 1_800, 100, 240);
+    const withoutFlood = calculatePITIA(300_000, 7.0, 30, 'NONE', 6_000, 1_800, 100, 0);
+
+    // Total PITIA = PI(1995.907...) + taxes(500) + insurance(150) + hoa(100) + flood(240)
+    expect(withFlood.total).toBeCloseTo(2985.91, 1);
+    expect(withoutFlood.total).toBeCloseTo(2745.91, 1);
+
+    // The difference must be exactly the $240 monthly premium. If the old bug
+    // (divide by 12) were present, the difference would be $20, not $240.
+    expect(withFlood.total - withoutFlood.total).toBeCloseTo(240, 5);
+    expect(withFlood.floodInsurance).toBeCloseTo(240, 5);
+  });
+
+  it('solveDealBreakRate treats floodInsurance as monthly in the fixed-expense total (edge case)', () => {
+    // qualifyingRent equals floodInsurance exactly; with taxes/insurance/hoa at 0,
+    // fixedExpenses must equal floodInsurance itself (not floodInsurance/12),
+    // which exactly consumes the rent -> targetPI = 0 -> "impossible" (returns 0).
+    // Under the old bug, fixedExpenses would be 1000/12 = 83.33, targetPI would
+    // be 916.67 (a normal positive target), and this would NOT return 0.
+    const rate = solveDealBreakRate(1_000, 300_000, 30, 'NONE', 0, 0, 0, 1_000);
+    expect(rate).toBe(0);
+  });
+
+  it('solveMaxPurchasePrice treats floodInsurance as monthly in the fixed-expense total (edge case)', () => {
+    // maxPITIA = qualifyingRent/targetDSCR = 1000/1 = 1000; fixedExpenses must
+    // equal floodInsurance (1000) exactly -> maxPI = 0 -> returns 0 (impossible).
+    const maxPrice = solveMaxPurchasePrice(1_000, 75, 7.0, 30, 'NONE', 0, 0, 0, 1_000);
+    expect(maxPrice).toBe(0);
+  });
+
+  it('solveDSCR (end-to-end): adding flood insurance lowers Track 1 DSCR by the correct magnitude', () => {
+    // With the bug (÷12), a $300/mo flood premium would only shave ~$25/mo off
+    // PITIA. Fixed, it must shave the full $300/mo.
+    const base = buildEngineInputs({ purchasePrice: 400_000, monthlyRent: 3_000, state: 'TX' });
+    const withFlood = buildEngineInputs({ purchasePrice: 400_000, monthlyRent: 3_000, state: 'TX', floodInsurance: 300 });
+    expect(base.property.floodInsurance).toBe(0);
+    expect(withFlood.property.floodInsurance).toBe(300);
+
+    const pitiaBase = calculatePITIA(
+      400_000 * 0.75, 7.0, 30, 'NONE', base.property.annualTaxes, base.property.annualInsurance, base.property.hoa, base.property.floodInsurance,
+    );
+    const pitiaFlood = calculatePITIA(
+      400_000 * 0.75, 7.0, 30, 'NONE', withFlood.property.annualTaxes, withFlood.property.annualInsurance, withFlood.property.hoa, withFlood.property.floodInsurance,
+    );
+    expect(pitiaFlood.total - pitiaBase.total).toBeCloseTo(300, 5);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG #2 — AFTER-TAX IRR OMITS MORTGAGE INTEREST
+// taxableIncome must be NOI - mortgageInterest - depreciation (mortgage
+// interest is deductible; principal is not).
+// ─────────────────────────────────────────────────────────────────────────────
+describe('bug audit #2 — after-tax IRR must deduct mortgage interest', () => {
+  const purchasePrice = 400_000;
+  const loanAmount = 300_000;
+  const annualNOI = 30_000;
+  const loanRatePct = 6;
+  const loanTermMonths = 360;
+  // Hand-computed standard amortization (r = 6%/12 = 0.5%/mo, n = 360):
+  //   monthly P&I = 1798.6515754582708  ->  annualADS = 21583.81890549925
+  //   balance(0mo)  = 300,000.00
+  //   balance(12mo) = 296,315.96486316976
+  //   balance(24mo) = 292,404.7065002679
+  //   Year-1 interest = annualADS - (balance(0) - balance(12))  = 17,899.783768669015
+  //   Year-2 interest = annualADS - (balance(12) - balance(24)) = 17,672.560542597388
+  const annualADS = 21_583.81890549925;
+
+  it('Year-1 taxableIncome = NOI - mortgageInterest - depreciation', () => {
+    const taxProfile = makeTaxProfile({ expectedHoldYears: 1 });
+    const result = computeAfterTaxIRR(
+      purchasePrice, loanAmount, 3_000, annualNOI, annualADS, 2_500,
+      taxProfile, 0, loanRatePct, loanTermMonths,
+    );
+    const year1 = result.yearByYear[0];
+
+    // Depreciation: buildingBasis = 400,000 * (1 - 20%) = 320,000; / 27.5 = 11,636.3636...
+    const expectedDepreciation = 320_000 / 27.5;
+    expect(year1.depreciationDeduction).toBeCloseTo(expectedDepreciation, 2);
+
+    // Hand-computed: 30,000 - 17,899.78 (interest) - 11,636.36 (depreciation) = 463.85
+    expect(year1.taxableIncome).toBeCloseTo(463.85, 1);
+
+    // Regression guard: the OLD bug computed taxableIncome = NOI - depreciation
+    // only (= 18,363.64), omitting the interest deduction entirely. The fixed
+    // value must be lower by (very close to) the interest amount.
+    const buggyTaxableIncome = annualNOI - year1.depreciationDeduction;
+    expect(buggyTaxableIncome).toBeCloseTo(18_363.64, 1);
+    expect(buggyTaxableIncome - year1.taxableIncome).toBeCloseTo(17_899.78, 1);
+  });
+
+  it('Year-2 interest is lower than Year-1 (amortizing loan pays down principal over time)', () => {
+    const taxProfile = makeTaxProfile({ expectedHoldYears: 2 });
+    const result = computeAfterTaxIRR(
+      purchasePrice, loanAmount, 3_000, annualNOI, annualADS, 2_500,
+      taxProfile, 0, loanRatePct, loanTermMonths,
+    );
+    const [year1, year2] = result.yearByYear;
+
+    // Year-2 NOI grows 2% (30,600) and depreciation is flat (11,636.36); with the
+    // hand-computed Year-2 interest of 17,672.56:
+    //   taxableIncome_2 = 30,600 - 17,672.56 - 11,636.36 = 1,291.08
+    expect(year2.taxableIncome).toBeCloseTo(1_291.08, 1);
+    expect(year2.taxableIncome).toBeGreaterThan(year1.taxableIncome);
+  });
+
+  it('after-tax IRR improves once the interest shield is correctly applied (fixed taxableIncome is lower, so tax owed is lower)', () => {
+    // Same scenario computed two ways: with the real loanRatePct/loanTermMonths
+    // (interest deducted) vs. omitting them so the function must fall back —
+    // the fallback still deducts a positive approximate interest amount, so in
+    // both cases taxableIncome must be strictly less than the pre-fix NOI-only
+    // depreciation figure whenever there is a loan balance.
+    const taxProfile = makeTaxProfile({ expectedHoldYears: 1 });
+    const withRate = computeAfterTaxIRR(purchasePrice, loanAmount, 3_000, annualNOI, annualADS, 2_500, taxProfile, 0, loanRatePct, loanTermMonths);
+    const withoutRate = computeAfterTaxIRR(purchasePrice, loanAmount, 3_000, annualNOI, annualADS, 2_500, taxProfile, 0);
+    const buggyTaxableIncome = annualNOI - withRate.yearByYear[0].depreciationDeduction;
+
+    expect(withRate.yearByYear[0].taxableIncome).toBeLessThan(buggyTaxableIncome);
+    expect(withoutRate.yearByYear[0].taxableIncome).toBeLessThan(buggyTaxableIncome);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG #3 — IRR SCALE DOUBLE-SCALING
+// taxEngine returns IRR as a DECIMAL (0.15 = 15%); v11Runner must pass it
+// through unchanged into VerdictInput/ICMemoInput, not divide by 100 again.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('bug audit #3 — v11Runner must not double-scale the after-tax IRR', () => {
+  function makeAnalysisInput(overrides: Record<string, any> = {}) {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 400_000,
+      monthlyRent: 3_200,
+      state: 'TX',
+      ltv: 75,
+      ficoScore: 740,
+    });
+    return {
+      property, borrower, loan, strategy,
+      taxProfile: makeTaxProfile({ expectedHoldYears: 5 }),
+      sellerAnnualTax: property.annualTaxes,
+      propertyAddress: '123 Test St, Austin, TX',
+      ...overrides,
+    };
+  }
+
+  it('memo.returnStack.afterTaxIRR equals the raw taxEngine decimal exactly (no /100)', () => {
+    const result = runV11Analysis(makeAnalysisInput());
+    // Straight passthrough -- if the /100 bug were present this would be
+    // 100x smaller than result.afterTaxIRR.afterTaxIRR.
+    expect(result.memo.returnStack.afterTaxIRR).toBe(result.afterTaxIRR.afterTaxIRR);
+  });
+
+  it('verdict.returnGrade is consistent with the correctly-scaled decimal IRR (not a 100x-shrunk one)', () => {
+    const result = runV11Analysis(makeAnalysisInput());
+    // computeReturnGrade expects a DECIMAL (0.15 = 15%) and uses 0.08/0.12/0.15
+    // thresholds. If v11Runner had divided by 100 again, the grade computed
+    // internally would have been based on a ~0.001-scale number (always grade
+    // 'D' or 'F' in practice), which would NOT match recomputing the grade from
+    // the correctly-scaled decimal here.
+    const expectedGrade = computeReturnGrade(result.afterTaxIRR.afterTaxIRR, result.track2DSCR);
+    expect(result.verdict.returnGrade).toBe(expectedGrade);
+  });
+
+  it('after-tax IRR used for grading is a plausible decimal (roughly -1 to 1), not a tiny 0.00x fraction', () => {
+    const result = runV11Analysis(makeAnalysisInput());
+    // A healthy DSCR deal's after-tax IRR should not collapse to a sub-1%
+    // decimal purely from a scaling bug. This is a coarse sanity net, not a
+    // precise prediction of the deal's economics.
+    expect(Math.abs(result.afterTaxIRR.afterTaxIRR)).toBeLessThan(2);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG #4 — IRR WATERFALL CUMULATIVE DOUBLE-COUNT
+// SUBTOTAL/TOTAL rows must show the actual checkpoint value in `cumulative`,
+// not double it via `cum += amount` on top of an already-equal running total.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('bug audit #4 — waterfall SUBTOTAL/TOTAL rows must not double-count the cumulative column', () => {
+  function buildWaterfall(
+    holdYears = 3,
+    strategy: 'LTR' | 'STR' | 'MTR' = 'LTR',
+    monthlyGrossRent = 3_000,
+  ) {
+    const { property, loan } = buildEngineInputs({
+      purchasePrice: 400_000, monthlyRent: monthlyGrossRent, state: 'TX', ltv: 75, ficoScore: 740,
+    });
+    const loanAmount = 300_000;
+    const solvedRate = 7.0;
+    const annualADS = calculatePI(loanAmount, solvedRate, 360) * 12;
+    const taxProfile = makeTaxProfile({ expectedHoldYears: holdYears });
+    const afterTaxIRRResult = computeAfterTaxIRR(
+      400_000, loanAmount, monthlyGrossRent, 30_000, annualADS, 2_500, taxProfile, 0, solvedRate, 360,
+    );
+    return computeIRRWaterfall(
+      afterTaxIRRResult, property, loan, strategy, solvedRate, monthlyGrossRent, loanAmount, 100_000, 0,
+    );
+  }
+
+  it('Year-1 SUBTOTAL rows (Gross Effective Rent, NOI) report cumulative == their own amount, not double', () => {
+    const waterfall = buildWaterfall();
+    const grossEff = waterfall.year1.stages.find(s => s.label === 'Gross Effective Rent')!;
+    expect(grossEff.sign).toBe('SUBTOTAL');
+    // Under the old bug, cumulative would be 2x amount here (cum already equaled
+    // amount after the ADD+SUBTRACT before it, then the buggy code added it again).
+    expect(grossEff.cumulative).toBeCloseTo(grossEff.amount, 2);
+
+    const noi = waterfall.year1.stages.find(s => s.label === 'Net Operating Income (NOI)')!;
+    expect(noi.sign).toBe('SUBTOTAL');
+    expect(noi.cumulative).toBeCloseTo(noi.amount, 2);
+  });
+
+  it('Year-1 TOTAL row (After-Tax Cash Flow) cumulative matches its own amount and the independent year1.afterTaxCF field', () => {
+    const waterfall = buildWaterfall();
+    const afterTaxStage = waterfall.year1.stages.find(s => s.label === 'After-Tax Cash Flow')!;
+    expect(afterTaxStage.sign).toBe('TOTAL');
+    expect(afterTaxStage.cumulative).toBeCloseTo(afterTaxStage.amount, 2);
+    // Cross-check against a second, independently-computed source of truth.
+    expect(afterTaxStage.cumulative).toBeCloseTo(waterfall.year1.afterTaxCF, 2);
+  });
+
+  it('hold-total SUBTOTAL/TOTAL rows (Total NOI, Total After-Tax Operating CF) do not double-count either', () => {
+    const waterfall = buildWaterfall();
+    const totalNoi = waterfall.holdTotal.stages.find(s => s.label === 'Total NOI')!;
+    expect(totalNoi.cumulative).toBeCloseTo(totalNoi.amount, 0);
+
+    const totalOpCF = waterfall.holdTotal.stages.find(s => s.label === 'Total After-Tax Operating CF')!;
+    expect(totalOpCF.sign).toBe('TOTAL');
+    expect(totalOpCF.cumulative).toBeCloseTo(totalOpCF.amount, 0);
+    expect(totalOpCF.cumulative).toBeCloseTo(waterfall.holdTotal.totalOperatingCF, 0);
+  });
+
+  it('summary text reports after-tax IRR as a sane percent (bug-audit #3 sibling fix in buildSummary)', () => {
+    const waterfall = buildWaterfall();
+    const match = waterfall.summary.match(/After-tax IRR: (-?\d+\.\d+)%/);
+    expect(match).not.toBeNull();
+    const reportedPct = parseFloat(match![1]);
+    // Must equal the decimal IRR × 100 -- if buildSummary still received the raw
+    // decimal (e.g. 0.15) unconverted, this would report "0.15%" instead of "15.xx%".
+    expect(reportedPct).toBeCloseTo(waterfall.holdTotal.afterTaxIRR * 100, 1);
+    expect(Math.abs(reportedPct)).toBeGreaterThan(1); // sanity: not a sub-1% artifact of the old bug
+  });
+
+  it.each([
+    { strategy: 'LTR' as const },
+    { strategy: 'STR' as const },
+    { strategy: 'MTR' as const },
+  ])('matches solveDSCR Track 2 for raw $strategy rent and operating expenses', ({ strategy }) => {
+    const monthlyGrossRent = 5_000;
+    const { property, borrower, loan } = buildEngineInputs({
+      purchasePrice: 400_000,
+      monthlyRent: monthlyGrossRent,
+      strProjectedRent: monthlyGrossRent,
+      state: 'TX',
+      ltv: 75,
+      ficoScore: 740,
+      strategy,
+    });
+    const dscr = solveDSCR(property, borrower, loan, strategy);
+    const track2 = dscr.dualTrackDSCR.track2;
+    const rawMonthlyRent = track2.qualifyingRent;
+    const annualGrossRent = rawMonthlyRent * 12;
+    const annualADS = calculatePI(dscr.loanAmount, dscr.solvedRate, 360) * 12;
+    const afterTaxIRR = computeAfterTaxIRR(
+      property.purchasePrice, dscr.loanAmount, rawMonthlyRent, 30_000, annualADS, 2_500,
+      makeTaxProfile({ expectedHoldYears: 3 }), 0, dscr.solvedRate, 360,
+    );
+    const waterfall = computeIRRWaterfall(
+      afterTaxIRR, property, loan, strategy, dscr.solvedRate, rawMonthlyRent, dscr.loanAmount, 100_000, 0,
+    );
+    const stage = (label: string) => waterfall.year1.stages.find(s => s.label === label)!;
+
+    // Track 1 qualifying rent is haircut for STR/MTR; Track 2 retains raw
+    // strategy rent. The waterfall's investor view must match Track 2 exactly.
+    expect(rawMonthlyRent).toBe(monthlyGrossRent);
+    expect(stage('Gross Scheduled Rent').amount).toBe(annualGrossRent);
+    expect(stage('Gross Scheduled Rent').detail).toContain('raw strategy rent');
+    expect(stage('Vacancy Loss').amount).toBeCloseTo(annualGrossRent * track2.vacancyApplied / 100, 2);
+    expect(stage('Property Management').amount).toBeCloseTo(annualGrossRent * track2.managementApplied / 100, 2);
+    expect(stage('Maintenance & Repairs').amount).toBeCloseTo(annualGrossRent * track2.maintenanceApplied / 100, 2);
+
+    const totalGrossRent = waterfall.holdTotal.stages.find(s => s.label === 'Total Gross Rent')!;
+    const totalMgmt = waterfall.holdTotal.stages.find(s => s.label === 'Total Property Management')!;
+    const totalMaint = waterfall.holdTotal.stages.find(s => s.label === 'Total Maintenance & Repairs')!;
+    expect(totalMgmt.amount).toBeCloseTo(totalGrossRent.amount * track2.managementApplied / 100, 0);
+    expect(totalMaint.amount).toBeCloseTo(totalGrossRent.amount * track2.maintenanceApplied / 100, 0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG #5 — PA ACT 6 PREPAY THRESHOLD (Blueprint correction C6)
+// Correct 2026 value is $319,777 (matches the marketing StateLawsPage).
+// ─────────────────────────────────────────────────────────────────────────────
+describe('bug audit #5 — PA prepayment threshold must be $319,777 for 2026', () => {
+  it('PPP_STATE_LAWS.PA.loanThreshold is exactly 319,777', () => {
+    expect(PPP_STATE_LAWS.PA.loanThreshold).toBe(319_777);
+  });
+
+  it('a PA loan just above $319,777 on a 1-2 unit property allows PPP', () => {
+    const result = checkPPPLegal('PA', 'LLC', 320_000, 1, 'FIXED');
+    expect(result.allowed).toBe(true);
+  });
+
+  it('a PA loan just below $319,777 on a 1-2 unit property blocks PPP', () => {
+    const result = checkPPPLegal('PA', 'LLC', 319_000, 1, 'FIXED');
+    expect(result.allowed).toBe(false);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG #6 — estimateReserveMonths (engine.ts) omitted the FICO and loan->$1M
+// overlays present in reserveEngine.ts's computeOverlays() (2026-07-24 audit
+// finding). estimateReserveMonths feeds calculateCashToClose for every live
+// DSCR result, so a missing overlay here silently understated cash-to-close
+// reserve requirements for every low-FICO or >$1M-loan deal.
+//
+// Corrected overlay table (kept in sync with reserveEngine.ts's
+// computeOverlays(), using the real solved loanAmount rather than
+// reserveEngine.ts's PITIA-based estimate):
+//   base tier (by DSCR): >=1.25 -> 3 | 1.00-1.24 -> 6 | 0.75-0.99 -> 9 | else -> 12
+//   overlays: STR +3 | FICO<640 +6 (else FICO<680 +3) | first-time investor +3
+//             | loanAmount>$1M +3 | foreign national +6 | LTV>80% +1
+//   grand total capped at 12 months
+//
+// Note: FAQPage.tsx's public copy says ">$1M -> +6" and additionally
+// advertises a "condos +3" overlay; reserveEngine.ts's own computeOverlays()
+// implements neither of those as described (it uses +3 for >$1M and has no
+// condo overlay at all, since no property-type input is threaded into it).
+// This fix intentionally matches reserveEngine.ts's actual code (the
+// instructed source of truth for this repair), not the FAQ copy — the
+// FAQ/reserveEngine.ts mismatch is a separate, pre-existing audit item.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('bug audit #6 — estimateReserveMonths applies the FICO and loan->$1M overlays', () => {
+  function makeBorrower(overrides: Partial<BorrowerProfile> = {}): BorrowerProfile {
+    return {
+      ficoScore: 740,
+      experience: 'EXPERIENCED',
+      existingFinancedProperties: 1,
+      entityType: 'LLC',
+      isUSCitizenOrPR: true,
+      availableReserves: 0,
+      reserveAssets: [],
+      isFirstResponder: false,
+      isForeignNational: false,
+      ...overrides,
+    };
+  }
+
+  function makeLoan(overrides: Partial<LoanStructure> = {}): LoanStructure {
+    return {
+      ltv: 75,
+      term: '30_YR',
+      ioPeriod: 'NONE',
+      armType: 'FIXED',
+      prepayPreference: 'NONE',
+      purpose: 'PURCHASE',
+      expectedHoldYears: 5,
+      points: 0,
+      lenderFees: 0,
+      brokerFees: 0,
+      rateLockCost: 0,
+      ...overrides,
+    };
+  }
+
+  it('base LTR case: DSCR 1.30 (>=1.25 tier), clean borrower, $300K loan -> 3 months (tier low end, no overlays)', () => {
+    // Base tier only: DSCR>=1.25 -> 3. No STR/FICO/first-time/>$1M/foreign/LTV overlays apply.
+    const months = estimateReserveMonths(1.30, 'LTR', makeBorrower(), makeLoan(), 300_000);
+    expect(months).toBe(3);
+  });
+
+  it('STR case: DSCR 1.10 (1.00-1.24 tier = 6) + STR overlay (+3) -> 9 months', () => {
+    const months = estimateReserveMonths(1.10, 'STR', makeBorrower(), makeLoan(), 400_000);
+    expect(months).toBe(9);
+  });
+
+  it('>$1M loan case: DSCR 1.05 (1.00-1.24 tier = 6) + loan>$1M overlay (+3) -> 9 months', () => {
+    // Before this fix, estimateReserveMonths ignored loanAmount entirely, so this
+    // case would have returned 6 (tier only) instead of the correct 9.
+    const months = estimateReserveMonths(1.05, 'LTR', makeBorrower(), makeLoan(), 1_200_000);
+    expect(months).toBe(9);
+  });
+
+  it('foreign-national case: DSCR 0.80 (0.75-0.99 tier = 9) + foreign-national overlay (+6) = 15, capped at 12', () => {
+    const months = estimateReserveMonths(
+      0.80,
+      'LTR',
+      makeBorrower({ isForeignNational: true }),
+      makeLoan(),
+      350_000,
+    );
+    expect(months).toBe(12);
+  });
+
+  it('low-FICO case (new overlay): DSCR 1.30 (tier 3) + FICO 620 (<640 -> +6) -> 9 months', () => {
+    // Regression guard for the specific overlay this fix adds: before the fix,
+    // ficoScore was never read by estimateReserveMonths, so this would have
+    // incorrectly returned 3 instead of 9.
+    const months = estimateReserveMonths(
+      1.30,
+      'LTR',
+      makeBorrower({ ficoScore: 620 }),
+      makeLoan(),
+      300_000,
+    );
+    expect(months).toBe(9);
+  });
+
+  it('mid-FICO case (new overlay): DSCR 1.30 (tier 3) + FICO 660 (640-679 -> +3) -> 6 months', () => {
+    const months = estimateReserveMonths(
+      1.30,
+      'LTR',
+      makeBorrower({ ficoScore: 660 }),
+      makeLoan(),
+      300_000,
+    );
+    expect(months).toBe(6);
+  });
+
+  it('end-to-end: a live >$1M DSCR deal now carries the +3 loan overlay through cashToClose.reserveRequirement', () => {
+    // Sized so LTV=75% -> loanAmount = 0.75 * 1,400,000 = $1,050,000 (> $1M).
+    // Rent is set well above PITIA so Track 1 DSCR clears 1.25, giving a base
+    // tier of 3 months; the corrected function should add +3 for the >$1M
+    // loan, for a total of 6 months feeding into cashToClose.
+    const inputs = buildEngineInputs({
+      purchasePrice: 1_400_000,
+      monthlyRent: 12_000,
+      state: 'TX',
+      ltv: 75,
+      ficoScore: 740,
+      experience: 'EXPERIENCED',
+    });
+    const result = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
+
+    expect(result.loanAmount).toBeCloseTo(1_050_000, 0);
+    expect(result.dscr).toBeGreaterThanOrEqual(1.25);
+
+    const expectedReserveMonths = 3 + 3; // tier(3) + loan>$1M overlay(3)
+    expect(result.cashToClose.reserveRequirement).toBeCloseTo(
+      expectedReserveMonths * result.monthlyPITIA.total,
+      1,
+    );
+  });
+});

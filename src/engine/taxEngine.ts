@@ -178,6 +178,18 @@ const LTCG_BRACKETS_SINGLE: TaxBracket[] = [
   { threshold: 533400, rate: 0.20 },
 ];
 
+const LTCG_BRACKETS_MFS: TaxBracket[] = [
+  { threshold: 0, rate: 0 },
+  { threshold: 48350, rate: 0.15 },
+  { threshold: 300000, rate: 0.20 },
+];
+
+const LTCG_BRACKETS_HOH: TaxBracket[] = [
+  { threshold: 0, rate: 0 },
+  { threshold: 64750, rate: 0.15 },
+  { threshold: 566700, rate: 0.20 },
+];
+
 // NIIT thresholds (IRC §1411)
 export function getNIITThreshold(filingStatus: FilingStatus): number {
   switch (filingStatus) {
@@ -312,28 +324,52 @@ export function computeRecaptureOnSale(
 }
 
 function getMarginalOrdinaryRate(magi: number, filingStatus: FilingStatus): number {
-  // Simplified 2026 ordinary brackets (MFJ)
-  if (filingStatus === 'MFJ') {
-    if (magi <= 24800) return 0.10;
-    if (magi <= 101400) return 0.12;
-    if (magi <= 206700) return 0.22;
-    if (magi <= 394600) return 0.24;
-    if (magi <= 501050) return 0.32;
-    if (magi <= 751600) return 0.35;
-    return 0.37;
-  } else {
-    if (magi <= 12400) return 0.10;
-    if (magi <= 50700) return 0.12;
-    if (magi <= 103350) return 0.22;
-    if (magi <= 197300) return 0.24;
-    if (magi <= 250525) return 0.32;
-    if (magi <= 375800) return 0.35;
-    return 0.37;
+  // Simplified 2026 ordinary brackets
+  switch (filingStatus) {
+    case 'MFJ':
+      if (magi <= 24800) return 0.10;
+      if (magi <= 101400) return 0.12;
+      if (magi <= 206700) return 0.22;
+      if (magi <= 394600) return 0.24;
+      if (magi <= 501050) return 0.32;
+      if (magi <= 751600) return 0.35;
+      return 0.37;
+    case 'SINGLE':
+    case 'MFS':
+      if (magi <= 12400) return 0.10;
+      if (magi <= 50700) return 0.12;
+      if (magi <= 103350) return 0.22;
+      if (magi <= 197300) return 0.24;
+      if (magi <= 250525) return 0.32;
+      if (magi <= 375800) return 0.35;
+      return 0.37;
+    case 'HOH':
+      if (magi <= 17000) return 0.10;
+      if (magi <= 64850) return 0.12;
+      if (magi <= 103350) return 0.22;
+      if (magi <= 197300) return 0.24;
+      if (magi <= 250500) return 0.32;
+      if (magi <= 626350) return 0.35;
+      return 0.37;
   }
 }
 
 function getLTCGRate(magi: number, filingStatus: FilingStatus): number {
-  const brackets = filingStatus === 'MFJ' ? LTCG_BRACKETS_MFJ : LTCG_BRACKETS_SINGLE;
+  let brackets: TaxBracket[];
+  switch (filingStatus) {
+    case 'MFJ':
+      brackets = LTCG_BRACKETS_MFJ;
+      break;
+    case 'MFS':
+      brackets = LTCG_BRACKETS_MFS;
+      break;
+    case 'HOH':
+      brackets = LTCG_BRACKETS_HOH;
+      break;
+    case 'SINGLE':
+      brackets = LTCG_BRACKETS_SINGLE;
+      break;
+  }
   let rate = 0;
   for (const b of brackets) {
     if (magi >= b.threshold) rate = b.rate;
@@ -410,15 +446,71 @@ export function computePassiveLossAllowance(
 // ============================================================
 
 /**
+ * v11.2 FIX (bug audit #2): Compute the annual mortgage INTEREST portion of a
+ * year's debt service for an amortizing loan. Needed because taxable rental
+ * income = NOI − mortgage INTEREST − depreciation. Interest is deductible every
+ * year and DECLINES as the loan amortizes; principal is a real cash outflow but
+ * is NEVER tax-deductible, so it must not appear in the taxable-income formula.
+ *
+ * Uses the same closed-form amortization identity as computeRemainingBalance's
+ * "proper amortization" path (B_t = L × (r^n − r^t) / (r^n − 1)):
+ *   annual interest = (this year's total debt service paid) − (principal
+ *   paydown during the year) = annualADS − (balanceStartOfYear − balanceEndOfYear).
+ *
+ * Falls back to a simplified straight-line-runoff proxy (mirroring
+ * computeRemainingBalance's backward-compat fallback) when rate/term are not
+ * supplied, so callers that omit them still get a reasonable approximate split
+ * instead of a crash or a nonsensical value.
+ */
+function computeAnnualMortgageInterest(
+  loanAmount: number,
+  annualADS: number,
+  year: number, // 1-based hold year
+  loanRatePct?: number,
+  loanTermMonths?: number,
+): number {
+  if (loanRatePct !== undefined && loanTermMonths !== undefined && loanRatePct > 0) {
+    const r = loanRatePct / 100 / 12;
+    const monthsStart = Math.min((year - 1) * 12, loanTermMonths);
+    const monthsEnd = Math.min(year * 12, loanTermMonths);
+    const factor = Math.pow(1 + r, loanTermMonths);
+    const balanceAt = (m: number): number => {
+      if (m >= loanTermMonths) return 0;
+      const elapsed = Math.pow(1 + r, m);
+      return Math.max(0, loanAmount * (factor - elapsed) / (factor - 1));
+    };
+    const balStart = balanceAt(monthsStart);
+    const balEnd = balanceAt(monthsEnd);
+    const monthsInYear = monthsEnd - monthsStart;
+    const paidThisYear = (annualADS / 12) * monthsInYear;
+    const principalPaid = balStart - balEnd;
+    return Math.max(0, paidThisYear - principalPaid);
+  }
+
+  // Fallback (no rate/term supplied): same 30-yr straight-line runoff floored at
+  // 50% used by computeRemainingBalance's backward-compat path, evaluated
+  // per-year rather than pinned to the total hold period.
+  const approxBalanceAt = (yearsElapsed: number) => loanAmount * Math.max(1 - yearsElapsed / 30, 0.5);
+  const principalPaid = approxBalanceAt(year - 1) - approxBalanceAt(year);
+  return Math.max(0, annualADS - principalPaid);
+}
+
+/**
  * Compute year-by-year after-tax cash flow and after-tax IRR.
  *
  * For each year:
  *   preTaxNCF = NOI - ADS  (Net Cash Flow before tax)
  *   depreciationDeduction = building + cost-seg bonus
- *   taxableIncome = NOI - depreciation  (if positive; else loss → PAL rules)
+ *   mortgageInterest = interest portion of ADS for this year (declines as the
+ *     loan amortizes; computed via computeAnnualMortgageInterest)
+ *   taxableIncome = NOI - mortgageInterest - depreciation  (if positive; else
+ *     loss → PAL rules). v11.2 FIX (bug audit #2): mortgage interest was
+ *     previously omitted entirely, overstating taxable income and understating
+ *     after-tax IRR.
  *   federalTax = taxableIncome × marginal rate (if positive)
  *   stateTax = taxableIncome × state rate
- *   afterTaxNCF = preTaxNCF - federalTax - stateTax + depreciation (add back non-cash)
+ *   afterTaxNCF = preTaxNCF - federalTax - stateTax  (preTaxNCF is already a
+ *     cash figure, so no non-cash depreciation add-back is needed here)
  *
  * Exit year (year N):
  *   + exitAfterTaxProceeds (after all recapture + LTCG + NIIT + state)
@@ -464,7 +556,11 @@ export function computeAfterTaxIRR(
     const yearNOI = annualNOI * Math.pow(1 + rentGrowthPct, yr - 1);
     const preTaxNCF = yearNOI - annualADS;
     const depreciation = depreciationSchedule[yr - 1].totalAnnualDepreciation;
-    const taxableIncome = yearNOI - depreciation;
+    // v11.2 FIX (bug audit #2): mortgage interest is deductible and must be
+    // subtracted from taxable income; principal is not deductible and is
+    // correctly excluded. Interest declines year-over-year as the loan amortizes.
+    const mortgageInterest = computeAnnualMortgageInterest(loanAmount, annualADS, yr, loanRatePct, loanTermMonths);
+    const taxableIncome = yearNOI - mortgageInterest - depreciation;
 
     // Federal tax: if taxable income positive, tax at marginal; if negative → PAL
     let federalTax = 0;
