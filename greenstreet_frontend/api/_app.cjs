@@ -5046,6 +5046,7 @@ app.use(
     methods: ["GET", "POST", "OPTIONS"]
   })
 );
+app.set("trust proxy", 1);
 app.use(import_express3.default.json({ limit: "100kb" }));
 app.disable("x-powered-by");
 app.use(verifyFirebaseToken);

@@ -58,8 +58,22 @@ function readStateFromQuery() {
   return code && MAP_CODES.includes(code) ? code : null;
 }
 
-function resolve(code: string): StateEntry {
+const STATE_RATE_ADJ: Record<string, { adj: number; entityReq: boolean; note: string }> = {
+  NJ: { adj: 0.25, entityReq: true, note: "C-Corp/S-Corp required for full lender coverage; LLC high-risk." },
+  NY: { adj: 0.25, entityReq: false, note: "Banking Law §6-l business-purpose exemption applies; Penal Law 25% usury cap." },
+  MD: { adj: 0.50, entityReq: true, note: "PPP de facto prohibited; most lenders decline or require high rate overlay." },
+  KS: { adj: 0.50, entityReq: false, note: "PPP de facto prohibited; narrow business exemption." },
+  MN: { adj: 0.10, entityReq: false, note: "HF 3437 eff. 8/1/2026 allows business-purpose PPP." },
+  PA: { adj: 0.10, entityReq: false, note: "Threshold $319,777 (2026); loans below threshold restricted." },
+  OH: { adj: 0.10, entityReq: false, note: "1-2 unit threshold $116,356 (2026); 3-4 unit unrestricted." },
+  AK: { adj: 0.25, entityReq: true, note: "LLC/Corp entity borrower mandatory." },
+  IL: { adj: 0.10, entityReq: true, note: "Entity borrower recommended to avoid APR fall-rate testing." },
+  NM: { adj: 0.10, entityReq: true, note: "Entity borrower required by primary DSCR programs." },
+};
+
+function resolve(code: string): StateEntry & { adj: number; entityReq: boolean; note: string } {
   const sp = SPECIAL[code];
+  const sa = STATE_RATE_ADJ[code] || { adj: 0, entityReq: false, note: "Standard DSCR program pricing applies." };
   const tier: Tier = sp ? sp.tier : 0;
   return {
     code,
@@ -69,6 +83,9 @@ function resolve(code: string): StateEntry {
     usury: sp ? sp.usury : "Business-purpose exemption typically applies; confirm state cap with counsel.",
     impact: sp ? sp.impact : "Standard pricing",
     threshold: sp?.threshold,
+    adj: sa.adj,
+    entityReq: sa.entityReq,
+    note: sa.note,
   };
 }
 
@@ -249,6 +266,21 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{sel.code} · {sel.name}</div>
               <div style={{ fontSize: "clamp(28px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.03em", color: TIER_COLORS[sel.tier], lineHeight: 1.05, marginBottom: 20 }}>{TIER_LABELS[sel.tier]}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(238,239,211,0.12)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 2 }}>
+                    Rate Adjustment: {sel.adj > 0 ? `+${sel.adj.toFixed(2)}%` : "Standard (0.00%)"}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(238,239,211,0.7)", lineHeight: 1.4 }}>{sel.note}</div>
+                </div>
+
+                {sel.entityReq && (
+                  <div style={{ background: "rgba(230,184,77,0.1)", borderRadius: 6, padding: "8px 12px", border: "1px solid rgba(230,184,77,0.3)" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#e6b84d" }}>
+                      ⚠️ Entity Borrower Required (LLC / Corp)
+                    </span>
+                  </div>
+                )}
+
                 {[
                   { k: "Prepayment penalty rules", v: sel.ppp, color: "#eeefd3", weight: 500 as const },
                   { k: "Usury / max rate cap", v: sel.usury, color: "#eeefd3", weight: 500 as const },
@@ -261,7 +293,10 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                   </div>
                 ))}
               </div>
-              <Btn label={`Price a deal in ${sel.code}`} href="/dscr-calculator" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }} style={{ width: "100%", justifyContent: "center", marginTop: 24 }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
+                <Btn label={`Get ${sel.name} Rate Quote →`} href="/rate-quiz" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); }} style={{ width: "100%", justifyContent: "center" }} />
+                <Btn label={`Analyze deal in ${sel.code}`} variant="secondary" href="/dscr-calculator" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }} style={{ width: "100%", justifyContent: "center" }} />
+              </div>
             </div>
           </div>
         </div>

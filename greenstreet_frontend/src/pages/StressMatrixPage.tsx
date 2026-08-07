@@ -9,6 +9,8 @@ import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifac
 import BottomCTA from "../design/BottomCTA";
 import { assessDscrCovenant } from "../engine/covenantCheck";
 import type { CovenantStatus } from "../engine/covenantCheck";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
+import { PremiumSlider } from "../components/ui/PremiumSlider";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const MINT      = dc.mintBg;
@@ -336,15 +338,6 @@ export default function StressMatrixPage({
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;
           font-family:${dc.mono};font-size:9px;font-weight:700;}
         .sm-cell{display:block;width:100%;}
-        /* Slider resets */
-        .gs-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;
-          border-radius:3px;outline:none;cursor:pointer;background:#003738;}
-        .gs-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
-          border-radius:50%;background:#4dbd97;border:2px solid #003738;cursor:pointer;
-          transition:transform .12s,box-shadow .12s;}
-        .gs-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
-          background:#4dbd97;border:2px solid #003738;cursor:pointer;}
-        .gs-slider:hover::-webkit-slider-thumb{transform:scale(1.2);box-shadow:0 0 0 4px rgba(216,217,88,.22);}
         /* Guided preset chips */
         .sm-preset:hover{border-color:rgba(216,217,88,0.5) !important;}
         .sm-preset[aria-pressed="true"]:hover{filter:brightness(1.05);}
@@ -510,27 +503,29 @@ export default function StressMatrixPage({
                 These numbers anchor the center cell. Change any value and all 120 cells update instantly.
               </p>
 
-              <InputField label="Purchase Price" prefix="$">
-                <input className="sm-num" type="number" step={5000} value={purchasePrice} onChange={(e) => setPurchasePrice(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Down payment" suffix="%">
-                <input className="sm-num" type="number" step={1} min={20} max={50} value={downPct} onChange={(e) => setDownPct(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Base interest rate" suffix="%">
-                <input className="sm-num" type="number" step={0.125} value={baseRate} onChange={(e) => setBaseRate(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Monthly Rent" prefix="$">
-                <input className="sm-num" type="number" step={100} value={monthlyRent} onChange={(e) => setMonthlyRent(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Annual Taxes" prefix="$">
-                <input className="sm-num" type="number" step={250} value={annualTaxes} onChange={(e) => setAnnualTaxes(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Annual Insurance" prefix="$">
-                <input className="sm-num" type="number" step={100} value={annualInsurance} onChange={(e) => setAnnualInsurance(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Monthly HOA" prefix="$">
-                <input className="sm-num" type="number" step={25} value={hoa} onChange={(e) => setHoa(+e.target.value)} style={inputStyle} />
-              </InputField>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <InputField label="Purchase Price">
+                  <CurrencyInput prefix="$" value={purchasePrice} onChange={setPurchasePrice} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Down payment">
+                  <CurrencyInput suffix="%" decimals={0} value={downPct} onChange={setDownPct} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Base interest rate">
+                  <CurrencyInput suffix="%" decimals={3} value={baseRate} onChange={setBaseRate} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Monthly Rent">
+                  <CurrencyInput prefix="$" value={monthlyRent} onChange={setMonthlyRent} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Annual Taxes">
+                  <CurrencyInput prefix="$" value={annualTaxes} onChange={setAnnualTaxes} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Annual Insurance">
+                  <CurrencyInput prefix="$" value={annualInsurance} onChange={setAnnualInsurance} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Monthly HOA">
+                  <CurrencyInput prefix="$" value={hoa} onChange={setHoa} style={{ width: '100%' }} />
+                </InputField>
+              </div>
 
               {/* Zone counts */}
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(238,239,211,0.10)" }}>
@@ -1132,20 +1127,16 @@ const inputStyle: React.CSSProperties = {
 };
 
 function InputField({
-  label, prefix, suffix, children,
+  label, children,
 }: {
-  label: string; prefix?: string; suffix?: string; children: React.ReactNode;
+  label: string; children: React.ReactNode;
 }) {
   return (
-    <label style={{ display: "block", marginBottom: 12 }}>
+    <label style={{ display: "block" }}>
       <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>
         {label}
       </span>
-      <div style={{ display: "flex", alignItems: "center", background: "#003738", borderRadius: 6, padding: "0 11px", border: "1px solid rgba(238,239,211,0.10)" }}>
-        {prefix && <span style={{ color: "rgba(238,239,211,0.62)", flexShrink: 0 }}>{prefix}</span>}
-        {children}
-        {suffix && <span style={{ color: "rgba(238,239,211,0.62)", flexShrink: 0 }}>{suffix}</span>}
-      </div>
+      {children}
     </label>
   );
 }
@@ -1174,14 +1165,11 @@ function SliderField({
           {displayValue}
         </Mono>
       </div>
-      <input
-        className="gs-slider"
-        type="range"
+      <PremiumSlider
         min={min} max={max} step={step} value={value}
-        onChange={(e) => onChange(+e.target.value)}
-        style={trackStyle}
-        aria-label={label}
-        title={glossLabel}
+        onChange={onChange}
+        accentColor={accentColor}
+        trackColor="rgba(238,239,211,0.12)"
       />
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, alignItems: "center" }}>
         <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.4 }} title={glossLabel}>

@@ -12,6 +12,8 @@ import { computeReassessedTax, computeReassessmentDSCRImpact } from "../engine/r
 import { rescueTrack2 } from "../engine/loanOptimizer";
 import type { PropertyInputs, LoanStructure, BorrowerProfile } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
+import { PremiumSlider } from "../components/ui/PremiumSlider";
 import {
   type DealSnapshot,
   type CalcTab,
@@ -517,7 +519,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Down payment — sets your LTV (loan ÷ value)</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{down}% · {fmt(price * down / 100)}</Mono>
                     </div>
-                    <input className="gsr" aria-label="Down payment percent" type="range" step="5" min="20" max="50" value={down} onChange={e => setDown(+e.target.value)} style={{ width: '100%' }} />
+                    <PremiumSlider min={20} max={50} step={5} value={down} onChange={setDown} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
                   </div>
                   <div>
@@ -525,29 +527,24 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Interest rate — drives P&amp;I payment</span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{rate.toFixed(3)}%</Mono>
                     </div>
-                    <input className="gsr" aria-label="Interest rate" type="range" step="0.125" min="4" max="12" value={rate} onChange={e => setRate(+e.target.value)} style={{ width: '100%' }} />
+                    <PremiumSlider min={4} max={12} step={0.125} value={rate} onChange={setRate} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>4%</span><span>12%</span></div>
                   </div>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Purchase price</span>
-                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
-                      <span style={{ color: 'rgba(238,239,211,0.62)' }}>$</span>
-                      <input className="gs-num" type="number" step="5000" value={price} onChange={e => setPrice(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
-                    </div>
+                    <CurrencyInput prefix="$" value={price} onChange={setPrice} style={{ width: '100%' }} />
                   </label>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Monthly rent</span>
-                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
-                      <span style={{ color: 'rgba(238,239,211,0.62)' }}>$</span>
-                      <input className="gs-num" type="number" step="100" value={rent} onChange={e => setRent(+e.target.value)} style={{ padding: '12px 7px', fontSize: 16, fontWeight: 600 }} />
-                    </div>
+                    <CurrencyInput prefix="$" value={rent} onChange={setRent} style={{ width: '100%' }} />
                   </label>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>State — sets the tax reset &amp; insurance rules</span>
-                    <div className="calc-field" style={{ padding: '0 6px 0 13px' }}>
-                      <select value={stateCode} onChange={e => setStateCode(e.target.value)} style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', color: PISTACHIO, fontFamily: font.family, fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em', padding: '12px 4px', cursor: 'pointer' }}>
-                        {US_STATES.map(s => <option key={s} value={s} style={{ color: '#003738' }}>{s}</option>)}
+                    <div style={{ display: "flex", alignItems: "center", background: swatch.pistachio, border: `1.5px solid ${swatch.midnightFaded}`, borderRadius: radius.sm, padding: "0 12px", transition: "border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)", width: "100%" }}>
+                      <select value={stateCode} onChange={e => setStateCode(e.target.value)} style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', color: swatch.midnight, fontFamily: font.family, fontSize: 16, fontWeight: 700, padding: '12px 0', cursor: 'pointer', appearance: "none" }}>
+                        {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
+                      <span style={{ color: swatch.midnight, fontSize: 14, fontWeight: 800, pointerEvents: "none" }}>▾</span>
                     </div>
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -558,17 +555,13 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                           {taxAuto ? '● Auto reset' : 'Manual'}
                         </button>
                       </div>
-                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center', opacity: taxAuto ? 0.85 : 1 }}>
-                        <span style={{ color: 'rgba(238,239,211,0.62)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="250" value={taxAuto ? estTax : tax} disabled={taxAuto} onChange={e => setTax(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
+                      <div style={{ opacity: taxAuto ? 0.85 : 1, transition: "opacity 0.2s" }}>
+                        <CurrencyInput prefix="$" value={taxAuto ? estTax : tax} onChange={setTax} style={{ width: '100%', pointerEvents: taxAuto ? 'none' : 'auto' }} />
                       </div>
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Ins. /yr</span>
-                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ color: 'rgba(238,239,211,0.62)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="100" value={ins} onChange={e => setIns(+e.target.value)} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
-                      </div>
+                      <CurrencyInput prefix="$" value={ins} onChange={setIns} style={{ width: '100%' }} />
                       {Math.abs(ins - estIns) > 50 && (
                         <button type="button" onClick={() => setIns(estIns)} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 600, color: LEMON, textAlign: 'left' as const }}>
                           Use est. ${estIns.toLocaleString()}/yr · {stateCode} risk
@@ -577,10 +570,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     </label>
                     <label style={{ display: 'block' }}>
                       <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>HOA /mo</span>
-                      <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ color: 'rgba(238,239,211,0.62)', fontSize: 13 }}>$</span>
-                        <input className="gs-num" type="number" step="25" min="0" value={hoa} onChange={e => setHoa(Math.max(0, +e.target.value))} style={{ padding: '11px 5px', fontSize: 14, fontWeight: 600 }} />
-                      </div>
+                      <CurrencyInput prefix="$" value={hoa} onChange={setHoa} style={{ width: '100%' }} />
                     </label>
                   </div>
                   {taxAuto && (

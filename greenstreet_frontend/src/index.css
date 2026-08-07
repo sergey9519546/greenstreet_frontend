@@ -1371,11 +1371,16 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
 
 /* ── Print / Investment Memo Export Layout ── */
 @media print {
-  body {
+  @page {
+    size: letter portrait;
+    margin: 12mm 15mm;
+  }
+  body, #root {
     background: #ffffff !important;
     color: #003738 !important;
+    font-size: 12pt !important;
   }
-  header, footer, nav, .no-print, button, .da-mode-toggle {
+  header, footer, nav, .no-print, button, .da-mode-toggle, input[type=range], .gs-range {
     display: none !important;
   }
   .print-only {
@@ -1388,4 +1393,19 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
     opacity: 1 !important;
     transform: none !important;
   }
+  .print-card {
+    background: #ffffff !important;
+    border: 1px solid #dcdfd0 !important;
+    color: #003738 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    margin-bottom: 16px !important;
+    padding: 16px !important;
+  }
+  .print-header {
+    border-bottom: 2px solid #003738;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
 }
+

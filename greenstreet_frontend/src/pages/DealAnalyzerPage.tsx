@@ -6,6 +6,9 @@ import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeTcoRate } from "../engine/tcoDscr";
 import { assessLeverage } from "../engine/leverageCheck";
 import { assessRentIntegrity } from "../engine/rentIntegrity";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
+import { PremiumSlider } from "../components/ui/PremiumSlider";
+import { generateCreditMemo } from "../engine/creditMemo";
 
 interface Props {
   onBack?: () => void;
@@ -77,6 +80,24 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   // the appraiser's 1007 market rent, lenders underwrite to the LOWER figure —
   // the qualifying DSCR will likely use market rent, not the stated number.
   const rentCheck = assessRentIntegrity({ leaseRent: rent, marketRent });
+
+  // --- Credit Memo Computation ---
+  const creditMemo = generateCreditMemo({
+    price,
+    loan,
+    downPercent: down,
+    rent,
+    marketRent,
+    rate,
+    pitia,
+    dscr,
+    noi,
+    capRate,
+    debtYield,
+    leverageState: lev.state === "NEGATIVE" ? "negative" : lev.state === "POSITIVE" ? "positive" : "neutral",
+    stateCode,
+    pppRule: sa.ppp,
+  });
 
   // --- Verdict ---
   let vLabel = "DEAL BREAK";
@@ -208,6 +229,27 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <Btn label="Run the analyzer" href="#da-tool" onClick={scrollToTool} />
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="no-print"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(238,239,211,0.08)",
+                  color: dc.cream,
+                  border: "1px solid rgba(238,239,211,0.2)",
+                  padding: "12px 20px",
+                  borderRadius: radius.sm,
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                📄 Export PDF Memo
+              </button>
               <Btn label="State rules" variant="secondary" onClick={(e) => { e.preventDefault(); onNavigate?.("state-laws"); }} />
             </div>
           </div>
@@ -249,6 +291,20 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       {/* ── TOOL ── */}
       <section id="da-tool" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          {/* PRINT-ONLY INSTITUTIONAL MEMORANDUM HEADER */}
+          <div className="print-only print-header" style={{ display: "none" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+              <div>
+                <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 4px", color: "#003738" }}>GREENSTREET FINANCE</h1>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#039692" }}>EXECUTIVE INVESTMENT UNDERWRITING MEMORANDUM</div>
+              </div>
+              <div style={{ textAlign: "right", fontSize: 11, color: "#555" }}>
+                <div>Date: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
+                <div>State: {stateCode || "TX"} &middot; LTV: {ltv}%</div>
+              </div>
+            </div>
+          </div>
+
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Live deal analyzer</div>
@@ -313,33 +369,54 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   : "Pro Mode: Fine-tune exact annual property taxes, insurance, market rent (Form 1007), and HOA fees."}
               </p>
 
-              {([
-                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16, quick: true },
-                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16, quick: true },
-                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16, quick: true },
-                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16, quick: false },
-                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16, quick: false },
-                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16, quick: false },
-                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16, quick: false },
-              ] as const)
-                .filter((f) => (isQuickMode ? f.quick : true))
-                .map((f) => (
-                  <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
-                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>{f.label}</span>
-                    <div className="da-field">
-                      {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.prefix}</span>}
-                      <input className="da-num" type="number" step={f.step} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
-                      {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.suffix}</span>}
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Purchase Price</span>
+                <CurrencyInput value={price} onChange={setPrice} prefix="$" style={{ padding: "10px 12px" }} />
+              </div>
+              
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Down Payment</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: dc.dark }}>{down}%</span>
+                </div>
+                <PremiumSlider value={down} min={10} max={40} step={1} onChange={setDown} />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Monthly Rent</span>
+                <CurrencyInput value={rent} onChange={setRent} prefix="$" style={{ padding: "10px 12px" }} />
+              </div>
+
+              {!isQuickMode && (
+                <>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Interest Rate</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: dc.dark }}>{rate.toFixed(3)}%</span>
                     </div>
-                  </label>
-                ))}
+                    <PremiumSlider value={rate} min={5.0} max={10.0} step={0.125} onChange={setRate} />
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Annual Property Taxes</span>
+                    <CurrencyInput value={tax} onChange={setTax} prefix="$" style={{ padding: "10px 12px" }} />
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Annual Insurance</span>
+                    <CurrencyInput value={ins} onChange={setIns} prefix="$" style={{ padding: "10px 12px" }} />
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>HOA / mo</span>
+                    <CurrencyInput value={hoa} onChange={setHoa} prefix="$" style={{ padding: "10px 12px" }} />
+                  </div>
+                </>
+              )}
 
               <label style={{ display: "block", marginBottom: 16 }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Market Rent — 1007 (optional)</span>
-                <div className="da-field">
-                  <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>$</span>
-                  <input className="da-num" type="number" step={100} value={marketRent} onChange={(e) => setMarketRent(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
-                </div>
+                <CurrencyInput value={marketRent} onChange={setMarketRent} prefix="$" style={{ padding: "10px 12px" }} />
                 <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 6, lineHeight: 1.4 }}>The appraiser's market rent. If your stated rent sits well above it, lenders underwrite to the lower figure.</span>
               </label>
 
@@ -475,6 +552,71 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 </p>
                 <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.75)", margin: "0 0 6px", lineHeight: 1.5 }}>{sa.ppp}</p>
                 <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: 0 }}>{sa.extra}</p>
+              </div>
+
+              {/* AI UNDERWRITER CREDIT MEMO */}
+              <div className="gs-reveal print-card" style={{ background: swatch.white, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1.5px solid ${swatch.midnightFaded}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: dc.rain }}>
+                    🧠 AI Underwriter Credit Memo
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="no-print"
+                    style={{
+                      background: "rgba(0,55,56,0.06)",
+                      border: "1px solid rgba(0,55,56,0.15)",
+                      borderRadius: radius.sm,
+                      padding: "4px 10px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: dc.dark,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Print Memo 🖨️
+                  </button>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>
+                  {creditMemo.verdictTitle}
+                </div>
+                <p style={{ fontSize: 13, color: "rgba(0,55,56,0.75)", lineHeight: 1.5, marginBottom: 14 }}>
+                  {creditMemo.executiveSummary}
+                </p>
+
+                {creditMemo.keyStrengths.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Key Deal Strengths</div>
+                    {creditMemo.keyStrengths.map((s, idx) => (
+                      <div key={idx} style={{ fontSize: 12, color: "rgba(0,55,56,0.7)", marginBottom: 3 }}>
+                        ✓ {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {creditMemo.riskFactors.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#e06363", marginBottom: 4 }}>Underwriting Risk Factors</div>
+                    {creditMemo.riskFactors.map((r, idx) => (
+                      <div key={idx} style={{ fontSize: 12, color: "rgba(0,55,56,0.7)", marginBottom: 3 }}>
+                        ⚠️ {r}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {creditMemo.mitigationSteps.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#b8901f", marginBottom: 4 }}>Recommended Structuring Fixes</div>
+                    {creditMemo.mitigationSteps.map((m, idx) => (
+                      <div key={idx} style={{ fontSize: 12, color: "rgba(0,55,56,0.7)", marginBottom: 3 }}>
+                        💡 {m}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* MATCHED PROGRAMS */}

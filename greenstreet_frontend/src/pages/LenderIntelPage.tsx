@@ -496,7 +496,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 const statusColor = p.fits ? dc.emerald : p.passed >= 3 ? swatch.lemon : "#e06363";
                 const statusLabel = p.fits ? "FITS" : p.passed >= 3 ? `${4 - p.passed} miss` : "NO FIT";
                 const cardBg = p.fits ? dc.teal : "rgba(238,239,211,0.04)";
-                const cardBorder = p.fits ? "rgba(77,189,151,0.4)" : "rgba(238,239,211,0.1)";
+                const cardBorder = p.fits ? "rgba(77,189,151,0.5)" : "rgba(238,239,211,0.1)";
+                const glow = p.fits ? "0 4px 24px rgba(77,189,151,0.15), inset 0 1px 0 rgba(255,255,255,0.05)" : "none";
 
                 return (
                   <div
@@ -512,6 +513,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                       border: `1px solid ${cardBorder}`,
                       borderRadius: radius.md,
                       padding: "clamp(16px,2vw,24px) 24px",
+                      boxShadow: glow,
+                      transition: "transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s cubic-bezier(0.16,1,0.3,1)",
                     }}
                   >
                     {/* Rank */}
@@ -547,7 +550,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           {statusLabel}
                         </span>
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 10, letterSpacing: "-0.01em" }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 12, letterSpacing: "-0.01em" }}>
                         {p.tagline}
                         {p.effectiveLTV !== null && (
                           <span style={{ marginLeft: 8, color: "rgba(238,239,211,0.62)", fontSize: 13 }}>
@@ -555,6 +558,14 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           </span>
                         )}
                       </div>
+                      
+                      {/* Checks Progress Bar */}
+                      <div style={{ display: "flex", gap: 3, marginBottom: 10, height: 4, width: "100%", maxWidth: 160 }}>
+                        {[0, 1, 2, 3].map(step => (
+                          <div key={step} style={{ flex: 1, background: step < p.passed ? statusColor : "rgba(238,239,211,0.1)", borderRadius: 2 }} />
+                        ))}
+                      </div>
+
                       {/* Check chips */}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {p.checks.map((c) => (

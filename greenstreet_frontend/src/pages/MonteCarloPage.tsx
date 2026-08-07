@@ -4,6 +4,7 @@ import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc"
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
+import { PremiumSlider } from "../components/ui/PremiumSlider";
 
 // ─── color helpers ────────────────────────────────────────────────────────────
 const RED     = "#e06363";
@@ -43,15 +44,14 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
           {prefix}{display}{suffix}
         </Mono>
       </div>
-      <input
-        className="gs-range"
-        aria-label={label}
-        type="range"
+      <PremiumSlider
         min={min}
         max={max}
         step={step}
         value={value}
-        onChange={(e) => set(+e.target.value)}
+        onChange={set}
+        accentColor="#7ec8d3"
+        trackColor="rgba(238,239,211,0.12)"
       />
       {hint && (
         <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>
@@ -548,7 +548,7 @@ export default function MonteCarloPage({
                       <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>Random seed</span>
                       <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.lemon }}>{seed}</Mono>
                     </div>
-                    <input className="gs-range" aria-label="Random seed" type="range" min={1} max={999} step={1} value={seed} onChange={(e) => setSeed(+e.target.value)} />
+                    <PremiumSlider min={1} max={999} step={1} value={seed} onChange={setSeed} accentColor={dc.lemon} trackColor="rgba(238,239,211,0.12)" />
                     <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>Controls which specific paths are drawn. Different seeds give similar but not identical results.</span>
                   </div>
                 </div>

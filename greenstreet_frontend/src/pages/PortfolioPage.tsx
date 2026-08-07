@@ -213,6 +213,15 @@ export default function PortfolioPage({
         footer div[style]{color:${dc.dark} !important;}
         .pf-hbar{transform-origin:bottom;}
         .pf-gbar{transform-origin:left;}
+        @media (max-width: 767px) {
+          .pf-table, .pf-table tbody, .pf-table tr, .pf-table td { display: block; width: 100%; }
+          .pf-table thead { display: none; }
+          .pf-table tr { margin-bottom: 16px; background: rgba(0,55,56,0.3); border-radius: 8px; padding: 12px; border: 1px solid rgba(238,239,211,0.1); }
+          .pf-table td { padding: 8px !important; text-align: right !important; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(238,239,211,0.05) !important; }
+          .pf-table td::before { content: attr(data-label); font-size: 11px; text-transform: uppercase; color: rgba(238,239,211,0.62); font-weight: 700; letter-spacing: 0.04em; margin-right: 12px; }
+          .pf-table td:last-child { border-bottom: none !important; justify-content: flex-end; }
+          .pf-in { text-align: right; width: 100%; max-width: 120px; }
+        }
       `}</style>
 
       {/* ── TOOL ─────────────────────────────────────────────────────────── */}
@@ -419,7 +428,7 @@ export default function PortfolioPage({
             }}
           >
             <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
+              <table className="pf-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
                 <thead>
                   <tr>
                     {["Property", "Type", "Value", "Balance", "Rate %", "Rent/mo", "LTV", "DSCR", "Cash/mo", ""].map((h, i) => (
@@ -443,9 +452,18 @@ export default function PortfolioPage({
                 </thead>
                 <tbody>
                   {computed.length === 0 && (
-                    <tr>
-                      <td colSpan={10} style={{ padding: "40px 14px", textAlign: "center", color: "rgba(238,239,211,0.62)", fontSize: 14, fontWeight: 500 }}>
-                        No properties yet — add one to see your blended DSCR.
+                    <tr style={{ display: "block", width: "100%", background: "none", border: "none" }}>
+                      <td colSpan={10} style={{ display: "block", width: "100%", padding: "64px 20px", textAlign: "center", background: "rgba(238,239,211,0.02)", borderRadius: 12, border: "1px dashed rgba(238,239,211,0.15)" }}>
+                        <div style={{ width: 64, height: 64, margin: "0 auto 20px", background: "rgba(238,239,211,0.06)", borderRadius: 32, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <span style={{ fontSize: 24 }}>🏠</span>
+                        </div>
+                        <h3 style={{ fontSize: 18, color: dc.cream, fontWeight: 600, marginBottom: 8, margin: 0, lineHeight: 1 }}>Your portfolio is empty</h3>
+                        <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 14, fontWeight: 500, maxWidth: 300, margin: "12px auto 24px", lineHeight: 1.5 }}>
+                          Add your first property to unlock blended DSCR, cash flow analysis, and lender matching.
+                        </p>
+                        <button onClick={addRow} style={{ background: dc.lemon, color: dc.dark, border: "none", fontFamily: dc.sans, fontWeight: 700, fontSize: 14, padding: "10px 20px", borderRadius: dc.r.sm, cursor: "pointer" }}>
+                          + Add property
+                        </button>
                       </td>
                     </tr>
                   )}
@@ -454,34 +472,46 @@ export default function PortfolioPage({
                     const cc  = c.cf >= 0 ? MINT : RED;
                     return (
                       <tr key={c.id} className="pf-row" style={{ background: "transparent", transition: "background .12s" }}>
-                        <td style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Property" style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
                           <input type="text" aria-label={`Property name for row ${c.id}`} value={c.name} onChange={(e) => edit(c.id, "name", e.target.value)} placeholder="Property name"
-                            style={{ width: 138, background: "transparent", border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 600, fontSize: 14, padding: "7px 9px", outline: "none" }} />
+                            style={{ width: "100%", maxWidth: 160, background: "transparent", border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 600, fontSize: 14, padding: "7px 9px", outline: "none" }} />
                         </td>
-                        <td style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Type" style={{ padding: "7px 10px", borderBottom: `1px solid ${dc.faded}` }}>
                           <select aria-label="Property type" value={c.propertyType} onChange={(e) => edit(c.id, "propertyType", e.target.value)}
-                            style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 500, fontSize: 13, padding: "7px 7px", outline: "none", cursor: "pointer" }}>
+                            style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 500, fontSize: 13, padding: "7px 7px", outline: "none", cursor: "pointer", maxWidth: 120 }}>
                             {["SFR", "2-4 unit", "Duplex", "Triplex", "4-plex", "5+ unit", "Condo", "Townhome", "STR / Airbnb"].map((t) => (
                               <option key={t} value={t} style={{ color: "#003738" }}>{t}</option>
                             ))}
                           </select>
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" aria-label="Property value" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
+                        <td data-label="Value" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                            <span style={{ color: "rgba(238,239,211,0.4)", marginRight: 4 }}>$</span>
+                            <input className="pf-in" aria-label="Property value" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
+                          </div>
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" aria-label="Loan balance" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
+                        <td data-label="Balance" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                            <span style={{ color: "rgba(238,239,211,0.4)", marginRight: 4 }}>$</span>
+                            <input className="pf-in" aria-label="Loan balance" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
+                          </div>
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" aria-label="Note rate" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
+                        <td data-label="Rate %" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                            <input className="pf-in" aria-label="Note rate" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
+                            <span style={{ color: "rgba(238,239,211,0.4)", marginLeft: 2 }}>%</span>
+                          </div>
                         </td>
-                        <td style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                          <input className="pf-in" aria-label="Monthly rent" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
+                        <td data-label="Rent/mo" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                            <span style={{ color: "rgba(238,239,211,0.4)", marginRight: 4 }}>$</span>
+                            <input className="pf-in" aria-label="Monthly rent" type="number" step={100} value={c.rent} onChange={(e) => edit(c.id, "rent", e.target.value)} />
+                          </div>
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.62)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="LTV" style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.62)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
                           {c.ltv.toFixed(0)}%
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="DSCR" style={{ padding: "11px 14px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                             <Mono style={{ fontSize: 14, fontWeight: 700, color: rowDscrColor }}>
                               {c.dscr.toFixed(2)}x
@@ -489,10 +519,10 @@ export default function PortfolioPage({
                             {c.dscr < 1.25 && <RiskFlame level={riskFromDscr(c.dscr)} size={14} />}
                           </span>
                         </td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cc, fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Cash/mo" style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, color: cc, fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
                           {(c.cf >= 0 ? "+" : "") + fmt(c.cf)}
                         </td>
-                        <td style={{ padding: "11px 14px", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Action" style={{ padding: "11px 14px", borderBottom: `1px solid ${dc.faded}` }}>
                           <button
                             onClick={() => removeRow(c.id)}
                             style={{ background: "none", border: "1px solid rgba(211,47,47,0.35)", color: "#d32f2f", borderRadius: dc.r.sm, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: dc.sans }}
@@ -508,24 +538,45 @@ export default function PortfolioPage({
             </div>
           </div>
 
-          {/* Add property */}
-          <button
-            onClick={addRow}
-            style={{
-              background: dc.lemon,
-              color: dc.dark,
-              border: "none",
-              fontFamily: dc.sans,
-              fontWeight: 700,
-              fontSize: 14,
-              letterSpacing: "-0.01em",
-              padding: "12px 22px",
-              borderRadius: dc.r.sm,
-              cursor: "pointer",
-            }}
-          >
-            + Add property
-          </button>
+          {/* Add property & Print Roll actions */}
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <button
+              onClick={addRow}
+              className="no-print"
+              style={{
+                background: dc.lemon,
+                color: dc.dark,
+                border: "none",
+                fontFamily: dc.sans,
+                fontWeight: 700,
+                fontSize: 14,
+                letterSpacing: "-0.01em",
+                padding: "12px 22px",
+                borderRadius: dc.r.sm,
+                cursor: "pointer",
+              }}
+            >
+              + Add property
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="no-print"
+              style={{
+                background: "rgba(238,239,211,0.08)",
+                color: dc.cream,
+                border: "1px solid rgba(238,239,211,0.2)",
+                fontFamily: dc.sans,
+                fontWeight: 600,
+                fontSize: 14,
+                letterSpacing: "-0.01em",
+                padding: "12px 22px",
+                borderRadius: dc.r.sm,
+                cursor: "pointer",
+              }}
+            >
+              📄 Print Portfolio Roll
+            </button>
+          </div>
 
           {/* ── Secondary signals ─────────────────────────────────────────── */}
           <div

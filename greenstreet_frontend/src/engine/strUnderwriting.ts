@@ -424,7 +424,7 @@ export function evaluateSTRUnderwriting(
   // income); v11.1 fixed to MIN per spec.
   const worlds = [world1, world2, world3];
   const bestWorld = worlds.reduce(
-    (best, w) => (w.qualifyingRent < best.qualifyingRent ? w : best),
+    (best, worldItem) => (worldItem.qualifyingRent < best.qualifyingRent ? worldItem : best),
     world1,
   );
 
