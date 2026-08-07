@@ -93,7 +93,7 @@ function scorePrograms(
       score,
       effectiveLTV,
     };
-  }).sort((a, b) => (b.fits ? 1 : 0) - (a.fits ? 1 : 0) || b.score - a.score) as ScoredProgram[];
+  }).sort((a, b) => (b.fits ? 1 : 0) - (a.fits ? 1 : 0) || b.score - a.score) as unknown as ScoredProgram[];
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
