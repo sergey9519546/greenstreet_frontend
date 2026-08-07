@@ -1361,3 +1361,31 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
     min-height: 1200px !important;
   }
 }
+
+/* ── WCAG 2.1 AA Accessibility Focus Rings ── */
+:focus-visible {
+  outline: 2px solid #039692 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(3, 150, 146, 0.25) !important;
+}
+
+/* ── Print / Investment Memo Export Layout ── */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #003738 !important;
+  }
+  header, footer, nav, .no-print, button, .da-mode-toggle {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .da-tool-grid {
+    display: block !important;
+  }
+  .gs-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

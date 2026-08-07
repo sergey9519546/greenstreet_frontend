@@ -268,6 +268,8 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <div style={{ display: "inline-flex", background: "rgba(0,55,56,0.06)", padding: 3, borderRadius: radius.sm, border: "1px solid rgba(0,55,56,0.1)" }}>
                   <button
                     type="button"
+                    aria-pressed={isQuickMode}
+                    aria-label="Switch to 60-Second Quick Mode"
                     onClick={() => setIsQuickMode(true)}
                     style={{
                       border: "none",
@@ -285,6 +287,8 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   </button>
                   <button
                     type="button"
+                    aria-pressed={!isQuickMode}
+                    aria-label="Switch to Full Pro Mode"
                     onClick={() => setIsQuickMode(false)}
                     style={{
                       border: "none",
