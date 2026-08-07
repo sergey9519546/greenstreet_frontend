@@ -22,6 +22,8 @@ dist/
 dist-ssr/
 .vercel/
 .output/
+api/
+*.cjs
 
 # Dependencies
 node_modules/
