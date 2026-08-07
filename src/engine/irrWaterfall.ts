@@ -44,14 +44,8 @@ import type {
   IRRWaterfallExit,
   WaterfallSign,
 } from './types';
-import {
-  calculatePI,
-  TRACK2_LT_VACANCY_PCT,
-  TRACK2_STR_VACANCY_PCT,
-  TRACK2_MTR_VACANCY_PCT,
-  TRACK2_MANAGEMENT_PCT,
-  TRACK2_MAINTENANCE_PCT,
-} from './engine';
+import { calculatePI } from './engine';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
 
 // ============================================================
 // MAIN ENTRY POINT
@@ -82,19 +76,30 @@ export function computeIRRWaterfall(
   cashInvested: number,
   prepayPenaltyAtExit: number,
 ): IRRWaterfallResult {
-  // ── Track 2 expense assumptions (per strategy) ──
+  // ── Track 2 expense assumptions (TCO single source of truth) ──
   // This waterfall is an investor cash-flow view, so it must start with the
   // raw strategy rent. `solveDSCR().track1.qualifyingRent` is already reduced
   // for STR/MTR lender qualification and would apply a second vacancy haircut
   // here. Management and maintenance also follow Track 2 and are calculated
   // from gross scheduled rent, not rent remaining after vacancy.
-  const vacancyPct = strategy === 'STR'
-    ? TRACK2_STR_VACANCY_PCT
-    : strategy === 'MTR'
-    ? TRACK2_MTR_VACANCY_PCT
-    : TRACK2_LT_VACANCY_PCT;
-  const managementPct = TRACK2_MANAGEMENT_PCT;
-  const maintenancePct = TRACK2_MAINTENANCE_PCT;
+  //
+  // Rates come from tcoDscr.computeTcoRate — the same call engine.buildTrack2
+  // makes — so the waterfall and the Track 2 DSCR can never drift apart. The
+  // legacy flat TRACK2_* constants (8% vac / 8% mgmt / 5% maint) were removed
+  // in the TCO reconciliation.
+  //
+  // CapEx (rate.capex) is deliberately NOT a waterfall stage: this waterfall
+  // decomposes NOI → debt service → tax → after-tax CF, and under standard
+  // real-estate convention NOI excludes capital expenditure. Adding it here
+  // would also break the tie-out to `afterTaxIRR.yearByYear`, which is computed
+  // by taxEngine from an NOI that carries no CapEx line. Track 2 DSCR keeps
+  // CapEx because it is a deliberately conservative survival metric.
+  const tcoRate = computeTcoRate({
+    propertyType: mapToTcoType(property.unitCount, strategy === 'STR'),
+  });
+  const vacancyPct = tcoRate.vacancy * 100;
+  const managementPct = tcoRate.management * 100;
+  const maintenancePct = tcoRate.maintenance * 100;
 
   const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
   const termMonths = termYears * 12;

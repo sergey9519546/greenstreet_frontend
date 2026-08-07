@@ -436,8 +436,13 @@ export interface STRUnderwritingResult {
   marketDirectionWarning: string;
   /** v11.1 (AUDIT-FINAL issue 6): Monthly seasonality breakdown — 12 months
    *  of projected STR revenue, DSCR, and occupancy stress. Required by spec
-   *  Part G "monthly DSCR breakdown + off-season warning". */
-  monthlySeasonality?: STRMonthlySeasonality;
+   *  Part G "monthly DSCR breakdown + off-season warning".
+   *
+   *  Non-optional: evaluateSTRUnderwriting (the only producer) populates this on
+   *  both of its return paths, and the spec makes it mandatory. It was marked
+   *  optional while the field was being rolled out; leaving the `?` on forced
+   *  every consumer to null-check a value that is always present. */
+  monthlySeasonality: STRMonthlySeasonality;
 }
 
 /** v11.1: STR monthly seasonality projection.
@@ -1263,7 +1268,12 @@ export interface VerdictResult {
   returnGrade: ReturnGrade;
   returnGradeReason: string;
   track2AcknowledgmentRequired: boolean;
-  track2AcknowledgmentText: string;
+  /**
+   * Null when `track2AcknowledgmentRequired` is false — there is no ack copy to
+   * show. Callers must branch on the boolean (or null-check) rather than render
+   * this directly; an empty string would read as "ack exists but is blank".
+   */
+  track2AcknowledgmentText: string | null;
   killCriteriaTriggered: KillCriterion[];
   rescueOptions: RescueFix[];
   note: string;

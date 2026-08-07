@@ -326,7 +326,7 @@ export default function STRUnderwritingPage({
         loanAmount,
         rate,
         30,
-        "0",
+        "NONE", // ioPeriod — fully amortizing (IOPeriod union: NONE | 5_YR | 7_YR | 10_YR)
         annualTaxes,
         annualInsurance,
         hoa,

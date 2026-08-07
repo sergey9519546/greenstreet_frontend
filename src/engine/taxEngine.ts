@@ -527,7 +527,13 @@ export function computeAfterTaxIRR(
   annualNOI: number,
   annualADS: number, // annual debt service
   pitiaMonthly: number,
-  taxProfile: TaxProfile,
+  // Nullable by contract: the body below already substitutes a documented
+  // conservative default profile when this is omitted (MFJ / $200k MAGI / 20%
+  // land / 5-yr hold / 6.5% exit cap). The signature previously said
+  // `TaxProfile`, which made that fallback unreachable dead code and forced
+  // callers holding an optional profile (v11Runner) to cast. Widened rather
+  // than removed so the default stays in exactly one place.
+  taxProfile: TaxProfile | undefined,
   prepayPenaltyAtExit: number,
   // v11.1 FIX (AUDIT-FINAL-7 D-1): Loan rate + term so remaining balance uses
   // PROPER AMORTIZATION, not the simplified linear `1 - holdYears/30` proxy

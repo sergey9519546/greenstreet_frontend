@@ -254,7 +254,11 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     input.property.state,
     dscr.qualifyingRent,
     dscr.monthlyPITIA.total,
-    input.sellerAnnualTax,
+    // sellerAnnualTax is optional on V11AnalysisInput. Fall back to the
+    // property's own annual tax bill — the same default already used for
+    // computeReassessedTax above (line ~232), so both reassessment calls see
+    // an identical "current bill" and cannot disagree.
+    input.sellerAnnualTax ?? input.property.annualTaxes,
     reassessmentResult.reassessedAnnualTax,
   );
 

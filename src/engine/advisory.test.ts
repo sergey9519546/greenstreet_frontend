@@ -397,7 +397,7 @@ describe('bug audit #6 — estimateReserveMonths applies the FICO and loan->$1M 
       availableReserves: 0,
       reserveAssets: [],
       isFirstResponder: false,
-      isForeignNational: false,
+      isNonUsInvestor: false,
       ...overrides,
     };
   }
@@ -441,7 +441,7 @@ describe('bug audit #6 — estimateReserveMonths applies the FICO and loan->$1M 
     const months = estimateReserveMonths(
       0.80,
       'LTR',
-      makeBorrower({ isForeignNational: true }),
+      makeBorrower({ isNonUsInvestor: true }),
       makeLoan(),
       350_000,
     );

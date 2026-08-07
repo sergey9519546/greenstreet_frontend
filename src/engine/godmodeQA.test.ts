@@ -135,7 +135,11 @@ describe('APEX Godmode QA — Boundary & Edge Case Audit', () => {
       const mockDSCR = solveDSCR(
         { purchasePrice: 400000, leaseRent: 3500, annualTaxes: 4000, annualInsurance: 1800, hoa: 0 } as PropertyInputs,
         { ficoScore: 740, experience: 'EXPERIENCED' } as BorrowerProfile,
-        { ltv: 75, term: '30_YR_FIXED' } as unknown as LoanStructure,
+        // '30_YR_FIXED' was not a valid LoanTerm (the enum is 30_YR/40_YR/15_YR)
+        // and ioPeriod was missing entirely, which now trips engine.ioPeriodYears'
+        // fail-closed guard on unknown IO periods. Fixture corrected to a valid
+        // no-IO 30-year loan; the guard itself is intentionally left strict.
+        { ltv: 75, term: '30_YR', ioPeriod: 'NONE' } as unknown as LoanStructure,
         'LTR', false, 0, 'GROSS_PITIA', 4000
       );
 

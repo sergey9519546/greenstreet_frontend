@@ -132,6 +132,12 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     canonicalPath: "/products",
     jsonLdKind: "WebPage",
   },
+  "lender-intel": {
+    title: "Lender Intelligence — DSCR Program Matching | Greenstreet Finance",
+    description: "Compare business-purpose DSCR program archetypes and see which scenario details a provider reviews. Educational only — not a quote, eligibility determination, or loan commitment.",
+    canonicalPath: "/lender-intel",
+    jsonLdKind: "WebPage",
+  },
   solutions: {
     title: "Solutions | Greenstreet Finance",
     description: "Explore Greenstreet Finance solutions for evaluating business-purpose rental-property financing scenarios.",
@@ -239,7 +245,10 @@ export function getRouteMetadata({ pathname, view }: RouteMetadataInput): RouteM
   if (legal) return indexed(legal);
 
   if (path === "/support") return indexed(PUBLIC_PAGES.faq!);
-  if (path === "/lender-intel" || path === "/products/platform") return indexed(PUBLIC_PAGES.products!);
+  // /lender-intel is its own live page (LenderIntelPage), so it resolves through
+  // PUBLIC_PAGES["lender-intel"] below with its own title and canonical. Only
+  // /products/platform still aliases to the Products page.
+  if (path === "/products/platform") return indexed(PUBLIC_PAGES.products!);
   if (["/become-a-partner", "/partnerships"].includes(path)) return indexed(PUBLIC_PAGES["brokers-partner"]!);
 
   if (path.startsWith("/blog/")) {

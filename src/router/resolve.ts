@@ -2,6 +2,7 @@ export type PageView =
   | "marketing"
   | "portal"
   | "dscr-calculator"
+  | "lender-intel"
   | "state-laws"
   | "deal-analyzer"
   | "borrower-profiles"
@@ -63,9 +64,9 @@ const ROUTE_MAP: Record<string, PageView> = {
 
   // Core tools (canonical paths)
   "/dscr-calculator": "dscr-calculator",
-  // Legacy redirect: the standalone lender/programs page was removed — send
-  // old bookmarks to Products rather than 404-ing to home.
-  "/lender-intel": "products",
+  // The standalone lender/programs page (LenderIntelPage) is live — keep the
+  // canonical path resolving to it rather than redirecting to Products.
+  "/lender-intel": "lender-intel",
   "/state-laws": "state-laws",
   "/deal-analyzer": "deal-analyzer", // full-underwrite tool (distinct from the lender-intel matcher)
   "/decision-support": "decision-support",
@@ -137,6 +138,7 @@ export function resolveRoute(href: string): PageView {
       if (slug === "str-underwriting") return "str-underwriting";
       if (slug === "portfolio") return "portfolio";
       if (slug === "dscr-calculator") return "dscr-calculator";
+      if (slug === "lender-intel") return "lender-intel";
       if (slug === "state-laws") return "state-laws";
       if (slug === "deal-analyzer") return "deal-analyzer";
       if (slug === "borrower-profiles") return "borrower-profiles";
@@ -195,6 +197,7 @@ export function isKnownRoute(href: string): boolean {
       "str-underwriting",
       "portfolio",
       "dscr-calculator",
+      "lender-intel",
       "state-laws",
       "deal-analyzer",
       "borrower-profiles",

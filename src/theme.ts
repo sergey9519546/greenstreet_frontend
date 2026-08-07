@@ -102,7 +102,17 @@ export const themes = {
 } as const;
 
 export const radius = { sm: "8px", md: "12px", lg: "16px", pill: "999px" } as const;
-export const space = { section: "clamp(56px, 8vw, 128px)", gutter: "clamp(1.5rem, 4vw, 4rem)" } as const;
+// Layout primitives shared by every React-routed surface.  The homepage uses
+// open bands and a tight, deliberate mobile rail rather than nested card
+// padding.  Keep the rail token here so routed pages and shell chrome land on
+// the same x-axis at 390px without changing their desktop composition.
+export const space = {
+  section: "clamp(56px, 8vw, 128px)",
+  gutter: "clamp(1.5rem, 4vw, 4rem)",
+  pageGutter: "clamp(1rem, 4.6vw, 1.25rem)",
+  mobileSection: "clamp(3.5rem, 12vw, 5rem)",
+  touchTarget: "44px",
+} as const;
 
 // ── Design-system scales (Phase 0) — the single vocabulary for spacing, tracking,
 // text-opacity, and type. Pages must pull from these instead of inlining one-off

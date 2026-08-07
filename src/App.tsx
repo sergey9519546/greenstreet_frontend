@@ -15,6 +15,7 @@ import { applyRouteMetadata, getRouteMetadata } from "./seo/routeMetadata";
 const routeModules = {
   ComplianceDashboard: () => import("./components/ComplianceDashboard"),
   DSCRCalculatorPage: () => import("./pages/DSCRCalculatorPage"),
+  LenderIntelPage: () => import("./pages/LenderIntelPage"),
   FAQPage: () => import("./pages/FAQPage"),
   BlogPage: () => import("./pages/BlogPage"),
   BlogPostPage: () => import("./pages/BlogPostPage"),
@@ -34,6 +35,15 @@ const routeModules = {
   SolutionsPage: () => import("./pages/SolutionsPage"),
   BrokersPage: () => import("./pages/BrokersPage"),
   BookDemoPage: () => import("./pages/BookDemoPage"),
+  // Tool pages that render live (the remaining tools are served by
+  // ToolReliabilityHoldPage and so need no chunk of their own).
+  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
+  ARMPage: () => import("./pages/ARMPage"),
+  MonteCarloPage: () => import("./pages/MonteCarloPage"),
+  ReturnsPage: () => import("./pages/ReturnsPage"),
+  TaxEnginePage: () => import("./pages/TaxEnginePage"),
+  StressMatrixPage: () => import("./pages/StressMatrixPage"),
+  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
 } as const;
 
 let _warmed = false;
@@ -45,6 +55,7 @@ function warmAllRoutes() {
 
 const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
 const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
+const LenderIntelPage = lazy(routeModules.LenderIntelPage);
 const FAQPage = lazy(routeModules.FAQPage);
 const BlogPage = lazy(routeModules.BlogPage);
 const BlogPostPage = lazy(routeModules.BlogPostPage);
@@ -64,6 +75,13 @@ const SupportPage = lazy(routeModules.SupportPage);
 const SolutionsPage = lazy(routeModules.SolutionsPage);
 const BrokersPage = lazy(routeModules.BrokersPage);
 const BookDemoPage = lazy(routeModules.BookDemoPage);
+const RefiTrackerPage = lazy(routeModules.RefiTrackerPage);
+const ARMPage = lazy(routeModules.ARMPage);
+const MonteCarloPage = lazy(routeModules.MonteCarloPage);
+const ReturnsPage = lazy(routeModules.ReturnsPage);
+const TaxEnginePage = lazy(routeModules.TaxEnginePage);
+const StressMatrixPage = lazy(routeModules.StressMatrixPage);
+const DecisionSupportPage = lazy(routeModules.DecisionSupportPage);
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
@@ -139,6 +157,7 @@ function viewToPath(view: PageView): string {
     case "marketing":         return "/";
     case "portal":            return "/investgo";
     case "dscr-calculator":   return "/dscr-calculator";
+    case "lender-intel":      return "/lender-intel";
     case "state-laws":        return "/state-laws";
     case "deal-analyzer":     return "/deal-analyzer";
     case "borrower-profiles": return "/borrower-profiles";
@@ -339,6 +358,8 @@ export default function App() {
         );
       case "dscr-calculator":
         return <DSCRCalculatorPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "lender-intel":
+        return <LenderIntelPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stateRules} onNavigate={navigateFromReliabilityHold} />;
       case "faq":

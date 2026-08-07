@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
-// @ts-expect-error - express-rate-limit optional server dependency
 import rateLimit from "express-rate-limit";
 
 import { logger, logRequest } from "./logger";

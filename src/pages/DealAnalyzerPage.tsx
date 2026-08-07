@@ -81,6 +81,18 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   // the qualifying DSCR will likely use market rent, not the stated number.
   const rentCheck = assessRentIntegrity({ leaseRent: rent, marketRent });
 
+  // --- State PPP rule ---
+  // Declared before the credit memo below, which reads `sa.ppp`.
+  const adjMap: Record<string, { adj: number; ppp: string; extra: string }> = {
+    NJ: { adj: 0.25, ppp: "PPP HIGH-RISK for LLC; C-Corp/S-Corp only.", extra: "Some lenders decline or reprice." },
+    MD: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
+    KS: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
+    MN: { adj: 0.1,  ppp: "Business-purpose ALLOWED (HF 3437 eff. 8/1/2026).", extra: "Consumer still prohibited." },
+    NY: { adj: 0.25, ppp: "Business-purpose ALLOWED; criminal usury cap 25%.", extra: "Banking Law 6-l." },
+    TX: { adj: 0,    ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." },
+  };
+  const sa = adjMap[stateCode.toUpperCase()] || { adj: 0, ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." };
+
   // --- Credit Memo Computation ---
   const creditMemo = generateCreditMemo({
     price,
@@ -136,17 +148,6 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   }
 
   const riskLevel = riskFromDscr(dscr);
-
-  // --- State PPP rule ---
-  const adjMap: Record<string, { adj: number; ppp: string; extra: string }> = {
-    NJ: { adj: 0.25, ppp: "PPP HIGH-RISK for LLC; C-Corp/S-Corp only.", extra: "Some lenders decline or reprice." },
-    MD: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
-    KS: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
-    MN: { adj: 0.1,  ppp: "Business-purpose ALLOWED (HF 3437 eff. 8/1/2026).", extra: "Consumer still prohibited." },
-    NY: { adj: 0.25, ppp: "Business-purpose ALLOWED; criminal usury cap 25%.", extra: "Banking Law 6-l." },
-    TX: { adj: 0,    ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." },
-  };
-  const sa = adjMap[stateCode.toUpperCase()] || { adj: 0, ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." };
 
   // --- Greenstreet programs ---
   const programs = [

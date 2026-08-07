@@ -53,7 +53,11 @@ export function useRevealOnView<T extends HTMLElement = HTMLDivElement>() {
 // down. Controlled-input safe — writes through the native value setter then fires
 // an `input` event so React's onChange fires and state updates. Range sliders and
 // non-number fields are ignored; respects step/min/max.
-export function useWheelScrub(scope: React.RefObject<HTMLElement>) {
+// NOTE: `RefObject<HTMLElement | null>` (not `RefObject<HTMLElement>`) — under
+// React 19 typings `useRef<HTMLDivElement>(null)` yields a nullable-current ref,
+// which is what every caller passes. The hook already null-checks `scope.current`,
+// so widening the parameter is the correct fix (matches useDcGsap below).
+export function useWheelScrub(scope: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const root = scope.current;
     if (!root) return;
