@@ -33,6 +33,18 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const [ins, setIns] = useState(2000);
   const [hoa, setHoa] = useState(0);
   const [stateCode, setStateCode] = useState("TX");
+  // --- Quick Mode Toggle (60-Second Time-to-Value North Star) ---
+  const [isQuickMode, setIsQuickMode] = useState(true);
+
+  // Auto-estimate pro fields when in quick mode
+  useEffect(() => {
+    if (isQuickMode) {
+      setTax(Math.round(price * 0.012)); // 1.2% national average property tax estimate
+      setIns(1800);                       // $1,800/yr standard insurance estimate
+      setHoa(0);                          // $0 HOA default
+      setMarketRent(rent);               // 1:1 rent parity default
+    }
+  }, [price, rent, isQuickMode]);
 
   // --- Engine computation ---
   const loan = price * (1 - down / 100);
@@ -251,29 +263,72 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
             {/* ── INPUTS ── */}
             <div style={{ background: swatch.white, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid ${swatch.midnightFaded}` }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 6 }}>Property inputs</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain }}>Property inputs</div>
+                <div style={{ display: "inline-flex", background: "rgba(0,55,56,0.06)", padding: 3, borderRadius: radius.sm, border: "1px solid rgba(0,55,56,0.1)" }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsQuickMode(true)}
+                    style={{
+                      border: "none",
+                      background: isQuickMode ? dc.dark : "transparent",
+                      color: isQuickMode ? dc.cream : dc.dark,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    ⚡ 60s Quick
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsQuickMode(false)}
+                    style={{
+                      border: "none",
+                      background: !isQuickMode ? dc.dark : "transparent",
+                      color: !isQuickMode ? dc.cream : dc.dark,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    ⚙️ Full Pro
+                  </button>
+                </div>
+              </div>
+
               <p style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", marginBottom: 18, lineHeight: 1.5 }}>
-                Estimates are fine — results update as you type. Annual taxes and insurance are split into monthly amounts and added to your PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues).
+                {isQuickMode
+                  ? "60-Second Mode: Plug in price, down payment, and rent. Taxes, insurance, & rates are auto-estimated."
+                  : "Pro Mode: Fine-tune exact annual property taxes, insurance, market rent (Form 1007), and HOA fees."}
               </p>
 
               {([
-                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16 },
-                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16 },
-                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16 },
-                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16 },
-                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16 },
-              ] as const).map((f) => (
-                <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
-                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>{f.label}</span>
-                  <div className="da-field">
-                    {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.prefix}</span>}
-                    <input className="da-num" type="number" step={f.step} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
-                    {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.suffix}</span>}
-                  </div>
-                </label>
-              ))}
+                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16, quick: true },
+                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16, quick: true },
+                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16, quick: true },
+                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16, quick: false },
+                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16, quick: false },
+                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16, quick: false },
+                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16, quick: false },
+              ] as const)
+                .filter((f) => (isQuickMode ? f.quick : true))
+                .map((f) => (
+                  <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>{f.label}</span>
+                    <div className="da-field">
+                      {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.prefix}</span>}
+                      <input className="da-num" type="number" step={f.step} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
+                      {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.suffix}</span>}
+                    </div>
+                  </label>
+                ))}
 
               <label style={{ display: "block", marginBottom: 16 }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Market Rent — 1007 (optional)</span>

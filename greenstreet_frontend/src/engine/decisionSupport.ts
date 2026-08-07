@@ -1009,13 +1009,26 @@ export interface ICMemoInput {
   sourceDates: { name: string; date: string; provenance: ProvenanceLabel }[];
 }
 
+function sanitizeString(str: string): string {
+  return (str || '').replace(/[&<>"']/g, (match) => {
+    switch (match) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#39;';
+      default: return match;
+    }
+  });
+}
+
 export function buildICMemo(input: ICMemoInput): ICMemo {
   const riskStatement = buildRiskStatement(input);
 
   return {
     generatedAt: new Date().toISOString(),
-    propertyAddress: input.propertyAddress,
-    entityType: input.entityType,
+    propertyAddress: sanitizeString(input.propertyAddress),
+    entityType: sanitizeString(input.entityType),
     verdict: input.verdict.verdict,
     bindingConstraint: input.verdict.bindingConstraint,
     killSwitch: input.verdict.killSwitchConditions[0] ?? 'None',
