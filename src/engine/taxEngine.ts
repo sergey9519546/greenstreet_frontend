@@ -537,13 +537,30 @@ export function computeAfterTaxIRR(
   loanRatePct?: number,
   loanTermMonths?: number,
 ): AfterTaxIRRResult {
-  const holdYears = Math.max(1, Math.floor(taxProfile.expectedHoldYears));
+  const profile: TaxProfile = taxProfile ?? {
+    expectedHoldYears: 5,
+    landAllocationPct: 20,
+    filingStatus: 'MFJ',
+    magi: 200000,
+    ordinaryIncomeBrackets: [],
+    stateTaxRatePct: 5,
+    isRealEstateProfessional: false,
+    yearsREP: 0,
+    costSegStudyCompleted: false,
+    costSegReclassifiedPct: 0,
+    acquisitionDate: '2026-02-01',
+    placedInServiceDate: '2026-02-01',
+    exitSellingCostsPct: 6,
+    exitCapRatePct: 6.5,
+    section1031Exchange: false,
+  };
+  const holdYears = Math.max(1, Math.floor(profile.expectedHoldYears));
   const cashInvested = purchasePrice - loanAmount; // simplified; real cash-to-close from engine
   const depreciationSchedule = computeDepreciationSchedule(
     purchasePrice,
-    taxProfile.landAllocationPct,
+    profile.landAllocationPct,
     holdYears,
-    taxProfile,
+    profile,
   );
 
   const yearByYear: AfterTaxCashFlowRow[] = [];
@@ -565,19 +582,19 @@ export function computeAfterTaxIRR(
     // Federal tax: if taxable income positive, tax at marginal; if negative → PAL
     let federalTax = 0;
     if (taxableIncome > 0) {
-      const marginalRate = getMarginalOrdinaryRate(taxProfile.magi + taxableIncome, taxProfile.filingStatus);
+      const marginalRate = getMarginalOrdinaryRate(profile.magi + taxableIncome, profile.filingStatus ?? 'MFJ');
       federalTax = taxableIncome * marginalRate;
     } else {
       // Loss — check PAL allowance
-      const pal = computePassiveLossAllowance(taxProfile.magi, taxProfile.filingStatus, taxProfile.isRealEstateProfessional, taxableIncome);
+      const pal = computePassiveLossAllowance(profile.magi, profile.filingStatus ?? 'MFJ', profile.isRealEstateProfessional ?? false, taxableIncome);
       // If allowable loss > 0, tax shield = allowable_loss × marginal rate
       if (pal.actualAllowableLoss < 0) {
-        const marginalRate = getMarginalOrdinaryRate(taxProfile.magi, taxProfile.filingStatus);
+        const marginalRate = getMarginalOrdinaryRate(profile.magi, profile.filingStatus ?? 'MFJ');
         federalTax = pal.actualAllowableLoss * marginalRate; // negative → tax benefit
       }
     }
 
-    const stateTax = Math.max(taxableIncome, 0) * (taxProfile.stateTaxRatePct / 100);
+    const stateTax = Math.max(taxableIncome, 0) * ((profile.stateTaxRatePct ?? 0) / 100);
     const afterTaxNCF = preTaxNCF - federalTax - stateTax;
     cumulativeAfterTaxNCF += afterTaxNCF;
 
@@ -594,21 +611,21 @@ export function computeAfterTaxIRR(
   }
 
   // Exit year: compute recapture
-  const exitValue = (annualNOI / (taxProfile.exitCapRatePct / 100)) * Math.pow(1 + rentGrowthPct, holdYears);
+  const exitValue = (annualNOI / ((profile.exitCapRatePct ?? 6.5) / 100)) * Math.pow(1 + rentGrowthPct, holdYears);
   const totalDepreciationTaken = depreciationSchedule.reduce((sum, d) => sum + d.totalAnnualDepreciation, 0);
   const recapture = computeRecaptureOnSale(
     purchasePrice,
-    taxProfile.landAllocationPct,
+    profile.landAllocationPct,
     totalDepreciationTaken,
     exitValue,
-    taxProfile.exitSellingCostsPct,
-    taxProfile,
+    profile.exitSellingCostsPct ?? 6,
+    profile,
   );
 
   // Remaining loan balance (proper amortization when rate provided; v11.1 FIX)
   const remainingLoanBalance = computeRemainingBalance(
     loanAmount,
-    taxProfile,
+    profile,
     pitiaMonthly,
     loanRatePct,
     loanTermMonths,
@@ -643,7 +660,7 @@ export function computeAfterTaxIRR(
 
   const afterTaxIRR = computeXIRR(cashFlows);
 
-  const niitApplies = isNIITApplicable(taxProfile.magi, taxProfile.filingStatus);
+  const niitApplies = isNIITApplicable(profile.magi, profile.filingStatus ?? 'MFJ');
   const effectiveRecaptureRate = recapture.unrecapturedSection1250Gain > 0
     ? (recapture.federalRecaptureTax + recapture.niitTax) / recapture.unrecapturedSection1250Gain
     : 0;

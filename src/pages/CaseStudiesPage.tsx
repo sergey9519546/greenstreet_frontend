@@ -1,5 +1,64 @@
 import React, { useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView, CountUp } from "../design/dc";
+import BottomCTA from "../design/BottomCTA";
+
+// ── Live HyperFrames scenes ───────────────────────────────────────────────────
+// The case-study explainers are authored HyperFrames HTML compositions (SVG + a
+// paused GSAP timeline). They run LIVE in the page — embedded as a sandboxed
+// iframe that plays the composition's own timeline on a seamless loop — and are
+// never baked into an .mp4. Reduced-motion shows the static poster instead.
+import velaScene from "../../hyperframes/cs-vela.html?raw";
+import northshoreScene from "../../hyperframes/cs-northshore.html?raw";
+import quinteroScene from "../../hyperframes/cs-quintero.html?raw";
+import auroraScene from "../../hyperframes/cs-aurora.html?raw";
+
+const SCENE_HTML: Record<string, string> = {
+  vela: velaScene,
+  northshore: northshoreScene,
+  quintero: quinteroScene,
+  aurora: auroraScene,
+};
+
+// Make an authored composition self-playing + responsive: fill the frame, then
+// drive the paused timeline (window.__timelines.main) on an infinite loop.
+function liveSceneDoc(html: string): string {
+  const style =
+    "<style>html,body{width:100%!important;height:100%!important;margin:0!important;overflow:hidden!important;}svg{width:100%!important;height:100%!important;display:block;}</style>";
+  const script =
+    "<script>(function(){function s(){var t=window.__timelines&&window.__timelines.main;if(!t){return setTimeout(s,40);}t.repeat(-1);t.play(0);}if(document.readyState==='complete'){s();}else{addEventListener('load',s);}})();<\/script>";
+  return html.replace("</head>", style + "</head>").replace("</body>", script + "</body>");
+}
+
+// One case-study scene: a static poster <img> base (also the reduced-motion
+// fallback) with the live composition iframe layered on top once `active`.
+function HyperframeScene({
+  sceneKey, poster, image, title, active, posterStyle,
+}: {
+  sceneKey?: string;
+  poster?: string;
+  image?: string;
+  title: string;
+  active: boolean;
+  posterStyle?: React.CSSProperties;
+}) {
+  const cover: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%" };
+  const html = sceneKey ? SCENE_HTML[sceneKey] : undefined;
+  return (
+    <>
+      <img src={poster || image} alt={title} loading="lazy" decoding="async" style={{ ...cover, objectFit: "cover", ...posterStyle }} />
+      {active && html && (
+        <iframe
+          title={title}
+          srcDoc={liveSceneDoc(html)}
+          sandbox="allow-scripts"
+          scrolling="no"
+          loading="lazy"
+          style={{ ...cover, border: "none", background: "#00302e" }}
+        />
+      )}
+    </>
+  );
+}
 
 // ── Case studies data ─────────────────────────────────────────────────────────
 interface StudyMetric {
@@ -21,6 +80,12 @@ interface Study {
   /** Illustrative composite quote — not attributed to a verified named individual */
   quote: string;
   program: string;
+  /** Brand scene image (public/img/generated/scenes) for the case panel */
+  image: string;
+  /** HyperFrames scene id — the live composition in hyperframes/cs-<id>.html
+   *  (runs in-page, never an mp4) + its poster frame (reduced-motion / loading). */
+  scene?: string;
+  poster?: string;
 }
 
 const STUDIES: Study[] = [
@@ -30,7 +95,10 @@ const STUDIES: Study[] = [
     location: "Buy-and-hold investor",
     type: "Portfolio investor",
     num: "01",
-    headline: "Modeling how a repeatable workflow could reduce time per file.",
+    image: "/img/generated/scenes/underwriting-desk-velocity.png",
+    scene: "vela",
+    poster: "/video/scenes/cs-vela-poster.jpg",
+    headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
     metrics: [
       { v: "4×", k: "Modeled throughput ratio" },
       { v: "6 min", k: "Hypothetical review input (was 25)" },
@@ -52,7 +120,10 @@ const STUDIES: Study[] = [
     location: "Real estate investor",
     type: "Active investor",
     num: "02",
-    headline: "Modeling a deal that passes lender DSCR but fails the investor view.",
+    image: "/img/generated/scenes/desk-green-data.png",
+    scene: "northshore",
+    poster: "/video/scenes/cs-northshore-poster.jpg",
+    headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
     metrics: [
       { v: "Modeled", k: "Scenario checkpoint" },
       { v: "12%", k: "Vacancy gap caught by Track 2" },
@@ -72,9 +143,12 @@ const STUDIES: Study[] = [
     slug: "quintero-co",
     company: "Global borrower scenario",
     location: "Buy-and-hold investor",
-    type: "Investor / Foreign national",
+    type: "Investor / Non-US investor",
     num: "03",
-    headline: "Modeling a hypothetical $14,800 diligence-cost exposure before appraisal.",
+    image: "/img/generated/scenes/broker-building-dusk.png",
+    scene: "quintero",
+    poster: "/video/scenes/cs-quintero-poster.jpg",
+    headline: "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
     metrics: [
       { v: "3", k: "Hypothetical scenarios screened" },
       { v: "$14,800", k: "Modeled diligence-cost exposure" },
@@ -85,10 +159,10 @@ const STUDIES: Study[] = [
     solution:
       "The scenario applies the expense-aware Track 2 view before diligence costs are committed. Any foreign-national or ITIN eligibility would require confirmation from the responsible licensed provider.",
     result:
-      "If three unsuitable deals each carried the stated diligence costs, screening them earlier could avoid $14,800. This is a hypothetical cost illustration, not an approval or reported savings claim.",
+      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A non-US investor ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
     quote:
-      "Early scenario screening can identify which assumptions require lender confirmation before appraisal or other diligence spending.",
-    program: "Illustrative global-borrower assumptions",
+      "Non-US investor ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
+    program: "DSCR Global",
   },
 ];
 
@@ -98,7 +172,10 @@ const AURORA_STORY = {
   location: "Portfolio operator",
   type: "Portfolio investor",
   num: "04",
-  headline: "Modeling a blended view across a 40-property portfolio.",
+  image: "/img/generated/scenes/residential-townhomes.png",
+  scene: "aurora",
+  poster: "/video/scenes/cs-aurora-poster.jpg",
+  headline: "One blended view of 40 doors got the blanket line approved.",
   metrics: [
     { v: "$18M", k: "Hypothetical balance" },
     { v: "1.11x", k: "Blended DSCR" },
@@ -117,33 +194,19 @@ const AURORA_STORY = {
 
 const ALL_STUDIES = [AURORA_STORY, ...STUDIES];
 
-// Logo map — only logos that exist under /img/logos/. Left empty: none of
-// these illustrative case studies have a real logo asset checked in, and the
-// render below is already gated on `LOGOS[s.slug]` being truthy, so an empty
-// map just skips the logo — no broken-image icon next to a disclosed
-// not-a-verified-named-customer case study.
+// Logo map — only logos that exist under /img/logos/
+// Client wordmarks render as styled text (no logo image assets exist for these
+// reference clients) — keeps the cards clean with no broken images.
 const LOGOS: Record<string, string> = {};
 
-// ── CSS for SVG stroke-draw animation ────────────────────────────────────────
-const CS_LINE_CSS = `
-@keyframes csLineDraw {
-  from { stroke-dashoffset: var(--cs-len); }
-  to   { stroke-dashoffset: 0; }
+// ── Page CSS — responsive grids + animated meter fills ───────────────────────
+const CS_PAGE_CSS = `
+@media(max-width:820px){
+  .cs-panel{grid-template-columns:1fr !important;gap:24px !important;}
+  .cs-panel .cs-photo{order:-1 !important;}
 }
-@media (prefers-reduced-motion: no-preference) {
-  .cs-anim-active .cs-line {
-    animation: csLineDraw var(--cs-dur, 1.1s) var(--cs-delay, 0s) cubic-bezier(.22,.68,0,1.2) forwards;
-  }
-}
-@keyframes csFadeIn {
-  from { opacity: 0; transform: scale(0.7); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cs-anim-active .cs-node {
-    animation: csFadeIn 0.4s var(--cs-ndelay, 0s) ease-out forwards;
-    opacity: 0;
-  }
+@media(max-width:760px){
+  .dt-grid{grid-template-columns:1fr !important;}
 }
 @media (max-width: 700px) {
   .dc-hero, .dc-band-2, .dc-band-3 { grid-template-columns: 1fr !important; }
@@ -151,63 +214,100 @@ const CS_LINE_CSS = `
   .dc-band-3 { gap: 12px !important; }
   .cs-line { display: none; }
 }
+.dt-fill{transition:width 1.15s cubic-bezier(.22,.7,0,1);}
+@media(prefers-reduced-motion:reduce){.dt-fill{transition:none !important;}}
 `;
 
-// ── Animated SVG line diagram ─────────────────────────────────────────────────
-function PriceMatchProveDiagram() {
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          el.classList.add("cs-anim-active");
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.25 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
+// ── Aggregate scoreboard (hero) — the four scenarios summed, counting up on
+//    scroll. Real proof, not a decorative diagram. ──────────────────────────────
+const AGG: { value: number; prefix?: string; suffix?: string; group?: boolean; label: string; sub: string }[] = [
+  { value: 14800, prefix: "$", group: true, label: "Hard costs killed at the desk", sub: "deals walked before a dollar of diligence" },
+  { value: 4, suffix: "×", label: "Throughput, same team", sub: "25 min → 6 min per file" },
+  { value: 3, label: "Bad deals stopped pre-appraisal", sub: "Track 2 caught what Track 1 passed" },
+];
+function AggregateScoreboard() {
+  const [ref, shown] = useRevealOnView<HTMLDivElement>();
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
-      <style>{CS_LINE_CSS}</style>
-      <svg
-        viewBox="0 0 480 480"
-        style={{ width: "100%", display: "block" }}
-        fill="none"
-        aria-hidden="true"
-      >
-        <path className="cs-line" d="M 208,60 C 80,60 80,240 80,240" stroke={dc.dark} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.1s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 272,60 C 400,60 400,240 400,240" stroke={dc.dark} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.2s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 208,240 C 80,240 80,420 80,420" stroke={dc.rain} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.6s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 272,240 C 400,240 400,420 400,420" stroke={dc.rain} strokeWidth="1.5" opacity="0.35"
-          style={{ "--cs-len": "280px", "--cs-dur": "1.3s", "--cs-delay": "0.7s", strokeDasharray: 280, strokeDashoffset: 280 } as React.CSSProperties} />
-        <path className="cs-line" d="M 240,92 L 240,208" stroke={dc.dark} strokeWidth="2" strokeDasharray="8 4"
-          style={{ "--cs-len": "116px", "--cs-dur": "0.7s", "--cs-delay": "0.45s", strokeDashoffset: 116 } as React.CSSProperties} />
-        <path className="cs-line" d="M 240,272 L 240,388" stroke={dc.rain} strokeWidth="2" strokeDasharray="8 4"
-          style={{ "--cs-len": "116px", "--cs-dur": "0.7s", "--cs-delay": "0.95s", strokeDashoffset: 116 } as React.CSSProperties} />
-        <circle cx="80" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
-        <circle cx="400" cy="240" r="5" fill="rgba(0,55,56,0.3)" />
-        <circle cx="80" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
-        <circle cx="400" cy="420" r="5" fill="rgba(0,101,101,0.3)" />
-        <circle className="cs-node" cx="240" cy="60" r="32" fill={dc.dark}
-          style={{ "--cs-ndelay": "0.05s" } as React.CSSProperties} />
-        <circle className="cs-node" cx="240" cy="240" r="32" fill={dc.rain}
-          style={{ "--cs-ndelay": "0.5s" } as React.CSSProperties} />
-        <circle className="cs-node" cx="240" cy="420" r="32" fill={dc.lemon}
-          style={{ "--cs-ndelay": "1.05s" } as React.CSSProperties} />
-        <text x="240" y="65" textAnchor="middle" fill={dc.lemon} fontFamily={dc.mono} fontSize="12" fontWeight="700">01</text>
-        <text x="240" y="245" textAnchor="middle" fill={dc.cream} fontFamily={dc.mono} fontSize="12" fontWeight="700">02</text>
-        <text x="240" y="425" textAnchor="middle" fill={dc.dark} fontFamily={dc.mono} fontSize="12" fontWeight="700">03</text>
-      </svg>
+    <div
+      ref={ref}
+      style={{
+        background: dc.teal,
+        borderRadius: dc.r.lg,
+        border: `1px solid ${dc.faded}`,
+        boxShadow: "0 18px 50px -30px rgba(0,0,0,0.55)",
+        padding: "clamp(28px,3.4vw,44px)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "clamp(18px,2.2vw,26px)",
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>
+        Across all four scenarios
+      </div>
+      {AGG.map((a, i) => (
+        <div
+          key={a.label}
+          style={{
+            paddingBottom: i < AGG.length - 1 ? "clamp(16px,2vw,22px)" : 0,
+            borderBottom: i < AGG.length - 1 ? `1px solid ${dc.faded}` : "none",
+            opacity: shown ? 1 : 0,
+            transform: shown ? "none" : "translateY(14px)",
+            transition: `opacity .6s ease ${0.1 + i * 0.12}s, transform .6s cubic-bezier(.22,.7,0,1) ${0.1 + i * 0.12}s`,
+          }}
+        >
+          <Mono style={{ display: "block", fontSize: "clamp(34px,4.4vw,54px)", fontWeight: 700, letterSpacing: "-0.035em", color: dc.lemon, lineHeight: 1 }}>
+            <CountUp value={shown ? a.value : 0} prefix={a.prefix} suffix={a.suffix} group={a.group} duration={1.1} />
+          </Mono>
+          <div style={{ fontSize: 15, fontWeight: 600, color: dc.cream, marginTop: 8, letterSpacing: "-0.01em" }}>{a.label}</div>
+          <div style={{ fontSize: 12.5, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 3, letterSpacing: "-0.01em" }}>{a.sub}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Dual-Track proof — the through-line of every scenario. One file, two DSCRs:
+//    Track 1 is what the lender funds on; Track 2 is whether the deal survives.
+//    Meters fill + verdicts resolve on scroll (reduced-motion safe). ─────────────
+const DT_MIN = 0.5, DT_MAX = 2.0;
+const dtPct = (v: number) => Math.max(0, Math.min(100, ((v - DT_MIN) / (DT_MAX - DT_MIN)) * 100));
+function DualTrackProof() {
+  const [ref, shown] = useRevealOnView<HTMLDivElement>();
+  const tracks = [
+    { name: "Track 1 · Lender-qualifying DSCR", v: 1.18, color: dc.emerald, verdict: "Funds", note: "Rent covers the note. Most desks stop reading here." },
+    { name: "Track 2 · Investor-survival DSCR", v: 0.98, color: "#e0635f", verdict: "Stops", note: "Price in a 12% vacancy and the same deal goes underwater." },
+  ];
+  return (
+    <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: "clamp(26px,3vw,40px)" }}>
+      {tracks.map((t, i) => (
+        <div
+          key={t.name}
+          style={{
+            opacity: shown ? 1 : 0,
+            transform: shown ? "none" : "translateY(18px)",
+            transition: `opacity .6s ease ${i * 0.18}s, transform .6s cubic-bezier(.22,.7,0,1) ${i * 0.18}s`,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 14, marginBottom: 12, flexWrap: "wrap" }}>
+            <div style={{ fontSize: "clamp(13px,1.2vw,15px)", fontWeight: 700, color: dc.dark, letterSpacing: "-0.01em" }}>{t.name}</div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+              <Mono style={{ fontSize: "clamp(22px,2.4vw,30px)", fontWeight: 700, color: t.color, letterSpacing: "-0.03em" }}>
+                <CountUp value={shown ? t.v : 0} decimals={2} suffix="x" duration={1.15} />
+              </Mono>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: t.color, background: `${t.color}22`, border: `1px solid ${t.color}55`, borderRadius: 999, padding: "4px 11px" }}>{t.verdict}</span>
+            </div>
+          </div>
+          {/* meter with a break-even tick at 1.00 */}
+          <div style={{ position: "relative", height: 12, borderRadius: 999, background: "rgba(0,55,56,0.1)" }}>
+            <div className="dt-fill" style={{ position: "absolute", inset: "0 auto 0 0", width: shown ? `${dtPct(t.v)}%` : "0%", background: t.color, borderRadius: 999 }} />
+            <div style={{ position: "absolute", left: `${dtPct(1.0)}%`, top: -3, bottom: -3, width: 2, background: "rgba(0,55,56,0.5)", transform: "translateX(-1px)", borderRadius: 2 }} />
+          </div>
+          <div style={{ position: "relative", height: 16, marginTop: 5 }}>
+            <span style={{ position: "absolute", left: `${dtPct(1.0)}%`, transform: "translateX(-50%)", fontSize: 10.5, fontWeight: 600, color: "rgba(0,55,56,0.55)", letterSpacing: "0.02em", whiteSpace: "nowrap" }}>1.00 break-even</span>
+          </div>
+          <p style={{ fontSize: "clamp(13px,1.1vw,15px)", fontWeight: 500, lineHeight: 1.5, color: "rgba(0,55,56,0.62)", margin: "8px 0 0", letterSpacing: "-0.01em" }}>{t.note}</p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -231,7 +331,7 @@ function MetricChip({ v, k }: StudyMetric) {
         style={{
           fontSize: 12,
           fontWeight: 500,
-          color: "rgba(238,239,211,0.5)",
+          color: "rgba(238,239,211,0.62)",
           marginTop: 3,
           letterSpacing: "-0.01em",
         }}
@@ -247,129 +347,100 @@ function StudyRow({
   s,
   onNavigate,
   isLast,
+  index,
 }: {
   s: Study;
   onNavigate: (v: string) => void;
   isLast: boolean;
+  index: number;
 }) {
+  const [ref, shown] = useRevealOnView<HTMLDivElement>();
+  const photoLeft = index % 2 === 0;
+  // Reveal: each piece rises + fades in on scroll, staggered. Idempotent CSS
+  // transition driven off `shown` (reduced-motion + hidden-tab safe).
+  const rise = (d: number): React.CSSProperties => ({
+    opacity: shown ? 1 : 0,
+    transform: shown ? "none" : "translateY(26px)",
+    transition: `opacity .7s cubic-bezier(.22,.7,0,1) ${d}s, transform .7s cubic-bezier(.22,.7,0,1) ${d}s`,
+  });
+  const reduce = typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Shared cover style for the panel media (img or video), with the parallax settle.
+  const mediaStyle: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: shown ? "scale(1)" : "scale(1.08)", transition: "transform 1.3s cubic-bezier(.2,.6,0,1)" };
   return (
     <div
-      className="dc-band-2"
+      ref={ref}
+      className="cs-panel"
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1.4fr",
-        gap: "clamp(28px,4vw,64px)",
-        background: dc.dark,
-        padding: "clamp(36px,4vw,56px) 0",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "clamp(28px,4.5vw,72px)",
+        alignItems: "center",
+        padding: "clamp(40px,5.5vw,80px) 0",
         borderBottom: isLast ? "none" : `1px solid ${dc.faded}`,
       }}
     >
-      {/* Left column */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          gap: 16,
-        }}
-      >
-        <div>
-          <Mono
-            style={{
-              display: "block",
-              fontSize: "clamp(40px,5.5vw,80px)",
-              fontWeight: 600,
-              letterSpacing: "-0.04em",
-              color: "rgba(238,239,211,0.12)",
-              lineHeight: 1,
-              marginBottom: 16,
-            }}
-          >
-            {s.num}
-          </Mono>
-          {LOGOS[s.slug] && (
+      {/* Photo panel — big index + client wordmark composited over the scene */}
+      <div className="cs-photo" style={{ order: photoLeft ? 0 : 1, ...rise(0) }}>
+        <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
+          {s.scene && !reduce ? (
+            // Live HyperFrames composition — the authored HTML/GSAP runs in a
+            // sandboxed iframe (lazy: mounts only once the row reveals). Reduced
+            // motion falls through to the static poster <img> below.
+            <HyperframeScene
+              sceneKey={s.scene}
+              poster={s.poster}
+              image={s.image}
+              title={`${s.company} — ${s.type}, animated`}
+              active={shown}
+              posterStyle={mediaStyle}
+            />
+          ) : (
             <img
-              src={LOGOS[s.slug]}
-              alt={`${s.company} logo`}
-              style={{
-                display: "block",
-                height: 32,
-                width: "auto",
-                marginBottom: 14,
-                opacity: 0.85,
-                filter: "brightness(0) invert(1)",
-              }}
+              src={s.poster || s.image}
+              alt={`${s.company} — ${s.type}`}
+              loading="lazy"
+              decoding="async"
+              style={mediaStyle}
             />
           )}
-          <h3
-            style={{
-              fontSize: "clamp(22px,2.4vw,34px)",
-              fontWeight: 600,
-              letterSpacing: "-0.03em",
-              color: dc.cream,
-              lineHeight: 1.1,
-              margin: 0,
-            }}
-          >
-            {s.headline}
-          </h3>
-        </div>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: "rgba(238,239,211,0.5)",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          Illustrative composite · {s.type} · {s.location}
+          {/* The animation is self-contained; for the static photo fallback only,
+              keep the legibility gradient + the client wordmark. */}
+          {!(s.scene && !reduce) && (
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(140deg, rgba(0,55,56,0.34) 0%, rgba(0,55,56,0) 42%, rgba(0,55,56,0.88) 100%)" }} />
+          )}
+          <Mono style={{ position: "absolute", top: "clamp(14px,1.6vw,22px)", left: "clamp(16px,1.8vw,26px)", fontSize: "clamp(28px,3.4vw,50px)", fontWeight: 600, letterSpacing: "-0.04em", color: "rgba(238,239,211,0.88)", lineHeight: 1, textShadow: "0 2px 16px rgba(0,26,24,0.6)" }}>{s.num}</Mono>
+          {!(s.scene && !reduce) && (
+            <div style={{ position: "absolute", left: "clamp(16px,1.8vw,24px)", right: "clamp(16px,1.8vw,24px)", bottom: "clamp(14px,1.6vw,20px)" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.cream }}>{s.company}</div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.7)", marginTop: 3, letterSpacing: "-0.01em" }}>{s.type} · {s.location}</div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Right column */}
-      <div>
-        <p
-          style={{
-            fontSize: "clamp(16px,1.3vw,20px)",
-            fontWeight: 500,
-            lineHeight: 1.6,
-            color: "rgba(238,239,211,0.72)",
-            margin: "0 0 28px",
-            letterSpacing: "-0.01em",
-          }}
-        >
+      {/* Content */}
+      <div className="cs-content" style={{ order: photoLeft ? 1 : 0 }}>
+        <div style={{ ...rise(0.02), display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap", marginBottom: 14, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <span style={{ color: dc.emerald }}>{s.company}</span>
+          <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 600 }}>·</span>
+          <span style={{ color: "rgba(238,239,211,0.55)", fontWeight: 600 }}>{s.type}</span>
+        </div>
+        <h3 style={{ ...rise(0.06), fontSize: "clamp(22px,2.4vw,34px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.cream, lineHeight: 1.12, margin: "0 0 18px" }}>
+          {s.headline}
+        </h3>
+        <p style={{ ...rise(0.12), fontSize: "clamp(15px,1.2vw,19px)", fontWeight: 500, lineHeight: 1.6, color: "rgba(238,239,211,0.72)", margin: "0 0 28px", letterSpacing: "-0.01em" }}>
           {s.result}
         </p>
-
-        {/* Metrics row */}
-        <div
-          className="dc-band-3"
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${s.metrics.length},auto)`,
-            gap: "clamp(20px,3vw,40px)",
-            justifyContent: "start",
-            marginBottom: 24,
-          }}
-        >
-          {s.metrics.map((m) => (
-            <MetricChip key={m.k} {...m} />
+        <div className="dc-band-3" style={{ display: "grid", gridTemplateColumns: `repeat(${s.metrics.length},auto)`, gap: "clamp(20px,3vw,44px)", justifyContent: "start", marginBottom: 28 }}>
+          {s.metrics.map((m, i) => (
+            <div key={m.k} style={rise(0.18 + i * 0.08)}>
+              <MetricChip {...m} />
+            </div>
           ))}
         </div>
-
         <button
           onClick={() => (window.history.pushState({}, "", `/case-studies/${s.slug}`), window.dispatchEvent(new PopStateEvent("popstate")))}
-          style={{
-            background: "none",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-            fontSize: 14,
-            fontWeight: 700,
-            color: dc.emerald,
-            letterSpacing: "-0.01em",
-            fontFamily: dc.sans,
-          }}
+          style={{ ...rise(0.18 + s.metrics.length * 0.08), background: "none", border: "none", padding: 0, cursor: "pointer", fontSize: 14, fontWeight: 700, color: dc.emerald, letterSpacing: "-0.01em", fontFamily: dc.sans, display: "inline-flex", alignItems: "center", gap: 6 }}
         >
           Read the full scenario →
         </button>
@@ -393,144 +464,87 @@ function StudyDetail({
     window.scrollTo(0, 0);
   }, [s.slug]);
 
+  const reduce = typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cover: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" };
+
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      navLinks={[
-        { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Illustrative Scenarios", view: "case-studies" },
-        { label: "Portfolio", view: "portfolio" },
-      ]}
-      cta={{ label: "Run a deal →", view: "dscr-calculator" }}
-    >
-      {/* Detail hero */}
+    <DcShell onNavigate={onNavigate}>
+      <style>{`@media (max-width: 860px){ .cs-detail-grid{ grid-template-columns:1fr !important; } .cs-detail-media{ order:-1; } }`}</style>
+
+      {/* Detail hero — leads with the SAME 16:9 media panel + MetricChip metrics
+          as the case-studies list, on the dark ground (was a light mintBg bar). */}
       <section
         style={{
           background: dc.dark,
           color: dc.cream,
-          padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`,
+          padding: `clamp(40px,6vh,72px) ${dc.pad} clamp(40px,6vh,72px)`,
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div id="gs-hero-content">
-            <button
-              onClick={onBack}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "rgba(238,239,211,0.5)",
-                letterSpacing: "-0.01em",
-                fontFamily: dc.sans,
-                marginBottom: 24,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              ← All illustrative scenarios
-            </button>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 16,
-              }}
-            >
-              {s.type} · {s.location}
-            </div>
-            {LOGOS[s.slug] && (
-              <img
-                src={LOGOS[s.slug]}
-                alt={`${s.company} logo`}
-                style={{
-                  display: "block",
-                  height: 36,
-                  width: "auto",
-                  marginBottom: 20,
-                  opacity: 0.9,
-                  filter: "brightness(0) invert(1)",
-                }}
-              />
-            )}
-            <H1 style={{ margin: "0 0 24px", maxWidth: "22ch" }}>
-              {s.headline}
-            </H1>
-          </div>
-        </div>
-      </section>
-
-      {/* Metrics bar */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(32px,4vw,48px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="dc-band-3"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: `repeat(${s.metrics.length}, 1fr)`,
-            gap: 1,
-            background: "rgba(0,55,56,0.08)",
-            borderRadius: dc.r.md,
-            overflow: "hidden",
-            border: `1px solid ${dc.faded}`,
-          }}
-        >
-          {s.metrics.map((m, i) => (
-            <div
-              key={m.k}
-              style={{
-                background: dc.mintBg,
-                padding: "clamp(20px,2.5vw,32px)",
-                textAlign: "center",
-                borderRight:
-                  i < s.metrics.length - 1
-                    ? `1px solid ${dc.faded}`
-                    : "none",
-              }}
-            >
-              <Mono
-                style={{
-                  display: "block",
-                  fontSize: "clamp(28px,3.2vw,44px)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.03em",
-                  color: dc.rain,
-                }}
-              >
-                {m.v}
-              </Mono>
+          <button
+            onClick={onBack}
+            style={{
+              background: "none", border: "none", padding: 0, cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: "rgba(238,239,211,0.62)",
+              letterSpacing: "-0.01em", fontFamily: dc.sans, marginBottom: 28,
+              display: "inline-flex", alignItems: "center", gap: 6,
+            }}
+          >
+            ← All case studies
+          </button>
+          <div
+            id="gs-hero-content"
+            className="cs-detail-grid"
+            style={{ display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(28px,4.5vw,64px)", alignItems: "center" }}
+          >
+            {/* Copy + metrics */}
+            <div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap", marginBottom: 16, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                <span style={{ color: dc.emerald }}>{s.company}</span>
+                <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 600 }}>·</span>
+                <span style={{ color: "rgba(238,239,211,0.55)", fontWeight: 600 }}>{s.type}</span>
+                <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 600 }}>·</span>
+                <span style={{ color: "rgba(238,239,211,0.55)", fontWeight: 600 }}>{s.location}</span>
+              </div>
+              <H1 style={{ margin: "0 0 28px", maxWidth: "20ch" }}>
+                {s.headline}
+              </H1>
               <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "rgba(0,55,56,0.6)",
-                  marginTop: 4,
-                  letterSpacing: "-0.01em",
-                }}
+                className="dc-band-3"
+                style={{ display: "grid", gridTemplateColumns: `repeat(${s.metrics.length},auto)`, gap: "clamp(20px,3vw,44px)", justifyContent: "start" }}
               >
-                {m.k}
+                {s.metrics.map((m) => (
+                  <MetricChip key={m.k} {...m} />
+                ))}
               </div>
             </div>
-          ))}
+
+            {/* 16:9 media panel — the study's animated explainer (poster fallback) */}
+            <div className="cs-detail-media">
+              <div style={{ position: "relative", aspectRatio: "16 / 9", borderRadius: dc.r.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)", background: "#00302e" }}>
+                {s.scene && !reduce ? (
+                  <HyperframeScene
+                    sceneKey={s.scene}
+                    poster={s.poster}
+                    image={s.image}
+                    title={`${s.company} — ${s.type}, animated`}
+                    active={true}
+                    posterStyle={cover}
+                  />
+                ) : (
+                  <img src={s.poster || s.image} alt={`${s.company} — ${s.type}`} style={cover} />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Body */}
       <section
         style={{
-          background: dc.cream,
+          background: dc.dark,
+          color: dc.cream,
           padding: `clamp(48px,6vw,80px) ${dc.pad}`,
         }}
       >
@@ -547,7 +561,7 @@ function StudyDetail({
                   fontWeight: 700,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase" as const,
-                  color: dc.rain,
+                  color: dc.lemon,
                   marginBottom: 10,
                 }}
               >
@@ -558,7 +572,7 @@ function StudyDetail({
                   fontSize: "clamp(16px,1.3vw,19px)",
                   fontWeight: 500,
                   lineHeight: 1.7,
-                  color: "rgba(0,55,56,0.78)",
+                  color: "rgba(238,239,211,0.78)",
                   margin: 0,
                 }}
               >
@@ -570,9 +584,9 @@ function StudyDetail({
           {/* Scenario takeaway — explicitly not a customer testimonial. */}
           <div
             style={{
-              padding: "18px 28px",
+              padding: "20px 28px",
               margin: "40px 0",
-              background: dc.mintBg,
+              background: "rgba(238,239,211,0.05)",
               borderRadius: `0 ${dc.r.sm} ${dc.r.sm} 0`,
               border: `1px solid ${dc.faded}`,
               borderLeft: `3px solid ${dc.lemon}`,
@@ -584,7 +598,7 @@ function StudyDetail({
                 fontStyle: "italic",
                 fontWeight: 500,
                 lineHeight: 1.45,
-                color: dc.dark,
+                color: dc.cream,
                 margin: "0 0 12px",
               }}
             >
@@ -594,7 +608,7 @@ function StudyDetail({
               style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: dc.rain,
+                color: dc.emerald,
                 fontStyle: "normal",
               }}
             >
@@ -734,6 +748,7 @@ export default function CaseStudiesPage({
       ]}
       cta={{ label: "Run a deal →", view: "dscr-calculator" }}
     >
+      <style>{CS_PAGE_CSS}</style>
       {/* ── HERO ──────────────────────────────────────────────────────────── */}
       <section
         style={{
@@ -772,7 +787,7 @@ export default function CaseStudiesPage({
                   fontWeight: 700,
                   letterSpacing: "0.04em",
                   textTransform: "uppercase" as const,
-                  color: dc.lemon,
+                  color: "rgba(238,239,211,0.6)",
                   marginBottom: 20,
                 }}
               >
@@ -815,86 +830,12 @@ export default function CaseStudiesPage({
             </div>
           </div>
 
-          {/* Right: outcome panel */}
-          <div
-            style={{
-              background: dc.teal,
-              borderRadius: dc.r.lg,
-              border: `1px solid ${dc.faded}`,
-              padding: "clamp(28px,3.5vw,48px)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 28,
-              minHeight: "clamp(280px,38vh,440px)",
-              justifyContent: "space-between",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-              }}
-            >
-              Illustrative outcomes
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              {[
-                { label: "Throughput improvement", value: "4×" },
-                { label: "Hard costs avoided", value: "$14,800" },
-                { label: "Hypothetical screening", value: "Early" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
-                    borderBottom: `1px solid ${dc.faded}`,
-                    paddingBottom: 14,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      color: "rgba(238,239,211,0.6)",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                  <Mono
-                    style={{
-                      fontSize: 22,
-                      fontWeight: 700,
-                      color: dc.cream,
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    {item.value}
-                  </Mono>
-                </div>
-              ))}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: "rgba(238,239,211,0.38)",
-                lineHeight: 1.5,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Illustrative composite figures. See individual scenarios below.
-            </div>
-          </div>
+          {/* Right: animated aggregate scoreboard */}
+          <AggregateScoreboard />
         </div>
       </section>
 
-      {/* ── HOW GREENSTREET WORKS band ────────────────────────────────────── */}
+      {/* ── THE PATTERN: DUAL-TRACK PROOF ─────────────────────────────────── */}
       <section
         style={{
           background: dc.cream,
@@ -902,14 +843,18 @@ export default function CaseStudiesPage({
           borderTop: `4px solid ${dc.dark}`,
         }}
       >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            style={{
-              marginBottom: "clamp(32px,4vw,56px)",
-              paddingBottom: 20,
-              borderBottom: "1px solid rgba(0,55,56,0.15)",
-            }}
-          >
+        <div
+          className="dt-grid"
+          style={{
+            maxWidth: dc.maxW,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "clamp(40px,5vw,80px)",
+            alignItems: "center",
+          }}
+        >
+          <div>
             <div
               style={{
                 fontSize: 11,
@@ -917,111 +862,58 @@ export default function CaseStudiesPage({
                 letterSpacing: "0.1em",
                 textTransform: "uppercase" as const,
                 color: dc.rain,
-                marginBottom: 12,
+                marginBottom: 16,
               }}
             >
-              How these scenarios are structured
+              The pattern behind every win
             </div>
+            <h2
+              style={{
+                fontSize: "clamp(28px,3.4vw,46px)",
+                fontWeight: 600,
+                letterSpacing: "-0.03em",
+                color: dc.dark,
+                lineHeight: 1.08,
+                margin: "0 0 20px",
+              }}
+            >
+              One number gets you the loan. The other tells you whether to take it.
+            </h2>
             <p
               style={{
-                color: "rgba(0,55,56,0.65)",
-                fontSize: "clamp(15px,1.3vw,17px)",
+                fontSize: "clamp(15px,1.3vw,18px)",
                 fontWeight: 500,
-                margin: 0,
-                maxWidth: "58ch",
                 lineHeight: 1.6,
+                color: "rgba(0,55,56,0.68)",
+                margin: "0 0 24px",
+                maxWidth: "46ch",
               }}
             >
-              Three steps: enter a scenario, inspect both DSCR views, then use
-              the result as the start of a preliminary review. Final programs,
-              terms, and eligibility require confirmation.
+              Every scenario below turns on the same move: Greenstreet runs{" "}
+              <strong style={{ color: dc.dark, fontWeight: 700 }}>two DSCRs on one file</strong>.
+              Track 1 is what the lender funds on. Track 2 prices in vacancy,
+              management, and CapEx — whether the deal actually survives. When they
+              disagree, Track 2 is the reason a deal got stopped before it cost a dollar.
             </p>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "clamp(240px,40%,480px) 1fr",
-              gap: "clamp(36px,5vw,72px)",
-              alignItems: "center",
-            }}
-          >
-            <PriceMatchProveDiagram />
-
             <div
               style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "clamp(28px,3.5vw,48px)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                fontSize: 12,
+                fontWeight: 600,
+                color: dc.rain,
+                background: "rgba(0,55,56,0.06)",
+                border: "1px solid rgba(0,55,56,0.14)",
+                borderRadius: 999,
+                padding: "8px 16px",
+                letterSpacing: "-0.01em",
               }}
             >
-              {[
-                {
-                  step: "Price",
-                  stepColor: dc.dark,
-                  heading: "Price the deal like you already know the answer.",
-                  body: "Enter the core property and loan assumptions. Get an educational DSCR, full monthly payment, and expense-aware cash-flow view.",
-                },
-                {
-                  step: "Match",
-                  stepColor: dc.rain,
-                  heading: "Identify what still needs confirmation.",
-                  body: "See which inputs are driving the result and which product, state, or borrower details require review by the responsible provider.",
-                },
-                {
-                  step: "Prove",
-                  stepColor: "#9a7b00",
-                  heading: "Separate calculations from facts that need a source.",
-                  body: "The calculator shows its arithmetic and assumptions. Provider rules, state-law conclusions, and transaction facts still require current primary sources and qualified review.",
-                },
-              ].map((item) => (
-                <div key={item.step}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 700,
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase" as const,
-                      color: item.stepColor,
-                      marginBottom: 8,
-                      opacity:
-                        item.step === "Price"
-                          ? 0.55
-                          : item.step === "Match"
-                          ? 0.75
-                          : 1,
-                    }}
-                  >
-                    {item.step}
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "clamp(20px,2.2vw,30px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.03em",
-                      margin: "0 0 10px",
-                      lineHeight: 1.1,
-                      color: dc.dark,
-                    }}
-                  >
-                    {item.heading}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "clamp(14px,1.2vw,17px)",
-                      fontWeight: 500,
-                      lineHeight: 1.55,
-                      color: "rgba(0,55,56,0.65)",
-                      margin: 0,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {item.body}
-                  </p>
-                </div>
-              ))}
+              Same property · same week · one application
             </div>
           </div>
+          <DualTrackProof />
         </div>
       </section>
 
@@ -1061,7 +953,7 @@ export default function CaseStudiesPage({
               style={{
                 fontSize: 12,
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.45)",
+                color: "rgba(238,239,211,0.62)",
                 margin: 0,
                 lineHeight: 1.5,
                 letterSpacing: "-0.01em",
@@ -1077,8 +969,7 @@ export default function CaseStudiesPage({
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 1,
-              background: `${dc.faded}`,
+              gap: 0,
             }}
           >
             {ALL_STUDIES.map((s, i) => (
@@ -1087,6 +978,7 @@ export default function CaseStudiesPage({
                 s={s}
                 onNavigate={onNavigate}
                 isLast={i === ALL_STUDIES.length - 1}
+                index={i}
               />
             ))}
           </div>
@@ -1159,6 +1051,7 @@ export default function CaseStudiesPage({
           </button>
         </div>
       </section>
+      <BottomCTA onNavigate={onNavigate} />
     </DcShell>
   );
 }

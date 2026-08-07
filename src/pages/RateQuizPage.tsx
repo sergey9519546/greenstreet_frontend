@@ -16,12 +16,12 @@
 import React, { useState, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono } from "../design/dc";
-import { DscrGauge, RiskFlame, MotionWorkbench } from "../design/artifacts";
+import { DscrGauge, RiskFlame } from "../design/artifacts";
 import { swatch, radius, font } from "../theme";
 
 interface Props {
   onBack?: () => void;
-  onNavigate?: (view: any) => void;
+  onNavigate?: (view: string) => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ const QUESTIONS: QuizQuestion[] = [
         v: "b",
       },
       {
-        label: "Foreign national or ITIN borrower",
+        label: "Non-US investor or ITIN borrower",
         hint: "global program",
         v: "g",
       },
@@ -177,7 +177,7 @@ function deriveResult(answers: string[]): ResultData {
     program = "Greenstreet DSCR Global";
     rate = "7.50% – 8.25%";
     note =
-      "Foreign national / ITIN program. Passport plus alternative credit, 30% down minimum, loans to $3M.";
+      "Non-US investor / ITIN program. Passport plus alternative credit, 30% down minimum, loans to $3M.";
     ltv = "Up to 70%";
     fico = "Alt credit";
     dscrMin = "1.00x";
@@ -233,7 +233,7 @@ function deriveResult(answers: string[]): ResultData {
   // What drove the result — plain language
   const verdictLines: { driven: string; why: string }[] = [];
   if (who === "g") {
-    verdictLines.push({ driven: "Borrower type", why: "Foreign national / ITIN — dedicated global program applies." });
+    verdictLines.push({ driven: "Borrower type", why: "Non-US investor / ITIN — dedicated global program applies." });
   }
   if (cov === "c") {
     verdictLines.push({ driven: "Cash flow (DSCR)", why: "Sub-1.0 coverage requires compensating factors." });
@@ -259,56 +259,21 @@ function deriveResult(answers: string[]): ResultData {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Progress dots — 5 steps, filled/active/empty states
-function ProgressDots({ step, total }: { step: number; total: number }) {
-  return (
-    <div
-      role="progressbar"
-      aria-valuenow={step}
-      aria-valuemin={0}
-      aria-valuemax={total}
-      aria-label={`Question ${step} of ${total}`}
-      style={{ display: "flex", gap: 8, alignItems: "center" }}
-    >
-      {Array.from({ length: total }).map((_, i) => {
-        const filled = i < step;
-        const active = i === step;
-        return (
-          <div
-            key={i}
-            style={{
-              width: active ? 28 : 8,
-              height: 8,
-              borderRadius: 99,
-              background: filled
-                ? swatch.emerald
-                : active
-                ? swatch.lemon
-                : swatch.midnightFaded,
-              transition: "width .25s ease, background .25s ease",
-              flexShrink: 0,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 // Education/helper callout
 function HelperBox({ text }: { text: string }) {
   return (
     <div
       style={{
-        background: swatch.mint,
+        background: "rgba(238,239,211,0.06)",
         borderRadius: radius.sm,
         padding: "12px 16px",
         marginBottom: 28,
         fontSize: 13,
         fontWeight: 500,
         lineHeight: 1.65,
-        color: "rgba(0,55,56,0.68)",
+        color: "rgba(238,239,211,0.68)",
         letterSpacing: "-0.01em",
-        border: `1px solid ${swatch.midnightFaded}`,
+        border: "1px solid rgba(238,239,211,0.16)",
       }}
     >
       {text}
@@ -330,6 +295,7 @@ function OptionRow({
 }) {
   return (
     <div
+      className="rq-option rq-opt"
       role="button"
       tabIndex={0}
       onClick={onClick}
@@ -345,24 +311,27 @@ function OptionRow({
         alignItems: "center",
         justifyContent: "space-between",
         gap: 16,
-        background: selected ? swatch.lemon : swatch.pistachio,
+        background: selected ? swatch.lemon : "rgba(238,239,211,0.06)",
         border: selected
-          ? `2px solid ${swatch.midnight}`
-          : `1px solid ${swatch.midnightFaded}`,
+          ? `2px solid ${swatch.lemon}`
+          : "1px solid rgba(238,239,211,0.14)",
         borderRadius: radius.sm,
         padding: "18px 22px",
         cursor: "pointer",
         minHeight: 56,
         transition: "background .13s, border-color .13s, transform .1s",
         userSelect: "none",
+        boxShadow: "none",
       }}
       onMouseEnter={(e) => {
         if (!selected)
-          (e.currentTarget as HTMLElement).style.background = swatch.mint;
+          (e.currentTarget as HTMLElement).style.background =
+            "rgba(238,239,211,0.11)";
       }}
       onMouseLeave={(e) => {
         if (!selected)
-          (e.currentTarget as HTMLElement).style.background = swatch.pistachio;
+          (e.currentTarget as HTMLElement).style.background =
+            "rgba(238,239,211,0.06)";
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -374,7 +343,7 @@ function OptionRow({
             borderRadius: "50%",
             border: selected
               ? `5px solid ${swatch.midnight}`
-              : `2px solid ${swatch.midnightFaded}`,
+              : "2px solid rgba(238,239,211,0.3)",
             background: selected ? swatch.lemon : "transparent",
             flexShrink: 0,
             transition: "border .13s",
@@ -385,7 +354,7 @@ function OptionRow({
             fontSize: 16,
             fontWeight: 600,
             letterSpacing: "-0.02em",
-            color: swatch.midnight,
+            color: selected ? swatch.midnight : swatch.pistachio,
             lineHeight: 1.25,
           }}
         >
@@ -396,7 +365,7 @@ function OptionRow({
         style={{
           fontSize: 12,
           fontWeight: 500,
-          color: selected ? "rgba(0,55,56,0.6)" : "rgba(0,55,56,0.45)",
+          color: selected ? "rgba(0,55,56,0.6)" : "rgba(238,239,211,0.62)",
           letterSpacing: "-0.005em",
           whiteSpace: "nowrap",
           flexShrink: 0,
@@ -420,11 +389,11 @@ function StatTile({ label, val }: { label: string; val: string }) {
     >
       <div
         style={{
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: 700,
           letterSpacing: "0.06em",
           textTransform: "uppercase" as const,
-          color: "rgba(238,239,211,0.45)",
+          color: "rgba(238,239,211,0.62)",
           marginBottom: 6,
         }}
       >
@@ -442,6 +411,86 @@ function StatTile({ label, val }: { label: string; val: string }) {
         {val}
       </Mono>
     </div>
+  );
+}
+
+function UnderwritePreview({
+  step,
+  total,
+  answers,
+  pendingAnswer,
+}: {
+  step: number;
+  total: number;
+  answers: string[];
+  pendingAnswer: string | null;
+}) {
+  const liveAnswers = [...answers];
+  if (pendingAnswer !== null) liveAnswers[step] = pendingAnswer;
+  const filled = liveAnswers.filter(Boolean).length;
+  const started = filled > 0;
+  const covAnswered = Boolean(liveAnswers[3]); // DSCR only exists once cash-flow is answered
+  const whoAnswered = Boolean(liveAnswers[4]);
+  const derived = deriveResult(liveAnswers);
+  // No number without an input: DSCR read stays "—" until the coverage question is answered
+  const dscrText =
+    covAnswered && derived.dscrValue !== null ? `${derived.dscrValue.toFixed(2)}x` : "—";
+  const pressure =
+    derived.tier === "BEST" ? "Low" : derived.tier === "GOOD" ? "Moderate" : "High";
+  // Each rail reveals only once the answers that drive it exist — otherwise empty.
+  const rails = [
+    { label: "Program fit", value: started ? (derived.tier === "BEST" ? "Best" : derived.tier === "GOOD" ? "Standard" : "Specialty") : "—", width: started ? (derived.tier === "BEST" ? "92%" : derived.tier === "GOOD" ? "68%" : "42%") : "0%" },
+    { label: "Rate pressure", value: started ? pressure : "—", width: started ? (derived.tier === "BEST" ? "36%" : derived.tier === "GOOD" ? "58%" : "76%") : "0%" },
+    { label: "Docs friction", value: whoAnswered ? (liveAnswers[4] === "g" ? "Higher" : "Light") : "—", width: whoAnswered ? (liveAnswers[4] === "g" ? "72%" : "38%") : "0%" },
+  ];
+
+  return (
+    <aside className="rq-strip" aria-label="Live underwriting preview">
+      <div className="rq-strip-head">
+        <div className="rq-strip-headL">
+          <span className="rq-strip-kicker">Live file read</span>
+          <span className="rq-strip-mapped">{filled}/{total} mapped</span>
+        </div>
+        <div className="rq-strip-dscr">
+          <Mono style={{ color: covAnswered ? swatch.lemon : "rgba(238,239,211,.38)", fontSize: 22, fontWeight: 800, lineHeight: 1 }}>{dscrText}</Mono>
+          <span className="rq-strip-dscr-lab">{covAnswered ? "DSCR read" : "Awaiting cash flow"}</span>
+        </div>
+      </div>
+
+      <div className="rq-strip-nodes">
+        {QUESTIONS.map((q, i) => {
+          const selected = q.opts.find((o) => o.v === liveAnswers[i]);
+          const active = i === step;
+          return (
+            <div key={q.id} className={`rq-strip-node ${selected ? "is-filled" : ""} ${active ? "is-active" : ""}`}>
+              <div className="rq-strip-dot">{String(i + 1).padStart(2, "0")}</div>
+              <div className="rq-strip-node-text">
+                <div className="rq-strip-node-label">{q.group}</div>
+                <div className="rq-strip-node-value">{selected?.label || (active ? "Answering…" : "Waiting")}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="rq-strip-bars">
+        {rails.map((rail) => (
+          <div key={rail.label}>
+            <div className="rq-strip-bar-meta">
+              <span>{rail.label}</span>
+              <b>{rail.value}</b>
+            </div>
+            <div className="rq-strip-bar-track">
+              <div className="rq-strip-bar-fill" style={{ width: rail.width }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="rq-strip-note">
+        Preliminary model only. Final pricing still depends on verified credit, appraisal, reserves, state rules, and lender underwriting.
+      </div>
+    </aside>
   );
 }
 
@@ -500,7 +549,6 @@ export default function RateQuizPage({ onNavigate }: Props) {
   // Pick an answer and advance
   const pick = useCallback(
     (v: string) => {
-      if (pendingAnswer !== null) return;
       setPendingAnswer(v);
       const newAns = [...answers];
       newAns[step] = v;
@@ -520,7 +568,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
         }, 160);
       });
     },
-    [answers, step, total, animateCard, animateResult, pendingAnswer]
+    [answers, step, total, animateCard, animateResult]
   );
 
   const back = useCallback(() => {
@@ -545,7 +593,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
       ? swatch.emerald
       : result?.tier === "GOOD"
       ? swatch.lemon
-      : "#f97316";
+      : "#e6b84d";
 
   const tierLabel =
     result?.tier === "BEST"
@@ -557,12 +605,29 @@ export default function RateQuizPage({ onNavigate }: Props) {
   // Risk level for RiskFlame
   const riskLevel =
     result?.tier === "WEAK" ? ("high" as const) : ("none" as const);
+  const primaryCtaLabel =
+    result?.tier === "WEAK"
+      ? "Strengthen this file ->"
+      : result?.tier === "BEST"
+      ? "Price this deal ->"
+      : "Run exact DSCR numbers ->";
+  const secondaryCtaLabel =
+    result?.tier === "WEAK"
+      ? "Structure with a specialist ->"
+      : "Speak to a specialist ->";
+  const nextStepCopy =
+    result?.tier === "WEAK"
+      ? "Run the exact rent and PITIA in the DSCR Calculator, then structure the file around reserves, LTV, and borrower profile before you lock anything in."
+      : result?.tier === "BEST"
+      ? "Run the exact rent and PITIA in the DSCR Calculator to confirm coverage, then move into pricing while the file is still in a strong lane."
+      : "Run the exact rent and PITIA in the DSCR Calculator to confirm the ratio, then compare standard program fit before locking terms.";
 
   return (
     <DcShell
       onNavigate={onNavigate}
       navLinks={[
         { label: "DSCR Calculator", view: "dscr-calculator" },
+        { label: "Lender Intel", view: "lender-intel" },
         { label: "State Laws", view: "state-laws" },
       ]}
       cta={{ label: "Speak to a specialist", onClick: () => (window as any).openQualify?.() }}
@@ -574,6 +639,75 @@ export default function RateQuizPage({ onNavigate }: Props) {
           outline-offset: 2px;
           border-radius: ${radius.sm};
         }
+        .qw-pill { display: none !important; }
+        .rq-workspace {
+          display: block;
+          max-width: 720px;
+          margin: 0 auto;
+        }
+        .rq-card {
+          background: ${swatch.darkTeal};
+          border-radius: ${radius.lg};
+          padding: clamp(28px,4vw,48px);
+          border: 1px solid rgba(238,239,211,0.16);
+        }
+        .rq-option {
+          position: relative;
+          overflow: hidden;
+        }
+        .rq-option:before {
+          content: "";
+          position: absolute;
+          inset: 0 auto 0 0;
+          width: 4px;
+          background: ${swatch.lemon};
+          transform: scaleY(0);
+          transform-origin: 50% 100%;
+          transition: transform .18s ease;
+        }
+        .rq-option[aria-pressed="true"]:before { transform: scaleY(1); }
+        /* Skinny horizontal live-read strip, sits below the quiz card */
+        .rq-strip {
+          max-width: 720px;
+          margin: 16px auto 0;
+          background: ${swatch.darkTeal};
+          color: ${swatch.pistachio};
+          border-radius: ${radius.lg};
+          padding: clamp(14px, 1.8vw, 20px) clamp(16px, 2vw, 24px);
+          border: 1px solid rgba(238,239,211,0.12);
+          position: relative;
+          overflow: hidden;
+        }
+        .rq-strip:before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(rgba(238,239,211,.07) 1px, transparent 1px);
+          background-size: 26px 26px;
+          pointer-events: none;
+        }
+        .rq-strip > * { position: relative; z-index: 1; }
+        .rq-strip-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+        .rq-strip-headL { display: flex; align-items: baseline; gap: 10px; }
+        .rq-strip-kicker { font-size: 11px; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; color: ${swatch.lemon}; }
+        .rq-strip-mapped { font-size: 14px; font-weight: 800; letter-spacing: -.02em; color: ${swatch.pistachio}; }
+        .rq-strip-dscr { display: flex; align-items: baseline; gap: 8px; }
+        .rq-strip-dscr-lab { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: rgba(238,239,211,.5); }
+        .rq-strip-nodes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 14px; }
+        .rq-strip-node { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border: 1px solid rgba(238,239,211,.1); border-radius: ${radius.sm}; background: rgba(238,239,211,.04); opacity: .6; transition: opacity .18s ease, border-color .18s ease; min-width: 0; }
+        .rq-strip-node.is-filled, .rq-strip-node.is-active { opacity: 1; }
+        .rq-strip-node.is-active { border-color: ${swatch.lemon}; }
+        .rq-strip-dot { flex-shrink: 0; width: 26px; height: 26px; border-radius: 99px; border: 1px solid rgba(238,239,211,.18); display: grid; place-items: center; font-family: ${font.mono}; font-size: 10px; color: rgba(238,239,211,.62); }
+        .rq-strip-node.is-filled .rq-strip-dot, .rq-strip-node.is-active .rq-strip-dot { background: ${swatch.lemon}; color: ${swatch.midnight}; border-color: ${swatch.lemon}; font-weight: 900; }
+        .rq-strip-node-text { min-width: 0; }
+        .rq-strip-node-label { font-size: 9px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: rgba(238,239,211,.55); margin-bottom: 2px; }
+        .rq-strip-node-value { font-size: 12px; font-weight: 700; line-height: 1.1; color: ${swatch.pistachio}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rq-strip-bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; background: rgba(238,239,211,.05); border: 1px solid rgba(238,239,211,.1); border-radius: ${radius.sm}; padding: 12px 14px; margin-bottom: 12px; }
+        .rq-strip-bar-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: rgba(238,239,211,.62); margin-bottom: 6px; }
+        .rq-strip-bar-meta b { color: ${swatch.pistachio}; }
+        .rq-strip-bar-track { height: 6px; border-radius: 99px; background: rgba(238,239,211,.11); overflow: hidden; }
+        .rq-strip-bar-fill { height: 100%; border-radius: 99px; background: ${swatch.emerald}; transition: width .32s ease; }
+        .rq-strip-note { font-size: 11px; line-height: 1.45; color: rgba(238,239,211,.5); }
         @media (max-width: 479px) {
           .rq-opt-hint { display: none !important; }
           .rq-result-grid { grid-template-columns: 1fr 1fr !important; }
@@ -584,41 +718,40 @@ export default function RateQuizPage({ onNavigate }: Props) {
           .rq-result-cols { flex-direction: column !important; }
           .rq-gauge-col { align-self: flex-start !important; }
           .rq-hero-grid { grid-template-columns: 1fr !important; }
-          .rq-hero-copy { text-align: left !important; }
+          .rq-strip { padding: 14px !important; }
+          .rq-strip-nodes { gap: 6px !important; }
+          .rq-strip-node { flex-direction: column !important; text-align: center !important; gap: 5px !important; padding: 7px 5px !important; }
+          .rq-strip-node-value { display: none !important; }
+          .rq-strip-bars { grid-template-columns: 1fr !important; gap: 10px !important; }
+          .rq-strip-note { display: none !important; }
         }
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section
         style={{
-          background: swatch.pistachio,
+          background: swatch.midnight,
+          color: swatch.pistachio,
           padding:
-            "clamp(52px,7vh,88px) clamp(1.5rem,5vw,4rem) clamp(28px,4vh,44px)",
+            "clamp(16px,3vh,30px) clamp(1.5rem,5vw,4rem) clamp(6px,1.2vh,12px)",
         }}
       >
         <div
           id="gs-hero-content"
           className="rq-hero-grid"
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1.05fr) minmax(320px, 0.75fr)",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "center",
-          }}
+          style={{ maxWidth: 1180, margin: "0 auto" }}
         >
-          <div className="rq-hero-copy">
+          <div className="rq-hero-copy" style={{ maxWidth: "42rem", margin: "0 auto", textAlign: "center" }}>
             <div
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 8,
-                background: swatch.mint,
-                border: `1px solid ${swatch.midnightFaded}`,
+                background: "rgba(238,239,211,0.06)",
+                border: "1px solid rgba(238,239,211,0.14)",
                 borderRadius: 99,
                 padding: "6px 14px",
-                marginBottom: 20,
+                marginBottom: 12,
               }}
             >
               <div
@@ -633,7 +766,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
-                  color: "rgba(0,55,56,0.65)",
+                  color: swatch.lemon,
                   letterSpacing: "0.02em",
                   textTransform: "uppercase" as const,
                 }}
@@ -644,12 +777,12 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
             <h1
               style={{
-                fontSize: "clamp(38px,5.8vw,74px)",
+                fontSize: "clamp(25px,3.4vw,40px)",
                 fontWeight: 700,
                 letterSpacing: "-0.04em",
-                lineHeight: 0.98,
-                color: swatch.midnight,
-                margin: "0 0 20px",
+                lineHeight: 1.0,
+                color: swatch.pistachio,
+                margin: "0 0 10px",
                 fontFamily: font.family,
               }}
             >
@@ -658,69 +791,79 @@ export default function RateQuizPage({ onNavigate }: Props) {
 
             <p
               style={{
-                fontSize: "clamp(15px,1.8vw,18px)",
+                fontSize: "clamp(13.5px,1.4vw,16px)",
                 fontWeight: 500,
-                lineHeight: 1.6,
-                color: "rgba(0,55,56,0.6)",
-                margin: 0,
-                maxWidth: "54ch",
+                lineHeight: 1.55,
+                color: "rgba(238,239,211,0.62)",
+                margin: "0 auto",
+                maxWidth: "44ch",
                 letterSpacing: "-0.01em",
                 fontFamily: font.family,
               }}
             >
-              Five quick questions about your property, credit, and cash flow. No credit pull — we map your answers to a Greenstreet program and an indicative rate range. Estimate-ok on every field.
+              Five questions about property, credit, and cash flow. No credit pull — estimate-ok on every field.
             </p>
           </div>
-          <MotionWorkbench mode="quiz" value={`${step + 1}/${total}`} label="Questions answered" />
         </div>
       </section>
 
       {/* ── QUIZ / RESULT BAND ───────────────────────────────────────────── */}
       <section
         style={{
-          background: swatch.pistachio,
+          background: swatch.midnight,
+          color: swatch.pistachio,
           padding:
             "clamp(8px,1.5vh,20px) clamp(1.5rem,5vw,4rem) clamp(64px,10vh,120px)",
         }}
       >
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           {/* ── QUIZ ── */}
           {inQuiz && (
-            <div ref={cardRef}>
-              {/* Progress strip + meta */}
+            <div ref={cardRef} className="rq-workspace">
+              <div>
+              {/* Step label — single progress lives in the live-read strip below */}
               <div
+                role="progressbar"
+                aria-valuenow={step + 1}
+                aria-valuemin={1}
+                aria-valuemax={total}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 28,
-                  gap: 12,
-                  flexWrap: "wrap" as const,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "rgba(238,239,211,0.62)",
+                  letterSpacing: "0.03em",
+                  textTransform: "uppercase" as const,
+                  marginBottom: 20,
                 }}
               >
-                <ProgressDots step={step} total={total} />
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "rgba(0,55,56,0.45)",
-                    letterSpacing: "0.03em",
-                    textTransform: "uppercase" as const,
-                  }}
-                >
-                  {QUESTIONS[step].group} · {step + 1} of {total}
-                </span>
+                {QUESTIONS[step].group} · {step + 1} of {total}
               </div>
 
               {/* Question card */}
               <div
+                className="rq-card"
                 style={{
-                  background: swatch.white,
-                  borderRadius: radius.lg,
-                  padding: "clamp(28px,4vw,48px)",
-                  border: `1px solid ${swatch.midnightFaded}`,
+                  position: "relative",
                 }}
               >
+                {/* Linear progress — one clear, animated indicator at the top of
+                    the card (the strip below is a live file-read, not progress). */}
+                <div aria-hidden="true" style={{ display: "flex", gap: 6, marginBottom: 24 }}>
+                  {QUESTIONS.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        flex: 1,
+                        height: 4,
+                        borderRadius: 99,
+                        background:
+                          i < step ? swatch.emerald : i === step ? swatch.lemon : "rgba(238,239,211,0.14)",
+                        transition: "background .3s ease",
+                      }}
+                    />
+                  ))}
+                </div>
+
                 {/* Question heading */}
                 <h2
                   style={{
@@ -728,7 +871,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     fontWeight: 700,
                     letterSpacing: "-0.03em",
                     lineHeight: 1.1,
-                    color: swatch.midnight,
+                    color: swatch.pistachio,
                     margin: "0 0 20px",
                     fontFamily: font.family,
                   }}
@@ -766,7 +909,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       marginTop: 24,
                       background: "none",
                       border: "none",
-                      color: "rgba(0,55,56,0.45)",
+                      color: "rgba(238,239,211,0.62)",
                       fontFamily: font.family,
                       fontWeight: 600,
                       fontSize: 14,
@@ -783,6 +926,8 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   </button>
                 )}
               </div>
+              </div>
+              <UnderwritePreview step={step} total={total} answers={answers} pendingAnswer={pendingAnswer} />
             </div>
           )}
 
@@ -790,7 +935,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
           {done && result && (
             <div
               ref={resultRef}
-              style={{ opacity: revealed ? 1 : 0, transition: "opacity .2s" }}
+              style={{ opacity: revealed ? 1 : 0, transition: "opacity .2s", maxWidth: 980, margin: "0 auto" }}
             >
               {/* Tier badge */}
               <div
@@ -808,8 +953,8 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 8,
-                    background: swatch.mint,
-                    border: `1px solid ${swatch.midnightFaded}`,
+                    background: "rgba(238,239,211,0.06)",
+                    border: "1px solid rgba(238,239,211,0.14)",
                     borderRadius: 99,
                     padding: "6px 14px",
                   }}
@@ -826,7 +971,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     style={{
                       fontSize: 12,
                       fontWeight: 700,
-                      color: "rgba(0,55,56,0.65)",
+                      color: "rgba(238,239,211,0.75)",
                       letterSpacing: "0.04em",
                       textTransform: "uppercase" as const,
                     }}
@@ -842,13 +987,17 @@ export default function RateQuizPage({ onNavigate }: Props) {
               {/* Main result card — dark */}
               <div
                 style={{
-                  background: swatch.midnight,
+                  background: swatch.darkTeal,
                   borderRadius: radius.lg,
                   padding: "clamp(28px,4.5vw,52px)",
-                  border: "1px solid rgba(238,239,211,0.1)",
+                  border: "1px solid rgba(238,239,211,0.16)",
                   marginBottom: 16,
+                  position: "relative",
+                  overflow: "hidden",
                 }}
               >
+                <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(238,239,211,.07) 1px, transparent 1px)", backgroundSize: "28px 28px", pointerEvents: "none" }} />
+                <div style={{ position: "relative", zIndex: 1 }}>
                 {/* Program name */}
                 <div
                   style={{
@@ -890,9 +1039,9 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   }}
                 >
                   {result.tier === "BEST"
-                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest program selection."
+                    ? "Your profile — strong credit and lower LTV — places you in the best-rate tier with the widest lender selection."
                     : result.tier === "GOOD"
-                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best program match and lock your terms."
+                    ? "Your scenario fits standard DSCR programs. A specialist can confirm the best lender match and lock your terms."
                     : "This program has tighter requirements, but it's built for your situation. Reserves, lower LTV, or stronger credit can help you qualify — a specialist can structure the deal."}
                 </p>
 
@@ -911,11 +1060,11 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   <div style={{ flex: "1 1 220px" }}>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,
-                        color: "rgba(238,239,211,0.4)",
+                        color: "rgba(238,239,211,0.62)",
                         marginBottom: 6,
                       }}
                     >
@@ -939,7 +1088,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         fontSize: 13,
                         fontWeight: 500,
                         lineHeight: 1.55,
-                        color: "rgba(238,239,211,0.55)",
+                        color: "rgba(238,239,211,0.62)",
                         margin: 0,
                         maxWidth: "42ch",
                       }}
@@ -956,11 +1105,11 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     >
                       <div
                         style={{
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: 700,
                           letterSpacing: "0.06em",
                           textTransform: "uppercase" as const,
-                          color: "rgba(238,239,211,0.4)",
+                          color: "rgba(238,239,211,0.62)",
                           marginBottom: 8,
                         }}
                       >
@@ -974,11 +1123,11 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {/* What drove this result */}
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase" as const,
-                    color: "rgba(238,239,211,0.35)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 10,
                   }}
                 >
@@ -1024,7 +1173,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         <span
                           style={{
                             fontSize: 13,
-                            color: "rgba(238,239,211,0.55)",
+                            color: "rgba(238,239,211,0.62)",
                           }}
                         >
                           {" "}
@@ -1038,11 +1187,11 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {/* Program stat grid */}
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase" as const,
-                    color: "rgba(238,239,211,0.35)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 10,
                   }}
                 >
@@ -1066,8 +1215,8 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {result.tier === "WEAK" && (
                   <div
                     style={{
-                      background: "rgba(249,115,22,0.08)",
-                      border: "1px solid rgba(249,115,22,0.28)",
+                      background: "rgba(230,184,77,0.08)",
+                      border: "1px solid rgba(230,184,77,0.28)",
                       borderRadius: radius.sm,
                       padding: "14px 18px",
                       marginBottom: 20,
@@ -1075,11 +1224,11 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   >
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,
-                        color: "#f97316",
+                        color: "#e6b84d",
                         marginBottom: 6,
                       }}
                     >
@@ -1122,14 +1271,14 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   >
                     What happens next
                   </strong>
-                  Run your exact numbers in the DSCR Calculator (rent ÷ PITIA) to confirm the ratio, then speak with a Greenstreet specialist for a full scenario review and program lock. No credit pull. No commitment.
+                  {nextStepCopy} No credit pull. No commitment.
                 </div>
 
                 {/* Compliance disclaimer */}
                 <p
                   style={{
                     fontSize: 11,
-                    color: "rgba(238,239,211,0.32)",
+                    color: "rgba(238,239,211,0.62)",
                     margin: "8px 0 28px",
                     lineHeight: 1.5,
                   }}
@@ -1165,7 +1314,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    Run the numbers →
+                    {primaryCtaLabel}
                   </a>
                   <button
                     onClick={() => (window as any).openQualify?.()}
@@ -1175,7 +1324,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       justifyContent: "center",
                       gap: 8,
                       background: "transparent",
-                      border: `1.5px solid rgba(238,239,211,0.28)`,
+                      border: `1.5px solid rgba(238,239,211,0.5)`,
                       color: swatch.pistachio,
                       fontFamily: font.family,
                       fontWeight: 600,
@@ -1187,14 +1336,14 @@ export default function RateQuizPage({ onNavigate }: Props) {
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    Speak to a specialist →
+                    {secondaryCtaLabel}
                   </button>
                   <button
                     onClick={restart}
                     style={{
                       background: "none",
                       border: "none",
-                      color: "rgba(238,239,211,0.38)",
+                      color: "rgba(238,239,211,0.62)",
                       fontFamily: font.family,
                       fontWeight: 500,
                       fontSize: 14,
@@ -1207,6 +1356,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   >
                     Retake quiz
                   </button>
+                </div>
                 </div>
               </div>
 
@@ -1229,7 +1379,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                     style={{
                       fontSize: 12,
                       fontWeight: 600,
-                      color: "rgba(0,55,56,0.42)",
+                      color: "rgba(238,239,211,0.62)",
                       display: "flex",
                       alignItems: "center",
                       gap: 5,
@@ -1278,7 +1428,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "rgba(0,55,56,0.42)",
+                    color: "rgba(238,239,211,0.62)",
                     display: "flex",
                     alignItems: "center",
                     gap: 5,
@@ -1310,8 +1460,9 @@ export default function RateQuizPage({ onNavigate }: Props) {
       {/* ── BOTTOM INFO BAND ─────────────────────────────────────────────── */}
       <section
         style={{
-          background: swatch.mint,
-          borderTop: `1px solid ${swatch.midnightFaded}`,
+          background: swatch.midnight,
+          color: swatch.pistachio,
+          borderTop: "1px solid rgba(238,239,211,0.16)",
           padding:
             "clamp(36px,5vh,56px) clamp(1.5rem,5vw,4rem)",
         }}
@@ -1336,23 +1487,23 @@ export default function RateQuizPage({ onNavigate }: Props) {
             },
             {
               label: "Rates are illustrative",
-              body: "Rate ranges shown are indicative only and based on current Greenstreet program tiers. Final pricing depends on full underwriting. Book a demo for a live scenario review.",
+              body: "Rate ranges shown are indicative only and based on current Greenstreet program tiers. Final pricing depends on full underwriting, appraisal, reserves, and verified borrower details.",
             },
           ].map((card) => (
             <div
               key={card.label}
               style={{
-                background: swatch.pistachio,
+                background: swatch.darkTeal,
                 borderRadius: radius.md,
                 padding: "22px 24px",
-                border: `1px solid ${swatch.midnightFaded}`,
+                border: "1px solid rgba(238,239,211,0.16)",
               }}
             >
               <div
                 style={{
                   fontSize: 13,
                   fontWeight: 700,
-                  color: swatch.midnight,
+                  color: swatch.pistachio,
                   marginBottom: 8,
                   letterSpacing: "-0.01em",
                 }}
@@ -1364,7 +1515,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   fontSize: 13,
                   fontWeight: 500,
                   lineHeight: 1.6,
-                  color: "rgba(0,55,56,0.58)",
+                  color: "rgba(238,239,211,0.6)",
                   margin: 0,
                 }}
               >

@@ -25,6 +25,20 @@ export const LEMON = swatch.lemon;
 export const FADED = swatch.midnightFaded;
 export const DARK_TEAL = swatch.darkTeal;
 
+// Semantic risk ramp — the ONE danger/warn system (see project_risk_color_system).
+// Risk states pull from here; never reintroduce the old bright coral #ff6b6b or
+// orange #f97316. Data-series colors (sky-blue #7ec8d3 for rates) are separate.
+export const risk = {
+  positive: swatch.emerald, // #4dbd97 — pass / safe
+  caution: swatch.lemon,    // #d8d958 — watch / marginal
+  warning: "#e6b84d",       // amber — fragile / sub-threshold
+  danger: "#e06363",        // red — break / high-risk
+  warningBg: "rgba(230,184,77,0.10)",
+  warningBorder: "rgba(230,184,77,0.30)",
+  dangerBg: "rgba(224,99,99,0.10)",
+  dangerBorder: "rgba(224,99,99,0.30)",
+} as const;
+
 export const font = {
   family: '"Outfit Variable", Arial, sans-serif',
   mono: '"JetBrains Mono", ui-monospace, monospace',
@@ -88,15 +102,57 @@ export const themes = {
 } as const;
 
 export const radius = { sm: "8px", md: "12px", lg: "16px", pill: "999px" } as const;
+export const space = { section: "clamp(56px, 8vw, 128px)", gutter: "clamp(1.5rem, 4vw, 4rem)" } as const;
 
-// Layout primitives shared by every React-routed surface.  The homepage uses
-// open bands and a tight, deliberate mobile rail rather than nested card
-// padding.  Keep the rail token here so routed pages and shell chrome land on
-// the same x-axis at 390px without changing their desktop composition.
-export const space = {
-  section: "clamp(56px, 8vw, 128px)",
-  gutter: "clamp(1.5rem, 4vw, 4rem)",
-  pageGutter: "clamp(1rem, 4.6vw, 1.25rem)",
-  mobileSection: "clamp(3.5rem, 12vw, 5rem)",
-  touchTarget: "44px",
+// ── Design-system scales (Phase 0) — the single vocabulary for spacing, tracking,
+// text-opacity, and type. Pages must pull from these instead of inlining one-off
+// px/em values (the audit found 74 letter-spacings, 39 font-sizes, 30 gaps in use).
+
+// 4px spacing scale — use for gap / padding / margin.
+export const scale = {
+  xs: "4px", sm: "8px", md: "12px", lg: "16px", xl: "24px",
+  "2xl": "32px", "3xl": "48px", "4xl": "64px", "5xl": "96px",
+} as const;
+
+// Letter-spacing tokens — only these five. Display tight, body snug/normal,
+// labels wide, eyebrows caps.
+export const tracking = {
+  tight: "-0.03em",   // display / big mono numbers
+  snug: "-0.015em",   // headings, dense UI
+  normal: "0em",      // body
+  wide: "0.04em",     // small labels
+  caps: "0.08em",     // uppercase eyebrows
+} as const;
+
+// Text-opacity ladder on the dark (teal) ground — AA-considered. Replaces the
+// ad-hoc 0.5/0.55/0.56/0.6/0.78 sprawl. `secondary` is the AA-safe body-dim.
+export const onDark = {
+  primary: "#eeefd3",
+  dim: "rgba(238,239,211,0.85)",
+  secondary: "rgba(238,239,211,0.62)",
+  tertiary: "rgba(238,239,211,0.5)",   // large/secondary text only
+  faint: "rgba(238,239,211,0.4)",      // decorative dividers, never body
+} as const;
+export const onLight = {
+  primary: "#003738",
+  secondary: "rgba(0,55,56,0.66)",
+  tertiary: "rgba(0,55,56,0.5)",
+} as const;
+
+// ── Deal-depth ground ramp ────────────────────────────────────────────────────
+// The page-ground tone encodes funnel stage: the cream marketing home and the
+// midnight app are two ends of ONE descent, not two separate color worlds.
+// Surface and ink are PAIRED (co-indexed) and must always be set together —
+// flipping the surface without the ink inverts contrast mid-ramp (dark ink on a
+// darkening ground = a window of unreadable text). The app is uniformly dark, so
+// today the ramp has two stops; add intermediate stops here if a lighter
+// "compare" tier of pages is ever introduced.
+export const depth = {
+  browse:     { bg: swatch.pistachio, ink: onLight.primary }, // marketing home
+  underwrite: { bg: swatch.midnight,  ink: onDark.primary  }, // the React app
+} as const;
+
+// Type ramp (px anchors). Body = base; headings clamp between these anchors.
+export const size = {
+  xs: 11, sm: 13, base: 15, md: 18, lg: 22, xl: 30, "2xl": 44, "3xl": 64,
 } as const;

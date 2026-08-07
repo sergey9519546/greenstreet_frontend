@@ -1,1069 +1,164 @@
-import React, { useEffect } from "react";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
-import { MotionWorkbench } from "../design/artifacts";
+import React, { useEffect, useState } from "react";
+import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
+import { radius, font } from "../theme";
+import BottomCTA from "../design/BottomCTA";
 
-const INVESTORS_MOBILE_CSS = `
-  @media (max-width: 700px) {
-    .dc-hero, .dc-band-2, .dc-band-3 { grid-template-columns: 1fr !important; }
-    .dc-hero { min-height: 0 !important; }
-    .dc-band-2, .dc-band-3 { gap: 14px !important; }
-    .ix-card { min-height: 0 !important; }
-    button { min-height: 44px; }
-  }
-`;
+// ── Who-We-Serve: Real Estate Investors (primary wedge) ───────────────────────
+// Signature: the Door Ladder — each property self-qualifies on its own rent, so
+// there's no income ceiling. Conventional DTI caps you; DSCR doesn't.
 
-// ── Five myths — the centrepiece educational content ──────────────────────────
-// Each myth gets a bps-specific rebuttal. Do not dilute or reorder.
-const MYTHS = [
-  {
-    num: "01",
-    myth: "DSCR is just rent ÷ payment.",
-    truth:
-      "Track 1 is an educational rent-to-payment view (DSCR: whether estimated rent can cover estimated debt service; 1.00 means they are equal). Track 2 can add vacancy, management, and capital-expenditure assumptions. Neither is a lender's qualification standard, quote, or decision.",
-    view: "dscr-calculator",
-    cta: "See both tracks on my deal",
-  },
-  {
-    num: "02",
-    myth: "A 0.1x DSCR improvement doesn't matter.",
-    truth:
-      "A small change in rent, debt, vacancy, taxes, insurance, or operating costs can materially change a scenario. Test the inputs that matter most; public tool results do not determine pricing or eligibility.",
-    view: "dscr-calculator",
-    cta: "Find my binding constraint",
-  },
-  {
-    num: "03",
-    myth: "All DSCR loans price the same.",
-    truth:
-      "Providers may use different assumptions, documentation, and terms. Greenstreet does not publish verified program availability, rate effects, or a program-matching service on this page. Confirm actual options directly with an appropriately licensed provider.",
-    view: "products",
-    cta: "Review planning factors",
-  },
-  {
-    num: "04",
-    myth: "A 5/6 ARM is free money for the first 5 years.",
-    truth:
-      "An ARM can change after its fixed period. Use several illustrative rate paths to understand sensitivity, then verify the note, index, margin, caps, and payment schedule with qualified professionals.",
-    view: "arm-reset",
-    cta: "Model the reset scenarios",
-  },
-  {
-    num: "05",
-    myth: "Cash-out refinance always means waiting 12 months to season.",
-    truth:
-      "A refinance may involve timing, costs, valuation, documentation, and legal requirements that vary by provider and jurisdiction. This page does not state any available refinance product or eligibility rule.",
-    view: "products",
-    cta: "Explore refinance questions",
-  },
+const BLUE = "#7ec8d3";
+const RED = "#e06363";
+const fmt$ = (n: number) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
+
+type Door = { rent: number; pay: number };
+const START: Door[] = [
+  { rent: 2400, pay: 1850 },
+  { rent: 3100, pay: 2450 },
+  { rent: 2800, pay: 2300 },
 ];
+const DTI_CEILING = 4; // illustrative: where a typical W-2 borrower's DTI taps out
 
-// ── Value cards — the three headline guarantees ───────────────────────────────
-const VALUE_CARDS = [
-  {
-    bg: dc.mintBg,
-    ink: dc.dark,
-    body: "rgba(0,55,56,0.62)",
-    accent: dc.rain,
-    headline: "Compare assumptions before you commit capital.",
-    desc: "Use estimated rent, PITIA (principal, interest, taxes, insurance, and HOA dues), vacancy, management, and CapEx to explore cash-flow sensitivity. The scenario is educational and does not represent a lender's view or decision.",
-    ctaLabel: "Check my deal's DSCR →",
-    view: "dscr-calculator",
-  },
-  {
-    bg: dc.dark,
-    ink: dc.cream,
-    body: "rgba(238,239,211,0.65)",
-    accent: dc.lemon,
-    headline: "Tax scenarios require professional review.",
-    desc: "Tax results depend on facts, law, elections, and the taxpayer's circumstances. Public calculations are not tax advice and must not be treated as a projected deduction, tax benefit, or return.",
-    ctaLabel: "Run the Tax Engine →",
-    view: "tax-engine",
-  },
-  {
-    bg: dc.lemon,
-    ink: dc.dark,
-    body: "rgba(0,55,56,0.62)",
-    accent: dc.rain,
-    headline: "Stress-test assumptions before you commit.",
-    desc: "An illustrative rate × rent grid can show how assumptions interact. It does not predict market rates, rent, property performance, financing availability, or a transaction outcome.",
-    ctaLabel: "Run the stress matrix →",
-    view: "stress-matrix",
-  },
-];
-
-// ── Shared button helpers ──────────────────────────────────────────────────────
-function PrimaryBtn({
-  onClick,
-  children,
-}: {
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 9,
-        background: dc.lemon,
-        color: dc.dark,
-        fontWeight: 600,
-        fontSize: 16,
-        border: "none",
-        cursor: "pointer",
-        padding: "15px 30px",
-        borderRadius: dc.r.md,
-        fontFamily: dc.sans,
-        letterSpacing: "-0.01em",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function GhostBtn({
-  onClick,
-  children,
-}: {
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 9,
-        background: "transparent",
-        color: dc.cream,
-        fontWeight: 600,
-        fontSize: 16,
-        border: `1.5px solid ${dc.faded}`,
-        cursor: "pointer",
-        padding: "15px 26px",
-        borderRadius: dc.r.md,
-        fontFamily: dc.sans,
-        letterSpacing: "-0.01em",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default function InvestorsPage({
-  onBack,
+  onBack: _onBack,
   onNavigate,
 }: {
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "For Investors | Greenstreet Finance";
+    document.title = "DSCR Loans for Real Estate Investors | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
+  const [doors, setDoors] = useState<Door[]>(START);
+  const totalRent = doors.reduce((s, d) => s + d.rent, 0);
+  const totalPay = doors.reduce((s, d) => s + d.pay, 0);
+  const blended = totalPay > 0 ? totalRent / totalPay : 0;
+  const cashFlow = totalRent - totalPay;
+
+  const setDoor = (i: number, k: keyof Door, v: number) =>
+    setDoors((ds) => ds.map((d, j) => (j === i ? { ...d, [k]: v } : d)));
+  const addDoor = () => setDoors((ds) => [...ds, { rent: 2600, pay: 2050 }]);
+  const removeDoor = (i: number) => setDoors((ds) => (ds.length > 1 ? ds.filter((_, j) => j !== i) : ds));
+
+  const numIn = (v: number, set: (n: number) => void, step: number, label = "amount") => (
+    <input type="number" aria-label={label} step={step} value={v} onChange={(e) => set(+e.target.value)}
+      style={{ width: 78, border: "none", borderBottom: "1.5px solid rgba(238,239,211,0.25)", background: "none", outline: "none", color: dc.cream, fontFamily: dc.mono, fontWeight: 700, fontSize: 15, padding: "2px 2px", letterSpacing: "-0.02em" }} />
+  );
+
+  const navLinks = [
+    { label: "DSCR Calc", view: "dscr-calculator" },
+    { label: "Programs", view: "lender-intel" },
+    { label: "Portfolio", view: "portfolio" },
+  ];
+
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      accent={dc.dark}
-      navLinks={[
-        { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "Tax Engine", view: "tax-engine" },
-        { label: "Returns", view: "returns" },
-      ]}
-      cta={{ label: "Run the numbers →", view: "returns" }}
-    >
-      <style>{INVESTORS_MOBILE_CSS}</style>
-      {/* ── HERO ── solid midnight, 2-col ────────────────────────────────────── */}
-      <section style={{ background: dc.dark, color: dc.cream, overflow: "hidden" }}>
-        <div
-          className="dc-hero"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            padding: `clamp(56px,7vh,96px) ${dc.pad}`,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "clamp(36px,5vw,72px)",
-            alignItems: "center",
-            minHeight: "clamp(440px,56vh,700px)",
-          }}
-        >
-          {/* Left column */}
-          <div id="gs-hero-content">
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 20,
-              }}
-            >
-              For Investors
-            </div>
-            <H1 style={{ margin: "0 0 24px" }}>
-              Analyze
-              <br />
-              like an
-              <br />
-              institution.
-            </H1>
-            <Lead
-              style={{
-                color: "rgba(238,239,211,0.7)",
-                maxWidth: "46ch",
-                margin: "0 0 36px",
-              }}
-            >
-              These tools help individual investors explore rental-property cash-flow assumptions. They are educational scenarios, not tax, legal, investment, credit, underwriting, or financing advice, and they do not establish provider availability or terms.
+    <DcShell onNavigate={onNavigate} accent={dc.teal} navLinks={navLinks} cta={{ label: "Run my deal →", view: "dscr-calculator" }}>
+      <style>{`
+        @media(max-width:760px){.inv-grid{grid-template-columns:1fr !important;}.inv-door{flex-wrap:wrap;}}
+      `}</style>
+
+      {/* ── HERO ── */}
+      <section style={{ position: "relative", background: dc.teal, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
+        <div className="gs-dot-grid" />
+        <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Real Estate Investors</div>
+            <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>Scale past the income ceiling.</H1>
+            <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
+              Conventional lenders cap how many doors you own by your debt-to-income. DSCR doesn't — every property qualifies on its own rent. Buy the next one, and the one after that.
             </Lead>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <PrimaryBtn onClick={() => onNavigate("returns")}>
-                See my deal's returns →
-              </PrimaryBtn>
-              <GhostBtn onClick={() => onNavigate("dscr-calculator")}>
-                Check DSCR first
-              </GhostBtn>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Run my next deal →</button>
+              <button onClick={() => onNavigate("portfolio")} style={{ background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, border: "1.5px solid rgba(238,239,211,0.5)", cursor: "pointer", padding: "14px 24px", borderRadius: radius.sm, fontFamily: font.family }}>Blend my portfolio</button>
             </div>
           </div>
-
-          {/* Right column — live deal proof panel */}
-          <div
-            style={{
-              background: dc.teal,
-              border: "1px solid rgba(238,239,211,0.14)",
-              borderRadius: 12,
-              padding: "clamp(28px,3.5vw,44px)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 20,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-              }}
-            >
-              Sample deal preview
-            </div>
-            <MotionWorkbench mode="stress" value="1.11x" label="Investor coverage" />
-            <div>
-              <Mono
-                style={{
-                  fontSize: "clamp(52px,7vw,88px)",
-                  fontWeight: 600,
-                  color: dc.cream,
-                  lineHeight: 0.9,
-                  display: "block",
-                }}
-              >
-                1.11x
-              </Mono>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: "rgba(238,239,211,0.55)",
-                  marginTop: 8,
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                DSCR — $3,330 rent ÷ $2,999 PITIA (full monthly payment)
+          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            {[{ v: doors.length, l: "doors" }, { v: blended.toFixed(2) + "x", l: "blended DSCR" }, { v: fmt$(cashFlow) + "/mo", l: "cash flow" }, { v: "∞", l: "income cap" }].map((t, i) => (
+              <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "16px 14px" }}>
+                <Mono style={{ fontSize: 26, fontWeight: 700, color: i === 3 ? dc.emerald : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 6 }}>{t.l}</div>
               </div>
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
-            >
-              {[
-                { label: "After-tax IRR", val: "9.4%" },
-                { label: "Equity multiple", val: "2.1×" },
-                { label: "Year-1 tax shield", val: "$14K" },
-                { label: "Break-even rent", val: "$2,600" },
-              ].map((m) => (
-                <div
-                  key={m.label}
-                  style={{
-                    background: "rgba(238,239,211,0.05)",
-                    border: "1px solid rgba(238,239,211,0.09)",
-                    borderRadius: 7,
-                    padding: "12px 14px",
-                  }}
-                >
-                  <Mono
-                    style={{
-                      display: "block",
-                      fontSize: 22,
-                      fontWeight: 600,
-                      color: dc.lemon,
-                      lineHeight: 1,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {m.val}
-                  </Mono>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "rgba(238,239,211,0.5)",
-                      letterSpacing: "0.02em",
-                      textTransform: "uppercase" as const,
-                    }}
-                  >
-                    {m.label}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── THE DOOR LADDER ── */}
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>The door ladder</div>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>Stack doors. Each one carries itself.</h2>
+          <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Edit each door's rent and payment — scroll over the numbers. Every door qualifies on its own DSCR; the blend is just for show.</p>
+
+          <div className="inv-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 28, alignItems: "start" }}>
+            {/* ladder */}
+            <div style={{ display: "flex", flexDirection: "column-reverse", gap: 10 }}>
+              {doors.map((d, i) => {
+                const ds = d.pay > 0 ? d.rent / d.pay : 0;
+                const ok = ds >= 1.0;
+                const past = i + 1 > DTI_CEILING;
+                return (
+                  <div key={i} className="inv-door" style={{ display: "flex", alignItems: "center", gap: 16, marginLeft: `${Math.min(i, 8) * 26}px`, background: dc.teal, border: `1px solid ${ok ? "rgba(77,189,151,0.35)" : "rgba(224,99,99,0.35)"}`, borderRadius: radius.md, padding: "14px 18px" }}>
+                    <Mono style={{ fontSize: 18, fontWeight: 700, color: past ? dc.emerald : "rgba(238,239,211,0.5)", width: 34 }}>{String(i + 1).padStart(2, "0")}</Mono>
+                    <div style={{ fontSize: 13, color: "rgba(238,239,211,0.6)" }}>
+                      rent {numIn(d.rent, (v) => setDoor(i, "rent", v), 50, "Door rent")} · pay {numIn(d.pay, (v) => setDoor(i, "pay", v), 50, "Door payment")}
+                    </div>
+                    <Mono style={{ marginLeft: "auto", fontSize: 18, fontWeight: 700, color: ok ? dc.emerald : RED }}>{ds.toFixed(2)}x</Mono>
+                    <button onClick={() => removeDoor(i)} aria-label="remove door" style={{ background: "none", border: "none", color: "rgba(238,239,211,0.62)", cursor: "pointer", fontSize: 18, lineHeight: 1, fontFamily: font.family }}>×</button>
                   </div>
+                );
+              })}
+              {doors.length >= DTI_CEILING && (
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginLeft: `${Math.min(DTI_CEILING - 0.5, 8) * 26}px`, padding: "2px 0" }}>
+                  <div style={{ flex: 1, height: 1, borderTop: `1.5px dashed ${RED}`, opacity: 0.6 }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: RED, whiteSpace: "nowrap" }}>conventional DTI caps here</span>
+                </div>
+              )}
+              <button onClick={addDoor} style={{ alignSelf: "flex-start", marginTop: 6, background: "transparent", border: "1.5px dashed rgba(238,239,211,0.3)", color: dc.cream, fontWeight: 600, fontSize: 14, cursor: "pointer", padding: "12px 22px", borderRadius: radius.sm, fontFamily: font.family }}>+ Add a door</button>
+            </div>
+
+            {/* portfolio summary */}
+            <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(22px,2.6vw,30px)", position: "sticky", top: 96 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE, marginBottom: 16 }}>Your book, blended</div>
+              <Mono style={{ fontSize: "clamp(44px,6vw,68px)", fontWeight: 700, color: dc.lemon, lineHeight: 0.9, display: "block" }}>{doors.length}</Mono>
+              <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 4, marginBottom: 22 }}>doors — and no income limit on the next one</div>
+              {[{ l: "Blended DSCR", v: blended.toFixed(2) + "x", c: blended >= 1.0 ? dc.emerald : RED }, { l: "Total cash flow", v: fmt$(cashFlow) + "/mo", c: cashFlow >= 0 ? dc.emerald : RED }, { l: "Gross rent", v: fmt$(totalRent) + "/mo", c: dc.cream }].map((r) => (
+                <div key={r.l} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
+                  <span style={{ fontSize: 13, color: "rgba(238,239,211,0.6)" }}>{r.l}</span>
+                  <Mono style={{ fontSize: 16, fontWeight: 700, color: r.c }}>{r.v}</Mono>
                 </div>
               ))}
-            </div>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: "rgba(238,239,211,0.35)",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Illustrative. Open the calculator to price your deal.
+              <button onClick={() => onNavigate("portfolio")} style={{ width: "100%", marginTop: 18, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Underwrite the whole book →</button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── USE-CASE LIST: vertical rail + numbered rows (mockup centrepiece) ── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(64px,8vw,112px) ${dc.pad} clamp(40px,5vw,64px)`,
-        }}
-      >
+      {/* ── WHY DSCR SCALES ── */}
+      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ marginBottom: "clamp(40px,5vw,64px)" }}>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.4vw,46px)",
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                margin: "0 0 14px",
-                maxWidth: "18ch",
-                color: dc.dark,
-              }}
-            >
-              Educational analysis for independent review.
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(16px,1.25vw,19px)",
-                fontWeight: 500,
-                lineHeight: 1.55,
-                color: "rgba(0,55,56,0.62)",
-                margin: 0,
-                maxWidth: "56ch",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Five tools below, in a practical planning order — from modeling
-              a deal to modeling the exit.
-            </p>
-          </div>
-
-          <div style={{ position: "relative" }}>
-            <div
-              style={{
-                position: "absolute",
-                left: 22,
-                top: 0,
-                bottom: 0,
-                width: 1,
-                background: "rgba(0,55,56,0.15)",
-              }}
-            />
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Built for the investor who isn't stopping at one.</h2>
+          <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
             {[
-              {
-                num: "01",
-                title: "Levered returns and equity multiple",
-                desc: "Pre-tax levered IRR (return on your cash invested, after debt), equity multiple (total dollars returned ÷ dollars put in), yield-on-cost, and a hold × rent-growth × exit-cap sensitivity matrix — all with proper amortization on every cell. Start here if you want to know whether the deal is worth your capital.",
-                cta: "Run my returns",
-                view: "returns",
-                numBg: dc.lemon,
-                numInk: dc.dark,
-              },
-              {
-                num: "02",
-                title: "Monte Carlo rate-path simulation",
-                desc: "This simulation is held pending independent validation. It must not be used to estimate probabilities, predict rates, evaluate an ARM, or support an investment or financing decision.",
-                cta: "Run the rate simulation",
-                view: "monte-carlo",
-                numBg: dc.dark,
-                numInk: dc.lemon,
-              },
-              {
-                num: "03",
-                title: "After-tax IRR with the full depreciation stack",
-                desc: "Rental property's biggest tax advantage is depreciation — the IRS lets you deduct a portion of the building's value each year even while it appreciates. The Tax Engine runs the full stack: §167 straight-line depreciation, §469 passive-activity-loss (PAL) rules with the real-estate-professional exception, §1250 recapture at 25% when you sell, and §1411 net investment income tax. The result is your real after-tax IRR, every line traceable to a code section.",
-                cta: "Calculate my tax shield",
-                view: "tax-engine",
-                numBg: dc.lemon,
-                numInk: dc.dark,
-              },
-              {
-                num: "04",
-                title: "Portfolio and blanket view",
-                desc: "When you own multiple rentals, a blended view can help compare estimated rent, debt, equity, and cash flow. It does not determine how a provider would underwrite or whether any financing is available.",
-                cta: "Build my portfolio view",
-                view: "portfolio",
-                numBg: dc.dark,
-                numInk: dc.lemon,
-              },
-              {
-                num: "05",
-                title: "Refi timing and break-even",
-                desc: "This refinance tool is held pending independent validation. It must not be used to estimate savings, cash-out capacity, break-even timing, eligibility, terms, or a financing decision.",
-                cta: "Find my refi break-even",
-                view: "refi-tracker",
-                numBg: dc.lemon,
-                numInk: dc.dark,
-              },
-            ].map((u) => (
-              <div
-                key={u.num}
-                className="gs-reveal"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "44px 1fr",
-                  gap: "clamp(20px,3vw,48px)",
-                  alignItems: "start",
-                  paddingBottom: "clamp(36px,4vw,56px)",
-                }}
-              >
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 1,
-                    width: 44,
-                    height: 44,
-                    borderRadius: "50%",
-                    background: u.numBg,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Mono style={{ fontSize: 14, fontWeight: 700, color: u.numInk }}>
-                    {u.num}
-                  </Mono>
-                </div>
-                <div style={{ paddingTop: 10 }}>
-                  <h3
-                    style={{
-                      fontSize: "clamp(21px,2.2vw,30px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.03em",
-                      margin: "0 0 12px",
-                      color: dc.dark,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {u.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "clamp(16px,1.35vw,19px)",
-                      fontWeight: 500,
-                      lineHeight: 1.6,
-                      color: "rgba(0,55,56,0.65)",
-                      margin: "0 0 16px",
-                      maxWidth: "58ch",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {u.desc}
-                  </p>
-                  <button
-                    onClick={() => onNavigate(u.view)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: dc.rain,
-                      letterSpacing: "-0.01em",
-                      fontFamily: dc.sans,
-                    }}
-                  >
-                    {u.cta} →
-                  </button>
-                </div>
+              { t: "No DTI math", s: "Your W-2, tax returns, and personal debt never enter the file. The rent qualifies the loan." },
+              { t: "Close in your LLC", s: "Vesting in an entity is standard — keep your portfolio clean and separate from your personal credit." },
+              { t: "One team, every door", s: "The same desk prices, structures, and funds each deal — no re-keying your file for every purchase." },
+            ].map((v) => (
+              <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
+                <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>
+                <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>{v.s}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── VALUE CARDS ── 3-up grid, mintBg breaks the cream→dark→cream rhythm ── */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(48px,6vw,72px)`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ marginBottom: 48 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.rain,
-                marginBottom: 12,
-              }}
-            >
-              Planning discipline
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.4vw,46px)",
-                fontWeight: 600,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.0,
-                margin: "0 0 14px",
-                maxWidth: "22ch",
-              }}
-            >
-              Three checks every DSCR investor should run before signing.
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(16px,1.25vw,19px)",
-                fontWeight: 500,
-                lineHeight: 1.55,
-                color: "rgba(0,55,56,0.62)",
-                margin: 0,
-                maxWidth: "56ch",
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Start with the released arithmetic calculator. Treat held tools
-              and all provider, tax, legal, and investment questions as
-              verification-required.
-            </p>
-          </div>
-
-          <div
-            className="dc-band-3"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 20,
-            }}
-          >
-            {VALUE_CARDS.map((c) => (
-              <div
-                key={c.headline}
-                className="gs-reveal ix-card"
-                style={{
-                  background: c.bg,
-                  border: `1px solid ${dc.faded}`,
-                  borderRadius: dc.r.md,
-                  padding: "clamp(24px,3vw,36px)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
-                }}
-              >
-                <h3
-                  style={{
-                    fontSize: "clamp(18px,1.8vw,22px)",
-                    fontWeight: 600,
-                    letterSpacing: "-0.025em",
-                    lineHeight: 1.15,
-                    color: c.ink,
-                    margin: 0,
-                  }}
-                >
-                  {c.headline}
-                </h3>
-                <p
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    lineHeight: 1.6,
-                    color: c.body,
-                    margin: 0,
-                    flex: 1,
-                  }}
-                >
-                  {c.desc}
-                </p>
-                <button
-                  onClick={() => onNavigate(c.view)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    textAlign: "left" as const,
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: c.accent,
-                    letterSpacing: "-0.01em",
-                    fontFamily: dc.sans,
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  {c.ctaLabel}
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FIVE MYTHS ── dark centerpiece, full-bleed, the page's signature ─── */}
-      {/*
-        Design intent: this section IS the Investors page.
-        Each myth gets a full card with a strong "×" label, bold rebuttal,
-        and a direct CTA. Section background matches the hero (midnight)
-        so the page has a clear dark / cream / dark / cream rhythm.
-      */}
-      <section
-        style={{
-          background: dc.dark,
-          color: dc.cream,
-          padding: `clamp(72px,9vw,120px) ${dc.pad}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          {/* Section header */}
-          <div className="gs-reveal" style={{ marginBottom: "clamp(48px,6vw,80px)" }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 16,
-              }}
-            >
-              Education
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(32px,4.4vw,62px)",
-                fontWeight: 600,
-                letterSpacing: "-0.04em",
-                lineHeight: 0.97,
-                margin: "0 0 20px",
-                maxWidth: "22ch",
-              }}
-            >
-              Five things DSCR investors believe until they lose money.
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(15px,1.3vw,18px)",
-                fontWeight: 500,
-                lineHeight: 1.55,
-                color: "rgba(238,239,211,0.6)",
-                maxWidth: "54ch",
-                margin: 0,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Each topic is a planning prompt, not a market, legal, tax, pricing, or provider claim. Recheck all inputs and seek advice appropriate to your situation before acting.
-            </p>
-          </div>
-
-          {/* Myth cards — vertical stack with left rail */}
-          <div style={{ position: "relative" }}>
-            {/* Timeline rail */}
-            <div
-              style={{
-                position: "absolute",
-                left: 22,
-                top: 0,
-                bottom: 0,
-                width: 1,
-                background: "rgba(238,239,211,0.12)",
-                pointerEvents: "none",
-              }}
-            />
-
-            {MYTHS.map((m, i) => (
-              <div
-                key={m.num}
-                className="gs-reveal"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "44px 1fr",
-                  gap: "clamp(24px,3.5vw,56px)",
-                  alignItems: "start",
-                  paddingBottom:
-                    i < MYTHS.length - 1 ? "clamp(40px,5vw,64px)" : 0,
-                }}
-              >
-                {/* Number badge */}
-                <div
-                  style={{
-                    position: "relative",
-                    zIndex: 1,
-                    width: 44,
-                    height: 44,
-                    borderRadius: "50%",
-                    background:
-                      i % 2 === 0 ? dc.lemon : "rgba(238,239,211,0.08)",
-                    border:
-                      i % 2 === 0
-                        ? "none"
-                        : "1px solid rgba(238,239,211,0.2)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Mono
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: i % 2 === 0 ? dc.dark : dc.cream,
-                    }}
-                  >
-                    {m.num}
-                  </Mono>
-                </div>
-
-                {/* Content block */}
-                <div style={{ paddingTop: 6 }}>
-                  {/* Myth label — use contract banned-tier color for negative signal */}
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      background: "rgba(255,107,107,0.14)",
-                      border: "1px solid rgba(255,107,107,0.28)",
-                      borderRadius: dc.r.sm,
-                      padding: "4px 10px",
-                      marginBottom: 14,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        letterSpacing: "0.04em",
-                        textTransform: "uppercase" as const,
-                        color: "#ff6b6b",
-                      }}
-                    >
-                      Myth
-                    </span>
-                  </div>
-                  <h3
-                    style={{
-                      fontSize: "clamp(20px,2.2vw,30px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.03em",
-                      lineHeight: 1.1,
-                      color: dc.cream,
-                      margin: "0 0 16px",
-                    }}
-                  >
-                    "{m.myth}"
-                  </h3>
-
-                  {/* Reality rebuttal box */}
-                  <div
-                    style={{
-                      background: "rgba(238,239,211,0.05)",
-                      border: "1px solid rgba(238,239,211,0.1)",
-                      borderLeft: `3px solid ${dc.lemon}`,
-                      borderRadius: "0 6px 6px 0",
-                      padding: "16px 20px",
-                      marginBottom: 18,
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase" as const,
-                        color: dc.lemon,
-                        marginBottom: 8,
-                      }}
-                    >
-                      Reality
-                    </div>
-                    <p
-                      style={{
-                        fontSize: "clamp(14px,1.2vw,17px)",
-                        fontWeight: 500,
-                        lineHeight: 1.65,
-                        color: "rgba(238,239,211,0.75)",
-                        margin: 0,
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      {m.truth}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => onNavigate(m.view)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      cursor: "pointer",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: dc.lemon,
-                      letterSpacing: "-0.01em",
-                      fontFamily: dc.sans,
-                    }}
-                  >
-                    {m.cta} →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA STRIP — dark band, one lemon primary, two secondary links ─────── */}
-      {/* Band is dark to break the preceding cream sequence (value cards + myths were
-          cream → dark → now this is dark again, but myths ended on dark so we need
-          a cream band before this. Insert cream spacer then dark CTA. */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(48px,5vw,72px) ${dc.pad} clamp(32px,4vw,56px)`,
-        }}
-      >
-        <div
-          className="gs-reveal"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 24,
-          }}
-        >
-          <p
-            style={{
-              fontSize: "clamp(15px,1.2vw,17px)",
-              fontWeight: 500,
-              color: "rgba(0,55,56,0.6)",
-              margin: 0,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            The public calculator requires no signup. Open a scenario and inspect the stated assumptions.{" "}
-            <button
-              onClick={() => onNavigate("solutions")}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                fontSize: "inherit",
-                fontWeight: 600,
-                color: dc.rain,
-                letterSpacing: "-0.01em",
-                fontFamily: dc.sans,
-                textDecoration: "underline",
-                textUnderlineOffset: 3,
-              }}
-            >
-              Review illustrative scenarios →
-            </button>
-          </p>
-          <button
-            onClick={() => onBack()}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 9,
-              background: "transparent",
-              border: `1.5px solid ${dc.faded}`,
-              borderRadius: dc.r.pill,
-              padding: "13px 24px",
-              cursor: "pointer",
-              fontFamily: dc.sans,
-              minHeight: 44,
-              whiteSpace: "nowrap" as const,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 15,
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                color: dc.dark,
-              }}
-            >
-              ← All tools
-            </span>
-          </button>
-        </div>
-      </section>
-
-      {/* ── CLOSING CTA STRIP — dark band so the page ends with intent ─────── */}
-      <section
-        style={{
-          background: dc.dark,
-          color: dc.cream,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div
-          className="gs-reveal dc-band-2"
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "clamp(32px,5vw,72px)",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase" as const,
-                color: dc.lemon,
-                marginBottom: 14,
-              }}
-            >
-              No signup required
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(28px,3.8vw,52px)",
-                fontWeight: 600,
-                letterSpacing: "-0.04em",
-                lineHeight: 1.0,
-                color: dc.cream,
-                margin: "0 0 16px",
-              }}
-            >
-              Test the assumptions.
-              <br />
-              Verify before you commit.
-            </h2>
-            <p
-              style={{
-                fontSize: "clamp(15px,1.3vw,18px)",
-                fontWeight: 500,
-                lineHeight: 1.55,
-                color: "rgba(238,239,211,0.6)",
-                maxWidth: "52ch",
-                margin: 0,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Use the DSCR Calculator and other tools to compare illustrative assumptions.
-              Verify any financing, tax, legal, insurance, or investment decision with qualified professionals.
-            </p>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              minWidth: 220,
-            }}
-          >
-            {/* ONE dominant lemon primary per contract */}
-            <button
-              onClick={() => onNavigate("dscr-calculator")}
-              style={{
-                background: dc.lemon,
-                color: dc.dark,
-                border: "none",
-                borderRadius: dc.r.md,
-                padding: "16px 28px",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-                textAlign: "left" as const,
-                minHeight: 44,
-              }}
-            >
-              Check my DSCR →
-            </button>
-            {/* Secondary CTAs: transparent + FADED border per contract */}
-            <button
-              onClick={() => onNavigate("tax-engine")}
-              style={{
-                background: "transparent",
-                color: dc.cream,
-                border: `1.5px solid ${dc.faded}`,
-                borderRadius: dc.r.md,
-                padding: "15px 28px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-                textAlign: "left" as const,
-                minHeight: 44,
-              }}
-            >
-              Tax Engine →
-            </button>
-            <button
-              onClick={() => onNavigate("returns")}
-              style={{
-                background: "transparent",
-                color: dc.cream,
-                border: `1.5px solid ${dc.faded}`,
-                borderRadius: dc.r.md,
-                padding: "15px 28px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-                textAlign: "left" as const,
-                minHeight: 44,
-              }}
-            >
-              Returns &amp; IRR →
-            </button>
-          </div>
-        </div>
-      </section>
+      <BottomCTA onNavigate={onNavigate} cards={[
+        { bg: dc.lemon, fg: dc.dark, blurb: "Run your next property's rent through Greenstreet — 60 seconds, no credit pull.", title: "Run my next deal", view: "dscr-calculator" },
+        { bg: dc.mintBg, fg: dc.dark, blurb: "Roll the whole book into one blended DSCR and finance it together.", title: "Blend my portfolio", view: "portfolio" },
+      ]} />
     </DcShell>
   );
 }

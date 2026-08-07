@@ -1,35 +1,21 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
+import { resolveInitialDeal } from "../lib/dealState";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
+import { computeReturns } from "../engine/returnsEngine";
+import type { PropertyInputs, LoanStructure } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
+import { computeLossScenarios, type LossScenario } from "../engine/lossFraming";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-const RED    = "#ff6b6b";
-const ORANGE = "#f97316";
+const RED    = "#e06363";
+const ORANGE = "#e6b84d";
 
 function fmt$(n: number) {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
-// Shared op-ex ratio — matches engine's combined mgmt(8%)+maint(5%)+turnover(2%) = 15% of gross.
-const OPEX_PCT = 15;
-
-// Day-1 (or grown) NOI for a given assumption set. Honors the user's rentGrowth and
-// vacancy sliders so every metric derived from it — not just IRR — reflects the same
-// inputs. yrOffset=0 gives the un-grown "day 1" NOI used for the snapshot metrics
-// (Cap Rate, Yield on Cost, Debt Yield, Cash-on-Cash).
-function noiForYear(
-  opts: { monthlyRent: number; rentGrowth: number; vacancy: number; annualTaxes: number; annualInsurance: number; hoa: number },
-  yrOffset: number,
-): number {
-  const gross = opts.monthlyRent * 12 * Math.pow(1 + opts.rentGrowth / 100, yrOffset);
-  const egi   = gross * (1 - opts.vacancy / 100);
-  return egi - opts.annualTaxes - opts.annualInsurance - opts.hoa * 12 - gross * (OPEX_PCT / 100);
-}
-
 // Inline IRR bisection — matches engine cash-flow model (OPEX 15%, mgmt+maint+turnover).
 // Used for the headline and sensitivity matrix so every user-editable input is honored.
-// Returns the cash-flow array alongside the IRR so callers can derive Equity Multiple
-// from the same slider-driven assumptions (see em below).
 function calcIRR(opts: {
   purchasePrice: number;
   ltv: number;
@@ -43,7 +29,7 @@ function calcIRR(opts: {
   rentGrowth: number;
   vacancy: number;
   prepayAtExit: number;
-}): { irr: number; cfs: number[] } {
+}): number {
   const { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit } = opts;
   const loan    = purchasePrice * (ltv / 100);
   const cashInv = purchasePrice - loan;
@@ -61,15 +47,21 @@ function calcIRR(opts: {
     return Math.max(0, (loan * (f - e)) / (f - 1));
   };
 
+  const OPEX_PCT = 15;
   const hold = Math.max(1, Math.min(15, holdYears));
   const cfs: number[] = [-cashInv];
 
-  const noiOpts = { monthlyRent, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa };
+  const noiForYear = (yrOffset: number) => {
+    const gross = monthlyRent * 12 * Math.pow(1 + rentGrowth / 100, yrOffset);
+    const egi   = gross * (1 - vacancy / 100);
+    return egi - annualTaxes - annualInsurance - hoa * 12 - gross * (OPEX_PCT / 100);
+  };
+
   for (let yr = 1; yr <= hold; yr++) {
-    const noi = noiForYear(noiOpts, yr - 1);
+    const noi = noiForYear(yr - 1);
     let cf = noi - piMo * 12;
     if (yr === hold) {
-      const stabNOI = noiForYear(noiOpts, yr);
+      const stabNOI = noiForYear(yr);
       const exit    = stabNOI / (exitCapRate / 100);
       const bal     = remBal(hold * 12);
       cf += exit - exit * 0.06 - bal - loan * (prepayAtExit / 100);
@@ -80,18 +72,16 @@ function calcIRR(opts: {
   const f = (rate_: number) => cfs.reduce((s, c, i) => s + c / Math.pow(1 + rate_, i), 0);
   let lo = -0.9, hi = 5;
   const flo = f(lo);
-  if (flo * f(hi) > 0) return { irr: NaN, cfs }; // no sign change ⇒ no real IRR root
+  if (flo * f(hi) > 0) return NaN; // no sign change ⇒ no real IRR root
   let curFlo = flo;
-  let irr = (lo + hi) / 2;
   for (let i = 0; i < 100; i++) {
     const m = (lo + hi) / 2;
     const fm = f(m);
-    if (Math.abs(fm) < 1) { irr = m; break; }
+    if (Math.abs(fm) < 1) return m;
     if (curFlo * fm < 0) { hi = m; }
     else { lo = m; curFlo = fm; }
-    irr = (lo + hi) / 2;
   }
-  return { irr, cfs };
+  return (lo + hi) / 2;
 }
 
 // ─── slider field ─────────────────────────────────────────────────────────────
@@ -112,16 +102,16 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)" }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
           {label}
         </span>
-        <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.dark }}>
+        <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.cream }}>
           {prefix}{display}{suffix}
         </Mono>
       </div>
-      <input className="gs-range" type="range" min={min} max={max} step={step} value={value} onChange={(e) => set(+e.target.value)} />
+      <input className="gs-range" aria-label={label} type="range" min={min} max={max} step={step} value={value} onChange={(e) => set(+e.target.value)} />
       {hint && (
-        <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 4, lineHeight: 1.4 }}>
+        <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>
           {hint}
         </span>
       )}
@@ -133,41 +123,26 @@ function SliderField({ label, hint, value, set, min, max, step, prefix = "", suf
 function Disclosure({ label, children, defaultOpen = false }: { label: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ borderRadius: dc.r.sm, border: "1px solid rgba(0,55,56,0.12)", overflow: "hidden" }}>
+    <div style={{ borderRadius: dc.r.sm, border: "1px solid rgba(238,239,211,0.12)", overflow: "hidden" }}>
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
         style={{
           width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "13px 18px", background: "rgba(0,55,56,0.04)", border: "none", cursor: "pointer",
-          fontFamily: dc.sans, fontSize: 12, fontWeight: 600, color: dc.rain,
+          padding: "13px 18px", background: "rgba(238,239,211,0.04)", border: "none", cursor: "pointer",
+          fontFamily: dc.sans, fontSize: 12, fontWeight: 600, color: dc.lemon,
           letterSpacing: "0.04em", textTransform: "uppercase",
         }}
       >
         {label}
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s ease", flexShrink: 0 }}>
-          <path d="M4 6l4 4 4-4" stroke={dc.rain} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4 6l4 4 4-4" stroke={dc.lemon} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
       {open && (
-        <div style={{ padding: "16px 18px 18px", borderTop: "1px solid rgba(0,55,56,0.08)" }}>
+        <div style={{ padding: "16px 18px 18px", borderTop: "1px solid rgba(238,239,211,0.08)" }}>
           {children}
         </div>
       )}
-    </div>
-  );
-}
-
-// ─── StepCard ────────────────────────────────────────────────────────────────
-function StepCard({ num, numColor, bg, heading, headingColor, body, bodyColor }: {
-  num: string; numColor: string; bg: string;
-  heading: string; headingColor?: string; body: string; bodyColor: string;
-}) {
-  return (
-    <div style={{ background: bg, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-      <Mono style={{ fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: numColor, marginBottom: 14, lineHeight: 1, display: "block" }}>{num}</Mono>
-      <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: headingColor }}>{heading}</h3>
-      <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: bodyColor, margin: 0, letterSpacing: "-0.01em" }}>{body}</p>
     </div>
   );
 }
@@ -198,15 +173,84 @@ function IrrBar({ heightPct, gradient, label, valLabel, valColor, flex = 1 }: {
       <div style={{ position: "absolute", top: 0, left: "50%", transform: "translate(-50%, -120%)", fontSize: 11, fontWeight: 700, color: valColor, whiteSpace: "nowrap", paddingBottom: 6 }}>
         {valLabel}
       </div>
-      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.5)", textAlign: "center", fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "center", fontWeight: 500 }}>{label}</div>
     </div>
+  );
+}
+
+// ─── Returns journey — the signature viz (replaces the generic bar trio) ──────
+// Cumulative cash from day one: you put the down payment in (negative), collect
+// cash flow each year, then the sale returns the rest. The line crossing $0 is
+// when your capital is back; the final point is total profit. Built from the same
+// inputs the IRR uses — a projection, not a forecast.
+type JPoint = { year: number; cum: number; exit?: boolean };
+function buildJourney(o: {
+  purchasePrice: number; ltv: number; rate: number; monthlyRent: number; annualTaxes: number;
+  annualInsurance: number; hoa: number; holdYears: number; exitCapRate: number; rentGrowth: number; vacancy: number; prepayAtExit: number;
+}): JPoint[] {
+  const loan = o.purchasePrice * (o.ltv / 100);
+  const cashInv = o.purchasePrice - loan;
+  const r = o.rate / 100 / 12;
+  const pmt = r === 0 ? loan / 360 : (loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
+  const annualDS = pmt * 12;
+  const fixed = o.annualTaxes + o.annualInsurance + o.hoa * 12;
+  let cum = -cashInv, bal = loan;
+  const pts: JPoint[] = [{ year: 0, cum }];
+  const hold = Math.max(1, Math.round(o.holdYears));
+  for (let y = 1; y <= hold; y++) {
+    const rent = o.monthlyRent * 12 * Math.pow(1 + o.rentGrowth / 100, y - 1) * (1 - o.vacancy / 100);
+    const noi = rent - fixed;
+    cum += noi - annualDS;
+    for (let m = 0; m < 12; m++) bal -= pmt - bal * r;
+    if (y === hold) {
+      const exitVal = o.exitCapRate > 0 ? noi / (o.exitCapRate / 100) : 0;
+      const net = exitVal - exitVal * 0.07 - Math.max(0, bal) - (o.prepayAtExit / 100) * Math.max(0, bal);
+      cum += net;
+      pts.push({ year: y, cum, exit: true });
+    } else {
+      pts.push({ year: y, cum });
+    }
+  }
+  return pts;
+}
+function ReturnsJourney({ pts }: { pts: JPoint[] }) {
+  const W = 470, H = 290, padL = 16, padR = 16, padT = 30, padB = 30;
+  if (pts.length < 2) return null;
+  const xmax = pts[pts.length - 1].year || 1;
+  const vals = pts.map((p) => p.cum);
+  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  const pad = (hi - lo) * 0.14 || 1;
+  const yMin = lo - pad, yMax = hi + pad;
+  const X = (y: number) => padL + (y / xmax) * (W - padL - padR);
+  const Y = (v: number) => padT + (1 - (v - yMin) / (yMax - yMin || 1)) * (H - padT - padB);
+  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${X(p.year).toFixed(1)} ${Y(p.cum).toFixed(1)}`).join(" ");
+  const area = `M ${X(0).toFixed(1)} ${Y(0).toFixed(1)} ` + pts.map((p) => `L ${X(p.year).toFixed(1)} ${Y(p.cum).toFixed(1)}`).join(" ") + ` L ${X(xmax).toFixed(1)} ${Y(0).toFixed(1)} Z`;
+  const last = pts[pts.length - 1];
+  const up = last.cum >= 0;
+  const fmtk = (v: number) => (v < 0 ? "-$" : "$") + Math.abs(Math.round(v / 1000)) + "k";
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Cumulative return over the hold period">
+      <line x1={padL} x2={W - padR} y1={Y(0)} y2={Y(0)} stroke="rgba(238,239,211,0.5)" strokeWidth="1" strokeDasharray="4 5" />
+      <text x={W - padR} y={Y(0) - 6} textAnchor="end" fill="rgba(238,239,211,0.5)" fontSize="10" fontFamily="'JetBrains Mono',monospace">break-even $0</text>
+      <path d={area} fill={up ? "rgba(77,189,151,0.16)" : "rgba(224,99,99,0.16)"} />
+      <path d={line} fill="none" stroke={up ? dc.lemon : RED} strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+      {pts.map((p, i) => (
+        <g key={i}>
+          <circle cx={X(p.year)} cy={Y(p.cum)} r={p.exit ? 6 : i === 0 ? 5 : 3} fill={i === 0 ? RED : p.exit ? dc.lemon : dc.emerald} stroke={dc.dark} strokeWidth="1.6" />
+          <text x={X(p.year)} y={H - 10} textAnchor="middle" fill="rgba(238,239,211,0.42)" fontSize="9" fontFamily="'JetBrains Mono',monospace">Y{p.year}</text>
+        </g>
+      ))}
+      <text x={X(0) + 6} y={Y(pts[0].cum) + 16} textAnchor="start" fill={RED} fontSize="11" fontWeight={700} fontFamily="'JetBrains Mono',monospace">{fmtk(pts[0].cum)} down</text>
+      <text x={X(last.year)} y={Y(last.cum) - 22} textAnchor="end" fill="rgba(238,239,211,0.62)" fontSize="9" fontFamily="'JetBrains Mono',monospace">exit · total</text>
+      <text x={X(last.year)} y={Y(last.cum) - 8} textAnchor="end" fill={up ? dc.lemon : RED} fontSize="14" fontWeight={800} fontFamily="'JetBrains Mono',monospace">{fmtk(last.cum)}</text>
+    </svg>
   );
 }
 
 // ─── sensitivity cell heat color ─────────────────────────────────────────────
 function cellStyle(r: number): React.CSSProperties {
-  const color = r >= 14 ? dc.rain : r >= 10 ? "#018582" : r >= 6 ? "#9a7b00" : RED;
-  const bg    = r >= 14 ? "rgba(0,101,101,0.1)" : r >= 10 ? "rgba(1,133,130,0.06)" : "transparent";
+  const color = r >= 14 ? dc.emerald : r >= 10 ? dc.lemon : r >= 6 ? ORANGE : RED;
+  const bg    = r >= 14 ? "rgba(77,189,151,0.14)" : r >= 10 ? "rgba(216,217,88,0.08)" : "transparent";
   return { padding: "8px 10px", textAlign: "right", fontSize: 12, fontWeight: 700, color, background: bg, borderRadius: 4 };
 }
 
@@ -215,17 +259,19 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   React.useEffect(() => { document.title = "Returns & IRR | Greenstreet Finance"; }, []);
 
   // ── inputs ────────────────────────────────────────────────────────────────
-  const [purchasePrice,   setPurchasePrice]   = useState(425000);
-  const [ltv,             setLtv]             = useState(75);
-  const [rate,            setRate]            = useState(7.0);
-  const [monthlyRent,     setMonthlyRent]     = useState(3000);
-  const [annualTaxes,     setAnnualTaxes]     = useState(5000);
-  const [annualInsurance, setAnnualInsurance] = useState(2000);
-  const [hoa,             setHoa]             = useState(0);
+  // Seed from the shared deal desk so calculator → returns feels continuous.
+  const seed = useMemo(() => resolveInitialDeal(), []);
+  const [purchasePrice,   setPurchasePrice]   = useState(seed.price);
+  const [ltv,             setLtv]             = useState(100 - seed.down);
+  const [rate,            setRate]            = useState(seed.rate);
+  const [monthlyRent,     setMonthlyRent]     = useState(seed.rent);
+  const [annualTaxes,     setAnnualTaxes]     = useState(seed.tax);
+  const [annualInsurance, setAnnualInsurance] = useState(seed.ins);
+  const [hoa,             setHoa]             = useState(seed.hoa);
   const [holdYears,       setHoldYears]       = useState(5);
-  const [exitCapRate,     setExitCapRate]      = useState(6.5);
-  const [rentGrowth,      setRentGrowth]      = useState(3);
-  const [vacancy,         setVacancy]         = useState(8);
+  const [exitCapRate,     setExitCapRate]      = useState(5.75);
+  const [rentGrowth,      setRentGrowth]      = useState(4);
+  const [vacancy,         setVacancy]         = useState(5);
   const [prepayAtExit,    setPrepayAtExit]    = useState(2);
 
   // cause→effect highlight
@@ -250,38 +296,32 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
   }, []);
 
   // ── engine ────────────────────────────────────────────────────────────────
+  const engineResult = React.useMemo(() => {
+    try {
+      const property: PropertyInputs = {
+        purchasePrice, leaseRent: monthlyRent, marketRent: monthlyRent,
+        strProjectedRent: 0, strDocumentedRent: 0, hoa,
+        annualTaxes, annualInsurance, floodInsurance: 0,
+        propertyType: "SFR", state: "TX", unitCount: 1, sqft: 1500, yearBuilt: 2000,
+        isCondotel: false, isNonWarrantable: false, isRural: false, isDecliningMarket: false, hoaSTRPolicy: "UNKNOWN",
+      };
+      const loan: LoanStructure = {
+        ltv, term: "30_YR", ioPeriod: "NONE", armType: "FIXED", prepayPreference: "321",
+        purpose: "PURCHASE", expectedHoldYears: holdYears, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0,
+      };
+      const penalty = (prepayAtExit / 100) * (purchasePrice * (1 - ltv / 100));
+      return computeReturns(property, loan, monthlyRent, "LTR", rate, penalty);
+    } catch { return null; }
+  }, [purchasePrice, ltv, monthlyRent, rate, holdYears, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa, prepayAtExit]);
+
   // ── derived ───────────────────────────────────────────────────────────────
   const irrOpts = { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit };
 
-  const levResult = calcIRR(irrOpts);
-  const unlResult = calcIRR({ ...irrOpts, ltv: 0 });
-  const levIRR    = levResult.irr * 100;
-  const unlIRR    = unlResult.irr * 100;
+  const levIRR = calcIRR(irrOpts) * 100;
+  const unlIRR = calcIRR({ ...irrOpts, ltv: 0 }) * 100;
 
   const cashInv = purchasePrice * (1 - ltv / 100);
-
-  // Shared day-1 assumption set — every metric below is derived from the same
-  // rentGrowth/vacancy-honoring NOI and P&I that drive the headline Levered IRR,
-  // so no metric on this page silently ignores the sliders.
-  const loanAmt    = purchasePrice * (ltv / 100);
-  const r_         = rate / 100 / 12;
-  const piMoCalc   = r_ === 0 ? loanAmt / 360 : (loanAmt * r_ * Math.pow(1 + r_, 360)) / (Math.pow(1 + r_, 360) - 1);
-  const annualPI   = piMoCalc * 12;
-  const year1NOI   = noiForYear({ monthlyRent, rentGrowth, vacancy, annualTaxes, annualInsurance, hoa }, 0);
-
-  // Cap Rate / Yield on Cost / Debt Yield / CoC are day-1 snapshot metrics — they
-  // correctly do not vary with rentGrowth, only with vacancy (matching calcIRR's
-  // noiForYear(0)). Yield on Cost equals Cap Rate here because this page hardcodes
-  // lenderFees/brokerFees to 0, making purchase price the full cost basis.
-  const entryCapRate = purchasePrice > 0 ? (year1NOI / purchasePrice) * 100 : 0;
-  const yoc          = entryCapRate;
-  const debtYield    = loanAmt > 0 ? (year1NOI / loanAmt) * 100 : 0;
-  const coc          = cashInv > 0 ? ((year1NOI - annualPI) / cashInv) * 100 : 0;
-  // Equity Multiple: sum of the levered cash-flow array (already honors rentGrowth
-  // and vacancy via calcIRR/noiForYear) over cash invested — same assumptions as IRR.
-  const em = cashInv > 0 && levResult.cfs.length > 1
-    ? levResult.cfs.slice(1).reduce((s, c) => s + c, 0) / cashInv
-    : 1;
+  const em      = engineResult !== null ? engineResult.equityMultiple : 1;
 
   const pct  = (v: number) => (Number.isFinite(v) ? v.toFixed(1) + "%" : "—");
   const irrStr     = pct(levIRR);
@@ -298,14 +338,39 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
     ? "IRR below 8% — the deal may not reward the risk. Try a lower price, higher rent, or a shorter prepay structure."
     : "Adjust inputs to compute your IRR.";
 
+  // engine returns (already %)
+  const entryCapRate = engineResult !== null ? engineResult.entryCapRate       : 0;
+  const yoc          = engineResult !== null ? engineResult.yieldOnCost        : 0;
+  const debtYield    = engineResult !== null ? engineResult.debtYield          : 0;
+  const coc          = engineResult !== null ? engineResult.year1CashOnCash    : 0;
+
   // DSCR for the gauge (NOI / annual debt service)
-  const annualNOI   = year1NOI;
-  const annualPITIA = annualPI;
+  const annualNOI  = entryCapRate > 0 ? purchasePrice * (entryCapRate / 100) : 0;
+  const r_         = rate / 100 / 12;
+  const loan_      = purchasePrice * (ltv / 100);
+  const piMoCalc   = r_ === 0 ? loan_ / 360 : (loan_ * r_ * Math.pow(1 + r_, 360)) / (Math.pow(1 + r_, 360) - 1);
+  const annualPITIA = piMoCalc * 12;
   const dscrValue   = annualPITIA > 0 ? annualNOI / annualPITIA : 1.5;
   const dscrRisk    = riskFromDscr(dscrValue);
 
-  // hero bar heights
-  const barH = (v: number) => (Number.isFinite(v) ? `${Math.max(6, Math.min(72, (v / 20) * 72))}%` : "6%");
+  // Loss scenarios — downside stress tests
+  const lossScenarios = useMemo(() => {
+    const monthlyPITIA = piMoCalc + (annualTaxes / 12) + (annualInsurance / 12) + hoa;
+    return computeLossScenarios({
+      monthlyRent,
+      monthlyPITIA,
+      monthlyTax: annualTaxes / 12,
+      monthlyInsurance: annualInsurance / 12,
+    });
+  }, [monthlyRent, piMoCalc, annualTaxes, annualInsurance, hoa]);
+
+  // returns journey (cumulative cash over the hold) — the hero's signature viz
+  const journeyPts = buildJourney(irrOpts);
+  let beYear = "—";
+  for (let i = 1; i < journeyPts.length; i++) {
+    if (journeyPts[i - 1].cum < 0 && journeyPts[i].cum >= 0) { beYear = "Yr " + journeyPts[i].year; break; }
+  }
+  if (beYear === "—") beYear = journeyPts[journeyPts.length - 1].cum >= 0 ? "Yr 0" : "—";
 
   // sensitivity grid
   const holds   = [3, 5, 7, 10, 12];
@@ -318,10 +383,14 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
       navLinks={[{ label: "DSCR", view: "dscr-calculator" }, { label: "Monte Carlo", view: "monte-carlo" }]}
       cta={{ label: "Compute IRR →", onClick: scrollToTool }}
     >
+      <style>{`
+        @media(max-width:640px){ .rt-metric-grid{grid-template-columns:1fr 1fr !important;} }
+        @media(max-width:400px){ .rt-metric-grid{grid-template-columns:1fr !important;} }
+      `}</style>
       {/* ── HERO ──────────────────────────────────────────────────────── */}
       <section style={{
         position: "relative", background: dc.dark, color: dc.cream,
-        overflow: "hidden", minHeight: "clamp(480px,60vh,760px)",
+        overflow: "hidden", minHeight: "clamp(440px,56vh,620px)",
         display: "flex", alignItems: "center",
       }}>
         <div className="gs-dot-grid" />
@@ -342,14 +411,14 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             {/* headline IRR badge — visible in hero */}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 16, background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.12)", borderRadius: dc.r.md, padding: "18px 24px", marginBottom: 24 }}>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Levered IRR</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Levered IRR</div>
                 <Mono style={{ fontSize: "clamp(40px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.95, display: "block" }}>
                   {irrStr}
                 </Mono>
               </div>
               <div style={{ width: 1, height: 48, background: "rgba(238,239,211,0.15)" }} />
               <div>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Verdict</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Verdict</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "0.06em", color: irrColor }}>{verdictLabel}</span>
                   <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={18} />
@@ -359,23 +428,31 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             <Lead style={{ color: "rgba(238,239,211,0.65)", maxWidth: "46ch", margin: "0 0 20px" }}>
               Cash-on-cash return (yearly cash flow as a % of the cash you put in), IRR (the annualized return on your equity, accounting for the full exit), and equity multiple — from day one through the sale.
             </Lead>
-            <p style={{ color: "rgba(238,239,211,0.45)", fontSize: 13, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
+            <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 13, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
               Tip: adjust inputs on the left. The IRR updates live. Then check the sensitivity table to see if the deal still works under slower rent growth or an earlier exit.
             </p>
             <Btn label="Run the returns engine ↓" href="#rt-tool" onClick={scrollToTool} />
           </div>
 
-          {/* right — live bar chart */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: "clamp(8px,2vw,20px)", height: "clamp(160px,22vh,240px)" }}>
-              <IrrBar heightPct={barH(coc)}    gradient="linear-gradient(180deg,#4dbd97,#006565)" label="CoC"      valLabel={coc.toFixed(1) + "%"}    valColor={dc.emerald} />
-              <IrrBar heightPct={barH(unlIRR)} gradient="linear-gradient(180deg,#4dbd97,#006565)" label="Unlev."   valLabel={pct(unlIRR)}              valColor={dc.emerald} />
-              <IrrBar heightPct={barH(levIRR)} gradient={`linear-gradient(180deg,${dc.lemon},#a8a838)`} label="Lev. IRR" valLabel={irrStr} valColor={dc.lemon} flex={1.3} />
+          {/* right — the returns journey (cumulative cash over the hold) */}
+          <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.emerald }}>Your money over the hold</div>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(238,239,211,0.62)" }}><span style={{ width: 12, height: 3, background: dc.lemon, borderRadius: 2, display: "inline-block" }} />cumulative cash</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 4 }}>
-              {[{ l: "CoC", h: "Cash-on-cash: yr 1 cash flow ÷ cash invested" }, { l: "Unlev.", h: "IRR with no debt (all-cash)" }, { l: "Lev. IRR", h: "Annualized return on your down payment" }].map((item) => (
-                <div key={item.l} style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.35)", lineHeight: 1.3, maxWidth: 72 }}>{item.h}</div>
+            <ReturnsJourney pts={journeyPts} />
+            <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "14px 0 16px", lineHeight: 1.55 }}>
+              You put <strong style={{ color: dc.cream }}>{"$" + Math.round(cashInv).toLocaleString("en-US")}</strong> down, collect cash flow each year, then the sale in year {holdYears} returns the rest. The line crossing break-even is when your capital is back — the final point is total profit.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, borderTop: "1px solid rgba(238,239,211,0.16)", paddingTop: 16 }}>
+              {[
+                { l: "Cash-on-cash", v: coc.toFixed(1) + "%", c: dc.emerald },
+                { l: "Equity multiple", v: emStr, c: dc.cream },
+                { l: "Capital back", v: beYear, c: dc.lemon },
+              ].map((m) => (
+                <div key={m.l}>
+                  <Mono style={{ fontSize: 20, fontWeight: 700, color: m.c, display: "block", lineHeight: 1 }}>{m.v}</Mono>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{m.l}</div>
                 </div>
               ))}
             </div>
@@ -383,37 +460,26 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
         </div>
       </section>
 
-      {/* ── 3-STEP BAND ───────────────────────────────────────────────── */}
-      <section style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="dc-band-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}>
-            <StepCard num="01" numColor={dc.lemon}               bg={dc.cream} heading="Enter your deal"      body="Purchase price, LTV (down payment as a % of price), rate, rent, hold years, exit cap rate (the expected income yield when you sell), rent growth, and vacancy." bodyColor="rgba(0,55,56,0.6)" />
-            <StepCard num="02" numColor={dc.emerald}             bg={dc.dark}  heading="IRR computed"         headingColor={dc.cream} body="The engine builds a year-by-year cash-flow model: rents in, mortgage out, equity at exit. It then solves for the annualized return (IRR) on your invested cash." bodyColor="rgba(238,239,211,0.65)" />
-            <StepCard num="03" numColor="rgba(0,55,56,0.5)"      bg={dc.lemon} heading="Test your assumptions" body="The 5×4 sensitivity table shows IRR across five hold periods and four rent-growth rates. Green (≥14%) = strong. Red = deal needs work. Use it to find the edges of the deal." bodyColor="rgba(0,55,56,0.65)" />
-          </div>
-        </div>
-      </section>
-
       {/* ── TOOL ──────────────────────────────────────────────────────── */}
-      <section id="rt-tool" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}>
+      <section id="rt-tool" style={{ background: dc.dark, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
 
           {/* section header + live verdict */}
           <div style={{ marginBottom: 40 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live returns engine
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 12px" }}>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 12px", color: dc.cream }}>
               Levered IRR <span style={{ color: irrColor }}>{irrStr}</span> · {emStr} equity multiple
             </h2>
             <div style={{
               display: "flex", alignItems: "flex-start", gap: 14,
-              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : "rgba(255,107,107,0.08)",
-              border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(255,107,107,0.2)"}`,
+              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : "rgba(224,99,99,0.08)",
+              border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(224,99,99,0.2)"}`,
               borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 660,
             }}>
               <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={20} />
-              <p style={{ fontSize: 14, fontWeight: 500, color: dc.dark, margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 14, fontWeight: 500, color: dc.cream, margin: 0, lineHeight: 1.5 }}>
                 {verdictText}
               </p>
             </div>
@@ -423,11 +489,11 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 32, alignItems: "start" }}>
 
             {/* ── INPUTS ─────────────────────────────────────────────── */}
-            <div style={{ background: dc.white, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(0,55,56,0.1)" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 6 }}>
+            <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 28, border: "1px solid rgba(238,239,211,0.16)" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                 Deal inputs
               </div>
-              <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 18px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 18px", lineHeight: 1.5 }}>
                 Drag any slider — the IRR and sensitivity table update instantly.
               </p>
 
@@ -445,8 +511,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 <SliderField label="Monthly Rent" hint="Gross scheduled rent before vacancy." value={monthlyRent} set={touch("monthlyRent", setMonthlyRent)} min={500} max={15000} step={50} prefix="$" fmt={(v) => v.toLocaleString("en-US")} />
               </div>
 
-              <div style={{ borderTop: "1px solid rgba(0,55,56,0.08)", margin: "18px 0" }} />
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.4)", marginBottom: 14 }}>
+              <div style={{ borderTop: "1px solid rgba(238,239,211,0.16)", margin: "18px 0" }} />
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 14 }}>
                 Hold &amp; exit
               </div>
               <div style={hl("holdYears")}>
@@ -475,23 +541,25 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             {/* ── RESULTS ────────────────────────────────────────────── */}
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
 
-              {/* Big IRR card */}
+              {/* Big IRR card — centered headline + symmetric metric grid */}
               <div style={{
                 background: dc.dark, borderRadius: dc.r.md, padding: "clamp(24px,3vw,40px)",
-                display: "grid", gridTemplateColumns: "auto 1fr", gap: 24, alignItems: "center",
               }}>
-                <div style={{ textAlign: "center" }}>
-                  <Mono style={{ fontSize: "clamp(64px,8vw,108px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.9, display: "block" }}>
+                <div style={{ textAlign: "center", paddingBottom: "clamp(20px,2.4vw,28px)", marginBottom: "clamp(20px,2.4vw,28px)", borderBottom: "1px solid rgba(238,239,211,0.16)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 6 }}>
+                    Levered IRR
+                  </div>
+                  <Mono style={{ fontSize: "clamp(56px,8vw,104px)", fontWeight: 600, letterSpacing: "-0.04em", color: irrColor, lineHeight: 0.9, display: "block" }}>
                     {irrStr}
                   </Mono>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: irrColor }}>
                       {verdictLabel}
                     </span>
                     <RiskFlame level={levIRR < 8 ? "med" : levIRR < 12 ? "low" : "none"} size={16} />
                   </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="rt-metric-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                   {[
                     { label: "Cash-on-Cash Return", val: coc.toFixed(1) + "%", color: coc >= 8 ? dc.emerald : dc.lemon, hint: "Year 1 cash flow ÷ cash invested. Good: ≥8%" },
                     { label: "Unlevered IRR", val: pct(unlIRR), color: dc.cream, hint: "IRR if you paid all cash — no loan" },
@@ -504,8 +572,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                       <Mono style={{ fontSize: "clamp(16px,1.8vw,22px)", fontWeight: 600, letterSpacing: "-0.02em", color: r.color, display: "block" }}>
                         {r.val}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 3 }}>{r.label}</div>
-                      <div style={{ fontSize: 10, color: "rgba(238,239,211,0.3)", marginTop: 2, lineHeight: 1.3 }}>{r.hint}</div>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{r.label}</div>
+                      <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.3 }}>{r.hint}</div>
                     </div>
                   ))}
                 </div>
@@ -513,8 +581,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
 
               {/* DSCR gauge — shows debt coverage quality */}
               <div ref={gaugeRef} style={{
-                background: "#fff", borderRadius: dc.r.md, padding: "22px 24px",
-                border: "1px solid rgba(0,55,56,0.1)",
+                background: dc.teal, borderRadius: dc.r.md, padding: "22px 24px",
+                border: "1px solid rgba(238,239,211,0.16)",
                 display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "center",
                 opacity: gaugeShown ? 1 : 0, transform: gaugeShown ? "none" : "translateY(8px)",
                 transition: "opacity 0.4s ease, transform 0.4s ease",
@@ -522,12 +590,12 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 <DscrGauge value={Math.max(0.5, Math.min(2.0, dscrValue))} size={120} />
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon }}>
                       DSCR at entry
                     </div>
                     <RiskFlame level={dscrRisk} size={15} />
                   </div>
-                  <p style={{ fontSize: 13, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 13, color: "rgba(238,239,211,0.6)", margin: 0, lineHeight: 1.5 }}>
                     DSCR (debt-service coverage ratio) measures whether the property's net income covers the full loan payment. <strong>{dscrValue.toFixed(2)}x</strong> means the income is {dscrValue >= 1 ? `${((dscrValue - 1) * 100).toFixed(0)}% above the break-even point` : `${((1 - dscrValue) * 100).toFixed(0)}% short of covering costs`}.
                     {dscrValue >= 1.25 ? " Most lenders are comfortable here." : dscrValue >= 1.0 ? " Most lenders require ≥1.25; consider increasing rent or reducing the loan." : " Below lender minimums — deal will likely not qualify as-is."}
                   </p>
@@ -535,20 +603,20 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               </div>
 
               {/* Sensitivity matrix */}
-              <div style={{ background: dc.white, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(0,55,56,0.1)" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 4 }}>
+              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>
                   Sensitivity table — Levered IRR
                 </div>
-                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.55)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                   How your IRR changes under different hold periods (rows) and rent-growth rates (columns). Teal cells (≥14%) are strong; amber is acceptable; red needs work. Your current inputs are the base case.
                 </p>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380, fontFamily: dc.mono }}>
                     <thead>
                       <tr>
-                        <th style={{ padding: "5px 10px", fontSize: 10, color: "rgba(0,55,56,0.45)", textAlign: "left", fontWeight: 500 }}>Hold</th>
+                        <th style={{ padding: "5px 10px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "left", fontWeight: 500 }}>Hold</th>
                         {growths.map((gr) => (
-                          <th key={gr} style={{ padding: "5px 10px", fontSize: 10, color: "rgba(0,55,56,0.45)", textAlign: "right", fontWeight: 500 }}>
+                          <th key={gr} style={{ padding: "5px 10px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "right", fontWeight: 500 }}>
                             +{gr}% rent growth
                           </th>
                         ))}
@@ -556,12 +624,12 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                     </thead>
                     <tbody>
                       {holds.map((h) => (
-                        <tr key={h} style={{ borderTop: "1px solid rgba(0,55,56,0.06)" }}>
-                          <td style={{ padding: "8px 10px", fontSize: 12, color: dc.dark, fontWeight: 600 }}>
-                            {h}yr{h === holdYears ? <span style={{ color: dc.lemon, marginLeft: 4, fontSize: 10 }}>← you</span> : ""}
+                        <tr key={h} style={{ borderTop: "1px solid rgba(238,239,211,0.08)" }}>
+                          <td style={{ padding: "8px 10px", fontSize: 12, color: dc.cream, fontWeight: 600 }}>
+                            {h}yr{h === holdYears ? <span style={{ color: dc.lemon, marginLeft: 4, fontSize: 11 }}>← you</span> : ""}
                           </td>
                           {growths.map((gr) => {
-                            const r = calcIRR({ ...irrOpts, holdYears: h, rentGrowth: gr }).irr * 100;
+                            const r = calcIRR({ ...irrOpts, holdYears: h, rentGrowth: gr }) * 100;
                             return (
                               <td key={gr} style={cellStyle(r)}>
                                 {Number.isFinite(r) ? r.toFixed(1) + "%" : "—"}
@@ -575,14 +643,91 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 </div>
                 <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
                   {[
-                    { color: "rgba(0,101,101,0.1)", border: dc.rain, label: "≥14% — strong" },
-                    { color: "rgba(1,133,130,0.06)", border: "#018582", label: "10–14% — acceptable" },
-                    { color: "transparent", border: "#9a7b00", label: "6–10% — marginal" },
+                    { color: "rgba(77,189,151,0.14)", border: dc.emerald, label: "≥14% — strong" },
+                    { color: "rgba(216,217,88,0.08)", border: dc.lemon, label: "10–14% — acceptable" },
+                    { color: "transparent", border: ORANGE, label: "6–10% — marginal" },
                     { color: "transparent", border: RED, label: "<6% — weak" },
                   ].map((l) => (
                     <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <div style={{ width: 12, height: 12, background: l.color, border: `1.5px solid ${l.border}`, borderRadius: 2 }} />
-                      <span style={{ fontSize: 11, color: "rgba(0,55,56,0.55)", fontWeight: 500 }}>{l.label}</span>
+                      <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>{l.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Loss Scenarios — downside stress tests */}
+              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>
+                  Loss Scenarios — Downside Stress Tests
+                </div>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: "0 0 16px", lineHeight: 1.5 }}>
+                  What happens if rent drops, insurance spikes, or you face a vacancy? Each scenario shows the new DSCR and your monthly out-of-pocket cost if cash flow goes negative.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {lossScenarios.map((scenario) => {
+                    const isNegative = scenario.monthlyCashFlow < 0;
+                    const isLowCashFlow = scenario.monthlyCashFlow >= 0 && scenario.monthlyCashFlow < 200;
+                    const bgColor = isNegative 
+                      ? "rgba(224,99,99,0.08)" 
+                      : isLowCashFlow 
+                      ? "rgba(230,184,77,0.08)" 
+                      : "rgba(77,189,151,0.08)";
+                    const borderColor = isNegative 
+                      ? "rgba(224,99,99,0.25)" 
+                      : isLowCashFlow 
+                      ? "rgba(230,184,77,0.25)" 
+                      : "rgba(77,189,151,0.25)";
+                    const indicatorColor = isNegative ? RED : isLowCashFlow ? ORANGE : dc.emerald;
+                    
+                    return (
+                      <div key={scenario.label} style={{
+                        background: bgColor,
+                        border: `1px solid ${borderColor}`,
+                        borderRadius: dc.r.sm,
+                        padding: "12px 16px",
+                        display: "grid",
+                        gridTemplateColumns: "140px 1fr auto",
+                        gap: 14,
+                        alignItems: "center",
+                      }}>
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(238,239,211,0.62)", textTransform: "uppercase", marginBottom: 3 }}>
+                            {scenario.label}
+                          </div>
+                          <Mono style={{ fontSize: 13, fontWeight: 700, color: dc.cream }}>
+                            DSCR {scenario.newDSCR.toFixed(2)}x
+                          </Mono>
+                        </div>
+                        <div style={{ fontSize: 12, color: "rgba(238,239,211,0.7)", lineHeight: 1.4 }}>
+                          {isNegative ? (
+                            <>Cash flow: <strong style={{ color: RED }}>-${Math.abs(scenario.monthlyCashFlow).toLocaleString()}/mo</strong> — you'd cover <strong style={{ color: RED }}>${scenario.annualOutOfPocket.toLocaleString()}/yr</strong> from savings</>
+                          ) : isLowCashFlow ? (
+                            <>Cash flow: <strong style={{ color: ORANGE }}>${scenario.monthlyCashFlow.toLocaleString()}/mo</strong> — thin margin, minimal buffer</>
+                          ) : (
+                            <>Cash flow: <strong style={{ color: dc.emerald }}>+${scenario.monthlyCashFlow.toLocaleString()}/mo</strong> — still positive</>
+                          )}
+                        </div>
+                        <div style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: indicatorColor,
+                          flexShrink: 0,
+                        }} />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", gap: 16, marginTop: 14, flexWrap: "wrap" }}>
+                  {[
+                    { color: dc.emerald, label: "Positive cash flow" },
+                    { color: ORANGE, label: "Thin margin" },
+                    { color: RED, label: "Out-of-pocket subsidy" },
+                  ].map((l) => (
+                    <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ width: 8, height: 8, background: l.color, borderRadius: "50%" }} />
+                      <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>{l.label}</span>
                     </div>
                   ))}
                 </div>
@@ -600,20 +745,20 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                     { label: "Levered IRR", val: irrStr, hint: "Annualized return on your equity. ≥12% = strong on DSCR rentals." },
                     { label: "Equity Multiple", val: emStr, hint: "Total proceeds ÷ cash invested. 1.5× over 5yr ≈ 8.4% IRR." },
                   ].map((row) => (
-                    <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.07)", gap: 12 }}>
+                    <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.08)", gap: 12 }}>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: dc.dark }}>{row.label}</div>
-                        <div style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", marginTop: 2, lineHeight: 1.4 }}>{row.hint}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream }}>{row.label}</div>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.4 }}>{row.hint}</div>
                       </div>
-                      <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.rain, whiteSpace: "nowrap" }}>{row.val}</Mono>
+                      <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.lemon, whiteSpace: "nowrap" }}>{row.val}</Mono>
                     </div>
                   ))}
                 </div>
               </Disclosure>
 
               {/* Disclaimer */}
-              <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
-                Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Book a demo for a live scenario review.
+              <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, margin: 0, lineHeight: 1.6 }}>
+                Preliminary estimate — not a commitment to lend. IRR and equity multiple are model outputs; actual returns depend on market conditions, financing terms, vacancies and costs not captured here. Submit a scenario review for exact underwriting.
               </p>
             </div>
           </div>
@@ -636,20 +781,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <a
-                href="/rate-quiz"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
-              >
-                Get my rate →
-              </a>
-              <a
-                href="/deal-analyzer"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
-              >
-                Full deal analyzer
-              </a>
+              <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
+              <Btn label="See matching programs" variant="secondary" href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} />
             </div>
           </div>
         </div>

@@ -37,6 +37,8 @@ import type {
   StressBreakEvenPoint,
 } from './types';
 import { calculatePI } from './engine';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
+import type { TcoPropertyType, TcoPropertyAge, TcoMarketType } from './tcoDscr';
 
 // ============================================================
 // AXIS CONFIGURATION
@@ -64,6 +66,157 @@ export function classifyRiskZone(dscr: number): StressRiskZone {
   if (dscr >= 1.00) return 'MARGINAL';
   if (dscr >= 0.85) return 'FRAGILE';
   return 'DEAL_BREAK';
+}
+
+// ============================================================
+// BREAK-EVEN VACANCY
+// ============================================================
+
+/**
+ * Break-even vacancy: the occupancy loss the deal can absorb before its DSCR
+ * falls to 1.00 — i.e. the vacancy rate at which rent no longer covers the full
+ * payment. Computed on the same lender basis as the displayed DSCR
+ * (effective rent ÷ PITIA), so the number is consistent with the gauge.
+ *
+ * Hardened per the DSCR improvement spec (Break-Even Vacancy, [High]) with a
+ * structural-failure guard: if even full occupancy can't cover the payment, the
+ * property is structurally cash-negative and break-even vacancy is 0. The naive
+ * `1 - PITIA/rent` would otherwise return a negative/meaningless value here.
+ *
+ * @param grossMonthlyRent  Monthly rent at full occupancy (after any rent shock)
+ * @param monthlyPITIA      Full monthly payment (P + I + taxes + insurance + HOA)
+ * @returns vacancyPct (0–100, 1-dp) + structurallyNegative flag
+ */
+export function computeBreakEvenVacancy(
+  grossMonthlyRent: number,
+  monthlyPITIA: number,
+): { vacancyPct: number; structurallyNegative: boolean } {
+  // Underwater at full occupancy (or non-positive inputs) → impossible without
+  // repairs/equity. Break-even vacancy is 0 and the deal is flagged.
+  if (grossMonthlyRent <= 0 || monthlyPITIA <= 0 || grossMonthlyRent <= monthlyPITIA) {
+    return { vacancyPct: 0, structurallyNegative: grossMonthlyRent <= monthlyPITIA };
+  }
+  const vBE = 1 - monthlyPITIA / grossMonthlyRent; // 0..1
+  return { vacancyPct: Math.round(vBE * 1000) / 10, structurallyNegative: false };
+}
+
+// ============================================================
+// DUAL-TRACK DSCR + "QUALIFIES BUT DANGEROUS"
+// ============================================================
+
+/**
+ * The product's core split, for a single scenario:
+ *  • Track 1 (lender)  = gross rent ÷ PITIA — what the lender qualifies on.
+ *  • Track 2 (investor)= NOI ÷ PITIA after vacancy + management + maintenance —
+ *    what the investor actually nets. Matches computeStressMatrix's per-cell math.
+ *
+ * The "Qualifies but Dangerous" flag (DSCR improvement spec, [High]): a deal the
+ * lender approves (Track 1 ≥ 1.00) that loses money in reality (Track 2 < 1.00)
+ * with a wide gap (Track1 − Track2 > 0.20). This is the trap Track 2 catches.
+ *
+ * @param grossMonthlyRent  Monthly rent after any rent shock, before vacancy
+ * @param monthlyPITIA      Full monthly payment
+ * @param opts              Operating haircuts (defaults: vacancy 8, mgmt 8, maint 5)
+ */
+export function computeDualTrackDSCR(
+  grossMonthlyRent: number,
+  monthlyPITIA: number,
+  opts: { vacancyPct?: number; propertyType?: TcoPropertyType; propertyAge?: TcoPropertyAge; marketType?: TcoMarketType; isSelfManaged?: boolean } = {},
+): { track1: number; track2: number; delta: number; qualifiesButDangerous: boolean } {
+  if (grossMonthlyRent <= 0 || monthlyPITIA <= 0) {
+    return { track1: 0, track2: 0, delta: 0, qualifiesButDangerous: false };
+  }
+  // Track 2 opex from the TCO single-source (property-type/age/market + CapEx).
+  // vacancyPct, when supplied (e.g. the Stress Matrix slider), overrides the
+  // table vacancy; management/maintenance/capex come from the TCO table.
+  const rate = computeTcoRate({
+    propertyType: opts.propertyType,
+    propertyAge: opts.propertyAge,
+    marketType: opts.marketType,
+    isSelfManaged: opts.isSelfManaged,
+    vacancyOverridePct: opts.vacancyPct,
+  });
+  const track1 = grossMonthlyRent / monthlyPITIA;
+  const noi = grossMonthlyRent * Math.max(0, 1 - rate.total);
+  const track2 = noi / monthlyPITIA;
+  const delta = track1 - track2;
+  return {
+    track1: Math.round(track1 * 1000) / 1000,
+    track2: Math.round(track2 * 1000) / 1000,
+    delta: Math.round(delta * 1000) / 1000,
+    qualifiesButDangerous: track1 >= 1.0 && track2 < 1.0 && delta > 0.2,
+  };
+}
+
+// ============================================================
+// MULTI-SHOCK WATERFALL
+// ============================================================
+
+export interface WaterfallShock {
+  /** e.g. "ARM reset +1.5%", "Tax reassessment", "Insurance surge", "Rent −10%". */
+  label: string;
+  /** Added to PITIA ($/mo). Use for rate/tax/insurance shocks. */
+  pitiaDelta?: number;
+  /** Multiplies rent (e.g. 0.90 for −10%). Use for rent shocks. */
+  rentMultiplier?: number;
+}
+
+export interface WaterfallStep {
+  label: string;
+  /** DSCR after this shock is applied (cumulative). */
+  dscrAfter: number;
+  /** Change in DSCR contributed by this shock alone. */
+  marginalDelta: number;
+}
+
+export interface ShockWaterfallResult {
+  baseDSCR: number;
+  steps: WaterfallStep[];
+  finalDSCR: number;
+  /** baseDSCR − finalDSCR (total destruction). */
+  totalDelta: number;
+}
+
+/**
+ * Decompose a multi-shock scenario into the marginal DSCR hit of each shock,
+ * applied in order (Edge §7 "cumulative impact waterfall"). Unlike the 2D
+ * stress matrix (which crosses two axes), this isolates *each* shock's bite so
+ * the investor sees which one breaks the deal.
+ *
+ * Shocks compound: each step starts from the running rent/PITIA of the prior.
+ */
+export function computeShockWaterfall(
+  baseRent: number,
+  basePITIA: number,
+  shocks: WaterfallShock[],
+): ShockWaterfallResult {
+  const safeDscr = (rent: number, pitia: number) => (pitia > 0 ? rent / pitia : 0);
+  const baseDSCR = safeDscr(baseRent, basePITIA);
+
+  let rent = baseRent;
+  let pitia = basePITIA;
+  let prevDSCR = baseDSCR;
+  const steps: WaterfallStep[] = [];
+
+  for (const s of shocks) {
+    if (s.rentMultiplier !== undefined) rent = rent * s.rentMultiplier;
+    if (s.pitiaDelta !== undefined) pitia = pitia + s.pitiaDelta;
+    const dscrAfter = safeDscr(rent, pitia);
+    steps.push({
+      label: s.label,
+      dscrAfter: Math.round(dscrAfter * 1000) / 1000,
+      marginalDelta: Math.round((dscrAfter - prevDSCR) * 1000) / 1000,
+    });
+    prevDSCR = dscrAfter;
+  }
+
+  const finalDSCR = prevDSCR;
+  return {
+    baseDSCR: Math.round(baseDSCR * 1000) / 1000,
+    steps,
+    finalDSCR: Math.round(finalDSCR * 1000) / 1000,
+    totalDelta: Math.round((baseDSCR - finalDSCR) * 1000) / 1000,
+  };
 }
 
 // ============================================================
@@ -99,10 +252,9 @@ export function computeStressMatrix(
     property.hoa +
     property.floodInsurance; // MONTHLY — do not divide by 12 (bug audit #1)
 
-  // Track 2 haircut assumptions (per strategy)
-  const vacancyPct = 8;
-  const managementPct = 8;
-  const maintenancePct = 5;
+  // Track 2 opex from the TCO single-source — property-type/age/market + CapEx.
+  // Replaces the legacy flat 8% vac + 8% mgmt + 5% maint.
+  const tcoRate = computeTcoRate({ propertyType: mapToTcoType(property.unitCount, strategy === 'STR') });
 
   // Build absolute rate axis
   const rateAxis: number[] = RATE_OFFSETS_BPS.map(bps => {
@@ -142,11 +294,8 @@ export function computeStressMatrix(
       // Track 1: Lender Qualification DSCR (qualifyingRent / PITIA, no haircuts)
       const track1DSCR = pitiaMonthly > 0 ? adjustedRent / pitiaMonthly : 0;
 
-      // Track 2: Investor Survival DSCR (after vacancy+mgmt+maint)
-      const netRent = adjustedRent * (1 - vacancyPct / 100);
-      const management = adjustedRent * managementPct / 100;
-      const maintenance = adjustedRent * maintenancePct / 100;
-      const noiMonthly = netRent - management - maintenance;
+      // Track 2: Investor Survival DSCR (after the TCO opex haircut)
+      const noiMonthly = adjustedRent * Math.max(0, 1 - tcoRate.total);
       const track2DSCR = pitiaMonthly > 0 ? noiMonthly / pitiaMonthly : 0;
 
       const monthlyCashFlow = noiMonthly - pitiaMonthly;
@@ -228,9 +377,7 @@ export function computeStressMatrix(
   const basePI = calculatePI(loanAmount, baseRate, termMonths);
   const basePITIA = basePI + monthlyFixed;
   const baseTrack1DSCR = basePITIA > 0 ? qualifyingRent / basePITIA : 0;
-  const baseNOI = qualifyingRent * (1 - vacancyPct / 100)
-    - qualifyingRent * managementPct / 100
-    - qualifyingRent * maintenancePct / 100;
+  const baseNOI = qualifyingRent * Math.max(0, 1 - tcoRate.total);
   const baseTrack2DSCR = basePITIA > 0 ? baseNOI / basePITIA : 0;
 
   // Summary

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 import type { UserConfig } from 'vite';
+import { injectSchemaPlugin } from './vite-plugins/inject-schema';
 
 export default defineConfig(() => {
   return {
@@ -88,6 +89,7 @@ export default defineConfig(() => {
             .replaceAll("https://greenstreet.com", "https://www.greenstreet.finance");
         },
       },
+      injectSchemaPlugin(),
     ],
     resolve: {
       alias: {
@@ -102,6 +104,7 @@ export default defineConfig(() => {
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
     build: {
+      chunkSizeWarningLimit: 800,
       rollupOptions: {
         output: {
           manualChunks(id) {

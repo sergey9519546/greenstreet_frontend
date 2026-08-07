@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #00302e; }
+      body { font-family: "Outfit", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+      svg { display: block; } text { dominant-baseline: middle; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="5" data-width="1920" data-height="1080">
+      <div id="scene" class="clip" data-start="0" data-duration="5" data-track-index="1" style="position:absolute; inset:0;">
+        <svg viewBox="0 0 1920 1080" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="vign" cx="50%" cy="44%" r="78%"><stop offset="0" stop-color="#0a4f4b"/><stop offset="55%" stop-color="#04403d"/><stop offset="100%" stop-color="#012220"/></radialGradient>
+            <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbe9"/><stop offset="1" stop-color="#e4e5c4"/></linearGradient>
+            <linearGradient id="lemonG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9ea72"/><stop offset="1" stop-color="#cdce46"/></linearGradient>
+            <linearGradient id="emerG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#69d6ad"/><stop offset="1" stop-color="#34a279"/></linearGradient>
+            <linearGradient id="machine" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbe9"/><stop offset="1" stop-color="#d9dab8"/></linearGradient>
+            <filter id="glowE" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowL" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="drop" x="-40%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#001a18" flood-opacity="0.5"/><feDropShadow dx="0" dy="34" stdDeviation="34" flood-color="#001a18" flood-opacity="0.32"/></filter>
+            <filter id="dropS" x="-40%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#001a18" flood-opacity="0.45"/></filter>
+            <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" seed="4"/><feColorMatrix type="matrix" values="0 0 0 0 0.93  0 0 0 0 0.94  0 0 0 0 0.83  0 0 0 0.6 0"/></filter>
+            <pattern id="dots" width="46" height="46" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.6" fill="#eeefd3" opacity="0.05"/></pattern>
+          </defs>
+
+          <rect width="1920" height="1080" fill="url(#vign)"/>
+          <g id="par"><rect x="-40" y="-40" width="2000" height="1160" fill="url(#dots)"/></g>
+          <ellipse cx="980" cy="586" rx="360" ry="240" fill="#0c5e58" opacity="0.3" filter="url(#glowE)"/>
+
+          <g id="eyebrow" opacity="0">
+            <circle cx="742" cy="120" r="6" fill="url(#lemonG)" filter="url(#glowL)"/>
+            <text x="766" y="122" class="mono" fill="#eeefd3" opacity="0.66" font-size="25" letter-spacing="9" font-weight="600">25 MIN → 6 MIN · SAME TEAM</text>
+          </g>
+
+          <rect x="60" y="560" width="760" height="62" rx="14" fill="#012220"/>
+          <rect x="60" y="560" width="760" height="62" rx="14" fill="none" stroke="#eeefd3" stroke-opacity="0.08" stroke-width="2"/>
+          <g id="lanes" stroke="url(#emerG)" stroke-opacity="0.22" stroke-width="3" fill="none">
+            <path d="M 1150 590 L 1840 374"/><path d="M 1150 590 L 1840 510"/><path d="M 1150 590 L 1840 646"/><path d="M 1150 590 L 1840 782"/>
+          </g>
+          <text x="430" y="700" text-anchor="middle" fill="#eeefd3" opacity="0.5" font-size="22" font-weight="600" letter-spacing="3">ONE QUEUE IN</text>
+          <text id="fl" x="1500" y="872" text-anchor="middle" fill="#4dbd97" opacity="0" font-size="22" font-weight="700" letter-spacing="3" filter="url(#glowE)">FOUR LANES OUT</text>
+
+          <g id="infeed"></g>
+          <g id="outfan"></g>
+
+          <g id="engine" filter="url(#drop)">
+            <rect x="828" y="436" width="304" height="300" rx="26" fill="url(#machine)"/>
+            <rect x="828" y="436" width="304" height="9" rx="4" fill="#fff" opacity="0.55"/>
+            <rect x="828" y="538" width="304" height="46" fill="#012220"/>
+            <circle id="led" cx="980" cy="478" r="14" fill="url(#emerG)" filter="url(#glowE)"/>
+            <rect x="862" y="666" width="236" height="12" rx="6" fill="#012220" opacity="0.3"/>
+            <rect id="bar" x="862" y="666" width="60" height="12" rx="6" fill="url(#lemonG)" filter="url(#glowL)"/>
+            <text x="980" y="708" text-anchor="middle" class="mono" fill="#012220" opacity="0.7" font-size="22" font-weight="700">PRICE</text>
+          </g>
+
+          <g transform="translate(1700,252)" filter="url(#dropS)">
+            <circle r="94" fill="#012220" stroke="#eeefd3" stroke-opacity="0.14" stroke-width="6"/>
+            <circle r="94" fill="none" stroke="url(#lemonG)" stroke-width="6" stroke-dasharray="590" stroke-dashoffset="590" id="ring" transform="rotate(-90)" filter="url(#glowL)"/>
+            <g id="hand"><line x1="0" y1="0" x2="0" y2="-68" stroke="url(#lemonG)" stroke-width="7" stroke-linecap="round" filter="url(#glowL)"/></g>
+            <circle r="9" fill="#eeefd3"/>
+            <text id="swt" x="0" y="46" text-anchor="middle" class="mono" fill="#eeefd3" font-size="36" font-weight="700">25:00</text>
+          </g>
+          <g id="x4" transform="translate(1700,648) scale(0)">
+            <rect x="-76" y="-48" width="152" height="96" rx="18" fill="url(#lemonG)" filter="url(#drop)"/>
+            <rect x="-76" y="-48" width="152" height="10" rx="5" fill="#fff" opacity="0.4"/>
+            <text x="0" y="2" text-anchor="middle" class="mono" fill="#012220" font-size="60" font-weight="800">4×</text>
+          </g>
+
+          <rect width="1920" height="1080" filter="url(#grain)" opacity="0.045" style="mix-blend-mode:overlay"/>
+        </svg>
+      </div>
+    </div>
+
+    <script>
+      const NS = "http://www.w3.org/2000/svg";
+      const mk = (p, h) => { const g = document.createElementNS(NS,"g"); g.innerHTML = h; p.appendChild(g); return g; };
+      const cream = '<rect width="60" height="80" rx="9" fill="url(#cream)" filter="url(#dropS)"/><rect width="60" height="9" rx="4" fill="#fff" opacity="0.5"/><rect x="12" y="18" width="36" height="8" rx="4" fill="#024a45"/><rect x="12" y="34" width="24" height="8" rx="4" fill="#024a45" opacity="0.55"/>';
+      const emer = '<rect width="60" height="80" rx="9" fill="url(#emerG)" filter="url(#dropS)"/><rect width="60" height="9" rx="4" fill="#fff" opacity="0.4"/><path d="M 18 41 L 27 52 L 45 28" stroke="#012220" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#par", { x: -14, y: -8 }, { x: 14, y: 8, duration: 5, ease: "none" }, 0);
+      tl.to("#eyebrow", { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.1);
+
+      const inEls = []; for (let i=0;i<9;i++) inEls.push(mk(document.getElementById("infeed"), cream));
+      inEls.forEach((el,i) => { const t=i*0.5; gsap.set(el,{x:-90,y:544,opacity:0});
+        tl.set(el,{opacity:1},t).fromTo(el,{x:-90},{x:802,duration:1.05,ease:"power1.in"},t).to(el,{opacity:0,duration:0.16},t+0.92); });
+
+      const laneY=[346,478,610,742]; const outEls=[]; for(let i=0;i<12;i++) outEls.push(mk(document.getElementById("outfan"), emer));
+      outEls.forEach((el,i)=>{ const t=0.9+i*0.32, ly=laneY[i%4]; gsap.set(el,{x:1116,y:548,opacity:0,scale:0.9});
+        tl.set(el,{opacity:1},t)
+          .to(el,{x:1812,duration:0.95,ease:"power2.out"},t)
+          .to(el,{y:ly,scale:1,duration:0.95,ease:"power3.out"},t)
+          .to(el,{opacity:0,duration:0.22},t+0.78); });
+
+      tl.to("#led",{opacity:0.4,duration:0.25,yoyo:true,repeat:18,ease:"sine.inOut"},0);
+      tl.fromTo("#bar",{width:60},{width:236,duration:0.9,ease:"power1.inOut",yoyo:true,repeat:4},0);
+
+      const sw={v:25};
+      tl.to(sw,{v:6,duration:4.3,ease:"power1.inOut",onUpdate:()=>{document.getElementById("swt").textContent=String(Math.round(sw.v)).padStart(2,"0")+":00";}},0.2)
+        .to("#hand",{rotation:286,transformOrigin:"0px 0px",duration:4.3,ease:"power1.inOut"},0.2)
+        .to("#ring",{strokeDashoffset:140,duration:4.3,ease:"power1.inOut"},0.2);
+
+      tl.to("#fl",{opacity:0.85,duration:0.5,ease:"power2.out"},1.5)
+        .to("#x4",{scale:1,duration:0.6,ease:"back.out(1.8)"},1.8)
+        .to("#x4",{y:"+=8",duration:0.18,yoyo:true,repeat:1,ease:"sine.inOut"},2.4);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

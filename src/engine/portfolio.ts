@@ -11,6 +11,7 @@ import type {
   PortfolioAnalysis,
   RefiOpportunity,
 } from './types';
+import { computeTcoRate } from './tcoDscr';
 
 export function analyzePortfolio(
   existingProperties: PortfolioProperty[],
@@ -45,12 +46,12 @@ export function analyzePortfolio(
   const totalPITIA = allProperties.reduce((sum, p) => sum + p.monthlyPITIA, 0);
   const totalRent = allProperties.reduce((sum, p) => sum + p.monthlyRent, 0);
 
-  // NOI = Gross - vacancy - mgmt - maint (Track 2 income model)
+  // NOI = Gross less the TCO operating-cost haircut (vacancy + mgmt + maint +
+  // CapEx). Portfolio-level default = SFR/average/normal (28%); single source of
+  // truth in tcoDscr.ts. Replaces the legacy flat 8/8/5.
+  const tcoTotal = computeTcoRate({ propertyType: 'SFR' }).total;
   const totalNOI = allProperties.reduce((sum, p) => {
-    const vacancyPct = 0.08;
-    const mgmtPct = 0.08;
-    const maintPct = 0.05;
-    const net = p.monthlyRent * (1 - vacancyPct - mgmtPct - maintPct);
+    const net = p.monthlyRent * (1 - tcoTotal);
     return sum + net * 12;
   }, 0);
 
@@ -240,4 +241,54 @@ function computeDistributionStats(values: number[]): {
       ? (sorted[mid - 1] + sorted[mid]) / 2
       : sorted[mid];
   return { min, max, mean, median, count: values.length };
+}
+
+// ============================================================
+// Portfolio Health Score — single 0–100 composite rating
+// Inputs: PortfolioAnalysis return value from analyzePortfolio()
+// Scoring:
+//   40 pts — Global DSCR (1.50+ = 40, 1.25–1.49 = 30, 1.0–1.24 = 18, <1.0 = 0)
+//   20 pts — Concentration (lender + geo, each 10 pts, lose if warning fires)
+//   20 pts — Negative cash-flow count (0 = 20, 1 = 12, 2 = 6, 3+ = 0)
+//   20 pts — Reserve shortfall (0 = 20, <3mo PITIA = 12, 3–6mo = 6, >6mo = 0)
+// Label thresholds: 80+ STRONG · 65+ HEALTHY · 50+ WATCH · 30+ AT RISK · <30 CRITICAL
+// ============================================================
+export function computePortfolioHealthScore(result: ReturnType<typeof analyzePortfolio>): {
+  score: number;
+  label: 'STRONG' | 'HEALTHY' | 'WATCH' | 'AT RISK' | 'CRITICAL';
+  color: string;
+  breakdown: { dscrPts: number; concentrationPts: number; cashFlowPts: number; reservePts: number };
+} {
+  // DSCR pillar (40 pts)
+  const g = result.globalDSCR;
+  const dscrPts = g >= 1.50 ? 40 : g >= 1.25 ? 30 : g >= 1.0 ? 18 : 0;
+
+  // Concentration pillar (20 pts)
+  const lenderPts  = result.lenderConcentration.warning   ? 0 : 10;
+  const geoPts     = result.geographicConcentration.warning ? 0 : 10;
+  const concentrationPts = lenderPts + geoPts;
+
+  // Negative cash-flow pillar (20 pts)
+  const ncf = result.negativeCashFlowProperties.count;
+  const cashFlowPts = ncf === 0 ? 20 : ncf === 1 ? 12 : ncf === 2 ? 6 : 0;
+
+  // Reserve shortfall pillar (20 pts)
+  const pitiaMonthly = result.totalPITIA;
+  const shortfall = result.reserveShortfall;
+  const shortfallMonths = pitiaMonthly > 0 ? shortfall / pitiaMonthly : 0;
+  const reservePts = shortfall === 0 ? 20 : shortfallMonths < 3 ? 12 : shortfallMonths < 6 ? 6 : 0;
+
+  const score = dscrPts + concentrationPts + cashFlowPts + reservePts;
+  const label =
+    score >= 80 ? 'STRONG'   :
+    score >= 65 ? 'HEALTHY'  :
+    score >= 50 ? 'WATCH'    :
+    score >= 30 ? 'AT RISK'  : 'CRITICAL';
+  const color =
+    score >= 80 ? '#4ade80'  :
+    score >= 65 ? '#a3e635'  :
+    score >= 50 ? '#e6b84d'  :
+    score >= 30 ? '#fb923c'  : '#e06363';
+
+  return { score, label, color, breakdown: { dscrPts, concentrationPts, cashFlowPts, reservePts } };
 }

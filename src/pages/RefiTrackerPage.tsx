@@ -1,8 +1,13 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
+import { DcShell, dc, Mono, H1, H2, Lead, Btn, useRevealOnView } from "../design/dc";
 import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzeRefi } from "../engine/refiTracker";
+import { computeSecondLienDscr } from "../engine/secondLienDscr";
+import { computeRefiProceedsGap } from "../engine/refiProceeds";
+import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenantCheck";
+import { radius, font } from "../theme";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
+import BottomCTA from "../design/BottomCTA";
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
@@ -11,9 +16,9 @@ const MINT = dc.mintBg; // #e8e9bf
 
 // Colour helpers (via dc tokens only, no local consts)
 const scoreColor = (score: number) =>
-  score >= 80 ? dc.emerald : score >= 55 ? dc.lemon : "#ff6b6b";
+  score >= 80 ? dc.emerald : score >= 55 ? dc.lemon : "#e06363";
 const factorColor = (v: number) =>
-  v >= 20 ? dc.emerald : v >= 12 ? dc.lemon : "#ff6b6b";
+  v >= 20 ? dc.emerald : v >= 12 ? dc.lemon : "#e06363";
 
 export default function RefiTrackerPage({
   onBack,
@@ -23,7 +28,7 @@ export default function RefiTrackerPage({
   onNavigate: (v: any) => void;
 }) {
   useEffect(() => {
-    document.title = "Refi Tracker | Greenstreet Finance";
+    document.title = "Should I Refinance My DSCR Loan? | Greenstreet Finance";
     window.scrollTo(0, 0);
   }, []);
 
@@ -46,6 +51,33 @@ export default function RefiTrackerPage({
   const [annualTaxes, setAnnualTaxes] = useState(5000);
   const [annualInsurance, setAnnualInsurance] = useState(2000);
   const [hoa, setHoa] = useState(0);
+  // ── 2nd-lien / HELOC: tap equity WITHOUT refinancing the 1st lien ──
+  const [secondAmount, setSecondAmount] = useState(50000);
+  const [secondRate, setSecondRate] = useState(10.5);
+  // ── Sprint 2 debt tests: DSCR maintenance covenant + day-one in-place rent ──
+  const [covenantDscr, setCovenantDscr] = useState(1.20);
+  const [inPlaceRent, setInPlaceRent] = useState(3000);
+  const currentValue = Math.round(purchasePrice * (1 + (projectedAppreciation / 100) * (monthsOwned / 12)));
+  const firstLienPITIA = currentPayment + (annualTaxes + annualInsurance) / 12 + hoa;
+  const secondLien = computeSecondLienDscr({
+    monthlyRent, firstLienPITIA, firstLienBalance: currentBalance,
+    propertyValue: currentValue, secondLienAmount: secondAmount, secondLienRate: secondRate,
+  });
+  // Refi-proceeds gap at maturity/reset: can a new loan (capped by BOTH the
+  // rate-term LTV AND the DSCR floor) retire the current balance? + binding label.
+  const refiGap = computeRefiProceedsGap({
+    propertyValue: currentValue,
+    currentBalance,
+    qualifyingRent: monthlyRent,
+    escrowsMonthly: (annualTaxes + annualInsurance) / 12 + hoa,
+    newRate: projectedRate,
+  });
+  // Maintenance-covenant test on the current loan + day-one (in-place rent) vs
+  // stabilized (market rent) lease-up risk. Stabilized = current rent ÷ current PITIA.
+  const stabilizedDSCR = firstLienPITIA > 0 ? monthlyRent / firstLienPITIA : 0;
+  const dayOneDSCR = firstLienPITIA > 0 ? inPlaceRent / firstLienPITIA : 0;
+  const covenant = assessDscrCovenant(stabilizedDSCR, covenantDscr);
+  const dayOne = assessDayOneVsStabilized(dayOneDSCR, stabilizedDSCR);
 
   // ── Engine ──
   const result = useMemo(() => {
@@ -80,7 +112,7 @@ export default function RefiTrackerPage({
         availableReserves: 0,
         reserveAssets: [],
         isFirstResponder: false,
-        isForeignNational: false,
+        isNonUsInvestor: false,
       };
       const analysis = analyzeRefi(
         property,
@@ -127,7 +159,7 @@ export default function RefiTrackerPage({
   ]);
 
   const score = result?.totalScore ?? 0;
-  const vColor = result ? scoreColor(score) : "#ff6b6b";
+  const vColor = result ? scoreColor(score) : "#e06363";
   const vLabel = result
     ? score >= 80
       ? "REFI READY"
@@ -274,8 +306,9 @@ export default function RefiTrackerPage({
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.dark,
-                background: dc.lemon,
+                color: "rgba(238,239,211,0.62)",
+                background: "rgba(238,239,211,0.06)",
+                border: "1px solid rgba(238,239,211,0.18)",
                 borderRadius: 100,
                 padding: "7px 14px",
                 marginBottom: 24,
@@ -315,7 +348,7 @@ export default function RefiTrackerPage({
                 >
                   {result ? Math.round(score) : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   readiness / 100
                 </div>
               </div>
@@ -331,7 +364,7 @@ export default function RefiTrackerPage({
                 >
                   {result && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   break-even
                 </div>
               </div>
@@ -347,7 +380,7 @@ export default function RefiTrackerPage({
                 >
                   {result ? fmt$(result.cashOutMaxAmount) : "—"}
                 </Mono>
-                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.55)", marginTop: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   cash-out capacity
                 </div>
               </div>
@@ -361,7 +394,7 @@ export default function RefiTrackerPage({
               background: dc.dark,
               borderRadius: dc.r.lg,
               padding: 26,
-              border: "1px solid rgba(238,239,211,0.1)",
+              border: "1px solid rgba(238,239,211,0.16)",
             }}
           >
             <div
@@ -390,7 +423,7 @@ export default function RefiTrackerPage({
                 id="rf-cost"
                 d="M 0,40 L 420,40"
                 fill="none"
-                stroke="#ff6b6b"
+                stroke="#e06363"
                 strokeWidth="2.5"
                 strokeDasharray="6,4"
               />
@@ -430,7 +463,7 @@ export default function RefiTrackerPage({
                 </text>
               )}
               {/* Static labels */}
-              <text x="6" y="34" fill="rgba(255,107,107,0.8)" fontSize={10} fontFamily={dc.mono}>refi cost</text>
+              <text x="6" y="34" fill="rgba(224,99,99,0.8)" fontSize={10} fontFamily={dc.mono}>refi cost</text>
               <text x="6" y="170" fill="rgba(77,189,151,0.9)" fontSize={10} fontFamily={dc.mono}>cumulative savings →</text>
             </svg>
             <div
@@ -438,7 +471,7 @@ export default function RefiTrackerPage({
                 display: "flex",
                 justifyContent: "space-between",
                 fontSize: 11,
-                color: "rgba(238,239,211,0.45)",
+                color: "rgba(238,239,211,0.62)",
                 marginTop: 8,
                 fontFamily: dc.mono,
               }}
@@ -450,7 +483,7 @@ export default function RefiTrackerPage({
             {/* Live driver — drag the refi rate, watch the crossover move */}
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(238,239,211,0.12)" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 9 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
                   Projected refi rate
                 </span>
                 <Mono style={{ fontSize: 15, fontWeight: 700, color: dc.emerald }}>
@@ -467,7 +500,7 @@ export default function RefiTrackerPage({
                 aria-label="Projected refi rate"
                 style={{ width: "100%", accentColor: dc.emerald, cursor: "pointer" }}
               />
-              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", marginTop: 5, fontFamily: dc.mono }}>
+              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 5, fontFamily: dc.mono }}>
                 {noBreakeven
                   ? "no break-even at this rate — savings never recoup the cost"
                   : `break-even ≈ month ${Math.round(beMonths)} · drag to move it`}
@@ -579,7 +612,7 @@ export default function RefiTrackerPage({
                     }}
                   >
                     {f.prefix && (
-                      <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.prefix}</span>
+                      <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.prefix}</span>
                     )}
                     <input
                       className="rt-num"
@@ -590,11 +623,11 @@ export default function RefiTrackerPage({
                       style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
                     />
                     {f.suffix && (
-                      <span style={{ color: "rgba(238,239,211,0.4)" }}>{f.suffix}</span>
+                      <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.suffix}</span>
                     )}
                   </div>
                   {f.hint && (
-                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 4, lineHeight: 1.45, letterSpacing: 0 }}>
+                    <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.45, letterSpacing: 0 }}>
                       {f.hint}
                     </span>
                   )}
@@ -696,7 +729,7 @@ export default function RefiTrackerPage({
                       label: "DSCR after refi",
                       sub: result.refiDSCR >= 1.0 ? "Still qualifies after the new payment." : "Caution — rent may not cover the new payment.",
                       val: result.refiDSCR.toFixed(2) + "x",
-                      color: result.refiDSCR >= 1.0 ? dc.emerald : "#ff6b6b",
+                      color: result.refiDSCR >= 1.0 ? dc.emerald : "#e06363",
                       flame: riskFromDscr(result.refiDSCR),
                     },
                     {
@@ -705,7 +738,7 @@ export default function RefiTrackerPage({
                       val:
                         (result.monthlySavings >= 0 ? "+" : "") +
                         fmt$(result.monthlySavings),
-                      color: result.monthlySavings >= 0 ? dc.emerald : "#ff6b6b",
+                      color: result.monthlySavings >= 0 ? dc.emerald : "#e06363",
                     },
                     {
                       label: "Break-even",
@@ -728,7 +761,7 @@ export default function RefiTrackerPage({
                       val: result.seasoningMet
                         ? "Met (6 mo)"
                         : `${monthsOwned}/6 mo — not yet met`,
-                      color: result.seasoningMet ? dc.emerald : "#ff6b6b",
+                      color: result.seasoningMet ? dc.emerald : "#e06363",
                     },
                   ].map((r, i) => (
                     <div
@@ -747,7 +780,7 @@ export default function RefiTrackerPage({
                         </span>
                       </div>
                       {"sub" in r && r.sub && (
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.38)", marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2, lineHeight: 1.4 }}>{r.sub}</div>
                       )}
                     </div>
                   ))
@@ -755,7 +788,7 @@ export default function RefiTrackerPage({
                   <div
                     style={{
                       fontSize: 13,
-                      color: "#ff6b6b",
+                      color: "#e06363",
                       padding: "8px 0",
                     }}
                   >
@@ -837,7 +870,7 @@ export default function RefiTrackerPage({
                         </div>
                         <p
                           style={{
-                            color: "rgba(238,239,211,0.5)",
+                            color: "rgba(238,239,211,0.62)",
                             fontSize: 12,
                             margin: "6px 0 0",
                             lineHeight: 1.5,
@@ -849,7 +882,7 @@ export default function RefiTrackerPage({
                     );
                   })
                 ) : (
-                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.4)", padding: "8px 0" }}>
+                  <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", padding: "8px 0" }}>
                     Enter inputs above to see factor breakdown.
                   </div>
                 )}
@@ -864,7 +897,7 @@ export default function RefiTrackerPage({
                   borderRadius: 10,
                   border: "1px solid rgba(238,239,211,0.12)",
                   fontSize: 12,
-                  color: "rgba(238,239,211,0.45)",
+                  color: "rgba(238,239,211,0.62)",
                   lineHeight: 1.6,
                 }}
               >
@@ -875,6 +908,118 @@ export default function RefiTrackerPage({
         </div>
       </section>
 
+      {/* ── 2nd-lien / HELOC alternative — tap equity without refinancing ── */}
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Or: tap equity without refinancing</div>
+          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "20ch" }}>Keep your {currentRate}% first lien. Borrow against the equity.</H2>
+          <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "62ch", margin: "0 0 26px" }}>
+            A DSCR closed-end 2nd lien (the $21B market Angel Oak opened) pulls cash without touching a low-rate 1st lien or paying its prepay penalty. Qualifies on <strong style={{ color: dc.cream }}>combined</strong> DSCR = rent ÷ (1st payment + 2nd payment), CLTV ≤ 75%.
+          </Lead>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+            {[
+              { l: "2nd-lien draw", v: secondAmount, set: setSecondAmount, step: 5000, pre: "$" },
+              { l: "2nd-lien rate", v: secondRate, set: setSecondRate, step: 0.125, suf: "%" },
+            ].map((f) => (
+              <label key={f.l} style={{ display: "block" }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)", marginBottom: 6 }}>{f.l}</span>
+                <div style={{ display: "inline-flex", alignItems: "center", background: dc.teal, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
+                  {f.pre && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.pre}</span>}
+                  <input type="number" step={f.step} value={f.v} onChange={(e) => f.set(+e.target.value)} style={{ width: 140, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
+                  {f.suf && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.suf}</span>}
+                </div>
+              </label>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }} className="dc-band-4">
+            {[
+              { v: `${secondLien.combinedDSCR.toFixed(2)}x`, l: "combined DSCR", c: secondLien.combinedDSCR >= 1.0 ? dc.emerald : "#e06363" },
+              { v: `${secondLien.cltv.toFixed(0)}%`, l: "CLTV (cap 75%)", c: secondLien.cltv <= 75 ? dc.cream : "#e06363" },
+              { v: fmt$(secondLien.maxSecondLien), l: `max 2nd lien · ${secondLien.bindingConstraint}-bound`, c: dc.lemon },
+              { v: secondLien.qualifies ? "QUALIFIES" : "TIGHT", l: `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo`, c: secondLien.qualifies ? dc.emerald : dc.lemon },
+            ].map((s) => (
+              <div key={s.l} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
+                <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 8 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5, maxWidth: "72ch" }}>
+            Best when your 1st lien is below market and carries a prepay penalty. Max draw is the lesser of the CLTV room and what combined DSCR supports. Illustrative — exact terms by lender.
+          </p>
+        </div>
+      </section>
+
+      {/* ── REFINANCE AT MATURITY — proceeds gap + debt covenants (Sprint 2) ── */}
+      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Refinance at maturity / ARM reset</div>
+          <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "22ch" }}>When the loan comes due, can the property refinance out?</H2>
+          <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "64ch", margin: "0 0 26px" }}>
+            At a balloon maturity or ARM reset the new loan is capped by <strong style={{ color: dc.cream }}>both</strong> the 75% rate-term LTV and the DSCR floor — whichever binds first. If it can't cover the existing balance, you bring cash to close (the proceeds gap).
+          </Lead>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+            {[
+              { l: "DSCR covenant (maintenance)", v: covenantDscr, set: setCovenantDscr, step: 0.05, suf: "x", pre: "" },
+              { l: "In-place rent now (day-one)", v: inPlaceRent, set: setInPlaceRent, step: 50, pre: "$", suf: "" },
+            ].map((f) => (
+              <label key={f.l} style={{ display: "block" }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)", marginBottom: 6 }}>{f.l}</span>
+                <div style={{ display: "inline-flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
+                  {f.pre && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.pre}</span>}
+                  <input type="number" step={f.step} value={f.v} onChange={(e) => f.set(+e.target.value)} style={{ width: 150, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
+                  {f.suf && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.suf}</span>}
+                </div>
+              </label>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }} className="dc-band-4">
+            {[
+              { v: fmt$(refiGap.maxNewLoan), l: `max new loan · ${refiGap.bindingConstraint}-bound`, c: dc.lemon },
+              refiGap.canRetireBalance
+                ? { v: fmt$(refiGap.cashOutAvailable), l: "cash-out available", c: dc.emerald }
+                : { v: fmt$(refiGap.proceedsGap), l: "cash to close (gap)", c: "#e06363" },
+              { v: fmt$(refiGap.newPayment), l: "new P&I / mo", c: dc.cream },
+              { v: refiGap.canRetireBalance ? "CLEARS" : "SHORT", l: `vs ${fmt$(currentBalance)} balance`, c: refiGap.canRetireBalance ? dc.emerald : "#e06363" },
+            ].map((s) => (
+              <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
+                <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 8 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* debt-test flags */}
+          <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+            {!refiGap.canRetireBalance && (
+              <div style={{ background: "rgba(224,99,99,0.1)", border: "1px solid rgba(224,99,99,0.4)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e0635f", marginBottom: 4 }}>Refi proceeds gap · {refiGap.bindingConstraint}-constrained</div>
+                <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>
+                  A new loan tops out at {fmt$(refiGap.maxNewLoan)} — {fmt$(refiGap.proceedsGap)} short of the {fmt$(currentBalance)} balance. You'd bring that cash to close, or negotiate an extension/paydown. The {refiGap.bindingConstraint === "LTV" ? "value (LTV)" : "rent (DSCR)"} is the binding limit.
+                </p>
+              </div>
+            )}
+            {covenant.status !== "OK" && (
+              <div style={{ background: covenant.status === "BREACH" ? "rgba(224,99,99,0.1)" : "rgba(230,184,77,0.1)", border: `1px solid ${covenant.status === "BREACH" ? "rgba(224,99,99,0.4)" : "rgba(230,184,77,0.4)"}`, borderLeft: `3px solid ${covenant.status === "BREACH" ? "#e06363" : "#e6b84d"}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: covenant.status === "BREACH" ? "#e0635f" : "#e6b84d", marginBottom: 4 }}>DSCR covenant · {covenant.status}</div>
+                <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{covenant.note}</p>
+              </div>
+            )}
+            {dayOne.leaseUpRisk && (
+              <div style={{ background: "rgba(230,184,77,0.1)", border: "1px solid rgba(230,184,77,0.4)", borderLeft: "3px solid #e6b84d", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e6b84d", marginBottom: 4 }}>Day-one vs stabilized · lease-up risk</div>
+                <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{dayOne.note}</p>
+              </div>
+            )}
+          </div>
+
+          <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5, maxWidth: "72ch" }}>
+            Max new loan = lesser of the 75% rate-term LTV and what the DSCR floor (1.00x) supports at the projected {projectedRate}% rate. Covenant test uses current rent ÷ current PITIA. Illustrative — exact terms by lender.
+          </p>
+        </div>
+      </section>
+
+      <BottomCTA onNavigate={onNavigate} />
     </DcShell>
   );
 }

@@ -10,14 +10,14 @@
 // off the VALUE (never a page-load from()), and fully reduced-motion safe.
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { swatch } from "../theme";
+import { swatch, risk } from "../theme";
 
 const LEMON = swatch.lemon;
 const EMERALD = swatch.emerald;
 const MIDNIGHT = swatch.midnight;
 const RAIN = swatch.rainforest;
-const ORANGE = "#f97316";
-const RED = "#ff6b6b";
+const ORANGE = risk.warning;
+const RED = risk.danger;
 
 // Inject the shared keyframes/transitions once.
 let _injected = false;
@@ -31,21 +31,14 @@ function ensureCss() {
 .gsa-beam{transform-origin:50% 50%;transition:transform .5s cubic-bezier(.34,1.2,.5,1);}
 .gsa-pan{transition:transform .5s cubic-bezier(.34,1.2,.5,1);}
 .gsa-fill{transition:width .5s ease;}
-@keyframes gsaFlicker{0%,100%{transform:scaleY(1) translateY(0);opacity:1;}50%{transform:scaleY(1.08) translateY(-1px);opacity:.92;}}
-.gsa-flame{transform-origin:50% 100%;animation:gsaFlicker 1.4s ease-in-out infinite;}
-.gsa-flame.f2{animation-delay:.25s;}
-.gsa-flame.f3{animation-delay:.5s;}
-@keyframes gsaOrbit{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-@keyframes gsaBob{0%,100%{transform:translateY(0) rotate(-1deg);}50%{transform:translateY(-8px) rotate(1deg);}}
-@keyframes gsaDraw{0%{stroke-dashoffset:420;}45%,100%{stroke-dashoffset:0;}}
-@keyframes gsaPulseDot{0%,100%{transform:scale(1);opacity:.86;}50%{transform:scale(1.22);opacity:1;}}
-.gsa-orbit{transform-origin:50% 50%;animation:gsaOrbit 18s linear infinite;}
-.gsa-bob{animation:gsaBob 3.2s ease-in-out infinite;}
-.gsa-path{stroke-dasharray:420;stroke-dashoffset:420;animation:gsaDraw 4.8s cubic-bezier(.16,1,.3,1) infinite;}
-.gsa-pulse-dot{transform-origin:center;animation:gsaPulseDot 1.6s ease-in-out infinite;}
+/* Perpetual "hyperflame" motion (flicker/orbit/bob/redraw/pulse) removed per
+   design taste — these render STATIC now; only interaction-driven transitions
+   (needle/beam/pan/fill, above) still animate on value change. */
+.gsa-flame{transform-origin:50% 100%;}
+.gsa-path{stroke-dasharray:none;stroke-dashoffset:0;}
+.gsa-pulse-dot{transform-origin:center;}
 @media (prefers-reduced-motion: reduce){
   .gsa-needle,.gsa-beam,.gsa-pan,.gsa-fill{transition:none !important;}
-  .gsa-flame,.gsa-orbit,.gsa-bob,.gsa-path,.gsa-pulse-dot{animation:none !important;}
 }`;
   document.head.appendChild(el);
 }
@@ -269,28 +262,14 @@ export function ClaudeDscrGauge({
             }}
           />
         </div>
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%,-50%)",
-            width: "58%",
-            height: "58%",
-            borderRadius: "50%",
-            background: "radial-gradient(circle,#002423 50%,rgba(0,36,35,0) 82%)",
-            zIndex: 4,
-            pointerEvents: "none",
-          }}
-        />
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingBottom: "7%", pointerEvents: "none", zIndex: 5 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(238,239,211,0.44)", marginBottom: 2 }}>{label}</div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(32px,4vw,48px)", fontWeight: 700, color: col, lineHeight: 0.9, textShadow: "0 2px 14px rgba(0,36,35,0.9)" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>{label}</div>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(32px,4vw,48px)", fontWeight: 700, color: "#eeefd3", lineHeight: 0.9, textShadow: `0 2px 20px ${col}55` }}>
             {displayValue.toFixed(2)}<span style={{ fontSize: "0.48em" }}>x</span>
           </div>
         </div>
-        <div style={{ position: "absolute", left: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.56)" }}>{min.toFixed(2)}</div>
-        <div style={{ position: "absolute", right: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.56)" }}>{max.toFixed(2)}</div>
+        <div style={{ position: "absolute", left: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{min.toFixed(2)}</div>
+        <div style={{ position: "absolute", right: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{max.toFixed(2)}</div>
       </div>
     </div>
   );
@@ -327,8 +306,11 @@ export function BalanceScale({ rent, payment, size = 220 }: { rent: number; paym
   );
 }
 
-// ── RiskFlame (Hyperflames) ──────────────────────────────────────────────────
-// intensity: "none" | "low" | "med" | "high" — 0..3 stylized flames, color-coded.
+// ── RiskMeter (exported as RiskFlame for back-compat) ────────────────────────
+// A calm 3-segment level meter — NOT cartoon flames. As coverage tightens, more
+// segments light in the risk color (lemon → amber → red); "none" is an emerald
+// all-clear check. Premium + legible at small sizes; off-segments use
+// currentColor so it reads on either a light or dark ground.
 export type RiskLevel = "none" | "low" | "med" | "high";
 export function riskFromDscr(dscr: number): RiskLevel {
   if (dscr >= 1.25) return "none";
@@ -336,25 +318,29 @@ export function riskFromDscr(dscr: number): RiskLevel {
   if (dscr >= 1.0) return "med";
   return "high";
 }
-const FLAME = "M12 2C12 6 7 7 7 12a5 5 0 0 0 10 0c0-2-1-3-2-4 0 2-1 3-2 3 1-3-1-6-1-9z";
 export function RiskFlame({ level, size = 22 }: { level: RiskLevel; size?: number }) {
-  ensureCss();
   if (level === "none") {
     return (
-      <span title="Comfortable cushion" style={{ display: "inline-flex", alignItems: "center", gap: 4, color: EMERALD, fontWeight: 700, fontSize: size * 0.6 }}>
+      <span title="Comfortable cushion" style={{ display: "inline-flex", alignItems: "center", color: EMERALD }}>
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke={EMERALD} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </span>
     );
   }
   const cfg = { low: { n: 1, c: LEMON }, med: { n: 2, c: ORANGE }, high: { n: 3, c: RED } }[level];
+  const segs = 3;
+  const gap = Math.max(1.5, size * 0.1);
+  const w = (size - gap * (segs - 1)) / segs;
   return (
-    <span role="img" aria-label={`${level} risk`} title={`${level} risk / stress`} style={{ display: "inline-flex", alignItems: "flex-end", gap: 1 }}>
-      {Array.from({ length: cfg.n }).map((_, i) => (
-        <svg key={i} className={`gsa-flame f${i + 1}`} width={size} height={size} viewBox="0 0 24 24" fill="none">
-          <path d={FLAME} fill={cfg.c} opacity={0.92} />
-          <path d="M12 9c0 2-2 3-2 5a2 2 0 0 0 4 0c0-1-1-2-2-5z" fill="#fff" opacity={0.45} />
-        </svg>
-      ))}
+    <span role="img" aria-label={`${level} risk`} title={`${level} risk / stress`} style={{ display: "inline-flex", alignItems: "flex-end", gap, height: size }}>
+      {Array.from({ length: segs }).map((_, i) => {
+        const on = i < cfg.n;
+        return (
+          <span
+            key={i}
+            style={{ width: w, height: size * (0.5 + i * 0.25), borderRadius: Math.max(1, w * 0.3), background: on ? cfg.c : "currentColor", opacity: on ? 1 : 0.2 }}
+          />
+        );
+      })}
     </span>
   );
 }
@@ -397,28 +383,43 @@ export function MotionWorkbench({
           </pattern>
         </defs>
         <rect width="420" height="388" fill={`url(#dots-${mode})`} />
-        <g className="gsa-orbit" opacity="0.95">
-          <ellipse cx="210" cy="194" rx="138" ry="78" fill="none" stroke={accent} strokeWidth="3" strokeDasharray="10 12" />
-          <circle className="gsa-pulse-dot" cx="348" cy="194" r="12" fill={accent} />
-          <circle className="gsa-pulse-dot" cx="72" cy="194" r="8" fill={secondary} style={{ animationDelay: ".35s" }} />
-        </g>
-        <path
-          className="gsa-path"
-          d="M55 279 C105 210 138 245 178 174 C216 106 260 147 292 98 C318 60 350 68 374 40"
-          fill="none"
-          stroke={secondary}
-          strokeWidth="6"
-          strokeLinecap="round"
-          opacity="0.88"
-        />
-        <g className="gsa-bob">
-          <rect x="112" y="120" width="196" height="146" rx="18" fill={mode === "quiz" ? "#eeefd3" : "#004041"} stroke={mode === "quiz" ? MIDNIGHT : "#eeefd3"} strokeOpacity="0.18" />
-          <rect x="134" y="145" width="76" height="12" rx="6" fill={accent} />
-          <rect x="134" y="171" width="126" height="10" rx="5" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.35" />
-          <rect x="134" y="195" width="104" height="10" rx="5" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.22" />
-          <circle cx="270" cy="202" r="28" fill={secondary} opacity="0.95" />
-          <path d="M256 202l10 10 20-24" fill="none" stroke={mode === "stress" ? "#fff" : MIDNIGHT} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-        </g>
+        {/* sim — a cone of diverging rate-path futures from "today" */}
+        {mode === "sim" && (
+          <g>
+            {Array.from({ length: 9 }).map((_, i) => {
+              const s = (i - 4) / 4;
+              const y2 = 196 + s * 150;
+              const op = 0.22 + (1 - Math.abs(s)) * 0.5;
+              return <path key={i} d={`M58 198 C 168 ${196 + s * 26}, 284 ${196 + s * 92}, 374 ${y2}`} fill="none" stroke={i === 4 ? accent : secondary} strokeOpacity={op} strokeWidth={i === 4 ? 3.6 : 2} strokeLinecap="round" />;
+            })}
+            <circle cx="58" cy="198" r="7" fill={accent} />
+            <text x="58" y="178" textAnchor="middle" fill="#eeefd3" opacity="0.5" fontFamily="JetBrains Mono, monospace" fontSize="11">today</text>
+            <text x="378" y="200" textAnchor="end" fill="#eeefd3" opacity="0.4" fontFamily="JetBrains Mono, monospace" fontSize="11">+10yr</text>
+          </g>
+        )}
+        {/* stress — a mini matrix of graded DSCR cells */}
+        {mode === "stress" && (
+          <g>
+            {Array.from({ length: 24 }).map((_, i) => {
+              const col = i % 6, row = Math.floor(i / 6);
+              const x = 78 + col * 50, y = 118 + row * 50;
+              const t = (col + (3 - row)) / 8;
+              const c = t > 0.62 ? EMERALD : t > 0.4 ? LEMON : t > 0.2 ? ORANGE : RED;
+              return <rect key={i} x={x} y={y} width="42" height="42" rx="8" fill={c} opacity="0.82" />;
+            })}
+          </g>
+        )}
+        {/* quiz — five fit bars filling toward a match */}
+        {mode === "quiz" && (
+          <g>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <g key={i}>
+                <rect x="70" y={130 + i * 34} width="280" height="20" rx="10" fill={MIDNIGHT} opacity="0.07" />
+                <rect x="70" y={130 + i * 34} width={110 + i * 38} height="20" rx="10" fill={accent} opacity={0.55 + i * 0.09} />
+              </g>
+            ))}
+          </g>
+        )}
         <g>
           <rect x="42" y="314" width="336" height="44" rx="22" fill={mode === "quiz" ? MIDNIGHT : "#eeefd3"} opacity="0.96" />
           <text x="64" y="342" fill={mode === "quiz" ? "#eeefd3" : MIDNIGHT} fontFamily="Outfit, Arial, sans-serif" fontSize="18" fontWeight="700">{label}</text>

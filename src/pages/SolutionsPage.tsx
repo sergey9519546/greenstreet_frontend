@@ -3,9 +3,8 @@ import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 
 // ── Audience segments ─────────────────────────────────────────────────────────
-// Audience: real estate investors, foreign nationals, STR/Airbnb, portfolio
-// builders. This page presents educational scenario tools only; it does not
-// state Greenstreet's lending role, licensing, terms, or counterparty.
+// Audience: real estate investors, non-US investors, STR/Airbnb, portfolio
+// builders. We ARE the lender AND the broker — direct to investors.
 interface Segment {
   tag: string;
   title: string;
@@ -25,9 +24,9 @@ interface Segment {
 const SEGMENTS: Segment[] = [
   {
     tag: "Buy-and-hold investors",
-    title: "Model rent alongside your costs",
+    title: "Qualify on rent, not your W-2",
     desc:
-      "Use an educational DSCR scenario to compare estimated rent with estimated payment and operating costs. It is not a qualification test, financing application, or underwriting decision.",
+      "DSCR loans (whether the property's rent can cover the loan payment — 1.00 = break-even; higher is stronger) let you qualify purely on the rental income your property generates. No tax returns, no employment history, no income docs. Greenstreet underwrites the deal — one file, one decision, one lender relationship.",
     cta: "Price my rental deal →",
     view: "dscr-calculator",
     panelBg: dc.mintBg,
@@ -37,37 +36,37 @@ const SEGMENTS: Segment[] = [
     statBg: dc.cream,
     dscrPreview: 1.32,
     stats: [
-      { v: "Scenario", k: "planning input" },
-      { v: "Estimate", k: "not a quote" },
-      { v: "Verify", k: "local requirements" },
-      { v: "Independent", k: "provider review" },
+      { v: "<60s", k: "to a priced deal" },
+      { v: "0", k: "income docs required" },
+      { v: "50", k: "state rule sets" },
+      { v: "1", k: "lender relationship" },
     ],
   },
   {
     tag: "Short-term & vacation rental investors",
-    title: "Stress-test STR income assumptions",
+    title: "STR income counts. Full stop.",
     desc:
-      "Compare short-term-rental revenue assumptions with costs and downside cases. Local rules, insurance, documentation, and financing treatment vary and require independent verification.",
-    cta: "Explore STR planning →",
+      "Airbnb gross revenue or vacation-rental income qualifies under our STR program — we use actual platform data, not hypothetical long-term-lease assumptions. Non-US investors qualify too: passport + alternative credit, no SSN required. Every file runs Dual-Track DSCR: lender qualifying (Track 1) and investor cash-flow survival (Track 2) in one pass.",
+    cta: "Explore STR & global programs →",
     view: "borrower-profiles",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
-    panelBody: "rgba(238,239,211,0.55)",
+    panelBody: "rgba(238,239,211,0.62)",
     gridline: "rgba(238,239,211,0.12)",
     statBg: dc.teal,
     dscrPreview: 1.18,
     stats: [
-      { v: "STR", k: "planning scenario" },
-      { v: "Local", k: "rules to verify" },
-      { v: "Dual-Track", k: "cash-flow views" },
-      { v: "No", k: "availability claim" },
+      { v: "STR", k: "income accepted" },
+      { v: "Global", k: "non-US investor program" },
+      { v: "Dual-Track", k: "DSCR analysis" },
+      { v: "3 min", k: "ITIN approval path" },
     ],
   },
   {
     tag: "Portfolio builders",
     title: "One blended view of all your doors",
     desc:
-      "Use a portfolio view to organize estimated rent, debt, equity, and cash-flow assumptions across properties. It does not determine whether any multi-property financing is available.",
+      "When you own 10+ properties, lenders look at blended DSCR — the rent-to-payment ratio across every property combined. The portfolio builder shows aggregate equity, weighted average rate, and blended DSCR in one screen, the way a blanket underwriter actually evaluates your book. Blanket and multi-property lines to $25M, single application.",
     cta: "Build my portfolio view →",
     view: "portfolio",
     panelBg: dc.rain,
@@ -77,17 +76,17 @@ const SEGMENTS: Segment[] = [
     statBg: dc.teal,
     dscrPreview: 1.49,
     stats: [
-      { v: "Portfolio", k: "planning view" },
-      { v: "1.49×", k: "illustrative DSCR" },
-      { v: "Multiple", k: "properties modeled" },
-      { v: "No", k: "application claim" },
+      { v: "$25M", k: "blanket line capacity" },
+      { v: "1.49×", k: "blended DSCR example" },
+      { v: "40+", k: "doors modeled" },
+      { v: "1", k: "application" },
     ],
   },
   {
     tag: "Investors with ARM exposure",
     title: "See exactly how big the payment jump is",
     desc:
-      "Explore how assumed rate changes can affect an estimated payment and DSCR. Tool outputs are illustrative and do not interpret a note, predict a benchmark, or determine eligibility.",
+      "An ARM (a loan whose rate is fixed for a few years, then can adjust) looks cheap at origination — but your DSCR can collapse at the first reset. The ARM Reset tool runs five SOFR scenarios (Bullish → Crisis), applies initial, periodic, and lifetime caps exactly as written in the note, and shows whether the deal still qualifies at each adjustment. Know the floor before the clock runs out.",
     cta: "Model my ARM reset →",
     view: "arm-reset",
     panelBg: dc.lemon,
@@ -97,10 +96,10 @@ const SEGMENTS: Segment[] = [
     statBg: dc.mintBg,
     dscrPreview: 0.92,
     stats: [
-      { v: "5", k: "illustrative scenarios" },
-      { v: "Rate", k: "assumptions" },
-      { v: "DSCR", k: "planning metric" },
-      { v: "Verify", k: "note terms" },
+      { v: "5", k: "rate scenarios" },
+      { v: "3", k: "cap types enforced" },
+      { v: "DSCR", k: "checked at every reset" },
+      { v: "0", k: "black-box math" },
     ],
   },
 ];
@@ -109,7 +108,6 @@ const SEGMENTS: Segment[] = [
 function StatPanel({ seg }: { seg: Segment }) {
   return (
     <div
-      className="so-stat-panel"
       style={{
         borderRadius: dc.r.lg,
         overflow: "hidden",
@@ -320,11 +318,6 @@ export default function SolutionsPage({
           .so-feat { grid-template-columns: 1fr !important; }
           .so-feat > * { order: unset !important; }
         }
-        @media (max-width: 600px) {
-          .so-feat { gap: 24px !important; }
-          .so-stat-panel { aspect-ratio: auto !important; min-height: 260px; }
-          .so-feat button { min-height: 44px; width: 100%; justify-content: center; }
-        }
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -337,18 +330,17 @@ export default function SolutionsPage({
         }}
       >
         <div
+          className="dc-hero"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
-            display: "flex",
-            flexDirection: "column" as const,
-            alignItems: "flex-start",
-            gap: "clamp(28px,4vw,48px)",
-            minHeight: "clamp(280px,38vh,420px)",
-            justifyContent: "space-between",
+            display: "grid",
+            gridTemplateColumns: "1.05fr 0.95fr",
+            gap: "clamp(36px,5vw,72px)",
+            alignItems: "center",
           }}
         >
-          <div id="gs-hero-content">
+          <div id="gs-hero-content" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "clamp(18px,2.4vw,28px)" }}>
             <div
               style={{
                 fontSize: 13,
@@ -356,27 +348,53 @@ export default function SolutionsPage({
                 letterSpacing: "0.04em",
                 textTransform: "uppercase" as const,
                 color: dc.lemon,
-                marginBottom: 18,
               }}
             >
               Who we serve
             </div>
-            <H1 style={{ margin: 0, maxWidth: "18ch" }}>
+            <H1 style={{ margin: 0, maxWidth: "16ch" }}>
               Built for real estate investors.
             </H1>
+            <Lead
+              style={{
+                color: "rgba(238,239,211,0.72)",
+                maxWidth: "44ch",
+                margin: 0,
+              }}
+            >
+              Greenstreet is the lender — no middlemen, no broker portals. Every
+              product runs off the same deterministic underwriting math. Qualify
+              on rent, not your income.
+            </Lead>
           </div>
-          <Lead
-            style={{
-              color: "rgba(238,239,211,0.72)",
-              maxWidth: "46ch",
-              margin: 0,
-            }}
-          >
-            Greenstreet provides educational tools for comparing rental-property assumptions. Whether
-            you're considering a first rental, a short-term rental, a portfolio, or an ARM
-            reset, verify actual provider role, licensing, terms, availability, and requirements
-            before making a decision.
-          </Lead>
+
+          {/* Audience selector — fills the hero and links to each dedicated page */}
+          <div style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.12)", borderRadius: 14, overflow: "hidden" }}>
+            {[
+              { label: "Buy-and-hold investors", tag: "DSCR", view: "investors" },
+              { label: "STR & Airbnb hosts", tag: "Nightly income", view: "str-hosts" },
+              { label: "Non-US investors", tag: "No US credit", view: "non-us-investors" },
+              { label: "Vacation & second homes", tag: "Use + rent", view: "vacation-homes" },
+              { label: "Portfolio builders", tag: "Blended DSCR", view: "portfolio" },
+            ].map((a, i, arr) => (
+              <button
+                key={a.view}
+                onClick={() => onNavigate(a.view)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, width: "100%",
+                  background: "transparent", border: "none", cursor: "pointer", textAlign: "left", fontFamily: dc.sans,
+                  padding: "clamp(16px,2vw,22px) clamp(18px,2.4vw,26px)",
+                  borderBottom: i < arr.length - 1 ? "1px solid rgba(238,239,211,0.16)" : "none",
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: "clamp(16px,1.5vw,19px)", fontWeight: 600, letterSpacing: "-0.02em", color: dc.cream }}>{a.label}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.02em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{a.tag}</div>
+                </div>
+                <span style={{ fontSize: 18, color: dc.lemon, flexShrink: 0 }}>→</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -432,7 +450,7 @@ export default function SolutionsPage({
                 marginBottom: 16,
               }}
             >
-              Scenario estimate
+              Rate estimate
             </div>
             <h2
               style={{
@@ -444,7 +462,7 @@ export default function SolutionsPage({
                 color: dc.cream,
               }}
             >
-              Five questions. Illustrative scenario.
+              Five questions. Real rate tier.
             </h2>
             <p
               style={{
@@ -458,8 +476,9 @@ export default function SolutionsPage({
               }}
             >
               Property type, LTV (how the loan compares to the property value),
-              DSCR, FICO, and state can inform an educational scenario. The result is
-              not market pricing, a program match, a quote, a credit decision, or a commitment.
+              DSCR, FICO, and state. Get a preliminary rate tier and your matched
+              Greenstreet program in under a minute. No email, no credit pull, no
+              commitment.
             </p>
             {/* Dominant lemon CTA */}
             <button
@@ -481,7 +500,7 @@ export default function SolutionsPage({
                 minHeight: 44,
               }}
             >
-              Explore assumptions →
+              Get my rate in 5 questions →
             </button>
           </div>
 
@@ -493,7 +512,7 @@ export default function SolutionsPage({
                 fontWeight: 700,
                 letterSpacing: "0.04em",
                 textTransform: "uppercase" as const,
-                color: "rgba(238,239,211,0.45)",
+                color: "rgba(238,239,211,0.62)",
                 marginBottom: 4,
               }}
             >

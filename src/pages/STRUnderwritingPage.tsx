@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { DcShell, dc, Mono, CountUp, Btn } from "../design/dc";
 import { radius } from "../theme";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
 import type { PropertyInputs } from "../engine/types";
-import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
+import { calculateFIRPTAImpact } from "../engine/firpta";
 
 // ── number formatting ──────────────────────────────────────────────────────
 const fmt = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
@@ -49,7 +49,7 @@ function Field({
           fontWeight: 600,
           letterSpacing: "0.04em",
           textTransform: "uppercase",
-          color: "rgba(238,239,211,0.5)",
+          color: "rgba(238,239,211,0.62)",
           marginBottom: 3,
         }}
       >
@@ -60,7 +60,7 @@ function Field({
           style={{
             display: "block",
             fontSize: 11,
-            color: "rgba(238,239,211,0.35)",
+            color: "rgba(238,239,211,0.62)",
             marginBottom: 5,
             lineHeight: 1.4,
           }}
@@ -70,7 +70,7 @@ function Field({
       )}
       <div className="str-field">
         {prefix && (
-          <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{prefix}</span>
+          <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 13 }}>{prefix}</span>
         )}
         <input
           className="str-num"
@@ -81,7 +81,7 @@ function Field({
           style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
         />
         {suffix && (
-          <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 13 }}>{suffix}</span>
+          <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 13 }}>{suffix}</span>
         )}
       </div>
     </label>
@@ -120,12 +120,12 @@ function MonthTable({
                 style={{
                   padding: "6px 10px",
                   textAlign: h === "Mo" ? "left" : "right",
-                  color: "rgba(238,239,211,0.42)",
+                  color: "rgba(238,239,211,0.62)",
                   fontWeight: 600,
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
-                  fontSize: 10,
-                  borderBottom: "1px solid rgba(238,239,211,0.1)",
+                  fontSize: 11,
+                  borderBottom: "1px solid rgba(238,239,211,0.16)",
                 }}
               >
                 {h}
@@ -156,7 +156,7 @@ function MonthTable({
                   style={{
                     padding: "6px 10px",
                     textAlign: "right",
-                    color: "rgba(238,239,211,0.5)",
+                    color: "rgba(238,239,211,0.62)",
                     borderBottom: "1px solid rgba(238,239,211,0.07)",
                   }}
                 >
@@ -257,7 +257,7 @@ function SeasonalityBars({
             <div
               style={{
                 fontSize: 8,
-                color: "rgba(238,239,211,0.45)",
+                color: "rgba(238,239,211,0.62)",
                 marginTop: 3,
                 textAlign: "center",
                 letterSpacing: 0,
@@ -293,6 +293,8 @@ export default function STRUnderwritingPage({
   const [annualTaxes, setAnnualTaxes] = useState(5000);
   const [annualInsurance, setAnnualInsurance] = useState(2000);
   const [hoa, setHoa] = useState(0);
+  const [isUsResident, setIsUsResident] = useState(true);
+  const [expectedSalePrice, setExpectedSalePrice] = useState(600000);
 
   // ── engine ───────────────────────────────────────────────────────────────
   const result = useMemo(() => {
@@ -324,7 +326,7 @@ export default function STRUnderwritingPage({
         loanAmount,
         rate,
         30,
-        "NONE",
+        "0",
         annualTaxes,
         annualInsurance,
         hoa,
@@ -342,7 +344,16 @@ export default function STRUnderwritingPage({
         false,
       );
       const seasonality = underwriting.monthlySeasonality;
-      return { underwriting, legality, seasonality, loanAmount };
+      
+      // FIRPTA calculation for exit planning
+      const firpta = calculateFIRPTAImpact({
+        salePrice: expectedSalePrice,
+        adjustedBasis: purchasePrice, // simplified: using purchase price
+        state,
+        isUsResident,
+      });
+      
+      return { underwriting, legality, seasonality, loanAmount, firpta };
     } catch {
       return null;
     }
@@ -357,6 +368,8 @@ export default function STRUnderwritingPage({
     annualTaxes,
     annualInsurance,
     hoa,
+    isUsResident,
+    expectedSalePrice,
   ]);
 
   // ── derived display values ────────────────────────────────────────────────
@@ -398,6 +411,7 @@ export default function STRUnderwritingPage({
       accent={TEAL}
       navLinks={[
         { label: "DSCR Calc", view: "dscr-calculator" },
+        { label: "Lenders", view: "lender-intel" },
       ]}
       cta={{ label: "Underwrite STR →", onClick: scrollToTool }}
     >
@@ -412,98 +426,6 @@ export default function STRUnderwritingPage({
         @media(max-width:767px){.str-3col{grid-template-columns:1fr !important;}}
         @media(max-width:479px){.str-worlds{grid-template-columns:1fr !important;}}
       `}</style>
-
-      {/* ══ HERO — dark bg matches mockup, 2-col: copy left, stats right ══ */}
-      <section
-        id="st-hero"
-        style={{
-          position: "relative",
-          background: dc.dark,
-          color: dc.cream,
-          overflow: "hidden",
-          padding: "clamp(56px,8vh,108px) clamp(1.5rem,4vw,3rem) clamp(44px,6vh,76px)",
-        }}
-      >
-        <div className="gs-dot-grid" />
-        <div
-          className="dc-hero str-hero-grid"
-          style={{
-            position: "relative",
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1.02fr 0.98fr",
-            gap: "clamp(36px,5vw,72px)",
-            alignItems: "center",
-          }}
-        >
-          <div id="gs-hero-content">
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: dc.dark,
-                background: dc.lemon,
-                borderRadius: 100,
-                padding: "7px 14px",
-                marginBottom: 24,
-              }}
-            >
-              STR · ADR × occupancy × seasonality
-            </div>
-            <H1 style={{ margin: "0 0 26px", color: dc.cream }}>
-              Can this short-term rental qualify for a DSCR loan?
-            </H1>
-            <Lead
-              style={{
-                color: "rgba(238,239,211,0.68)",
-                maxWidth: "46ch",
-                margin: "0 0 20px",
-              }}
-            >
-              Short-term rental (STR) income is treated differently from a traditional lease. This tool runs three qualifying scenarios — using long-term rent, projected STR revenue, and documented STR revenue — then shows which DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger) a lender will actually use, including the slow months.
-            </Lead>
-            <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
-              How to use: enter your property details and STR revenue estimates on the left. The tool picks the best qualifying scenario for you and shows month-by-month coverage so you can see whether off-season months create a cash-flow gap.
-            </p>
-            <Btn label="Open the STR engine ↓" href="#str-tool" onClick={scrollToTool} />
-          </div>
-
-          {/* Right — live metric preview */}
-          <div
-            style={{
-              background: dc.dark,
-              borderRadius: 16,
-              padding: 24,
-              border: "1px solid rgba(238,239,211,0.1)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)" }}>Underwritten DSCR</div>
-              <Mono style={{ fontSize: 13, fontWeight: 700, color: vColor }}>{dscrStr}</Mono>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-              {result ? [
-                { label: "Gross annual", val: fmt(grossAnnual), color: dc.cream },
-                { label: "UW /mo", val: fmt(uwMonthly), color: dc.lemon },
-                { label: "DSCR", val: dscrStr, color: vColor },
-              ].map((m) => (
-                <div key={m.label} style={{ background: "rgba(238,239,211,0.07)", borderRadius: 10, padding: "14px 12px", textAlign: "center" }}>
-                  <Mono style={{ display: "block", fontSize: "clamp(14px,1.6vw,20px)", fontWeight: 700, color: m.color, lineHeight: 1 }}>{m.val}</Mono>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.4)", marginTop: 4, fontWeight: 500 }}>{m.label}</div>
-                </div>
-              )) : (
-                <div style={{ gridColumn: "1/-1", textAlign: "center", color: "rgba(238,239,211,0.35)", fontSize: 13, padding: "20px 0" }}>Enter inputs below</div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ══ TOOL — dark teal, matches mockup #003a39 ══════════════════════ */}
       <section
@@ -531,7 +453,7 @@ export default function STRUnderwritingPage({
             >
               Live STR engine
             </div>
-            <h2
+            <h1
               style={{
                 fontSize: "clamp(30px,3.8vw,52px)",
                 fontWeight: 600,
@@ -542,13 +464,17 @@ export default function STRUnderwritingPage({
               }}
             >
               Underwritten DSCR{" "}
-              <Mono style={{ color: vColor }}>{dscrStr}</Mono>
-            </h2>
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+              {bestDSCR === null ? (
+                <Mono style={{ color: vColor }}>—</Mono>
+              ) : (
+                <CountUp value={bestDSCR} decimals={2} suffix="x" style={{ color: vColor }} />
+              )}
+            </h1>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
               {bestDSCR === null
                 ? "Enter your deal details to see the underwritten DSCR."
                 : bestDSCR >= 1.25
-                ? `DSCR of ${dscrStr} shows higher modeled coverage — the selected rent assumption covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). This does not predict program eligibility or approval.`
+                ? `DSCR of ${dscrStr} is strong — the selected qualifying rent comfortably covers the full monthly payment (principal, interest, taxes, insurance, and any HOA dues). Most DSCR programs approve at this level.`
                 : bestDSCR >= 1.0
                 ? `DSCR of ${dscrStr} qualifies but is close to the minimum. Check the month-by-month table below — if off-season months dip below 1.0x you'll need cash reserves (months of mortgage payments kept in the bank after closing) to cover the gap.`
                 : `DSCR of ${dscrStr} is below 1.0x — the qualifying rent does not cover the full monthly payment. Consider increasing STR revenue projections, reducing the loan amount, or checking if a no-ratio DSCR program (which skips the rent-to-payment test) applies.`}
@@ -586,7 +512,7 @@ export default function STRUnderwritingPage({
               >
                 STR assumptions
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", margin: "0 0 14px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                 Estimates are fine — numbers update live. LTR lease rent is used as a fallback if STR income does not qualify.
               </p>
 
@@ -599,7 +525,7 @@ export default function STRUnderwritingPage({
                     fontWeight: 600,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: "rgba(238,239,211,0.5)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 5,
                   }}
                 >
@@ -631,6 +557,52 @@ export default function STRUnderwritingPage({
               <Field label="Annual Taxes" hint="Property taxes per year. Find on county assessor site." value={annualTaxes} step={250} prefix="$" onChange={setAnnualTaxes} />
               <Field label="Annual Insurance" hint="Homeowners/STR insurance per year. STR policies typically cost more than standard HO." value={annualInsurance} step={100} prefix="$" onChange={setAnnualInsurance} />
               <Field label="Monthly HOA" hint="HOA dues per month. Enter 0 if none. Some HOAs restrict STR — check your HOA docs." value={hoa} step={25} prefix="$" onChange={setHoa} />
+              
+              {/* US Residency checkbox */}
+              <label style={{ display: "block", marginBottom: 14, marginTop: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={isUsResident}
+                    onChange={(e) => setIsUsResident(e.target.checked)}
+                    style={{ width: 16, height: 16, cursor: "pointer" }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: dc.cream,
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    Investor is U.S. resident
+                  </span>
+                </div>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    color: "rgba(238,239,211,0.62)",
+                    marginTop: 3,
+                    lineHeight: 1.4,
+                    marginLeft: 24,
+                  }}
+                >
+                  Uncheck if foreign national (non-resident alien). FIRPTA withholding applies to non-US investors.
+                </span>
+              </label>
+              
+              {/* Expected sale price - only show if non-US */}
+              {!isUsResident && (
+                <Field 
+                  label="Expected Sale Price" 
+                  hint="Projected exit sale price. Used to calculate 15% FIRPTA withholding for foreign investors." 
+                  value={expectedSalePrice} 
+                  step={10000} 
+                  prefix="$" 
+                  onChange={setExpectedSalePrice} 
+                />
+              )}
             </div>
 
             {/* ── RESULTS ────────────────────────────────────────────── */}
@@ -673,7 +645,7 @@ export default function STRUnderwritingPage({
                       >
                         {fmt(grossAnnual)}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>
                         gross annual
                       </div>
                     </div>
@@ -689,7 +661,7 @@ export default function STRUnderwritingPage({
                       >
                         {fmt(uwMonthly)}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>
                         underwritten /mo
                       </div>
                     </div>
@@ -705,7 +677,7 @@ export default function STRUnderwritingPage({
                       >
                         {dscrStr}
                       </Mono>
-                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginTop: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 6 }}>
                         underwritten DSCR
                       </div>
                     </div>
@@ -713,7 +685,7 @@ export default function STRUnderwritingPage({
 
                   {/* ── THREE WORLDS ───────────────────────────────────── */}
                   <div style={{ marginBottom: 2 }}>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.5)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 8px", lineHeight: 1.5 }}>
                       Lenders evaluate STRs using three qualifying scenarios. The tool picks the best one that applies (marked "Selected"). World 1 uses the long-term lease rate. World 2 uses your projected STR average. World 3 uses documented historical income.
                     </p>
                   </div>
@@ -762,11 +734,11 @@ export default function STRUnderwritingPage({
                         >
                           <div
                             style={{
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: 600,
                               letterSpacing: "0.05em",
                               textTransform: "uppercase",
-                              color: "rgba(238,239,211,0.5)",
+                              color: "rgba(238,239,211,0.62)",
                               marginBottom: 8,
                             }}
                           >
@@ -787,7 +759,7 @@ export default function STRUnderwritingPage({
                             style={{
                               fontSize: 11,
                               fontWeight: 500,
-                              color: "rgba(238,239,211,0.5)",
+                              color: "rgba(238,239,211,0.62)",
                               marginTop: 5,
                             }}
                           >
@@ -796,7 +768,7 @@ export default function STRUnderwritingPage({
                           {isBest && (
                             <div
                               style={{
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: 700,
                                 letterSpacing: "0.06em",
                                 textTransform: "uppercase",
@@ -837,7 +809,7 @@ export default function STRUnderwritingPage({
                       <p
                         style={{
                           fontSize: 12,
-                          color: "rgba(238,239,211,0.5)",
+                          color: "rgba(238,239,211,0.62)",
                           margin: "0 0 16px",
                           lineHeight: 1.5,
                         }}
@@ -854,15 +826,15 @@ export default function STRUnderwritingPage({
                       <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(224,99,99,0.2)", border: "1px solid #e06363" }} />
-                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(216,217,88,0.2)", border: `1px solid ${dc.lemon}` }} />
-                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Qualifies (1.0–1.24x)</span>
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>Qualifies (1.0–1.24x)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(77,189,151,0.2)", border: `1px solid ${dc.emerald}` }} />
-                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", fontWeight: 500 }}>Peak (≥ 1.25x)</span>
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>Peak (≥ 1.25x)</span>
                         </div>
                       </div>
 
@@ -968,6 +940,133 @@ export default function STRUnderwritingPage({
                     </div>
                   </div>
 
+                  {/* ── FIRPTA WITHHOLDING ─────────────────────────────── */}
+                  {!isUsResident && result.firpta && (
+                    <div
+                      style={{
+                        background: dc.dark,
+                        borderRadius: dc.r.lg,
+                        padding: 22,
+                        border: "1px solid rgba(238,239,211,0.08)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: "#e06363",
+                          marginBottom: 4,
+                        }}
+                      >
+                        FIRPTA Withholding — Exit Planning
+                      </div>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "rgba(238,239,211,0.62)",
+                          margin: "0 0 16px",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        Foreign investors must withhold 15% of sale proceeds for the IRS (FIRPTA). Factor this into exit proceeds and cash-on-cash return calculations.
+                      </p>
+
+                      {/* Exit proceeds flow */}
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr auto 1fr auto 1fr",
+                          gap: 12,
+                          alignItems: "center",
+                          marginBottom: 16,
+                          padding: "16px 18px",
+                          background: "rgba(238,239,211,0.03)",
+                          borderRadius: 8,
+                          border: "1px solid rgba(238,239,211,0.08)",
+                        }}
+                      >
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 4, fontWeight: 500 }}>
+                            Sale Price
+                          </div>
+                          <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.cream }}>
+                            {fmt(expectedSalePrice)}
+                          </Mono>
+                        </div>
+                        <div style={{ fontSize: 20, color: "rgba(238,239,211,0.3)" }}>→</div>
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 11, color: "#e06363", marginBottom: 4, fontWeight: 600 }}>
+                            Withholding (15%)
+                          </div>
+                          <Mono style={{ fontSize: 18, fontWeight: 600, color: "#e06363" }}>
+                            −{fmt(result.firpta.federalWithholdingAmount)}
+                          </Mono>
+                        </div>
+                        <div style={{ fontSize: 20, color: "rgba(238,239,211,0.3)" }}>→</div>
+                        <div style={{ textAlign: "center" }}>
+                          <div style={{ fontSize: 11, color: dc.emerald, marginBottom: 4, fontWeight: 600 }}>
+                            Net to Seller
+                          </div>
+                          <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.emerald }}>
+                            {fmt(expectedSalePrice - result.firpta.federalWithholdingAmount)}
+                          </Mono>
+                        </div>
+                      </div>
+
+                      {/* State withholding if applicable */}
+                      {result.firpta.stateWithholdingAmount > 0 && (
+                        <div
+                          style={{
+                            padding: "10px 14px",
+                            background: "rgba(216,217,88,0.08)",
+                            borderRadius: 6,
+                            marginBottom: 12,
+                            border: "1px solid rgba(216,217,88,0.2)",
+                          }}
+                        >
+                          <span style={{ fontSize: 12, color: dc.lemon, fontWeight: 600 }}>
+                            + State withholding ({state}): {fmt(result.firpta.stateWithholdingAmount)}
+                          </span>
+                          <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", display: "block", marginTop: 3 }}>
+                            Total withholding: {fmt(result.firpta.totalWithholding)}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Withholding certificate recommendation */}
+                      {result.firpta.withholdingCertificateRecommended && (
+                        <div
+                          style={{
+                            padding: "12px 16px",
+                            background: "rgba(77,189,151,0.08)",
+                            borderRadius: 6,
+                            border: "1px solid rgba(77,189,151,0.2)",
+                            fontSize: 12,
+                            color: dc.emerald,
+                            lineHeight: 1.55,
+                          }}
+                        >
+                          <strong>💡 Withholding Certificate Recommended:</strong> {result.firpta.note}
+                        </div>
+                      )}
+
+                      {/* Disclaimer */}
+                      <p
+                        style={{
+                          fontSize: 11,
+                          color: "rgba(238,239,211,0.55)",
+                          margin: "12px 0 0",
+                          lineHeight: 1.5,
+                          fontStyle: "italic",
+                        }}
+                      >
+                        Educational estimate — not tax advice. FIRPTA applies at disposition only (not refinance). Consult a cross-border tax advisor for exact withholding and refund timing.
+                      </p>
+                    </div>
+                  )}
+
                   {/* ── ENGINE FOOTNOTE ────────────────────────────────── */}
                   <div
                     style={{
@@ -976,7 +1075,7 @@ export default function STRUnderwritingPage({
                       borderRadius: dc.r.md,
                       border: "1px solid rgba(238,239,211,0.08)",
                       fontSize: 12,
-                      color: "rgba(238,239,211,0.5)",
+                      color: "rgba(238,239,211,0.62)",
                       lineHeight: 1.6,
                     }}
                   >
@@ -987,7 +1086,7 @@ export default function STRUnderwritingPage({
                       : "is not permitted for qualifying in this state; the engine falls back to World 1 long-term-lease rent"}
                     . Selected scenario: <strong>{result.underwriting.bestWorld}</strong>,
                     qualifying rent used: <strong>{fmt(result.underwriting.bestQualifyingRent)}/mo</strong>.{" "}
-                    Preliminary estimate — not a commitment to lend. Book a demo for a live scenario review.
+                    Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.
                   </div>
                 </>
               )}
@@ -995,8 +1094,8 @@ export default function STRUnderwritingPage({
           </div>
 
           {/* Disclaimer */}
-          <p style={{ color: "rgba(238,239,211,0.38)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            Educational estimate only. STR revenue projections and seasonality assumptions are not a guarantee of income. This tool does not provide a quote, program match, qualification, approval, underwriting result, or commitment.
+          <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, marginTop: 24, lineHeight: 1.6, letterSpacing: "-0.01em" }}>
+            Preliminary estimate — not a commitment to lend. STR revenue projections use national AirDNA seasonality indices and are not a guarantee of income. Final DSCR qualification is subject to full underwriting. Submit a scenario review for exact underwriting.
           </p>
         </div>
       </section>
@@ -1019,24 +1118,12 @@ export default function STRUnderwritingPage({
                 Get your STR rate from Greenstreet.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
-                Compare short-term-rental assumptions across three educational views. Provider review, placement, terms, and availability are outside this tool.
+                We underwrite short-term rentals using the same World 1 / 2 / 3 model this tool runs. Submit once — we handle placement.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <a
-                href="/rate-quiz"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, whiteSpace: "nowrap" }}
-              >
-                Get my rate →
-              </a>
-              <a
-                href="/products"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("products"); }}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: 6, border: "1px solid rgba(238,239,211,0.25)", whiteSpace: "nowrap" }}
-              >
-                Browse STR programs
-              </a>
+              <Btn label="Get my rate" href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} />
+              <Btn label="Browse STR programs" variant="secondary" arrow={false} href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} />
             </div>
           </div>
         </div>

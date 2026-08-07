@@ -516,13 +516,13 @@ export function computeDealKillCheck(
     });
   }
 
-  // ── WARNING 7: Foreign national ──
-  if (borrower.isForeignNational) {
+  // ── WARNING 7: Non-US investor ──
+  if (borrower.isNonUsInvestor) {
     criteria.push({
-      criterion: 'Foreign national borrower',
+      criterion: 'Non-US investor borrower',
       triggered: true,
       severity: 'WARNING',
-      detail: 'Foreign nationals face +75 bps rate adjustment and +6 months reserve requirements.',
+      detail: 'Non-US investors face +75 bps rate adjustment and +6 months reserve requirements.',
       action: 'Confirm SSN/ITIN path with lender. Budget for additional reserves and higher pricing.',
     });
   }
@@ -859,24 +859,27 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
   }
 
   // === TRACK 2 ACKNOWLEDGMENT (not a kill — forced acknowledgment) ===
-  const track2AcknowledgmentRequired = input.track2DSCR < 1.0;
+  const track2DSCRVal = input.track2DSCR ?? 0;
+  const track2AcknowledgmentRequired = track2DSCRVal < 1.0;
   if (track2AcknowledgmentRequired) {
     killCriteria.push({
       criterion: 'Track 2 Negative Carry',
       triggered: true,
       severity: 'ACKNOWLEDGMENT',
-      detail: `Track 2 DSCR ${input.track2DSCR.toFixed(3)} < 1.0 — the expense-aware scenario shows negative monthly carry even if the payment-coverage view reaches its modeled threshold.`,
-      action: 'Acknowledge the negative carry before continuing. This model does not recommend proceeding or predict appreciation or tax outcomes.',
+      detail: `Track 2 DSCR ${track2DSCRVal.toFixed(3)} < 1.0 — deal qualifies but loses money monthly.`,
+      action: 'Type "I understand" to proceed. Proceed only if appreciation or after-tax thesis justifies the negative carry, stated in $/mo.',
     });
   }
 
   // === RETURN GRADE (Part J) ===
-  const returnGrade = computeReturnGrade(input.afterTaxIRR, input.track2DSCR);
-  const returnGradeReason = buildReturnGradeReason(returnGrade, input.afterTaxIRR, input.track2DSCR);
+  const returnGrade = computeReturnGrade(input.afterTaxIRR ?? 0, track2DSCRVal);
+  const returnGradeReason = buildReturnGradeReason(returnGrade, input.afterTaxIRR ?? 0, track2DSCRVal);
 
   // === DETERMINE VERDICT ===
   const blockers = killCriteria.filter(k => k.severity === 'BLOCKER' && k.triggered);
-  const hasEligibleLender = input.lenderRanking.some(l => l.eligible);
+  const hasEligibleLender = (input.lenderRanking ?? []).length === 0 || input.lenderRanking.some(l => l.eligible);
+  const lenderMinDSCRVal = input.lenderMinDSCR ?? 1.0;
+  const dealBreakRateVal = input.dealBreakRate ?? 8.5;
 
   let verdict: 'PROCEED' | 'RESTRUCTURE' | 'PASS';
   let bindingConstraint: string;
@@ -885,22 +888,22 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
     verdict = 'PASS';
     bindingConstraint = blockers[0]?.criterion ?? (returnGrade === 'F' ? 'Return Grade F' : 'No eligible lender');
   } else if (
-    input.track1DSCR >= input.lenderMinDSCR + 0.05 &&
-    (input.track2DSCR >= 1.0 || track2AcknowledgmentRequired) &&
+    (input.track1DSCR ?? 0) >= lenderMinDSCRVal + 0.05 &&
+    (track2DSCRVal >= 1.0 || track2AcknowledgmentRequired) &&
     returnGrade >= 'B' &&
-    input.rateHeadroomBps >= 50
+    (input.rateHeadroomBps ?? 0) >= 50
   ) {
     verdict = 'PROCEED';
     bindingConstraint = 'None — all gates clear.';
   } else {
     verdict = 'RESTRUCTURE';
     bindingConstraint = killCriteria.find(k => k.triggered && k.severity !== 'ACKNOWLEDGMENT')?.criterion
-      ?? `Track 1 cushion: ${(input.track1DSCR - input.lenderMinDSCR).toFixed(3)}`;
+      ?? `Track 1 cushion: ${((input.track1DSCR ?? 0) - lenderMinDSCRVal).toFixed(3)}`;
   }
 
   // === KILL-SWITCH CONDITIONS ===
-  killSwitchConditions.push(`If solved rate rises above ${input.dealBreakRate.toFixed(2)}% → verdict flips to PASS.`);
-  killSwitchConditions.push(`If Track 1 DSCR drops below ${input.lenderMinDSCR} → verdict flips to RESTRUCTURE.`);
+  killSwitchConditions.push(`If solved rate rises above ${dealBreakRateVal.toFixed(2)}% → verdict flips to PASS.`);
+  killSwitchConditions.push(`If Track 1 DSCR drops below ${lenderMinDSCRVal} → verdict flips to RESTRUCTURE.`);
   if (input.armReset) {
     killSwitchConditions.push(`If SOFR rises to 5.0% (stress), Track 1 at reset = ${input.armReset.track1DSCRAtStressReset.toFixed(3)} → if <1.0, verdict flips to PASS.`);
   }
@@ -910,9 +913,10 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
 
   // === TRACK 2 ACK TEXT ===
   const track2AcknowledgmentText = track2AcknowledgmentRequired
-    ? `The payment-coverage view reaches its modeled threshold (Track 1 DSCR ${input.track1DSCR.toFixed(3)}), while the expense-aware view is below break-even (Track 2 DSCR ${input.track2DSCR.toFixed(3)}). ` +
-      `Acknowledge the negative carry before continuing. This result is not an approval or a recommendation to proceed.`
-    : '';
+    ? `This deal qualifies (Track 1 DSCR ${(input.track1DSCR ?? 0).toFixed(3)} ≥ ${lenderMinDSCRVal}) but loses money on monthly cash flow (Track 2 DSCR ${track2DSCRVal.toFixed(3)} < 1.0). ` +
+      `Type "I understand" to proceed. Proceed only if appreciation or tax benefits offset cash bleed, ` +
+      `and that thesis must be stated in $/mo in writing.`
+    : null;
 
   return {
     verdict,
@@ -956,15 +960,17 @@ function buildReturnGradeReason(
   track2DSCR: number,
 ): string {
   const irrPct = (afterTaxIRR * 100).toFixed(1);
+  const t2Val = (track2DSCR ?? 0).toFixed(3);
+
   switch (grade) {
     case 'A':
-      return `Grade A: After-tax IRR ${irrPct}% ≥ 15% AND Track 2 DSCR ${track2DSCR.toFixed(3)} ≥ 1.10. Institutional-grade return with survival cushion.`;
+      return `Grade A: After-tax IRR ${irrPct}% ≥ 15% AND Track 2 DSCR ${t2Val} ≥ 1.10. Institutional-grade return with survival cushion.`;
     case 'B':
-      return `Grade B: After-tax IRR ${irrPct}% in 12-15% range AND Track 2 DSCR ${track2DSCR.toFixed(3)} ≥ 1.00. Solid return with adequate cash flow.`;
+      return `Grade B: After-tax IRR ${irrPct}% in 12-15% range AND Track 2 DSCR ${t2Val} ≥ 1.00. Solid return with adequate cash flow.`;
     case 'C':
-      return `Grade C: After-tax IRR ${irrPct}% in 8-12% range. Track 2 DSCR ${track2DSCR.toFixed(3)} < 1.00 — proceed only with appreciation thesis in $/mo.`;
+      return `Grade C: After-tax IRR ${irrPct}% in 8-12% range. Track 2 DSCR ${t2Val} < 1.00 — proceed only with appreciation thesis in $/mo.`;
     case 'D':
-      return `Grade D: After-tax IRR ${irrPct}% < 8% OR Track 2 DSCR ${track2DSCR.toFixed(3)} negative. Marginal return; requires structural fix.`;
+      return `Grade D: After-tax IRR ${irrPct}% < 8% OR Track 2 DSCR ${t2Val} negative. Marginal return; requires structural fix.`;
     case 'F':
       return `Grade F: PASS scenario — negative after-tax IRR, hard kill, or no eligible lender. Do not proceed.`;
   }
@@ -1008,13 +1014,26 @@ export interface ICMemoInput {
   sourceDates: { name: string; date: string; provenance: ProvenanceLabel }[];
 }
 
+function sanitizeString(str: string): string {
+  return (str || '').replace(/[&<>"']/g, (match) => {
+    switch (match) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#39;';
+      default: return match;
+    }
+  });
+}
+
 export function buildICMemo(input: ICMemoInput): ICMemo {
   const riskStatement = buildRiskStatement(input);
 
   return {
     generatedAt: new Date().toISOString(),
-    propertyAddress: input.propertyAddress,
-    entityType: input.entityType,
+    propertyAddress: sanitizeString(input.propertyAddress),
+    entityType: sanitizeString(input.entityType),
     verdict: input.verdict.verdict,
     bindingConstraint: input.verdict.bindingConstraint,
     killSwitch: input.verdict.killSwitchConditions[0] ?? 'None',

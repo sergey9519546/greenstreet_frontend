@@ -5,6 +5,9 @@ export type PageView =
   | "state-laws"
   | "deal-analyzer"
   | "borrower-profiles"
+  | "non-us-investors"
+  | "str-hosts"
+  | "vacation-homes"
   | "brokers"
   | "brokers-partner"
   | "investors"
@@ -28,6 +31,8 @@ export type PageView =
   | "careers"
   | "legal"
   | "products"
+  | "platform"
+  | "support"
   | "solutions"
   | "book-demo"
   | "not-found";
@@ -49,7 +54,12 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/brokers": "brokers",
   "/investors": "investors",
   "/borrower-profiles": "borrower-profiles",
-  "/partners": "brokers-partner",
+  "/non-us-investors": "non-us-investors",      // canonical
+  "/foreign-nationals": "non-us-investors",    // legacy alias — keep so old links/SEO don't 404
+  "/str-airbnb": "str-hosts",
+  "/vacation-homes": "vacation-homes",
+  "/portfolio-builders": "portfolio", // page removed — old links land on the Portfolio tool
+  "/partners": "portal",
 
   // Core tools (canonical paths)
   "/dscr-calculator": "dscr-calculator",
@@ -57,12 +67,12 @@ const ROUTE_MAP: Record<string, PageView> = {
   // old bookmarks to Products rather than 404-ing to home.
   "/lender-intel": "products",
   "/state-laws": "state-laws",
-  "/deal-analyzer": "deal-analyzer",
+  "/deal-analyzer": "deal-analyzer", // full-underwrite tool (distinct from the lender-intel matcher)
   "/decision-support": "decision-support",
 
   // Content pages
   "/faq": "faq",
-  "/support": "faq",
+  "/support": "support",
   "/blog": "blog",
   "/case-studies": "case-studies",
   "/about": "about",
@@ -74,12 +84,10 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/legal/terms-of-service": "legal",
   "/rate-quiz": "rate-quiz",
   "/products": "products",
-  // Legacy marketing URLs that remain in the static landing page.
-  "/products/platform": "products",
+  "/products/platform": "platform",
   "/solutions": "solutions",
   "/book-demo": "book-demo",
-  "/become-a-partner": "brokers-partner",
-  "/partnerships": "brokers-partner",
+  "/partnerships": "portal", // old Partnerships page now lands on the INVESTGO dashboard
 
   // Tools routes (canonical /tools/* paths)
   "/tools/refi-tracker": "refi-tracker",

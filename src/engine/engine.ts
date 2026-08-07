@@ -34,6 +34,7 @@ import type {
   DSCRFormulaMethod,
   IOPeriod,
 } from './types';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
 
 // ============================================================
 // SECTION 5.2: CORRECTED PAYMENT FACTOR CALCULATION
@@ -196,12 +197,34 @@ function termAdjustment(term: string): number {
   }
 }
 
-function foreignNationalAdjustment(isForeignNational: boolean): number {
-  return isForeignNational ? 75 : 0;
+function nonUsInvestorAdjustment(isNonUsInvestor: boolean): number {
+  return isNonUsInvestor ? 75 : 0;
 }
 
 function decliningMarketAdjustment(isDecliningMarket: boolean): number {
   return isDecliningMarket ? 25 : 0;
+}
+
+// LLPA grid additions (DSCR_PRICING_ENGINE_RESEARCH_REPORT §4.3, verified):
+// First-time-investor surcharge (+25–50 bps; some lenders waive).
+function firstTimeInvestorAdjustment(experience: string): number {
+  return experience === 'FIRST_TIME' ? 37.5 : 0;
+}
+
+// Prepay-step pricing: longer step-down trades exit flexibility for a lower
+// rate (0.125–0.375% per step). Open prepay (NONE) is the priced baseline.
+function prepayStepAdjustment(prepayType: string): number {
+  switch (prepayType) {
+    case 'NONE': return 0;            // open / most flexible — priced baseline
+    case 'SOFT_PREPAY':
+    case '321': return -12.5;
+    case '4321': return -25;
+    case '54321':
+    case '54333':
+    case 'FLAT_5':
+    case 'YIELD_MAINTENANCE': return -37.5;
+    default: return 0;
+  }
 }
 
 // ============================================================
@@ -248,12 +271,9 @@ export function getDSCRGradient(dscr: number): DSCRGradient {
 // NEVER blend. ALWAYS display side-by-side.
 // ============================================================
 
-// Track 2 default expense rates
-export const TRACK2_LT_VACANCY_PCT = 8;
-export const TRACK2_STR_VACANCY_PCT = 8;
-export const TRACK2_MTR_VACANCY_PCT = 8;
-export const TRACK2_MANAGEMENT_PCT = 8;
-export const TRACK2_MAINTENANCE_PCT = 5;
+// Track 2 expense rates now come from tcoDscr.ts (property-type/age/market
+// aware, CapEx broken out) — see buildTrack2. The legacy flat 8/8/5 constants
+// were removed in the TCO reconciliation.
 
 // STR haircut for Track 1 qualification
 const STR_QUALIFYING_HAIRCUT_PCT = 20; // ~20% standard haircut
@@ -362,17 +382,19 @@ function buildTrack2(
   grossRent: number,
   pitia: number,
   strategy: RentalStrategy,
+  unitCount: number,
 ): DSCRTrack {
-  const vacancyPct = strategy === 'STR'
-    ? TRACK2_STR_VACANCY_PCT
-    : strategy === 'MTR'
-    ? TRACK2_MTR_VACANCY_PCT
-    : TRACK2_LT_VACANCY_PCT;
+  // TCO operating-cost haircut — property-type/age/market aware, single source
+  // of truth in tcoDscr.ts. Replaces the legacy flat 8% vac + 8% mgmt + 5% maint
+  // (no CapEx). STR → condotel bucket; multi by unit count.
+  const tcoType = mapToTcoType(unitCount, strategy === 'STR');
+  const rate = computeTcoRate({ propertyType: tcoType });
+  const vacancyPct = rate.vacancy * 100;
+  const mgmtPct = rate.management * 100;
+  const maintPct = rate.maintenance * 100;
+  const capexPct = rate.capex * 100;
 
-  const afterVacancy = grossRent * (1 - vacancyPct / 100);
-  const management = grossRent * (TRACK2_MANAGEMENT_PCT / 100);
-  const maintenance = grossRent * (TRACK2_MAINTENANCE_PCT / 100);
-  const netIncome = afterVacancy - management - maintenance;
+  const netIncome = grossRent * (1 - rate.total);
   const dscr = pitia > 0 ? netIncome / pitia : 0;
   const monthlyCashFlow = netIncome - pitia;
 
@@ -381,11 +403,12 @@ function buildTrack2(
     dscr: Math.round(dscr * 1000) / 1000,
     gradient: getDSCRGradient(dscr),
     qualifyingRent: grossRent,
-    rentSource: `Gross less ${vacancyPct}% vacancy, ${TRACK2_MANAGEMENT_PCT}% mgmt, ${TRACK2_MAINTENANCE_PCT}% maint`,
+    rentSource: `Gross less ${vacancyPct.toFixed(0)}% vacancy, ${mgmtPct.toFixed(0)}% mgmt, ${maintPct.toFixed(0)}% maint, ${capexPct.toFixed(0)}% capex (TCO ${(rate.total * 100).toFixed(0)}%)`,
     formulaMethod: 'GROSS_PITIA',
-    vacancyApplied: vacancyPct,
-    managementApplied: TRACK2_MANAGEMENT_PCT,
-    maintenanceApplied: TRACK2_MAINTENANCE_PCT,
+    vacancyApplied: Math.round(vacancyPct * 10) / 10,
+    managementApplied: Math.round(mgmtPct * 10) / 10,
+    maintenanceApplied: Math.round(maintPct * 10) / 10,
+    capexApplied: Math.round(capexPct * 10) / 10,
     netRentAfterDeductions: netIncome,
     monthlyCashFlow,
     passes: dscr >= 1.0,
@@ -662,8 +685,10 @@ export function estimateRate(
     armRateAdjustment(loan.armType) +
     ioRateAdjustment(loan.ioPeriod) +
     termAdjustment(loan.term) +
-    foreignNationalAdjustment(borrower.isForeignNational) +
-    decliningMarketAdjustment(isDecliningMarket);
+    nonUsInvestorAdjustment(borrower.isNonUsInvestor) +
+    decliningMarketAdjustment(isDecliningMarket) +
+    firstTimeInvestorAdjustment(borrower.experience) +
+    prepayStepAdjustment(loan.prepayPreference);
 
   const rate = BASE_RATE_ANCHOR + totalBps / 100;
   // AUDIT-FINAL-4: enforce hard bounds — floor 5.0% (sub-SOFR impossible),
@@ -950,7 +975,7 @@ export function solveDSCR(
     : qualifyingRent;            // LTR: min(lease, market) = actual income
 
   const track1 = buildTrack1(qualifyingRent, rentSource, pitia.total, formulaMethod, pitia.itia ?? null, haircutApplied, pitia.principalAndInterest);
-  const track2 = buildTrack2(track2GrossRent, pitia.total, strategy);
+  const track2 = buildTrack2(track2GrossRent, pitia.total, strategy, property.unitCount);
   const verdict = buildVerdict(track1, track2);
   const dualTrackDSCR: DualTrackDSCR = { track1, track2, verdict };
 
@@ -1055,7 +1080,7 @@ export function estimateReserveMonths(
   else if (borrower.ficoScore < 680) months += 3;
   if (borrower.experience === 'FIRST_TIME') months += 3;
   if (loanAmount > 1_000_000) months += 3;
-  if (borrower.isForeignNational) months += 6;
+  if (borrower.isNonUsInvestor) months += 6;
   if (loan.ltv > 80) months += 1;
 
   // Cap at 12 (15 is stress ceiling only)

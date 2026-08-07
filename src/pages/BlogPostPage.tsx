@@ -4,31 +4,36 @@ import { DcShell, dc, Mono } from "../design/dc";
 
 // ── Author registry ───────────────────────────────────────────────────────────
 const AUTHOR_META: Record<string, { initials: string; role: string }> = {
-  "Greenstreet Editorial": { initials: "GE", role: "Greenstreet Editorial" },
+  "Priya Rao":    { initials: "PR", role: "Cofounder & Head of Quant" },
+  "Sara López":   { initials: "SL", role: "Compliance & State Law" },
+  "Marcus Chen":  { initials: "MC", role: "Lending Programs" },
+  "Greenstreet":  { initials: "GS", role: "Greenstreet Finance" },
 };
 
 // ── Article-body prose styles (typography only; no shell/nav/glass) ───────────
 const ARTICLE_CSS = `
   .bp-body p{font-size:clamp(17px,1.35vw,20px);font-weight:500;line-height:1.7;color:rgba(0,55,56,0.78);margin:0 0 22px;letter-spacing:-0.01em;}
   .bp-body h2{font-size:clamp(24px,2.6vw,34px);font-weight:600;letter-spacing:-0.03em;color:${dc.dark};margin:40px 0 16px;line-height:1.1;}
+  .bp-body h3{font-size:clamp(18px,1.7vw,22px);font-weight:700;letter-spacing:-0.02em;color:${dc.dark};margin:26px 0 8px;line-height:1.25;}
   .bp-body blockquote{margin:32px 0;padding:16px 0 16px 28px;border-left:3px solid ${dc.lemon};font-size:clamp(20px,2vw,26px);font-weight:600;letter-spacing:-0.02em;line-height:1.3;color:${dc.dark};}
   .bp-body strong{font-weight:700;color:${dc.dark};}
   .bp-body ul{margin:0 0 20px;padding:0;list-style:none;}
   .bp-body li{color:#3f5252;font-size:17px;line-height:1.6;margin-bottom:12px;padding-left:26px;position:relative;}
   .bp-body li::before{content:"→";position:absolute;left:0;color:${dc.rain};font-weight:800;}
+  .bp-body .bp-links{margin-top:32px;padding-top:24px;border-top:1px solid rgba(0,55,56,0.12);}
+  .bp-body .bp-links li{padding-left:0;margin-bottom:10px;}
+  .bp-body .bp-links li::before{content:none;}
+  .bp-body .bp-links a{color:${dc.rain};font-size:15px;font-weight:700;text-underline-offset:3px;}
   .bp-card{transition:transform .14s;} .bp-card:hover{transform:translateY(-4px);}
   @media(max-width: 991px){
     .bp-related-grid{grid-template-columns:1fr !important;}
     .bp-byline{flex-wrap:wrap;}
   }
-  @media(max-width:600px){
-    .bp-body p{font-size:17px;line-height:1.66;}
-    .bp-body h2{margin-top:34px;}
-    .bp-body blockquote{margin:26px 0;padding:14px 0 14px 18px;}
-    .bp-body li{padding-left:22px;}
-    .bp-card{min-height:0 !important;}
-  }
 `;
+
+function sectionId(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
 
 // Related post colour palettes (solid fills, no glass)
 const RELATED_PALETTES = [
@@ -54,9 +59,59 @@ export default function BlogPostPage({
   useEffect(() => {
     if (post) {
       document.title = `${post.title} | Greenstreet Finance`;
+
+      const description = (post as any).metaDescription ?? post.summary;
+      const canonicalUrl = `https://www.greenstreet.finance/blog/${post.slug}`;
+      const previousDescription = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content;
+      const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]') ?? document.head.appendChild(document.createElement("link"));
+      const previousCanonical = canonical.href;
+      canonical.rel = "canonical";
+      canonical.href = canonicalUrl;
+
+      const setMeta = (selector: string, attribute: "name" | "property", key: string, content: string) => {
+        let element = document.querySelector<HTMLMetaElement>(selector);
+        if (!element) {
+          element = document.createElement("meta");
+          element.setAttribute(attribute, key);
+          document.head.appendChild(element);
+        }
+        element.content = content;
+      };
+
+      setMeta('meta[name="description"]', "name", "description", description);
+      setMeta('meta[property="og:type"]', "property", "og:type", "article");
+      setMeta('meta[property="og:title"]', "property", "og:title", post.title);
+      setMeta('meta[property="og:description"]', "property", "og:description", description);
+      setMeta('meta[property="og:url"]', "property", "og:url", canonicalUrl);
+
+      const schema = document.createElement("script");
+      schema.id = "greenstreet-blog-article-schema";
+      schema.type = "application/ld+json";
+      schema.text = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: post.title,
+        description,
+        datePublished: new Date(post.date).toISOString().slice(0, 10),
+        author: { "@type": authorName === "Greenstreet" ? "Organization" : "Person", name: authorName },
+        publisher: { "@type": "Organization", name: "Greenstreet Finance", url: "https://www.greenstreet.finance" },
+        mainEntityOfPage: canonicalUrl,
+      });
+      document.getElementById(schema.id)?.remove();
+      document.head.appendChild(schema);
+
+      window.scrollTo(0, 0);
+      return () => {
+        schema.remove();
+        canonical.href = previousCanonical;
+        if (previousDescription !== undefined) {
+          const descriptionMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+          if (descriptionMeta) descriptionMeta.content = previousDescription;
+        }
+      };
     }
     window.scrollTo(0, 0);
-  }, [post]);
+  }, [post?.slug]);
 
   const navLinks = [
     { label: "Guidance", view: "blog" },
@@ -100,8 +155,11 @@ export default function BlogPostPage({
     .slice(0, 3)
     .map((r, i) => ({ ...r, ...RELATED_PALETTES[i % 3] }));
 
-  const authorName = (post as any).author ?? "Greenstreet Editorial";
-  const authorMeta = AUTHOR_META[authorName] ?? AUTHOR_META["Greenstreet Editorial"];
+  const authorName = (post as any).author ?? "Greenstreet";
+  const authorMeta = AUTHOR_META[authorName] ?? AUTHOR_META["Greenstreet"];
+  const tableOfContents = post.body
+    .filter((block: any) => block.h)
+    .map((block: any) => ({ label: block.h as string, id: sectionId(block.h) }));
 
   return (
     <DcShell onNavigate={onNavigate} navLinks={navLinks} cta={cta}>
@@ -163,11 +221,11 @@ export default function BlogPostPage({
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.45)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "-0.01em",
               }}
             >
-              {post.date} · 6 min read
+              {post.date} · {(post as any).readTime ?? "6 min read"}
             </span>
           </div>
 
@@ -192,7 +250,7 @@ export default function BlogPostPage({
               display: "flex",
               alignItems: "center",
               gap: 14,
-              borderTop: "1px solid rgba(238,239,211,0.1)",
+              borderTop: "1px solid rgba(238,239,211,0.16)",
               paddingTop: 20,
               paddingBottom: "clamp(28px,4vh,48px)",
             }}
@@ -217,7 +275,7 @@ export default function BlogPostPage({
               <div style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em", color: dc.cream }}>
                 {authorName}
               </div>
-              <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", letterSpacing: "-0.01em" }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", letterSpacing: "-0.01em" }}>
                 {authorMeta.role}
               </div>
             </div>
@@ -294,7 +352,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: "clamp(11px,0.9vw,13px)",
                 fontWeight: 600,
-                color: "rgba(238,239,211,0.35)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "0.09em",
                 textTransform: "uppercase" as const,
               }}
@@ -318,7 +376,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: "clamp(12px,0.95vw,14px)",
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.45)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "-0.01em",
                 textAlign: "center",
               }}
@@ -360,7 +418,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: 11,
                 fontWeight: 600,
-                color: "rgba(238,239,211,0.35)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase" as const,
               }}
@@ -371,7 +429,7 @@ export default function BlogPostPage({
               style={{
                 fontSize: 12,
                 fontWeight: 500,
-                color: "rgba(238,239,211,0.4)",
+                color: "rgba(238,239,211,0.62)",
                 letterSpacing: "-0.01em",
               }}
             >
@@ -464,17 +522,42 @@ export default function BlogPostPage({
           </p>
         </div>
 
-        <p style={{ maxWidth: 680, margin: "-22px auto 30px", color: "rgba(0,55,56,0.58)", fontSize: 13, lineHeight: 1.55, fontWeight: 500 }}>
-          Editorial note: This article is educational and may use illustrative assumptions. It is not a loan offer, approval, rate quote, legal advice, or tax advice. Confirm current terms, eligibility, and applicable rules with the relevant lender and qualified professionals.
-        </p>
+        {tableOfContents.length >= 3 && (
+          <nav
+            className="gs-reveal"
+            aria-label="Article sections"
+            style={{ maxWidth: 680, margin: "0 auto 40px", padding: "0 2px" }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(0,55,56,0.48)", marginBottom: 12 }}>
+              In this guide
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 16px" }}>
+              {tableOfContents.map((item) => (
+                <a key={item.id} href={`#${item.id}`} style={{ color: dc.rain, fontSize: 14, fontWeight: 700, textUnderlineOffset: 3 }}>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
 
         <article className="bp-body gs-reveal" style={{ maxWidth: 680, margin: "0 auto" }}>
           {post.body.map((b: any, i: number) => {
-            if (b.h)     return <h2 key={i}>{b.h}</h2>;
+            if (b.h)     return <h2 key={i} id={sectionId(b.h)}>{b.h}</h2>;
+            if (b.q)     return <h3 key={i}>{b.q}</h3>;
             if (b.quote) return <blockquote key={i}>{b.quote}</blockquote>;
             if (b.list)  return (
               <ul key={i}>
                 {b.list.map((li: string, j: number) => <li key={j}>{li}</li>)}
+              </ul>
+            );
+            if (b.links) return (
+              <ul key={i} className="bp-links" aria-label="Article resources">
+                {b.links.map((link: { label: string; href: string }) => (
+                  <li key={link.href}>
+                    <a href={link.href}>{link.label} →</a>
+                  </li>
+                ))}
               </ul>
             );
             return <p key={i}>{b.p}</p>;
@@ -563,7 +646,7 @@ export default function BlogPostPage({
               color: dc.cream,
             }}
           >
-            Model a DSCR scenario.
+            See if your deal qualifies.
           </h2>
           <p
             style={{
@@ -574,8 +657,9 @@ export default function BlogPostPage({
               letterSpacing: "-0.02em",
             }}
           >
-            Explore a DSCR estimate from your stated rent and loan assumptions. It is educational only;
-            confirm current pricing, program availability, and eligibility directly with a lender.
+            Enter your property's rent, purchase price, and loan amount — get a DSCR
+            (whether the property's rent can cover the loan payment), a rate estimate, and a program match in under a minute.
+            No W-2s, no tax returns, no commitment.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" as const }}>
             <button
@@ -596,7 +680,7 @@ export default function BlogPostPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Model a DSCR scenario →
+              See if your deal qualifies →
             </button>
             <a
               href="/dscr-calculator"
@@ -693,7 +777,7 @@ export default function BlogPostPage({
                       marginBottom: 10,
                     }}
                   >
-                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase" as const, color: dc.rain, background: "rgba(0,101,101,0.10)", padding: "3px 8px", borderRadius: 4 }}>
                       {r.tag}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.45)" }}>{r.date}</span>

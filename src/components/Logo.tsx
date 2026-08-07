@@ -33,14 +33,29 @@ export function Logo({
         color: ink,
         fontFamily: '"Outfit Variable", Outfit, Arial, sans-serif',
         fontSize: `${size}px`,
-        fontWeight: 900,
-        fontVariationSettings: '"wght" 900',
-        letterSpacing: "-0.065em",
-        lineHeight: 0.98,
+        fontWeight: 800,
+        fontVariationSettings: '"wght" 800',
+        letterSpacing: 0,
+        wordSpacing: "0.055em",
+        lineHeight: 0.96,
         whiteSpace: "nowrap",
       }}
     >
-      Greenstreet Finance
+      Greenstreet
+      <span style={{ fontWeight: 380, fontVariationSettings: '"wght" 380', letterSpacing: "0.006em" }}> Finance</span>
+      <span
+        aria-hidden="true"
+        style={{
+          display: "inline-block",
+          width: "0.2em",
+          height: "0.2em",
+          marginLeft: "0.11em",
+          borderRadius: 999,
+          background: "#d8d958",
+          transform: "translateY(0.055em)",
+          verticalAlign: "baseline",
+        }}
+      />
     </a>
   );
 }

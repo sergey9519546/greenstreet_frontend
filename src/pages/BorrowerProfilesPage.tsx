@@ -1,252 +1,561 @@
-import React, { useEffect, useRef, useState } from "react";
-import { DcShell, dc, Mono, H1, Lead, useRevealOnView } from "../design/dc";
-import { RiskFlame, DscrGauge, riskFromDscr } from "../design/artifacts";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  Building2,
+  Calculator,
+  CheckCircle2,
+  FileCheck,
+  Globe2,
+  Home,
+  Layers3,
+  MapPinned,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
+import { DcShell, dc, Mono } from "../design/dc";
+import ComplianceNote from "../design/ComplianceNote";
+import { DscrGauge } from "../design/artifacts";
 
-// ── Jump-nav config ───────────────────────────────────────────────────────────
-const SEGMENTS = [
-  { id: "buy-hold", label: "Buy-and-Hold" },
-  { id: "foreign-nationals", label: "Foreign Nationals" },
-  { id: "str-airbnb", label: "STR / Airbnb" },
-  { id: "vacation", label: "Vacation Homes" },
-  { id: "portfolio", label: "Portfolio Builders" },
-] as const;
-
-// ── Glossary (inline tooltips on first use) ───────────────────────────────────
-// DSCR = Debt-Service Coverage Ratio · PITIA = Principal+Interest+Tax+Insurance+HOA
-// LTV = Loan-to-Value · STR = Short-Term Rental · No-ratio = income undisclosed
-
-// ── Shared primitives ─────────────────────────────────────────────────────────
-
-const JUMP_NAV_CSS = `
-.bp-jumpnav { display: flex; gap: 8px; flex-wrap: wrap; }
-.bp-jumplink {
-  padding: 7px 14px;
-  border: 1px solid ${dc.faded};
-  border-radius: 6px;
-  background: transparent;
-  color: ${dc.dark};
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: ${dc.sans};
-  letter-spacing: -0.01em;
-  transition: background .18s, color .18s, border-color .18s;
-  text-decoration: none;
-  display: inline-block;
-}
-.bp-jumplink:hover, .bp-jumplink:focus-visible {
-  background: ${dc.dark};
-  color: ${dc.cream};
-  border-color: ${dc.dark};
-  outline: none;
-}
-@media (max-width: 767px) {
-  .bp-jumpnav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .bp-jumplink { font-size: 12px; padding: 10px 11px; min-height: 44px; display: flex; align-items: center; }
-  .bp-spec-row { align-items: flex-start; gap: 8px; }
-  .bp-spec-row > :last-child { text-align: right; }
-  .bp-cta, .bp-cta-ghost { min-height: 44px; justify-content: center; }
-}
-
-/* Segment section anchor offset for sticky nav */
-.bp-segment-anchor { scroll-margin-top: 72px; }
-
-/* Spec table row */
-.bp-spec-row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid ${dc.faded}; font-size: 13px; }
-.bp-spec-row:last-child { border-bottom: none; }
-
-/* CTA button */
-.bp-cta {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: ${dc.lemon}; color: ${dc.dark};
-  font-weight: 700; font-size: 14px;
-  border: none; cursor: pointer;
-  padding: 11px 22px; border-radius: 6px;
-  font-family: ${dc.sans}; letter-spacing: -0.01em;
-  transition: opacity .16s;
-}
-.bp-cta:hover { opacity: .88; }
-.bp-cta-ghost {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: transparent; color: ${dc.rain};
-  font-weight: 600; font-size: 13px;
-  border: 1px solid ${dc.faded}; cursor: pointer;
-  padding: 9px 18px; border-radius: 6px;
-  font-family: ${dc.sans}; letter-spacing: -0.01em;
-  transition: border-color .16s, color .16s;
-}
-.bp-cta-ghost:hover { border-color: ${dc.rain}; }
-
-/* Watch-out badge */
-.bp-watch {
-  display: flex; gap: 10px; align-items: flex-start;
-  padding: 12px 14px;
-  background: rgba(0,55,56,0.055);
-  border-radius: 7px;
-  border-left: 3px solid ${dc.rain};
-  margin-top: 10px;
-}
-.bp-watch-text { font-size: 13px; font-weight: 500; color: rgba(0,55,56,0.72); line-height: 1.55; }
-
-/* Segment grid: 2-col content + visual */
-.bp-seg-grid {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 40px;
-  align-items: start;
-}
-@media (max-width: 991px) {
-  .bp-seg-grid { grid-template-columns: 1fr; gap: 24px; }
-}
-
-/* Doc checklist */
-.bp-doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (max-width: 767px) { .bp-doc-grid { grid-template-columns: 1fr; } }
-
-/* Mistakes strip */
-.bp-mistake { padding: 16px 0; border-bottom: 1px solid ${dc.faded}; }
-.bp-mistake:last-child { border-bottom: none; }
-`;
-
-// ── Spec table ────────────────────────────────────────────────────────────────
-function SpecTable({ rows }: { rows: { k: string; v: string }[] }) {
-  return (
-    <div style={{ border: `1px solid ${dc.faded}`, borderRadius: 8, padding: "4px 16px" }}>
-      {rows.map((r) => (
-        <div key={r.k} className="bp-spec-row">
-          <span style={{ color: "rgba(0,55,56,0.55)", fontWeight: 500 }}>{r.k}</span>
-          <Mono style={{ fontSize: 13, fontWeight: 700, color: dc.dark }}>{r.v}</Mono>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Watch-out item ────────────────────────────────────────────────────────────
-function WatchOut({ text, flame }: { text: string; flame?: boolean }) {
-  return (
-    <div className="bp-watch">
-      {flame && <RiskFlame level="med" size={18} />}
-      {!flame && <span style={{ color: dc.rain, fontWeight: 800, fontSize: 14, flexShrink: 0 }}>!</span>}
-      <span className="bp-watch-text">{text}</span>
-    </div>
-  );
-}
-
-// ── Section wrapper ───────────────────────────────────────────────────────────
-function SegSection({
-  id,
-  label,
-  bg,
-  children,
-}: {
+type BorrowerProfile = {
   id: string;
   label: string;
-  bg?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      id={id}
-      className="bp-segment-anchor"
-      style={{
-        background: bg ?? dc.cream,
-        padding: `clamp(52px,6vw,80px) ${dc.pad}`,
-        borderTop: `1px solid ${dc.faded}`,
-      }}
-    >
-      <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase" as const,
-            color: dc.rain,
-            marginBottom: 12,
-          }}
-        >
-          {label}
-        </div>
-        {children}
-      </div>
-    </section>
-  );
+  kicker: string;
+  icon: LucideIcon;
+  dscr: number;
+  complexity: string;
+  fit: string;
+  program: string;
+  ltv: string;
+  fico: string;
+  reserves: string;
+  priceBand: string;
+  decision: string;
+  useWhen: string[];
+  watch: string[];
+  docs: string[];
+};
+
+const PROFILES: BorrowerProfile[] = [
+  {
+    id: "buy-hold",
+    label: "Buy-and-hold",
+    kicker: "Long-term rental file",
+    icon: Home,
+    dscr: 1.18,
+    complexity: "Standard",
+    fit: "1-10 stabilized rentals with lease or market rent support.",
+    program: "DSCR 1-4 Standard",
+    ltv: "80% max",
+    fico: "660+",
+    reserves: "3-6 mo PITIA",
+    priceBand: "cleanest lane",
+    decision: "Use the standard lane when the rent schedule and PITIA already clear the floor without a story.",
+    useWhen: [
+      "The property is leased or the 1007 rent schedule supports the payment.",
+      "Entity vesting is ready before submission.",
+      "You need a fast quote without tax returns or W-2 income.",
+    ],
+    watch: [
+      "An 81% LTV file prices like a different loan.",
+      "A DSCR at exactly 1.00x has no cushion for tax, HOA, or insurance movement.",
+    ],
+    docs: ["1007 rent schedule", "purchase contract", "LLC package", "insurance binder"],
+  },
+  {
+    id: "non-us-investors",
+    label: "Non-US investor",
+    kicker: "Passport-led DSCR",
+    icon: Globe2,
+    dscr: 1.05,
+    complexity: "High",
+    fit: "Foreign national or no US bureau credit, buying US rental property through an entity.",
+    program: "DSCR Global",
+    ltv: "70-75% max",
+    fico: "alt credit",
+    reserves: "6-12 mo PITIA",
+    priceBand: "premium lane",
+    decision: "Route here when the deal qualifies on property cash flow but the borrower file needs non-US identity and funds sourcing.",
+    useWhen: [
+      "The borrower has passport ID but no usable US credit file.",
+      "Funds can be sourced from a foreign or US bank with full paper trail.",
+      "Entity and US closing logistics are solved early.",
+    ],
+    watch: [
+      "Foreign wires add sourcing time. Budget days, not hours.",
+      "Some markets require a lower leverage cap even when DSCR passes.",
+    ],
+    docs: ["passport ID", "bank reference", "foreign funds trail", "US entity docs"],
+  },
+  {
+    id: "str-airbnb",
+    label: "STR / Airbnb",
+    kicker: "Seasonal revenue file",
+    icon: MapPinned,
+    dscr: 1.09,
+    complexity: "Volatile",
+    fit: "Short-term rental, Airbnb, VRBO, or seasonal income property.",
+    program: "DSCR STR",
+    ltv: "75% max",
+    fico: "660+",
+    reserves: "6-9 mo PITIA",
+    priceBand: "haircut lane",
+    decision: "Run STR when revenue history helps, but underwrite against the lower-of rule and local permit risk.",
+    useWhen: [
+      "The operator has trailing 12-month STR revenue or credible market support.",
+      "The property is legally rentable in the city, HOA, and insurance policy.",
+      "The borrower can survive slow-season cash flow.",
+    ],
+    watch: [
+      "A permit ban can destroy the income model mid-loan.",
+      "Gross platform revenue is not qualifying income until the haircut is applied.",
+    ],
+    docs: ["Airbnb or VRBO history", "permit evidence", "HOA rules", "commercial liability binder"],
+  },
+  {
+    id: "vacation",
+    label: "Vacation rental",
+    kicker: "Personal use boundary",
+    icon: Building2,
+    dscr: 1.12,
+    complexity: "Conditional",
+    fit: "Second-home style property that will also be rented as an investment asset.",
+    program: "DSCR 1-4 / STR",
+    ltv: "75% max",
+    fico: "660+",
+    reserves: "6 mo PITIA",
+    priceBand: "intent lane",
+    decision: "Classify intent first. The same house can be DSCR, STR, or conventional depending on use and income proof.",
+    useWhen: [
+      "Rental use is real and documented before closing.",
+      "Personal use stays inside the stated occupancy limits.",
+      "Insurance names rental activity, not just homeowner coverage.",
+    ],
+    watch: [
+      "Too much personal use can move the file out of business-purpose DSCR.",
+      "Seasonal markets need reserves even when annual DSCR passes.",
+    ],
+    docs: ["occupancy certification", "rental plan", "insurance binder", "management agreement"],
+  },
+  {
+    id: "portfolio",
+    label: "Portfolio builder",
+    kicker: "Multi-property desk",
+    icon: Layers3,
+    dscr: 1.32,
+    complexity: "Structured",
+    fit: "10+ doors, bulk terms, blanket loan, or cross-collateral request.",
+    program: "DSCR Portfolio / Blanket",
+    ltv: "75% max",
+    fico: "680+ preferred",
+    reserves: "blended review",
+    priceBand: "scale lane",
+    decision: "Use portfolio when one desk should price the whole relationship instead of forcing door-by-door approvals.",
+    useWhen: [
+      "You need one approval for multiple addresses.",
+      "The blended portfolio DSCR is stronger than one thin property alone.",
+      "Ownership is clean enough to pledge assets together.",
+    ],
+    watch: [
+      "Cross-collateral releases must be priced before you sell one door.",
+      "Messy LLC ownership slows a portfolio file more than weak rent usually does.",
+    ],
+    docs: ["rent roll", "property schedule", "entity org chart", "mortgage statements"],
+  },
+] as const;
+
+const DOCS = [
+  { title: "Property evidence", body: "Executed contract, mortgage statement, 1007 or 1025 rent schedule, leases, and HOA dues." },
+  { title: "Borrower evidence", body: "Photo ID, credit authorization, entity documents, signing authority, and ownership trail." },
+  { title: "Cash evidence", body: "Down payment source, reserves after close, gift or transfer trail, and foreign wire support when needed." },
+  { title: "Risk evidence", body: "Insurance binder, permit status, local rental restrictions, PPP state rules, and portfolio release terms." },
+];
+
+const RED_FLAGS = [
+  { label: "Thin DSCR", detail: "1.00x is a floor, not a safety margin.", severity: "structure before lock" },
+  { label: "Entity not ready", detail: "Missing or stale LLC docs can add days to underwriting.", severity: "fix before submit" },
+  { label: "STR permit gap", detail: "The revenue model fails if the city or HOA blocks rentals.", severity: "kill-switch" },
+  { label: "Foreign funds gap", detail: "Unclear wire sourcing can hold closing even when DSCR passes.", severity: "source early" },
+  { label: "Portfolio ownership sprawl", detail: "Side partners and old entities slow blanket structures.", severity: "clean title path" },
+];
+
+const PAGE_CSS = `
+.bp-page { color: ${dc.dark}; background: ${dc.cream}; }
+.bp-hero {
+  min-height: min(760px, calc(100dvh - 96px));
+  color: ${dc.cream};
+  background:
+    linear-gradient(90deg, rgba(0,55,56,0.94) 0%, rgba(0,55,56,0.82) 38%, rgba(0,55,56,0.26) 74%, rgba(0,55,56,0.12) 100%),
+    url("/img/generated/scenes/advisors-laptop-charts.png") center / cover no-repeat;
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+}
+.bp-wrap { max-width: ${dc.maxW}px; margin: 0 auto; padding-left: ${dc.pad}; padding-right: ${dc.pad}; }
+.bp-hero-copy { max-width: 980px; padding: clamp(64px, 7vw, 92px) 0 clamp(34px, 4vw, 42px); }
+.bp-eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: ${dc.lemon}; margin-bottom: 18px; }
+.bp-hero h1 {
+  max-width: 12.5ch;
+  margin: 0;
+  font-size: clamp(52px, 7.1vw, 92px);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.bp-hero-lead {
+  max-width: 62ch;
+  margin: 24px 0 0;
+  color: rgba(238,239,211,0.78);
+  font-size: clamp(17px, 1.35vw, 21px);
+  line-height: 1.38;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.bp-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+.bp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 14px 20px;
+  min-height: 50px;
+  font-family: ${dc.sans};
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+}
+.bp-btn:hover { transform: translateY(-2px); }
+.bp-btn:active { transform: translateY(1px); }
+.bp-btn:focus-visible, .bp-profile-button:focus-visible, .bp-card:focus-visible { outline: 2px solid ${dc.lemon}; outline-offset: 3px; }
+.bp-btn-primary { background: ${dc.lemon}; color: ${dc.dark}; }
+.bp-btn-secondary { background: rgba(238,239,211,0.08); color: ${dc.cream}; border-color: rgba(238,239,211,0.24); }
+.bp-btn-secondary:hover { background: ${dc.cream}; color: ${dc.dark}; border-color: ${dc.cream}; }
+.bp-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  max-width: 760px;
+  margin-top: 44px;
+  border-top: 1px solid rgba(238,239,211,0.20);
+  border-bottom: 1px solid rgba(238,239,211,0.20);
+}
+.bp-hero-metric { padding: 18px 22px 18px 0; border-right: 1px solid rgba(238,239,211,0.16); }
+.bp-hero-metric:last-child { border-right: 0; padding-left: 22px; }
+.bp-hero-metric + .bp-hero-metric { padding-left: 22px; }
+.bp-hero-metric strong { display: block; font-family: ${dc.mono}; font-size: clamp(24px, 2.2vw, 34px); letter-spacing: -0.04em; color: ${dc.lemon}; line-height: 1; }
+.bp-hero-metric span { display: block; margin-top: 7px; font-size: 12px; color: rgba(238,239,211,0.64); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.bp-rail {
+  background: ${dc.dark};
+  border-top: 1px solid rgba(238,239,211,0.14);
+  color: ${dc.cream};
+}
+.bp-rail-inner {
+  max-width: ${dc.maxW}px;
+  margin: 0 auto;
+  padding: 18px ${dc.pad};
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+.bp-rail-label { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(238,239,211,0.58); }
+.bp-rail-buttons { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.bp-chip {
+  border: 1px solid rgba(238,239,211,0.18);
+  border-radius: 8px;
+  background: rgba(238,239,211,0.04);
+  color: ${dc.cream};
+  padding: 10px 12px;
+  white-space: nowrap;
+  font: 750 13px/1 ${dc.sans};
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.bp-chip.is-active, .bp-chip:hover { background: ${dc.lemon}; color: ${dc.dark}; border-color: ${dc.lemon}; }
+.bp-section { padding: clamp(72px, 8vw, 132px) 0; }
+.bp-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(320px, 0.5fr);
+  gap: clamp(24px, 5vw, 72px);
+  align-items: end;
+  margin-bottom: clamp(32px, 5vw, 68px);
+}
+.bp-section h2 {
+  margin: 0;
+  font-size: clamp(36px, 5vw, 76px);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.bp-section-copy { margin: 0; max-width: 58ch; color: rgba(0,55,56,0.68); font-size: 17px; line-height: 1.5; letter-spacing: 0; }
+.bp-workbench { background: ${dc.cream}; }
+.bp-workbench-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 410px) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 36px);
+  align-items: start;
+}
+.bp-profile-list { position: sticky; top: 116px; display: grid; gap: 10px; }
+.bp-profile-button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  border: 1px solid rgba(0,55,56,0.18);
+  border-radius: 8px;
+  background: rgba(232,233,191,0.54);
+  color: ${dc.dark};
+  padding: 14px;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.bp-profile-button:hover { transform: translateX(3px); background: ${dc.mintBg}; }
+.bp-profile-button.is-active { background: ${dc.dark}; color: ${dc.cream}; border-color: ${dc.dark}; }
+.bp-profile-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: ${dc.dark};
+  color: ${dc.lemon};
+}
+.bp-profile-button.is-active .bp-profile-icon { background: ${dc.lemon}; color: ${dc.dark}; }
+.bp-profile-label { display: block; font-weight: 800; font-size: 15px; letter-spacing: 0; }
+.bp-profile-kicker { display: block; margin-top: 4px; color: rgba(0,55,56,0.58); font-size: 12px; font-weight: 650; letter-spacing: 0.02em; text-transform: uppercase; }
+.bp-profile-button.is-active .bp-profile-kicker { color: rgba(238,239,211,0.62); }
+.bp-dossier {
+  background: ${dc.dark};
+  color: ${dc.cream};
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(238,239,211,0.16);
+  box-shadow: 0 24px 80px rgba(0,55,56,0.18);
+}
+.bp-dossier-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  gap: 0;
+}
+.bp-dossier-main { padding: clamp(28px, 4vw, 52px); }
+.bp-dossier-main h3 {
+  margin: 14px 0 0;
+  font-size: clamp(34px, 4.8vw, 68px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+.bp-dossier-fit { max-width: 62ch; margin: 18px 0 0; color: rgba(238,239,211,0.72); font-size: 17px; line-height: 1.48; letter-spacing: 0; }
+.bp-mini-label { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: ${dc.lemon}; }
+.bp-dossier-side {
+  border-left: 1px solid rgba(238,239,211,0.13);
+  padding: clamp(26px, 3vw, 38px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: rgba(238,239,211,0.045);
+}
+.bp-gauge-caption { text-align: center; color: rgba(238,239,211,0.66); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.bp-spec-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid rgba(238,239,211,0.12);
+  border-bottom: 1px solid rgba(238,239,211,0.12);
+}
+.bp-spec { padding: 18px 20px; border-right: 1px solid rgba(238,239,211,0.12); }
+.bp-spec:last-child { border-right: 0; }
+.bp-spec span { display: block; color: rgba(238,239,211,0.52); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.bp-spec strong { display: block; color: ${dc.cream}; font-size: 15px; font-weight: 800; line-height: 1.25; }
+.bp-dossier-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+}
+.bp-dossier-block { padding: clamp(26px, 3.4vw, 44px); border-right: 1px solid rgba(238,239,211,0.12); }
+.bp-dossier-block:last-child { border-right: 0; }
+.bp-dossier-list { display: grid; gap: 12px; margin-top: 18px; }
+.bp-dossier-item { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; color: rgba(238,239,211,0.76); font-size: 14px; line-height: 1.45; letter-spacing: 0; }
+.bp-dossier-item svg { color: ${dc.lemon}; margin-top: 1px; }
+.bp-dossier-item.is-risk svg { color: #e6b84d; }
+.bp-dossier-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.bp-note { margin-top: 20px; max-width: 860px; }
+.bp-matrix { background: ${dc.mintBg}; border-top: 1px solid rgba(0,55,56,0.16); }
+.bp-card-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+.bp-card {
+  grid-column: span 2;
+  min-height: 260px;
+  border: 1px solid rgba(0,55,56,0.17);
+  border-radius: 10px;
+  background: ${dc.cream};
+  color: ${dc.dark};
+  padding: clamp(20px, 2vw, 28px);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.bp-card:nth-child(1), .bp-card:nth-child(5) { grid-column: span 3; }
+.bp-card:hover { transform: translateY(-4px); border-color: ${dc.dark}; background: #f4f5dc; }
+.bp-card.is-active { background: ${dc.dark}; color: ${dc.cream}; border-color: ${dc.dark}; }
+.bp-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.bp-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: ${dc.mintBg};
+  color: ${dc.dark};
+}
+.bp-card.is-active .bp-card-icon { background: ${dc.lemon}; color: ${dc.dark}; }
+.bp-card h3 { margin: 24px 0 9px; font-size: clamp(24px, 2.6vw, 38px); line-height: 1; letter-spacing: -0.025em; font-weight: 700; }
+.bp-card p { margin: 0; color: rgba(0,55,56,0.66); font-size: 14px; line-height: 1.48; letter-spacing: 0; }
+.bp-card.is-active p { color: rgba(238,239,211,0.70); }
+.bp-card-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+.bp-card-meta span { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(0,55,56,0.48); margin-bottom: 4px; }
+.bp-card.is-active .bp-card-meta span { color: rgba(238,239,211,0.48); }
+.bp-card-meta strong { font-size: 14px; line-height: 1.25; }
+.bp-file { background: ${dc.cream}; }
+.bp-file-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 5vw, 72px);
+  align-items: start;
+}
+.bp-doc-list { display: grid; border-top: 1px solid rgba(0,55,56,0.18); }
+.bp-doc-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 16px;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(0,55,56,0.18);
+}
+.bp-doc-row svg { color: ${dc.rain}; }
+.bp-doc-row h3 { margin: 0 0 6px; font-size: 20px; line-height: 1.1; letter-spacing: -0.015em; }
+.bp-doc-row p { margin: 0; color: rgba(0,55,56,0.66); line-height: 1.5; letter-spacing: 0; }
+.bp-redflags { background: ${dc.dark}; color: ${dc.cream}; }
+.bp-redflags .bp-section-copy { color: rgba(238,239,211,0.66); }
+.bp-redflag-list { display: grid; border-top: 1px solid rgba(238,239,211,0.16); }
+.bp-redflag-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.32fr) minmax(0, 1fr) minmax(160px, 0.24fr);
+  gap: 22px;
+  align-items: center;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(238,239,211,0.16);
+}
+.bp-redflag-row strong { font-size: 20px; letter-spacing: -0.015em; }
+.bp-redflag-row p { margin: 0; color: rgba(238,239,211,0.70); line-height: 1.45; letter-spacing: 0; }
+.bp-severity { justify-self: end; color: ${dc.lemon}; font-size: 12px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
+.bp-close { background: ${dc.dark}; color: ${dc.cream}; padding: clamp(78px, 9vw, 132px) 0; border-top: 1px solid rgba(238,239,211,0.16); }
+.bp-close-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.46fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: end;
+}
+.bp-close h2 { margin: 0; max-width: 12ch; font-size: clamp(42px, 6vw, 92px); line-height: 0.94; letter-spacing: -0.03em; }
+.bp-close p { margin: 18px 0 0; max-width: 54ch; color: rgba(238,239,211,0.70); font-size: 17px; line-height: 1.48; letter-spacing: 0; }
+.bp-close-panel { border-top: 1px solid rgba(238,239,211,0.20); padding-top: 22px; }
+.bp-close-panel .bp-actions { margin-top: 22px; }
+@media (max-width: 1100px) {
+  .bp-dossier-top, .bp-dossier-bottom, .bp-file-grid, .bp-close-inner { grid-template-columns: 1fr; }
+  .bp-dossier-side, .bp-dossier-block { border-left: 0; border-right: 0; border-top: 1px solid rgba(238,239,211,0.12); }
+  .bp-spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bp-spec:nth-child(2) { border-right: 0; }
+  .bp-spec:nth-child(-n+2) { border-bottom: 1px solid rgba(238,239,211,0.12); }
+}
+@media (max-width: 991px) {
+  .bp-hero { min-height: auto; align-items: end; background-position: 58% center; }
+  .bp-hero-copy { padding-top: 72px; }
+  .bp-section-head, .bp-workbench-grid { grid-template-columns: 1fr; }
+  .bp-profile-list { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bp-card-grid { grid-template-columns: 1fr 1fr; }
+  .bp-card, .bp-card:nth-child(1), .bp-card:nth-child(5) { grid-column: span 1; }
+}
+@media (max-width: 640px) {
+  .bp-hero {
+    background:
+      linear-gradient(180deg, rgba(0,55,56,0.96) 0%, rgba(0,55,56,0.86) 55%, rgba(0,55,56,0.60) 100%),
+      url("/img/generated/scenes/advisors-laptop-charts.png") 56% center / cover no-repeat;
+  }
+  .bp-hero h1 { font-size: clamp(46px, 13.8vw, 62px); max-width: 8.5ch; }
+  .bp-hero-lead { font-size: 16px; }
+  .bp-hero-metrics { grid-template-columns: 1fr; }
+  .bp-hero-metric, .bp-hero-metric + .bp-hero-metric, .bp-hero-metric:last-child { padding: 14px 0; border-right: 0; border-bottom: 1px solid rgba(238,239,211,0.16); }
+  .bp-hero-metric:last-child { border-bottom: 0; }
+  .bp-rail-inner { grid-template-columns: 1fr; }
+  .bp-profile-list, .bp-card-grid, .bp-spec-grid { grid-template-columns: 1fr; }
+  .bp-spec, .bp-spec:nth-child(2) { border-right: 0; border-bottom: 1px solid rgba(238,239,211,0.12); }
+  .bp-spec:last-child { border-bottom: 0; }
+  .bp-dossier-main, .bp-dossier-side, .bp-dossier-block { padding: 24px 18px; }
+  .bp-redflag-row { grid-template-columns: 1fr; gap: 8px; }
+  .bp-severity { justify-self: start; }
+  .bp-btn { width: 100%; }
+}
+`;
+
+function getHashProfileId() {
+  if (typeof window === "undefined") return null;
+  const id = window.location.hash.replace(/^#/, "");
+  return PROFILES.some((profile) => profile.id === id) ? id : null;
 }
 
-// ── Pill qualifier ────────────────────────────────────────────────────────────
-function IsThisYou({ text }: { text: string }) {
+function scrollToWorkbench() {
+  document.getElementById("profile-workbench")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function PrimaryActions({
+  onQualify,
+  onCalculator,
+  light = false,
+}: {
+  onQualify: () => void;
+  onCalculator: () => void;
+  light?: boolean;
+}) {
   return (
-    <div
-      style={{
-        display: "inline-block",
-        background: dc.mintBg,
-        border: `1px solid ${dc.faded}`,
-        borderRadius: 20,
-        padding: "5px 14px",
-        fontSize: 13,
-        fontWeight: 600,
-        color: dc.dark,
-        marginBottom: 16,
-      }}
-    >
-      Is this you? {text}
+    <div className="bp-actions">
+      <button className="bp-btn bp-btn-primary" type="button" onClick={onQualify}>
+        <ShieldCheck size={18} strokeWidth={2} />
+        Price my borrower lane
+        <ArrowRight size={17} strokeWidth={2.1} />
+      </button>
+      <button className="bp-btn bp-btn-secondary" type="button" onClick={onCalculator} style={light ? { color: dc.dark, borderColor: "rgba(0,55,56,0.22)" } : undefined}>
+        <Calculator size={18} strokeWidth={2} />
+        Run the DSCR calculator
+      </button>
     </div>
   );
 }
 
-// ── Shared checklist / mistakes data ─────────────────────────────────────────
-const DOCS = [
-  {
-    doc: "Purchase contract (or refi authorization)",
-    note: "Fully executed. Wholesaler assignments need the assignment addendum.",
-  },
-  {
-    doc: "1007 / 1025 appraisal with rent schedule",
-    note: "A Form 1007 is commonly used as a market-rent reference; the applicable provider decides what documentation it requires.",
-  },
-  {
-    doc: "12 months bank statements (all pages)",
-    note: "Reserve and asset-treatment requirements vary by provider; verify them independently.",
-  },
-  {
-    doc: "Credit report (tri-merge, ≤90 days)",
-    note: "Credit-report treatment varies by provider and must be confirmed with an appropriately licensed professional.",
-  },
-  {
-    doc: "Entity docs (LLC / Corp / Trust)",
-    note: "Ownership and entity requirements vary by provider and jurisdiction; obtain legal advice where appropriate.",
-  },
-  {
-    doc: "Insurance binder (hazard + liability)",
-    note: "Confirm insurance requirements and coverage directly with an insurer and the relevant provider.",
-  },
-];
+function Spec({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bp-spec">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
 
-const MISTAKES = [
-  {
-    mistake: "Not vesting in an LLC",
-    fix: "Entity-vs.-individual ownership can affect legal, tax, insurance, and financing considerations. Verify them before acting.",
-  },
-  {
-    mistake: "Rate-shopping over weeks instead of days",
-    fix: "Multiple mortgage inquiries within a 14-day window count as one pull under FICO. Compress all requests into that window.",
-  },
-  {
-    mistake: "Down payment from a gift",
-    fix: "Source-of-funds requirements vary. Confirm documentation requirements with the relevant provider before relying on funds.",
-  },
-  {
-    mistake: "Outdated LLC operating agreement",
-    fix: "Have entity documents reviewed and kept current by qualified legal advisers.",
-  },
-  {
-    mistake: "Closing mid-month",
-    fix: "Closing costs and timing vary. Obtain a written, verified estimate from the relevant parties before scheduling.",
-  },
-];
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default function BorrowerProfilesPage({
   onBack,
   onNavigate,
@@ -254,765 +563,307 @@ export default function BorrowerProfilesPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  void onBack;
+  const [activeId, setActiveId] = useState(() => getHashProfileId() ?? PROFILES[0].id);
+  const active = useMemo(() => PROFILES.find((p) => p.id === activeId) ?? PROFILES[0], [activeId]);
+  const ActiveIcon = active.icon;
+
   useEffect(() => {
-    document.title = "Who We Serve | Greenstreet Finance";
-    // Deep-linked from the nav/footer segment links (/borrower-profiles#str-airbnb
-    // etc.) — scroll to that section after first paint; otherwise start at top.
-    const id = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
-    if (id) {
-      const t = setTimeout(() => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 90);
-      return () => clearTimeout(t);
-    }
-    window.scrollTo(0, 0);
+    document.title = "Borrower Profiles | Greenstreet Finance";
+    const applyHash = (shouldScroll: boolean) => {
+      const hashProfile = getHashProfileId();
+      if (hashProfile) {
+        setActiveId(hashProfile);
+        if (shouldScroll) {
+          window.setTimeout(scrollToWorkbench, 120);
+        }
+        return;
+      }
+      window.scrollTo(0, 0);
+    };
+    applyHash(true);
+    const onHashChange = () => applyHash(true);
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  // Smooth-scroll jump handler — interaction only, no page-load animation
-  function jumpTo(id: string) {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  const qualify = () => (window as any).openQualify?.();
+  const qualify = () => {
+    if (typeof window !== "undefined" && (window as any).openQualify) {
+      (window as any).openQualify();
+      return;
+    }
+    onNavigate("dscr-calculator");
+  };
   const calc = () => onNavigate("dscr-calculator");
+  const chooseProfile = (id: string, shouldScroll = false) => {
+    setActiveId(id);
+    if (typeof window !== "undefined") {
+      window.history.replaceState({}, "", `/borrower-profiles#${id}`);
+    }
+    if (shouldScroll) scrollToWorkbench();
+  };
 
   return (
-    <DcShell
-      onNavigate={onNavigate}
-      navLinks={[
-        { label: "DSCR Calc", view: "dscr-calculator" },
-        { label: "State Rules", view: "state-laws" },
-      ]}
-      cta={{ label: "Get a preliminary estimate →", view: "dscr-calculator" }}
-    >
-      <style>{JUMP_NAV_CSS}</style>
-
-      {/* ── HERO ── */}
-      <section
-        style={{
-          background: dc.mintBg,
-          color: dc.dark,
-          padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase" as const,
-              color: dc.rain,
-              marginBottom: 18,
-            }}
-          >
-            Who Greenstreet serves
-          </div>
-          <H1 style={{ margin: "0 0 18px", maxWidth: "22ch" }}>
-            Educational DSCR planning for real estate investors.
-          </H1>
-          {/* DSCR glossed on first use */}
-          <Lead
-            style={{
-              color: "rgba(0,55,56,0.65)",
-              maxWidth: "58ch",
-              margin: "0 0 28px",
-            }}
-          >
-            DSCR (Debt-Service Coverage Ratio) is a way to compare estimated property income with estimated debt service. Greenstreet provides educational scenarios here; its provider role, licensing, terms, availability, and counterparties are not verified on this page. Pick an investor segment below.
-          </Lead>
-
-          {/* ── Jump-nav ── */}
-          <nav aria-label="Jump to investor segment" className="bp-jumpnav">
-            {SEGMENTS.map((s) => (
-              <button
-                key={s.id}
-                className="bp-jumplink"
-                onClick={() => jumpTo(s.id)}
-              >
-                {s.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SEGMENT 1 — Buy-and-Hold Investors
-      ══════════════════════════════════════════════════════════════ */}
-      <SegSection id="buy-hold" label="Segment 01 · Buy-and-Hold Investors" bg={dc.cream}>
-        <div className="bp-seg-grid">
-          <div>
-            <IsThisYou text="You own (or are buying) 1–10 long-term rentals and want to close without tax returns." />
-            <h2
-              style={{
-                fontSize: "clamp(26px,3vw,40px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: "0 0 14px",
-              }}
-            >
-              Buy-and-Hold Investors
-            </h2>
-            <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              A buy-and-hold scenario compares estimated rent with PITIA (Principal + Interest + Taxes + Insurance + HOA). It is a planning exercise, not a qualification test or a statement of available financing.
-            </p>
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
-            <SpecTable
-              rows={[
-                { k: "Scenario type", v: "Buy-and-hold example" },
-                { k: "Rate", v: "Illustrative assumption" },
-                { k: "DSCR", v: "Planning metric" },
-                { k: "LTV", v: "Input to verify" },
-                { k: "Credit", v: "Input to verify" },
-                { k: "Loan size", v: "Input to verify" },
-              ]}
-            />
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut text="A narrow cash-flow cushion can disappear when rent, vacancy, taxes, insurance, or HOA dues change. Stress-test more than one assumption." />
-            <WatchOut text="Actual terms, pricing, appraisal treatment, and eligibility are not published or verified here; confirm them independently before acting." />
-
-            <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={calc}>Run DSCR Calculator</button>
-            </div>
-            <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Educational scenario only — not a quote, application, approval, or commitment.
-            </p>
-          </div>
-
-          {/* Visual */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-            <DscrGauge value={1.18} size={200} label={true} />
-            <div style={{ textAlign: "center", fontSize: 12, fontWeight: 500, color: "rgba(0,55,56,0.5)" }}>
-              Illustrative buy-and-hold DSCR
-            </div>
-            <div
-              style={{
-                marginTop: 8,
-                padding: "14px 18px",
-                background: dc.mintBg,
-                border: `1px solid ${dc.faded}`,
-                borderRadius: 8,
-                fontSize: 13,
-                fontWeight: 500,
-                color: dc.dark,
-                lineHeight: 1.55,
-              }}
-            >
-              <strong style={{ display: "block", marginBottom: 4, fontSize: 12, letterSpacing: "0.03em", textTransform: "uppercase" as const, color: dc.rain }}>Entity tip</strong>
-              Entity, ownership, and legal requirements vary. Confirm them with qualified legal and financing advisers before submitting anything.
-            </div>
-          </div>
-        </div>
-      </SegSection>
-
-      {/* ══════════════════════════════════════════════════════════════
-          SEGMENT 2 — Foreign Nationals
-      ══════════════════════════════════════════════════════════════ */}
-      <SegSection id="foreign-nationals" label="Segment 02 · Foreign Nationals" bg={dc.mintBg}>
-        <div className="bp-seg-grid">
-          <div>
-            <IsThisYou text="You live outside the US, have no US credit file, and want to buy US rental property through an LLC." />
-            <h2
-              style={{
-                fontSize: "clamp(26px,3vw,40px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: "0 0 14px",
-              }}
-            >
-              Foreign Nationals{" "}
-              <RiskFlame level="high" size={28} />
-            </h2>
-            <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              International-investor scenarios can involve different documentation, tax, currency, and legal considerations. This page does not state whether any provider offers a foreign-national product or what its requirements may be.
-              <br /><br />
-              <em>Foreign national</em> = non-US-citizen / non-permanent-resident investor with no ITIN or US-bureau credit file.
-            </p>
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
-            <SpecTable
-              rows={[
-                { k: "Scenario type", v: "International example" },
-                { k: "Rate", v: "Illustrative assumption" },
-                { k: "DSCR", v: "Planning metric" },
-                { k: "Cash", v: "Input to verify" },
-                { k: "Documentation", v: "Input to verify" },
-                { k: "Entity", v: "Input to verify" },
-              ]}
-            />
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut
-              text="International transactions can add documentation, currency, tax, and timing risk. Obtain advice appropriate to the jurisdictions involved before committing funds."
-              flame
-            />
-            <WatchOut
-              text="Verify the receiving institution, transfer process, documentation, and fees directly with the relevant provider and advisers; this page does not publish those requirements."
-              flame
-            />
-            <WatchOut text="Do not infer a rate, eligibility, or product availability from this example. Use only verified terms from an appropriately licensed provider." />
-
-            <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>Explore planning examples</button>
-            </div>
-            <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Educational scenario only — not a quote, application, approval, or commitment.
-            </p>
-          </div>
-
-          {/* Visual */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            <div
-              style={{
-                padding: "20px",
-                background: dc.dark,
-                borderRadius: 12,
-                border: `1px solid rgba(238,239,211,0.12)`,
-                width: "100%",
-              }}
-            >
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, color: dc.lemon, marginBottom: 12 }}>
-                Risk profile
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <RiskFlame level="high" size={22} />
-                <span style={{ color: dc.cream, fontSize: 14, fontWeight: 600 }}>Higher complexity</span>
-              </div>
-              <div style={{ fontSize: 13, color: "rgba(238,239,211,0.6)", lineHeight: 1.55 }}>
-                Provider availability and roles are not verified on this page. Confirm them directly with an appropriately licensed provider.
+    <DcShell onNavigate={onNavigate}>
+      <style>{PAGE_CSS}</style>
+      <div className="bp-page">
+        <section className="bp-hero" aria-labelledby="bp-hero-title">
+          <div className="bp-wrap">
+            <div className="bp-hero-copy">
+              <div className="bp-eyebrow">Borrower profile desk</div>
+              <h1 id="bp-hero-title">Match the borrower before you quote the deal.</h1>
+              <p className="bp-hero-lead">
+                Greenstreet routes DSCR loans by borrower lane, property income, reserves, entity structure, and state risk. Pick the profile first, then price the loan with the right documents on the desk.
+              </p>
+              <PrimaryActions onQualify={qualify} onCalculator={calc} />
+              <div className="bp-hero-metrics" aria-label="Borrower profile coverage">
+                <div className="bp-hero-metric">
+                  <strong>5</strong>
+                  <span>borrower lanes</span>
+                </div>
+                <div className="bp-hero-metric">
+                  <strong>0</strong>
+                  <span>income docs first</span>
+                </div>
+                <div className="bp-hero-metric">
+                  <strong>60s</strong>
+                  <span>preliminary DSCR pass</span>
+                </div>
               </div>
             </div>
-            <div
-              style={{
-                padding: "14px 16px",
-                background: dc.mintBg,
-                borderRadius: 8,
-                border: `1px solid ${dc.faded}`,
-                width: "100%",
-                fontSize: 13,
-                lineHeight: 1.55,
-              }}
-            >
-              <strong style={{ display: "block", marginBottom: 4, fontSize: 12, letterSpacing: "0.03em", textTransform: "uppercase" as const, color: dc.rain }}>What "no-ratio" means</strong>
-              This term can be used differently by providers. Do not treat this educational label as a statement of documentation, underwriting, or eligibility requirements.
-            </div>
           </div>
-        </div>
-      </SegSection>
+        </section>
 
-      {/* ══════════════════════════════════════════════════════════════
-          SEGMENT 3 — STR / Airbnb Hosts
-      ══════════════════════════════════════════════════════════════ */}
-      <SegSection id="str-airbnb" label="Segment 03 · STR & Airbnb Hosts" bg={dc.cream}>
-        <div className="bp-seg-grid">
-          <div>
-            <IsThisYou text="You run (or plan to run) a short-term rental on Airbnb, VRBO, or a booking platform in a seasonal market." />
-            <h2
-              style={{
-                fontSize: "clamp(26px,3vw,40px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: "0 0 14px",
-              }}
-            >
-              STR &amp; Airbnb Hosts{" "}
-              <RiskFlame level="med" size={26} />
-            </h2>
-            <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              STR (Short-Term Rental) income can swing month-to-month. Use conservative rent, vacancy, operating-cost, and tax assumptions when planning; this page does not state any provider's qualifying method or available product.
-              <br /><br />
-              State and municipal STR licensing rules vary sharply — check <button onClick={() => onNavigate("state-laws")} style={{ background: "none", border: "none", color: dc.rain, fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 15 }}>State Rules</button> before you contract.
-            </p>
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
-            <SpecTable
-              rows={[
-                { k: "Scenario type", v: "STR example" },
-                { k: "Rate", v: "Illustrative assumption" },
-                { k: "Rent", v: "Input to verify" },
-                { k: "Revenue", v: "Input to verify" },
-                { k: "LTV", v: "Input to verify" },
-                { k: "Credit", v: "Input to verify" },
-              ]}
-            />
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut
-              text="Seasonality can materially change actual cash flow. Test several revenue and expense cases rather than relying on a single projection."
-              flame
-            />
-            <WatchOut text="HOA restrictions and local STR rules can change. Confirm current requirements with the relevant authority and association." />
-            <WatchOut text="Confirm insurance coverage and exclusions directly with an insurer before relying on any rental-income plan." />
-
-            <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("state-laws")}>Check state STR rules</button>
-            </div>
-            <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Educational scenario only — not a quote, application, approval, or commitment.
-            </p>
-          </div>
-
-          {/* Visual */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div
-              style={{
-                background: dc.mintBg,
-                borderRadius: 10,
-                border: `1px solid ${dc.faded}`,
-                padding: "18px 20px",
-              }}
-            >
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 10 }}>
-                How rent is calculated
-              </div>
-              {[
-                { label: "Gross STR revenue (12-mo)", val: "$42,000", dim: false },
-                { label: "75% qualifying haircut", val: "× 0.75", dim: true },
-                { label: "Qualifying annual income", val: "$31,500", dim: false },
-                { label: "Monthly qualifying rent", val: "$2,625", dim: false },
-                { label: "PITIA (example)", val: "$2,400", dim: true },
-                { label: "DSCR", val: "1.09x", dim: false },
-              ].map((row) => (
-                <div
-                  key={row.label}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "7px 0",
-                    borderBottom: `1px solid ${dc.faded}`,
-                    fontSize: 13,
-                  }}
+        <section className="bp-rail" aria-label="Borrower profile shortcuts">
+          <div className="bp-rail-inner">
+            <div className="bp-rail-label">Choose a lane</div>
+            <div className="bp-rail-buttons">
+              {PROFILES.map((profile) => (
+                <button
+                  key={profile.id}
+                  type="button"
+                  className={`bp-chip${profile.id === activeId ? " is-active" : ""}`}
+                  onClick={() => chooseProfile(profile.id, true)}
                 >
-                  <span style={{ color: row.dim ? "rgba(0,55,56,0.45)" : dc.dark, fontWeight: 500 }}>{row.label}</span>
-                  <Mono style={{ fontSize: 13, fontWeight: 700, color: row.label === "DSCR" ? dc.rain : dc.dark }}>
-                    {row.val}
-                  </Mono>
-                </div>
+                  {profile.label}
+                </button>
               ))}
             </div>
-            <div style={{ textAlign: "center", fontSize: 12, color: "rgba(0,55,56,0.4)" }}>
-              Example only — actual income varies.
-            </div>
           </div>
-        </div>
-      </SegSection>
+        </section>
 
-      {/* ══════════════════════════════════════════════════════════════
-          SEGMENT 4 — Vacation & Second Homes
-      ══════════════════════════════════════════════════════════════ */}
-      <SegSection id="vacation" label="Segment 04 · Vacation & Second Homes" bg={dc.mintBg}>
-        <div className="bp-seg-grid">
-          <div>
-            <IsThisYou text="You want to buy a vacation property you'll use part-time but rent out the rest of the year." />
-            <h2
-              style={{
-                fontSize: "clamp(26px,3vw,40px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: "0 0 14px",
-              }}
-            >
-              Vacation &amp; Second Homes
-            </h2>
-            <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              Vacation and second-home use can create distinct tax, insurance, HOA, local-rule, and financing questions. This page provides planning ideas only; it does not state a provider's underwriting approach or available financing.
-            </p>
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
-            <SpecTable
-              rows={[
-                { k: "Scenario type", v: "Mixed-use example" },
-                { k: "Rate", v: "Illustrative assumption" },
-                { k: "DSCR", v: "Planning metric" },
-                { k: "LTV", v: "Input to verify" },
-                { k: "Credit", v: "Input to verify" },
-                { k: "Use", v: "Input to verify" },
-              ]}
-            />
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut text="Personal use can affect tax, insurance, HOA, and financing treatment. Confirm the applicable rules before submitting anything." />
-            <WatchOut text="Seasonal rental markets require conservative revenue assumptions. Do not infer any provider's treatment from this example." />
-            <WatchOut text="Homeowners / vacation rental insurance must cover short-term rental activity. Personal umbrella policies generally don't extend to paying guests." />
-
-            <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={calc}>Model the DSCR →</button>
-            </div>
-            <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Educational scenario only — not a quote, application, approval, or commitment.
-            </p>
-          </div>
-
-          {/* Visual */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div
-              style={{
-                padding: "18px 20px",
-                background: dc.dark,
-                borderRadius: 10,
-                border: `1px solid rgba(238,239,211,0.12)`,
-              }}
-            >
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: dc.lemon, marginBottom: 12 }}>
-                Personal-use thresholds
+        <section id="profile-workbench" className="bp-section bp-workbench">
+          <div className="bp-wrap">
+            <div className="bp-section-head">
+              <div>
+                <div className="bp-eyebrow" style={{ color: dc.rain }}>Profile workbench</div>
+                <h2>One screen for the lane, the terms, and the trap doors.</h2>
               </div>
-              {[
-                { label: "≤ 14 days/yr personal use", pass: true },
-                { label: "≤ 10% of total rental days", pass: true },
-                { label: "> 14 days personal use", pass: false },
-                { label: "No rental income at all", pass: false },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "8px 0",
-                    borderBottom: `1px solid rgba(238,239,211,0.1)`,
-                    fontSize: 13,
-                    color: dc.cream,
-                  }}
-                >
-                  <span style={{ color: item.pass ? "#4dbd97" : "#ff6b6b", fontWeight: 800 }}>
-                    {item.pass ? "✓" : "✗"}
-                  </span>
-                  {item.label}
-                </div>
-              ))}
+              <p className="bp-section-copy">
+                The old page made users read five long essays. This version behaves like an intake desk: choose the borrower, see the underwriting lane, then check what can stop the file before anyone locks a rate.
+              </p>
             </div>
-            <div
-              style={{
-                padding: "12px 16px",
-                background: dc.mintBg,
-                borderRadius: 8,
-                border: `1px solid ${dc.faded}`,
-                fontSize: 13,
-                color: "rgba(0,55,56,0.65)",
-                lineHeight: 1.55,
-              }}
-            >
-              This page does not determine product fit or state whether any provider offers financing for a vacation property.
-            </div>
-          </div>
-        </div>
-      </SegSection>
 
-      {/* ══════════════════════════════════════════════════════════════
-          SEGMENT 5 — Portfolio Builders
-      ══════════════════════════════════════════════════════════════ */}
-      <SegSection id="portfolio" label="Segment 05 · Portfolio Builders" bg={dc.cream}>
-        <div className="bp-seg-grid">
-          <div>
-            <IsThisYou text="You already own multiple properties and want to compare them in one planning view." />
-            <h2
-              style={{
-                fontSize: "clamp(26px,3vw,40px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: "0 0 14px",
-              }}
-            >
-              Portfolio Builders
-            </h2>
-            <p style={{ fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.65)", lineHeight: 1.6, marginBottom: 20 }}>
-              A portfolio view can help you compare estimated income, debt, and cash flow across properties. It is not an application, approval, underwriting result, or statement that multi-property financing is available.
-            </p>
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>Illustrative planning inputs</h3>
-            <SpecTable
-              rows={[
-                { k: "Scenario type", v: "Portfolio example" },
-                { k: "Rate", v: "Illustrative assumption" },
-                { k: "Loan size", v: "Input to verify" },
-                { k: "Portfolio DSCR", v: "Planning metric" },
-                { k: "LTV", v: "Input to verify" },
-                { k: "Properties", v: "Input to verify" },
-              ]}
-            />
-
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: dc.dark, margin: "20px 0 8px" }}>What to watch</h3>
-            <WatchOut text="A blended metric can conceal a weak property. Review each property's downside scenario as well as the total." />
-            <WatchOut text="Cross-collateralization can have material consequences. Seek legal and financing advice before accepting any such structure." />
-            <WatchOut text="Entity and ownership structures can create legal and tax issues. Obtain professional advice before submitting a portfolio for financing." />
-
-            <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
-              <button className="bp-cta" onClick={qualify}>Get a preliminary estimate →</button>
-              <button className="bp-cta-ghost" onClick={() => onNavigate("products")}>Explore planning examples</button>
-            </div>
-            <p style={{ fontSize: 12, color: "rgba(0,55,56,0.4)", marginTop: 8 }}>
-              Educational scenario only — not a quote, application, approval, or commitment.
-            </p>
-          </div>
-
-          {/* Visual */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <DscrGauge value={1.32} size={200} label={true} />
-            <div style={{ textAlign: "center", fontSize: 12, color: "rgba(0,55,56,0.4)" }}>
-              Illustrative blended portfolio DSCR
-            </div>
-            <div
-              style={{
-                padding: "16px 18px",
-                background: dc.mintBg,
-                borderRadius: 8,
-                border: `1px solid ${dc.faded}`,
-              }}
-            >
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: dc.rain, marginBottom: 10 }}>
-                Why portfolio beats per-property
+            <div className="bp-workbench-grid">
+              <div className="bp-profile-list" aria-label="Borrower lanes">
+                {PROFILES.map((profile) => {
+                  const Icon = profile.icon;
+                  return (
+                    <button
+                      key={profile.id}
+                      type="button"
+                      className={`bp-profile-button${profile.id === activeId ? " is-active" : ""}`}
+                      onClick={() => chooseProfile(profile.id)}
+                      aria-pressed={profile.id === activeId}
+                    >
+                      <span className="bp-profile-icon"><Icon size={19} strokeWidth={2} /></span>
+                      <span>
+                        <span className="bp-profile-label">{profile.label}</span>
+                        <span className="bp-profile-kicker">{profile.kicker}</span>
+                      </span>
+                      <ArrowRight size={17} strokeWidth={2} />
+                    </button>
+                  );
+                })}
               </div>
-              {[
-                "One planning view for multiple properties",
-                "Compare individual and blended assumptions",
-                "Test thin-margin properties separately",
-                "Verify any financing structure independently",
-              ].map((item) => (
-                <div key={item} style={{ display: "flex", gap: 8, padding: "6px 0", fontSize: 13, color: dc.dark, alignItems: "flex-start" }}>
-                  <span style={{ color: dc.rain, fontWeight: 800, flexShrink: 0 }}>✓</span>
-                  {item}
+
+              <article className="bp-dossier" aria-live="polite">
+                <div className="bp-dossier-top">
+                  <div className="bp-dossier-main">
+                    <div className="bp-mini-label">{active.complexity} complexity</div>
+                    <h3>{active.label}</h3>
+                    <p className="bp-dossier-fit">{active.fit}</p>
+                    <p className="bp-dossier-fit"><strong style={{ color: dc.lemon }}>Decision rule:</strong> {active.decision}</p>
+                    <PrimaryActions onQualify={qualify} onCalculator={calc} />
+                  </div>
+                  <aside className="bp-dossier-side" aria-label={`${active.label} DSCR illustration`}>
+                    <ActiveIcon size={34} strokeWidth={1.8} />
+                    <DscrGauge value={active.dscr} size={230} label={true} />
+                    <div className="bp-gauge-caption">
+                      Illustrative DSCR for this lane
+                    </div>
+                  </aside>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </SegSection>
 
-      {/* ── PRE-CLOSE CHECKLIST ── */}
-      <section
-        style={{
-          background: dc.mintBg,
-          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
-          borderTop: `1px solid ${dc.faded}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div style={{ marginBottom: 36 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.rain,
-                marginBottom: 12,
-              }}
-            >
-              Pre-close checklist
-            </div>
-            <h2
-              style={{
-                fontSize: "clamp(26px,3.2vw,44px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: "0 0 14px",
-              }}
-            >
-              Organize a scenario-review checklist.
-            </h2>
-            <p style={{ fontSize: "clamp(15px,1.25vw,17px)", fontWeight: 500, color: "rgba(0,55,56,0.62)", margin: 0, lineHeight: 1.6, maxWidth: "56ch" }}>
-              A document checklist can help organize due diligence, but actual requirements vary and are not published or verified here.
-            </p>
-          </div>
+                <div className="bp-spec-grid">
+                  <Spec label="Program" value={active.program} />
+                  <Spec label="Leverage" value={active.ltv} />
+                  <Spec label="Credit" value={active.fico} />
+                  <Spec label="Reserves" value={active.reserves} />
+                </div>
 
-          <div className="bp-doc-grid">
-            {DOCS.map((d) => (
-              <div
-                key={d.doc}
-                style={{
-                  padding: "clamp(16px,2vw,22px) clamp(16px,2vw,20px)",
-                  background: dc.cream,
-                  borderRadius: 8,
-                  border: `1px solid ${dc.faded}`,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
-                  <span style={{ color: dc.rain, fontWeight: 700, flexShrink: 0, fontSize: 13 }}>✓</span>
-                  <div style={{ color: dc.dark, fontWeight: 700, fontSize: 14, letterSpacing: "-0.01em", lineHeight: 1.3 }}>
-                    {d.doc}
+                <div className="bp-dossier-bottom">
+                  <div className="bp-dossier-block">
+                    <div className="bp-mini-label">Use this lane when</div>
+                    <div className="bp-dossier-list">
+                      {active.useWhen.map((item) => (
+                        <div className="bp-dossier-item" key={item}>
+                          <CheckCircle2 size={18} strokeWidth={2.1} />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bp-dossier-block">
+                    <div className="bp-mini-label">Watch before lock</div>
+                    <div className="bp-dossier-list">
+                      {active.watch.map((item) => (
+                        <div className="bp-dossier-item is-risk" key={item}>
+                          <AlertTriangle size={18} strokeWidth={2.1} />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bp-dossier-actions">
+                      {active.docs.map((doc) => (
+                        <span className="bp-chip" key={doc}>{doc}</span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div style={{ color: "rgba(0,55,56,0.6)", fontSize: 12, marginTop: 4, lineHeight: 1.55, paddingLeft: 21 }}>
-                  {d.note}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── COMMON MISTAKES ── */}
-      <section
-        style={{
-          background: dc.cream,
-          padding: `clamp(48px,6vw,72px) ${dc.pad}`,
-          borderTop: `1px solid ${dc.faded}`,
-        }}
-      >
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div style={{ marginBottom: 36 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase" as const,
-                color: dc.rain,
-                marginBottom: 12,
-              }}
-            >
-              Watch-outs
+              </article>
             </div>
-            <h2
-              style={{
-                fontSize: "clamp(26px,3.2vw,44px)",
-                fontWeight: 600,
-                letterSpacing: "-0.035em",
-                lineHeight: 1.05,
-                margin: "0 0 14px",
-              }}
-            >
-              Five planning issues to review before a transaction.
-            </h2>
-            <p style={{ fontSize: "clamp(15px,1.25vw,17px)", fontWeight: 500, color: "rgba(0,55,56,0.62)", margin: 0, lineHeight: 1.6, maxWidth: "56ch" }}>
-              These surface on almost every submission desk. Check your file against each one before you submit.
-            </p>
-          </div>
 
-          <div
-            style={{
-              background: dc.mintBg,
-              borderRadius: 12,
-              border: `1px solid ${dc.faded}`,
-              padding: "8px clamp(20px,2.4vw,28px) 12px",
-            }}
-          >
-            {MISTAKES.map((m, i) => (
-              <div key={i} className="bp-mistake">
-                <div style={{ color: dc.dark, fontWeight: 700, fontSize: 14, marginBottom: 7, letterSpacing: "-0.015em", display: "flex", alignItems: "flex-start", gap: 8 }}>
-                  <span style={{ color: dc.rain, fontWeight: 800, flexShrink: 0 }}>✗</span>
-                  {m.mistake}
-                </div>
-                <p style={{ color: "rgba(0,55,56,0.65)", fontSize: 13, margin: "0 0 0 22px", lineHeight: 1.6 }}>
-                  <strong style={{ color: dc.rain }}>Fix: </strong>
-                  {m.fix}
-                </p>
+            <div className="bp-note">
+              <ComplianceNote tone="verify">
+                Program terms on this page are illustrative examples for scenario triage, not a rate sheet or a commitment to lend. Confirm current rates, LTV caps, DSCR minimums, reserves, state rules, and foreign-national eligibility before relying on them.
+              </ComplianceNote>
+            </div>
+          </div>
+        </section>
+
+        <section className="bp-section bp-matrix">
+          <div className="bp-wrap">
+            <div className="bp-section-head">
+              <div>
+                <div className="bp-eyebrow" style={{ color: dc.rain }}>Comparison matrix</div>
+                <h2>Every profile should feel like a real underwriting path.</h2>
               </div>
-            ))}
+              <p className="bp-section-copy">
+                The cards below are not generic personas. Each one carries a different document burden, pricing story, reserve expectation, and risk flag.
+              </p>
+            </div>
+            <div className="bp-card-grid">
+              {PROFILES.map((profile) => {
+                const Icon = profile.icon;
+                return (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    className={`bp-card${profile.id === activeId ? " is-active" : ""}`}
+                    onClick={() => chooseProfile(profile.id, true)}
+                  >
+                    <span>
+                      <span className="bp-card-top">
+                        <span className="bp-card-icon"><Icon size={21} strokeWidth={2} /></span>
+                        <Mono style={{ fontSize: 18, fontWeight: 800 }}>{profile.dscr.toFixed(2)}x</Mono>
+                      </span>
+                      <h3>{profile.label}</h3>
+                      <p>{profile.fit}</p>
+                    </span>
+                    <span className="bp-card-meta">
+                      <span>
+                        <span>Program</span>
+                        <strong>{profile.program}</strong>
+                      </span>
+                      <span>
+                        <span>Pricing read</span>
+                        <strong>{profile.priceBand}</strong>
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── BOTTOM CTA ── */}
-      <section
-        style={{
-          background: dc.dark,
-          padding: `clamp(56px,7vw,88px) ${dc.pad}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: dc.maxW,
-            margin: "0 auto",
-            textAlign: "center",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase" as const,
-              color: dc.lemon,
-              marginBottom: 16,
-            }}
-          >
-            Ready to check your deal?
+        <section className="bp-section bp-file">
+          <div className="bp-wrap bp-file-grid">
+            <div>
+              <div className="bp-eyebrow" style={{ color: dc.rain }}>Submission file</div>
+              <h2>Make the borrower profile prove itself.</h2>
+              <p className="bp-section-copy" style={{ marginTop: 22 }}>
+                A profile page should not stop at marketing copy. These are the four evidence groups that decide whether the file reaches pricing cleanly or comes back with conditions.
+              </p>
+            </div>
+            <div className="bp-doc-list">
+              {DOCS.map((doc, index) => {
+                const icons = [FileCheck, ShieldCheck, BarChart3, AlertTriangle] as const;
+                const Icon = icons[index] ?? FileCheck;
+                return (
+                  <div className="bp-doc-row" key={doc.title}>
+                    <Icon size={26} strokeWidth={1.9} />
+                    <div>
+                      <h3>{doc.title}</h3>
+                      <p>{doc.body}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <h2
-            style={{
-              fontSize: "clamp(28px,3.8vw,52px)",
-              fontWeight: 600,
-              letterSpacing: "-0.04em",
-              lineHeight: 1.0,
-              color: dc.cream,
-              margin: "0 0 16px",
-            }}
-          >
-            Model your deal assumptions.
-          </h2>
-          <p
-            style={{
-              fontSize: "clamp(15px,1.3vw,18px)",
-              fontWeight: 500,
-              lineHeight: 1.55,
-              color: "rgba(238,239,211,0.65)",
-              maxWidth: "46ch",
-              margin: "0 auto 36px",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Enter property assumptions to build an educational DSCR scenario. It does not provide market pricing, a program match, a quote, an approval, or a financing commitment.
-          </p>
-          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
-            <button
-              onClick={qualify}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: dc.lemon,
-                color: dc.dark,
-                fontWeight: 600,
-                fontSize: 16,
-                border: "none",
-                cursor: "pointer",
-                padding: "15px 30px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Get a preliminary estimate →
-            </button>
-            <button
-              onClick={calc}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 9,
-                background: "transparent",
-                color: dc.cream,
-                fontWeight: 600,
-                fontSize: 16,
-                border: `1px solid rgba(238,239,211,0.3)`,
-                cursor: "pointer",
-                padding: "15px 26px",
-                borderRadius: 6,
-                fontFamily: dc.sans,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              Run the DSCR Calculator
-            </button>
+        </section>
+
+        <section className="bp-section bp-redflags">
+          <div className="bp-wrap">
+            <div className="bp-section-head">
+              <div>
+                <div className="bp-eyebrow">Strict file audit</div>
+                <h2>These are the profile failures that deserve the spotlight.</h2>
+              </div>
+              <p className="bp-section-copy">
+                The redesign puts the risks where users actually make choices. No buried warning paragraphs, no soft disclaimer after the decision has already been made.
+              </p>
+            </div>
+            <div className="bp-redflag-list">
+              {RED_FLAGS.map((flag) => (
+                <div className="bp-redflag-row" key={flag.label}>
+                  <strong>{flag.label}</strong>
+                  <p>{flag.detail}</p>
+                  <span className="bp-severity">{flag.severity}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(238,239,211,0.35)", marginTop: 16 }}>
-            Educational scenario only — not a quote, application, approval, or commitment. Verify actual financing facts with an appropriately licensed provider.
-          </p>
-        </div>
-      </section>
+        </section>
+
+        <section className="bp-close">
+          <div className="bp-wrap bp-close-inner">
+            <div>
+              <div className="bp-eyebrow">Ready to test the file</div>
+              <h2>Price the borrower lane before you chase the rate.</h2>
+              <p>
+                Enter the property details, DSCR inputs, and borrower lane. Greenstreet can return a preliminary program match before the file turns into a week of back-and-forth conditions.
+              </p>
+            </div>
+            <div className="bp-close-panel">
+              <Mono style={{ color: dc.lemon, fontSize: 34, fontWeight: 800 }}>profile &gt; terms &gt; decision</Mono>
+              <PrimaryActions onQualify={qualify} onCalculator={calc} />
+            </div>
+          </div>
+        </section>
+      </div>
     </DcShell>
   );
 }

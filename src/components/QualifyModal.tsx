@@ -1392,11 +1392,11 @@ function Step3({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: 10, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 2 }}>
+              <div style={{ fontSize: 11, fontWeight: font.semibold, color: swatch.rainforest, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 2 }}>
                 {m.k}
               </div>
               <div style={{ fontSize: 15, fontFamily: font.mono, fontWeight: 700, color: swatch.midnight }}>{m.v}</div>
-              <div style={{ fontSize: 10, color: swatch.rainforest, marginTop: 2, opacity: 0.7 }}>{m.sub}</div>
+              <div style={{ fontSize: 11, color: swatch.rainforest, marginTop: 2, opacity: 0.7 }}>{m.sub}</div>
             </div>
           ))}
         </div>
@@ -1535,7 +1535,7 @@ function Step4({
 
   const roles: { val: Role; label: string; helper: string }[] = [
     { val: "investor", label: "Buy & hold investor", helper: "Long-term rental income." },
-    { val: "foreign", label: "Foreign national", helper: "Investing from outside the U.S." },
+    { val: "foreign", label: "Non-US investor", helper: "Investing from outside the U.S." },
     { val: "str", label: "STR / Airbnb host", helper: "Short-term / vacation rental." },
     { val: "vacation", label: "Second / vacation home", helper: "A second home I'll also rent." },
   ];
@@ -1633,7 +1633,7 @@ function Step4({
           id={idPhone}
           type="tel"
           value={data.phone}
-          placeholder="(555) 000-0000"
+          placeholder="Business phone"
           onChange={(e) => onChange({ phone: e.target.value })}
           className="qm-input"
           style={inputStyle}
@@ -2026,6 +2026,9 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       contactConsent: step4.contactConsent,
       page: typeof window !== "undefined" ? window.location.pathname : "/",
       website: step4.website,
+      createdAt: new Date().toISOString(),
+      submittedAt: new Date(), // Firestore rules require this field (as Timestamp)
+      // (lead persists to Firestore `leads` below; CRM/email sync is a future add)
     };
 
     const controller = new AbortController();
