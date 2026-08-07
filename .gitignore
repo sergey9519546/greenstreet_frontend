@@ -87,3 +87,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Agent worktrees (never commit)
+.claude/worktrees/
