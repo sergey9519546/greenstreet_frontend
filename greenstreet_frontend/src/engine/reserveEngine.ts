@@ -118,6 +118,17 @@ function computeOverlays(
     });
   }
 
+  // Portfolio scaling (>4 properties): +1 month per property over 4 (max +3 months)
+  if (borrower.existingFinancedProperties > 4) {
+    const extraMonths = Math.min(3, borrower.existingFinancedProperties - 4);
+    adjustments.push({
+      factor: 'Large Portfolio (5+ Properties)',
+      monthsAdded: extraMonths,
+      reason: `Portfolio of ${borrower.existingFinancedProperties} properties requires +${extraMonths} months reserves (+1mo per unit > 4)`,
+      capped: false,
+    });
+  }
+
   // LTV > 80%: +1 month (audit req #i)
   if (loan.ltv > 80) {
     adjustments.push({
