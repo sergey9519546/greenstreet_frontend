@@ -1,0 +1,62 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Firecrawl Mortgage Urls
+summary: "https://www.trepp.com/trepptalk/cmbs-delinquency-rate-jumps-in-march-2026"
+entities:
+  - data/cotality
+  - data/fred
+  - data/kbra
+  - data/trepp
+  - lender/verus
+  - topic/multifamily
+  - topic/sfr
+  - topic/str
+tags:
+  - topic/apex
+  - topic/cecl
+  - topic/default-rate
+source: output/apex3_dispatch/firecrawl_mortgage/firecrawl_mortgage_urls.txt
+vaulted_at: 2026-06-20
+---
+https://www.trepp.com/research
+https://www.trepp.com/trepptalk/cmbs-delinquency-rate-jumps-in-march-2026
+https://www.trepp.com/trepptalk/cmbs-delinquency-decreased-one-basis-point-in-april-2026
+https://www.trepp.com/trepptalk/cmbs-delinquency-rate-increased-one-basis-point-in-may-2026
+https://www.trepp.com/trepptalk/cmbs-delinquency-rate-declines-in-february-2026-led-by-large-office-retail-loan-extensions
+https://www.trepp.com/trepptalk/cmbs-delinquency-rate-increased-to-open-2026
+https://www.trepp.com/trepptalk/topic/cmbs-delinquency-rate
+https://www.trepp.com/trepptalk/topic/cmbs-delinquencies
+https://www.trepp.com/blog/multifamily-cmbs-delinquency-rate-trends
+https://www.trepp.com/treppwire/large-bank-cre-delinquency-rates-q1-2026
+https://www.trepp.com/products/treppdefault-model
+https://www.trepp.com/products/treppcecl
+https://www.kbra.com/research
+https://www.cotality.com/news-research
+https://www.cotality.com/press-releases/mortgage-fraud-risk-decreased-in-beginning-of-2026
+https://www.cotality.com/press-releases/mortgage-fraud-risk-continues-its-upward-trend-to-end-2025
+https://www.cotality.com/press-releases/mortgage-fraud-risk-q1-2025
+https://www.cotality.com/products/loansafe
+https://www.housingwire.com/articles/mortgage-fraud-risk-q1-2026/
+https://nationalmortgageprofessional.com/news/mortgage-fraud-risk-falls-q1
+https://nationalmortgageprofessional.com/news/cmbs-delinquencies-rise-728-q1
+https://www.mpamag.com/us/mortgage-industry/industry-trends/despite-mortgage-fraud-drop-in-q1-these-are-the-sectors-brokers-need-to-watch-closely/578321
+https://themortgagepoint.com/2026/06/04/q1-mortgage-fraud-risk-declines-from-previous-quarter/
+https://www.mba.org/news-and-research/newsroom/news/2026/05/14/mortgage-delinquencies-increase-in-the-first-quarter-of-2026
+https://www.mba.org/news-and-research/newsroom/news/2026/04/27/delinquency-rates-for-commercial-properties-increased-in-the-first-quarter-of-2026
+https://www.mba.org/news-and-research/research-and-economics/single-family-research/national-delinquency-survey
+https://www.mba.org/news-research-and-insights
+https://fred.stlouisfed.org/series/DRSFRMACBS
+https://mf.freddiemac.com/docs/mf_securitization_investor-presentation.pdf
+https://www.chimerareit.com/_assets/_5bbdcf13ea9cb2d02e8da0aec4483a17/chimerareit/db/982/10267/pdf/Q1%2726+Investor+Presentation_Final.pdf
+https://www.multifamilydive.com/news/multifamily-cmbs-delinquency-apartment-loan-default/816842/
+https://www.multihousingnews.com/cmbs-delinquency-rates/
+https://newslink.mba.org/mba-newslinks/2026/april/mba-newslink-monday-april-6-2026/trepp-cmbs-delinquency-rate-increases/
+https://calendar.cngold.org/open/c725543.htm
+https://m.cngold.org/calendar/c725543.html
+https://calendar.cngold.org/open/c725542.htm
+https://wallstreetcn.com/articles/3769611
+https://www.ice.com/insights
+https://www.spglobal.com/ratings/en/research-insights
+https://verus.com/research

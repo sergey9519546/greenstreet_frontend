@@ -1,64 +1,48 @@
+# Ignore large data files
+data/
+99_attachments/
+airdna-project/
+perfectproperty/
+graphify-out/
+*.db
+*.csv
+*.zip
+.understand-anything/
+.superpowers/
+
+# Environment variables (CRITICAL: Never commit secrets)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# Build outputs
+dist/
+dist-ssr/
+.vercel/
+.output/
+api/
+*.cjs
+
 # Dependencies
 node_modules/
 
-# Build output
-build/
-dist/
-coverage/
-
-# Logs and debug artifacts
-*.log
-pglite-debug.log
-dataconnect-debug.log
-build-output.log
-tscheck.log
-
-# Environment files (never commit real .env)
-.env*
-!.env.example
-!.env.production.example
-
-# macOS / Windows cruft
-.DS_Store
-Thumbs.db
-
-# IDE / editor
-.idea/
+# IDE
 .vscode/
+.idea/
 *.swp
 *.swo
 
-# Animation reference files
-.anim_ref/
+# OS
+.DS_Store
+Thumbs.db
 
-# Old build backups
-dist-cleanup-backups/
-
-# Zip archives (1MB old Greenboard product, etc.)
-*.zip
-
-# Backup files (*.bak, *.bak2, etc.)
-*.bak
-*.bak2
-*.orig
-*.rej
-*.tmp
-
-# Stray Python / debug scripts
-tmp.py
-*.pyc
-__pycache__/
-
-# Build artifacts
-.deployed-index.html
-.cake_matrices/
-
-# HyperFrames render outputs (mp4 lives in public/video)
-hf-statelaws/renders/
-hf-*/node_modules/
-hf-*/.claude/
-hf-*/renders/
-hf-*/skills-lock.json
-.tmp/
-.design-ref/
-.vercel
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*

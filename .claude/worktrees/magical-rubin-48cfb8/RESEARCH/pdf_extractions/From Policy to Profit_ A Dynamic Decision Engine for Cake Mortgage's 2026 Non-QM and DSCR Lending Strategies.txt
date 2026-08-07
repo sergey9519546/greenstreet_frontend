@@ -1,0 +1,551 @@
+
+
+===== PAGE 1 =====
+
+From Policy to Profit: A Dynamic Decision
+Engine for Cake Mortgage's 2026 Non-QM
+and DSCR Lending Strategies
+The Guideline Hierarchy: Establishing the 2026
+Baseline
+The development of a definitive underwriting tool requires a strict adherence to a clear
+and unambiguous hierarchy of guidelines. For Cake Mortgage Corp., this means
+establishing the 2026 product matrices and manuals as the sole authority for new
+business, explicitly superseding all prior, more restrictive 2025-era documents. This
+hierarchical structure is not merely an organizational preference; it is a critical
+operational directive to ensure accuracy, maintain competitiveness, and align with the
+company's strategic pivot toward higher balance, high-LTV lending 12 23. The analysis of
+the provided documents reveals a deliberate evolution in risk appetite, moving away from
+the punitive constraints of the past toward a more nuanced and accommodating
+framework for a broader range of borrowers and transactions 1 .
+The first step in building the tool's logic is to formally archive the obsolete 2025 matrices.
+These documents, while part of the historical record, contain rules that are no longer
+applicable and would lead to incorrect recommendations if used for new applications.
+The Sponge Cake matrix (dated September 2025) is architected around highly
+conservative Loan-to-Value (LTV) ratios, often capping investment and cash-out
+transactions at a restrictive 50% to 55% 12. In direct contrast, the 2026 guidelines offer
+significantly more flexible terms, making the old matrix irrelevant for competitive pricing.
+Similarly, the Cheese Cake Full Doc matrix (dated October 2025) has been rendered
+obsolete by the superior Coffee Cake matrix (effective March 9, 2026). The Coffee Cake
+matrix provides a substantially higher maximum loan limit of $2,500,000 compared to
+the lower tiers offered by Cheese Cake, and it demonstrates greater flexibility regarding
+property types 13. Most critically, Cheese Cake mandated a 36-month seasoning period
+for certain credit events, a requirement that was abandoned in the subsequent 2026
+guidelines, which instead adopted much more aggressive timelines 13. Finally, the
+Funnel Cake and Funnel Cake Lite matrices (dated November 2025) represent the
+pinnacle of restrictive policy. Their most notable feature was a punitive 48-month
+
+===== PAGE 2 =====
+
+seasoning requirement for severe credit events such as Bankruptcy, Foreclosure, Deed-in-
+Lieu (DIL), and Short Sales 1 . This standard is so antiquated that it renders any
+borrower with a recent rehabilitative event ineligible under those specific documents,
+making them non-viable for modern underwriting practices where such events are now
+handled with LTV adjustments rather than outright denials 1 . Therefore, the
+underwriting tool must be programmed to completely ignore these three 2025 matrices
+for any new submissions.
+The operational foundation of the tool must be built upon the authoritative 2026
+guidelines. The primary sources for this architecture are six distinct but interconnected
+documents, each serving a specific purpose. The cornerstone for all non-owner-occupied
+investment properties is the DSCR v4.0 Manual, effective April 1, 2026 1 . This manual
+is the definitive guide for properties that will not be owner-occupied, and it governs the
+qualification based solely on rental income, ignoring personal DTI and tax returns 2 4 .
+It is the designated program for unique scenarios involving Short-Term Rentals (STRs),
+LLC entity vesting, and Foreign National borrowers 3 20. The other five documents
+constitute the Non-Qualified Mortgage (Non-QM) and Alt-A product suite, designed for
+Primary Residences, Second Homes, and Owner-Occupied Investment Properties. The
+Bundt Cake matrices (effective April 14, 2026) have emerged as the new authority for
+owner-occupied and non-owner-occupied lending up to a
+3,000,000 ceiling <sup><a class="ref-sup" href="#ref-1" target="_self">1</a></sup>. Bundt Cake is distinguished by its aggressive approach to credit events, allowing seasoning after just 12 months, a policy that supersedes the outdated 48-month rule <sup><a class="ref-sup" href="#ref-1" target="_self">1</a></sup>. The <strong>Cup Cake</strong> matrix (effective March 9, 2026) serves as the heavyweight champion of the Non-QM space, offering the highest loan limit in the entire portfolio at
+4,000,000 1 . It also contains specialized overlays for niche borrower profiles, such as
+ITIN holders and self-employed individuals with only one year of history 1 . The Velvet
+Cake matrix (effective April 1, 2026) functions as a key alternative for borrowers needing
+to use Bank Statements or P&L statements who may be excluded from other programs
+due to citizenship status (e.g., Foreign Nationals) 1 . The Pound Cake Lite matrix
+(effective February 13, 2026) carves out a specific niche for borrowers utilizing a Written
+Verification of Employment (WVOE) or those with less than two years of self-employment
+history 1 . Lastly, the Coffee Cake matrix (effective March 9, 2026) acts as the
+traditional QM alternative, catering to full-documentation borrowers seeking higher loan
+amounts than Agency guidelines permit and allowing for non-standard property types
+like non-warrantable condos 1 13. The underwriting tool must be architected as a
+dynamic engine that can ingest user inputs and cross-reference them against the
+attributes of these six 2026 matrices to provide a single, optimized recommendation,
+effectively filtering out the noise of the obsolete 2025-era documents.
+
+===== PAGE 3 =====
+
+Document Effective Status for New Key Characteristics
+Date Business
+DSCR v4.0 April 1, ACTIVE Flagship program for Non-Owner-Occupied (NOO) investment properties. Qualifies
+Manual 2026 on rental income only. Allows STRs, LLCs, and Foreign Nationals 1 3 .
+Bundt Cake April 14, ACTIVE New authority for Owner-Occupied (NQM) and NOO Non-QM. Aggressive credit
+NQM/NOO 2026 event seasoning (12 months) and up to $3M limit 1 .
+Cup Cake March 9, ACTIVE Heavyweight Non-QM. Highest loan limit at $4M. Includes overlays for 1-Year Self-
+2026 Employed and ITIN borrowers 1 .
+Velvet Cake April 1, ACTIVE Key player for Bank Statement/P&L borrowers who are Foreign Nationals or
+2026 otherwise ineligible for other programs 1 .
+Pound Cake Lite Feb 13, ACTIVE Niche program for WVOE borrowers and those with <2 years of self-employment
+2026 history 1 .
+Coffee Cake March 9, ACTIVE Traditional Full Doc/QM alternative. Up to $2.5M limit. Allows non-warrantable
+2026 condos and Hobby Farms 1 13.
+This strict adherence to the 2026 baseline ensures the tool remains accurate, relevant,
+and aligned with the market realities of 2026. It prevents the propagation of outdated
+rules and positions the tool as a forward-looking instrument capable of navigating the
+complexities of modern non-traditional lending. The logical flow of the tool should begin
+by determining the nature of the transaction (Purchase, Refinance, etc.) and the
+occupancy status (Owner-Occupied vs. Non-Owner-Occupied), which immediately directs
+the user to the appropriate set of rules—either the DSCR v4.0 manual for investments or
+the suite of 2026 Non-QM matrices for owner-occupied properties. This foundational
+layer of rule hierarchy is the bedrock upon which the entire underwriting engine is built.
+Programmatic Specialization: A Deep Dive into Active
+Matrices
+A truly definitive underwriting tool cannot function as a monolithic calculator; it must
+recognize and leverage the distinct specializations of each 2026 program. The current
+landscape of Cake Mortgage's wholesale offerings is a portfolio of finely tuned
+instruments, each designed to address a specific borrower profile, property type, or
+documentation challenge. Understanding the nuances of these programs is paramount to
+developing a routing engine that delivers optimal outcomes. The active 2026 matrices—
+DSCR v4.0, Bundt Cake, Cup Cake, Velvet Cake, Pound Cake Lite, and Coffee Cake—are
+not interchangeable; they possess unique strengths and weaknesses that create arbitrage
+opportunities for Loan Officers and brokers. The tool must be programmed to identify
+
+===== PAGE 4 =====
+
+these "sweet spots" and recommend the program that offers the highest possible loan
+amount, most favorable terms, or simplest path to approval for a given scenario.
+The DSCR v4.0 Manual stands alone as the exclusive gateway for Non-Owner-Occupied
+(NOO) investment properties where qualification is based entirely on the property's
+ability to generate rental income 2 . Its core principle is the Debt Service Coverage Ratio,
+calculated as Gross Rental Income divided by the qualifying monthly payment (PITIA or
+ITIA for interest-only loans) 22. Rounding up the resulting ratio is strictly prohibited 1 .
+This program's specialization lies in its disregard for the borrower's personal financial
+situation, specifically employment, tax returns, and debt-to-income (DTI) ratios 1 . This
+makes it ideal for passive investors, foreign nationals, and those with complex personal
+finances. A key differentiator is its explicit allowance of Short-Term Rental (STR) income,
+such as from Airbnb or VRBO, provided an AirDNA Rentalizer report is submitted for
+purchase transactions 3 4 . The report must cover a 12-month forecast, achieve a
+market score of at least 60, and adhere to specific occupancy caps 1 . Furthermore,
+DSCR is the only program that permits property titles to be vested directly into eligible
+legal entities like LLCs, Corporations, and Inter-Vivos Revocable Trusts, a crucial feature
+for sophisticated real estate investors looking to manage liability and succession 1 .
+Foreign Nationals are fully eligible for DSCR loans, provided they meet a specific
+checklist of requirements, including valid identification, a U.S. bank account for
+automatic payments, and alternative credit verification 1 . For multifamily properties
+with 5 to 9 units, the DSCR program imposes a minimum DSCR of 1.00 and requires a
+Debt Yield of at least 9% for loans over $2,000,000 1 .
+In contrast, the 2026 Non-QM and Alt-Doc suite is tailored for owner-occupied properties
+and some investment scenarios where the borrower wishes to qualify using alternative
+income documentation. Bundt Cake has become the de facto leader in this space due to
+its highly favorable terms. With a maximum loan amount of
+3,000,000, it competes directly with Velvet Cake but offers superior terms for borrowers with recent credit events <sup><a class="ref-sup" href="#ref-1" target="_self">1</a></sup>. Its standout feature is the liberalized credit event seasoning policy, which allows for Bankruptcies, Foreclosures, and Short Sales after just 12 months, albeit with a corresponding CLTV reduction penalty <sup><a class="ref-sup" href="#ref-1" target="_self">1</a></sup>. Bundt Cake also extends special accommodations to First-Time Homebuyers (FTHBs), allowing them to qualify up to a
+3,000,000 loan amount, a significant advantage over competitors 1 . Another powerful
+feature is the residual income overlay, which allows for DTIs up to 55% as long as the
+borrower meets a minimum residual income threshold of 2,500plus150 per dependent
+1 . For reserve requirements, Bundt Cake offers a valuable "reserve hack": a borrower
+can opt to take a 5% CLTV reduction in exchange for a 3-month reduction in required
+reserves, or even waive reserves entirely on a Rate/Term refinance if the CLTV is at or
+below 65% 1 .
+Cup Cake distinguishes itself by pushing the boundaries of loan amounts and borrower
+complexity. As the heavyweight with a
+
+===== PAGE 5 =====
+
+4,000,000 ceiling, it is the go-to program for very large transactions <sup><a class="ref-sup" href="#ref-1" target="_self">1</a></sup>. It also contains several critical niche overlays. It is one of the few programs that explicitly allows borrowers with an Individual Taxpayer Identification Number (ITIN) to obtain a loan of up to
+1,000,000 with a minimum FICO of 640 1 . It is also the designated program for
+borrowers who have been self-employed for only one year, allowing loans up to
+3,000,000providedtheFICOisatleast660andtheloanamountisatleast250,000 1 . Like
+Bundt Cake, Cup Cake features a robust credit event policy, permitting Bankruptcy or
+Foreclosure after 12-23 months with a max CLTV capped at 65%, and after 24-35
+months, standard, generous LTVs are restored 1 . It also allows for a generous 90% LTV
+on primary residence purchases for borrowers with a FICO of 700 or higher 1 . However,
+Cup Cake has stricter limitations on Cash-In-Hand funds, capping them at
+1,000,000forloansover1.5M and 500,000forloansunder1.5M 1 .
+The remaining matrices serve more specialized roles. Velvet Cake is a strong contender
+for borrowers who need to use Bank Statements or P&L statements but fall outside the
+scope of other programs, primarily because it excludes Foreign Nationals, Non-Revocable
+Trusts, and individuals involved in lawsuits 1 . It uniquely allows for Agricultural and
+Hobby Farm properties, setting it apart from its peers 1 . Pound Cake Lite is the
+designated program for borrowers whose income is documented with a WVOE or who
+have less than two years of self-employment history, a niche not well-served by other
+matrices 1 . Finally, Coffee Cake provides a traditional full-documentation (WVOE,
+1099, P&L) alternative for borrowers seeking a QM-style product with higher loan limits
+(2,500,000) than conventional agencies offer <sup><a class="ref-sup" href="#ref-13" target="_self">13</a></sup>. It requires a higher 45% DTI ratio and mandates 9 months of reserves for loans over
+1.5M, reflecting its more conservative, full-doc orientation 1 13.
+Program Max Loan Max LTV (Primary Key Differentiator / Sweet Spot Ineligible Documentation
+Amount Purchase)
+DSCR v4.0 Not Specified Not Applicable Qualifies on rental income only. Permits STRs, Personal Income Docs (Tax
+LLCs, and Foreign Nationals 1 . Returns, DTI)
+Bundt Cake $3,000,000 90% (at 720+ Best for FTHBs and aggressive credit event WVOE
+NQM FICO) seasoning (12 months) 1 .
+Cup Cake $4,000,000 90% (at 700+ Highest loan limit; allows 1-year SE and ITIN None specified
+FICO) borrowers 1 .
+Velvet Cake $3,000,000 Not Specified Allows Agricultural/Hobby Farms; excludes WVOE
+Foreign Nationals 1 .
+Pound Cake $2,500,000 Not Specified Designed for WVOE borrowers and those with None specified
+Lite <2 years SE history 1 .
+Coffee Cake $2,500,000 85% Traditional full doc alternative with higher None specified
+limits than Agency guidelines 13.
+
+===== PAGE 6 =====
+
+By internalizing these distinctions, the underwriting tool can move beyond simple LTV
+comparisons and engage in true programmatic arbitrage. When a user enters a borrower
+profile, the tool should evaluate the profile against the "sweet spots" of each program to
+determine the optimal path, thereby maximizing the chances of approval and delivering a
+superior user experience.
+Borrower Profile Arbitrage: Navigating Complex
+Demographics and Credit Events
+The most sophisticated underwriting tools transcend basic eligibility checks and excel at
+navigating the complexities of non-traditional borrower profiles. The 2026 Cake
+Mortgage guidelines provide a rich set of rules and exceptions for a wide array of
+demographics, from foreign nationals to recently rehabilitated credit profiles. A definitive
+tool must be able to parse these nuances and perform "arbitrage"—identifying the specific
+program that offers the most advantageous terms for a given borrower's unique
+combination of circumstances. This involves deep knowledge of citizenship-specific rules,
+credit event seasoning timelines, and the subtle differences in how various matrices treat
+similar borrower types.
+A prime example of this is the distinction between owner-occupied and non-owner-
+occupied (NOO) programs when dealing with Foreign Nationals (FNs). The DSCR v4.0
+program explicitly outlines FN eligibility, requiring a valid passport, Visa/ESTA, a foreign
+primary residence address, alternative credit verification (like foreign bank statements),
+and a U.S. bank account for automated payments 1 . This makes DSCR the default
+choice for FN investors. However, for FNs purchasing an owner-occupied primary
+residence, the Non-QM landscape presents challenges. While Velvet Cake is explicitly
+unavailable to Foreign Nationals, Bundt Cake and Cup Cake offer pathways. Bundt Cake
+allows Non-Permanent Residents who have established U.S. credit, with a maximum loan
+of 1,500,000andan801.5M loan limit and 80% Max CLTV 1 . This creates a clear decision
+tree: for an FN investor, DSCR is the answer. For an FN buying their primary home, the
+tool must check if they have U.S. credit history; if yes, Bundt Cake or Cup Cake becomes
+viable options, with Cup Cake being preferable due to its higher loan limit ceiling.
+Another critical area of arbitrage is for First-Time Homebuyers (FTHBs). An FTHB is
+defined as someone who has never owned any real estate. The guidelines treat them
+differently depending on the program. In Bundt Cake NQM, FTHBs are not only allowed
+but are catered to with specific overlays. An FTHB with rental history can qualify with a
+
+===== PAGE 7 =====
+
+640 FICO, while one without rental history is capped at an 80% CLTV and a 45% DTI 1 .
+Bundt Cake further allows FTHBs up to its
+3,000,000 loan limit, making it the premier choice for this profile <sup><a class="ref-sup" href="#ref-1" target="_self">1</a></sup>. Conversely, <strong>Cup Cake</strong> severely restricts the FTHB profile, limiting the loan amount to
+1,000,000, restricting the property to a primary residence only, and prohibiting 2-4 unit
+properties entirely 1 . Meanwhile, Bundt Cake NOO is even stricter, rendering an FTHB
+without rental history completely ineligible for an investment property 1 . This stark
+contrast highlights the need for the tool to differentiate between owner-occupied and
+NOO contexts when evaluating an FTHB applicant.
+Perhaps the most significant evolution in the 2026 guidelines is the dramatic reduction in
+credit event seasoning, creating a major arbitrage opportunity. The old 48-month rule
+from Funnel Cake is dead 1 . The new standard, pioneered by Bundt Cake, is a tiered
+approach based on a 12-month window.
+• Less than 12 Months Since Event: Ineligible across all programs.
+• 12 to 23 Months Since Event: This is the "sweet spot." Bundt Cake allows
+Bankruptcy, Foreclosure, Short Sale, or DIL, but applies a CLTV reduction penalty.
+For instance, a foreclosure within this window triggers a 15% CLTV reduction, and
+Cash-Out refinances are prohibited 1 . Cup Cake follows a similar policy, capping
+the Max CLTV at 65% for Purchases and Refinances during this period 1 . This
+makes both Bundt Cake and Cup Cake the correct choices for borrowers in this
+category.
+• 24 to 35 Months Since Event: The penalty is reduced. Both Bundt Cake and Cup
+Cake reduce the CLTV reduction to 5% 1 .
+• 36+ Months Since Event: Standard, unpenalized terms can generally be applied.
+However, the tool must also be aware of the granular, often deal-killer, details within
+these policies. For instance, the tolerance for mortgage late payments varies significantly.
+Across all 2026 Non-QM matrices, a late payment of 120 days or more (0x120x12) is an
+absolute disqualifier 1 . A late of 90 days (0x90x12) is more nuanced. Bundt Cake NOO
+lists this as strictly ineligible 1 . However, Bundt Cake NQM and Cup Cake (both NQM
+and NOO) allow a 0x90x12 late, but with a penalty—a mandatory 5% CLTV reduction
+for Bundt Cake NQM and a max CLTV cap of 75% (Purchase) / 70% (Refinance) for Cup
+Cake 1 . This means a Loan Officer could potentially save a deal by switching from an
+NOO scenario to an owner-occupied one if the only issue is a 90-day late. The tool must
+therefore ask about the worst derogatory event and its duration, and then cross-reference
+it with the specific matrix's late-payment rules before making a recommendation.
+
+===== PAGE 8 =====
+
+Borrower Scenario Best Program(s) Rationale & Supporting Rules
+Foreign National Investor DSCR v4.0 Explicitly allows FN borrowers. Requires Passport, Visa, US bank account for ACH
+auto-payments. 1
+Foreign National Primary Bundt Cake / Cup Bundt/Cup allow Non-Permanent Residents with U.S. credit. Cup Cake has a higher
+Homebuyer Cake loan limit (1.5Mvs1.5M). 1
+First-Time Homebuyer (No Bundt Cake NQM Allows FTHBs up to $3M with an 80% LTV cap and 45% DTI. 1
+Rental History)
+Recent Bankruptcy (14 Bundt Cake NQM/ Allows BK after 12 months with a CLTV penalty (5%). Makes older 48-month rules
+Months Old) NOO obsolete. 1
+Investor with 90-Day Cup Cake or DSCR Bundt Cake NOO is ineligible for 0x90x12. Cup Cake allows it with a CLTV penalty.
+Mortgage Late DSCR focuses on rental income, not mortgage lates. 1
+ITIN Holder Cup Cake or DSCR Cup Cake allows up to $1M loan. DSCR is another viable option for investment
+v4.0 properties. 1
+1-Year Self-Employed Cup Cake Explicitly allows 1-year self-employed borrowers up to $3M (Min 660 FICO). 1
+By embedding this level of detail, the underwriting tool transforms from a simple
+calculator into a strategic advisor, capable of identifying the narrowest path to approval
+for even the most challenging borrower profiles.
+Collateral and Property Nuances: Mastering Valuation
+and Risk Mitigation
+Beyond borrower characteristics, the underwriting process is heavily governed by the
+attributes of the collateral itself. A definitive tool must possess a deep understanding of
+the rules surrounding property types, valuation methodologies, and secondary risks like
+short-term rentals and multifamily structures. The 2026 guidelines contain numerous
+granular rules that dictate eligibility, impose LTV caps, and trigger specific requirements,
+such as second appraisals or debt yield calculations. Failure to adhere to these collateral-
+centric rules can result in immediate submission denial or costly delays.
+One of the most significant bifurcations in collateral treatment is the handling of Short-
+Term Rentals (STRs). There is a clear and intentional separation between the DSCR
+program and the Non-QM/Alt-Doc investment programs. The DSCR v4.0 manual
+explicitly permits the use of STR gross rents as qualifying income for purchase
+transactions, contingent upon the submission of a compliant AirDNA Rentalizer report 3
+4 . This report must be dated within 90 days of the note date, provide a 12-month
+
+===== PAGE 9 =====
+
+forecast, include at least 3 comparable properties, reflect a market score of 60 or higher,
+and cap occupancy at two individuals per bedroom 1 . This makes DSCR the exclusive
+vehicle for financing STR properties. In stark contrast, all Non-QM and Alt-Doc matrices
+for investment properties (specifically Bundt Cake NOO and Cup Cake NOO) list Short-
+Term Rentals as ineligible 1 . Attempting to submit an STR property for a NOO loan
+under these programs would be a fatal error. The tool must therefore establish a hard
+dependency: if the property is an STR, route the user exclusively to the DSCR v4.0 logic
+path.
+Property type and location also trigger specific overlays and restrictions. Non-
+Warrantable Condominiums are permitted across multiple programs, but with important
+caveats. Both Bundt Cake and Cup Cake allow them, but they prohibit the use of 1099
+or P&L income for these properties; only full documentation or bank statements are
+acceptable 1 . Furthermore, the DSCR manual notes that for multifamily properties, if an
+appraisal scores above a certain threshold, a cascading review process is triggered,
+potentially leading to a mandatory second appraisal 1 . Other property types carry
+outright prohibitions. Assisted living facilities, Barndominiums, Co-ops, Log Homes,
+Geodesic Domes, Houseboats, and properties larger than 20 acres are explicitly ineligible
+for DSCR loans 1 . For Non-QM programs, Manufactured Homes and Agricultural
+properties are also typically ineligible, with the notable exception of Velvet Cake, which
+uniquely allows Agricultural and Hobby Farms 1 . Location-based overlays add another
+layer of complexity. Florida is identified as a state requiring an additional 5% CLTV
+reduction for properties using WVOE, 1099, P&L, Condotels, or Rural properties under
+the Cup Cake matrix 1 . This requires the tool to prompt for the property's state and
+apply the Florida overlay if applicable.
+Valuation and appraisal requirements are stringent and serve as a critical control point.
+All appraisals must be no older than 120 days at the time of the note date 1 . A second
+appraisal is required for two distinct scenarios: either the loan amount is $2,000,000 or
+more, or the transaction is classified as a "Flip" 1 . A flip is defined as reselling the
+property within 180 days of acquisition for a price increase of more than 10%. This
+triggers arm's length marketing requirements and necessitates the second appraisal 1 .
+For multifamily properties with 5 to 9 units, a Commercial Exterior Only Broker Price
+Opinion (BPO) is required unless two full appraisals are provided. If the BPO value comes
+in more than 10% below the appraisal value, the lower BPO value must be used for all
+LTV calculations 1 . Furthermore, there are specific workflow rules for transferred
+appraisals. They must be less than 60 days old at the time of transfer, and a 1004D
+recertification is explicitly prohibited on a transferred appraisal 1 . This is a crucial
+procedural rule that processors must follow to avoid submission issues.
+
+===== PAGE 10 =====
+
+Finally, certain property features introduce unique underwriting considerations. Solar
+panels are a case in point. On DSCR loans, if a solar loan payment is subordinated to the
+mortgage, that payment must be factored into the DSCR calculation 1 . Additionally,
+PACE loans for solar installations are strictly ineligible for financing through Cake
+Mortgage 1 . Velvet Cake adds a specific seasoning requirement: if a borrower has a
+solar loan, they must have made six months of payments as agreed before the loan can be
+approved 1 . Cryptocurrency assets are also treated with specific rules. Bitcoin and
+Ethereum are permitted for funds to close and reserves, but with strict conditions: the
+crypto must be liquidated to USD and deposited into a U.S. bank account for funds to
+close, and for reserves, only 60% of the asset's current valuation (documented within 30
+days) is eligible 1 . These detailed, feature-specific rules demonstrate that a successful
+underwriting tool must look beyond the property address and transaction type to
+scrutinize every aspect of the collateral itself.
+Operational Guardrails and Hidden Constraints:
+Preventing Post-Submission Failures
+An underwriting tool's ultimate value is measured not only by its ability to find approvals
+but also by its capacity to prevent rejections caused by easily avoidable operational
+errors. The most frustrating failures for Loan Officers are those that occur post-
+submission, often due to overlooked fine-print rules, known as "hidden constraints" or
+"deal-killers." A world-class tool must integrate a robust "Red Flag" module that
+proactively identifies these silent deal-breakers before the file is sent to the underwriter.
+These constraints span documentation timing, title requirements, repair holds, and third-
+party service limitations.
+One of the most critical operational guardrails is related to appraisals and repairs. The
+DSCR v4.0 manual enforces a strict "No Escrow Holdbacks" policy 1 . This means that
+any repairs required by the appraiser must be completed and inspected prior to loan
+funding. You cannot fund the loan and hold back repair money in escrow. This places a
+significant burden on the processor to ensure the property condition is perfect before
+locking the loan. Another crucial rule pertains to transferred appraisals. An appraisal can
+only be transferred if it is less than 60 days old at the time of transfer, and a 1004D
+recertification is strictly prohibited on a transferred appraisal 1 . Violating these
+workflow rules will result in an immediate rejection.
+
+===== PAGE 11 =====
+
+Documentation timing and eligibility also present common pitfalls. The Pound Cake Lite
+matrix specifies different timeframes for completing a verbal VOE based on the
+borrower's employment status: 10 days for wage earners and 30 days for self-employed
+borrowers 1 . Missing these deadlines can delay processing. Asset sourcing is another
+area of nuance. While DSCR loans do not require asset seasoning or sourcing for large
+deposits, there is a rule for business accounts. If a borrower owns less than 100% of a
+business but wants to use funds exceeding their ownership percentage, they must provide
+a signed letter from the other owners granting access to those specific funds 1 . Spousal
+accounts can be used for down payment and closing costs, but they are strictly ineligible
+for satisfying reserve requirements 1 . For alternative credit, if a borrower lacks
+traditional credit cards, they can use eight alternative tradelines, but this requires a four-
+year established credit history and one tradeline open for at least 12 months 1 .
+Title and housing history requirements have their own set of rigid rules. For DSCR cash-
+out refinances, the property must have been on title for at least 90 days 1 . However,
+this rule has exceptions for transfers due to inheritance, divorce decree, or legal award,
+which must be properly documented to bypass the 90-day lockout 1 . Housing history is
+required for all borrowers, defined as 12 months of verified ownership or rental history
+1 . A property owned free-and-clear counts as a clean payment history (0x30). For First-
+Time Homebuyers (FTHBs) or experienced investors living with family, a rent-free letter
+is an acceptable substitute for a VOM/VOR 1 . Derogatory credit items like collections
+and charge-offs can generally be ignored and do not need to be paid off, unless they are
+title-impacting, meaning they could result in a lien on the property 1 .
+Entity structuring and Power of Attorney (POA) usage are governed by strict legal and
+compliance protocols. When a loan is made to an entity (LLC, Corporation, etc.), a
+Personal Guarantor is required. This guarantor must represent at least 51% cumulative
+ownership in the entity and have signing authority 1 . Layered LLCs are permitted, but
+only up to two layers; trust-layered LLCs are ineligible 1 . A critical distinction is that a
+personal guarantee is only required when the entity itself is the borrower on the 1003
+form. If an individual is the borrower and simply vests the title into an LLC, no personal
+guarantee is needed 1 . POAs are highly restricted. They are permitted only for U.S.
+Citizens and Permanent Residents. They are strictly prohibited for Foreign Nationals, for
+any Cash-Out refinances, and for any transaction where the property is being vested into
+an LLC or other entity 1 . This last rule forces alternative closing solutions for investors,
+such as using a DSCR loan where the individual borrower can vest into an LLC without a
+POA. Attempting to use a POA in violation of these rules is a direct path to denial.
+
+===== PAGE 12 =====
+
+Operational Constraint Affected Rule Summary
+Program(s)
+Escrow Holdbacks DSCR v4.0 Strictly Prohibited. All appraiser-required repairs must be completed pre-funding. 1
+Transferred Appraisal DSCR v4.0 Must be less than 60 days old at the time of transfer. 1
+Age
+Transferred Appraisal DSCR v4.0 1004D Recertifications are explicitly prohibited on transferred appraisals. 1
+Recert
+90-Day Title Seasoning DSCR v4.0 Required for Cash-Outs. Exceptions exist for inheritance/divorce. 1
+Power of Attorney All Programs Prohibited for Foreign Nationals, Cash-Outs, and transactions vesting into an LLC/Entity.
+(POA) 1
+Solar Loan Seasoning Velvet Cake Requires 6 months of seasoning after the solar loan is paid as agreed. 1
+Crypto Reserve Universal Only 60% of the asset's current valuation (within 30 days) is eligible for reserves. 1
+Valuation
+Business Account Universal A signed letter from other owners is required to use funds in a business account that exceed
+Funds the borrower's ownership percentage. 1
+By systematically flagging these operational guardrails, the underwriting tool can act as a
+quality control checkpoint, ensuring that files are submission-ready and minimizing the
+risk of costly post-submission deficiencies.
+Synthesis and Strategic Implementation Framework
+The comprehensive analysis of Cake Mortgage's 2025-2026 guidelines culminates in a
+clear blueprint for developing a definitive, industry-leading DSCR and Non-QM
+underwriting tool. The objective is not merely to create a static repository of rules but to
+engineer a dynamic, logic-driven decision engine that anticipates user needs, validates
+against silent deal-killers, and routes complex scenarios to the optimal program path. The
+strategic implementation of this tool hinges on three core principles derived from the
+research: strict hierarchical enforcement of the 2026 guidelines, deep integration of
+granular operational constraints, and the creation of a sophisticated, multi-step decision
+framework.
+First, the tool's foundational architecture must enforce a rigid hierarchy that exclusively
+utilizes the 2026 guidelines while completely archiving the outdated 2025 matrices like
+Sponge, Funnel, and Cheese 1 12. This ensures that every recommendation is current
+and competitive, reflecting the company's strategic shift toward higher balance, high-LTV
+lending and a more forgiving stance on recent credit rehabilitation 1 . The tool should be
+
+===== PAGE 13 =====
+
+built around a master data model that maps the attributes of the six active 2026
+programs—DSCR v4.0, Bundt Cake, Cup Cake, Velvet Cake, Pound Cake Lite, and Coffee
+Cake—to a central database. This allows for rapid, side-by-side comparison of loan
+amounts, LTVs, DTI limits, and documentation requirements based on user inputs.
+Second, the tool's intelligence will be defined by its ability to embed and execute the
+granular, often hidden, "deal-killer" rules. These are the silent constraints that cause the
+majority of post-submission failures. The tool must feature a dedicated validation engine
+that cross-references user inputs against these rules before generating a program
+recommendation. This includes checking for absolute disqualifiers like a 120+ day
+mortgage late (0x120x12) 1 , verifying the correct number of days for transferred
+appraisals (<60 days) 1 , and enforcing the prohibition of escrow holdbacks on DSCR
+loans 1 . By surfacing these constraints early, the tool empowers Loan Officers to correct
+issues at the outset, dramatically improving submission success rates and accelerating the
+funding cycle.
+Third, the most advanced functionality of the tool will be its strategic routing engine,
+which moves beyond simple matching to perform programmatic arbitrage. Based on the
+borrower's profile, property type, and transaction goals, the tool must recommend the
+single best program path. This requires a multi-step, branching logic process. For
+instance, the initial step would be to determine the property's occupancy status. If it's a
+Non-Owner-Occupied investment property, the tool immediately directs the user to the
+DSCR v4.0 logic. If it's owner-occupied, the next branch would assess the borrower's
+credit history. If the borrower has a Bankruptcy or Foreclosure less than 36 months old,
+the tool would route them to Bundt Cake or Cup Cake, applying the appropriate CLTV
+penalty, and explicitly warn them that older, restrictive matrices would deny the
+application 1 . If the property is a Short-Term Rental, the tool would force a route to
+DSCR v4.0 and explain why Non-QM investment programs are ineligible for this property
+type 1 . This structured, intelligent guidance transforms the tool from a lookup table into
+a strategic partner.
+The final output of this process should be a comprehensive, actionable report for the
+Loan Officer, detailing the recommended program, the rationale behind the
+recommendation, the maximum allowable loan amount and LTV, the required
+documentation, and a summary of any applicable penalties or red flags. This synthesis of
+hierarchical data, operational guardrails, and strategic logic will fulfill the user's goal of
+creating an industry-leading underwriting tool that is not only accurate and
+comprehensive but also deeply insightful and operationally efficient.
+
+===== PAGE 14 =====
+
+Reference
+1. James Kleimann's Post - LinkedIn https://www.linkedin.com/posts/james-kleimann-
+b20ab212_on-monday-a-florida-brokers-client-signed-activity-7401367630336610304-
+rR67
+2. What is debt service coverage ratio (DSCR) in real estate? https://
+www.jpmorgan.com/insights/real-estate/commercial-term-lending/what-is-debt-
+service-coverage-ratio-dscr-in-real-estate
+3. DSCR + Short Term Rental + IO = Winning | Denis Kelly (DK) https://
+mu.linkedin.com/posts/deniskelly_dscr-short-term-rental-io-winning-
+activity-7040327058043928576-Aabx
+4. DSCR Loan For Airbnb: Getting Approvals, Rates, And Strategy https://mrrate.com/
+guide/dscr-loan-for-airbnb-dscr-loans-for-short-term-rentals/
+5. $25.3 billion of capital in 2025 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1050446/000105044626000012/mstr-20251030x8kxex991.htm
+6. Rian Barker - Certified Mortgage Advisor, Loan Officer Team Lead https://
+www.linkedin.com/in/rianbarker
+7. FHA vs. PMI - What's the Difference? Thinking of buying a home but ... https://
+www.tiktok.com/@jloangoddess/video/7507755052182883630
+8. Personal Gift Funds - Training - Enact https://training.enactmi.com/personal-gift-
+funds
+9. Treasury and IRS finalize tax reporting requirements for digital assets https://
+www.bakertilly.com/insights/accounting-insights-5
+10. Gift and Estate Tax Considerations for Crypto Assets https://www.bowditch.com/
+estateandtaxplanningblog/2022/06/08/gift-and-estate-tax-considerations-for-crypto-
+assets/
+11. [PDF] NACE Rev. 2.1 - Statistical classification of economic activities in the ... https://
+ec.europa.eu/eurostat/documents/3859598/21633320/KS-GQ-24-007-EN-N.pdf
+12. Arin Baghermian's Post - LinkedIn https://www.linkedin.com/posts/arin-
+baghermian-39b918123_huge-news-at-cake-mortgage-corp-we-just-
+activity-7383597087818485760-SZTp
+13. Post-Close Underwriter (Non-QM) - Chatsworth, CA 91311 - Indeed https://
+www.indeed.com/viewjob?jk=597315d0320617a6
+14. 85 cake ideas in 2026 - Pinterest https://ca.pinterest.com/lafrenierea/cake-ideas/
+
+===== PAGE 15 =====
+
+15. Reviving Tiered Cakes in 2026: A Sweet Comeback - TikTok https://www.tiktok.com/
+@cakeryinthemaking/video/7609636623499709718
+16. 28 Anniversary cupcakes ideas in 2026 - Pinterest https://in.pinterest.com/
+homebakers/anniversary-cupcakes/
+17. Chambersdictionary | PDF | Dictionary | English Language - Scribd https://
+www.scribd.com/document/427600156/Chambersdictionary
+18. How to Buy A Ott Voucher on African Bank App - TikTok https://www.tiktok.com/
+discover/how-to-buy-a-ott-voucher-on-african-bank-app
+19. List of VAT Registered Companies in Mauritius | PDF - Scribd https://
+www.scribd.com/document/841683738/List-of-Vat-Reg-Persons
+20. Investors Seeking New Homes with DSCR Loans - TikTok https://www.tiktok.com/
+@theonithelender/video/7570065791274568990
+21. Fitch Assigns New Ratings to Barclays Mortgage Loan Trust 2025 ... https://
+www.fitchratings.com/research/structured-finance/fitch-assigns-new-ratings-to-
+barclays-mortgage-loan-trust-2025-nqm1-31-01-2025
+22. DSCR Formula #foryou #dscr #calculation #mortgageloantips | TikTok https://
+www.tiktok.com/@mortgagebyadam/video/7618234461276228878
+23. Presale: Vista Point Securitization Trust 2026-CES2 - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3551551
+24. Legal Agreements - Cake POS https://trycake.com/legal-agreements?
+srsltid=AfmBOoq4YKLDF_CCEds9nBdzES5CqKNXtlIQEj3ye5mifNvgWsMDRp-s
+25. [PDF] On the brink - trade, finance and the reshaping of the global economy https://
+unctad.org/system/files/official-document/tdr2025_en.pdf
+26. [PDF] Unilever Annual Report and Accounts 2025 https://www.unilever.com/files/
+unilever-annual-report-and-accounts-2025.pdf
+27. S-1/A - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2093536/000119312526146309/d81728ds1a.htm
+28. What is a non-QM loan? A guide to non-qualified mortgages https://
+www.bankrate.com/mortgages/non-qm-loans/
+29. Shared Vocabulary | PDF - Scribd https://www.scribd.com/document/916822319/
+Shared-Vocabulary

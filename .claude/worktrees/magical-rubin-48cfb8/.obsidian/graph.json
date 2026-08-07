@@ -1,0 +1,74 @@
+{
+  "search": ["vault", "tag", "file", "heading"],
+  "showOrphans": true,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showTags": false,
+  "showArrow": false,
+  "nodeSize": {
+    "min": 1.5,
+    "max": 8.0,
+    "scale": 1.0
+  },
+  "lineSize": {
+    "min": 0.5,
+    "max": 3.0,
+    "scale": 1.0
+  },
+  "nodeSizeMultiplier": 1.0,
+  "lineSizeMultiplier": 1.0,
+  "centerForce": -50.0,
+  "repulsionForce": 800.0,
+  "linkForce": 30.0,
+  "linkDistance": 80.0,
+  "collisions": true,
+  "colorGroups": [
+    {
+      "name": "shipped",
+      "color": "#00d68f",
+      "query": "tag:#status/shipped"
+    },
+    {
+      "name": "drafted",
+      "color": "#4d9fff",
+      "query": "tag:#status/drafted"
+    },
+    {
+      "name": "blocked",
+      "color": "#ff5a5a",
+      "query": "tag:#status/blocked"
+    },
+    {
+      "name": "audit",
+      "color": "#ffb84d",
+      "query": "tag:#type/audit"
+    },
+    {
+      "name": "research",
+      "color": "#b48cff",
+      "query": "tag:#type/research"
+    },
+    {
+      "name": "code",
+      "color": "#5affd4",
+      "query": "tag:#type/code"
+    },
+    {
+      "name": "lender",
+      "color": "#ffd24d",
+      "query": "tag:#entity/lender"
+    },
+    {
+      "name": "state",
+      "color": "#ff8da1",
+      "query": "tag:#entity/state"
+    }
+  ],
+  "collapseCustomGroups": false,
+  "forceBullet": false,
+  "resize": true,
+  "textFadeMultiplier": 0.0,
+  "nodeStrengthMultiplier": 0.3,
+  "displayLinkDirection": false,
+  "linkColorScheme": "byGroup"
+}

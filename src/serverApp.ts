@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+// @ts-expect-error - express-rate-limit optional server dependency
 import rateLimit from "express-rate-limit";
 
 import { logger, logRequest } from "./logger";
@@ -23,6 +24,8 @@ app.use(
   })
 );
 
+// Explicitly set trust proxy for Vercel/Firebase reverse proxies
+app.set("trust proxy", 1);
 // Hard cap on request body size — prevents memory/cost abuse from large payloads
 app.use(express.json({ limit: "100kb" }));
 // Explicitly remove the X-Powered-By header so the runtime stack is not disclosed

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Block internal app routes from being indexed
+Disallow: /api/
+Disallow: /investgo
+Disallow: /dashboard
+Disallow: /broker-portal
+
+Sitemap: https://greenstreet.com/sitemap.xml

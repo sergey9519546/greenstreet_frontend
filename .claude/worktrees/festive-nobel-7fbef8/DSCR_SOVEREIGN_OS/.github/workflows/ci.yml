@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-dscr-core:
+    name: dscr-core tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.x"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        working-directory: packages/dscr-core
+        run: uv sync --extra dev
+
+      - name: Lint with ruff
+        working-directory: packages/dscr-core
+        run: uv run ruff check src tests
+
+      - name: Run pytest with coverage
+        working-directory: packages/dscr-core
+        run: uv run pytest --cov=dscr_core --cov-fail-under=85 -v
+
+      - name: Verify package builds
+        working-directory: packages/dscr-core
+        run: uv build
+
+      - name: Verify install
+        working-directory: packages/dscr-core
+        run: |
+          uv pip install --system dist/*.whl
+          python -c "import dscr_core; print(dscr_core.__version__); print('OK')"
+          python -c "
+          from dscr_core import pi, pitia, dscr_track1
+          # golden vector check
+          assert abs(pi(318750, 7.00) - 2120.6517) < 0.01
+          assert abs(pitia(2120.6517, 5000, 2000, 150) - 2853.9850) < 0.01
+          assert abs(dscr_track1(3000, 2853.985) - 1.0512) < 0.001
+          print('Golden vector smoke test PASSED')
+          "

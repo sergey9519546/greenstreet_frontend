@@ -194,9 +194,10 @@ export interface V11AnalysisInput {
   borrower: BorrowerProfile;
   loan: LoanStructure;
   strategy: RentalStrategy;
-  taxProfile: TaxProfile;
+  taxProfile?: TaxProfile;
+  rate?: number;
   // Override tax inputs for reassessment
-  sellerAnnualTax: number;  // current bill
+  sellerAnnualTax?: number;  // current bill
   // ARM
   armTerms?: ARMTerms;
   // BRRRR
@@ -212,7 +213,7 @@ export interface V11AnalysisInput {
   // PPP
   pppAllowed?: boolean;
   // Property address (for IC memo)
-  propertyAddress: string;
+  propertyAddress?: string;
   // Monte Carlo (optional)
   monteCarloPDSCRLessThan1?: number;
   monteCarlo5thPctDSCR?: number;
@@ -228,7 +229,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
   const reassessmentPre = computeReassessedTax(
     input.property.purchasePrice,
     input.property.state,
-    input.sellerAnnualTax,
+    input.sellerAnnualTax ?? input.property.annualTaxes,
   );
 
   // 1. Dual-track DSCR — pass reassessed tax override (matches page.tsx production path)
@@ -325,7 +326,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
   // 6. Cost seg viability
   const costSegViability = assessCostSegViability(
     input.property.purchasePrice,
-    input.taxProfile.landAllocationPct,
+    input.taxProfile?.landAllocationPct ?? 20,
   );
 
   // 7. Insurance gate
@@ -378,7 +379,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
 
   // 10. IC memo
   const memoInput: ICMemoInput = {
-    propertyAddress: input.propertyAddress,
+    propertyAddress: input.propertyAddress ?? '123 Main St',
     entityType: input.borrower.entityType,
     verdict,
     track1DSCR,
@@ -395,7 +396,7 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     preTaxP90: input.monteCarloP90IRR ?? returns.leveredIRR * 1.2,
     afterTaxIRR: afterTaxIRR.afterTaxIRR / 100,
     equityMultiple: returns.equityMultiple,
-    sellerAnnualTax: input.sellerAnnualTax,
+    sellerAnnualTax: input.sellerAnnualTax ?? input.property.annualTaxes,
     reassessedAnnualTax: reassessment.reassessedAnnualTax,
     bindingRisk: 'Rent (Track 1 sensitivity)', // simplified
     pDSCRLessThan1: input.monteCarloPDSCRLessThan1 ?? 0.10,

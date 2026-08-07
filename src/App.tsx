@@ -27,6 +27,9 @@ const routeModules = {
   PortfolioPage: () => import("./pages/PortfolioPage"),
   DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
   BorrowerProfilesPage: () => import("./pages/BorrowerProfilesPage"),
+  NonUsInvestorsPage: () => import("./pages/NonUsInvestorsPage"),
+  STRHostsPage: () => import("./pages/STRHostsPage"),
+  VacationHomesPage: () => import("./pages/VacationHomesPage"),
   BrokersPortalPage: () => import("./pages/BrokersPortalPage"),
   InvestorsPage: () => import("./pages/InvestorsPage"),
   AboutPage: () => import("./pages/AboutPage"),
@@ -34,6 +37,8 @@ const routeModules = {
   CaseStudiesPage: () => import("./pages/CaseStudiesPage"),
   LegalPage: () => import("./pages/LegalPage"),
   ProductsPage: () => import("./pages/ProductsPage"),
+  PlatformPage: () => import("./pages/PlatformPage"),
+  SupportPage: () => import("./pages/SupportPage"),
   SolutionsPage: () => import("./pages/SolutionsPage"),
   BrokersPage: () => import("./pages/BrokersPage"),
 } as const;
@@ -64,6 +69,9 @@ const STRUnderwritingPage = lazy(routeModules.STRUnderwritingPage);
 const PortfolioPage = lazy(routeModules.PortfolioPage);
 const DealAnalyzerPage = lazy(routeModules.DealAnalyzerPage);
 const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
+const NonUsInvestorsPage = lazy(routeModules.NonUsInvestorsPage);
+const STRHostsPage = lazy(routeModules.STRHostsPage);
+const VacationHomesPage = lazy(routeModules.VacationHomesPage);
 const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
 const InvestorsPage = lazy(routeModules.InvestorsPage);
 const AboutPage = lazy(routeModules.AboutPage);
@@ -71,6 +79,8 @@ const CareersPage = lazy(routeModules.CareersPage);
 const CaseStudiesPage = lazy(routeModules.CaseStudiesPage);
 const LegalPage = lazy(routeModules.LegalPage);
 const ProductsPage = lazy(routeModules.ProductsPage);
+const PlatformPage = lazy(routeModules.PlatformPage);
+const SupportPage = lazy(routeModules.SupportPage);
 const SolutionsPage = lazy(routeModules.SolutionsPage);
 const BrokersPage = lazy(routeModules.BrokersPage);
 
@@ -99,6 +109,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
 }
 
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+import { depth } from "./theme";
 
 function portalTabFromPath(pathname: string): string | undefined {
   const clean = pathname.replace(/\/$/, "");
@@ -128,8 +139,11 @@ function viewToPath(view: PageView): string {
     case "state-laws":        return "/state-laws";
     case "deal-analyzer":     return "/deal-analyzer";
     case "borrower-profiles": return "/borrower-profiles";
+    case "non-us-investors": return "/non-us-investors";
+    case "str-hosts":         return "/str-airbnb";
+    case "vacation-homes":    return "/vacation-homes";
     case "brokers":           return "/brokers";
-    case "brokers-partner":   return "/partners";
+    case "brokers-partner":   return "/partnerships";
     case "investors":         return "/investors";
     case "faq":               return "/faq";
     case "blog":              return "/blog";
@@ -149,11 +163,24 @@ function viewToPath(view: PageView): string {
     case "careers":           return "/careers";
     case "legal":             return "/legal";
     case "products":          return "/products";
+    case "platform":          return "/products/platform";
+    case "support":           return "/support";
     case "solutions":         return "/solutions";
     case "book-demo":         return "/book-demo";
     case "external":          return "/external";
   }
 }
+
+// Views where the floating "See if you qualify" pill is suppressed: the logged-in
+// portal, and every tool/calculator page (those carry their own prominent qualify
+// CTAs, so the overlay just clutters them). It still shows on marketing/persona
+// pages, where it's the primary conversion path.
+const QUALIFY_WIDGET_EXCLUDED_VIEWS: ReadonlySet<PageView> = new Set([
+  "portal", "external", "legal", "rate-quiz", "book-demo",
+  "dscr-calculator", "lender-intel", "state-laws", "deal-analyzer",
+  "refi-tracker", "arm-reset", "monte-carlo", "returns", "tax-engine",
+  "stress-matrix", "decision-support", "str-underwriting", "portfolio",
+]);
 
 export default function App() {
   const [view, setView] = useState<PageView>(() => {
@@ -209,6 +236,8 @@ export default function App() {
   goToRef.current = goTo;
   const viewRef = useRef(view);
   viewRef.current = view;
+  // First body paint sets the depth ground instantly; later route changes fade.
+  const depthFirstPaint = useRef(true);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -248,14 +277,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    document.body.style.backgroundColor = "#EEEFD3";
-    if (view === "marketing") {
-      document.body.style.color = "#003738";
-    } else if (view === "portal") {
-      document.body.style.color = "#002D2E";
-    } else {
-      document.body.style.color = "#003738";
+    // Deal-depth ground: the marketing home rides the cream "browse" surface and
+    // every React app route rides the midnight "underwrite" surface. Painting
+    // BOTH grounds (html catches overscroll, body the page) with the paired ink
+    // means the marketing→app crossing fades through one tonal descent instead of
+    // cutting between two color worlds — and the cream ground stops flashing
+    // behind the dark app. Surface+ink come from the same stop so contrast can
+    // never invert mid-ramp.
+    const stop = view === "marketing" ? depth.browse : depth.underwrite;
+    const root = document.documentElement;
+    if (!depthFirstPaint.current) {
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const ease = reduce ? "none" : "background-color 600ms ease, color 600ms ease";
+      root.style.transition = ease;
+      document.body.style.transition = ease;
     }
+    root.style.backgroundColor = stop.bg;
+    document.body.style.backgroundColor = stop.bg;
+    document.body.style.color = stop.ink;
+    depthFirstPaint.current = false;
 
     const isMarketing = view === "marketing";
     if (isMarketing) {
@@ -338,6 +378,12 @@ export default function App() {
         return <DealAnalyzerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "borrower-profiles":
         return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "non-us-investors":
+        return <NonUsInvestorsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "str-hosts":
+        return <STRHostsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "vacation-homes":
+        return <VacationHomesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers":
         return <BrokersPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "brokers-partner":
@@ -352,31 +398,35 @@ export default function App() {
         return <LegalPage key={pathname} path={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "products":
         return <ProductsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "platform":
+        return <PlatformPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "support":
+        return <SupportPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "solutions":
         return <SolutionsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "book-demo":
         return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "refi-tracker":
-        return <RefiTrackerPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <RefiTrackerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "arm-reset":
-        return <ARMPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ARMPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "monte-carlo":
-        return <MonteCarloPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <MonteCarloPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "returns":
-        return <ReturnsPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <ReturnsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "tax-engine":
-        return <TaxEnginePage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <TaxEnginePage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "stress-matrix":
-        return <StressMatrixPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <StressMatrixPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "decision-support":
-        return <DecisionSupportPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
+        return <DecisionSupportPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "str-underwriting":
         return <STRUnderwritingPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "portfolio":
         return <PortfolioPage key={pathname} onBack={() => goTo("portal")} onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
-          window.location.href = "https://www.greenstreet.com";
+          window.location.href = "https://www.greenstreet.finance";
         }
         return null;
     }
@@ -392,8 +442,9 @@ export default function App() {
         <Suspense fallback={null}>
           <PageRenderer />
         </Suspense>
-        {/* QualifyWidget overlays every view — modal + sticky pill */}
-        <QualifyWidget />
+        {/* QualifyWidget overlays marketing/persona views — not the portal or the
+            tool pages (they have their own qualify CTAs). */}
+        {!QUALIFY_WIDGET_EXCLUDED_VIEWS.has(view) && <QualifyWidget showTrigger={view !== "borrower-profiles"} />}
       </div>
     </ErrorBoundary>
   );

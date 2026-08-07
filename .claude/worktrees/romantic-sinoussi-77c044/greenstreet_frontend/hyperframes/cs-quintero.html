@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #00302e; }
+      body { font-family: "Outfit", sans-serif; }
+      .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+      svg { display: block; } text { dominant-baseline: middle; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="5" data-width="1920" data-height="1080">
+      <div id="scene" class="clip" data-start="0" data-duration="5" data-track-index="1" style="position:absolute; inset:0;">
+        <svg viewBox="0 0 1920 1080" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="vign" cx="50%" cy="44%" r="78%"><stop offset="0" stop-color="#0a4f4b"/><stop offset="55%" stop-color="#04403d"/><stop offset="100%" stop-color="#012220"/></radialGradient>
+            <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbe9"/><stop offset="1" stop-color="#e4e5c4"/></linearGradient>
+            <linearGradient id="lemonG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9ea72"/><stop offset="1" stop-color="#cdce46"/></linearGradient>
+            <linearGradient id="emerG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#69d6ad"/><stop offset="1" stop-color="#34a279"/></linearGradient>
+            <linearGradient id="coralG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ef8682"/><stop offset="1" stop-color="#d24f4a"/></linearGradient>
+            <linearGradient id="ppt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a5b58"/><stop offset="1" stop-color="#053e3c"/></linearGradient>
+            <filter id="glowE" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowL" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glowC" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="drop" x="-40%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#001a18" flood-opacity="0.5"/><feDropShadow dx="0" dy="32" stdDeviation="32" flood-color="#001a18" flood-opacity="0.3"/></filter>
+            <filter id="dropS" x="-40%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#001a18" flood-opacity="0.45"/></filter>
+            <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch" seed="11"/><feColorMatrix type="matrix" values="0 0 0 0 0.93  0 0 0 0 0.94  0 0 0 0 0.83  0 0 0 0.6 0"/></filter>
+            <pattern id="dots" width="46" height="46" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.6" fill="#eeefd3" opacity="0.05"/></pattern>
+          </defs>
+          <rect width="1920" height="1080" fill="url(#vign)"/>
+          <g id="par"><rect x="-40" y="-40" width="2000" height="1160" fill="url(#dots)"/></g>
+          <text id="eyebrow" x="960" y="118" text-anchor="middle" class="mono" fill="#eeefd3" opacity="0.66" font-size="25" letter-spacing="8" font-weight="600">STOPPED BEFORE THE APPRAISAL</text>
+
+          <g id="toll">
+            <rect x="120" y="640" width="1680" height="120" fill="#012220"/>
+            <rect x="120" y="640" width="1680" height="6" fill="#eeefd3" opacity="0.06"/>
+            <g fill="#eeefd3" opacity="0.12"><rect x="240" y="694" width="70" height="10" rx="5"/><rect x="400" y="694" width="70" height="10" rx="5"/><rect x="560" y="694" width="70" height="10" rx="5"/><rect x="720" y="694" width="70" height="10" rx="5"/></g>
+            <g filter="url(#drop)">
+              <rect x="1180" y="468" width="300" height="292" rx="16" fill="url(#cream)"/>
+              <rect x="1180" y="468" width="300" height="9" rx="4" fill="#fff" opacity="0.55"/>
+              <polygon points="1158,468 1330,384 1502,468" fill="url(#lemonG)"/>
+              <polygon points="1158,468 1330,384 1322,388 1170,468" fill="#fff" opacity="0.3"/>
+              <rect x="1214" y="538" width="232" height="124" rx="10" fill="#012220"/>
+              <text x="1330" y="586" text-anchor="middle" fill="#eeefd3" font-size="34" font-weight="800" letter-spacing="2">APPRAISAL</text>
+              <text x="1330" y="626" text-anchor="middle" class="mono" fill="#ef8682" font-size="28" font-weight="700">$3,000–7,000</text>
+            </g>
+            <g id="gate" transform="translate(1180,690)"><rect x="-8" y="-13" width="240" height="22" rx="11" fill="url(#emerG)" filter="url(#glowE)"/><circle cx="-8" cy="-2" r="15" fill="url(#cream)"/></g>
+            <g id="folders"></g>
+            <g id="nope" transform="translate(640,700) scale(0)"><circle r="54" fill="url(#coralG)" filter="url(#glowC)"/><path d="M -21 -21 L 21 21 M 21 -21 L -21 21" stroke="#fff" stroke-width="12" stroke-linecap="round"/></g>
+            <g transform="translate(560,256)">
+              <text x="0" y="-26" text-anchor="middle" fill="#eeefd3" opacity="0.6" font-size="24" font-weight="600" letter-spacing="2">HARD COSTS AVOIDED</text>
+              <text id="save" x="0" y="38" text-anchor="middle" class="mono" fill="url(#lemonG)" font-size="96" font-weight="800" filter="url(#glowL)">$0</text>
+            </g>
+          </g>
+
+          <g id="pass" opacity="0">
+            <rect x="0" y="150" width="1920" height="930" fill="url(#vign)"/>
+            <rect x="0" y="150" width="1920" height="930" fill="url(#dots)"/>
+            <text x="960" y="118" text-anchor="middle" class="mono" fill="#eeefd3" opacity="0.66" font-size="25" letter-spacing="8" font-weight="600">STOPPED BEFORE THE APPRAISAL</text>
+            <text x="960" y="248" text-anchor="middle" fill="#eeefd3" opacity="0.6" font-size="26" font-weight="600" letter-spacing="3">ITIN · GLOBAL PROGRAM</text>
+            <g filter="url(#drop)" transform="translate(760,360)">
+              <rect width="400" height="300" rx="22" fill="url(#ppt)" stroke="#eeefd3" stroke-opacity="0.16" stroke-width="2"/>
+              <g id="card"><rect x="116" y="-92" width="168" height="224" rx="14" fill="url(#cream)" filter="url(#dropS)"/><rect x="116" y="-92" width="168" height="48" rx="14" fill="#012220"/><text id="ctxt" x="200" y="-68" text-anchor="middle" fill="#eeefd3" font-size="20" font-weight="700" letter-spacing="2" opacity="0">PASSPORT</text><circle cx="200" cy="52" r="36" fill="none" stroke="#024a45" stroke-width="4"/></g>
+            </g>
+            <text id="ptimer" x="960" y="320" text-anchor="middle" class="mono" fill="url(#lemonG)" opacity="0" font-size="46" font-weight="700" filter="url(#glowL)">3:00</text>
+            <g id="ok" transform="translate(960,850) scale(0)"><rect x="-176" y="-46" width="352" height="92" rx="18" fill="url(#emerG)" filter="url(#glowE)"/><rect x="-176" y="-46" width="352" height="10" rx="5" fill="#fff" opacity="0.35"/><text x="0" y="2" text-anchor="middle" fill="#012220" font-size="42" font-weight="800" letter-spacing="4">APPROVED</text></g>
+          </g>
+
+          <rect width="1920" height="1080" filter="url(#grain)" opacity="0.045" style="mix-blend-mode:overlay"/>
+        </svg>
+      </div>
+    </div>
+
+    <script>
+      const NS="http://www.w3.org/2000/svg";
+      const fhtml='<rect width="84" height="64" rx="10" fill="url(#cream)" filter="url(#dropS)"/><rect width="84" height="8" rx="4" fill="#fff" opacity="0.5"/><rect x="9" y="-13" width="36" height="17" rx="7" fill="url(#cream)"/><circle cx="30" cy="32" r="5.5" fill="#024a45"/><circle cx="56" cy="32" r="5.5" fill="#024a45"/>';
+      const fc=document.getElementById("folders"); const fx=[360,250,140];
+      fx.forEach(x=>{ const g=document.createElementNS(NS,"g"); g.setAttribute("transform",`translate(${x},662)`); g.innerHTML=fhtml; fc.appendChild(g); });
+
+      window.__timelines=window.__timelines||{};
+      const tl=gsap.timeline({paused:true});
+      const grp=n=>"$"+Math.round(n).toLocaleString("en-US");
+      tl.fromTo("#par",{x:-12,y:-8},{x:12,y:8,duration:5,ease:"none"},0);
+
+      tl.to("#folders",{x:360,duration:0.9,ease:"power2.out"},0.2);
+      tl.fromTo("#gate",{rotation:-70,transformOrigin:"0px 0px"},{rotation:0,duration:0.5,ease:"back.out(1.6)"},0.9);
+      tl.to("#folders",{x:250,duration:0.55,ease:"back.out(2.2)"},1.35)
+        .to("#nope",{scale:1,duration:0.5,ease:"back.out(1.9)"},1.4)
+        .to("#nope",{scale:1.08,duration:0.18,yoyo:true,repeat:1,ease:"sine.inOut"},1.9)
+        .to("#nope",{scale:0,duration:0.3,ease:"power2.in"},2.5);
+      const sv={v:0};
+      tl.to(sv,{v:14800,duration:1.6,ease:"power2.out",onUpdate:()=>{document.getElementById("save").textContent=grp(sv.v);}},0.5);
+
+      tl.to("#toll",{opacity:0,duration:0.35,ease:"power1.in"},2.7)
+        .set("#toll",{opacity:0},3.05)
+        .to("#pass",{opacity:1,duration:0.4},3.1)
+        .fromTo("#card",{y:-300,rotation:-6},{y:0,rotation:0,duration:0.6,ease:"back.out(1.4)"},3.3)
+        .to("#ctxt",{opacity:1,duration:0.3},3.65)
+        .to("#ptimer",{opacity:0.9,duration:0.3},3.55);
+      const pt={v:180};
+      tl.to(pt,{v:0,duration:0.9,ease:"power1.inOut",onUpdate:()=>{const s=Math.max(0,Math.round(pt.v));document.getElementById("ptimer").textContent=Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}},3.55)
+        .to("#ok",{scale:1,duration:0.6,ease:"back.out(1.7)"},4.25);
+
+      tl.to("#pass",{opacity:0,duration:0.3},4.75)
+        .set("#toll",{opacity:1},4.99)
+        .set(["#nope","#ok"],{scale:0},4.99)
+        .set(["#ptimer","#ctxt"],{opacity:0},4.99)
+        .set("#folders",{x:0},4.99).set("#gate",{rotation:-70},4.99)
+        .set("#save",{onComplete:()=>{document.getElementById("save").textContent="$0";}},4.99);
+
+      window.__timelines["main"]=tl;
+    </script>
+  </body>
+</html>

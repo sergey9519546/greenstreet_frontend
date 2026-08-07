@@ -1,0 +1,78 @@
+# Vercel Ignore - Exclude from deployment
+
+# Development
+node_modules
+.git
+.agents
+.gemini
+.minimax
+.qodo
+.understand-anything
+.superpowers
+.cake_matrices
+.trash
+
+# Documentation (keep README)
+docs/
+*.md
+!README.md
+
+# Large data files (keep data/ folder for imports)
+99_attachments/
+airdna-project/
+perfectproperty/
+graphify-out/
+pgliteData/
+
+# Build artifacts
+dist/assets/**/*.map
+dist/**/*.map
+
+# Heavy media
+animations/
+hf-*/
+
+# Scripts
+scripts/
+_regen_tmp/
+
+# Logs
+*.log
+logs/
+
+# Large images in root only (keep dist and public)
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
+
+# HTML files except index.html
+/*.html
+!index.html
+!dist/index.html
+
+# Config files not needed in production
+vitest.config.ts
+.eslintrc*
+.prettierrc*
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# PowerShell scripts
+*.ps1
+
+# Database files
+*.db
+*.sqlite
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+
+# Review files
+review-*.html

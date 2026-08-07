@@ -55,6 +55,36 @@ export const US_NATIONAL_STR_SEASONALITY: { month: string; index: number }[] = [
   { month: 'Dec', index: 90 },   // holiday travel, ski season begins
 ];
 
+export const FLORIDA_SNOWBIRD_STR_SEASONALITY: { month: string; index: number }[] = [
+  { month: 'Jan', index: 140 },
+  { month: 'Feb', index: 145 },
+  { month: 'Mar', index: 140 },
+  { month: 'Apr', index: 120 },
+  { month: 'May', index: 95 },
+  { month: 'Jun', index: 85 },
+  { month: 'Jul', index: 80 },
+  { month: 'Aug', index: 75 },
+  { month: 'Sep', index: 70 },
+  { month: 'Oct', index: 90 },
+  { month: 'Nov', index: 120 },
+  { month: 'Dec', index: 140 },
+];
+
+export const MOUNTAIN_RESORT_STR_SEASONALITY: { month: string; index: number }[] = [
+  { month: 'Jan', index: 150 },
+  { month: 'Feb', index: 160 },
+  { month: 'Mar', index: 140 },
+  { month: 'Apr', index: 60 },
+  { month: 'May', index: 50 },
+  { month: 'Jun', index: 110 },
+  { month: 'Jul', index: 130 },
+  { month: 'Aug', index: 120 },
+  { month: 'Sep', index: 90 },
+  { month: 'Oct', index: 60 },
+  { month: 'Nov', index: 50 },
+  { month: 'Dec', index: 180 },
+];
+
 /**
  * Compute monthly STR seasonality breakdown for a deal.
  *
@@ -394,7 +424,7 @@ export function evaluateSTRUnderwriting(
   // income); v11.1 fixed to MIN per spec.
   const worlds = [world1, world2, world3];
   const bestWorld = worlds.reduce(
-    (best, w) => (w.qualifyingRent < best.qualifyingRent ? w : best),
+    (best, worldItem) => (worldItem.qualifyingRent < best.qualifyingRent ? worldItem : best),
     world1,
   );
 

@@ -2,6 +2,13 @@ import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
+import { computeDualTrackDSCR } from "../engine/stressMatrix";
+import { computeTcoRate } from "../engine/tcoDscr";
+import { assessLeverage } from "../engine/leverageCheck";
+import { assessRentIntegrity } from "../engine/rentIntegrity";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
+import { PremiumSlider } from "../components/ui/PremiumSlider";
+import { generateCreditMemo } from "../engine/creditMemo";
 
 interface Props {
   onBack?: () => void;
@@ -23,11 +30,24 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const [price, setPrice] = useState(425000);
   const [down, setDown] = useState(25);
   const [rent, setRent] = useState(3000);
+  const [marketRent, setMarketRent] = useState(3000);
   const [rate, setRate] = useState(7.0);
   const [tax, setTax] = useState(5000);
   const [ins, setIns] = useState(2000);
   const [hoa, setHoa] = useState(0);
   const [stateCode, setStateCode] = useState("TX");
+  // --- Quick Mode Toggle (60-Second Time-to-Value North Star) ---
+  const [isQuickMode, setIsQuickMode] = useState(true);
+
+  // Auto-estimate pro fields when in quick mode
+  useEffect(() => {
+    if (isQuickMode) {
+      setTax(Math.round(price * 0.012)); // 1.2% national average property tax estimate
+      setIns(1800);                       // $1,800/yr standard insurance estimate
+      setHoa(0);                          // $0 HOA default
+      setMarketRent(rent);               // 1:1 rent parity default
+    }
+  }, [price, rent, isQuickMode]);
 
   // --- Engine computation ---
   const loan = price * (1 - down / 100);
@@ -36,16 +56,54 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   const pitia = piMo + tax / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
   const cashFlow = rent - pitia;
-  const noi = rent * 0.92 * 12 - tax - ins;
+  // NOI = EGI − full OpEx (CRE underwriting standard). The prior `rent×0.92`
+  // only haircut 8% vacancy — it omitted management, maintenance, and CapEx,
+  // overstating NOI (and thus cap rate + debt yield) by ~21% of rent. Use the
+  // TCO opex (vacancy + mgmt + maint + capex), then taxes + insurance.
+  const tcoTotal = computeTcoRate().total; // SFR/avg/normal default
+  const noi = rent * 12 * (1 - tcoTotal) - tax - ins;
   const capRate = (noi / price) * 100;
   const debtYield = loan > 0 ? (noi / loan) * 100 : 0;
+  // Positive vs negative leverage (RIDGE debt-tool): does the asset out-yield
+  // the debt? Loan constant = annual P&I ÷ loan, vs the going-in cap rate.
+  const lev = assessLeverage(piMo * 12, loan, noi, price);
+  // Cash-on-cash (real-assets): annual pre-tax cash flow (NOI − debt service)
+  // ÷ cash invested (down + ~3% closing). The return on the actual cash in —
+  // negative here when the deal is in negative leverage.
+  const cashInvested = price * (down / 100) + price * 0.03;
+  const coc = cashInvested > 0 ? ((noi - piMo * 12) / cashInvested) * 100 : 0;
   const ltv = 100 - down;
+  // Dual-track: the dscr above is Track 1 (lender). Track 2 nets out typical
+  // vacancy + management + maintenance — flags deals that qualify yet lose money.
+  const dual = computeDualTrackDSCR(rent, pitia);
+  // Rent integrity (behavioral honesty): if the stated/lease rent runs above
+  // the appraiser's 1007 market rent, lenders underwrite to the LOWER figure —
+  // the qualifying DSCR will likely use market rent, not the stated number.
+  const rentCheck = assessRentIntegrity({ leaseRent: rent, marketRent });
+
+  // --- Credit Memo Computation ---
+  const creditMemo = generateCreditMemo({
+    price,
+    loan,
+    downPercent: down,
+    rent,
+    marketRent,
+    rate,
+    pitia,
+    dscr,
+    noi,
+    capRate,
+    debtYield,
+    leverageState: lev.state === "NEGATIVE" ? "negative" : lev.state === "POSITIVE" ? "positive" : "neutral",
+    stateCode,
+    pppRule: sa.ppp,
+  });
 
   // --- Verdict ---
   let vLabel = "DEAL BREAK";
-  let verdictColor = "#ff6b6b";
+  let verdictColor = "#e06363";
   let verdictBg = "rgba(74,21,21,0.07)";
-  let verdictBorder = "#ff6b6b";
+  let verdictBorder = "#e06363";
   let verdictHeadline = "Rent doesn't cover the payment — most lenders decline at this level.";
   let verdictNote =
     "DSCR below 0.75x — the rent doesn't come close to covering the payment. Consider a higher-rent property, more down payment, or a lower rate.";
@@ -127,7 +185,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
         .dc-nav{border-bottom:${DA_NAV_BORDER} !important;background:${swatch.pistachio} !important;}
         footer{color:rgba(0,55,56,0.55) !important;}
         footer div[style]{color:${dc.dark} !important;}
-        @media (max-width: 991px) { .da-tool-grid { grid-template-columns: 1fr !important; } .da-hero-grid { grid-template-columns: 1fr !important; } .da-verdict-grid { grid-template-columns: 1fr !important; } .da-metrics-3 { grid-template-columns: 1fr 1fr !important; } }
+        @media (max-width: 991px) { .da-tool-grid { grid-template-columns: 1fr !important; } .da-hero-grid { grid-template-columns: 1fr !important; } .da-verdict-grid { grid-template-columns: 1fr !important; } .da-metrics-3 { grid-template-columns: 1fr 1fr !important; } .da-verdict-badge { display: none !important; } }
         @media (max-width: 767px) { .da-metrics-3 { grid-template-columns: 1fr !important; } }
         @media (max-width: 479px) { .da-band-3 { grid-template-columns: 1fr !important; } }
       `}</style>
@@ -146,7 +204,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       >
         <div className="gs-dot-grid" />
         <div
-          className="da-hero-grid"
+          className="da-hero-grid dc-hero"
           style={{
             position: "relative",
             width: "100%",
@@ -160,7 +218,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           }}
         >
           <div id="gs-hero-content">
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 24 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>
               Deal Analyzer &middot; Full underwrite
             </div>
             <H1 style={{ margin: "0 0 28px" }}>
@@ -171,6 +229,27 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             </Lead>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <Btn label="Run the analyzer" href="#da-tool" onClick={scrollToTool} />
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="no-print"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(238,239,211,0.08)",
+                  color: dc.cream,
+                  border: "1px solid rgba(238,239,211,0.2)",
+                  padding: "12px 20px",
+                  borderRadius: radius.sm,
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                📄 Export PDF Memo
+              </button>
               <Btn label="State rules" variant="secondary" onClick={(e) => { e.preventDefault(); onNavigate?.("state-laws"); }} />
             </div>
           </div>
@@ -186,47 +265,24 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   { label: "Debt yield", val: debtYield.toFixed(2) + "%" },
                 ].map((cell) => (
                   <div key={cell.label} style={{ background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>{cell.label}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{cell.label}</div>
                     <Mono style={{ fontSize: 18, fontWeight: 600, color: dc.cream, lineHeight: 1 }}>{cell.val}</Mono>
                   </div>
                 ))}
               </div>
               <div style={{ width: "100%", height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
               <div style={{ width: "100%", background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 4 }}>Cash flow / mo</div>
-                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Cash flow / mo</div>
+                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#e06363", lineHeight: 1 }}>
                   {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
                 </Mono>
               </div>
             </div>
             {/* floating verdict badge */}
-            <div style={{ position: "absolute", bottom: -16, left: -12, background: dc.lemon, borderRadius: 10, padding: "16px 20px", zIndex: 2 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 3 }}>Deal verdict</div>
+            <div className="da-verdict-badge" style={{ position: "absolute", bottom: -16, left: -12, background: dc.lemon, borderRadius: 10, padding: "16px 20px", zIndex: 2 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 3 }}>Deal verdict</div>
               <Mono style={{ display: "block", fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor, marginTop: 3 }}>{vLabel}</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 3-STEP BAND ── */}
-      <section style={{ background: dc.cream, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="da-band-3 gs-reveal" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px", background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden" }}>
-            <div style={{ background: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.lemon, marginBottom: 14, lineHeight: 1 }}>01</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Property</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.6)", margin: 0 }}>Seven fields: price, rent, rate, taxes, insurance, HOA, state. Thirty seconds.</p>
-            </div>
-            <div style={{ background: dc.dark, color: dc.cream, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: dc.emerald, marginBottom: 14, lineHeight: 1 }}>02</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: dc.cream }}>Underwrite</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0 }}>DSCR, PITIA, cash flow, cap rate, debt yield. State PPP rule checked.</p>
-            </div>
-            <div style={{ background: dc.lemon, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-              <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.03em", color: "rgba(0,55,56,0.5)", marginBottom: 14, lineHeight: 1 }}>03</Mono>
-              <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1 }}>Programs</h3>
-              <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(0,55,56,0.65)", margin: 0 }}>5 matched Greenstreet programs ranked by fit. Rates shift live.</p>
             </div>
           </div>
         </div>
@@ -235,6 +291,20 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
       {/* ── TOOL ── */}
       <section id="da-tool" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          {/* PRINT-ONLY INSTITUTIONAL MEMORANDUM HEADER */}
+          <div className="print-only print-header" style={{ display: "none" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+              <div>
+                <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 4px", color: "#003738" }}>GREENSTREET FINANCE</h1>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#039692" }}>EXECUTIVE INVESTMENT UNDERWRITING MEMORANDUM</div>
+              </div>
+              <div style={{ textAlign: "right", fontSize: 11, color: "#555" }}>
+                <div>Date: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</div>
+                <div>State: {stateCode || "TX"} &middot; LTV: {ltv}%</div>
+              </div>
+            </div>
+          </div>
+
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Live deal analyzer</div>
@@ -245,33 +315,110 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           </div>
 
           {/* Grid: inputs + results */}
-          <div className="da-tool-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "clamp(280px,30vw,400px) 1fr", gap: 36, alignItems: "start" }}>
+          <div className="da-tool-grid gs-reveal dc-split" style={{ display: "grid", gridTemplateColumns: "clamp(280px,30vw,400px) 1fr", gap: 36, alignItems: "start" }}>
 
             {/* ── INPUTS ── */}
             <div style={{ background: swatch.white, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid ${swatch.midnightFaded}` }}>
-              <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 6 }}>Property inputs</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain }}>Property inputs</div>
+                <div style={{ display: "inline-flex", background: "rgba(0,55,56,0.06)", padding: 3, borderRadius: radius.sm, border: "1px solid rgba(0,55,56,0.1)" }}>
+                  <button
+                    type="button"
+                    aria-pressed={isQuickMode}
+                    aria-label="Switch to 60-Second Quick Mode"
+                    onClick={() => setIsQuickMode(true)}
+                    style={{
+                      border: "none",
+                      background: isQuickMode ? dc.dark : "transparent",
+                      color: isQuickMode ? dc.cream : dc.dark,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    ⚡ 60s Quick
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={!isQuickMode}
+                    aria-label="Switch to Full Pro Mode"
+                    onClick={() => setIsQuickMode(false)}
+                    style={{
+                      border: "none",
+                      background: !isQuickMode ? dc.dark : "transparent",
+                      color: !isQuickMode ? dc.cream : dc.dark,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    ⚙️ Full Pro
+                  </button>
+                </div>
+              </div>
+
               <p style={{ fontSize: 12, color: "rgba(0,55,56,0.5)", marginBottom: 18, lineHeight: 1.5 }}>
-                Estimates are fine — results update as you type. Annual taxes and insurance are split into monthly amounts and added to your PITIA (the full monthly payment — principal, interest, taxes, insurance, and any HOA dues).
+                {isQuickMode
+                  ? "60-Second Mode: Plug in price, down payment, and rent. Taxes, insurance, & rates are auto-estimated."
+                  : "Pro Mode: Fine-tune exact annual property taxes, insurance, market rent (Form 1007), and HOA fees."}
               </p>
 
-              {([
-                { label: "Purchase Price ($)", value: price, set: setPrice, step: 5000, prefix: "$", suffix: "", mb: 16 },
-                { label: "Down Payment (%)", value: down, set: setDown, step: 1, prefix: "", suffix: "%", mb: 16 },
-                { label: "Monthly Rent ($)", value: rent, set: setRent, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "Interest Rate (%)", value: rate, set: setRate, step: 0.125, prefix: "", suffix: "%", mb: 16 },
-                { label: "Annual Property Taxes ($)", value: tax, set: setTax, step: 250, prefix: "$", suffix: "", mb: 16 },
-                { label: "Annual Insurance ($)", value: ins, set: setIns, step: 100, prefix: "$", suffix: "", mb: 16 },
-                { label: "HOA / mo", value: hoa, set: setHoa, step: 50, prefix: "$", suffix: "", mb: 16 },
-              ] as const).map((f) => (
-                <label key={f.label} style={{ display: "block", marginBottom: f.mb }}>
-                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>{f.label}</span>
-                  <div className="da-field">
-                    {f.prefix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.prefix}</span>}
-                    <input className="da-num" type="number" step={f.step} value={f.value} onChange={(e) => (f.set as (n: number) => void)(+e.target.value)} style={{ padding: "11px 7px", fontSize: 16, fontWeight: 600 }} />
-                    {f.suffix && <span style={{ color: "rgba(0,55,56,0.4)", flexShrink: 0 }}>{f.suffix}</span>}
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Purchase Price</span>
+                <CurrencyInput value={price} onChange={setPrice} prefix="$" style={{ padding: "10px 12px" }} />
+              </div>
+              
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Down Payment</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: dc.dark }}>{down}%</span>
+                </div>
+                <PremiumSlider value={down} min={10} max={40} step={1} onChange={setDown} />
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Monthly Rent</span>
+                <CurrencyInput value={rent} onChange={setRent} prefix="$" style={{ padding: "10px 12px" }} />
+              </div>
+
+              {!isQuickMode && (
+                <>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Interest Rate</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: dc.dark }}>{rate.toFixed(3)}%</span>
+                    </div>
+                    <PremiumSlider value={rate} min={5.0} max={10.0} step={0.125} onChange={setRate} />
                   </div>
-                </label>
-              ))}
+
+                  <div style={{ marginBottom: 16 }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Annual Property Taxes</span>
+                    <CurrencyInput value={tax} onChange={setTax} prefix="$" style={{ padding: "10px 12px" }} />
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Annual Insurance</span>
+                    <CurrencyInput value={ins} onChange={setIns} prefix="$" style={{ padding: "10px 12px" }} />
+                  </div>
+
+                  <div style={{ marginBottom: 16 }}>
+                    <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>HOA / mo</span>
+                    <CurrencyInput value={hoa} onChange={setHoa} prefix="$" style={{ padding: "10px 12px" }} />
+                  </div>
+                </>
+              )}
+
+              <label style={{ display: "block", marginBottom: 16 }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>Market Rent — 1007 (optional)</span>
+                <CurrencyInput value={marketRent} onChange={setMarketRent} prefix="$" style={{ padding: "10px 12px" }} />
+                <span style={{ display: "block", fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 6, lineHeight: 1.4 }}>The appraiser's market rent. If your stated rent sits well above it, lenders underwrite to the lower figure.</span>
+              </label>
 
               <label style={{ display: "block", marginBottom: 0 }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.5)", marginBottom: 7 }}>State (2-letter)</span>
@@ -304,19 +451,57 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   <p style={{ fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.5)", margin: 0, lineHeight: 1.5, padding: "10px 14px", background: `${verdictBorder}18`, borderRadius: radius.sm, border: `1px solid ${verdictBorder}44` }}>
                     <strong style={{ color: "rgba(0,55,56,0.75)" }}>Next step: </strong>{nextStep}
                   </p>
+
+                  {/* Dual-track "Qualifies but Dangerous": clears the lender (Track 1)
+                      but loses money after operating costs (Track 2 < 1.0). */}
+                  {dual.qualifiesButDangerous && (
+                    <div style={{ marginTop: 12, background: "rgba(224,99,99,0.07)", border: "1px solid rgba(224,99,99,0.3)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <RiskFlame level="high" size={15} />
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e06363" }}>Qualifies but dangerous</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>
+                        Clears the lender at <strong style={{ color: dc.dark }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: "#e06363" }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal loses money each month.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Positive vs negative leverage (RIDGE debt-tool) — does the
+                      asset out-yield the debt? */}
+                  {lev.state !== "NEUTRAL" && (
+                    <div style={{ marginTop: 12, background: lev.state === "NEGATIVE" ? "rgba(230,184,77,0.1)" : "rgba(77,189,151,0.1)", border: `1px solid ${lev.state === "NEGATIVE" ? "rgba(230,184,77,0.4)" : "rgba(77,189,151,0.4)"}`, borderLeft: `3px solid ${lev.state === "NEGATIVE" ? "#e6b84d" : dc.emerald}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: lev.state === "NEGATIVE" ? "#b8901f" : "#1f7a5a", marginBottom: 4 }}>
+                        {lev.state === "NEGATIVE" ? "Negative leverage" : "Positive leverage"} · {lev.loanConstantPct.toFixed(1)}% debt vs {lev.capRatePct.toFixed(1)}% cap
+                      </div>
+                      <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>{lev.note}</p>
+                    </div>
+                  )}
+
+                  {/* Rent integrity (behavioral honesty) — stated rent well above
+                      the appraiser's 1007 market rent; lenders use the lower figure. */}
+                  {rentCheck.disposition !== "CLEAR" && (
+                    <div style={{ marginTop: 12, background: rentCheck.disposition === "ELEVATED" ? "rgba(224,99,99,0.07)" : "rgba(230,184,77,0.1)", border: `1px solid ${rentCheck.disposition === "ELEVATED" ? "rgba(224,99,99,0.3)" : "rgba(230,184,77,0.4)"}`, borderLeft: `3px solid ${rentCheck.disposition === "ELEVATED" ? "#e06363" : "#e6b84d"}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: rentCheck.disposition === "ELEVATED" ? "#e06363" : "#b8901f", marginBottom: 4 }}>
+                        Rent above market · stated {fmt(rent)} vs {fmt(marketRent)} market (+{rentCheck.leaseVsMarketPct.toFixed(0)}%)
+                      </div>
+                      {rentCheck.flags.map((fl, i) => (
+                        <p key={i} style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: i === 0 ? 0 : "6px 0 0", lineHeight: 1.5 }}>{fl}</p>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Visual artifacts row */}
                 <div className="da-verdict-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20, padding: "18px 0", borderTop: `1px solid ${verdictBorder}33`, borderBottom: `1px solid ${verdictBorder}33` }}>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>DSCR — rent ÷ payment</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>DSCR — rent ÷ payment</div>
                     <DscrGauge value={dscr} size={160} />
                     <div style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", textAlign: "center" }}>
                       {dscr >= 1.25 ? "≥ 1.25x = strong approval tier" : dscr >= 1.0 ? "1.0–1.25x = qualifies, limited" : dscr >= 0.75 ? "0.75–1.0x = sub-1.0 programs only" : "< 0.75x = most lenders decline"}
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>Rent vs PITIA (full monthly payment)</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>Rent vs PITIA (full monthly payment)</div>
                     <BalanceScale rent={rent} payment={pitia} size={210} />
                     <div style={{ display: "flex", justifyContent: "space-between", width: "90%", marginTop: 2 }}>
                       <span style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", fontWeight: 500 }}>{fmt(rent)} rent</span>
@@ -326,16 +511,17 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 </div>
 
                 {/* 3-metric row */}
-                <div className="da-metrics-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+                <div className="da-metrics-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
                   {[
                     { val: (cashFlow >= 0 ? "+" : "") + fmt(cashFlow), label: "cash flow / mo", sub: cashFlow >= 0 ? "positive" : "shortfall", color: cashFlow >= 0 ? dc.emerald : "#e06363" },
+                    { val: (coc >= 0 ? "+" : "") + coc.toFixed(1) + "%", label: "cash-on-cash",  sub: coc >= 6 ? "strong" : coc >= 0 ? "thin" : "negative", color: coc >= 6 ? dc.emerald : coc >= 0 ? "#e6b84d" : "#e06363" },
                     { val: capRate.toFixed(2) + "%",                    label: "cap rate",       sub: capRate >= 6 ? "healthy" : "thin",         color: capRate >= 6 ? dc.rain : "#e6b84d" },
                     { val: debtYield.toFixed(2) + "%",                  label: "debt yield",     sub: debtYield >= 10 ? "strong" : "marginal",   color: debtYield >= 10 ? dc.rain : "rgba(0,55,56,0.7)" },
                   ].map((m) => (
                     <div key={m.label} style={{ background: `${verdictBorder}14`, borderRadius: radius.sm, padding: "clamp(10px,1.2vw,14px)", textAlign: "center", border: `1px solid ${verdictBorder}22` }}>
                       <Mono style={{ display: "block", fontSize: "clamp(16px,2vw,22px)", fontWeight: 600, letterSpacing: "-0.02em", color: m.color }}>{m.val}</Mono>
                       <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(0,55,56,0.5)", marginTop: 3 }}>{m.label}</div>
-                      <div style={{ fontSize: 10, color: "rgba(0,55,56,0.4)", marginTop: 1 }}>{m.sub}</div>
+                      <div style={{ fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 1 }}>{m.sub}</div>
                     </div>
                   ))}
                 </div>
@@ -349,7 +535,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   { label: "P&I / mo",            val: fmt(piMo), note: "" },
                 ].map((item) => (
                   <div key={item.label} style={{ flex: "1 1 120px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 2 }}>{item.label}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 2 }}>{item.label}</div>
                     <Mono style={{ fontSize: 18, fontWeight: 700, color: dc.dark }}>{item.val}</Mono>
                     {item.note && <div style={{ fontSize: 11, color: "rgba(0,55,56,0.4)", marginTop: 1 }}>{item.note}</div>}
                   </div>
@@ -357,15 +543,80 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* STATE RULE */}
-              <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid rgba(238,239,211,0.1)` }}>
+              <div className="gs-reveal" style={{ background: dc.dark, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid rgba(238,239,211,0.16)` }}>
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 4 }}>
                   State prepayment penalty rule — {stateCode || "—"}
                 </div>
-                <p style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", margin: "0 0 10px", lineHeight: 1.4 }}>
+                <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "0 0 10px", lineHeight: 1.4 }}>
                   A prepayment penalty is a fee some loans charge if you pay off or refinance early. Some states restrict or ban them, which affects lender participation and pricing.
                 </p>
                 <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.75)", margin: "0 0 6px", lineHeight: 1.5 }}>{sa.ppp}</p>
-                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.5)", margin: 0 }}>{sa.extra}</p>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: 0 }}>{sa.extra}</p>
+              </div>
+
+              {/* AI UNDERWRITER CREDIT MEMO */}
+              <div className="gs-reveal print-card" style={{ background: swatch.white, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1.5px solid ${swatch.midnightFaded}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: dc.rain }}>
+                    🧠 AI Underwriter Credit Memo
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="no-print"
+                    style={{
+                      background: "rgba(0,55,56,0.06)",
+                      border: "1px solid rgba(0,55,56,0.15)",
+                      borderRadius: radius.sm,
+                      padding: "4px 10px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: dc.dark,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Print Memo 🖨️
+                  </button>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: dc.dark, marginBottom: 8 }}>
+                  {creditMemo.verdictTitle}
+                </div>
+                <p style={{ fontSize: 13, color: "rgba(0,55,56,0.75)", lineHeight: 1.5, marginBottom: 14 }}>
+                  {creditMemo.executiveSummary}
+                </p>
+
+                {creditMemo.keyStrengths.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Key Deal Strengths</div>
+                    {creditMemo.keyStrengths.map((s, idx) => (
+                      <div key={idx} style={{ fontSize: 12, color: "rgba(0,55,56,0.7)", marginBottom: 3 }}>
+                        ✓ {s}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {creditMemo.riskFactors.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#e06363", marginBottom: 4 }}>Underwriting Risk Factors</div>
+                    {creditMemo.riskFactors.map((r, idx) => (
+                      <div key={idx} style={{ fontSize: 12, color: "rgba(0,55,56,0.7)", marginBottom: 3 }}>
+                        ⚠️ {r}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {creditMemo.mitigationSteps.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#b8901f", marginBottom: 4 }}>Recommended Structuring Fixes</div>
+                    {creditMemo.mitigationSteps.map((m, idx) => (
+                      <div key={idx} style={{ fontSize: 12, color: "rgba(0,55,56,0.7)", marginBottom: 3 }}>
+                        💡 {m}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* MATCHED PROGRAMS */}
@@ -389,7 +640,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
-            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Contact Greenstreet at +1 (555) 010-0000 for a formal quote.
+            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Submit a scenario review for a formal quote.
           </p>
         </div>
       </section>
@@ -406,7 +657,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
-              <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, whiteSpace: "nowrap", minHeight: 44 }}>
+              <a href="/rate-quiz" onClick={(e) => { e.preventDefault(); onNavigate?.("rate-quiz"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: dc.emerald, color: dc.dark, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, whiteSpace: "nowrap", minHeight: 44 }}>
                 Get my rate →
               </a>
               <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, background: "transparent", color: dc.cream, fontWeight: 600, fontSize: 15, textDecoration: "none", padding: "14px 28px", borderRadius: radius.sm, border: `1.5px solid ${swatch.midnightFaded}`, whiteSpace: "nowrap", minHeight: 44 }}>

@@ -1,0 +1,798 @@
+
+
+===== PAGE 1 =====
+
+From Blueprint to Sovereign Engine:
+Hardening TimesFM for Real Estate
+Credit Risk
+The Log-Return Trap and the Superiority of Native
+Normalization
+The application of foundation models like TimesFM to real estate finance forecasting
+requires a departure from standard quantitative finance practices that may prove
+detrimental in a probabilistic, long-horizon context. One such practice, forecasting log-
+returns and reconstructing the original series through a cumulative product, represents a
+significant architectural trap . This method, while seemingly elegant, introduces a critical
+mathematical flaw related to error compounding over time. The variance of a sum of
+random variables is additive; therefore, as the forecast horizon extends, the uncertainty
+associated with the cumulative sum of predicted log-returns grows proportionally . When
+this summed distribution is exponentiated to return to the original scale of rent or cash
+flow, the tails of the resulting distribution become severely distorted. The right tail (e.g.,
+P90) explodes toward unrealistically high values, while the left tail (e.g., P10) collapses
+toward zero . For a real estate credit engine tasked with calculating Debt Service
+Coverage Ratios (DSCR) under stress scenarios, this renders Monte Carlo simulations
+meaningless, as the output distribution no longer reflects plausible future outcomes but
+rather a mathematical artifact of the forecasting method itself 29165.
+TimesFM's internal architecture provides a more robust and mathematically sound
+alternative to manual log-transforms: Reversible Instance Normalization (RevIN) . RevIN
+is a normalization technique designed specifically for time-series forecasting that
+addresses the core problem of scale and variance propagation 98. During the forward
+pass, RevIN scales each time series instance in the batch to have a mean of zero and a
+standard deviation of one. After the Transformer decoder generates its predictions in this
+standardized latent space, a reversible denormalization step is applied to map the outputs
+back to the original data domain 98. This entire process is learned end-to-end as part of
+the model. By normalizing the data before it enters the attention layers, RevIN ensures
+that the model operates on a consistent scale, preventing features with larger magnitudes
+from dominating the learning process. Critically, because the reconstruction is a learned,
+
+===== PAGE 2 =====
+
+continuous function rather than a simple exponential of a summed distribution, it avoids
+the pathological tail behaviors associated with naive log-return reconstruction 45.
+Relying on TimesFM's native RevIN is therefore not merely a convenience but a
+fundamental upgrade that aligns the model's mechanics with the statistical properties
+required for reliable risk assessment in CRE finance 98. Studies evaluating TimesFM for
+financial forecasting have noted the use of log-transforms for stabilizing training,
+particularly for volatile assets like cryptocurrencies where rapid price drops can cause
+numerical instability 139. However, this is a training-level preprocessing choice intended
+to stabilize gradients during optimization, distinct from the final reconstruction method
+for generating a coherent, bounded probabilistic forecast suitable for risk analysis 46.
+The goal in a production credit engine is to produce a statistically valid distribution of
+potential outcomes, not just a point estimate stabilized during training.
+The table below contrasts the flawed log-return method with the superior RevIN-based
+approach, highlighting the mathematical and practical implications for a real estate
+finance application.
+Feature Naive Log-Return Method TimesFM with Reversible Instance Normalization (RevIN)
+Forecast Target Log-return: Raw rent or detrended rent (e.g.,
+yt=log(rent<emt−1>t/rent</em>) \text{rent} / \text{MSA_ZRI} ). The target
+variable is not transformed.
+Reconstruction Cumulative product of exponentiated Learned, continuous, and reversible denormalization function. 98
+forecasted log-returns .
+Error Variance of the cumulative sum grows Error is managed within the normalized latent space by the Transformer.
+Propagation linearly with the forecast horizon (H). The model learns the temporal dependencies directly. 45
+Uncertainty increases significantly over
+time.
+Tail Behavior Severe distortion: Right tail (P90) Maintains realistic, bounded variance and preserves the shape of the
+explodes, left tail (P10) crushes underlying data distribution. 45
+towards zero. P90/P10 ratio becomes
+unbounded.
+Mathematical Poor. Fails to produce a valid High. Produces a statistically coherent forecast by leveraging a principled
+Soundness probability distribution over long normalization scheme. 98
+horizons, breaking assumptions of
+downstream models like Monte Carlo
+simulators.
+Implementation Manual transformation in the data Integrated as a core layer within the TimesFM architecture. Requires no
+pipeline before feeding to the model. manual scaling in the data pipeline. 98
+This architectural consideration is paramount when developing a "Sovereign OS" credit
+engine. Regulatory bodies demand models that are not only accurate but also transparent
+and defensible in their mathematical reasoning 132163. An output distribution with
+exploded tails fails this scrutiny. By embracing TimesFM's native RevIN, the system
+
+===== PAGE 3 =====
+
+transitions from a "clever forecasting pipeline" to an institutionally robust engine
+grounded in sound statistical principles. This change ensures that the probabilistic
+forecasts generated are suitable for advanced risk management techniques, including the
+generation of confidence intervals and the simulation of extreme but plausible adverse
+scenarios, which are essential for calculating a resilient DSCR 165. The focus shifts from
+simply minimizing a point-forecast error metric like Mean Squared Error (MSE) to
+ensuring the integrity of the entire predictive distribution 44.
+Patching, Covariate Routing, and Attention Masking
+For TimesFM to perform reliably in a production setting, its interaction with the input
+data pipeline must be meticulously engineered. Two foundational aspects of this
+interaction—the patching mechanism and the routing of covariates—are critical points of
+failure if not handled correctly. The first issue arises from the model's decoder-only
+architecture, which processes time series data in fixed-size patches 44161. In the main
+TimesFM model, an input patch length (input_patch_len) of 32 is used, meaning the
+model expects to receive sequences of 32 consecutive time steps at a time 44. If the
+available historical context for a real estate property—such as 24 months of rent
+payments—is shorter than this patch size, the data pipeline will be forced to heavily zero-
+pad the input to meet the model's expectations . This padding dilutes the attention
+mechanism, as the self-attention layers will treat the padded zeros as legitimate data
+points, causing the model to attend to non-existent information and degrading forecast
+accuracy . The solution is twofold. First, the context_len parameter in the data
+pipeline should be aligned to be a multiple of the chosen patch_len (e.g., 32, 64, or 96
+months) . Second, if sufficient historical data is genuinely unavailable, a more invasive
+architectural adjustment may be necessary: modifying the patch_len hyperparameter
+within the TimesFM configuration itself. For instance, reducing patch_len to 12 could
+be strategically beneficial, as it would align the patch boundaries with annual seasonality,
+a dominant pattern in many real estate markets . Regardless of the approach, it is
+imperative to implement an explicit attention_mask tensor in the data loader . This
+binary mask informs the Transformer which parts of the input sequence are actual data
+and which are padding, allowing the attention mechanism to ignore the padded regions
+entirely. Without this mask, the model remains susceptible to the "no data as zero rent"
+fallacy, treating padding as genuine inactivity .
+The second critical area is the proper handling of covariates, which has become
+increasingly important with newer versions of TimesFM (2.0+) . These versions
+
+===== PAGE 4 =====
+
+introduce separate input channels for past_covariates and future_covariates,
+reflecting a deeper understanding of the causal structure of time series data. Mixing these
+two types of information into a single tensor silently corrupts the model's cross-attention
+mechanism, leading to subtle forms of lookahead bias where future information
+inadvertently influences predictions for past time steps . The upgrade requires a strict
+separation of concerns in the data loading and collation logic. past_covariates
+should contain all variables that are known up to and including the last time step of the
+context window. This includes lagged features like trailing three-month delinquency
+flags, historical vacancy rates, and seasonal indicators based on the context period .
+Conversely, future_covariates are variables whose values are known for the entire
+forecast horizon. This category includes deterministic external factors such as the SOFR
+forward curve, planned tax hikes, and crucially, MSA-level macroeconomic anchors like
+the Zillow Rent Index (ZRI) or local vacancy rates . Properly segregating these inputs is
+not merely a best practice but a functional requirement for the model to operate as
+intended. Frameworks aiming to bridge TSFMs with covariate-aware forecasting
+emphasize the importance of surgically integrating contextual information, reinforcing
+the need for a clean and explicit interface between the data pipeline and the model 19
+129. The evolution of the data contract, from simple tuples to a structured dictionary
+format, formalizes this separation and prevents silent failures that are difficult to debug .
+This disciplined approach ensures that the model's powerful attention mechanisms are
+directed only at relevant information, preserving temporal causality and improving the
+overall reliability of the forecasts.
+Injecting Cross-Sectional Anchors and Managing Spatial
+Dependencies
+A significant limitation of applying a standard Time Series Foundation Model (TSFM) like
+TimesFM to real estate finance is its inherent "spatial blindness" . When processing data
+for a property, the model treats its time series in isolation, completely unaware of its
+geographic neighbors or the broader market conditions that govern its performance. It
+sees a duplex in Austin and another in Miami as two entirely separate universes, forcing
+it to relearn basic economic gravity for every single asset from scratch . This is a profound
+weakness for commercial real estate, where property values and rental income are
+heavily influenced by local market dynamics such as job growth, supply of new housing,
+interest rate shocks, and aggregate demand 141162. A shock in one Metropolitan Statistical
+Area (MSA), such as a spike in vacancy due to a large corporate campus closing, will
+
+===== PAGE 5 =====
+
+inevitably affect nearby properties. A model that fails to recognize this cross-sectional
+dependency will produce inaccurate forecasts and a poor understanding of systemic risk.
+To overcome this, the concept of injecting "Cross-Sectional Anchors" is a powerful
+architectural enhancement .
+The proposed solution is to feed MSA-level macroeconomic indicators, such as the Zillow
+Rent Index (ZRI) or the official MSA vacancy rate, as a future covariate for every property
+located within that specific MSA . By placing these macro-level signals in the
+future_covariates channel, the attention mechanism is given a global signal that it
+can attend to when making predictions for any property in that MSA. This allows the
+model to learn a crucial relationship: "when the MSA vacancy rate spikes, this specific
+property's rent will likely follow suit, regardless of its own idiosyncratic history." This
+technique effectively provides the model with a "macro anchor," grounding its local
+predictions in the reality of the broader economic environment . This approach is central
+to the field of Spatio-Temporal Foundation Models (STFMs), which aim to explicitly
+model both temporal and spatial correlations 47 49. Research in this area shows that
+incorporating contextual and spatial features significantly improves forecasting
+performance and generalization capabilities 129. Furthermore, large-scale spatiotemporal
+datasets like HouseTS are specifically designed to unify regional socioeconomic variables
+with granular property-level data, underscoring the importance of this cross-sectional
+information 42. The effectiveness of this method can be rigorously tested through a
+Geographic Hold-Out Test: train the model on properties from 90% of MSAs and evaluate
+its performance on the remaining 10% . A successful implementation will show a
+significant reduction in metrics like Mean Absolute Percentage Error (MAPE) on the hold-
+out MSAs compared to a baseline model without the macro anchors, demonstrating
+improved out-of-sample geographic generalization . This upgrade transforms the model
+from a collection of isolated predictors into a cohesive system that understands the
+interconnected nature of real estate markets, a prerequisite for building a truly sovereign
+credit engine.
+Achieving Mathematical Rigor in Probabilistic
+Forecasting
+For a forecasting model to be considered production-grade in the context of real estate
+finance, its probabilistic outputs must be mathematically coherent and suitable for
+downstream risk analysis. A primary challenge in this domain is the phenomenon of
+
+===== PAGE 6 =====
+
+"quantile crossing," which often arises when using the standard Pinball loss function for
+quantile regression . The Pinball loss optimizes each desired quantile (e.g., P10, P50,
+P90) independently, without enforcing any relationship between them. As a result, in
+highly volatile or thin markets, it is common to observe illogical predictions where a
+higher quantile is estimated to be lower than a lower one—for example, predicting a P90
+value less than the P50 median . Such a scenario is mathematically impossible for a true
+cumulative distribution function (CDF) and catastrophically breaks any downstream
+application that relies on ordered quantiles, such as Monte Carlo simulations for stress-
+testing DSCR or constructing meaningful confidence bands 96143. The output ceases to
+represent a valid probability distribution, invalidating its use for regulatory-grade risk
+assessment 163.
+To address this, two primary solutions are proposed, with a clear preference for the more
+sophisticated approach. The first is a regularization-based fix: adding a non-crossing
+penalty term to the loss function. This term penalizes violations of monotonicity, for
+instance, by adding a value proportional to max(0, q_low - q_high) whenever a
+lower quantile q_low is predicted to be greater than a higher quantile q_high . While
+effective, this is a heuristic correction that adds another hyperparameter (the penalty
+weight lambda) to tune and may not guarantee perfect enforcement, especially with
+complex interactions 71. The preferred and more robust solution is to abandon the
+prediction of discrete, independent quantiles altogether and instead adopt a
+Distributional Parameterization approach . In this framework, the model's output head
+is configured to predict the parameters of a specific parametric probability distribution,
+such as the Student-T distribution, characterized by location (μ), scale (σ), and degrees
+of freedom (ν) . The model is then optimized using the Negative Log-Likelihood (NLL)
+loss function. The key advantage of this method is that quantiles derived analytically
+from a fitted distribution are inherently ordered by definition. This guarantees
+mathematical consistency for the entire predictive distribution, eliminating the possibility
+of quantile crossing and providing a solid foundation for further statistical analysis 67.
+This approach is favored for several reasons. First, it is theoretically more elegant and
+robust. Second, it provides a complete probability model, not just a few summary
+statistics, which is invaluable for advanced analytics. Third, having a parametric form
+facilitates analytical validation and reporting, which is crucial for meeting regulatory
+requirements outlined in guidelines for loan origination and monitoring 132. This shift
+from discrete quantiles to a full distributional forecast elevates the model's output from a
+simple prediction to a statistically rigorous characterization of uncertainty, a cornerstone
+of any credible credit risk engine.
+
+===== PAGE 7 =====
+
+Enhancing Robustness with Regime-Aware Adapters
+and Handling Missing Data
+A truly sovereign credit engine must be adaptable to changing economic environments
+and resilient to the messy realities of real-world data. Two critical enhancements for
+achieving this are the development of regime-specific adapters and the intelligent
+handling of missing data periods, often referred to as "dark months." The first challenge
+stems from the fact that economic regimes—such as the low-interest-rate environment
+preceding 2022 versus the high-rate, inflationary environment since then—exhibit
+fundamentally different patterns of behavior . Training a single Low-Rank Adaptation
+(LoRA) module on a mixed dataset spanning these disparate eras results in a "mushy"
+model that averages out the characteristics of each regime. This averaged model will be
+suboptimal for forecasting in either environment, as it fails to specialize in the unique
+dynamics of each period . The solution is to train multiple, specialized LoRA adapters,
+each fine-tuned on data from a single, homogeneous regime. For example, one adapter
+could be trained exclusively on data from 2015–2021, capturing the low-rate regime
+dynamics, while another is trained on 2022–present data, specializing in the high-rate
+regime . At inference time, a lightweight gating mechanism can then dynamically blend
+the weights of these adapters. This gating function could be a simple heuristic based on a
+current macroeconomic indicator, such as the SOFR rate or CPI; for instance, if SOFR is
+above a certain threshold (e.g., 4.0%), the model places more weight on the high-rate
+adapter . This approach is a form of a pragmatic Mixture-of-Experts (MoE) system,
+allowing the model to adapt its behavior to the prevailing economic conditions without
+requiring costly continuous retraining 21185. This directly addresses the challenge of
+structural breaks in time series, which are shifts in model parameters caused by external
+shocks like financial crises or major policy changes 31 32.
+The second enhancement addresses the pervasive issue of missing data. In property
+management, months may be "dark" due to units being offline for renovation, tenant
+turnover, or simple data entry errors . Naively feeding these gaps as null or imputing
+them with a simple mean or zero value is disastrous. The model will interpret a
+renovation month as a catastrophic market crash, learning incorrect and brittle
+relationships . The correct approach is to employ a sophisticated feature engineering
+strategy. Instead of simply imputing the raw rent value (e.g., using forward-fill), the data
+pipeline should introduce a binary is_missing flag as an additional covariate for each
+time step . This flag acts as a signal to the model, informing it whether the observed rent
+value is genuine or an imputed placeholder. The model can then learn a more nuanced
+behavior: during periods flagged as missing, it automatically widens the P10-P90
+confidence bands to reflect the increased uncertainty about the true underlying rent
+
+===== PAGE 8 =====
+
+level . This technique makes the model explicitly aware of data quality and its impact on
+predictability. It moves beyond passive acceptance of noisy data and instead builds a
+model that can reason about the confidence of its own predictions in the face of
+incomplete information. This combination of regime-aware adaptation and intelligent
+missing data handling creates a model that is not only more accurate but also more
+robust and interpretable, capable of navigating the complexities of real-world CRE data
+while maintaining its performance across diverse and challenging economic conditions.
+Production Optimization for Real-Time Underwriting
+Performance
+Transforming a state-of-the-art research model like TimesFM into a production-grade
+credit engine requires addressing the final and most critical barrier: inference latency.
+While the HuggingFace Trainer API provides a flexible environment for development
+and experimentation, its native Python-based execution is far too slow for real-time
+applications like an automated underwriting API, which may need to process thousands
+of loan applications simultaneously . The latency of a single forecast, even if acceptable in
+isolation (e.g., ~200ms), becomes prohibitive when multiplied by the number of parallel
+requests and the complexity of downstream tasks like running 10,000-path Monte Carlo
+simulations for each applicant . This performance bottleneck necessitates a dedicated
+optimization workflow focused on accelerating inference on GPU hardware.
+The industry-standard pathway for achieving this is to export the trained PyTorch model
+to the Open Neural Network Exchange (ONNX) format and then compile it using a high-
+performance inference runtime like NVIDIA's TensorRT 25 26. ONNX serves as a
+universal intermediate representation, decoupling the model from the specific deep
+learning framework in which it was trained. Once in ONNX format, TensorRT can
+perform a series of aggressive optimizations tailored to the specific GPU architecture
+(e.g., A10G or A100) 57 58. These optimizations include kernel fusion, precision
+calibration (typically to FP16 to halve memory footprint and bandwidth requirements),
+tensor core utilization, and graph transformations that simplify the computation graph
+57. The expected outcome of this process is a dramatic reduction in latency, with a
+decrease from approximately 200ms per property down to around 15ms, enabling the
+kind of real-time performance required for interactive underwriting workflows . This
+speedup makes it feasible to run extensive risk simulations not just once, but as part of an
+iterative, real-time feedback loop with the borrower.
+
+===== PAGE 9 =====
+
+However, this optimization process is not a black box and must be executed with rigorous
+validation to ensure that performance gains do not come at the cost of accuracy. The final
+success of the productionization phase hinges on three key metrics. First is latency, with
+a target of under 20ms per property for batch size 1, ensuring responsiveness . Second is
+throughput, aiming for hundreds of properties per second to handle peak loads . Third,
+and most critically, is accuracy parity. A cryptographic hash or a statistical test must
+prove that the outputs of the TensorRT-compiled engine are numerically identical to the
+original PyTorch model 24. The maximum absolute difference between the two outputs
+−3
+must be below a stringent tolerance, typically on the order of 1e , to prevent the
+introduction of hidden biases that could compromise regulatory compliance 154. This
+commitment to accuracy parity is essential for creating a defensible and trustworthy
+"Sovereign OS" that delivers both institutional-grade reliability and real-time performance
+163.
+Reference
+1. Channel-Aware Low-Rank Adaptation in Time Series Forecasting https://dl.acm.org/
+doi/10.1145/3627673.3679884
+2. Adapting Time Series Foundation Models through Data Mixtures https://arxiv.org/
+html/2603.02840v1
+3. Learning Pattern-Specific Experts for Time Series Forecasting Under... https://
+openreview.net/forum?id=CtoIG9Iwas
+4. [PDF] Task-Free Online Continual Learning via Low Rank Adaptation https://
+openaccess.thecvf.com/content/WACV2025/papers/Wei_Online-LoRA_Task-
+Free_Online_Continual_Learning_via_Low_Rank_Adaptation_WACV_2025_paper.pdf?
+ref=mackenziemorehead.com
+5. Channel-Aware Low-Rank Adaptation in Time Series Forecasting https://
+www.researchgate.net/publication/385100311_Channel-Aware_Low-
+Rank_Adaptation_in_Time_Series_Forecasting
+6. [PDF] Time-LlaMA: Adapting Large Language Models for Time Series ... https://
+aclanthology.org/2025.acl-srw.90.pdf
+7. Time Series Foundation Model for Improved Transformer Load ... https://
+www.mdpi.com/1996-1073/18/3/660
+
+===== PAGE 10 =====
+
+8. Assessing the Operational Viability of Foundation Models for Time ... https://
+arxiv.org/html/2605.24381v1
+9. calculating accuracy for Monte carlo Dropout on pytorch https://stackoverflow.com/
+questions/63691865/calculating-accuracy-for-monte-carlo-dropout-on-pytorch
+10. Monte Carlo Dropout: How Stochastic Forward Passes Estimate ... https://
+eureka.patsnap.com/article/monte-carlo-dropout-how-stochastic-forward-passes-
+estimate-model-uncertainty
+11. How to get predict interval using Monte Carlo Dropout - autograd https://
+discuss.pytorch.org/t/how-to-get-predict-interval-using-monte-carlo-dropout/143021
+12. Models — pytorch-forecasting documentation https://pytorch-
+forecasting.readthedocs.io/en/v1.4.0/models.html
+13. Probabilistic Forecasting Using Monte Carlo Dropout Neural Networks https://
+www.researchgate.net/publication/
+336816230_Probabilistic_Forecasting_Using_Monte_Carlo_Dropout_Neural_Networks
+14. [PDF] The Monte Carlo Transformer: a stochastic self-attention model for ... https://
+arxiv.org/pdf/2007.08620
+15. [PDF] Expected Pinball Loss For Quantile Regression And Inverse CDF ... https://
+openreview.net/pdf?id=Eg8Rnb0Hdd
+16. Composite quantile regression with XGBoost using the novel arctan ... https://
+www.researchgate.net/publication/
+391910460_Composite_quantile_regression_with_XGBoost_using_the_novel_arctan_pi
+nball_loss
+17. Activated LoRA: Fine-tuned LLMs for Intrinsics - arXiv https://arxiv.org/html/
+2504.12397v5
+18. LoRA Provably Reduces Forgetting and Enables Adapter Merging in... https://
+openreview.net/forum?id=FSDxP3ZpAx
+19. Adapting Time Series Foundation Model to General Covariate ... https://arxiv.org/
+html/2506.22039v1
+20. (PDF) Time-Series Foundation Model for Value-at-Risk https://www.researchgate.net/
+publication/384938560_Time-Series_Foundation_Model_for_Value-at-Risk
+21. [PDF] Mixture of Experts for Time Series Foundation Models - OpenReview https://
+openreview.net/pdf?id=96znOY96W1
+22. Short-term load probabilistic forecasting based on non-equidistant ... https://
+www.sciencedirect.com/science/article/abs/pii/S0360544225009818
+23. [PDF] Federated Foundation Models on Heterogeneous Time Series https://
+ojs.aaai.org/index.php/AAAI/article/view/33739/35894
+
+===== PAGE 11 =====
+
+24. Tensorrt8.5 inference different with origin onnx model - TensorRT https://
+forums.developer.nvidia.com/t/tensorrt8-5-inference-different-with-origin-onnx-
+model/231679
+25. Optimize Production with PyTorch/TF, ONNX, TensorRT & LiteRT https://
+www.digitalocean.com/community/tutorials/ai-model-deployment-optimization
+26. Architecture Overview — NVIDIA TensorRT https://docs.nvidia.com/deeplearning/
+tensorrt/latest/architecture/architecture-overview.html
+27. Time Series Foundation Models for Multivariate Financial ... - arXiv https://arxiv.org/
+html/2507.07296v1
+28. Authentic SEC Data and Regime-Aware Ensemble Learning ... - MDPI https://
+www.mdpi.com/1911-8074/19/5/333
+29. (PDF) Real Estate Project Financial Evaluation Based on Cash Flow ... https://
+www.researchgate.net/publication/
+281617971_Real_Estate_Project_Financial_Evaluation_Based_on_Cash_Flow_Estimati
+on
+30. [PDF] Financial Crisis Prediction in Chinese Real Estate Industry from ... https://
+www.atlantis-press.com/article/125971845.pdf
+31. (PDF) Time Series Analysis and structural break detection: A case of ... https://
+www.researchgate.net/publication/
+361858192_Time_Series_Analysis_and_structural_break_detection_A_case_of_Zambia
+'s_CPI
+32. Structural break, US financial crisis and macroeconomic time series https://
+www.sciencedirect.com/science/article/pii/S1925209924002547
+33. Structural Breaks, Inflation and Interest Rates: Evidence from the G7 ... https://
+www.mdpi.com/2225-1146/5/1/11
+34. [PDF] Detection and Estimation of Structural Breaks in High-Dimensional ... https://
+arxiv.org/pdf/2304.07003
+35. On the Detection of Structural Breaks: The Case of the Covid Shock https://
+onlinelibrary.wiley.com/doi/10.1002/for.3238
+36. Online structural break detection in financial durations https://dl.acm.org/doi/abs/
+10.1007/s11222-025-10577-y
+37. Structural Breaks | Aptech https://www.aptech.com/structural-breaks/
+38. Time Series Foundation Models are Flow Predictors - arXiv https://arxiv.org/html/
+2507.00945v1
+39. [PDF] Temporal Dependencies and Spatio-Temporal Patterns of Time ... https://
+ojs.aaai.org/index.php/AAAI/article/view/30396/32463
+
+===== PAGE 12 =====
+
+40. An Observability Perspective on Time Series Foundation Models https://arxiv.org/
+html/2505.14766v1
+41. Can time-series foundation models perform building energy ... https://
+www.cambridge.org/core/services/aop-cambridge-core/content/view/
+096002E7274837503C57EA28FA563D61/S2632673626100409a.pdf/
+can_timeseries_foundation_models_perform_building_energy_management_tasks.pdf
+42. HouseTS: A Large-Scale, Multimodal Spatiotemporal U.S. Housing ... https://
+arxiv.org/html/2506.00765
+43. Hamza Landolsi - AI & Big Data Engineer @ Huawei - LinkedIn https://
+tn.linkedin.com/in/hamza-landolsi-473534224
+44. A decoder-only foundation model for time-series forecasting - arXiv https://arxiv.org/
+html/2310.10688v2
+45. Re(Visiting) Time Series Foundation Models in Finance - arXiv https://arxiv.org/html/
+2511.18578v1
+46. Foundation Time-Series AI Model for Realized Volatility Forecasting https://arxiv.org/
+html/2505.11163v1
+47. Spatio-Temporal Foundation Models: Vision, Challenges, and ... https://arxiv.org/
+html/2501.09045v2
+48. Diffusion Transformers as Open-World Spatiotemporal Foundation ... https://
+openreview.net/forum?id=supy1n4Tev
+49. (PDF) A Survey on Spatio-Temporal Prediction: From Transformers ... https://
+www.researchgate.net/publication/395435747_A_Survey_on_Spatio-
+Temporal_Prediction_From_Transformers_to_Foundation_Models
+50. Spatiotemporal model based on transformer for bias correction and ... https://
+www.frontiersin.org/journals/environmental-science/articles/10.3389/
+fenvs.2022.1039764/full
+51. Diffusion Transformers as Open-World Spatiotemporal Foundation ... https://
+www.semanticscholar.org/paper/Diffusion-Transformers-as-Open-World-
+Spatiotemporal-Yuan-Han/bc2fdf293d590164f705231d09bc955fa22055ae
+52. [PDF] MUSED-FM: A BENCHMARK FOR EVALUATING MULTIVARIATE ... https://
+openreview.net/pdf/1d9f36dbdabef9be811fcb644b6fa57996840f38.pdf
+53. A More Realistic Evaluation of Cross-Frequency Transfer Learning ... https://arxiv.org/
+html/2509.19465v3
+54. Event-Aware Multimodal Time-Series Forecasting via Symmetry ... https://
+www.mdpi.com/2073-8994/17/11/1788
+55. (PDF) Regional multi-family housing start forecast accuracy https://
+www.researchgate.net/publication/222336910_Regional_multi-
+family_housing_start_forecast_accuracy
+
+===== PAGE 13 =====
+
+56. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v3
+57. TensorRT Backend for torch.compile - PyTorch documentation https://
+docs.pytorch.org/TensorRT/dynamo/torch_compile.html
+58. Torch-TensorRT（A PyTorch model compiler）_Baiduwiki https://baike.baidu.com/
+en/item/Torch-TensorRT/1662325
+59. Probability Distribution for Regression PyTorch - Stack Overflow https://
+stackoverflow.com/questions/75964353/probability-distribution-for-regression-
+pytorch
+60. Best way to convert PyTorch to TensorRT model https://
+forums.developer.nvidia.com/t/best-way-to-convert-pytorch-to-tensorrt-model/
+291622
+61. Distributed Inference — Torch-TensorRT https://docs.pytorch.org/TensorRT/
+tutorials/deployment/distributed_inference.html
+62. Monte Carlo Dropout Neural Networks for Forecasting Sinusoidal ... https://
+www.mdpi.com/2076-3417/15/8/4363
+63. Monte Carlo Dropout Neural Networks for Forecasting Sinusoidal ... https://
+www.researchgate.net/publication/
+390816993_Monte_Carlo_Dropout_Neural_Networks_for_Forecasting_Sinusoidal_Tim
+e_Series_Performance_Evaluation_and_Uncertainty_Quantification
+64. Quantile deep learning models for multi-step ahead time series ... https://arxiv.org/
+html/2411.15674v1
+65. Quick uneducated questions regarding TensorRT https://
+forums.developer.nvidia.com/t/quick-uneducated-questions-regarding-tensorrt/
+200680
+66. Tutorial 2: Comparison to other methods of uncertainty quantification https://uvadlc-
+notebooks.readthedocs.io/en/latest/tutorial_notebooks/DL2/
+Bayesian_Neural_Networks/dl2_bnn_tut2_student_with_answers.html
+67. [PDF] Multi-Horizon Time Series Forecasting of Non-Parametric CDFs with ... https://
+ojs.aaai.org/index.php/AAAI/article/view/36986/40948
+68. Learning Quantile Functions without Quantile Crossing for ... - arXiv https://
+arxiv.org/abs/2111.06581
+69. (PDF) Non-crossing nonlinear regression quantiles by monotone ... https://
+www.researchgate.net/publication/321642530_Non-
+crossing_nonlinear_regression_quantiles_by_monotone_composite_quantile_regressio
+n_neural_network_with_application_to_rainfall_extremes
+70. Non-crossing nonlinear regression quantiles by monotone ... https://eartharxiv.org/
+wg7sn
+
+===== PAGE 14 =====
+
+71. [PDF] Regularization Strategies for Quantile Regression - arXiv https://arxiv.org/pdf/
+2102.05135
+72. Large language model-driven time-series forecasting of financial ... https://
+www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/
+frai.2026.1722121/full
+73. Stock Market Forecasting: From Traditional Predictive Models to ... https://
+link.springer.com/article/10.1007/s10614-025-11024-w
+74. Medical multimodal large language models: A systematic review https://
+www.sciencedirect.com/science/article/pii/S2950261625000512
+75. Opportunities and Challenges of Foundation Models in Industrial ... https://
+ieeexplore.ieee.org/iel8/6287639/10820123/11082119.pdf
+76. [PDF] Methodologies for the assessment of real estate vulnerabilities and ... https://
+www.esrb.europa.eu/pub/pdf/reports/
+esrb.report191217_methodologies_assessment_real_estate_vulnerabilities_macroprud
+ential_policies~15ff09ae41.en.pdf
+77. Presale: BMO 2026-5C14 Mortgage Trust | S&P Global Ratings https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/101665515
+78. Baltimore's $100M Housing Fraud Exposed | Daniel Smith, MBA https://
+www.linkedin.com/posts/dopjs1_when-investment-becomes-extraction-
+activity-7384009895945216000-2VQy
+79. A Study on the Forecasting of Real Estate Market Using Algorithms https://
+www.researchgate.net/publication/
+381983827_A_Study_on_the_Forecasting_of_Real_Estate_Market_Using_Algorithms
+80. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v1
+81. RAID: Semantic Graph Diffusion for True Cold-Start and Cross ... https://arxiv.org/
+html/2606.16925v1
+82. [PDF] Semantic Graph Diffusion for True Cold-Start and Cross-Lingual ... https://
+arxiv.org/pdf/2606.16925
+83. GCT: A Granger-Causal Transformer for Multivariate Traffic Analysis ... https://
+dl.acm.org/doi/full/10.1145/3787462
+84. A Review on Deep Learning-based Electrical Load Forecasting https://
+ieeexplore.ieee.org/iel8/8685265/8816648/11417458.pdf
+85. [PDF] Which Transformer to Favor: A Comparative Analysis of Efficiency in ... https://
+openaccess.thecvf.com/content/WACV2025/papers/
+Nauen_Which_Transformer_to_Favor_A_Comparative_Analysis_of_Efficiency_in_WAC
+V_2025_paper.pdf
+
+===== PAGE 15 =====
+
+86. Analyzing Deep Transformer Models for Time Series Forecasting via ... https://
+arxiv.org/html/2410.13792v1
+87. A Comparative Study of Transformer-Based and Classical Models ... https://
+www.mdpi.com/1911-8074/19/3/203
+88. A Comparative Analysis of Time Series Transformers and Alternative ... https://
+www.researchgate.net/publication/
+379133905_A_Comparative_Analysis_of_Time_Series_Transformers_and_Alternative_
+Deep_Learning_Models_for_SSVEP_Classification
+89. [PDF] Sub-City Real Estate Price Index Forecasting at Weekly Horizons ... https://
+arxiv.org/pdf/2602.18572
+90. Density-Weighted Quantile Regression for Conditional Guarantee of ... https://
+arxiv.org/abs/2512.24139
+91. [PDF] Data needs and Statistics compilation for macro-prudential analysis https://
+www.bis.org/ifc/publ/ifcb46.pdf
+92. Estimating Depth with ONNX Models and Custom Layers Using ... https://
+developer.nvidia.com/blog/estimating-depth-beyond-2d-using-custom-layers-on-
+tensorrt-and-onnx-models/
+93. [PDF] Non-crossing nonlinear regression quantiles by monotone ... https://
+www.semanticscholar.org/paper/Non-crossing-nonlinear-regression-quantiles-by-with-
+Cannon/2eea713f8325d37566566e5e86f4c5bcaf4a12f6
+94. A comparative study of time series foundation models for hand, foot ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12507834/
+95. Additive Ensemble Neural Network with Constrained Weighted ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC8123084/
+96. [PDF] Beyond Pinball Loss: Quantile Methods for Calibrated Uncertainty ... https://
+openreview.net/pdf?id=QbVza2PKM7T
+97. fusionlab.nn.losses.quantile_loss https://fusion-lab.readthedocs.io/en/stable/
+_autosummary/losses/fusionlab.nn.losses.quantile_loss.html
+98. Reversible Instance Normalization for Accurate Time-Series... https://openreview.net/
+forum?id=cGDAkQo1C0p
+99. Addressing Distribution Shift in Time Series Forecasting with ... - arXiv https://
+arxiv.org/html/2401.16777v1
+100. [PDF] The COVID-19 shock and challenges for time series models https://
+www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp2558~22b223a7c6.en.pdf
+101. Distributed lag interrupted time series model for unclear intervention ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC9310355/
+
+===== PAGE 16 =====
+
+102. [PDF] Disentangling Long-Short Term State Under Unknown Interventions ... https://
+ojs.aaai.org/index.php/AAAI/article/view/33717/35872
+103. Time Series Generation Under Data Scarcity: A Unified ... - arXiv https://arxiv.org/
+html/2505.20446v1
+104. [PDF] Multi-Modal Data-Enhanced Foundation Models for Prediction and ... https://
+arxiv.org/pdf/2601.03181
+105. [PDF] A Unified Generative Modeling Approach - arXiv https://arxiv.org/pdf/
+2505.20446
+106. Information-Driven Adaptive Dropout Rates for Improved Inference ... https://
+arxiv.org/html/2412.07169v1
+107. What is Monte Carlo (MC) dropout? - GeeksforGeeks https://www.geeksforgeeks.org/
+deep-learning/what-is-monte-carlo-mc-dropout/
+108. Improving the repeatability of deep learning models with Monte ... https://
+www.researchgate.net/publication/
+365490312_Improving_the_repeatability_of_deep_learning_models_with_Monte_Carl
+o_dropout
+109. Monte Carlo (MC) dropout in Keras with R - Stack Overflow https://
+stackoverflow.com/questions/50023666/monte-carlo-mc-dropout-in-keras-with-r
+110. Hazem Aljene - Senior Machine Learning Engineer @ Datagram https://
+tn.linkedin.com/in/hazemaljene
+111. A Load Forecasting Model Based on Spatiotemporal Partitioning ... https://
+www.mdpi.com/2071-1050/17/18/8162
+112. Diffusion Transformers as Open-World Spatiotemporal Foundation ... https://
+arxiv.org/html/2411.12164v2
+113. [PDF] Focal and Global Spatial-Temporal Transformer for Skeleton-based ... https://
+openaccess.thecvf.com/content/ACCV2022/papers/Gao_Focal_and_Global_Spatial-
+Temporal_Transformer_for_Skeleton-
+based_Action_Recognition_ACCV_2022_paper.pdf
+114. Adding dropout after training - PyTorch Forums https://discuss.pytorch.org/t/adding-
+dropout-after-training/53811
+115. How to enable Pytorch Dropout on Optimized for Mobile models https://
+stackoverflow.com/questions/78455014/how-to-enable-pytorch-dropout-on-
+optimized-for-mobile-models
+116. The performance using Monte Carlo dropout for several forward ... https://
+www.researchgate.net/figure/The-performance-using-Monte-Carlo-dropout-for-
+several-forward-passes-a-Subjects-in_fig3_355779357
+117. VisionTS++: Cross-Modal Time Series Foundation Model ... - arXiv https://arxiv.org/
+html/2508.04379v1
+
+===== PAGE 17 =====
+
+118. Time Series Forecasting with the NVIDIA Time Series Prediction ... https://
+developer.nvidia.com/blog/time-series-forecasting-with-the-nvidia-time-series-
+prediction-platform-and-triton-inference-server/
+119. [PDF] Time Series Forecasting via Direct Per-Step Probability Distribution ... https://
+ojs.aaai.org/index.php/AAAI/article/view/39426/43387
+120. Moirai-MoE: Empowering Time Series Foundation Models with ... https://arxiv.org/
+html/2410.10469v1
+121. Developing a Parametric Cash Flow Forecasting Model for Complex ... https://
+www.mdpi.com/2071-1050/13/20/11305
+122. In-context Fine-tuning for Time-series Foundation Models https://openreview.net/
+forum?id=ryIHtXE9uG
+123. TimesFM: Exploring pre-trained Time Series - Kaggle https://www.kaggle.com/code/
+antonellomartiello/timesfm-exploring-pre-trained-time-series
+124. TimesFM源码 - 知乎专栏 https://zhuanlan.zhihu.com/p/4548595048
+125. Enhancing Foundation Models for Time Series Forecasting via... https://
+openreview.net/forum?id=B6WalMoQJW
+126. Foundation Models for Time Series - 知乎专栏 https://zhuanlan.zhihu.com/p/
+1895025089638015968
+127. Zero-Shot Time Series Forecasting with Covariates via In-Context ... https://arxiv.org/
+html/2506.03128v1
+128. [PDF] Tiny Time Mixers (TTMs): Fast Pre-trained Models for Enhanced ... https://
+arxiv.org/pdf/2401.03955
+129. Leveraging Contextual Features for Time Series Forecasting https://openreview.net/
+forum?id=xW4J2QlqRx
+130. Zero-Shot Time Series Foundation Models for Annual Institutional ... https://
+arxiv.org/html/2602.12120v2
+131. (PDF) In-Context Fine-Tuning for Time-Series Foundation Models https://
+www.researchgate.net/publication/385443561_In-Context_Fine-Tuning_for_Time-
+Series_Foundation_Models
+132. [PDF] Final Report – Guidelines on loan origination and monitoring https://
+www.eba.europa.eu/sites/default/files/document_library/Publications/Guidelines/
+2020/Guidelines%20on%20loan%20origination%20and%20monitoring/884283/
+EBA%20GL%202020%2006%20Final%20Report%20on%20GL%20on%20loan%20ori
+gination%20and%20monitoring.pdf
+133. [PDF] Proposed Rule: Asset-Backed Securities - SEC.gov https://www.sec.gov/files/
+rules/proposed/2010/33-9117.pdf
+
+===== PAGE 18 =====
+
+134. [PDF] Railway Reform: - Toolkit for Improving Rail Sector Performance https://
+documents1.worldbank.org/curated/en/529921469672181559/pdf/69256-REVISED-
+ENGLISH-PUBLIC-RR-Toolkit-EN-New-report-date-2017-12-27.pdf
+135. Evaluating the impacts of COVID-19 outbreak on supply chain risks ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC8968776/
+136. Supply Chain Disruption Forecasting Using Network Analytics https://
+www.researchgate.net/publication/
+396554033_Supply_Chain_Disruption_Forecasting_Using_Network_Analytics
+137. [PDF] Assessing the Impact of Supply Disruptions on the Global Pandemic ... https://
+www.imf.org/-/media/files/publications/wp/2023/english/wpiea2023042-print-
+pdf.pdf
+138. [PDF] The Aggregate Effects of Global and Local Supply Chain Disruptions https://
+openknowledge.worldbank.org/bitstreams/75e292e0-0abc-4452-a4b6-791af7a1d969/
+download
+139. Fine-Tuning TimesFM for Price Prediction | PDF | Time Series - Scribd https://
+www.scribd.com/document/945794840/Financial-Fine-tuning-a-Large-Time-Series-
+Model
+140. DimAug-TimesFM: Dimension Augmentation for Long-Term Cloud ... https://
+www.mdpi.com/2076-3417/15/7/3450
+141. The role of spatial and temporal structure for residential rent ... https://
+ideas.repec.org/a/eee/intfor/v32y2016i4p1352-1368.html
+142. [PDF] Augur: Modeling Covariate Causal Associations in Time Series via ... https://
+arxiv.org/pdf/2510.07858?
+143. Multi-Horizon Time Series Forecasting of non-parametric CDFs with ... https://
+arxiv.org/html/2511.13756v1
+144. (PDF) A Real Estate Development Risk Rating Model Using ... https://
+www.researchgate.net/publication/
+396247203_A_Real_Estate_Development_Risk_Rating_Model_Using_Machine_Learnin
+g_and_Multidimensional_Data_RED_RM
+145. (PDF) The Tabular Foundation Model TabPFN Outperforms ... https://
+www.researchgate.net/publication/
+387767605_The_Tabular_Foundation_Model_TabPFN_Outperforms_Specialized_Time
+_Series_Forecasting_Models_Based_on_Simple_Features
+146. ForeCAST-GAT: Context-Aware Spatio-Temporal Graph Attention ... https://
+www.researchgate.net/publication/402453912_ForeCAST-GAT_Context-
+Aware_Spatio-Temporal_Graph_Attention_Transformer_for_Event-
+Driven_Traffic_Forecasting
+
+===== PAGE 19 =====
+
+147. ST_AGCNT: Traffic Speed Forecasting Based on Spatial–Temporal ... https://
+www.mdpi.com/2071-1050/17/5/1829
+148. [PDF] arXiv:2301.12603v1 [cs.LG] 30 Jan 2023 https://arxiv.org/pdf/2301.12603
+149. Combating Distribution Shift for Accurate Time Series Forecasting ... https://
+arxiv.org/abs/2202.10808
+150. MM-iTransformer: A Multimodal Approach to Economic Time Series ... https://
+www.mdpi.com/2076-3417/15/3/1241
+151. Battling the Non-stationarity in Time Series Forecasting via Test-time ... https://
+ojs.aaai.org/index.php/AAAI/article/view/33965
+152. [PDF] Label Shift Adapter for Test-Time Adaptation under Covariate and ... https://
+openaccess.thecvf.com/content/ICCV2023/papers/
+Park_Label_Shift_Adapter_for_Test-
+Time_Adaptation_under_Covariate_and_Label_ICCV_2023_paper.pdf
+153. transformer with lagged features for handling long-term data ... https://
+www.researchgate.net/publication/
+387477522_TRANSFORMER_WITH_LAGGED_FEATURES_FOR_HANDLING_LONG-
+TERM_DATA_DEPENDENCY_IN_TIME_SERIES_FORECASTING
+154. ONNX v TRT Output Mismatch Tolerances - NVIDIA Developer Forums https://
+forums.developer.nvidia.com/t/onnx-v-trt-output-mismatch-tolerances/204028
+155. 实践教程｜TensorRT中对ONNX模型解析过程 - 火山引擎开发者社区 https://
+developer.volcengine.com/articles/7382301109072691210
+156. FinCEN's Missing Model Risk Management Rule for AML - LinkedIn https://
+www.linkedin.com/posts/richards1_model-risk-management-revised-guidance-
+activity-7451408625526366209-gNhc
+157. Moirai-MoE: Empowering Time Series Foundation Models with ... https://
+openreview.net/forum?id=SrEOUSyJcR
+158. Simulation Model-Based Research on the Technology Support ... https://
+www.mdpi.com/2071-1050/14/20/13525
+159. New Results for the Error Rate Performance of LoRa Systems over ... https://
+www.mdpi.com/1424-8220/22/9/3350
+160. A decoder-only foundation model for time-series forecasting - arXiv https://arxiv.org/
+abs/2310.10688
+161. [PDF] FILTER BEFORE PLUG: ONE-FOR-ALL FRAMEWORK - OpenReview https://
+openreview.net/pdf/bb2d999fa402739d91e20ec08b7446c4ca1f59cd.pdf
+162. [PDF] A MODEL OF THE HOUSING-MARKET BREAKEVEN VACANCY ... https://
+www.elibrary.imf.org/downloadpdf/view/journals/002/2021/131/article-A003-
+en.pdf
+
+===== PAGE 20 =====
+
+163. [PDF] Model risk management - KPMG International https://assets.kpmg.com/
+content/dam/kpmgsites/sa/pdf/2024/11/model-risk-
+management.pdf.coredownload.inline.pdf
+164. [PDF] Model Development and Application of Machine Learning in ... https://
+www.atlantis-press.com/article/126019336.pdf
+165. [PDF] Validation of Risk Management Models for Financial Institution https://
+assets.cambridge.org/97811084/97350/index/9781108497350_index.pdf
+166. TimesFM - Kaggle https://www.kaggle.com/code/mukundiyer/timesfm
+167. Google AI Ships TimesFM-2.5: Smaller, Longer-Context Foundation ... https://
+www.marktechpost.com/2025/09/16/google-ai-ships-timesfm-2-5-smaller-longer-
+context-foundation-model-that-now-leads-gift-eval-zero-shot-forecasting/
+168. Low-Rank Adaptation of Time Series Foundational Models for Out-of ... https://
+arxiv.org/html/2405.10216v1
+169. Low-Rank Adaptation of Time Series Foundational Models for Out-of ... https://
+www.researchgate.net/publication/380635026_Low-
+Rank_Adaptation_of_Time_Series_Foundational_Models_for_Out-of-
+Domain_Modality_Forecasting
+170. Low-Rank Adaptation of Time Series Foundational Models for Out-of ... https://
+hub.baai.ac.cn/paper/85031c66-abef-4b41-9c46-d57614848f16
+171. Rethinking Evaluation in the Era of Time Series Foundation Models https://arxiv.org/
+html/2510.13654v3
+172. The Rent Adjustment Process and the Structural Vacancy Rate https://ideas.repec.org/
+a/taf/rjerxx/v13y1997i2p195-209.html
+173. Detection and Estimation of Structural Breaks in High-Dimensional ... https://
+arxiv.org/abs/2304.07003
+174. Statistical Surveillance of Structural Breaks in Credit Rating Dynamics https://
+www.mdpi.com/1099-4300/22/10/1072
+175. Down performance when add layer to TensorRT convert from ONNX https://
+forums.developer.nvidia.com/t/down-performance-when-add-layer-to-tensorrt-
+convert-from-onnx/128739
+176. Tutorial 9: ONNX to TensorRT (Experimental) https://mmdetection.readthedocs.io/
+en/v2.22.0/tutorials/onnx2tensorrt.html
+177. Time-Series Foundation Model for Value-at-Risk Forecasting - arXiv https://arxiv.org/
+html/2410.11773v5
+178. timesfm-forecasting - ModelScope https://modelscope.cn/skills/@k-dense-ai/timesfm-
+forecasting
+
+===== PAGE 21 =====
+
+179. TimesFM时间序列预测模型微调实战：7%精度提升完整复现指南 https://
+adg.csdn.net/6972dfee437a6b40336b3a85.html
+180. [PDF] Channel-Aware Low-Rank Adaptation in Time Series Forecasting https://
+arxiv.org/pdf/2407.17246
+181. CAR-LoRA: Training Compression-Aware and Robust LoRA ... https://openreview.net/
+forum?id=5GimteSrgW
+182. Torch-TensorRT torch.compile Backend - PyTorch documentation https://
+docs.pytorch.org/TensorRT/user_guide/torch_compile.html
+183. Torch Compile and External Kernels - NVIDIA Documentation Hub https://
+docs.nvidia.com/physicsnemo/25.08/user-guide/performance_docs/
+torch_compile_support.html
+184. Moirai 2.0: When Less Is More for Time Series Forecasting - arXiv https://arxiv.org/
+html/2511.11698v1
+185. [PDF] Coordinate Modular LoRA Experts Through Serial Attention Routing https://
+arxiv.org/pdf/2507.00029
+186. LoRA-Switch: Boosting the Efficiency of Dynamic LLM Adapters via... https://
+openreview.net/forum?id=NIG8O2zQSQ
+187. Evaluating BIM's Role in Transforming Cash Flow Forecasting ... https://
+www.mdpi.com/2071-1050/16/23/10221

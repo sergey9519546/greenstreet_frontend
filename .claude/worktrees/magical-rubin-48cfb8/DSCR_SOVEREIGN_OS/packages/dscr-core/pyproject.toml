@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dscr-core"
+version = "0.5.5"
+description = "Deterministic math core for the DSCR Sovereign OS (v0.5.5 §1071 volume threshold fix 100→1,000 per May 2026 Final Rule)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [
+  { name = "DSCR Sovereign OS" }
+]
+keywords = ["dscr", "mortgage", "non-qm", "real-estate", "underwriting"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Office/Business :: Financial",
+  "Operating System :: OS Independent",
+]
+
+dependencies = [
+  # Slice 1: zero runtime deps. Pure stdlib.
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "hypothesis>=6.100",
+  "ruff>=0.5",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dscr_core"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+  "-ra",
+  "--strict-markers",
+  "--strict-config",
+  "--tb=short",
+  "--ignore=tests/_archive_v020",
+]
+pythonpath = ["src"]
+
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["tests/_archive_v020"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N"]
+# UP042 (StrEnum): TrackDecision uses (str, Enum) for backwards compat with JSON
+# serialization and `isinstance(x, str)` checks. Migrate when Python 3.12 is floor.
+ignore = ["UP042"]
+
+[tool.ruff.lint.per-file-ignores]
+# compliance.py contains ECOA reason text + FCRA +12 USC 1002 Appendix A language
+# which is verbatim regulatory text. E501 (line too long) is inherent.
+"src/dscr_core/compliance.py" = ["E501"]
+# state_matrix.py has condensed state registrations; some lines are long for clarity
+"src/dscr_core/state_matrix.py" = ["E501"]
+# test_compliance_v040.py + test_state_matrix.py have long expected-text strings
+"tests/test_compliance_v040.py" = ["E501"]
+"tests/test_state_matrix.py" = ["E501"] 

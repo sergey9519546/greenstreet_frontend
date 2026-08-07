@@ -1,0 +1,336 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: T10 Calendar
+summary: "\"purpose\": \"Forward Calendar — 8 time-sensitive re-verifications (T10)\","
+entities:
+  - concept/dscr
+  - data/apartment-list
+  - data/cotality
+  - data/fred
+  - data/kbra
+  - data/trepp
+  - data/zillow
+  - data/zori
+  - regulation/cfpb
+  - regulation/hoepa
+  - regulation/section-1071
+  - tax/qoz
+  - topic/non-qm
+  - topic/str
+tags:
+  - topic/compliance
+  - topic/tax
+source: RESEARCH/godmode_20260618/10_T10_forward_calendar/T10_calendar.json
+vaulted_at: 2026-06-20
+---
+{
+  "schema_version": "1.0",
+  "purpose": "Forward Calendar — 8 time-sensitive re-verifications (T10)",
+  "generated_at": "2026-06-18",
+  "owner": "DSCR_LOAN_OFFICE / Research",
+  "items": [
+    {
+      "id": "T10-01",
+      "item": "Q3 2026 Cotality Mortgage Application Fraud Risk Index",
+      "source": "Cotality public press release",
+      "source_url": "https://www.cotality.com/newsroom",
+      "expected_release": "2026-09-01",
+      "expected_release_iso": "2026-09-01",
+      "re_verify_date": "2026-09-30",
+      "re_verify_date_iso": "2026-09-30",
+      "cadence": "quarterly",
+      "priority": "P1",
+      "dscr_relevance": "Fraud risk feeds DSCR origination due-diligence; investor-side fraud check pricing",
+      "trigger_action": "Re-pull national fraud index; check top-5 riskiest states for change; refresh T13/T15 fraud reference",
+      "celery_cron": {
+        "month_of_year": "*/3",
+        "day_of_month": "1",
+        "hour": 9,
+        "minute": 0,
+        "crontab_expr": "0 9 1 */3 *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2026-09-30",
+        "reminder_days_before": [14, 7, 1],
+        "method": "email + lark-calendar"
+      }
+    },
+    {
+      "id": "T10-02",
+      "item": "Trepp CMBS Delinquency — August 2026 monthly release",
+      "source": "Trepp public TreppTalk blog + monthly commentary",
+      "source_url": "https://www.trepp.com/research-and-insights",
+      "expected_release": "2026-08-15",
+      "expected_release_iso": "2026-08-15",
+      "re_verify_date": "2026-08-31",
+      "re_verify_date_iso": "2026-08-31",
+      "cadence": "monthly",
+      "priority": "P1",
+      "dscr_relevance": "CMBS delinquency benchmarks DSCR loan performance in distress scenarios",
+      "trigger_action": "Re-pull TreppTalk monthly commentary; check large bank vs middle tier divergence; refresh T15 reference",
+      "celery_cron": {
+        "month_of_year": "*",
+        "day_of_month": "20",
+        "hour": 10,
+        "minute": 0,
+        "crontab_expr": "0 10 20 * *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2026-08-31",
+        "reminder_days_before": [14, 7, 1],
+        "method": "email + lark-calendar"
+      }
+    },
+    {
+      "id": "T10-03",
+      "item": "KBRA Q4 2025 update — already released; verify next KBRA Non-QM report",
+      "source": "KBRA publications page",
+      "source_url": "https://www.kbra.com/",
+      "expected_release": "2026-07-15",
+      "expected_release_iso": "2026-07-15",
+      "re_verify_date": "2026-07-31",
+      "re_verify_date_iso": "2026-07-31",
+      "cadence": "quarterly",
+      "priority": "P2",
+      "dscr_relevance": "Non-QM / DSCR market sizing + competitive landscape",
+      "trigger_action": "Confirm latest KBRA Non-QM publication; pull IMN forum recap updates",
+      "celery_cron": {
+        "month_of_year": "*",
+        "day_of_month": "1",
+        "hour": 11,
+        "minute": 0,
+        "crontab_expr": "0 11 1 * *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2026-07-31",
+        "reminder_days_before": [14, 7, 1],
+        "method": "email + lark-calendar"
+      },
+      "note": "Q4 2025 was already released per prompt — this entry is the FOLLOW-UP quarterly re-verification"
+    },
+    {
+      "id": "T10-04",
+      "item": "Scotsman Guide 2026 annual rankings",
+      "source": "Scotsman Guide (annual mortgage industry directory)",
+      "source_url": "https://www.scotsmanguide.com/",
+      "expected_release": "2027-02-15",
+      "expected_release_iso": "2027-02-15",
+      "re_verify_date": "2027-04-15",
+      "re_verify_date_iso": "2027-04-15",
+      "cadence": "annual",
+      "priority": "P2",
+      "dscr_relevance": "DSCR lender rankings; competitive positioning",
+      "trigger_action": "Re-pull annual Scotsman Guide rankings for DSCR top lenders; update partner list",
+      "celery_cron": {
+        "month_of_year": "4",
+        "day_of_month": "15",
+        "hour": 9,
+        "minute": 0,
+        "crontab_expr": "0 9 15 4 *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2027-04-15",
+        "reminder_days_before": [60, 30, 14, 7],
+        "method": "email + lark-calendar"
+      }
+    },
+    {
+      "id": "T10-05",
+      "item": "HOEPA 2027 thresholds — Federal Register Dec 2026 annual adjustment",
+      "source": "Federal Register / CFPB HOEPA annual threshold adjustment",
+      "source_url": "https://www.federalregister.gov/agencies/consumer-financial-protection-bureau",
+      "expected_release": "2026-12-01",
+      "expected_release_iso": "2026-12-01",
+      "re_verify_date": "2026-12-15",
+      "re_verify_date_iso": "2026-12-15",
+      "cadence": "annual",
+      "priority": "P0",
+      "dscr_relevance": "HOEPA threshold change may re-classify some DSCR loans as high-cost; affects QM status",
+      "trigger_action": "Pull new HOEPA thresholds; compare to current DSCR pricing bands; update HOEPA compliance section in master playbook",
+      "celery_cron": {
+        "month_of_year": "12",
+        "day_of_month": "5",
+        "hour": 14,
+        "minute": 0,
+        "crontab_expr": "0 14 5 12 *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2026-12-15",
+        "reminder_days_before": [30, 14, 7, 1],
+        "method": "email + lark-calendar + lark-task"
+      }
+    },
+    {
+      "id": "T10-06",
+      "item": "§179 2027 expense limit — IRS Rev. Proc. 2026-XX (annual inflation adjustment)",
+      "source": "IRS Revenue Procedure (annual)",
+      "source_url": "https://www.irs.gov/irb",
+      "expected_release": "2026-11-01",
+      "expected_release_iso": "2026-11-01",
+      "re_verify_date": "2026-11-15",
+      "re_verify_date_iso": "2026-11-15",
+      "cadence": "annual",
+      "priority": "P1",
+      "dscr_relevance": "§179 deduction affects DSCR investor tax planning; impacts net DSCR yield calculations",
+      "trigger_action": "Pull new §179 limit; update DSCR investor yield-calculator; refresh tax shield assumptions",
+      "celery_cron": {
+        "month_of_year": "11",
+        "day_of_month": "5",
+        "hour": 10,
+        "minute": 0,
+        "crontab_expr": "0 10 5 11 *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2026-11-15",
+        "reminder_days_before": [30, 14, 7, 1],
+        "method": "email + lark-calendar"
+      }
+    },
+    {
+      "id": "T10-07",
+      "item": "OBBBA QOZ decennial cycle — July 1, 2026 statutory date",
+      "source": "Public Law 119-21 (One Big Beautiful Bill Act) + IRC §1400Z-2",
+      "source_url": "https://www.congress.gov/bill/119th-congress/house-bill/1",
+      "statutory_date_iso": "2026-07-01",
+      "re_verify_date": "2026-07-01",
+      "re_verify_date_iso": "2026-07-01",
+      "cadence": "statutory trigger (one-time)",
+      "priority": "P0",
+      "dscr_relevance": "QOZ decennial cycle = 10-year expiration for new QOZ designations; affects DSCR/QOZ investment structuring",
+      "trigger_action": "Confirm QOZ decennial status as of 2026-07-01; pull latest IRS guidance on QOZ designation expirations; update DSCR/QOZ overlay doc",
+      "celery_cron": {
+        "month_of_year": "7",
+        "day_of_month": "1",
+        "hour": 6,
+        "minute": 0,
+        "crontab_expr": "0 6 1 7 *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2026-07-01",
+        "reminder_days_before": [60, 30, 14, 7, 1],
+        "method": "email + lark-calendar + lark-task + lark-im ping"
+      },
+      "critical": true,
+      "note": "CRITICAL NEAR-TERM — 2026-07-01 is 13 days from generation date (2026-06-18). URGENT RE-VERIFY."
+    },
+    {
+      "id": "T10-08",
+      "item": "Section 1071 compliance — Jan 1, 2028 effective date (pre-compliance re-verification)",
+      "source": "CFPB Section 1071 final rule (small business lending data collection)",
+      "source_url": "https://www.consumerfinance.gov/rules-policy/final-rules/small-business-lending-under-the-equal-credit-opportunity-act-regulation-b/",
+      "expected_release": "2027-10-01",
+      "expected_release_iso": "2027-10-01",
+      "re_verify_date": "2027-12-31",
+      "re_verify_date_iso": "2027-12-31",
+      "cadence": "pre-compliance review",
+      "priority": "P1",
+      "dscr_relevance": "1071 applies to business-purpose loans (including DSCR); affects data collection + reporting requirements",
+      "trigger_action": "Confirm 1071 effective date + scope (origination threshold, exemptions); update DSCR origination data-collection workflow",
+      "celery_cron": {
+        "month_of_year": "10",
+        "day_of_month": "1",
+        "hour": 9,
+        "minute": 0,
+        "crontab_expr": "0 9 1 10 *"
+      },
+      "calendar_reminder": {
+        "due_date_iso": "2027-12-31",
+        "reminder_days_before": [90, 60, 30, 14, 7],
+        "method": "email + lark-calendar"
+      }
+    }
+  ],
+  "celery_beat_schedule_combined": [
+    {
+      "task": "research.refresh_fred_snapshot",
+      "schedule": "0 9 * * 4",
+      "args": ["FRED_API_KEY"],
+      "description": "Weekly Thursday morning FRED snapshot pull (drives MORTGAGE30US + DGS10 + SOFR)"
+    },
+    {
+      "task": "research.refresh_mba_was",
+      "schedule": "0 8 * * 3",
+      "description": "Weekly Wednesday morning MBA WAS fetch"
+    },
+    {
+      "task": "research.refresh_zillow_zori_zhvi",
+      "schedule": "0 11 17 * *",
+      "description": "Monthly 17th Zillow ZORI + ZHVI CSV pull"
+    },
+    {
+      "task": "research.refresh_cotality_newsroom",
+      "schedule": "0 9 1 */3 *",
+      "description": "Quarterly Cotality press release scrape"
+    },
+    {
+      "task": "research.refresh_trepp_blog",
+      "schedule": "0 10 20 * *",
+      "description": "Monthly TreppTreppTalk scrape (20th of month)"
+    },
+    {
+      "task": "research.refresh_kbra_publications",
+      "schedule": "0 11 1 * *",
+      "description": "Monthly KBRA publications scrape"
+    },
+    {
+      "task": "research.refresh_apartment_list_rent",
+      "schedule": "0 10 28 * *",
+      "description": "Monthly Apartment List rent report scrape (28th)"
+    },
+    {
+      "task": "research.refresh_sofr_daily",
+      "schedule": "0 9 * * 1-5",
+      "description": "Weekday 9 AM NY Fed SOFR pull"
+    },
+    {
+      "task": "research.calendar_t10_07_qoz_decennial",
+      "schedule": "0 6 1 7 *",
+      "description": "Annual July 1 QOZ decennial trigger"
+    },
+    {
+      "task": "research.calendar_t10_05_hoepa_thresholds",
+      "schedule": "0 14 5 12 *",
+      "description": "Annual December HOEPA threshold check"
+    },
+    {
+      "task": "research.calendar_t10_06_section_179",
+      "schedule": "0 10 5 11 *",
+      "description": "Annual November §179 IRS Rev. Proc. check"
+    },
+    {
+      "task": "research.calendar_t10_08_section_1071",
+      "schedule": "0 9 1 10 *",
+      "description": "Annual October Section 1071 pre-compliance check"
+    }
+  ],
+  "summary": {
+    "total_items": 8,
+    "p0_items": 2,
+    "p1_items": 4,
+    "p2_items": 2,
+    "critical_near_term": [
+      {
+        "id": "T10-07",
+        "item": "OBBBA QOZ decennial cycle",
+        "date_iso": "2026-07-01",
+        "days_from_today": 13
+      }
+    ],
+    "next_30_days": [
+      {"id": "T10-07", "date_iso": "2026-07-01"},
+      {"id": "T10-03", "date_iso": "2026-07-31"}
+    ],
+    "next_90_days": [
+      {"id": "T10-02", "date_iso": "2026-08-31"},
+      {"id": "T10-01", "date_iso": "2026-09-30"}
+    ],
+    "annual_items": [
+      {"id": "T10-04", "date_iso": "2027-04-15"},
+      {"id": "T10-05", "date_iso": "2026-12-15"},
+      {"id": "T10-06", "date_iso": "2026-11-15"},
+      {"id": "T10-08", "date_iso": "2027-12-31"}
+    ]
+  }
+}

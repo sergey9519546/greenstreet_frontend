@@ -1,0 +1,175 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Flat URL list — Reddit / BiggerPockets / Hacker News research dump
+summary: "https://old.reddit.com/r/realestateinvesting/comments/1rdtfg9/almost_bought_a_7unit_nyc_brownstone_dscr/"
+entities:
+  - concept/dscr
+  - concept/itia
+  - lender/newfi
+  - state/ca
+  - state/fl
+  - topic/non-qm
+  - topic/str
+tags:
+  - topic/apex
+  - topic/default-rate
+  - topic/insurance
+  - topic/reserves
+  - topic/stress-test
+source: output/apex3_dispatch/reddit_forums/reddit_forums_urls.txt
+vaulted_at: 2026-06-20
+---
+# Flat URL list — Reddit / BiggerPockets / Hacker News research dump
+# Compiled 2026-06-19 for DSCR Sovereign OS
+
+# ===== REDDIT: r/RealEstateInvesting =====
+https://old.reddit.com/r/realestateinvesting/comments/1rdtfg9/almost_bought_a_7unit_nyc_brownstone_dscr/
+https://old.reddit.com/r/realestateinvesting/comments/1134w49/dscr_loan_cons_and_pros/
+https://old.reddit.com/r/realestateinvesting/comments/1gthzwm/can_someone_explain_to_me_what_a_dscr_loan_is/
+https://old.reddit.com/r/realestateinvesting/comments/1lo1i68/dscr_loans_at_10/
+https://old.reddit.com/r/realestateinvesting/comments/1r1b5v0/dscr_loan_for_midsize_properties_10_units/
+https://old.reddit.com/r/realestateinvesting/comments/1pbui09/dscr_vs_conventional_loan_for_a_first_investment/
+https://old.reddit.com/r/realestateinvesting/comments/1p7ak93/nyc_investment_property_799k_asking_offer/
+https://old.reddit.com/r/realestateinvesting/comments/1r5ib2j/nj_dscr_borrower_prepayment_penalties/
+https://old.reddit.com/r/realestateinvesting/comments/165lk56/dscr_loan_real_experiences/
+https://old.reddit.com/r/realestateinvesting/comments/1g5x382/dscr_loan/
+https://old.reddit.com/r/realestateinvesting/comments/1jmzkgb/dscr_loan/
+https://old.reddit.com/r/realestateinvesting/comments/1hv3v0q/feedback_on_dscr_loans/
+https://old.reddit.com/r/realestateinvesting/comments/1phhvz8/dscr_loans/
+https://old.reddit.com/r/realestateinvesting/comments/10mpnpv/how_are_you_dealing_with_windstorm_insurance_for/
+https://old.reddit.com/r/realestateinvesting/comments/1sut4os/do_you_need_a_llc_for_dscr_loan/  (cross-ref from r/Mortgages)
+
+# ===== REDDIT: r/Mortgages =====
+https://old.reddit.com/r/Mortgages/comments/1sb3uzy/dscr_loans_what_if_the_property_needs_work/
+https://old.reddit.com/r/Mortgages/comments/1qv9wat/dscr_loans_explained_in_3_simple_examples/
+https://old.reddit.com/r/Mortgages/comments/1kqn4yh/dscr_loan_any_good_lenders_out_there/
+https://old.reddit.com/r/Mortgages/comments/1p2kp8x/dscr_loans_whos_everyone_using/
+https://old.reddit.com/r/Mortgages/comments/1nu4y37/do_people_commonly_get_dscr_loans_and_still_live/
+https://old.reddit.com/r/Mortgages/comments/1s2yxf1/homeowners_insurance_dscr/
+https://old.reddit.com/r/Mortgages/comments/1pri1uj/what_is_a_dscr_loan_let_me_break_it_for_you/
+https://old.reddit.com/r/Mortgages/comments/1sso1rw/why_dont_more_investors_use_dscr_loans/
+https://old.reddit.com/r/Mortgages/comments/1syh6m7/summary_chart_prepayment_penalty_rules_for_dscr/
+https://old.reddit.com/r/Mortgages/comments/1pp3dgt/dscr_loan_questions/
+https://old.reddit.com/r/Mortgages/comments/1jtln3x/dscr_loan_in_this_climate_yn/
+https://old.reddit.com/r/Mortgages/comments/1te3x9a/guidance_for_a_nonqm_loan/
+https://old.reddit.com/r/Mortgages/comments/1u0m25l/whats_your_dscr_rate/
+https://old.reddit.com/r/Mortgages/comments/1trdzxt/what_rate_are_dscr_going_for/
+https://old.reddit.com/r/Mortgages/comments/1s2touw/what_do_i_need_to_get_a_dscr_loan_what_is_the/
+
+# ===== REDDIT: r/loanoriginators =====
+https://old.reddit.com/r/loanoriginators/comments/1hrxmlw/first_time_dscr/
+https://old.reddit.com/r/loanoriginators/comments/1gi1rcy/dscr_ratios_how_do_they_come_up/
+https://old.reddit.com/r/loanoriginators/comments/1tmnto0/opinion_favorite_criteria_for_picking_your_goto/
+https://old.reddit.com/r/loanoriginators/comments/1u3air1/dscr_nonqm_focus/
+https://old.reddit.com/r/loanoriginators/comments/1juv3sq/best_nonqm_lenders/
+https://old.reddit.com/r/loanoriginators/comments/1iu6huf/any_recommendations_for_a_qmnonqm_lender_with_the/
+https://old.reddit.com/r/loanoriginators/comments/1kfg2re/nonqm_lenders_offering_80_on_a_cash_out/
+https://old.reddit.com/r/loanoriginators/comments/1e7au8k/where_do_appraisers_get_comp_rent_schedule_data/
+https://old.reddit.com/r/loanoriginators/comments/1scd41g/client_with_dscr_loan_moving_property_to_a/
+https://old.reddit.com/r/loanoriginators/comments/18f5lpa/need_some_advice_on_a_loan/
+https://old.reddit.com/r/loanoriginators/
+
+# ===== REDDIT: r/appraisal =====
+https://old.reddit.com/r/appraisal/comments/1avzfxa/1007short_term_rentals/
+https://old.reddit.com/r/appraisal/comments/1fzri65/str_and_1007/
+https://old.reddit.com/r/appraisal/comments/1ex3v5f/short_term_rent_survey/
+https://old.reddit.com/r/appraisal/comments/1pi8s7v/short_term_rental_on_1007/
+https://old.reddit.com/r/appraisal/comments/16k87qx/1007_rent_schedule_help/
+
+# ===== REDDIT: r/Insurance =====
+https://old.reddit.com/r/Insurance/comments/10mpqpk/how_are_you_dealing_with_windstorm_insurance_for/
+
+# ===== REDDIT: r/homeowners (referenced via search, FL insurance) =====
+https://www.reddit.com/r/homeowners/comments/1h0co3p/my_florida_homeowner_insurance_went_up_from_3k_in/
+
+# ===== REDDIT: r/FirstTimeHomeBuyer (referenced) =====
+https://www.reddit.com/r/FirstTimeHomeBuyer/comments/vpervk/im_an_underwriter_ama/
+
+# ===== BIGGERPOCKETS FORUMS =====
+https://www.biggerpockets.com/forums/48/topics/1271239-experience-with-dscr-loans
+https://www.biggerpockets.com/forums/50/topics/1042383-dscr-loan-calculations
+https://www.biggerpockets.com/forums/311/topics/1265826-dscr-question-are-rates-unreasonable
+https://www.biggerpockets.com/forums/48/topics/1266118-dscr-loans-a-smarter-way-to-build-passive-income
+https://www.biggerpockets.com/forums/50/topics/1203341-dscr-explained-simply
+https://www.biggerpockets.com/forums/853/topics/1261414-how-do-i-know-if-i-am-getting-a-good-dscr-loan
+https://www.biggerpockets.com/forums/48/topics/1245616-question-fix-and-flip-loan-or-dscr
+https://www.biggerpockets.com/forums/853/topics/1257447-brrrr-questions-on-hard-money-lending-reserves-dscr
+https://www.biggerpockets.com/forums/49/topics/1259068-dscr-or-conventional-refi
+https://www.biggerpockets.com/forums/49/topics/1108952-dscr-funding-purchase-price-between-150k-350k-5-units
+https://www.biggerpockets.com/forums/48/topics/1271239-experience-with-dscr-loans
+https://www.biggerpockets.com/forums/
+
+# ===== HACKER NEWS (via Algolia) =====
+https://hn.algolia.com/api/v1/search?query=DSCR
+https://hn.algolia.com/api/v1/search?query=DSCR+mortgage
+https://news.ycombinator.com/item?id=41412652   (Landlords $1.5T CRE Wall — lotsofpulp on DSCR default)
+https://news.ycombinator.com/item?id=41237850   (SF STR rent-fixing software — DSCR covenant enforcement)
+https://news.ycombinator.com/item?id=22968052   (Wealthy mortgage borrowers — DSCR cash management)
+https://news.ycombinator.com/item?id=48293540   (LBO DSCR > 1.0 canonical thread)
+https://news.ycombinator.com/item?id=22967036   (commercial mortgage DSCR discussion)
+https://news.ycombinator.com/item?id=48567769   (commercial real estate appraisal thread)
+https://news.ycombinator.com/item?id=48567744   (rent drop → DSCR default)
+https://news.ycombinator.com/item?id=48293512   (LBO DSCR comment)
+https://news.ycombinator.com/item?id=48566791   (Why do commercial spaces sit vacant — DSCR default thread)
+https://news.ycombinator.com/item?id=40683862   (5-Over-1 DSCR NOI thread)
+https://news.ycombinator.com/item?id=48292941   (Private equity essential services — DSCR underwriting)
+https://news.ycombinator.com/item?id=38114264   (Big landlords software collude on rents)
+https://news.ycombinator.com/item?id=35266304   (Remote work hits office rents — DSCR monitoring)
+
+# ===== VENDOR / LENDER PUBLIC PAGES REFERENCED =====
+https://silverhillfunding.com/dscr-calc
+https://nqm.thelender.com/
+https://ahlend.com/dscr-loan-prepayment-penalties-explained/
+https://ahlend.com/
+https://dominionfinancialservices.com/
+https://www.thedominiongroup.com/
+https://newfi.com/dscr-loan-prepayment-penalty/
+https://www.ridgestreetcap.com/blog/dscr-loan-prepayment-penalty
+https://honestcasa.com/blog/dscr-loan-prepayment-penalty
+https://mcfunding.com/wp-content/uploads/2024/05/State-Prepayment-Penalty-Guide-5.2.24.pdf
+https://trussfinancialgroup.com/blog/dscr-loan-below-1
+https://trussfinancialgroup.com/california-mortgage-lender/dscr-loans
+https://www.newamericanfunding.com/loan-types/non-qm-loan/dscr-loan/state/california/
+https://ccmb.com/
+https://ctccal.com/blog/dscr-loans-in-california-a-smart-lending-option-for-real-estate-investors
+https://www.lendmire.com/how-dscr-loans-are-underwritten/
+https://www.salarydr.com/blog/dscr-loans-real-estate-physicians
+https://www.bluerate.ai/blog/dscr-loan-pros-and-cons
+https://www.bluerate.ai/blog/what-is-a-dscr-loan-meaning
+https://accreditedschools.com/california-investment-property-loans/
+https://www.classvaluation.com/blog/appraisal-form-1007-why-it-cant-be-used-for-short%E2%80%91term-rentals/
+https://migonline.com/loan_officer/victorvarela/blog/2025/03/21/understanding-form-1007-a-key-step-in-financing-investment-properties/
+https://dynastycapgroup.com/why-lenders-require-windstorm-insurance-in-florida-and-when-it-can-be-waived/
+https://singlefamily.fanniemae.com/media/12351/display
+https://singlefamily.fanniemae.com/originating-underwriting/appraiser-update
+
+# ===== TOOL / DATA SOURCES =====
+https://dscrbuddy.com
+https://findmydscr.com
+https://www.airbnb.com (rent platform referenced for STR verification)
+https://www.airdna.co  (STR data — referenced but not directly fetched)
+https://www.linkedin.com/posts/michaeljbanks186_we-published-something-this-week-that-every-activity-7445111351280214016-lgxx
+
+# ===== ADDITIONAL SEARCH-DISCOVERED (not deeply read but cited in body) =====
+https://www.brooklinebank.com/business-calculator/debt-service-coverage-ratio-calculator/
+https://www.investopedia.com/terms/d/dscr.asp
+https://sfassessor.org/property-information/homeowners/real-property-assessments
+https://www.federalreserve.gov/bankinforeg/CRE/cre-2013-part-1-executive-summary.htm
+https://www.federalreserve.gov/ (DSCR stress test references)
+https://www.reddit.com/r/realestateinvesting/comments/1134w49/dscr_loan_cons_and_pros/  (already above)
+https://www.reddit.com/r/loanoriginators/comments/1juv3sq/best_nonqm_lenders/  (already above)
+https://www.reddit.com/r/loanoriginators/comments/1iu6huf/any_recommendations_for_a_qmnonqm_lender_with_the/  (already above)
+https://www.reddit.com/r/loanoriginators/comments/1kfg2re/nonqm_lenders_offering_80_on_a_cash_out/  (already above)
+https://www.reddit.com/r/Mortgages/comments/1s2yxf1/homeowners_insurance_dscr/  (already above)
+https://www.reddit.com/r/RealEstateInvesting/comments/1phhvz8/dscr_loans/
+https://www.reddit.com/r/realestateinvesting/comments/1hv3v0q/feedback_on_dscr_loans/
+
+# ===== TOTAL =====
+# Reddit threads:       33
+# BiggerPockets:        10
+# Hacker News:          15 (3 Algolia deeply + 12 from initial search)
+# Lender/vendor pages:  24
+# Tool/data pages:       6
+# ================== ~88 URLs ==================

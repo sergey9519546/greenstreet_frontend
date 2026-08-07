@@ -983,32 +983,47 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 :where(.nav-logo, .footer_logo) > span {
   font-family: "Outfit Variable", "Outfit", Arial, sans-serif !important;
   font-size: 30px !important;
-  font-weight: 700 !important;
-  font-variation-settings: "wght" 700 !important;
-  letter-spacing: -0.01em !important;
-  line-height: 0.98 !important;
+  font-weight: 800 !important;
+  font-variation-settings: "wght" 800 !important;
+  letter-spacing: -0.018em !important;
+  word-spacing: 0.055em !important;
+  line-height: 0.96 !important;
   color: currentColor !important;
   white-space: nowrap !important;
   display: inline-block !important;
+}
+
+:where(.nav-logo, .footer_logo) > span > span:first-child {
+  font-weight: 380 !important;
+  font-variation-settings: "wght" 380 !important;
+  letter-spacing: 0.034em !important;
 }
 
 :where(.nav-logo, .footer_logo) > span > span:last-child {
   display: inline-block !important;
   width: 0.2em !important;
   height: 0.2em !important;
-  margin-left: 0.075em !important;
+  margin-left: 0.11em !important;
   border-radius: 999px !important;
   background: #d8d958 !important;
   color: transparent !important;
   font-size: 1em !important;
   line-height: 1 !important;
-  vertical-align: -0.015em !important;
-  transform: translateY(0.01em) !important;
+  vertical-align: baseline !important;
+  transform: translateY(0.055em) !important;
   overflow: hidden !important;
 }
 
 /* Footer logo larger than the nav logo (higher specificity wins over the shared rule) */
 .footer_logo > span { font-size: 46px !important; }
+
+@media (max-width: 479px) {
+  .nav-logo > span {
+    font-size: 25px !important;
+    word-spacing: 0.045em !important;
+  }
+  .footer_logo > span { font-size: 36px !important; }
+}
 
 /* Greenstreet rebuild video section (home, immediately before Solutions) */
 .gs-video-section { padding: clamp(2rem, 5vw, 4.5rem) 0; }
@@ -1130,10 +1145,21 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 .gs-site-nav .nav-logo > span {
   font-size: 30px !important;
 }
+
+@media (max-width: 479px) {
+  .gs-site-nav .nav-logo > span {
+    font-size: 25px !important;
+  }
+}
 .gs-site-nav .nav-links-contain,
 .gs-site-nav .nav-links-wrap {
   min-height: 0 !important;
   align-items: center !important;
+}
+@media (min-width: 992px) {
+  [data-wf--nav-main--variant="greenstreet"] .nav-links-wrap {
+    gap: clamp(10px, 0.85vw, 16px) !important;
+  }
 }
 .gs-site-nav .nav-link {
   white-space: nowrap !important;
@@ -1335,3 +1361,51 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
     min-height: 1200px !important;
   }
 }
+
+/* ── WCAG 2.1 AA Accessibility Focus Rings ── */
+:focus-visible {
+  outline: 2px solid #039692 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(3, 150, 146, 0.25) !important;
+}
+
+/* ── Print / Investment Memo Export Layout ── */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 12mm 15mm;
+  }
+  body, #root {
+    background: #ffffff !important;
+    color: #003738 !important;
+    font-size: 12pt !important;
+  }
+  header, footer, nav, .no-print, button, .da-mode-toggle, input[type=range], .gs-range {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .da-tool-grid {
+    display: block !important;
+  }
+  .gs-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .print-card {
+    background: #ffffff !important;
+    border: 1px solid #dcdfd0 !important;
+    color: #003738 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    margin-bottom: 16px !important;
+    padding: 16px !important;
+  }
+  .print-header {
+    border-bottom: 2px solid #003738;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+}
+

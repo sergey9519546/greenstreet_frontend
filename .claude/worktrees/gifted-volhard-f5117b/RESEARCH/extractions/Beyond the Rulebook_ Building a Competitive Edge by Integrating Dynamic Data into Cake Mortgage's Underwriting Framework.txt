@@ -1,0 +1,702 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: "Beyond The Rulebook  Building A Competitive Edge By Integrating Dynamic Data Into Cake Mortgage'S Underwriting Framework"
+summary: "Beyond the Rulebook: Building a Competitive Edge by Integrating Dynamic"
+entities:
+  - concept/arm
+  - concept/cap-rate
+  - concept/cltv
+  - concept/dscr
+  - concept/itia
+  - concept/ltv
+  - concept/pitia
+  - data/cotality
+  - data/fannie-mae
+  - data/fred
+  - data/freddie-mac
+  - data/zillow
+  - lender/angel-oak
+  - lender/pennymac
+  - lender/ready-capital
+  - state/ca
+  - state/fl
+  - state/nj
+  - state/ny
+  - state/tx
+  - tax/1031
+  - tax/bonus-depreciation
+  - tax/pal
+  - topic/condo
+  - topic/condotel
+  - topic/multifamily
+  - topic/non-qm
+  - topic/str
+tags:
+  - topic/after-tax
+  - topic/apex
+  - topic/compliance
+  - topic/default-rate
+  - topic/flood-insurance
+  - topic/foreclosure
+  - topic/insurance
+  - topic/llpa
+  - topic/monte-carlo
+  - topic/portfolio
+  - topic/ppp
+  - topic/reserves
+  - topic/stress-test
+  - topic/tax
+  - topic/usury
+source: "RESEARCH/pdf_extractions/Beyond the Rulebook_ Building a Competitive Edge by Integrating Dynamic Data into Cake Mortgage's Underwriting Framework.txt"
+vaulted_at: 2026-06-20
+---
+
+
+===== PAGE 1 =====
+
+Beyond the Rulebook: Building a
+Competitive Edge by Integrating Dynamic
+Data into Cake Mortgage's Underwriting
+Framework
+The provided research goal seeks to develop a comprehensive framework for
+transforming Cake Mortgage's static 2025–2026 underwriting guidelines into a
+sophisticated, automated lending platform. This report systematically identifies the
+critical missing components—dynamic pricing data, live API infrastructure, tax/
+investment analytics, state-specific compliance rules, and secondary market realities—
+that are absent from the current policy documents but are essential for building an
+intelligent origination engine. The analysis reveals that while the provided materials
+constitute a masterclass in static underwriting policy, they represent only one layer of a
+multi-layered tech stack required for modern fintech dominance. The true competitive
+advantage lies not in possessing the rules, but in having the technology to apply them
+instantly and accurately to any property address or borrower profile.
+The Static Foundation: Deconstructing the 2026 Cake
+Mortgage Rulebook
+The foundation upon which any automated system must be built is a complete and
+accurate understanding of the underlying business rules. The collection of 13 documents
+provided offers a detailed, albeit fragmented, view of Cake Mortgage's wholesale product
+suite as of April 2026 26. The evolution from restrictive 2025 matrices like Sponge Cake
+and Funnel Cake to the more aggressive 2026 baselines such as Bundt Cake and Cup
+Cake marks a significant strategic shift toward higher loan amounts, expanded LTVs, and
+greater leniency toward borrowers with recent credit events 16 26. This transition
+demonstrates a clear ambition to capture a larger share of the Non-QM and Debt Service
+Coverage Ratio (DSCR) markets, but it also introduces a complex web of overlapping
+programs that demand precise navigation 15.
+
+===== PAGE 2 =====
+
+The core of this static foundation is the Rule Engine, which governs eligibility across five
+primary product categories. At the apex is the DSCR v4.0 Manual (Effective April 1,
+2026), the flagship program for non-owner-occupied investment properties 26. Its
+defining characteristic is the absence of income and tax documentation; qualification is
+based solely on the property's rental income, calculated as Gross Rental Income ÷
+Qualifying Monthly Payment (PITIA or ITIA) 26. The manual contains
+critical nuances, such as allowing 100% vacancy on 1-4 unit properties when using an
+appraiser's Form 1007, and permitting Short-Term Rentals (STRs) like Airbnb, but with a
+strict requirement for an AirDNA Rentalizer report on purchases (market score ≥ 60)
+and disallowing AirDNA reports entirely on refinances 26. Furthermore, the DSCR
+program accommodates distinct borrower experience tiers, including Experienced
+Investors, First-Time Investors, and even First-Time Homebuyers purchasing their first
+investment property, showcasing a broad targeting strategy 26.
+For owner-occupied properties, the landscape is dominated by a new hierarchy of Non-
+QM matrices. Bundt Cake NQM (April 14, 2026) has emerged as the authority for
+borrowers with recent credit issues, offering groundbreaking flexibility by allowing
+Bankruptcies and Foreclosures just 12 months after discharge, albeit with minor LTV
+reductions 26. This contrasts sharply with older, now-superseded matrices like Funnel
+Cake, which mandated a punitive 48-month seasoning period for such events 26. Bundt
+Cake also champions First-Time Homebuyers (FTHBs), allowing those without rental
+history up to an 804,000,000—the highest in the entire suite—and specialized overlays
+for niche profiles like 1-Year Self-Employed borrowers and ITIN holders 26. Other key
+players include Velvet Cake, which uniquely allows for agricultural properties and hobby
+farms, and Pound Cake Lite, designed specifically for borrowers needing Warrant of
+Employment Verification (WVOE) or with less than two years of self-employment history
+26.
+The investment side of the Non-QM world is led by Bundt Cake NOO, which provides a
+viable alternative to the pure DSCR model for investors who prefer to use bank
+statements or P&Ls for qualification. It explicitly prohibits WVOE for NOO loans and caps
+the loan amount at
+3,000,000 <sup><a class="ref-sup" href="#ref-26" target="_self">26</a></sup>. For very large balances, <strong>Cup Cake NOO</strong> extends this ceiling to
+3,000,000, though it shares the same WVOE restriction 26. Across all these products, a
+set of universal rules applies, governing everything from asset seasoning (no asset
+seasoning required for DSCR loans) and cryptocurrency usage (must be liquidated to
+USD for funds to close) to entity vesting (layered LLCs permitted up to two levels) and
+ineligible property types (e.g., Co-ops, Barndominiums, Houseboats) 26. However, this
+
+===== PAGE 3 =====
+
+rich repository of rules remains inert without the dynamic data layers required to
+operationalize them. The following sections will detail these missing components.
+Program Type Effective Max Loan Key Differentiator / Niche
+Date Limit
+DSCR v4.0 Apr 1, 2026 Not Specified No personal income/tax docs; Allows STRs (AirDNA); Foreign National
+friendly.
+Bundt Cake NQM Apr 14, 2026 $3,000,000 Credit event champion (BK/FC at 12 mos); FTHB-friendly.
+Bundt Cake NOO Apr 14, 2026 $3,000,000 Non-DSCR NOO alternative (BS/P&L); Prohibits WVOE.
+Cup Cake Non-QM Mar 9, 2026 $4,000,000 Highest loan limit; 1-Year Self-Employed; ITIN/Non-Perm Resident overlays.
+Velvet Cake Non- Apr 1, 2026 $3,000,000 Agricultural/Hobby Farms; Foreign Nationals ineligible.
+QM
+Pound Cake Lite Feb 13, 2026 $2,500,000 Best for WVOE & <2 years self-employment.
+Sources: Synthesized from 26, 66, 16, 58, 20, 21, 97, 83, 26, 26, 26, 26, 26, 26, 26, 26,
+26, 26.
+The Dynamic Void: Essential Pricing and Rate
+Adjustment Engines
+While the 2026 guideline documents provide a comprehensive static rulebook, they are
+fundamentally incomplete without the dynamic financial data required to perform actual
+loan calculations. The manuals frequently direct users to external sources like "Rate
+Sheets" or "matrix for pricing," creating a significant gap between policy and practice 66.
+To build a Wall Street-grade, automated origination platform, these static references
+must be replaced with programmable, real-time financial engines that can calculate
+binding rates, payments, and costs. Without this layer, any tool developed would be a
+simple rule-checker incapable of fulfilling the core function of a mortgage lender.
+The first and most critical component of this missing layer is a Daily Rate Tape and
+Yield Spread Premium (YSP) API. Every loan calculation, whether for a DSCR ratio or a
+debt-to-income (DTI) ratio, hinges on the interest rate 83 97. Competitor Pennymac, for
+instance, updates its LLPAs and rates frequently, indicating a highly dynamic wholesale
+market 66. An automated system for Cake Mortgage must have a direct, secure API
+connection to its own internal rate tape feed. This would allow the platform to instantly
+pull the wholesale buy rate for a given day, apply any applicable YSP, and generate a sell
+
+===== PAGE 4 =====
+
+rate for the broker. This real-time data is the absolute prerequisite for calculating the
+fully amortized payment used in the denominator of the DSCR formula (Gross Rental
+Income ÷ Qualifying Monthly Payment) and for qualifying borrowers against
+the DTI limits in owner-occupied programs 26.
+The second essential component is a Loan-Level Price Adjustment (LLPA) Matrix API.
+The provided matrices clearly define the maximum Loan-to-Value (LTV) ratios available
+for different borrower and property profiles, but they are silent on the cost associated
+with those LTVs 26. In reality, higher LTVs almost always come with a price in the form
+of adverse market fees (AMFs) or other LLPAs. For example, a borrower seeking a 75%
+LTV Cash-Out refinance might face a 2.5% AMF, whereas a 65% LTV could be priced at
+par. This LLPA matrix is the crucial bridge between the desired loan amount and the final
+All-In Cost to the borrower, which directly impacts their ability to qualify and the
+commission earned by the broker. Integrating this LLPA data via API would enable the
+platform to move beyond simple LTV eligibility checks and provide a holistic, "all-in" loan
+estimate that factors in all upfront costs. The importance of such adjustments is evident
+in the credit rating agency analysis of Non-QM securitizations, where LLPAs are a
+standard part of the risk assessment and structuring process 19 20.
+Finally, the platform requires a Prepayment Penalty (PPP) Yield Grid. DSCR loans often
+utilize PPPs as a mechanism to lower upfront points and fees, making the loan more
+attractive to investors 15. The decision of whether to offer a 1-year, 2-year, 3-year, or 5-
+year penalty involves a trade-off in basis points. The documents confirm that PPP options
+are available but provide no details on the yield grid that quantifies this trade-off 26. A
+PPP yield grid, accessible through an API, would empower the platform to optimize loan
+pricing dynamically based on the borrower's stated or estimated holding period. For
+example, if a borrower indicates a short-term hold, the system could recommend a
+shorter penalty, saving them money. If they plan to hold long-term, it could suggest a
+longer penalty for a better initial rate. This level of sophistication provides immense value
+to both the broker, who can better serve their client, and the end-user, who receives a
+truly optimized financing solution. Together, these three engines—rate tapes, LLPAs, and
+PPP grids—form the indispensable financial core that transforms the static rules of the
+Cake Mortgage handbook into a live, automated, and profitable lending operation.
+
+===== PAGE 5 =====
+
+The Infrastructural Chasm: Integrating Live Property
+Intelligence via APIs
+To transition from a traditional, post-appraisal underwriting model to a modern, pre-
+appraisal "Day 1" decisioning engine, the platform must ingest a wide array of live, third-
+party data via Application Programming Interfaces (APIs). The existing guideline
+documents contain numerous clues about the type of data that is essential for
+underwriting decisions; the challenge is to architect a system capable of automatically
+acquiring, validating, and applying this information in real time. Without this
+infrastructural layer, the platform remains dependent on manual data entry and external
+reports, introducing friction, error, and unacceptable delays into the origination process.
+A foundational requirement is the integration of Rent Automated Valuation Models
+(AVMs). The DSCR v4.0 manual explicitly allows rent to be qualified based on an
+appraiser's Form 1007/1025 or a current lease 26. While the guidelines mandate the use
+of an AirDNA Rentalizer report for STR purchases, they do not specify a source for long-
+term rental estimates 26. An automated platform must replicate this logic seamlessly.
+This necessitates integration with leading Rent AVM providers such as RentCast,
+CoreLogic, or Zillow 38. By simply passing a property's address, the tool could instantly
+retrieve the estimated market rent, which forms the numerator in the DSCR calculation
+(Gross Rental Income ÷ Qualifying Monthly Payment). This capability
+allows for an immediate, preliminary DSCR check long before the appraisal is ordered,
+providing brokers and borrowers with instant feedback on a property's viability.
+Equally critical are the Property Tax and Hazard Insurance APIs. The "T" and "I" in
+PITIA (Principal, Interest, Taxes, Insurance, Association) are fixed monthly obligations
+that constitute the denominator of the DSCR ratio and are vital for affordability analysis
+in owner-occupied loans 26. Manually obtaining and verifying this information is
+cumbersome and prone to error. The platform must be able to auto-calculate these
+components instantly. Integration with a comprehensive property data API like ATTOM
+Data Solutions is essential for pulling real-time tax assessor data, property class,
+assessed value, and potential HOA liens 12. Similarly, connecting to a hazard insurance
+estimation API, such as HazardHub, would provide an instantaneous quote for the
+annual property insurance premium, which can then be converted into a monthly figure.
+This combination allows the platform to compute a complete preliminary monthly
+payment, forming a robust DSCR and affordability assessment before a single dollar is
+spent on an appraisal.
+
+===== PAGE 6 =====
+
+Furthermore, automating the verification of Secretary of State (SOS) entities is
+paramount for streamlining the workflow around LLC and corporate borrowing, a
+common structure allowed by Cake's guidelines 26. Manually checking an LLC's
+existence, status, and filings is a significant bottleneck. An API integration with an SOS
+database provider like CorpAPI, BizFile, or Trulioo would allow the platform to
+instantly verify an entity's legal standing upon submission 11 37. The system could
+automatically pull the entity's Articles of Organization, confirm its registered agent, and
+flag any expired or inactive statuses, ensuring that the collateral is legally sound from the
+outset.
+Finally, the platform must embed OFAC and Fraud Screening APIs directly into the
+initial data capture phase. The DSCR manual mandates OFAC screening and mentions
+the need for FraudGuard reports 26. These compliance checks must be instantaneous to
+avoid bottlenecks later in the process. By integrating with fraud and identity verification
+APIs like FraudGuard, DataVerify, or Credifi, the platform can run these checks as soon
+as a borrower's information is entered 76. This proactive approach allows for the
+immediate flagging of red flags related to sanctions, identity theft, or other fraudulent
+activity, enabling the broker to address issues early rather than during back-end
+processing. These integrated APIs collectively transform the platform from a reactive
+calculator into a proactive decision engine, drastically reducing time-to-decision and
+improving the accuracy of initial assessments.
+The Investor-Centric Layer: Embedding Wealth and Tax
+Analytics
+High-net-worth individuals and professional investors who utilize DSCR and Non-QM
+products are not merely seeking a loan; they are managing a portfolio of income-
+producing assets. Their primary concern extends beyond loan approval to the ultimate
+economic return on their investment. The current underwriting guidelines excel at
+answering the question, "Can we make this loan?" but fall short on addressing the more
+valuable question, "Is this a good investment?" To build a truly dominant platform, it is
+imperative to integrate a "Wealth Engine" layer that provides sophisticated, after-tax
+analytics, elevating the service from a simple mortgage portal to an indispensable asset
+management tool.
+
+===== PAGE 7 =====
+
+A cornerstone of this layer is the integration of Cost Segregation and Bonus
+Depreciation Engines. Recent legislative changes, such as the OBBBA, have phased out
+100% bonus depreciation, making accelerated cost segregation studies more critical than
+ever for maximizing tax efficiency 25. A sophisticated platform must connect with
+specialized tax software APIs to perform a preliminary cost segregation analysis. By
+analyzing a property's purchase price and construction details, the engine could reclassify
+portions of the cost into shorter-lived personal property (e.g., carpeting, appliances,
+landscaping) that can be depreciated over 5, 7, or 15 years instead of the standard 27.5
+or 39 years for residential/commercial real estate. This generates significant upfront tax
+deductions that directly reduce passive income and improve cash flow, providing a
+powerful metric for an investor's due diligence. This feature alone would be a significant
+differentiator from competitors' tools.
+Complementing this is the need for Cap Rate and After-Tax Return Calculators. While
+the DSCR serves as a minimum hurdle rate, savvy investors want to know a property's
+actual capitalization (Cap) rate and its projected After-Tax Internal Rate of Return (IRR)
+6 . Using the live data already being pulled by the Property Data Engine (rent, taxes,
+insurance), the platform should be able to compute these metrics automatically 2 4 .
+The Cap Rate, calculated as Net Operating Income (NOI) divided by property value, is a
+standard benchmark for comparing commercial real estate investments 28. The After-Tax
+IRR calculation would go further, factoring in loan-level variables such as the interest
+rate, principal paydown, and the tax benefits from depreciation and cost segregation.
+Presenting these figures alongside the loan terms provides a holistic view of the
+investment's performance, aligning the platform's output with the language and metrics
+of the broader real estate investment community.
+Another vital component is a 1031 Exchange Timeline Tracker. The guidelines permit
+1031 exchanges, a powerful tax-deferral strategy for investors selling and buying
+investment properties 26. However, the IRS imposes strict deadlines: the borrower has
+45 days to identify potential replacement properties and 180 days to close on the
+purchase 42. Missing these deadlines results in the recognition of capital gains taxes. The
+platform should integrate with a Qualified Intermediary (QI) API, leveraging lists
+maintained by entities like the IRS to streamline the exchange process 43 67. This module
+would automatically track these critical dates from the moment the exchange is initiated,
+sending alerts to the broker and borrower to mitigate a significant risk and simplify a
+complex transactional step. This functionality transforms the platform from a one-time
+loan originator into a long-term transaction management partner, fostering deep
+customer loyalty.
+
+===== PAGE 8 =====
+
+By embedding these three capabilities—the Cost Segregation Engine, the Cap Rate/After-
+Tax IRR Calculator, and the 1031 Exchange Tracker—the platform addresses the core
+needs of its target investor demographic. It moves beyond mere compliance and
+eligibility to deliver actionable, investor-centric insights, creating a sticky, indispensable
+tool that generates value far beyond the initial loan closing and solidifies its position as a
+market leader.
+Navigational Minefields: Automating Hyper-Local
+Regulatory Compliance
+Real estate law is notoriously local, with regulations varying significantly from county to
+county and state to state. While the provided Cake Mortgage documents mention some
+state-specific rules, such as Texas 50(a)(6) and Florida overlays, a truly robust and
+automated platform cannot rely on manual lookup and interpretation 26. To ensure
+compliance at scale and prevent costly deal failures, the system must incorporate a
+dedicated Compliance Engine that automates the handling of hyper-local legal and
+regulatory minefields. This layer acts as a crucial safeguard, protecting both the broker
+and the correspondent channel from originating loans that violate jurisdiction-specific
+laws.
+A primary function of this engine is to automate the tracking of State-Specific High-Cost
+and Usury Thresholds. The guidelines state a blanket prohibition on Section 32 (high-
+cost mortgage) loans, but this is a broad directive 26. The platform must be able to take
+the calculated Annual Percentage Rate (APR) and total points/charges for a loan and
+cross-reference them against the specific thresholds for that particular state and county.
+These thresholds are subject to change and are often tied to median home prices,
+requiring real-time data feeds. Automatically flagging a loan that approaches or exceeds
+these limits prevents the submission of applications that could trigger costly litigation or
+regulatory penalties from the outset, saving significant administrative overhead and
+protecting the company's reputation.
+Another critical automation is the calculation of New York Consolidation, Extension,
+and Modification Agreement (CEMA) tax savings. For transactions in New York, the
+DSCR manual notes that CEMAs are permissible 26. A CEMA allows a borrower to
+consolidate multiple mortgages into a single new loan, which can result in substantial
+savings on mortgage recording taxes compared to a standard refinance. The tax savings
+
+===== PAGE 9 =====
+
+are complex and depend on the specifics of the old and new loans. The platform needs a
+specialized NY tax API to perform this calculation instantly. By showing the broker and
+borrower exactly how much they could save by structuring the refinance as a CEMA, the
+platform enables optimal transaction planning and provides a tangible benefit that
+enhances the value proposition.
+The engine must also proactively address State-Specific Corporate Ownership
+Restrictions. For example, California has laws codified in SB 1079 that restrict
+corporations and LLCs from purchasing certain types of foreclosed properties at public
+auction 73. The platform must be able to identify properties located in California and flag
+scenarios where an LLC or corporate vesting would violate this law. By preventing
+brokers from pursuing ineligible transactions, the system avoids wasted time and
+resources, streamlining the pipeline from the very beginning. Similarly, the platform
+should be aware of other regional restrictions, such as those affecting Condotels in
+Florida, which receive additional CLTV reductions under Cup Cake 26.
+Finally, the Compliance Engine must automate checks for Judicial Foreclosure State
+Reserves. Investors in judicial foreclosure states like New York, New Jersey, and
+California face longer and more uncertain foreclosure timelines compared to non-judicial
+states. As a result, secondary market investors often impose stricter reserve requirements
+on loans in these jurisdictions, sometimes demanding 12 months of reserves instead of
+the 6 typically requested. The platform should integrate a database of state foreclosure
+processes and automatically apply these enhanced reserve overlays when a loan in a
+judicial state is originated. This proactive measure ensures that the originated loan
+package is not only compliant with primary market rules but is also aligned with the
+expectations of the secondary market buyers, increasing the likelihood of a successful
+sale. Automating this entire layer of compliance dramatically reduces the risk of human
+error and ensures that every loan submitted is legally sound and market-ready.
+From Policy to Profitability: Modeling Secondary
+Market Realities and Risk
+Cake Mortgage operates primarily as a wholesale correspondent and broker channel,
+meaning the loans it originates are sold to a diverse ecosystem of secondary market
+investors, including conduits like Angel Oak and INVEX, as well as large institutional
+buyers like JPMorgan Chase 41 98. Therefore, the ultimate success of its underwriting
+
+===== PAGE 10 =====
+
+policies is measured not just by eligibility within its own guidelines, but by the loan's
+sellability to these sophisticated capital market participants. To build a profitable and
+sustainable wholesale business, the platform must incorporate a final layer that models
+these secondary market realities and risks. This involves bridging the gap between Cake's
+internal philosophy and the hard, practical demands of the capital markets.
+The most critical component of this layer is a Secondary Market Buyer Overlay Matrix.
+It is a common pitfall to originate a loan that perfectly meets all of Cake's criteria only to
+have it rejected by the ultimate investor because it violates a specific overlay. For
+example, Cake's guidelines may allow 100% investor concentration in a non-warrantable
+condo, but the buyer of that pool of loans might have a strict 30% cap 26. The platform
+must maintain a dynamic, up-to-date matrix that contains the specific overlays of its top
+loan purchasers. This includes restrictions on property types, geographic concentrations,
+investor ratios, and structural characteristics. By applying these investor overlays as a
+final validation step before submission, the platform can prevent originating unsellable
+loans, thereby optimizing capital efficiency and minimizing the risk of holding inventory.
+Another crucial aspect is modeling Post-Closing Servicing Risks, particularly regarding
+due-on-sale clauses. The guidelines permit vesting properties into entities like LLCs,
+which is a popular strategy for investors 26. However, the platform needs a "Servicing
+Guidelines" module that warns brokers about actions that could trigger a prohibited
+transfer. For example, if a borrower wants to add a new partner to an LLC two years after
+closing the loan, this transfer could violate the due-on-sale clause in the mortgage note.
+The system should flag this potential risk, advising the broker and borrower to consult
+with counsel or potentially trigger the clause by paying off the loan. Providing this
+forward-looking guidance is a value-added service that mitigates long-term risk for both
+the borrower and the investor who ultimately owns the loan.
+Finally, the platform can leverage advanced analytics to model Appraisal Collateral
+Risk. The DSCR manual states that if an appraisal receives a Collateral Underwriter (CU)
+or Loan Collateral Advisor (LCA) risk score greater than 2.5, it triggers a mandatory
+cascade of review steps, which can lead to significant delays and funding risk 21 26.
+Advanced platforms can use machine learning models trained on historical appraisal data
+to predict the likely CU/LCA score based on the comparable sales selected by the
+appraiser. This predictive capability allows the underwriter to intervene before the
+appraisal is submitted. If the initial comps are flagged as risky, the system can prompt the
+underwriter to instruct the appraiser to select different, safer comparables, thereby
+avoiding a high-risk score and the subsequent cascade. This proactive risk mitigation
+saves weeks of processing time and improves the predictability of the funding timeline.
+By integrating these three components—an investor overlay matrix, a post-closing risk
+
+===== PAGE 11 =====
+
+warning module, and a predictive appraisal risk engine—the platform ensures that its
+loans are not only eligible under Cake's rules but are also primed for seamless sale and
+smooth servicing in the secondary market. This alignment with capital market realities is
+the final, indispensable piece of the puzzle for building a truly dominant, automated
+lending platform.
+Reference
+1. OGC Opinion No. 08-04-17: Mortgage tax guarantee - DFS.ny.gov https://
+www.dfs.ny.gov/insurance/ogco2008/rg080417.htm
+2. Cap Rates, Explained | JPMorganChase https://www.jpmorgan.com/insights/real-
+estate/commercial-term-lending/cap-rates-explained
+3. What is a Capitalization Rate in Property Investment - Revista Realty https://
+www.revistarealestate.com/blog/what-is-a-capitalization-rate-in-property-investment/
+4. Commercial Real Estate Cap Rates Show Measured ... - CRED iQ https://cred-iq.com/
+blog/2026/01/30/commercial-real-estate-cap-rates-show-measured-expansion-
+through-2025/
+5. The Role of Tenant Characteristics in Retail Cap Rate Variation https://
+link.springer.com/article/10.1007/s11146-023-09958-9
+6. [PDF] Commercial Property Market Update – December 2025 https://
+assets.kpmg.com/content/dam/kpmgsites/au/pdf/2025/commercial-property-market-
+update-december-2025.pdf
+7. [PDF] 2025 Instructions for Form 8824 - IRS https://www.irs.gov/pub/irs-pdf/
+i8824.pdf
+8. About Form 8824, Like-Kind Exchanges | Internal Revenue Service https://
+www.irs.gov/forms-pubs/about-form-8824
+9. [PDF] Like-Kind Exchanges - IRS https://www.irs.gov/pub/irs-pdf/f8824.pdf
+10. Revolutionizing financial inclusion through strategic API integration ... https://
+www.researchgate.net/publication/
+384663527_Revolutionizing_financial_inclusion_through_strategic_API_integration_a
+nd_innovation
+11. Top 5 Business Entity Search Tools for 2026 - Compliancely https://
+compliancely.com/blog/business-entity-search-tools/
+
+===== PAGE 12 =====
+
+12. ATTOM - Property Data API for Mortgage Lenders - LinkedIn https://
+www.linkedin.com/posts/attom_property-data-api-for-mortgage-lenders-better-
+activity-7454580974446620672-Vdqa
+13. Comparing The U.K., Dutch, Australian, And U.S. R - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/comparing-the-uk-dutch-australian-
+and-us-rmbs-and-mortgage-markets-s101684681
+14. [PDF] Onslow Bay Financial LLC - Annaly Capital Management https://
+www.annaly.com/~/media/Files/A/Annaly-V3/documents/residential-credit-
+presentation-feb-2026.pdf
+15. Non-QM Loans Triple in 2025, What's Next in 2026 - LinkedIn https://
+www.linkedin.com/posts/michael-vough-60467826_if-youve-spent-any-time-talking-
+to-me-over-activity-7407798065874497536-Mr5A
+16. Fitch Expects to Rate EFMT 2026-NQM4 https://www.fitchratings.com/research/
+structured-finance/fitch-expects-to-rate-efmt-2026-nqm4-23-03-2026
+17. Lending APIs 101: Why Your Business Needs to Be API-First - Wallarm https://
+www.wallarm.com/what/why-your-lending-business-needs-apis-a-complete-guide-to-
+lending-api-integration
+18. [PDF] LSEG Yield Book's Non-Qualified Mortgage Model https://www.lseg.com/
+content/dam/data-analytics/en_us/documents/fact-sheets/lseg-yieldbook-non-
+qualified-mortgage-model-factsheet.pdf
+19. Fitch Assigns Expected Ratings to EFMT 2025-NQM2 https://www.fitchratings.com/
+research/structured-finance/fitch-assigns-expected-ratings-to-efmt-2025-
+nqm2-10-06-2025
+20. Presale: Angel Oak Mortgage Trust 2025-10 | S&P Global Ratings https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3452672
+21. [PDF] Appraisal Insights - Enact https://content.enactmi.com/documents/training/
+course/AppraisalInsights.Presentation.0519.pdf
+22. Fannie Mae Collateral Underwriter Scoring Explained - LinkedIn https://
+www.linkedin.com/pulse/fannie-mae-collateral-underwriter-scoring-explained-mark-
+walser
+23. Environmental and Human Health Impacts of Agricultural Pesticides ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12652544/
+24. [PDF] Siemens Report 2025 https://www.siemens.com/siemensreport
+25. [PDF] ROOTED - UNFCCC https://unfccc.int/sites/default/files/resource/20260514-
+WBG-Agriculture%20Rooted%20in%20Biodiversity.pdf
+26. Ex. 99.3. - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2036019/000110465926031913/tm269324d1_ex99-3.htm
+
+===== PAGE 13 =====
+
+27. Fitch Ratings Announces 2025 CMBS Multiborrower Market Cap ... https://
+www.fitchratings.com/research/structured-finance/fitch-ratings-announces-2025-
+cmbs-multiborrower-market-cap-rate-assumptions-03-09-2024
+28. ARCHIVE | Criteria | Structured Finance | CMBS: C - S&P Global https://
+www.spglobal.com/ratings/jp/regulatory/article/-/view/sourceId/13161878
+29. [PDF] Global Financial Stability Report, April 2025; Chapter 1 https://www.imf.org/-/
+media/files/publications/gfsr/2025/april/english/ch1.pdf
+30. Mortgagetech Magnates Ellie Mae and Blend Team Up - Finovate https://
+finovate.com/64425-2/
+31. Introducing the new US Non-Qualified Mortgage Model - LSEG https://
+www.lseg.com/en/data-analytics/lseg-analytics-solutions/updates/introducing-the-
+new-us-non-qualified-mortgage-model
+32. LSEG Yield Book Non_QM Factsheet.pdf | LSEG Data & Analytics https://
+www.linkedin.com/posts/lseg-data_lseg-yield-book-nonqm-factsheetpdf-
+activity-7259610700740767744-wYos
+33. Yield Book Fixed Income Analytics System - LSEG https://www.lseg.com/en/data-
+analytics/products/yield-book
+34. Yield Book for Mortgage Servicing Rights | Data Analytics - LSEG https://
+www.lseg.com/en/data-analytics/lseg-analytics-solutions/updates/yield-book-for-
+mortgage-servicing-rights
+35. Yield Book Advanced Mortgage Analytics - LSEG https://www.lseg.com/en/data-
+analytics/products/yield-book/advanced-mortgage-analytics
+36. [PDF] LSEG Yield Book CLO Prepayment Model https://www.lseg.com/content/dam/
+data-analytics/en_us/documents/fact-sheets/lseg-analytics-clo-prepay-model-fact-
+sheet.pdf
+37. SOS Business Entity Search - Compliancely https://compliancely.com/sos-business-
+entity-search
+38. Airbnb Data API Comparison: Mashvisor vs AirDNA, ATTOM, RentCast https://
+www.linkedin.com/posts/mashvisor_best-airbnb-data-api-in-2026-mashvisor-vs-
+activity-7443936990590345216-nTXn
+39. [PDF] 2026 Year-Ahead Outlook | LSEG https://www.lseg.com/content/dam/lseg/
+en_us/documents/reports/2026-year-ahead-outlook.pdf
+40. Multifamily Lending Rises in Q1 2026 | Fred Gortner posted on the ... https://
+www.linkedin.com/posts/fredgortner_small-multifamily-cap-rates-fall-as-lending-
+activity-7465561976363073538-FDVq
+41. GS Mortgage Securities Corporation II - SEC.gov https://www.sec.gov/Archives/
+edgar/data/2012265/000153949724000651/n4053-x6424h.htm
+
+===== PAGE 14 =====
+
+42. 1031 Exchange Deadlines: Master the 45-Day and 180-Day Rules https://
+1031institute.com/blog/1031-exchange-deadlines-45-day-180-day-rules
+43. Best Qualified Intermediary 2026: How to Choose Your QI https://leahbadach.com/
+best-qualified-intermediary/
+44. Entity vs EOR: Choosing the Right Option | Jessica Marcinko posted ... https://
+www.linkedin.com/posts/jessica-marcinko-72287a15_a-question-i-hear-a-lot-is-
+whether-it-makes-activity-7470884077764620288-HFU4
+45. What Is Form 1099-S? Who Must File It? - Tax1099 https://www.tax1099.com/blog/
+guide-about-form-1099-s/
+46. Banking APIs for B2B Platforms: The Complete Guide (2025) - Monite https://
+www.monite.com/blog/what-is-api-banking-guide-to-api-banking-for-anyone
+47. The Evolution and Impact of Embedded Finance: A Comprehensive ... https://
+www.investsuite.com/insights/blogs/the-evolution-and-impact-of-embedded-finance-
+a-comprehensive-analysis
+48. Embedded Finance Risks in India: RBI's Perspective - LinkedIn https://
+www.linkedin.com/posts/abhijeetdavane_embeddedfinance-digitallending-rbi-
+activity-7382605193529638912-E-_b
+49. Loan Servicing Software Market Size($8 billion) 2030 https://
+www.strategicmarketresearch.com/market-report/loan-servicing-software-market
+50. [PDF] Digitalisation of finance - Bank for International Settlements https://
+www.bis.org/bcbs/publ/d575.pdf
+51. Simulation methods of stochastic volatility interest rate term structure https://
+pure.bit.edu.cn/zh/publications/simulation-methods-of-stochastic-volatility-interest-
+rate-term-st/
+52. Bank Stress Testing: A Stochastic Simulation Framework to Assess ... https://
+www.mdpi.com/2227-9091/6/3/82
+53. (PDF) Stochastic volatility modelling in portfolio selection via ... https://
+www.researchgate.net/publication/
+352443582_Stochastic_volatility_modelling_in_portfolio_selection_via_sequential_Mo
+nte_Carlo_simulation
+54. Stochastic Modeling in Finance - LinkedIn https://www.linkedin.com/top-content/
+economics/economic-modeling-for-forecasting/stochastic-modeling-in-finance/
+55. On simulation of rough Volterra stochastic volatility models - arXiv https://arxiv.org/
+abs/2108.01999
+56. CMS Finalizes Proposal to Overhaul Medicare Advantage Broker ... https://
+www.sidley.com/en/insights/newsupdates/2024/04/cms-finalizes-proposal-to-
+overhaul-medicare-advantage-broker-payments
+
+===== PAGE 15 =====
+
+57. [PDF] Summary of Costs for Mortgage Broker Applicants https://dfi.wa.gov/sites/
+default/files/mortgage-broker-cost-sheet.pdf
+58. Information about Fees and Other Compensation - Morgan Stanley https://
+www.morganstanley.com/disclosures/fee-and-compensation
+59. Yield Book Classic | Data Analytics - LSEG https://www.lseg.com/en/data-analytics/
+products/yield-book/classic
+60. [PDF] JHF MBS prepayment model | LSEG Yield Book https://www.lseg.com/
+content/dam/data-analytics/en_us/documents/fact-sheets/lseg-jhf-mbs-prepayment-
+model-factsheet.pdf
+61. Annaly Capital Management, Inc. and PennyMac Financial Services ... https://
+www.annaly.com/news-insights/press-releases/2025/10-01-2025
+62. PennyMac Mortgage Investment Trust Reports Fourth Quarter and ... https://
+www.businesswire.com/news/home/20260129211390/en/PennyMac-Mortgage-
+Investment-Trust-Reports-Fourth-Quarter-and-Full-Year-2025-Results
+63. quantitative risk assessment of mega real estate projects https://
+www.researchgate.net/publication/
+395635398_QUANTITATIVE_RISK_ASSESSMENT_OF_MEGA_REAL_ESTATE_PROJEC
+TS_A_MONTE_CARLO_SIMULATION_APPROACH
+64. [PDF] 2025 EU-wide stress test - Methodological Note https://www.eba.europa.eu/
+sites/default/files/2024-07/3bd993e0-8678-40ac-9fba-9b8a6bf03f44/2025%20EU-
+wide%20stress%20test%20-%20Methodological%20Note.pdf
+65. [PDF] 2026 Fannie Mae Stress Testing-Order https://business.cch.com/BFLD/Fannie-
+Mae-Stress-Testing-Order-03052026.pdf
+66. Non-QM, DSCR, Pricing Engine Products; Conventional Conforming ... https://
+www.mortgagenewsdaily.com/opinion/pipelinepress-12262025
+67. Qualified Intermediary (QI) list | Internal Revenue Service https://www.irs.gov/
+businesses/corporations/qualified-intermediary-qi-list
+68. [PDF] Global Cybersecurity Outlook 2026 – World Economic Forum https://
+reports.weforum.org/docs/WEF_Global_Cybersecurity_Outlook_2026.pdf
+69. Armenia - UNECE https://unece.org/taxonomy/term/543
+70. Tajikistan-Tax-Reform-Operation-Project.txt - Documents & Reports https://
+documents1.worldbank.org/curated/en/232111622512898405/txt/Tajikistan-Tax-
+Reform-Operation-Project.txt
+71. file: ea0278371-20f_etoro.htm - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1493318/000121390026022034/ea0278371-20f_etoro.htm
+72. [PDF] Medium Term Plan 2026-29 - FAO Knowledge Repository https://
+openknowledge.fao.org/server/api/core/bitstreams/208c1e64-63fc-4b8e-9d06-
+c3ad68c4a0c0/content
+
+===== PAGE 16 =====
+
+73. “Economic” and “functional” obsolescence - Valuation - ResearchGate https://
+www.researchgate.net/publication/
+242341869_Economic_and_functional_obsolescence_Their_characteristics_and_impac
+ts_on_valuation_practice
+74. TestConnection Fashion Brand Overview | PDF | We Chat | Computing https://
+www.scribd.com/document/858486220/Top-Application-Programming-Interface-
+Directories
+75. EX-10.31 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1831631/000119312521012994/d814714dex1031.htm
+76. Collabria Financial Services Taps Trulioo for Digital Identity ... https://finovate.com/
+collabria-financial-services-taps-trulioo-for-digital-identity-verification/
+77. Dear PennyMac Financial Services, Inc. Class A and ... - SEC.gov https://
+www.sec.gov/Archives/edgar/data/1745916/000104746918006279/
+a2236722z424b3.htm
+78. PennyMac 'Shocked' Investors With Post-Libor Fix, Suit Says - Law360 https://
+www.law360.com/articles/1848377/pennymac-shocked-investors-with-post-libor-fix-
+suit-says
+79. Quantum Monte Carlo simulations for financial risk analytics - arXiv https://arxiv.org/
+abs/2303.09682
+80. Monte Carlo Methods in Financial Engineering | Semantic Scholar https://
+www.semanticscholar.org/paper/Monte-Carlo-Methods-in-Financial-Engineering-
+Glasserman/92fb3a4f5153b050b880d1278e9f02ad44686c13
+81. A Monte Carlo-Based Framework for Two-Stage Stochastic ... - MDPI https://
+www.mdpi.com/1099-4300/27/11/1118
+82. How I used AI to run a Monte Carlo simulation for CRE - LinkedIn https://
+www.linkedin.com/posts/joshstoddard1_i-just-ran-a-monte-carlo-simulation-on-a-
+activity-7363917765415428098-pPVM
+83. DSCR, Non-QM, FHA Products; AI, Broker, Borrower-Focused ... https://
+www.mortgagenewsdaily.com/opinion/pipelinepress-12012025
+84. ICE Mortgage Technology to sunset Encompass integrations https://
+www.linkedin.com/posts/james-kleimann-b20ab212_big-mortgage-tech-news-ice-
+mortgage-technology-activity-7239748440547553280-OWd3
+85. [PDF] Annual-Report-2024-25_0.pdf - HCLTech https://www.hcltech.com/sites/
+default/files/document/open/annual-report/2025-08/Annual-Report-2024-25_0.pdf
+86. DWTS October 2026: What UK Operators Must Do Now | AnyWaste https://
+anywaste.com/dwts
+
+===== PAGE 17 =====
+
+87. Hashing in DBMS: a Helpful Overview | Inery - LinkedIn https://www.linkedin.com/
+posts/inery_hashing-in-dbms-a-helpful-overview-
+activity-7284963269084086279-9d0P
+88. Systemic Financial Risk Arising from Residential Flood Losses - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC10162782/
+89. EX-10.191 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1464423/000119312516484507/d215086dex10191.htm
+90. Behind the Paper: Climate threats, mortgage pricing, and AI for ... https://
+communities.springernature.com/posts/behind-the-paper-climate-threats-mortgage-
+pricing-and-ai-for-resilient-asset-backed-finance
+91. [PDF] Physico-chemical stabilization processes for inorganic contaminants ... https://
+theses.hal.science/tel-04560719v1/file/these_bouzar_bader-vf.pdf
+92. https://www.researchgate.net/profile/Martin-Lehman... https://
+www.researchgate.net/profile/Martin-Lehmann-11/publication/
+358270807_RIS_file_output_of_search_201221/links/61f985681e98d168d7e4ac27/
+RIS-file-output-of-search-201221
+93. Fitch Ratings Announces Updated 2024 CMBS Multiborrower ... https://
+www.fitchratings.com/research/structured-finance/fitch-ratings-announces-
+updated-2024-cmbs-multiborrower-market-cap-rate-assumptions-06-02-2024
+94. Guidance | Criteria | Structured Financ | S&P Global Ratings https://
+www.spglobal.com/ratings/es/regulatory/article/-/view/sourceId/10867536
+95. [PDF] Introduction Fintech Industry https://english.phbs.pku.edu.cn/
+Syllabus_FinTech_2025M1_JW.pdf
+96. [PDF] Global Patterns of Fintech Activity and Enabling Factors https://
+documents1.worldbank.org/curated/en/099735504212234006/pdf/
+P1730060695b370090908c0bf80ed27eba6.pdf
+97. [PDF] Enhancing Credit Risk Prediction: A Multi-stage Ensemble Pipeline https://
+arxiv.org/pdf/2509.22381
+98. Presale: Freddie Mac STACR REMIC Trust 2025-DNA4 - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3460438
+99. Inside ICE's move from Encompass SDK (Software Development Kit) https://
+podcasts.apple.com/us/podcast/inside-ices-move-from-encompass-sdk-software-
+development/id1518666256?i=1000672351981&l=zh-Hans-CN
+100. Criteria | Structured Finance | CMBS: C | S&P Global Ratings https://
+www.spglobal.com/ratings/pt/regulatory/article/-/view/sourceId/7491472
+101. Criteria | Structured Finance | CMBS - S&P Global https://www.spglobal.com/
+ratings/en/regulatory/article/-/view/type/HTML/id/3448479
+
+===== PAGE 18 =====
+
+102. [PDF] New York City's Fiscal 2026 Subseries F-1, F-2, Series G ... - NYC.gov https://
+www.nyc.gov/assets/investorrelations/downloads/pdf/sp-report-go-03-20-2026.pdf
+103. Structured Finance | CMBS: Credit-Tenant Loans in Pool Transactions https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/777625
+104. [PDF] READY CAPITAL CORPORATION - SEC.gov https://www.sec.gov/Archives/
+edgar/data/1527590/000162828025020751/ars2024rc-10xk.pdf
+105. S-3ASR - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1464423/000119312525133834/d946324ds3asr.htm
+106. U.S. Mid-Term Rentals Surpass Short-Term Rentals in Growth https://
+www.linkedin.com/posts/airdna_in-2026-mid-term-rentals-are-a-more-important-
+activity-7417254936121356288-D072
+107. 无主题 https://www.sec.gov/Archives/edgar/data/1745916/000110465924063570/
+tm2414918d2_ex99-1.htm

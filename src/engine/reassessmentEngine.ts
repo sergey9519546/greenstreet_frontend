@@ -161,14 +161,14 @@ export function computeReassessedTax(
   switch (rule.rule) {
     case 'CA_PROP_13':
       note = `CA Prop 13: Purchase price ($${purchasePrice.toLocaleString()}) becomes new assessed value. ` +
-             `Seller paid $${sellerAnnualTax.toLocaleString()}/yr on prior locked basis; ` +
+             `Seller paid $${(sellerAnnualTax ?? 0).toLocaleString()}/yr on prior locked basis; ` +
              `your first-year bill = $${reassessedAnnualTax.toLocaleString()}/yr (${rule.effectiveMillRatePct}% of purchase price). ` +
              `Annual increases capped at 2%. Supplemental bill (~$${supplementalBillEstimate.toLocaleString()}) arrives 3-9 months post-closing.`;
       break;
     case 'TX_MARKET_RATE':
       note = `TX: Property tax reassesses to market value (= purchase price) at sale. ` +
              `Effective rate ~${rule.effectiveMillRatePct}% annually. ` +
-             `Seller paid $${sellerAnnualTax.toLocaleString()}/yr; new bill = $${reassessedAnnualTax.toLocaleString()}/yr. ` +
+             `Seller paid $${(sellerAnnualTax ?? 0).toLocaleString()}/yr; new bill = $${reassessedAnnualTax.toLocaleString()}/yr. ` +
              `Non-homestead annual cap is 10% — annual increases can be material.`;
       break;
     case 'FL_PURCHASE_RESET':

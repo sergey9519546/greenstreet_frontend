@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Greenstreet Finance | AI-Native DSCR &amp; Non-QM Lending Intelligence</title>
+<meta name="description" content="Greenstreet Finance is the new system of action for DSCR and non-QM wholesale lending."/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"/>
+<link rel="stylesheet" href="/css/main.css"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+<body>
+<div class="page_wrap">
+
+  <!-- ========== ANNOUNCEMENT BAR ========== -->
+  <div class="announcement">
+    <div class="announcement_content">
+      <span class="announcement_dot"></span>
+      <span>Now live: Dual-Track DSCR with AirDNA STR integration · <a href="#how">See what's new →</a></span>
+    </div>
+  </div>
+
+  <!-- ========== NAV ========== -->
+  <nav class="nav_wrap is-desktop">
+    <div class="nav_contain u-container">
+      <div class="nav_layout">
+
+        <a href="/" class="nav_logo w-inline-block">
+          <div class="nav_logo_svg">
+            <svg width="220" height="28" viewBox="0 0 220 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <text x="0" y="22" font-family="Outfit, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.6">Greenstreet<tspan font-weight="400" dx="5">Finance</tspan></text>
+            </svg>
+          </div>
+        </a>
+
+        <div class="nav_links_wrap">
+
+          <div class="burger-wrap" aria-label="Open menu" role="button" tabindex="0">
+            <span class="burger-line top"></span>
+            <span class="burger-line middle"></span>
+            <span class="burger-line bottom"></span>
+          </div>
+
+          <a href="#solutions" class="nav-link"><div>Solutions</div></a>
+          <a href="#partnerships" class="nav-link"><div>Partnerships</div></a>
+
+          <div class="nav_dropdown_component">
+            <div class="nav-link nav_dropdown_toggle">
+              <div class="nav_links_text">Resources</div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 47 24" fill="none" aria-hidden="true" class="nav_links_svg"><path d="M1 1L23.5 23L46 1" stroke="currentColor" stroke-width="2"></path></svg>
+              <div class="nav-link-background"></div>
+            </div>
+            <div class="nav_dropdown_mega_content">
+              <div class="nav_dropdown_mega_layout">
+                <a href="#blog" class="nav_dropdown_link"><div class="nav_dropdown_text">Greenstreet Guidance</div><div class="nav_dropdown_link_icon_wrap"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div></a>
+                <a href="#case-studies" class="nav_dropdown_link"><div class="nav_dropdown_text">Customer Stories</div><div class="nav_dropdown_link_icon_wrap"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div></a>
+                <a href="#support" class="nav_dropdown_link"><div class="nav_dropdown_text">Customer Support</div><div class="nav_dropdown_link_icon_wrap"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div></a>
+                <a href="#about" class="nav_dropdown_link"><div class="nav_dropdown_text">About</div><div class="nav_dropdown_link_icon_wrap"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div></a>
+                <a href="#careers" class="nav_dropdown_link"><div class="nav_dropdown_text">Careers</div><div class="nav_dropdown_link_icon_wrap"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div></a>
+                <a href="#security" class="nav_dropdown_link"><div class="nav_dropdown_text">Security &amp; Compliance</div><div class="nav_dropdown_link_icon_wrap"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div></a>
+              </div>
+            </div>
+          </div>
+
+          <a href="https://my.greenstreetfinance.example.com/" target="_blank" rel="noopener" class="nav-link is-underline"><div>Login</div></a>
+
+          <div class="nav-btn">
+            <a href="#book-demo" class="btn_main_wrap btn_secondary">
+              <span class="g_clickable_link"><span class="g_clickable_text u-sr-only">Book a demo</span></span>
+              <span aria-hidden="true" class="btn_main_text">Book a demo</span>
+              <span class="btn-arrow-wrap"><svg width="16" height="16" viewBox="0 0 24 25" fill="none"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"/></svg></span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page_main">
+
+    <!-- ========== HERO ========== -->
+    <section class="hero_wrap">
+      <div class="hero_contain u-container">
+        <div class="hero_layout is-height-large u-theme-dark">
+
+          <div class="hero_content is-home">
+            <h1 class="u-text-style-h1 u-mb-6">Make every DSCR deal a winning one</h1>
+            <div class="hero-headline u-text-style-h3">
+              The next-generation AI-native <a href="#soa" class="txt-link-pistachio"> system of action </a>for DSCR and non-QM wholesale lending. Built to keep brokers <span class="hero-rotator" data-rotator='["informed","consistent","efficient","diligent"]'></span>.
+            </div>
+          </div>
+
+          <div class="g_visual_wrap hero_visual">
+            <div class="g_visual_background u-cover-absolute"></div>
+            <div class="hero_video_grid">
+              <div class="hero_metric">
+                <div class="hero_metric_label">Track 1 · Lender Qualification DSCR</div>
+                <div class="hero_metric_value">1.42</div>
+                <div class="hero_metric_sub">PITIA basis · Form 1007 market rent · no vacancy</div>
+              </div>
+              <div class="hero_metric">
+                <div class="hero_metric_label">Track 2 · Investor Survival DSCR</div>
+                <div class="hero_metric_value">1.18</div>
+                <div class="hero_metric_sub">ITIA basis · 20% vacancy · 8% mgmt fee</div>
+              </div>
+              <div class="hero_metric hero_metric_wide">
+                <div class="hero_metric_label">Matched Lenders</div>
+                <div class="hero_metric_value">4</div>
+                <div class="hero_metric_sub">Cake Mortgage · Kiavi · Lima One · Newfi</div>
+              </div>
+            </div>
+            <div class="g_visual_overlay u-cover-absolute"></div>
+            <div class="g_visual_overlay-top u-cover-absolute"></div>
+            <div class="g_visual_overlay-bottom u-cover-absolute"></div>
+          </div>
+
+          <div class="hero_content_bottom u-hflex-between-bottom u-gap-6">
+            <div class="hero_content_bottom_paragraph">
+              <div class="u-text-style-h4">Run your entire non-QM lending operation from one unified system — powered by </div>
+              <a href="#soa" class="home-go-link">
+                <span class="home-go-svg">
+                  <svg width="200" height="28" viewBox="0 0 257 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <text x="0" y="22" font-family="Outfit, sans-serif" font-weight="700" font-size="22" fill="currentColor" letter-spacing="-0.6">Sovereign OS</text>
+                  </svg>
+                </span>
+              </a>
+            </div>
+
+            <form id="email-form" name="email-form" data-name="Email Form" method="post" class="hero_form_layout" onsubmit="event.preventDefault(); window.GSF.submitDemo(this);">
+              <input class="hero_form_field_input" name="email" placeholder="Enter your work email address" type="email" required/>
+              <div class="form-btn-text">
+                <button type="submit" class="btn_main_wrap btn_primary">
+                  <span aria-hidden="true" class="btn_main_text">Get started</span>
+                  <span class="btn-arrow-wrap"><svg width="16" height="16" viewBox="0 0 24 25" fill="none"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"/></svg></span>
+                </button>
+              </div>
+            </form>
+            <div class="form_main_success_wrap is-hero" id="hero-success" hidden>
+              <div class="form_main_success_text u-text-style-h5">Thank you!</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== TRUSTED BY LOGOS ========== -->
+    <section class="testimonial_wrap">
+      <div class="testimonial_contain u-container">
+        <div class="testimonial_layout">
+          <div class="home-logos-top">
+            <h2 class="u-text-style-h2">Trusted by 500+ non-QM investors &amp; brokers</h2>
+          </div>
+          <div class="testimonial_logo_list_wrap" id="trusted-logos">
+            <!-- injected -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== STATS + TESTIMONIALS ========== -->
+    <section class="testimonial_wrap">
+      <div class="testimonial_contain u-container">
+        <div class="line-divider"></div>
+        <div class="swipers-grid">
+          <div class="home-swiper-wrap">
+            <div class="home-stats-card u-theme-brand-secondary">
+              <div class="u-text-style-h1">7 seconds</div>
+              <div class="home-stats-txt u-text-style-h2"><p>Average DSCR pre-screen turnaround<sup> 1</sup></p></div>
+            </div>
+          </div>
+          <div class="home-swiper-wrap">
+            <div class="home-stats-card u-theme-brand-secondary mint">
+              <div class="u-text-style-h1">99.14%</div>
+              <div class="home-stats-txt u-text-style-h2"><p>Reduction in lender-eligibility false positives<sup>2</sup></p></div>
+            </div>
+          </div>
+          <div class="home-swiper-wrap">
+            <div class="home-stats-card u-theme-brand-secondary emerald">
+              <div class="u-text-style-h1">88%</div>
+              <div class="home-stats-txt u-text-style-h2"><p>Investors consolidating to a single DSCR engine<sup>3</sup></p></div>
+            </div>
+          </div>
+          <div class="home-swiper-wrap">
+            <div class="home-stats-card u-theme-brand-secondary light-green">
+              <div class="u-text-style-h1">99%+</div>
+              <div class="home-stats-txt u-text-style-h2"><p>Customer retention across active DSCR books<sup>4</sup></p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonials_quotes" id="testimonials-list"></div>
+      </div>
+    </section>
+
+    <!-- ========== HOW IT WORKS (5 tabs, horizontal scroll) ========== -->
+    <section class="step_height" id="how">
+      <div class="step_wrap">
+        <div class="step_contain u-container">
+          <div class="step_layout v-flex-gap u-theme-brand">
+
+            <div class="step_content_top">
+              <div class="u-text-style-h5 u-mb-4">How it works</div>
+            </div>
+
+            <div class="step_tab v-flex-gap">
+              <div class="step_tab_link_list u-grid-autofit" role="tablist">
+                <div class="step_tab_link is-active" data-step="0" role="tab">
+                  <div class="step_tab_line_wrap u-position-relative"><div class="step_tab_line"></div><div class="step_tab_line_highlighted"></div></div>
+                  <div class="step_tab_link_content">
+                    <div class="step_tab_link_icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div>
+                    <div class="u-text-style-large">Underwriting</div>
+                  </div>
+                </div>
+                <div class="step_tab_link" data-step="1" role="tab">
+                  <div class="step_tab_line_wrap u-position-relative"><div class="step_tab_line"></div><div class="step_tab_line_highlighted"></div></div>
+                  <div class="step_tab_link_content">
+                    <div class="step_tab_link_icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div>
+                    <div class="u-text-style-large">Lender Matching</div>
+                  </div>
+                </div>
+                <div class="step_tab_link" data-step="2" role="tab">
+                  <div class="step_tab_line_wrap u-position-relative"><div class="step_tab_line"></div><div class="step_tab_line_highlighted"></div></div>
+                  <div class="step_tab_link_content">
+                    <div class="step_tab_link_icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div>
+                    <div class="u-text-style-large">Dual-Track DSCR</div>
+                  </div>
+                </div>
+                <div class="step_tab_link" data-step="3" role="tab">
+                  <div class="step_tab_line_wrap u-position-relative"><div class="step_tab_line"></div><div class="step_tab_line_highlighted"></div></div>
+                  <div class="step_tab_link_content">
+                    <div class="step_tab_link_icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div>
+                    <div class="u-text-style-large">Reserves &amp; Assets</div>
+                  </div>
+                </div>
+                <div class="step_tab_link" data-step="4" role="tab">
+                  <div class="step_tab_line_wrap u-position-relative"><div class="step_tab_line"></div><div class="step_tab_line_highlighted"></div></div>
+                  <div class="step_tab_link_content">
+                    <div class="step_tab_link_icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6.95 1.47L12.82 7.34M6.92 11.82L11.4 7.34M11.95 6.7H0.38" stroke="currentColor" stroke-width="2"/></svg></div>
+                    <div class="u-text-style-large">Privacy &amp; Security</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="step-cards-track">
+                <div class="step-cards-list" id="step-cards">
+                  <!-- step cards injected by JS -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SOLUTIONS / CASE STUDY ========== -->
+    <section class="solution_wrap" id="solutions">
+      <div class="solution_contain u-container">
+        <div class="line-divider"></div>
+        <div class="solutions-layout u-grid-column-2">
+          <div class="solution_content">
+            <div class="u-text-style-h5 u-mb-4">Case study</div>
+            <h2 class="u-text-style-h2">Real results from DSCR &amp; non-QM teams</h2>
+          </div>
+          <div class="v-flex-6">
+            <div class="u-text-style-large">Investors, brokers, and lenders across the U.S. rely on Greenstreet Finance to pre-screen DSCR, match non-QM lenders, and close loans that actually cash flow.</div>
+            <div>
+              <a href="#case-studies" class="btn_main_wrap btn_primary">
+                <span aria-hidden="true" class="btn_main_text">See all cases</span>
+                <span class="btn-arrow-wrap"><svg width="16" height="16" viewBox="0 0 24 25" fill="none"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"/></svg></span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 customer story cards -->
+        <div class="cs-home-grid" id="cs-grid"></div>
+      </div>
+    </section>
+
+    <!-- ========== ALL-IN-ONE DSCR ENGINE ========== -->
+    <section class="value_wrap" id="soa">
+      <div class="value_contain u-container">
+        <div class="value_layout">
+          <div class="value_heading_wrap">
+            <h2 class="u-text-style-h2">Built for highly regulated non-QM shops with enterprise-grade security and scale</h2>
+          </div>
+          <div class="value_list" id="value-list">
+            <!-- value items injected by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== RESOURCES (BLOG) ========== -->
+    <section class="feature_wrap" id="blog">
+      <div class="feature_contain u-container">
+        <div class="line-divider"></div>
+        <div class="card">
+          <h2 class="u-text-style-h2 u-mb-7">Resources</h2>
+          <div class="blog_list u-grid-column-3" id="blog-list">
+            <!-- blog cards injected -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== CTA CARDS ========== -->
+    <section class="cta_wrap" id="book-demo">
+      <div class="cta_contain u-container">
+        <div class="cta_card_list u-grid-column-2">
+
+          <a href="#book-demo" class="cta_card u-vflex-stretch-between u-theme-brand">
+            <div class="cta_content">
+              <div class="cta_content_paragraph">
+                <div class="cta_icon_wrap">
+                  <svg width="32" height="32" viewBox="0 0 25 25" fill="none"><path d="M12.9 12.7c1.65 0 2.99-1.34 2.99-2.99S14.55 6.74 12.9 6.74 9.91 8.08 9.91 9.74s1.34 2.99 2.99 2.99Z" stroke="currentColor" stroke-width="2"/><path d="M7.65 16.9c.27-1.19.94-2.25 1.9-3.01.95-.76 2.13-1.18 3.35-1.18s2.4.42 3.36 1.18c.95.76 1.62 1.82 1.89 3.01" stroke="currentColor" stroke-width="2"/><rect x="3.17" y="3.5" width="19.46" height="13.61" stroke="currentColor" stroke-width="2"/><line x1="8.84" y1="20.76" x2="16.97" y2="20.76" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+                <div class="u-text-style-h4 is-lineheight-1">Learn the how and why of Greenstreet Finance in 15 minutes</div>
+              </div>
+              <div class="cta-btn-flex">
+                <h2 class="u-text-style-h2">Book a Live Demo</h2>
+                <div class="u-btn-group u-align-self-end">
+                  <div class="btn_main_wrap btn_tertiary">
+                    <span aria-hidden="true" class="btn_main_text">Learn more</span>
+                    <span class="btn_main_icon"><svg width="16" height="16" viewBox="0 0 24 25" fill="none"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"/></svg></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <a href="#contact" class="cta_card u-vflex-stretch-between u-theme-brand-secondary">
+            <div class="cta_content u-grid-column-2">
+              <div class="cta_content_paragraph">
+                <div class="cta_icon_wrap">
+                  <svg width="32" height="32" viewBox="0 0 25 25" fill="none"><path d="M9.21 12.19c.76 1.58 2.04 2.85 3.62 3.61.12.06.25.08.38.07.13-.01.25-.05.36-.12l2.32-1.55c.1-.07.22-.11.35-.13.12-.01.25.01.36.05l4.35 1.87c.15.06.27.17.35.31.08.14.09.3.07.46-.14 1.08-.66 2.06-1.48 2.78-.81.72-1.86 1.11-2.94 1.11-3.35 0-6.56-1.33-8.93-3.7C5.66 14.59 4.33 11.38 4.33 8.03c0-1.08.4-2.13 1.11-2.94.72-.81 1.71-1.34 2.78-1.48.16-.02.32.01.46.09.14.08.25.21.31.36l1.87 4.36c.05.11.07.23.06.36-.01.12-.06.24-.13.34l-1.55 2.36c-.07.11-.11.23-.12.36-.01.13.02.25.06.36Z" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+                <div class="u-text-style-h4 is-lineheight-1">Get your questions answered by a member of the Greenstreet team</div>
+              </div>
+              <div class="cta-btn-flex">
+                <h2 class="u-text-style-h2">Learn More Now<br/>+1 (332) 455-1462</h2>
+                <div class="u-btn-group u-align-self-end">
+                  <div class="btn_main_wrap btn_tertiary">
+                    <span aria-hidden="true" class="btn_main_text">Learn more</span>
+                    <span class="btn_main_icon"><svg width="16" height="16" viewBox="0 0 24 25" fill="none"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"/></svg></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer_wrap" id="about">
+    <div class="footer_contain u-container">
+
+      <a href="/" class="footer_logo_wrap">
+        <div class="footer_logo">
+          <svg width="220" height="28" viewBox="0 0 220 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <text x="0" y="22" font-family="Outfit, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.6">Greenstreet<tspan font-weight="400" dx="5">Finance</tspan></text>
+          </svg>
+        </div>
+      </a>
+
+      <nav class="footer_layout u-grid-autofit">
+        <section class="footer_group_wrap">
+          <a href="#solutions" class="footer-header-link"><h3 class="footer_group_title u-text-style-h4 u-mb-2">Product</h3></a>
+          <div class="footer_group_list u-grid-column-2">
+            <a href="#how" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Underwriting Engine</div></a>
+            <a href="#lenders" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Lender Matching</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Dual-Track DSCR</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Reserves &amp; Assets</div></a>
+            <a href="#soa" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Sovereign OS</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">STR Legality Gate</div></a>
+          </div>
+        </section>
+
+        <section class="footer_group_wrap">
+          <a href="#solutions" class="footer-header-link"><h3 class="footer_group_title u-text-style-h4 u-mb-2">Who We Serve</h3></a>
+          <div class="footer_group_list">
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Brokers</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Lenders</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Investors</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Non-QM Shops</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Credit Risk Teams</div></a>
+            <a href="#solutions" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Capital Markets</div></a>
+          </div>
+        </section>
+
+        <section class="footer_group_wrap">
+          <h3 class="footer_group_title u-text-style-h4 u-mb-2">Company</h3>
+          <div class="footer_group_list">
+            <a href="#about" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">About</div></a>
+            <a href="#careers" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Careers</div></a>
+            <a href="#security" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Security &amp; Compliance</div></a>
+          </div>
+        </section>
+
+        <section class="footer_group_wrap">
+          <h3 class="footer_group_title u-text-style-h4 u-mb-2">Resources</h3>
+          <div class="footer_group_list">
+            <a href="#blog" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Greenstreet Guidance</div></a>
+            <a href="#support" class="footer_link_wrap"><div class="footer_link_text u-weight-bold">Customer Support</div></a>
+          </div>
+        </section>
+      </nav>
+    </div>
+
+    <div class="footer_bottom_wrap">
+      <div class="footer-disclamer u-container">
+        <div class="u-rich-text disclamer-rt">
+          <p><strong><sup>1 -</sup></strong><sup> Based on sampled pre-screen sessions over the past 12 months. Results may vary by property type, borrower profile, and data completeness.</sup><strong><sup><br/>2 - </sup></strong><sup> Based on lender-matrix false-positive reporting across sampled customer cohorts. Results may vary by lender universe and program eligibility.</sup><strong><sup><br/>3 - </sup></strong><sup> Based on sampled onboarding data of customers consolidating DSCR tooling into Greenstreet. Results may vary.</sup><strong><sup><br/>4 - </sup></strong><sup> Based on annual customer retention across paid subscriptions. Customers are considered churned upon cancellation.</sup></p>
+        </div>
+      </div>
+      <div class="footer_bottom_contain u-container">
+        <div class="footer_bottom_text">© <span id="footer-year">2026</span> Greenstreet Finance. All rights reserved.</div>
+        <div class="footer_bottom_list">
+          <a href="#security" class="footer_bottom_link_wrap"><div class="footer_bottom_link_text u-text-style-small">Privacy Policy</div></a>
+          <a href="#security" class="footer_bottom_link_wrap"><div class="footer_bottom_link_text u-text-style-small">Terms of Service</div></a>
+          <a href="#security" class="footer_bottom_link_wrap"><div class="footer_bottom_link_text u-text-style-small">Cookies Settings</div></a>
+          <a href="#security" class="footer_bottom_link_wrap"><div class="footer_bottom_link_text u-text-style-small">SOC 2 Certification</div></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- mobile menu drawer -->
+  <div class="menu-mobile-wrap" id="menu-mobile"></div>
+
+</div>
+
+<script src="/js/main.js" defer></script>
+</body>
+</html>
