@@ -15,7 +15,7 @@ import { computeSTRMonthlySeasonality, FLORIDA_SNOWBIRD_STR_SEASONALITY, MOUNTAI
 import { calculateFIRPTAImpact } from './firpta';
 import { buildICMemo, computeVerdict } from './decisionSupport';
 import { computeReserveScenarios } from './reserveEngine';
-import type { PropertyInputs, BorrowerProfile, LoanStructure, ICMemoInput } from './types';
+import type { PropertyInputs, BorrowerProfile, LoanStructure } from './types';
 
 describe('APEX Godmode QA — Boundary & Edge Case Audit', () => {
 
@@ -39,8 +39,8 @@ describe('APEX Godmode QA — Boundary & Edge Case Audit', () => {
     });
   });
 
-  // ── 2. 50-STATE PPP LEGAL ENGINE AUDIT ──
-  describe('50-State PPP Legal Engine Coverage', () => {
+  // ── 2. 50-STATE PPP STATUTORY COVERAGE ──
+  describe('50-State Statutory PPP Legal Map', () => {
     it('validates all 50 US states have explicit statutory rules defined', () => {
       const US_STATES = [
         'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
@@ -51,7 +51,7 @@ describe('APEX Godmode QA — Boundary & Edge Case Audit', () => {
       ];
 
       for (const st of US_STATES) {
-        const rule = checkPPPLegal(st);
+        const rule = checkPPPLegal(st, 'LLC', 400000, 1, 'FIXED');
         expect(rule).toBeDefined();
         expect(rule.status).toBeDefined();
         expect(rule.reason.length).toBeGreaterThan(5);
@@ -59,7 +59,7 @@ describe('APEX Godmode QA — Boundary & Edge Case Audit', () => {
     });
 
     it('correctly handles Minnesota HF 3437 (enacted April 23, 2026)', () => {
-      const mn = checkPPPLegal('MN');
+      const mn = checkPPPLegal('MN', 'LLC', 400000, 1, 'FIXED');
       expect(mn.allowed).toBe(true);
       expect(mn.reason).toContain('HF 3437');
     });
@@ -135,23 +135,27 @@ describe('APEX Godmode QA — Boundary & Edge Case Audit', () => {
       const mockDSCR = solveDSCR(
         { purchasePrice: 400000, leaseRent: 3500, annualTaxes: 4000, annualInsurance: 1800, hoa: 0 } as PropertyInputs,
         { ficoScore: 740, experience: 'EXPERIENCED' } as BorrowerProfile,
-        { ltv: 75, term: '30_YR_FIXED' } as LoanStructure,
+        { ltv: 75, term: '30_YR_FIXED' } as unknown as LoanStructure,
         'LTR', false, 0, 'GROSS_PITIA', 4000
       );
 
-      const maliciousInput: ICMemoInput = {
+      const maliciousInput = {
         propertyAddress: "<script>alert('XSS')</script> 123 Main St",
         entityType: '" onload="alert(1)"',
         verdict: computeVerdict({
-          dscrResult: mockDSCR,
-          armReset: null,
-          reassessment: { reassessedAnnualTax: 4000 } as any,
-          returns: { leveredIRR: 0.16, entryCapRate: 0.07, year1CashOnCash: 0.09, equityMultiple: 1.8 } as any,
-          afterTaxIRR: { afterTaxIRR: 0.14 } as any,
+          track1DSCR: 1.25,
+          track2DSCR: 1.15,
+          lenderMinDSCR: 1.0,
+          rateHeadroomBps: 150,
+          dealBreakRate: 8.5,
+          afterTaxIRR: 0.14,
           costSegViability: { viable: true } as any,
           insuranceGate: { verdict: 'CLEAR', zone: 'STANDARD' } as any,
           brrrrGate: { applies: false } as any,
-        }),
+          armReset: null,
+          killCriteriaOverride: [],
+          lenderRanking: [],
+        } as any),
         track1DSCR: 1.25,
         lenderMinDSCR: 1.0,
         debtYield: 9.5,
@@ -180,7 +184,7 @@ describe('APEX Godmode QA — Boundary & Edge Case Audit', () => {
         prepaySchedule: '5-4-3-2-1',
         assumptions: [],
         sourceDates: [],
-      };
+      } as any;
 
       const memo = buildICMemo(maliciousInput);
       expect(memo.propertyAddress).not.toContain('<script>');
