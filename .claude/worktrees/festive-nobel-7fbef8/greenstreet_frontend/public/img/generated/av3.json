@@ -1,0 +1,21 @@
+[
+  {
+    "id": "3c896523-a378-43d0-8402-e14a4654e641",
+    "status": "completed",
+    "display_name": "GPT Image 2",
+    "job_set_type": "gpt_image_2",
+    "result_url": "https://d8j0ntlcm91z4.cloudfront.net/user_31TuKiO5xqAloW3PvanQ4fcgEXR/hf_20260622_225648_3c896523-a378-43d0-8402-e14a4654e641.png",
+    "created_at": 1782169008.272516,
+    "params": {
+      "width": 1024,
+      "height": 1024,
+      "prompt": "Professional headshot of a Latina woman in her 30s, blazer, warm smile, soft sage-green background, natural light, corporate portrait, photorealistic",
+      "medias": [],
+      "aspect_ratio": "1:1",
+      "quality": "high",
+      "resolution": "1k",
+      "model": "videotape-alpha",
+      "reference_elements": []
+    }
+  }
+]

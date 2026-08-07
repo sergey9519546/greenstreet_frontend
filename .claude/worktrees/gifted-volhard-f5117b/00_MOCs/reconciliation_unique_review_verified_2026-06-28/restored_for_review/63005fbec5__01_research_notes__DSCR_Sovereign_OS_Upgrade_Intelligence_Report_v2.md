@@ -1,0 +1,864 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: "DSCR Sovereign OS: Upgrade Intelligence Report"
+summary: "**Classification:** Institutional-Grade Production Blueprint"
+entities:
+  - concept/appreciation
+  - concept/arm
+  - concept/cap-rate
+  - concept/cltv
+  - concept/dscr
+  - concept/io
+  - concept/itia
+  - concept/ltv
+  - concept/pitia
+  - data/fannie-mae
+  - data/fred
+  - data/freddie-mac
+  - data/kbra
+  - data/trepp
+  - lender/angel-oak
+  - lender/deephaven
+  - lender/griffin-funding
+  - lender/rocket-pro
+  - lender/verus
+  - lender/visio-lending
+  - math/copula
+  - math/t-copula
+  - ml/conformal
+  - ml/shap
+  - ml/timesfm
+  - ml/xgboost
+  - regulation/cfpb
+  - regulation/ecoa
+  - regulation/fcra
+  - regulation/hoepa
+  - regulation/reg-z
+  - regulation/section-1071
+  - state/ca
+  - state/nj
+  - state/ny
+  - state/oh
+  - state/pa
+  - tax/1031
+  - tax/bonus-depreciation
+  - tax/niit
+  - tax/pal
+  - tax/section-179
+  - topic/condo
+  - topic/multifamily
+  - topic/non-qm
+  - topic/sfr
+  - topic/str
+tags:
+  - concept/io
+  - ml/xgboost
+  - topic/40yr-amort
+  - topic/adverse-action
+  - topic/after-tax
+  - topic/architecture
+  - topic/compliance
+  - topic/default-rate
+  - topic/ic-memo
+  - topic/insurance
+  - topic/llpa
+  - topic/monte-carlo
+  - topic/portfolio
+  - topic/ppp
+  - topic/short-rate
+  - topic/stress-test
+  - topic/tax
+  - topic/usury
+  - topic/yield-curve
+  - type/audit
+source: DSCR_Sovereign_OS_Upgrade_Intelligence_Report_v2.md
+vaulted_at: 2026-06-20
+---
+# DSCR Sovereign OS: Upgrade Intelligence Report
+## Complete, Research-Verified Specification — Version 2.0
+
+**Classification:** Institutional-Grade Production Blueprint  
+**Date:** June 18, 2026  
+**Version:** 2.0 — All corrections from verification audit applied  
+**Scope:** Complete 10-section production specification with all primary-source corrections  
+**Basis:** 29 source documents + live primary-source verification across vendor docs, regulatory filings, and academic papers
+
+> **What changed in V2.0:** 7 critical corrections applied (RentCast API pricing, Rocket Pro FICO/loan ceiling, Angel Oak FICO tiers, FinCEN BOI exemption correction, PA threshold, OH statutory citation, Griffin licensing). TimesFM 2.5 parameter upgrade. OBBBA elevated to Math Layer. BOI misinformation removed. All confirmations anchored to primary sources dated June 2026.
+
+---
+
+## Governing Principle
+
+A DSCR loan can qualify with a lender and simultaneously be a catastrophic investment. The entire system is built to answer two separate questions simultaneously:
+
+1. **"Can this loan close?"** — Lender matching + compliance gating + ratio calculation
+2. **"Should this loan close?"** — Probabilistic IRR + after-tax wealth modeling + risk-adjusted return
+
+No competitor answers both questions in one system. This is the architectural moat.
+
+**Core Stack Design:** Deterministic truth engine (QuantLib + pyxirr + rule-based compliance) wrapped in probabilistic intelligence (Monte Carlo + TFT/TimesFM 2.5 + CPTC Conformal), governed by an immutable Evidence Vault with provenance decay.
+
+---
+
+## 1. Architecture Overview
+
+### High-Level Modules
+
+| Module | Function | Technology |
+|---|---|---|
+| **Ingestion Layer** | Live APIs + OCR + document intelligence | Ocrolus + RentCast + AirDNA + FRED |
+| **Compliance Layer** | Dynamic Legal Rules Service (50-state + federal) | PostgreSQL versioned rules + StateScape |
+| **Math Layer** | Deterministic calculator + Monte Carlo + ML forecasters | QuantLib + pyxirr + TimesFM 2.5 |
+| **Decision Layer** | Lender matching + approval predictor + IC memo | LightGBM ensemble + isotonic calibration |
+| **Governance Layer** | SR 26-02 model risk management + audit trail | Immutable S3 + cryptographic hash chain |
+
+### SR 26-02 Architectural Split (Effective April 17, 2026)
+
+SR 26-02 (issued April 17, 2026, OCC Bulletin 2026-13) supersedes SR 11-7 (2011) and SR 21-8. It narrows the definition of "model" to complex quantitative methods applying statistical, economic, or financial theories. **Simple arithmetic calculations, deterministic rule-based processes, and software without a theoretical underpinning are explicitly excluded.**
+
+This architectural fact is a deliberate moat: the deterministic DSCR calculator (QuantLib + pyxirr) and the Legal Rules Engine are classified as **NOT models** under SR 26-02. Only the Monte Carlo engine, ML forecasters, and approval predictor fall under model governance. This eliminates validation overhead on the most-used layer.
+
+| Component | SR 26-02 Classification | Governance Requirement |
+|---|---|---|
+| DSCR calculator (QuantLib/pyxirr) | Not a model | Unit tests + CI/CD regression |
+| Legal Rules Engine | Not a model | Quarterly counsel review |
+| Monte Carlo Risk Engine | High-materiality model | Full model card + challenger |
+| TFT/TimesFM Forecasters | Medium-high model | Model card + backtesting |
+| Approval Predictor | High-materiality model | Full card + outcomes analysis |
+
+SR 26-02 also clarifies that generative AI and agentic AI tools are outside its scope but must still be governed under the institution's own risk management framework. If FinBERT/LLM sentiment analysis is added, it requires an internal governance policy — not an SR 26-02 model card.
+
+### Production Tech Stack
+
+- **Backend:** Python (FastAPI) + QuantLib + pyxirr + scikit-learn/LightGBM/CatBoost
+- **Time-series/ML:** Nixtla NeuralForecast (AutoTFT) + Google TimesFM 2.5 (via BigQuery AI.FORECAST) + statsforecast (conformal)
+- **Data:** GCP (BigQuery ML for TimesFM — production, not preview as of June 12, 2026) or AWS
+- **Frontend:** React/Next.js deal desk with scenario compare + tornado charts
+- **Evidence Vault:** PostgreSQL + S3 with immutable versioning + SHA-256 hash chain + auto-decay TTL
+- **Model Governance:** Automated model cards at each retrain + challenger model framework
+
+---
+
+## 2. Data Layer — Live Streams & APIs
+
+### Property & Rent Data
+
+**RentCast API** — Primary residential rent + AVM source
+
+The RentCast API provides property data, owner details, value and rent estimates, and active listings nationwide across 140M+ property records. Developer-friendly with no long-term contracts.
+
+**Verified 2026 Pricing (API, not consumer platform):**
+- **Free:** 50 API calls per month (developer onboarding tier — confirmed from rentcast.io/api)
+- **Paid tiers:** Volume-based pricing, billed per request; no named tiers publicly listed
+- **Enterprise:** Custom pricing for high-volume platform integration
+- **Billing:** Month-to-month, no contracts
+
+> ⚠️ **V2.0 Correction:** Earlier blueprint versions cited consumer platform pricing ($29/$99/$199/Custom for Starter/Growth/Pro/Enterprise). Those are the **landlord portfolio tracking plans** and do not apply to API access. API pricing is volume-based. Do not display consumer tier prices in API documentation or sales materials.
+
+**Coverage limitations:** Optimized for 1–4 unit residential. For 5+ unit multifamily, supplement with CoStar or Yardi Matrix. Has no native STR functionality — STR income data must come from AirDNA.
+
+---
+
+**HouseCanary API** — Rental projections + price growth + risk analytics
+
+- Consumer/basic access: from $19/month (for property search; not for institutional API use)
+- **Developer/institutional API** (rental projections, risk analytics): Enterprise contract required, typically $25K–$100K+/yr
+- Useful for: AVM validation, neighborhood appreciation forecasting, climate-risk scoring
+
+---
+
+**AirDNA Enterprise API** — STR-specific revenue forecasting
+
+ADR, occupancy, market comps, 12–60 months historical + forward projections by ZIP and market. Custom enterprise pricing (often $50K+/yr). **Required for any STR underwriting.** No substitute provides equivalent geographic granularity. DSCR lenders in 2026 (Zeitro market survey) explicitly accept AirDNA data as income documentation for STR programs; Angel Oak's STR underwriting uses market rent data supplemented by AirDNA-class sources.
+
+---
+
+### Rate & Market Data
+
+**FRED API** — Federal Reserve Bank of St. Louis
+
+Free, authoritative. Rate limit: 120 requests/minute (with API key). Key series:
+- `DGS10` — 10-Year Treasury Constant Maturity
+- `SOFR1M`, `SOFR3M`, `SOFR6M`, `SOFR1Y` — SOFR term rates
+- `MORTGAGE30US` — Freddie Mac 30-yr mortgage rate
+- `FEDFUNDS` — Federal Funds Effective Rate
+- `T10Y2Y` — 10-2 Year Treasury Spread (yield curve shape)
+
+**Optimal Blue PPE / Loansifter** — Real-time lender pricing + eligibility
+
+Requires commercial lender/broker access and API entitlements (not public). Pricing: $15K–$50K+/yr. Critical for real-time best-execution comparisons and lock automation.
+
+**ATTOM Data** — Public records, comps, parcel, tax, lien data
+
+Starts ~$500/month for API access; enterprise licensing for full bulk access. Supplement for tax assessment history, HOA existence, lien data, prior sale history.
+
+---
+
+### Canonical Data Schema — Normalization Layer
+
+Every data point ingested from any source populates this schema:
+
+| Field | Type | Description |
+|---|---|---|
+| `source_id` | string | Vendor identifier (`rentcast`, `airdna`, `fred`, `ocrolus`, etc.) |
+| `as_of_timestamp` | datetime (UTC) | When the data was retrieved from source |
+| `effective_date` | datetime | What date the data describes |
+| `confidence_score` | float [0–1] | Source-specific reliability rating |
+| `hash` | string | SHA-256 of raw response payload |
+| `ttl_hours` | int | Time-to-live before staleness flag is triggered |
+| `provenance_tier` | enum | `primary_source`, `vendor_model`, `derived`, `user_input` |
+| `decay_rate` | float | Confidence reduction per hour after TTL |
+
+Staleness is active: evidence older than its TTL decays in confidence automatically. Stale data self-flags. No manual discipline required — the system stays accurate by design.
+
+### Data Refresh Cadence
+
+| Data Type | Refresh | Trigger |
+|---|---|---|
+| Rents, AVMs | Nightly batch | Cron |
+| Rates (FRED + PPE) | Real-time (5-min poll) | API poll / webhook |
+| Regulatory changes | Event-driven | StateScape / legislative tracker |
+| STR ordinances | Weekly scan + event alerts | Municipal RSS + scraper |
+| Lender guidelines | On-change + monthly audit | Lender AE notification + manual check |
+
+---
+
+## 3. AI/ML & Advanced Institutional Math Layer
+
+### Deterministic Core — The Undefeatable Foundation
+
+#### DSCR Calculation Engine (QuantLib + pyxirr)
+
+The deterministic core performs exact, reproducible calculations with no probabilistic outputs:
+
+\[ \text{DSCR} = \frac{\text{Gross Rental Income (Monthly)}}{\text{PITIA (Monthly)}} \]
+
+Where PITIA = Principal + Interest + Taxes + Insurance + HOA.
+
+For ARM products, QuantLib performs the exact reset schedule calculation using the live SOFR forward curve from FRED. For interest-only periods, the calculation excludes principal. For IO + fully amortizing structures, both phases are computed and the qualifying rate is set to the note rate (not a stress test) per non-QM guidelines.
+
+**Annual Effective Yield (AEY)** — true cost of capital for lender comparison:
+
+\[ \text{AEY} = \left(1 + \frac{\text{Note Rate}}{12}\right)^{12} - 1 + \frac{\text{Points + Origination}}{\text{Expected Hold (months)}/12} \]
+
+For prepayment penalty present-value amortization: computed as expected PV of penalty over exit probability-weighted distribution of hold periods.
+
+**pyxirr** (Rust-powered, 10–20× faster than scipy alternatives) handles XIRR/AEY with guaranteed convergence. **scipy.optimize.brentq** handles deal-break rate bisection (finding the maximum interest rate at which DSCR remains ≥ lender minimum) with guaranteed convergence on the monotone DSCR-to-rate function.
+
+---
+
+### Monte Carlo Risk Engine
+
+#### Configuration
+
+- **Base iterations:** 10,000 (Monte Carlo SE on percentile estimates ≈ 1/√n ≈ 1% — sufficient for institutional reporting)
+- **Securitization-grade:** 50,000 iterations
+- **Horizon:** Full loan term (default 30 years; configurable)
+
+#### Marginal Distributions (Day-1 Priors — KBRA-calibrated)
+
+| Factor | Distribution | Parameters | Source |
+|---|---|---|---|
+| LTR rental growth | Normal | μ=0%, σ=9.5% | KBRA DSCR rating methodology |
+| STR gross revenue | Lognormal | μ=0%, σ=18–25% (market-dependent) | AirDNA seasonality panels |
+| LTR vacancy | Beta | α=2, β=22 (≈5–8% mean) | CoStar/Trepp residential vacancy |
+| STR vacancy | Beta | α=3, β=7 (≈20–40% range) | AirDNA occupancy distributions |
+| Insurance escalation | Lognormal | μ=7%, σ=5% (coastal: μ=12%) | Post-2024 insurance crisis data |
+| Property tax growth | Truncated Normal | μ=3%, σ=1% [CA: μ=2%, cap=2%] | CA Prop 13; TX/FL uncapped |
+| 10Y Treasury path | CIR or Hull-White | Calibrated to live SOFR term structure | FRED + QuantLib calibration |
+
+#### Correlation Matrix (t-Copula, ν=5–7 df)
+
+| Pair | Correlation | Rationale |
+|---|---|---|
+| Cap rate ↔ interest rates | +0.50 to +0.70 | Standard real estate finance |
+| Rent ↔ vacancy | –0.55 | Negative relationship confirmed |
+| Rent ↔ interest rates | +0.45 (lagged) | Rate→supply constraint→rent |
+| Insurance ↔ climate risk score | +0.60 to +0.80 | Post-2024 coastal correlation |
+
+**Copula selection:** Start with Student-t (captures tail dependence that Gaussian misses — this is the exact failure mode of the 2008 CDO models). Add R-vine/EVT challenger (pyvinecopulib, C++ backend, TU Munich) for fat-tail events. Degrees of freedom (ν) calibrated from historical rent/vacancy panels; start at 5–7, tune quarterly.
+
+**Gaussian copula is banned from production use** — it systematically underestimates joint tail probabilities. Any model using Gaussian copula for correlated RE risk is wrong, not just conservative.
+
+#### Monte Carlo Outputs Per Deal
+
+- P10 / P50 / P90 DSCR across full loan term
+- VaR(95%) and VaR(99%)
+- Expected Shortfall (CVaR) — the expected DSCR in the worst 5%/1% of outcomes
+- **P(DSCR < 1.0x at any point in term)** — single most important risk metric
+- Sharpe ratio target: ≥1.0 for go/no-go recommendation
+- Break-even rent (minimum rent to sustain DSCR ≥ 1.0x)
+- Break-even rate (maximum interest rate before DSCR falls below lender minimum)
+- Sensitivity tornado chart: rent, rate, vacancy, insurance, taxes, exit cap rate
+
+---
+
+### Conformal Prediction — Calibrated Uncertainty
+
+Conformal prediction provides **finite-sample validity coverage guarantees** regardless of model misspecification — a property Bayesian credible intervals do not have.
+
+**CPTC (Conformal Prediction for Time-series with Change Points)**
+- Accepted at NeurIPS 2025 (poster 118881, arXiv 2509.02844)
+- Official implementation: github.com/Rose-STL-Lab/CPTC
+- Designed for exactly the regime changes that matter for DSCR: CA wildfire regulation, FL hurricane market disruption, NYC Local Law 18 STR shutdown, sudden rate regime shifts
+
+**90% calibrated intervals** on every rent/NOI forecast means: if the system says "[0.95x, 1.42x]" at 90%, exactly 90% of realized outcomes fall within that range over time — not approximately, not probabilistically — it is guaranteed by construction.
+
+**No competitor currently ships calibrated conformal intervals on DSCR forecasts.** This is the output that institutional capital partners and sophisticated investors will ask for once they see it.
+
+---
+
+### Forecasting Stack
+
+| Model | Use Case | Key Advantage | Notes |
+|---|---|---|---|
+| **TimesFM 2.5** | Zero-shot forecasting for sparse/new markets | 200M params (fast), 16K context, native quantile head, XReg covariate support | Preferred over 2.0 for DSCR use |
+| **TFT (Nixtla AutoTFT)** | Multi-horizon rent/NOI with covariates | Variable Selection Networks for interpretability; quantile outputs | For markets with sufficient history |
+| **XGBoost + LightGBM + CatBoost ensemble** | Tabular approval prediction | Soft voting; CatBoost handles categoricals natively | Approval predictor component |
+
+#### TimesFM 2.5 Verified Specifications (June 12, 2026)
+
+From Google BigQuery documentation (last updated June 12, 2026) and google-research/timesfm GitHub:
+
+| Parameter | TimesFM 2.0 | TimesFM 2.5 |
+|---|---|---|
+| Parameters | 500M | 200M (faster inference) |
+| Max context window | 2,048 data points | 15,360 data points (7.5× more) |
+| BigQuery support | ✅ Production | ✅ Production |
+| Quantile head | No | Optional 30M quantile head (up to 1,000-step horizon) |
+| Covariate support (XReg) | Limited | ✅ Restored |
+| Frequency indicator | Required | Not required (simpler API) |
+| Open-source | ✅ + LoRA fine-tuning | ✅ + LoRA fine-tuning |
+
+**Why TimesFM 2.5 over 2.0 for DSCR:**
+1. The 15,360 context window enables using multi-decade historical rent panels — captures full market cycles, not just recent data
+2. The native quantile head produces distributional forecasts (P10/P50/P90) that feed directly into the CPTC conformal wrapping without requiring external quantile regression
+3. XReg covariate support allows feeding in SOFR paths, local employment data, and permit counts as external regressors — exactly what rent forecasting needs
+4. 200M vs 500M parameters means inference on BigQuery is faster and cheaper at scale
+
+**BigQuery integration:** `SELECT * FROM AI.FORECAST(TABLE rent_history, data_col => 'gross_monthly_rent', timestamp_col => 'period_date', model => 'TimesFM 2.5', horizon => 360, confidence_level => 0.90, context_window => 15360)` — this is production SQL, no endpoints to manage.
+
+The open-source version also supports local deployment with PyTorch and fine-tuning via LoRA for markets with sufficient proprietary deal history.
+
+---
+
+### After-Tax IRR Engine — The OBBBA Layer
+
+**The One Big Beautiful Bill Act (OBBBA), signed July 4, 2025, changes every after-tax return calculation.**
+
+This is not future-state. It is current law. Any DSCR system that does not incorporate post-OBBBA tax math is showing investors a return picture that is materially outdated.
+
+#### OBBBA Key Provisions (Verified, Effective Dates Confirmed)
+
+| Provision | Prior Law | OBBBA | Effective Date |
+|---|---|---|---|
+| Bonus depreciation | 40% in 2025, phasing to 0% | **100% permanent** | Jan 20, 2025 (acquired + placed in service) |
+| Section 179 limit | $1.22M | **$2.5M–$2.56M** (inflation-indexed) | Tax years beginning after 2024 |
+| ATI for §163(j) | Revenue-based (EBIT) | **EBITDA-based** (restores depreciation add-back) | Tax years beginning after Dec 31, 2024 |
+| 20% QBI deduction | Set to expire 2025 | **Permanent** | Tax years beginning after 2024 |
+
+For qualifying property: tangible assets with recovery period ≤20 years — land improvements, appliances, HVAC, electrical, carpeting, landscaping, parking lots, sidewalks, fixtures.
+
+**After-tax IRR computation must include:**
+
+1. **Year-1 cost segregation study** → allocate property purchase into 5/7/15/27.5-year buckets
+2. **100% bonus dep on 5/7/15-year components** (Year 1 deduction, then zero in subsequent years for those components)
+3. **§1250 recapture at 25%** on accelerated depreciation (at exit — paper gains become real tax)
+4. **3.8% Net Investment Income Tax (NIIT)** on passive income/gains above threshold ($200K single / $250K MFJ)
+5. **Passive Activity Loss (PAL) rules:** $25K allowance phases out at $100K–$150K AGI; full offset only for Real Estate Professionals
+6. **REP exception:** If borrower (or spouse) qualifies as Real Estate Professional, PAL rules don't apply — full current deduction possible
+7. **Permanent QBI deduction:** 20% of net rental income for pass-through entities (LLC, S-corp)
+8. **1031 exchange deferral modeling** at exit (if applicable)
+
+The system must capture borrower's tax status (REP vs. passive investor) and AGI estimate at intake to compute the correct after-tax IRR. A REP doing cost-seg + 100% bonus dep can show Year 1 tax losses that transform the effective return dramatically vs. a passive investor at $250K AGI.
+
+---
+
+### Approval Predictor — Calibrated Ensemble
+
+**Architecture:** XGBoost + LightGBM + CatBoost soft-voting ensemble with isotonic regression calibration.
+
+**Features:** DSCR ratio, FICO tier, LTV, property type, state, vesting (LLC/individual/trust), STR vs. LTR, lender target, entity type, market-level covariates (local employment, permit trend, rent growth).
+
+**Calibration:** Isotonic regression ensures predicted approval probabilities match realized funding rates. A model that says "70% approval probability" must, in aggregate, fund approximately 70% of deals it scores at 70%.
+
+**Minimum training set:** 500+ deal outcomes before production deployment. Recalibrate quarterly. This is the flywheel — every funded loan improves the next prediction. Every declined deal improves the false-negative rate. Competitors without 500+ outcome records cannot run a calibrated predictor.
+
+**Disparate impact monitoring (ECOA/Fair Housing):** The predictor must be monitored for protected class correlations (race, national origin, sex proxied through geographic or name features). SR 26-02's outcomes analysis requirement applies here. Run disparate impact tests quarterly.
+
+---
+
+### Calibration Loop — The Data Flywheel
+
+Every decision snapshot is frozen at the moment of generation (inputs + model versions + outputs + evidence). Quarterly backcalibration compares predictions to realized outcomes:
+
+| Prediction | Realized Data | Recalibration Target |
+|---|---|---|
+| Projected rent | Actual rent achieved at closing / lease signed | Rent distribution marginal |
+| Projected vacancy | Actual vacancy in first 12 months | Vacancy distribution marginal |
+| Approval probability | Funded / declined / countered | Calibration curve |
+| DSCR trajectory | Actual DSCR at 6/12/24 months post-close | Monte Carlo correlation matrix |
+| Default prediction | Delinquency / default events | Loss-given-default |
+
+---
+
+## 4. Compliance & Legal Layer
+
+### Legal Rules Service Architecture
+
+Every rule carries: `effective_date`, `expiration_date`, `jurisdiction`, `source_citation`, `last_reviewed_date`, `counsel_reviewed_by`, `confidence_level`. Rules are versioned and immutable — when a law changes, a new rule version is created; the old version persists for audit.
+
+**Decision outputs per deal:**
+- `"Allowed"` — all rules pass
+- `"Blocked"` — hard rule violation (e.g., usury, unlicensed origination)
+- `"Manual review required"` — soft flag requiring underwriter sign-off
+- `"Insufficient confidence"` — rule data is stale and must be refreshed
+
+---
+
+### State Prepayment Penalty Thresholds (2026, Primary-Source Verified)
+
+| State | Threshold | Rule | Source | Re-verify |
+|---|---|---|---|---|
+| **Pennsylvania** | **$329,411** (business-purpose, 1–2 unit) | Arch Home Loans wholesale guidelines + LIPL | Arch/Ticor wholesale bulletin | Annually (January) |
+| **Ohio** | **$116,356** | ORC **§1343.011** (annual CPI adjustment) | OH Dept. of Commerce official page | Annually (January) |
+| **New York** | No stated loan amount threshold; Criminal Usury 25% cap (Penal Law §190.40) applies to ALL loans | NY Penal Law §190.40 | AAPL compliance guidance | Ongoing |
+| **New Jersey** | Business-purpose corp borrowers generally not protected under anti-prepay statute; confirm entity type | NJ Rev. Stat. 46:10B-2 | AAPL 2025 guidance | Annual |
+| **California** | Business-purpose loans on investment property: prepay generally permitted; confirm property type | CA Civil Code §2954.10 | AAPL 2025 guidance | Annual |
+
+> **Note on PA threshold:** $329,411 is the verified 2026 figure for business-purpose loans secured by 1–2 unit residential properties. The LIPL threshold adjusts annually. Set a January 1 re-verify reminder. The Act 6 rate chart (monthly max rates) is a separate compliance dimension: June/July 2026 rate cap is **7.25%** (confirmed from PA DOBS).
+
+---
+
+### HOEPA High-Cost Mortgage Thresholds (2026, Federal Register Verified)
+
+| Test | 2025 | 2026 |
+|---|---|---|
+| Total loan amount threshold | $26,968 | **$27,592** |
+| Points-and-fees dollar trigger | $1,348 | **$1,380** |
+| Points-and-fees percentage test | 5% of loan amount (≥$27,592) | 5% (unchanged) |
+
+HOEPA is rare for DSCR investment loans but the engine must flag any deal where points and fees approach 5% of loan amount, or the loan amount is below $27,592. HOEPA loans have prepayment penalty restrictions that would conflict with typical DSCR stepdown structures.
+
+---
+
+### FinCEN Regulatory Landscape (CORRECTED — CRITICAL)
+
+> ⚠️ **V2.0 Critical Correction:** Prior blueprint versions stated that "LLC-vested purchases with non-bank financing trigger FinCEN BOI reporting requirements." This is **incorrect** under current law.
+
+**Corporate Transparency Act (CTA) BOI Reporting — Current Status:**
+
+Per FinCEN official interim final rule (March 21–26, 2025, confirmed operative as of June 2026):
+
+> "All entities created in the United States — including those previously known as 'domestic reporting companies' — and their beneficial owners are now exempt from the requirement to report BOI to FinCEN."
+
+**Domestic U.S. LLCs used for DSCR transactions do NOT have a federal BOI filing requirement.** Congress is considering codifying this via H.R. 425 ("Repealing Big Brother Overreach Act"), but even before that, the interim final rule is operative. Monitor for any rule changes.
+
+**FinCEN Residential Real Estate Reporting Rule (RRE Rule) — Effective March 1, 2026:**
+
+A separate FinCEN rule (distinct from the CTA) requires reporting when:
+1. Residential real property (1–4 unit) is transferred to a legal entity or trust, AND
+2. The transaction is **non-financed** (no qualifying institutional mortgage secured by the property)
+
+**DSCR loans are FINANCED transactions.** When a DSCR mortgage is in place, the transfer is NOT non-financed, and the RRE Rule does NOT trigger reporting. This rule applies primarily to cash purchases by entities.
+
+**System implication:** No BOI alert required for DSCR loan files with standard mortgage financing. The system should only flag RRE Rule exposure for cash deals or equity-only transfers.
+
+---
+
+### STR Compliance Gating
+
+**Hard gate:** STR income disqualified without verified municipal registration.
+
+| Market | Registration Requirement | System Integration |
+|---|---|---|
+| Los Angeles | Home-Sharing permit + primary residence verification | LA home-sharing registry endpoint |
+| New York City | NYC Mayor's Office of Special Enforcement (Local Law 18) | NYC OER registry lookup |
+| Miami Beach | Short-term rental license from Miami Beach | Miami Beach permit API |
+| Nashville | Short-term rental permit (owner-occupied vs. non-owner) | Metro Nashville permitting portal |
+| Custom | Municipal RSS + scraper for emerging markets | Configurable webhook layer |
+
+**STR Income Calculation (Verified Market Standard):**
+- AirDNA projected gross revenue × (1 − platform haircut 10–20%) subject to `MIN(projected gross × (1 − haircut), LTR market rent)`
+- The MIN function prevents STR income from exceeding what the property could earn as a long-term rental — a conservative floor used by sophisticated non-QM lenders
+- Angel Oak's STR program (80% LTV at 720 FICO + 1.0x DSCR) uses Clear Capital Rental AVM + market rent data
+
+---
+
+### NMLS Licensing Gate
+
+Auto-verify originator and broker license status via NMLS Consumer Access API. Flag and block if:
+- License expired or suspended in deal state
+- Originator not licensed in the property's state
+- License type does not cover non-QM/investment property origination in the jurisdiction
+
+---
+
+### Federal Compliance Framework
+
+**Reg Z Business-Purpose Test:** DSCR investment loans qualify as business-purpose under Regulation Z. Document the primary purpose determination (investment/rental income) with evidence fields in the file. If the primary purpose is business, Reg Z consumer protections do not apply, enabling non-QM prepayment structures.
+
+**ECOA / Fair Lending:** Adverse action notices required when denying. The approval predictor must be monitored for disparate impact. Maintain adverse action records per FCRA (25-month minimum; 5-year recommended).
+
+**Budget for legal/content:** $30K–$60K/year for StateScape/FiscalNote legislative tracking + quarterly counsel review. This is the single highest-leverage spend relative to risk reduction.
+
+---
+
+## 5. Document & Evidence Layer
+
+### Ocrolus — Primary Document Intelligence (2026 Verified)
+
+**Automated conditioning went GA on April 1, 2026** (announced at ICE Experience, press release March 17, 2026).
+
+| Capability | Verified Status |
+|---|---|
+| Mortgage document coverage | >95% of mortgage document types |
+| Document type classification | 1,600+ financial document types |
+| Automated conditioning | GA April 1, 2026 — Encompass sync, full condition lifecycle |
+| GSE-approved analysis | Fannie Mae reps & warranties relief eligible |
+| Data accuracy insurance | Lloyd's of London underwritten |
+| Monthly volume | ~750,000 credit applications/month |
+| Customer acquisition pace | ~3 new mortgage lender customers/week |
+| Condition generation | Deterministic, grounded in selling guide requirements + borrower data |
+
+**Automated conditioning specifics (May 2026 blog confirmation):**
+- Document-level AND data-level validation at submission
+- Income cross-referencing: paystub YTD vs. stated monthly income — automatic flag
+- Missing document identification before file reaches underwriter
+- Each condition linked to specific Fannie/Freddie selling guide reference
+- Native Encompass integration — no separate system login required
+
+**Pricing:** Volume-based enterprise. Not publicly listed. Industry range: $0.50–$3.00/document page; enterprise contracts typically $50K–$200K+/yr.
+
+---
+
+### Evidence Vault Architecture
+
+Every number in every deal file links to six provenance fields:
+
+1. **Source document** — PDF in S3 with Object Lock (immutable versioning)
+2. **API call record** — full request/response payload + timestamp + response code
+3. **Bounding box** — pixel coordinates on source document for OCR-extracted values (Ocrolus provides this natively)
+4. **Cryptographic hash** — SHA-256 of source data at time of ingestion
+5. **Confidence score** — OCR/extraction confidence 0–1
+6. **Staleness timer** — auto-decay: evidence older than TTL is flagged as stale and triggers re-verification
+
+**Immutable versioning:** Every edit creates a new version. No overwrite capability. Full audit trail satisfies FCRA adverse action requirements (25-month minimum retention), ECOA record retention, and SR 26-02 model documentation requirements.
+
+### Processing Workflow
+
+```
+Upload packet →  Ocrolus extraction → normalized JSON with bounding boxes
+→ Evidence Vault (hash + timestamp + confidence) → Deterministic engine 
+→ Monte Carlo → CPTC Conformal → Lender matching → IC memo generation
+→ Every step logged → Every calculation reproducible → Every number has provenance
+```
+
+---
+
+## 6. Lender Matrix — Dynamic Matching (June 2026, Verified)
+
+### Core DSCR Lender Profiles
+
+#### Rocket Pro TPO — Speed Specialist
+*(Verified from rocketpro.com/non-agency-products/dscr, March 4, 2026)*
+
+| Parameter | Specification |
+|---|---|
+| Min DSCR | 1.00x |
+| Max Loan Amount | **$3.5M** |
+| Min FICO | **660** |
+| Max CLTV | 80% |
+| Property Types | 1–4 units, condos (warrantable + non-warrantable), LTR + STR |
+| Close Time | 21–30 days (AI-assisted) |
+| Licensing | All 50 states |
+| Notes | Speed-focused, clean guidelines, nationwide; non-QM expansion accelerating in 2026 |
+
+> ⚠️ **V2.0 Correction:** Prior version cited 680 FICO minimum and $3M max. Official Rocket Pro TPO product page (March 4, 2026) shows **660 FICO** and **$3.5M** maximum. Real estate experience requirement is NOT listed as a mandatory overlay — verify with Rocket Pro AE before applying.
+
+---
+
+#### Angel Oak Mortgage Solutions — Non-QM Leader + STR Innovator
+*(Verified from angeloakms.com/programs, May 3, 2026 and Zeitro lender comparison, January 2026)*
+
+| Parameter | Specification |
+|---|---|
+| Max Loan Amount | Up to $3M+ |
+| Min FICO (standard DSCR) | **700** |
+| Min FICO (STR, 80% LTV) | **720** (new 2026 tier — previously 700 at 75% LTV) |
+| Min FICO (select programs) | 640 (certain non-QM overlays only) |
+| Max LTV | Up to 85% (program-specific) |
+| STR program | 80% LTV at 720 FICO + 1.00x DSCR — expanded from 75% LTV in 2026 |
+| AVM | Clear Capital Rental AVM locked at prequal |
+| Second Liens | $100K–$350K; min FICO 700; max CLTV 75%; min DSCR 1.20x; 2-yr experience |
+| Notes | Largest non-QM securitization issuer; vertically integrated with Angel Oak Capital Advisors |
+
+> ⚠️ **V2.0 Correction:** Standard DSCR minimum is **700**, not 680. STR 80% LTV tier requires **720**. The 640 floor applies to certain bank statement / investment property overlay programs, not to the primary DSCR/Investor Cash Flow program.
+
+---
+
+#### Griffin Funding — Maximum Flexibility
+*(Verified from griffinfunding.com/non-qm-mortgages/dscr-loans, June 16, 2026)*
+
+| Parameter | Specification |
+|---|---|
+| Max Loan Amount | Up to **$20M** (varies by state; $5M on DC; $4M+ national standard) |
+| Min FICO | 620 (CA page); **640** (national typical floor) |
+| Min DSCR | **0.75x** (floor; sub-0.75 not accepted contrary to prior notes) |
+| Max LTV | 80% (purchase); 75% (cash-out) |
+| IO Options | 30-year fixed + IO available |
+| Licensing | **All 50 states + DC** (updated from prior "46 states + DC") |
+| Close Time | As fast as 6 days (marketing claim); verify with AE for operational average |
+| AI Underwriting | "LIA" AI agent accelerating loan decisions in 2026 |
+| Notes | Widest credit flexibility; best for complex STR, LLC, and portfolio borrowers |
+
+> ⚠️ **V2.0 Correction:** All 50 states + DC — not 46 states. Maximum loan amount varies significantly by state (up to $20M on CA page). Min DSCR is 0.75 as a floor, not "below 0.75 accepted."
+
+---
+
+#### Deephaven Mortgage — Equity Products Specialist
+
+| Parameter | Specification |
+|---|---|
+| Max Loan Amount | Up to $2.5M |
+| Min FICO | 640 |
+| Max LTV | 80% |
+| Equity Advantage HELOC | Up to $1M; strong 2026 push |
+| ITIN | Available on select products |
+| Notes | CSO Tom Davis: 80% of Americans locked into sub-5% rates; equity extraction is the dominant 2026 use case |
+
+---
+
+#### Rocket Comparison Note on Rates (May 2026)
+
+As of May 2026, DSCR loan rates have become increasingly competitive — in many cases matching or beating conventional investment property loan rates after Fannie/Freddie LLPAs are factored in. This makes the AEY comparison layer more important than ever: the headline rate gap between conventional and DSCR has narrowed, making points/fees/prepay the primary differentiators.
+
+---
+
+### Second Lien DSCR Products (Rapidly Growing 2026 Category)
+
+Maximum 75% CLTV is the consistent market cap across Angel Oak ($350K max), Deephaven ($1M HELOC), and Griffin. The system must:
+1. Calculate CLTV across first + second liens at intake
+2. Enforce per-lender CLTV maximums
+3. Model the second lien's payment in DSCR calculation (PITIA now includes second lien debt service)
+4. Flag deals where second lien qualification creates a DSCR cliff
+
+Tom Davis (Deephaven CSO) quote confirms the investor thesis: "80% of Americans have rates under 5%, so they're not going to cash out of their mortgage" — they are using second liens and HELOCs to access equity for additional acquisitions without touching the first-lien rate.
+
+---
+
+### Lender Matching Engine Logic
+
+For each deal, the system:
+
+1. Applies hard filters: FICO ≥ lender minimum; DSCR ≥ lender minimum; LTV ≤ lender maximum; loan amount in range; property type allowed; state licensed
+2. Ranks eligible lenders by AEY (lower = better for borrower)
+3. Displays ranked list with: rate quote (from PPE), AEY, estimated close time, approval probability (from predictor), prepayment penalty structure
+4. Flags any lender-specific overlays (STR experience requirement, entity seasoning, number of financed properties)
+
+---
+
+## 7. Infrastructure & Deployment
+
+### Cloud Architecture — GCP Primary
+
+| Service | Use |
+|---|---|
+| BigQuery ML (`AI.FORECAST`) | TimesFM 2.5 inference — production, no endpoint management |
+| Vertex AI | Custom TFT model serving + LoRA-finetuned TimesFM |
+| Cloud Run | Stateless FastAPI containers (auto-scaling) |
+| Cloud Storage + Object Lock | Evidence Vault (immutable versioning required) |
+| Cloud Scheduler | Data refresh crons (FRED, RentCast nightly) |
+| Cloud Pub/Sub | Event-driven regulatory alert processing |
+
+### Security & Compliance Standards
+
+| Standard | Status | Notes |
+|---|---|---|
+| SOC 2 Type II | Target at Beta launch | 6-month audit window starts Day 1 |
+| ISO 42001 (AI Management) | Voluntary — pursue post-SOC 2 | Required for institutional capital partnerships |
+| FCRA data retention | Mandatory — 25 months minimum | Evidence Vault retention policy built-in |
+| Encryption at rest | AES-256 | Standard for financial data |
+| Encryption in transit | TLS 1.3 | All API endpoints |
+| Audit logs | Immutable, timestamped | Every user action + API call + model inference |
+| SSO/SAML | Required for enterprise | Broker/lender portal authentication |
+
+### Model Governance Cadence (SR 26-02 Aligned)
+
+| Model | Materiality | Validation Cadence | Documentation |
+|---|---|---|---|
+| DSCR Calculator | N/A (not a model) | CI/CD unit tests | Code documentation |
+| Legal Rules Engine | N/A (deterministic) | Quarterly counsel review | Rule changelog |
+| Monte Carlo Engine | High | Semi-annual full review | Model card + challenger |
+| TimesFM 2.5 Forecaster | Medium-High | Quarterly backtesting | Model card + performance log |
+| TFT (NeuralForecast) | Medium-High | Quarterly | Model card + backtesting |
+| Approval Predictor | High | Quarterly + event-triggered | Full model card + outcomes analysis |
+
+---
+
+## 8. Team, Budget & Timeline
+
+### 6-Month Institutional Beta — Team Composition (7–9 FTEs)
+
+| Role | Count | Primary Focus |
+|---|---|---|
+| Engineering Lead | 1 | Architecture, Evidence Vault, vendor integration |
+| Backend Engineer | 1–2 | API layer, data normalization, lender matrix |
+| Full-Stack Engineer | 1–2 | Deal desk UI, scenario compare, IC memo generation |
+| Quant/ML Engineer | 1 | Monte Carlo, TimesFM 2.5, CPTC conformal, approval predictor |
+| Data Engineer | 1 | BigQuery pipelines, FRED/RentCast/AirDNA integration |
+| Mortgage SME | 1 | Underwriting logic, lender guideline validation |
+| Compliance/Legal Ops | 0.5–1 | Legal rules, state law, STR gating, NMLS |
+| Product/Ops | 1 | Roadmap, broker feedback, launch coordination |
+
+### Budget: $750K–$1.4M (6 months loaded)
+
+| Category | Low | High | Notes |
+|---|---|---|---|
+| Labor (8 FTEs fully loaded) | $525K | $900K | $130K–$225K annualized × 0.5yr |
+| Vendor APIs (RentCast, AirDNA, HouseCanary, ATTOM) | $50K | $120K | — |
+| Ocrolus | $25K | $100K | Volume-dependent enterprise |
+| Optimal Blue / PPE | $15K | $50K | Commercial access |
+| Legal/content (StateScape + counsel) | $30K | $60K | — |
+| Cloud/Infra + SOC 2 prep | $30K | $80K | GCP + security tooling |
+| Contingency (10%) | $75K | $90K | — |
+
+### Annual Vendor Operating Costs
+
+| Vendor | Annual Cost | Notes |
+|---|---|---|
+| Ocrolus | $100K–$400K | Volume-based |
+| AirDNA | ~$50K+ | Enterprise STR data |
+| RentCast | Variable | 50 free calls/month; enterprise on request |
+| Optimal Blue | $15K–$50K+ | Commercial broker/lender |
+| HouseCanary | $25K–$100K+ | Enterprise API |
+| Legal/content | $30K–$60K | StateScape + counsel |
+| Cloud/API | $50K–$150K | Variable with usage |
+
+### Milestone Timeline
+
+| Date | Milestone | Deliverable |
+|---|---|---|
+| **Aug 2026** | Alpha | Deterministic core + Evidence Vault + 5 lenders + Monte Carlo |
+| **Oct 2026** | Private Beta | Full lender matrix + TimesFM 2.5 + CPTC conformal + compliance (10 states) |
+| **Dec 2026** | Commercial v1 | 50-state compliance + approval predictor + IC memo + broker portal |
+| **Mar 2027** | Capital-Markets v1 | Warehouse integration + loan tape + securitization analytics |
+
+---
+
+## 9. Monetization & Unit Economics
+
+### Revenue Per Funded Loan
+
+- **Broker comp:** ~$3,350–$6,700 gross (1–2% on ~$335K average DSCR loan)
+- Verified: Zeitro/JVM confirm SFR median $275K–$400K; $335K blended SFR-weighted average is reasonable
+
+### Acquisition Costs
+
+| Channel | CPL | Notes |
+|---|---|---|
+| Digital (Google/Facebook/SEO) | $15–$60 | Cost per lead |
+| Fresh/exclusive leads | $400–$3,000 | Cost per funded loan |
+| Broker channel | Near-zero marginal | Once onboarded, repeat deals flow organically |
+| Seasoning tracker re-engagements | Near-zero marginal | Automated alerts trigger refinance conversations |
+
+### Platform Pricing Model (Recommended: Hybrid)
+
+- **Base SaaS:** $199–$499/month (broker); $999–$4,999/month (lender/aggregator)
+- **Per-deal success fee:** $25–$100 per funded loan
+- **Premium tier:** Monte Carlo reports, IC memo generation, capital markets analytics
+
+### Market Sizing
+
+Non-QM/DSCR is approaching ~8–10% of total originations by late 2026 and growing. Against a $2–2.5T total origination market (conservative), that represents $200–$250B in Non-Agency originations (Verus 2026 outlook). $500B is achievable in an optimistic/recovery scenario. DSCR is a significant and growing share of that volume. Focus on complex deals (STR, LLC, second lien, portfolio, ITIN) where simple lender guidelines cannot compete.
+
+### Seasoning Tracker — The Retention Engine
+
+The single highest-leverage retention mechanism. Every bridge loan closed through the system creates a monitored refinance opportunity. Auto-alert triggers when:
+- Seasoning requirement met (6–24 months)
+- FRED 30-year rate drops below borrower threshold
+- Property value appreciation creates better LTV
+- Prepayment penalty window expires
+
+Pre-populate refinance quotes using current lender matrix. This is near-zero marginal cost repeat business at institutional quality.
+
+---
+
+## 10. The Unreproducible Moat
+
+### Why Competitors Cannot Catch Up for 18–36 Months
+
+| Moat Component | Why It's Hard to Copy | Time to Replicate |
+|---|---|---|
+| **Proprietary deal-outcome dataset** | Requires live origination volume; grows with every funded loan; no shortcut | 12–24 months minimum |
+| **Zip-level rent panels + TimesFM 2.5 + CPTC conformal** | Continuous data ingestion + calibration across thousands of zip codes + specialized quant expertise | 6–12 months |
+| **Calibrated conformal intervals on DSCR** | No competitor reports calibrated uncertainty on DSCR forecasts; requires CPTC implementation + backcalibration | 6–9 months |
+| **Post-OBBBA after-tax IRR engine** | 100% bonus dep + §1250 recapture + PAL + REP exception + QBI — requires tax SME + engineering integration | 3–6 months |
+| **Evidence Vault with auto-decay + provenance** | Must be built from Day 1; cannot be retrofitted onto existing systems | 3–6 months |
+| **Dynamic Legal Rules Service + STR gating** | 50-state legal research + municipal STR rules + quarterly updates + counsel engagement | 9–18 months |
+| **SR 26-02 governance stack + SOC 2** | Takes organizational maturity + time; institutional capital requires evidence of process | 6–12 months |
+| **Spatio-temporal graph risk** | Geospatial ML + climate risk data integration — Phase 4 | 12–18 months |
+
+### The Compound Effect
+
+No single moat component is unreplicable in isolation. The combination — especially the feedback loop between deal outcomes, model calibration, and evidence provenance — creates a system that gets **better with every loan closed** while competitors must spend $1M+ just to reach feature parity with v1.
+
+The **approval predictor** trained on 1,000+ proprietary deal outcomes cannot be purchased or downloaded. It is the only asset that requires time-in-market to build, and it compounds continuously.
+
+---
+
+## Build Order (Non-Negotiable Sequencing)
+
+| Phase | Components | Duration | Dependency |
+|---|---|---|---|
+| **Phase 1** | Deterministic core + Evidence Vault | Weeks 1–8 | Foundation — nothing else works without this |
+| **Phase 2** | Live data normalization + compliance service (priority states: CA, FL, TX, NY, OH, PA) | Weeks 4–12 | Starts during Phase 1; legal research has long lead times |
+| **Phase 3** | Monte Carlo + CPTC conformal + lender matching | Weeks 8–16 | Requires Phase 1 + data foundation |
+| **Phase 4** | TimesFM 2.5 + TFT forecasters + approval predictor | Weeks 12–20 | Requires Phase 2 data + Phase 3 infrastructure |
+| **Phase 5** | Warehouse/securitization layers | After volume (post-Commercial v1) | Requires funded loan history |
+
+Phases overlap by design. Phase 1 is the only non-negotiable sequential dependency. Start Phase 2 legal research in Week 2 — not Week 9.
+
+---
+
+## Appendix A: V1 → V2 Correction Register
+
+| Section | Draft Claim | V2.0 Correction | Primary Source | Date Verified |
+|---|---|---|---|---|
+| §2 | RentCast tiers $29/$99/$199/Custom (API) | 50 free calls/month, volume-based API pricing — no named dollar tiers | rentcast.io/api, RentCast CEO Nov 2025 | Jun 2026 |
+| §2 | HouseCanary "$19/mo for basic access" | $19/mo = consumer plan; institutional API requires enterprise contract $25K–$100K+/yr | HouseCanary pricing | Jun 2026 |
+| §4 | "LLC-vested purchases trigger FinCEN BOI" | **WRONG** — domestic U.S. LLCs exempt from CTA BOI since March 2025 interim final rule; DSCR loans are financed transactions exempt from FinCEN RRE Rule | FinCEN.gov official page, March 2025 IFR | Jun 2026 |
+| §4 | PA Act 6 threshold $329,411 | **$329,411** for business-purpose loans on 1–2 unit (Arch wholesale guidelines) | Arch Home Loans bulletin | Jun 2026 |
+| §4 | ORC §1343.01 | Correct section is **§1343.011** | OH Dept. of Commerce | Jun 2026 |
+| §6 | Rocket Pro TPO FICO: 680 | **660** per official product page (March 4, 2026) | rocketpro.com/non-agency-products/dscr | Jun 2026 |
+| §6 | Rocket Pro max loan $3M | **$3.5M** per official product page | rocketpro.com/non-agency-products/dscr | Jun 2026 |
+| §6 | Angel Oak FICO 680 standard | Standard minimum **700**; STR 80% LTV requires **720** | angeloakms.com + Zeitro 2026 | Jun 2026 |
+| §6 | Griffin 46 states + DC | **All 50 states + DC** | griffinfunding.com June 2026 | Jun 2026 |
+| §6 | Griffin max loan $4M | Up to **$20M** on some products (varies by state) | griffinfunding.com/CA page | Jun 2026 |
+| §3 | TimesFM 2.5 — parameters not detailed | 200M params, 16K context, native quantile head, XReg restored | google-research/timesfm GitHub | Jun 2026 |
+| §5 | Ocrolus ">2,000 document types" | **>95% of mortgage document types** (no specific count in 2026 press releases) | Ocrolus PR March 17, 2026 | Jun 2026 |
+| §10 | OBBBA described only in moat table | **Elevated to Math Layer §3** — active current law; 100% bonus dep applies to all qualifying properties placed in service after Jan 19, 2025 | Grant Thornton Nov 2025, HCVT Feb 2026 | Jun 2026 |
+
+---
+
+## Appendix B: Items Flagged for Further Research
+
+| Item | Why It Matters | Source Needed | Priority |
+|---|---|---|---|
+| LenderSA AI platform competitive analysis | Aggregates 200+ lenders; potential market entrant | LenderSA pricing + coverage review | HIGH |
+| CFPB Section 1071 (SMB lending data collection) revised May 2026 | May affect LLC DSCR deals if CFPB reasserts scope | CFPB.gov + AAPL guidance | HIGH |
+| AirDNA enterprise API pricing | Required for STR underwriting cost modeling | Contact AirDNA sales | HIGH |
+| 40-year amortization lender availability matrix | Growing product for sub-1.0 DSCR deals | Lender AE contacts + non-QM matrix aggregators | MEDIUM |
+| Deep Haven second lien DSCR product specs | Second-lien market growing rapidly | Deephaven product team | MEDIUM |
+| RentCast API volume pricing tiers | Budget accuracy for vendor cost table | Contact RentCast API team | MEDIUM |
+| OH/PA prepayment thresholds January 2027 | Annual re-verify | PA DOBS + OH Dept. of Commerce | LOW (January 2027) |
+| TimesFM 2.5 LoRA fine-tuning performance benchmarks | Determines whether local fine-tuning beats zero-shot for specific markets | Google Research + timesfm GitHub | MEDIUM |
+| Optimal Blue / Loansifter API 2026 pricing update | Budget accuracy | Contact Optimal Blue commercial team | MEDIUM |
+
+---
+
+*This blueprint, if executed with discipline and the V2.0 corrections applied, produces a system that is definitively unreproducible for 18–36 months. The moat is data + governance + specialized compliance — not code. Code can be copied. A 2-year head start on deal-outcome data, calibrated models, and a SOC 2 + SR 26-02 governance record cannot.*
+
+*Classification: Working Specification — All corrections dated and sourced. Distribute only under NDA.*

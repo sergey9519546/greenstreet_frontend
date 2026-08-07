@@ -1,0 +1,411 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Fcra Adverse Action Extract
+summary: "From Kill Code to Legal Notice: Architecting the ECOA/FCRA Adverse"
+entities:
+  - concept/dscr
+  - concept/itia
+  - concept/ltv
+  - concept/pitia
+  - data/cotality
+  - regulation/cfpb
+  - regulation/ecoa
+  - regulation/fcra
+  - regulation/reg-b
+  - state/ca
+  - tax/pal
+  - topic/str
+tags:
+  - topic/adverse-action
+  - topic/architecture
+  - topic/compliance
+  - topic/default-rate
+  - topic/kill-criteria
+  - topic/llpa
+  - topic/portfolio
+  - topic/reserves
+  - topic/short-rate
+  - topic/tax
+  - type/audit
+source: ANALYSIS/fcra_adverse_action_extract.txt
+vaulted_at: 2026-06-20
+---
+=== PAGE 1 ===
+From Kill Code to Legal Notice:
+Architecting the ECOA/FCRA Adverse
+Action Engine for Institutional
+Compliance
+The development of an institutional-grade underwriting platform requires more than
+mathematical precision; it demands robust legal defensibility. This report outlines a
+comprehensive blueprint for architecting the Explainability_Layer, a critical
+component designed to transform the DSCR Underwriting Engine into a tool compliant
+with the Equal Credit Opportunity Act (ECOA), Regulation B, and the Fair Credit
+Reporting Act (FCRA). As the engine evolves from a risk-assessment calculator to a
+decision-making instrument for licensed lenders, its ability to provide clear, specific, and
+legally mandated explanations for adverse actions becomes paramount. This layer will
+intercept automated denials, map them to standardized regulatory reason codes, and
+assemble a complete Adverse_Action_Notice_Payload. The architecture prioritizes
+operational flexibility through client-specific activation and configurability, ensuring the
+core engine remains adaptable while providing ironclad compliance for regulated
+entities. This document details the strategic rationale, architectural design, mapping
+methodologies, and technical specifications necessary to build this essential compliance
+module.
+Strategic Imperative: From Internal Risk Management
+to External Regulatory Compliance
+The primary strategic driver for developing the Explainability_Layer is the
+fundamental shift in the engine's application context. While the DSCR Underwriting
+Engine's existing "Kill Criteria" are highly effective for internal risk management, they fall
+short of meeting the stringent requirements of federal consumer financial protection laws
+19. When a licensed lender or broker utilizes this engine to make an automated credit
+decision, every aspect of that decision becomes subject to oversight by regulatory bodies
+
+=== PAGE 2 ===
+like the Consumer Financial Protection Bureau (CFPB) 16. The current descriptive but
+informal reasons for denial, such as "Deal structurally unviable," are insufficient and
+expose the lender to significant legal risk 3 10. Noncompliance with the FCRA can lead
+to civil and criminal penalties, and the act permits consumers to bring a private right of
+action for certain violations, including recovery of costs and reasonable attorneys' fees 4
+9 . Therefore, the imperative is to bridge the gap between the engine's granular,
+internally-focused risk factors and the standardized, legally-prescribed language
+mandated by ECOA and the FCRA. This transformation elevates the engine from a
+proprietary risk tool to a defensible compliance asset, enabling its use in regulated
+environments without exposing clients to regulatory action.
+This transition is not merely about replacing one set of words with another. The
+regulations demand specificity and accuracy. Under Regulation B, a creditor's adverse
+action notice must contain a statement of reasons that is "specific" and indicates the
+"principal reason(s) for the action taken" 8 . These reasons must directly relate to and
+accurately describe the factors actually considered by the creditor 8 . The CFPB has
+issued guidance, particularly Circular 2023-03, which clarifies that relying on overly
+broad statements or selecting the closest identifiable factor on a checklist is insufficient if
+it fails to reflect the actual principal reason used by the algorithm 8 . For example,
+stating "insufficient projected income" would be inadequate if the model's actual principal
+reason was an applicant's chosen profession 8 . This places a heavy burden on the
+technology to understand the precise data points and thresholds that triggered a denial
+and translate them into legally sound language. The engine must move beyond simple
+flagging and embrace a more nuanced understanding of causality within its own logic.
+This necessitates enriching the kill events themselves, ensuring they carry not just the
+criterion that failed (e.g., LTV > 80%) but also the specific calculated values (e.g.,
+actual_LTV = 85.2%, appraised_value = $480,000). Only with this enriched
+data can the Explainability_Layer select the most accurate and least ambiguous
+regulatory code, thereby fulfilling the spirit and letter of the law. The failure to do so
+could result in enforcement actions, as seen in cases where creditors were found to have
+violated ECOA by failing to provide adequate adverse action notices 10 19.
+Furthermore, the rise of complex credit models and AI in underwriting introduces
+additional layers of scrutiny. The CFPB has explicitly stated that using AI or complex
+models requires creditors to provide more specific adverse action communications than
+codified sample forms allow 8 . This trend toward greater transparency means that the
+Explainability_Layer cannot be a static lookup table. It must be a dynamic system
+capable of interpreting the outputs of sophisticated algorithms and articulating the key
+drivers behind a decision in plain English, tailored to the specific circumstances of the
+
+=== PAGE 3 ===
+application 8 . The platform's long-term viability in the institutional space depends on its
+ability to evolve alongside these regulatory expectations. By proactively building a robust
+and flexible Explainability_Layer, the DSCR Engine positions itself not just as a
+calculator, but as a forward-looking compliance platform that mitigates risk for its
+licensed clients and builds trust with applicants by providing clear, actionable feedback.
+Architectural Design: A Configurable, Client-Specific
+Compliance Module
+To balance the need for robust compliance with the diverse operational needs of the
+platform's user base, the Explainability_Layer must be architected as a standalone,
+configurable, and client-specific module. This design choice is central to the project's
+success, as it allows the core engine to remain flexible for non-regulated use cases while
+delivering full legal protection exclusively where it is contractually and legally required.
+The architecture should be gated, meaning the compliance features are activated only for
+users who have an active lending license. This licensing check acts as a switch; for non-
+licensed users, the engine operates with its existing, more descriptive but less formal
+messaging. For licensed clients, this switch is flipped, routing all KILL decisions through
+the Explainability_Layer before a final adverse action notice is generated. This
+approach prevents non-regulated users, such as passive investors analyzing a portfolio,
+from being burdened with a complex compliance interface, while simultaneously
+ensuring that any entity acting as a creditor is fully protected against regulatory
+challenges. This model aligns with modern software-as-a-service (SaaS) practices, where
+functionality is often gated behind licenses or subscription tiers, allowing for a modular
+and scalable product offering 6 7 .
+The second pillar of the architectural design is configurability. The mapping between the
+engine's internal kill criteria and the external regulatory reason codes is not a static
+relationship. Lender overlays, evolving regulatory interpretations, and potential state-
+level variations necessitate a dynamic system that can be updated without requiring a full
+code deployment or a release cycle. The mapping logic should therefore be externalized
+into a dedicated configuration file or database, perhaps structured as a YAML or JSON
+file tied to the client's profile 14. This configuration would define the rules for translating
+each internal trigger into one or more ECOA/Reg B reason codes. For instance, a single
+rule might specify that an LTV exceeding 90% maps to ECOA Code 27 ("Collateral value
+is insufficient"), while an LTV between 80% and 90% maps to Code 26 ("Maximum loan
+
+=== PAGE 4 ===
+amount is exceeded"). This allows compliance teams at individual lender clients to fine-
+tune the mappings to match their specific underwriting overlays without developer
+intervention. The broader engine could ship with a default, federally-compliant
+configuration, which clients could then customize. This approach mirrors the successful
+strategy employed for other dynamic components of the engine, such as LLPA grids, tax
+tables, and stress scenarios, all of which are driven by external configurations 6 7 . The
+Explainability_Layer should also be designed to be extensible, with hooks to easily
+add new regulatory requirements or update disclosure language as laws change, ensuring
+the platform remains compliant over time.
+Finally, the module's architecture must be resilient and well-defined in its inputs and
+outputs. The layer should sit logically between the engine's core decision logic and its
+final output rendering. Its input is a standard "kill event" object. Critically, this object
+must be enriched with contextual data beyond just the failing criterion. It should include
+the raw user inputs, the engine's calculated intermediate values (e.g., LTV, DSCR,
+Breakeven_Occupancy), and the specific threshold that was breached. This enriched
+data is the fuel for the layer's intelligent mapping process. The layer's output is a
+structured Adverse_Action_Notice_Payload. This payload is a comprehensive,
+machine-readable object (e.g., JSON or XML) that contains all the necessary components
+for a legally compliant notice. This includes the standard ECOA prohibition notice, the
+array of selected reason codes, specific textual explanations for each reason, required
+FCRA disclosures for third-party data, and any other notices mandated by configured
+state laws. By defining this clear contract—a richly-enriched input object and a structured
+payload output—the Explainability_Layer becomes a self-contained, reusable, and
+testable service. This modularity simplifies testing and maintenance, as the core engine's
+risk logic and the compliance layer's legal logic can be tested and updated independently,
+reducing the risk of regression and ensuring both components function correctly in
+isolation and together.
+Mapping Internal Kill Criteria to Federal Reason Codes:
+A Nuanced Approach
+The heart of the Explainability_Layer lies in its ability to accurately map the DSCR
+engine's internal kill criteria to the standardized reason codes prescribed by ECOA and
+Regulation B. A simplistic, one-to-one mapping where each kill criterion corresponds to a
+single, generic reason is legally insufficient. The CFPB's guidance makes it clear that
+creditors must provide reasons that are "specific" and identify the "principal reason(s) for
+
+=== PAGE 5 ===
+the action taken" 8 . This mandates a more nuanced, dynamic approach that considers
+the specific data values associated with a kill event to select the most precise and least
+ambiguous regulatory code available. The goal is to move from generic statements like
+"Insufficient Income" to descriptions that are grounded in the specific facts of the case,
+such as identifying the type of debt, the amount requested, or the specific income source
+issue identified by the model 8 . This requires the mapping system to be intelligent,
+capable of evaluating ranges and conditions within the kill event's data.
+For instance, consider the LTV kill criterion. A static mapping might simply label all LTV-
+related denials as "Collateral value is insufficient." However, a dynamic approach would
+differentiate based on the actual loan-to-value percentage. A mapping matrix could be
+configured as follows:
+• If `LTV` > 90%, map to ECOA Reason Code 27: "The collateral value is
+insufficient."
+• If `LTV` is between 80% and 90%, map to ECOA Reason Code 26: "You requested
+an amount that exceeds the maximum loan amount permitted by our regulations."
+• If `LTV` is below 80% but the deal is killed due to a combination of other factors
+(e.g., low FICO and high LTV), the system could still use Code 26 as the primary
+reason, reflecting that the total financing package is the issue.
+This principle of specificity extends to all kill criteria. For a low Debt Service Coverage
+Ratio (DSCR), the system should analyze the underlying cause. If the low DSCR is
+primarily driven by a high monthly payment (ADS), the reason could be "Your debt
+payments or other obligations are too high." If it is driven by a low rent amount, the
+reason should be "Not enough income." This level of detail requires the kill event to be
+enriched with not just the final DSCR value, but also the calculated numerator (e.g.,
+Rent) and denominator (e.g., PITIA).
+The following table provides examples of how the engine's internal kill criteria can be
+mapped to ECOA/Reg B reason codes using this dynamic, evidence-based approach.
+
+=== PAGE 6 ===
+Internal Kill Triggering Recommended ECOA/Reg B Reason Code Justification
+Criterion Condition
+Example
+LTV LTV > 90% 27: "The collateral value is insufficient." Exceeds typical high-risk thresholds; the
+primary deficiency is the lack of equity
+cushion.
+LTV LTV between 80% 26: "You requested an amount that exceeds the Indicates the deal hits a programmatic limit,
+and 90% maximum loan amount permitted by our not necessarily a valuation problem.
+regulations."
+FICO Score FICO < 620 19: "Your income is not sufficient to meet your A very low score is a strong indicator of
+expenses and debt payments." overall financial distress, impacting
+repayment capacity.
+DSCR Low Rent Low DSCR caused by Rent_Monthly being below 19: "Your income is not sufficient to meet
+a required minimum. your expenses and debt payments."
+DSCR High Debt Service Low DSCR caused by ADS_Monthly being too high 21: "Your debt payments or other obligations
+for the given income. are too high."
+Reserves Insufficient PITIA Reserves_Months < 3 19: "Your income is not sufficient to meet
+Reserves your expenses and debt payments."
+Property STR Property property_type == "STR" (with additional risk 28: "The type of property you selected is not
+Type factors) acceptable to us."
+This nuanced mapping is only possible if the Explainability_Layer receives an
+enriched kill event object. The object must contain not only the criterion that failed (e.g.,
+"DSCR": "< 1.05") but also the full context: the calculated DSCR value, the
+Rent_Monthly figure, the PITIA_Monthly figure, the min_dscr_required
+threshold, and potentially even the reason for the low rent if derived from a third-party
+estimate. With this data, the layer can perform conditional logic to select the most
+accurate reason code from the configuration. This dynamic selection process, guided by
+CFPB principles of specificity, is what transforms the engine from a simple calculator into
+a defensible compliance tool. It ensures that the explanation provided to the applicant is
+not only legally compliant but also genuinely informative, helping them understand the
+precise factors that influenced the decision.
+Navigating FCRA Disclosures for Third-Party Data
+Sources
+In addition to complying with ECOA's requirement for specific reasons for adverse action,
+the Explainability_Layer must also adhere to the mandates of the Fair Credit
+Reporting Act (FCRA). The FCRA imposes strict rules on the use of information from
+
+=== PAGE 7 ===
+Consumer Reporting Agencies (CRAs) in credit decisions 10. If a creditor uses a CRA's
+information in taking an adverse action, the applicant must receive a specific disclosure
+explaining this use 4 . This is a distinct requirement from the ECOA/Reg B reasons for
+denial. The CFPB's enforcement actions against companies like 1st Alliance Lending
+demonstrate the seriousness of this obligation; a key allegation was the company's failure
+to provide the required adverse action notices when denying credit 10. Therefore, the
+Adverse_Action_Notice_Payload generated by the Explainability_Layer
+must contain two separate but related sections: the ECOA-mandated reasons for denial
+and the FCRA-mandated disclosures regarding third-party data.
+The first step is to track the use of third-party data throughout the underwriting process.
+The engine may rely on CRAs for various pieces of information, such as rent payment
+history, property valuations (Automated Valuation Models or AVMs), or credit scores.
+When the engine evaluates a loan application, it must log which pieces of information
+came from which CRA. If the final decision to deny the loan is based, even in part, on
+information from a CRA, the FCRA requires a specific notification. The
+Explainability_Layer must therefore inspect the decision path and, if a relevant
+third-party data point was used, include the corresponding FCRA disclosure in the
+payload. The standard FCRA disclosure statement typically reads something like: "We
+obtained information about you from a consumer reporting agency. We are permitted by
+law to provide this information to other persons. You have the right to request a free copy
+of this report from the agency." The payload must also include the name and address of
+the specific CRA that provided the information 10.
+This dual-reporting structure adds complexity but is essential for compliance. The
+Adverse_Action_Notice_Payload should be structured to clearly delineate these
+two types of information. For example, it could have a top-level object containing the
+standard ECOA notice text, followed by an array of reason_codes, and a separate top-
+level field called fcra_disclosures containing an object with the CRA's name and the
+required statutory text. This separation ensures that the ECOA reasons remain focused on
+the applicant's financial standing, while the FCRA section fulfills the separate legal duty
+to disclose the role of third parties. This practice is consistent with established
+compliance frameworks, such as those governing asset-backed securities disclosure,
+which require detailed and segregated reporting for different regulatory regimes 15.
+While the initial implementation should focus on U.S. federal requirements, the long-
+term strategy should acknowledge and plan for state-level variations. States like
+California have enacted stricter privacy laws that may impose additional obligations 1 .
+For example, California's regulations may require more detailed notices or provide
+
+=== PAGE 8 ===
+consumers with different rights regarding their data. The configurable nature of the
+Explainability_Layer is key here. The configuration file for a lender operating in
+California could include an additional block of state-specific language to be appended to
+the payload, ensuring compliance across jurisdictions. This foresight will be crucial for
+scaling the platform nationally without requiring a complete overhaul of the compliance
+logic for each new state. By building a flexible architecture from the outset, the platform
+can adapt to a complex and fragmented regulatory landscape, providing a seamless and
+compliant experience for users and applicants nationwide.
+Synthesis: The Technical Architecture and Payload
+Specification for the Explainability_Layer
+Based on the preceding analysis, the optimal technical architecture for the
+Explainability_Layer involves a three-stage process: interception, enrichment, and
+assembly. This process ensures that every automated loan denial is handled in a manner
+that is both technically robust and legally defensible. First, the layer must intercept the
+engine's output. Any event tagged as a KILL is routed to the Explainability_Layer
+instead of being sent directly to the user interface or document generator. Second, the
+layer must enrich the incoming kill event. The basic kill object, which currently contains
+the failing criterion (e.g., "LTV > 80%"), must be augmented with a comprehensive set
+of contextual data. This enriched object should include all raw inputs, all calculated
+intermediate variables (e.g., loan_amount, appraised_value, purchase_price,
+rent_monthly, pitia_monthly), and the specific numerical thresholds that were
+breached. This data is the foundation for dynamic and specific reason code selection.
+Third, the layer must assemble the final Adverse_Action_Notice_Payload. Using
+the client's specific configuration and the enriched data, the layer selects the appropriate
+ECOA/Reg B reason codes, generates the required specific textual explanations, and
+incorporates any necessary FCRA disclosures for third-party data. The final output is a
+structured, comprehensive payload ready for consumption.
+The specification for the Adverse_Action_Notice_Payload is critical. It defines the
+exact format and content required to satisfy regulatory obligations. The payload should
+be a JSON object, making it easy to parse and integrate into various downstream systems.
+The proposed schema is as follows:
+{
+"version": "1.0",
+
+=== PAGE 9 ===
+"as_of": "YYYY-MM-DDTHH:MM:SSZ",
+"lender_id": "CLIENT_XXXX",
+"application_id": "APP_YYYYYY",
+"is_compliant": true,
+"regulatory_notices": {
+"ecoa_notice": {
+"header": "ADVERSE ACTION NOTICE",
+"prohibition_statement": "It is illegal to discriminate against anyone because of race, color, religion, national origin, sex, marital status, age (provided the applicant has the capacity to contract); because all applicants have been found to have the capacity to contract; an income source not prohibited under State or Federal law; or the fact that all or part of the applicant's income will be derived from a public assistance program.",
+"reasons": [
+{
+"code": "27",
+"text": "The collateral value is insufficient."
+},
+{
+"code": "21",
+"text": "Your debt payments or other obligations are too high."
+}
+]
+},
+"fcra_disclosure": {
+"header": "DISCLOSURE REQUIRED BY THE FAIR CREDIT REPORTING ACT",
+"statement": "We obtained information about you from a consumer reporting agency. The creditor is permitted by law to provide this information to other persons. You have the right to request a free copy of this report from the agency.",
+"data_source": "CoreLogic, Inc.",
+"source_address": "123 Main St, Anytown, ST 12345"
+}
+},
+"state_specific_notices": [
+// Array for state-specific notices, e.g., California
+// {"state": "CA", "text": "Additional CA-specific language..."}
+],
+"meta": {
+"generation_timestamp": "YYYY-MM-DDTHH:MM:SSZ",
+"engine_version": "DSCR_Engine_v15.0.0",
+"explanation_layer_version": "1.0.0"
+}
+}
+This payload structure is designed for clarity and completeness. The reasons array in
+the ecoa_notice section will be dynamically populated by the
+Explainability_Layer based on the enriched kill event and the client's
+
+=== PAGE 10 ===
+configuration. The fcra_disclosure section will be populated whenever the decision
+path includes information from a CRA. The inclusion of state_specific_notices
+and metadata fields provides the extensibility needed for future growth and audit trails.
+By implementing this architecture and adhering to this payload specification, the DSCR
+Underwriting Engine can successfully fulfill its evolution from a powerful risk assessment
+tool into a fully compliant, institutionally-viable platform for automated underwriting.
+Reference
+1. What are the Differences Between the Federal FCRA and the ... https://
+www.kazlg.com/what-are-differences-between-federal-fcra-and-california-fcra/
+2. Form S-1 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2064124/000162828025040673/ftintermediateinc-sx1.htm
+3. 7/15 Flashcards - Quizlet https://quizlet.com/515800889/715-flash-cards/
+4. figr-20251231 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2064124/000206412426000009/figr-20251231.htm
+5. NMLS Practice Exam Flashcards - Quizlet https://quizlet.com/517084185/nmls-
+practice-exam-flash-cards/
+6. SaaS Management Platforms: A Selection of The Best Options For ... https://
+blog.invgate.com/saas-management-platform
+7. Vertical SaaS Payments Paradox: Huge Adoption, Huge Gaps Remain https://
+www.linkedin.com/posts/veronica-fernandez-33587a4_ive-been-thinking-about-how-
+to-better-serve-activity-7460039768383361024-Mm8M
+8. CFPB Mandates Additional Specificity in Adverse Action ... - Cooley https://
+www.cooley.com/news/insight/2023/2023-09-25-cfpb-mandates-additional-
+specificity-in-adverse-action-communications-based-on-ai-or-complex-credit-models
+9. [PDF] understanding-the-fcra.pdf - Jones Day https://www.jonesday.com/-/media/
+files/publications/2016/04/understanding-the-fair-credit-reporting-act-ipract/files/
+understanding-the-fcra/fileattachment/understanding-the-fcra.pdf
+10. CFPB's allegations included that 1st… | Jason Mikula - LinkedIn https://
+www.linkedin.com/posts/jasonmikula_new-cfpb-dumps-case-against-1st-alliance-
+activity-7301335276419756033-A9Ll
+11. [PDF] Handbook: Revenue for software and SaaS - KPMG International https://
+kpmg.com/kpmg-us/content/dam/kpmg/frv/pdf/2024/revenue-software-saas-1.pdf
+
+=== PAGE 11 ===
+12. SaaS vs In-House Software: The Pendulum Swings Back - LinkedIn https://
+www.linkedin.com/posts/petersheldon_15-years-ago-i-watched-the-entire-enterprise-
+activity-7431761177178755073-3l7-
+13. Azure Policies and Management Groups | Simple Talk - Redgate https://www.red-
+gate.com/simple-talk/cloud/azure/azure-policies-and-management-groups/
+14. 12 Best Flexera Alternatives in 2025: Features, Pricing & Deployment https://
+blog.invgate.com/flexera-alternative
+15. [PDF] Asset-Backed Securities Disclosure and Registration - SEC.gov https://
+www.sec.gov/files/rules/final/2014/33-9638.pdf
+16. Who's Keeping Score?: Oversight of Changing Consumer Credit ... https://
+onlinelibrary.wiley.com/doi/full/10.1111/ablj.12199
+17. [PDF] The Agentic AI Genome | OpenText https://www.opentext.com/en/media/
+ebook/the-agentic-ai-genome-ebook-en.pdf
+18. Chapter 208-620 WAC: - | WA.gov https://app.leg.wa.gov/wac/default.aspx?
+cite=208-620&full=true
+19. [PDF] Introduction to the 2023 Annual Survey of Consumer Financial ... https://
+www.saul.com/sites/default/files/documents/2023-06/
+Introduction%20to%20the%202023%20Annual%20Survey%20of%20CFS%20Law.pdf
+20. 10-K - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2013744/000119312526104221/ethw-20251231.htm
+21. [PDF] East West Bank - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1069157/000106915725000046/ewb2024annualreport031225_.pdf

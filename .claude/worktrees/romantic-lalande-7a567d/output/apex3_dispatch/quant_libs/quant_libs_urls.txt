@@ -1,0 +1,60 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Quant Libs Urls
+summary: "https://github.com/vinecopulib/pyvinecopulib https://github.com/TY-Cheng/torchvinecopulib"
+entities:
+  - math/copula
+  - ml/mapie
+  - ml/tabpfn
+  - ml/timesfm
+tags:
+  - topic/apex
+  - topic/portfolio
+  - topic/yield-curve
+source: output/apex3_dispatch/quant_libs/quant_libs_urls.txt
+vaulted_at: 2026-06-20
+---
+https://github.com/vinecopulib/pyvinecopulib
+https://github.com/TY-Cheng/torchvinecopulib
+https://github.com/vinecopulib/vinecopulib
+https://github.com/tnagler/VineCopula
+https://github.com/bashtage/arch
+https://github.com/statsmodels/statsmodels
+https://github.com/scikit-learn-contrib/MAPIE
+https://github.com/PriorLabs/TabPFN
+https://github.com/PriorLabs/TabPFN-extensions
+https://github.com/google-research/timesfm
+https://github.com/amazon-science/chronos-forecasting
+https://github.com/sktime/sktime
+https://github.com/sktime/pytorch-forecasting
+https://github.com/unit8co/darts
+https://github.com/luphord/nelson_siegel_svensson
+https://github.com/lballabio/QuantLib-SWIG
+https://github.com/werleycordeiro/Dynamic_Nelson_Siegel_Svensson_Kalman_Filter
+https://github.com/domokane/FinancePy
+https://github.com/fython51/Nelson-Siegel-Svensson
+https://github.com/open-source-modelling/nelson_siegel_svansson_python
+https://github.com/skfolio/skfolio
+https://github.com/hudson-and-thames/mlfinlab
+https://github.com/dcajasn/Riskfolio-Lib
+https://github.com/PyPortfolio/PyPortfolioOpt
+https://github.com/quantopian/empyrical
+https://github.com/jbmohler/mortgage
+https://pypi.org/project/amortization/
+https://pypi.org/project/pyloan/
+https://github.com/ahmetserguns/amortize
+https://github.com/microsoft/qlib
+https://pypi.org/project/QuantLib/
+https://pypi.org/project/pyvinecopulib/
+https://pypi.org/project/nelson_siegel-svensson/
+https://pypi.org/project/riskfolio-lib/
+https://pypi.org/project/chronos-forecasting/1.5.1/
+https://pypi.org/project/skfolio/
+https://arxiv.org/abs/2506.13318
+https://arxiv.org/abs/2507.04176
+https://arxiv.org/abs/2511.08667
+https://huggingface.co/google/timesfm-1.0-200m
+https://quantlib-python-docs.readthedocs.io/en/latest/pricing_models.html
+https://gouthamanbalaraman.com/blog/hull-white-simulation-quantlib-python.html

@@ -1,0 +1,1077 @@
+// ============================================================
+// DSCR Loan Command Center v7.0 — Decision Support Engine
+// Section 11-13: Acquisition Score, Execution Risk Scorecard,
+//                Deal-Kill Criteria, Two-Quote Rule
+// ============================================================
+//
+// ACQUISITION SCORE (0-100):
+//   Track 2 cash flow     30%
+//   Track 1 feasibility   20%
+//   STR legality          15% (LTR default = full marks)
+//   Reserves adequacy     10%
+//   Exit liquidity        10%
+//   Rate/PPP risk         10%
+//   Capex/property        5%
+//
+// EXECUTION RISK SCORECARD:
+//   DSCR + FICO + LTV + Reserves + property type → 5-tier verdict
+//
+// DEAL-KILL CRITERIA:
+//   - Hard blockers (auto-reject)
+//   - Warnings (proceed with caution)
+//   - Track 2 acknowledgment required
+// ============================================================
+
+import type {
+  DSCRResult,
+  ReserveScenarios,
+  PropertyInputs,
+  BorrowerProfile,
+  LoanStructure,
+  RentalStrategy,
+  STRUnderwritingResult,
+  PPPCheckResult,
+  AcquisitionScore,
+  ScoreFactor,
+  DealKillCheck,
+  DealKillItem,
+  // v11 types
+  VerdictResult,
+  ReturnGrade,
+  KillCriterion,
+  ICMemo,
+  AfterTaxIRRResult,
+  ReturnsResult,
+  ARMResetResult,
+  ReassessmentResult,
+  InsuranceGateResult,
+  BRRRRSeasoningGate,
+  LenderRankingEntry,
+  ProvenanceLabel,
+} from './types';
+
+// ============================================================
+// ACQUISITION SCORE
+// ============================================================
+
+export function computeAcquisitionScore(
+  dscrResult: DSCRResult,
+  reserveScenarios: ReserveScenarios | null,
+  property: PropertyInputs,
+  borrower: BorrowerProfile,
+  loan: LoanStructure,
+  strategy: RentalStrategy,
+  strResult: STRUnderwritingResult | null,
+  pppResult: PPPCheckResult | null,
+): AcquisitionScore {
+  const factors: ScoreFactor[] = [];
+
+  // ── Factor 1: Track 2 Cash Flow (30%) ──
+  const track2DSCR = dscrResult.dualTrackDSCR.track2.dscr;
+  const t2Score = clampScore(
+    track2DSCR >= 1.25 ? 100 :
+    track2DSCR >= 1.10 ? 85 :
+    track2DSCR >= 1.00 ? 70 :
+    track2DSCR >= 0.85 ? 50 :
+    track2DSCR >= 0.75 ? 30 :
+    10
+  );
+  factors.push({
+    name: 'Track 2 Cash Flow',
+    weight: 30,
+    value: track2DSCR,
+    contribution: t2Score * 0.30,
+  });
+
+  // ── Factor 2: Track 1 Feasibility (20%) ──
+  const track1DSCR = dscrResult.dualTrackDSCR.track1.dscr;
+  const t1Score = clampScore(
+    track1DSCR >= 1.50 ? 100 :
+    track1DSCR >= 1.25 ? 90 :
+    track1DSCR >= 1.10 ? 75 :
+    track1DSCR >= 1.00 ? 60 :
+    track1DSCR >= 0.85 ? 40 :
+    track1DSCR >= 0.75 ? 25 :
+    10
+  );
+  factors.push({
+    name: 'Track 1 Feasibility',
+    weight: 20,
+    value: track1DSCR,
+    contribution: t1Score * 0.20,
+  });
+
+  // ── Factor 3: STR Legality (15%) ──
+  let legalityScore: number;
+  let legalityValue: string;
+  if (strategy === 'STR' && strResult) {
+    const status = strResult.legalityGate.status;
+    legalityScore = status === 'CLEAR' ? 100 :
+                    status === 'RESTRICTED' ? 65 :
+                    status === 'UNCERTAIN' ? 35 : 0;
+    legalityValue = status;
+  } else if (strategy === 'MTR') {
+    legalityScore = 80;
+    legalityValue = 'MTR (verify locally)';
+  } else {
+    legalityScore = 100; // LTR — no STR legality concerns
+    legalityValue = 'LTR (n/a)';
+  }
+  factors.push({
+    name: 'STR Legality',
+    weight: 15,
+    value: legalityValue as unknown as number,
+    contribution: legalityScore * 0.15,
+  });
+
+  // ── Factor 4: Reserves Adequacy (10%) ──
+  let reserveScore: number;
+  let reserveShortfallPct: number;
+  if (reserveScenarios) {
+    const required = reserveScenarios.conservative.totalDollars;
+    const available = borrower.availableReserves;
+    const ratio = required > 0 ? available / required : 2;
+    reserveShortfallPct = ratio < 1 ? (1 - ratio) * 100 : 0;
+    reserveScore = ratio >= 2 ? 100 :
+                   ratio >= 1.5 ? 85 :
+                   ratio >= 1.0 ? 65 :
+                   ratio >= 0.75 ? 40 :
+                   ratio >= 0.50 ? 20 : 5;
+  } else {
+    reserveShortfallPct = 0;
+    reserveScore = 50;
+  }
+  factors.push({
+    name: 'Reserves Adequacy',
+    weight: 10,
+    value: reserveShortfallPct,
+    contribution: reserveScore * 0.10,
+  });
+
+  // ── Factor 5: Exit Liquidity (10%) ──
+  // Combines debt yield (refi-ability) + max purchase at DSCR 1.0
+  const debtYieldPct = dscrResult.debtYield * 100;
+  const exitScore = clampScore(
+    debtYieldPct >= 12 ? 100 :
+    debtYieldPct >= 10 ? 85 :
+    debtYieldPct >= 8 ? 70 :
+    debtYieldPct >= 6 ? 50 :
+    25
+  );
+  factors.push({
+    name: 'Exit Liquidity (Debt Yield)',
+    weight: 10,
+    value: debtYieldPct,
+    contribution: exitScore * 0.10,
+  });
+
+  // ── Factor 6: Rate / PPP Risk (10%) ──
+  // Higher rate headroom = lower risk; PPP blocked adds risk
+  const headroomBps = dscrResult.rateHeadroomBps;
+  const pppBlocked = pppResult ? !pppResult.allowed : false;
+  let rateRiskScore = clampScore(
+    headroomBps >= 200 ? 100 :
+    headroomBps >= 150 ? 85 :
+    headroomBps >= 100 ? 70 :
+    headroomBps >= 50 ? 50 :
+    headroomBps >= 0 ? 25 : 5
+  );
+  if (pppBlocked) rateRiskScore = Math.max(0, rateRiskScore - 15);
+  factors.push({
+    name: 'Rate/PPP Risk',
+    weight: 10,
+    value: headroomBps,
+    contribution: rateRiskScore * 0.10,
+  });
+
+  // ── Factor 7: Capex / Property (5%) ──
+  const ageYears = new Date().getFullYear() - property.yearBuilt;
+  let capexScore: number;
+  if (property.propertyType === '5+_UNIT' || property.propertyType === 'MIXED_USE') {
+    capexScore = 60;
+  } else if (ageYears > 50) {
+    capexScore = 50;
+  } else if (ageYears > 30) {
+    capexScore = 70;
+  } else if (ageYears > 15) {
+    capexScore = 85;
+  } else {
+    capexScore = 95;
+  }
+  if (property.isRural) capexScore = Math.max(40, capexScore - 10);
+  if (property.isDecliningMarket) capexScore = Math.max(40, capexScore - 10);
+  factors.push({
+    name: 'Capex/Property Risk',
+    weight: 5,
+    value: ageYears,
+    contribution: capexScore * 0.05,
+  });
+
+  const totalScore = Math.round(factors.reduce((sum, f) => sum + f.contribution, 0));
+  const band = totalScore >= 85 ? 'Exceptional' :
+              totalScore >= 75 ? 'Strong' :
+              totalScore >= 65 ? 'Acceptable' :
+              totalScore >= 50 ? 'Marginal' :
+              totalScore >= 35 ? 'Weak' : 'Reject';
+
+  return { score: totalScore, band, factors };
+}
+
+// ============================================================
+// EXECUTION RISK SCORECARD
+// ============================================================
+//
+// Combines 5 dimensions into a 5-tier verdict:
+//   Very Likely / Likely / Moderate / Difficult / Fragile
+//
+// Each dimension produces a 0-100 score; weighted average maps to verdict.
+
+export interface ExecutionRiskResult {
+  verdict: 'Very Likely' | 'Likely' | 'Moderate' | 'Difficult' | 'Fragile';
+  score: number;
+  dimensions: { name: string; score: number; weight: number; detail: string }[];
+  summary: string;
+}
+
+export function computeExecutionRisk(
+  dscrResult: DSCRResult,
+  borrower: BorrowerProfile,
+  loan: LoanStructure,
+  property: PropertyInputs,
+  reserveScenarios: ReserveScenarios | null,
+): ExecutionRiskResult {
+  const dimensions: { name: string; score: number; weight: number; detail: string }[] = [];
+
+  // ── DSCR (weight 30) ──
+  const dscr = dscrResult.dscr;
+  const dscrScore = clampScore(
+    dscr >= 1.50 ? 100 :
+    dscr >= 1.25 ? 90 :
+    dscr >= 1.10 ? 75 :
+    dscr >= 1.00 ? 60 :
+    dscr >= 0.85 ? 35 :
+    dscr >= 0.75 ? 20 : 5
+  );
+  dimensions.push({
+    name: 'DSCR',
+    score: dscrScore,
+    weight: 30,
+    detail: `${dscr.toFixed(2)}× Track 1`,
+  });
+
+  // ── FICO (weight 20) ──
+  const fico = borrower.ficoScore;
+  const ficoScore = clampScore(
+    fico >= 780 ? 100 :
+    fico >= 740 ? 90 :
+    fico >= 720 ? 80 :
+    fico >= 700 ? 70 :
+    fico >= 680 ? 60 :
+    fico >= 660 ? 45 :
+    fico >= 640 ? 30 : 15
+  );
+  dimensions.push({
+    name: 'FICO',
+    score: ficoScore,
+    weight: 20,
+    detail: `${fico}`,
+  });
+
+  // ── LTV (weight 20) ──
+  const ltv = loan.ltv;
+  const ltvScore = clampScore(
+    ltv <= 60 ? 100 :
+    ltv <= 65 ? 95 :
+    ltv <= 70 ? 90 :
+    ltv <= 75 ? 80 :
+    ltv <= 80 ? 65 :
+    ltv <= 85 ? 45 : 25
+  );
+  dimensions.push({
+    name: 'LTV',
+    score: ltvScore,
+    weight: 20,
+    detail: `${ltv}%`,
+  });
+
+  // ── Reserves (weight 20) ──
+  let reserveScoreVal = 50;
+  let reserveDetail = 'No reserve data';
+  if (reserveScenarios) {
+    const required = reserveScenarios.conservative.totalDollars;
+    const available = borrower.availableReserves;
+    const ratio = required > 0 ? available / required : 2;
+    reserveScoreVal = clampScore(
+      ratio >= 2 ? 100 :
+      ratio >= 1.5 ? 85 :
+      ratio >= 1.0 ? 65 :
+      ratio >= 0.75 ? 40 : 15
+    );
+    reserveDetail = `${reserveScenarios.conservative.totalMonths}mo req, $${Math.round(available).toLocaleString()} avail`;
+  }
+  dimensions.push({
+    name: 'Reserves',
+    score: reserveScoreVal,
+    weight: 20,
+    detail: reserveDetail,
+  });
+
+  // ── Property Type (weight 10) ──
+  const pt = property.propertyType;
+  const ptScore = clampScore(
+    pt === 'SFR' ? 100 :
+    pt === 'CONDO_WARRANTABLE' ? 90 :
+    pt === '2-4_UNIT' ? 80 :
+    pt === 'CONDO_NON_WARRANTABLE' ? 60 :
+    pt === 'RURAL' ? 55 :
+    pt === '5+_UNIT' ? 50 :
+    pt === 'MIXED_USE' ? 45 :
+    pt === 'CONDOTEL' ? 30 : 50
+  );
+  dimensions.push({
+    name: 'Property Type',
+    score: ptScore,
+    weight: 10,
+    detail: pt.replace(/_/g, ' '),
+  });
+
+  const weightedSum = dimensions.reduce((sum, d) => sum + d.score * d.weight, 0);
+  const totalWeight = dimensions.reduce((sum, d) => sum + d.weight, 0);
+  const finalScore = Math.round(weightedSum / totalWeight);
+
+  const verdict: ExecutionRiskResult['verdict'] =
+    finalScore >= 85 ? 'Very Likely' :
+    finalScore >= 70 ? 'Likely' :
+    finalScore >= 55 ? 'Moderate' :
+    finalScore >= 40 ? 'Difficult' : 'Fragile';
+
+  const summary = `Execution Risk: ${verdict} (${finalScore}/100). ` +
+    dimensions.map(d => `${d.name} ${d.score}`).join(' / ') +
+    `. ${verdict === 'Very Likely' ? 'Strong approval odds across all dimensions.' :
+        verdict === 'Likely' ? 'Approvable with standard documentation.' :
+        verdict === 'Moderate' ? 'Approvable but expect conditions or premium pricing.' :
+        verdict === 'Difficult' ? 'Will require structural changes or specialist lenders.' :
+        'Unlikely to qualify — restructure needed.'}`;
+
+  return { verdict, score: finalScore, dimensions, summary };
+}
+
+// ============================================================
+// DEAL-KILL CRITERIA
+// ============================================================
+//
+// Three severities:
+//   - BLOCKER: hard reject — deal cannot proceed without structural change
+//   - WARNING: proceed with caution — track and disclose
+//   - ACKNOWLEDGMENT: investor must explicitly acknowledge (e.g., Track 2 negative carry)
+
+export function computeDealKillCheck(
+  dscrResult: DSCRResult,
+  borrower: BorrowerProfile,
+  loan: LoanStructure,
+  property: PropertyInputs,
+  strategy: RentalStrategy,
+  reserveScenarios: ReserveScenarios | null,
+  pppResult: PPPCheckResult | null,
+  strResult: STRUnderwritingResult | null,
+): DealKillCheck {
+  const criteria: DealKillItem[] = [];
+
+  // ── BLOCKER 1: Track 1 DSCR < 0.75 (LTR/MTR floor) ──
+  // v11.1 (AUDIT-FINAL-6): STR deals require DSCR ≥ 1.0 (higher than LTR's 0.75).
+  // STR income is volatile (occupancy, seasonality, regulation) so lenders impose
+  // a stricter floor. Easy Street (no DSCR minimum) and no-ratio programs are
+  // exempt — flagged via lender fit logic, not the deal-kill gate.
+  const dscrFloor = strategy === 'STR' ? 1.0 : 0.75;
+  if (dscrResult.dscr < dscrFloor) {
+    criteria.push({
+      criterion: strategy === 'STR'
+        ? 'Track 1 DSCR below 1.00× (STR floor)'
+        : 'Track 1 DSCR below 0.75×',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: strategy === 'STR'
+        ? `Track 1 DSCR is ${dscrResult.dscr.toFixed(2)}× — below the 1.00× floor for STR deals (higher than LTR's 0.75× due to occupancy/seasonality/regulation volatility).`
+        : `Track 1 DSCR is ${dscrResult.dscr.toFixed(2)}× — below the 0.75× floor for nearly all DSCR programs.`,
+      action: strategy === 'STR'
+        ? 'Reduce purchase price, increase down payment, switch to IO, find no-ratio STR lender (e.g., Easy Street), or switch to LTR strategy.'
+        : 'Reduce purchase price, increase down payment, switch to IO, or find a no-ratio lender.',
+    });
+  }
+
+  // ── BLOCKER 2: LTV > 85% ──
+  if (loan.ltv > 85) {
+    criteria.push({
+      criterion: 'LTV exceeds 85%',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `LTV of ${loan.ltv}% exceeds the 85% hard cap for nearly all DSCR lenders.`,
+      action: 'Increase down payment or reduce purchase price.',
+    });
+  }
+
+  // ── BLOCKER 3: FICO < 620 ──
+  if (borrower.ficoScore < 620) {
+    criteria.push({
+      criterion: 'FICO below 620',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `FICO of ${borrower.ficoScore} is below the 620 minimum for virtually all DSCR programs.`,
+      action: 'Improve credit before applying, or seek hard money with extreme premium.',
+    });
+  }
+
+  // ── BLOCKER 4: STR PROHIBITED ──
+  if (strategy === 'STR' && strResult && strResult.legalityGate.status === 'PROHIBITED') {
+    criteria.push({
+      criterion: 'STR prohibited at property location',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: 'STR operation is prohibited at this location. STR income cannot be used for qualification.',
+      action: 'Switch to LTR strategy or find a different property.',
+    });
+  }
+
+  // ── BLOCKER 5: Reserves shortfall exceeds 50% of requirement ──
+  if (reserveScenarios) {
+    const stressShortfall = reserveScenarios.stress.shortfall;
+    const stressRequired = reserveScenarios.stress.totalDollars;
+    if (stressRequired > 0 && stressShortfall / stressRequired > 0.5) {
+      criteria.push({
+        criterion: 'Reserves shortfall exceeds 50% of stress requirement',
+        triggered: true,
+        severity: 'BLOCKER',
+        detail: `Stress-scenario reserve shortfall is $${Math.round(stressShortfall).toLocaleString()} (${Math.round(stressShortfall / stressRequired * 100)}% of $${Math.round(stressRequired).toLocaleString()} required).`,
+        action: 'Increase liquid reserves before closing, or reduce loan size / LTV.',
+      });
+    }
+  }
+
+  // ── WARNING 1: Track 1 DSCR 0.75-1.00 (sub-1.0) — LTR/MTR only ──
+  // v11.1 (AUDIT-FINAL-6): For STR deals, sub-1.0 DSCR is already a BLOCKER
+  // (STR floor = 1.0), so this warning would be redundant — skip when strategy=STR.
+  if (strategy !== 'STR' && dscrResult.dscr >= 0.75 && dscrResult.dscr < 1.00) {
+    criteria.push({
+      criterion: 'Track 1 DSCR sub-1.0 (flex/specialist programs only)',
+      triggered: true,
+      severity: 'WARNING',
+      detail: `Track 1 DSCR of ${dscrResult.dscr.toFixed(2)}× requires flex/specialist lenders at premium pricing.`,
+      action: 'Identify no-ratio / flex-DSCR lenders. Expect 0.50-1.00% rate premium.',
+    });
+  }
+
+  // ── WARNING 2: Track 2 negative carry (requires acknowledgment) ──
+  if (dscrResult.dualTrackDSCR.track2.dscr < 1.0) {
+    criteria.push({
+      criterion: 'Track 2 negative carry — acknowledgment required',
+      triggered: true,
+      severity: 'ACKNOWLEDGMENT',
+      detail: `Track 2 DSCR is ${dscrResult.dualTrackDSCR.track2.dscr.toFixed(2)}× — negative cash flow of $${Math.abs(dscrResult.dualTrackDSCR.track2.monthlyCashFlow).toFixed(0)}/mo after expenses.`,
+      action: 'Investor must explicitly acknowledge negative carry and document appreciation/tax thesis.',
+    });
+  }
+
+  // ── WARNING 3: Rate headroom < 50 bps ──
+  if (dscrResult.rateHeadroomBps < 50 && dscrResult.rateHeadroomBps >= 0) {
+    criteria.push({
+      criterion: 'Deal-break rate headroom below 50 bps',
+      triggered: true,
+      severity: 'WARNING',
+      detail: `Only ${dscrResult.rateHeadroomBps} bps separate the solved rate from the deal-break rate. Small rate movements break the deal.`,
+      action: 'Lock rate immediately, consider rate buy-down, or restructure for more headroom.',
+    });
+  }
+
+  // ── WARNING 4: PPP blocked in state ──
+  if (pppResult && !pppResult.allowed) {
+    criteria.push({
+      criterion: `PPP blocked in ${property.state}`,
+      triggered: true,
+      severity: 'WARNING',
+      detail: `PPP options unavailable: ${pppResult.status.replace(/_/g, ' ')}. Expect ${(pppResult.noPPPPremiumRate * 100).toFixed(2)}% rate premium.`,
+      action: 'Accept no-PPP loan, or vest in eligible entity if state allows.',
+    });
+  }
+
+  // ── WARNING 5: Declining market overlay ──
+  if (property.isDecliningMarket) {
+    criteria.push({
+      criterion: 'Property in declining-market state',
+      triggered: true,
+      severity: 'WARNING',
+      detail: `${property.state} is flagged as a declining-market state. Expect +25 bps rate adjustment and tighter LTV caps.`,
+      action: 'Conservatively underwrite — lower LTV, model appraisal risk.',
+    });
+  }
+
+  // ── WARNING 6: Property age > 50 years ──
+  const ageYears = new Date().getFullYear() - property.yearBuilt;
+  if (ageYears > 50) {
+    criteria.push({
+      criterion: `Property age ${ageYears} years`,
+      triggered: true,
+      severity: 'WARNING',
+      detail: `Properties older than 50 years may trigger inspection conditions, capex reserves, or LTV reductions.`,
+      action: 'Budget for inspection + capex reserve. Consider 2-4% of value for immediate repairs.',
+    });
+  }
+
+  // ── WARNING 7: Foreign national ──
+  if (borrower.isForeignNational) {
+    criteria.push({
+      criterion: 'Foreign national borrower',
+      triggered: true,
+      severity: 'WARNING',
+      detail: 'Foreign nationals face +75 bps rate adjustment and +6 months reserve requirements.',
+      action: 'Confirm SSN/ITIN path with lender. Budget for additional reserves and higher pricing.',
+    });
+  }
+
+  const blockingItems = criteria
+    .filter(c => c.severity === 'BLOCKER' && c.triggered)
+    .map(c => c.criterion);
+
+  const allClear = blockingItems.length === 0;
+
+  const track2Acknowledgment = criteria.find(c => c.severity === 'ACKNOWLEDGMENT' && c.triggered) ?? null;
+
+  return {
+    criteria,
+    allClear,
+    blockingItems,
+    track2Acknowledgment,
+  };
+}
+
+// ============================================================
+// TWO-QUOTE RULE VALIDATION
+// ============================================================
+//
+// Spec: "Always obtain quotes from at least 2 lenders before proceeding."
+// Strongest implementation: one flex lender (broadest eligibility)
+// + one rate-competitive lender (best pricing for qualified borrowers).
+//
+// "Flex" = lender accepts DSCR ≤ 0.75 OR explicitly offers no-ratio
+// "Rate-competitive" = lender's rateAdjustment ≤ 0 (prices at or below market)
+//   OR lender fitTier is STRONG_FIT (top-tier borrower profile gets best pricing)
+//
+// Falls back to fitTier-based heuristic when rateAdjustment is unavailable.
+
+export interface TwoQuoteValidation {
+  satisfied: boolean;
+  reason: string;
+  recommendedPair: { flex: string | null; rateCompetitive: string | null };
+  missingRole: 'FLEX' | 'RATE_COMPETITIVE' | 'BOTH' | null;
+}
+
+export function validateTwoQuoteRule(
+  selectedLenderIds: string[],
+  lenderFits: {
+    lenderId: string;
+    lenderName: string;
+    fitTier: string;
+    eligible: boolean;
+    rateAdjustment?: number;
+    track1DSCR?: number;
+  }[],
+): TwoQuoteValidation {
+  const eligibleLenders = lenderFits.filter(l => l.eligible);
+  if (eligibleLenders.length === 0) {
+    return {
+      satisfied: false,
+      reason: 'No eligible lenders — restructure deal before seeking quotes.',
+      recommendedPair: { flex: null, rateCompetitive: null },
+      missingRole: 'BOTH',
+    };
+  }
+
+  // "Flex" lender: broadly eligible — accepts DSCR ≤ 0.75 OR fitTier is CONDITIONAL_FIT
+  // (i.e., lender willing to flex on guidelines)
+  const flexLenders = eligibleLenders.filter(l => {
+    if (l.track1DSCR !== undefined && l.track1DSCR < 1.0) return true; // sub-1.0 borrower needs flex
+    return l.fitTier === 'STRONG_FIT' || l.fitTier === 'STANDARD_FIT' || l.fitTier === 'CONDITIONAL_FIT';
+  });
+
+  // "Rate-competitive" lender: rateAdjustment ≤ 0 (prices at/below market)
+  // OR STRONG_FIT (when rateAdjustment unavailable, top-tier profile gets best pricing)
+  const rateCompetitiveLenders = eligibleLenders.filter(l => {
+    if (l.rateAdjustment !== undefined) return l.rateAdjustment <= 0;
+    return l.fitTier === 'STRONG_FIT';
+  });
+
+  const selectedSet = new Set(selectedLenderIds);
+  const selectedFlex = flexLenders.find(l => selectedSet.has(l.lenderId));
+  const selectedRateComp = rateCompetitiveLenders.find(l => selectedSet.has(l.lenderId));
+
+  const hasFlex = !!selectedFlex;
+  const hasRateComp = !!selectedRateComp;
+  const satisfied = hasFlex && hasRateComp;
+
+  let reason: string;
+  let missingRole: 'FLEX' | 'RATE_COMPETITIVE' | 'BOTH' | null;
+  if (satisfied) {
+    reason = `Two-quote rule satisfied: ${selectedFlex!.lenderName} (flex/eligible) + ${selectedRateComp!.lenderName} (rate-competitive).`;
+    missingRole = null;
+  } else if (!hasFlex && !hasRateComp) {
+    reason = 'Select at least one eligible flex lender and one rate-competitive lender.';
+    missingRole = 'BOTH';
+  } else if (!hasFlex) {
+    reason = 'Select at least one eligible flex lender for breadth of coverage.';
+    missingRole = 'FLEX';
+  } else {
+    reason = 'Select at least one rate-competitive lender (rateAdjustment ≤ 0) for best pricing.';
+    missingRole = 'RATE_COMPETITIVE';
+  }
+
+  return {
+    satisfied,
+    reason,
+    recommendedPair: {
+      flex: flexLenders[0]?.lenderName ?? null,
+      rateCompetitive: rateCompetitiveLenders[0]?.lenderName ?? null,
+    },
+    missingRole,
+  };
+}
+
+// ============================================================
+// HELPER
+// ============================================================
+
+function clampScore(n: number): number {
+  return Math.max(0, Math.min(100, n));
+}
+
+// ============================================================
+// v11.0 UPGRADE — VERDICT, RETURN GRADE, IC MEMO
+// Part J: PROCEED / RESTRUCTURE / PASS + binding constraint +
+//         kill-switch + Return Grade A-F on after-tax IRR
+// ============================================================
+
+export interface VerdictInput {
+  track1DSCR: number;
+  track2DSCR: number;
+  lenderMinDSCR: number;
+  afterTaxIRR: number;
+  preTaxIRR: number;
+  year1CoC: number;
+  dealBreakRate: number;
+  solvedRate: number;
+  rateHeadroomBps: number;
+  appraisalBreakpointPercent: number;
+  insuranceGate: InsuranceGateResult | null;
+  brrrrGate: BRRRRSeasoningGate | null;
+  armReset: ARMResetResult | null;
+  strLegalityStatus: string;
+  pppAllowed: boolean;
+  ficoScore: number;
+  ltv: number;
+  ltvCap: number;
+  loanAmount: number;
+  lenderMinLoan: number;
+  bestLenderConfidence: number;
+  lenderRanking: LenderRankingEntry[];
+  isDecliningMarket: boolean;
+  monteCarloPDSCRLessThan1?: number;
+  monteCarlo5thPctDSCR?: number;
+}
+
+/**
+ * Compute the final verdict per Part J.
+ *
+ * PROCEED: T1 ≥ floor + cushion ≥0.05; T2 ≥1.0 OR explicit appreciation/tax
+ *   thesis in $/mo; Return Grade ≥B on after-tax IRR; no kill criteria;
+ *   ≥1 Strong/Standard lender.
+ *
+ * RESTRUCTURE: one fixable gate; rescue path returned with ranked options.
+ *
+ * PASS: hard kill; or P(DSCR<1.00) >15%; or 5th-pct DSCR < 0.80; or
+ *   Return Grade ≤D with negative T2 and no thesis; or no eligible lender.
+ */
+export function computeVerdict(input: VerdictInput): VerdictResult {
+  const killCriteria: KillCriterion[] = [];
+  const killSwitchConditions: string[] = [];
+
+  // === KILL CRITERIA (Part J) ===
+
+  // 1. STR prohibited
+  if (input.strLegalityStatus === 'PROHIBITED') {
+    killCriteria.push({
+      criterion: 'STR Prohibited',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `STR is legally prohibited in this jurisdiction.`,
+      action: 'Switch to LTR strategy or pass on the deal.',
+    });
+  }
+
+  // 2. PPP illegal for this vesting/lender
+  if (!input.pppAllowed) {
+    killCriteria.push({
+      criterion: 'PPP Illegal for Vesting/Lender',
+      triggered: true,
+      severity: 'WARNING',
+      detail: `Prepayment penalty is unavailable. No-PPP premium applies (+0.25% rate / +0.625% fee).`,
+      action: 'Switch to entity vesting (LLC) or accept no-PPP pricing.',
+    });
+  }
+
+  // 3. Insurance unconfirmed in high-risk zone (NEW v10+)
+  if (input.insuranceGate && input.insuranceGate.killCriterion) {
+    killCriteria.push({
+      criterion: 'Insurance Unconfirmed in High-Risk Zone',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: input.insuranceGate.reason,
+      action: 'PASS — Do not proceed until a bindable insurance quote is in hand.',
+    });
+  }
+
+  // 4. FICO below all floors (<620)
+  if (input.ficoScore < 620) {
+    killCriteria.push({
+      criterion: 'FICO Below All Lender Floors',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `FICO ${input.ficoScore} is below the 620 minimum floor (Griffin/Defy).`,
+      action: 'Improve credit or use no-ratio program with 720+ FICO.',
+    });
+  }
+
+  // 5. Track 1 < 0.75
+  if (input.track1DSCR < 0.75) {
+    killCriteria.push({
+      criterion: 'Track 1 DSCR < 0.75',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `Track 1 DSCR ${input.track1DSCR.toFixed(3)} is below 0.75 — no-ratio territory only.`,
+      action: 'Restructure: lower price, increase down payment, or use no-ratio program.',
+    });
+  }
+
+  // 6. Appraiser rent break point exceeded (>4.83% below asking)
+  if (input.appraisalBreakpointPercent > 4.83) {
+    killCriteria.push({
+      criterion: 'Appraisal Rent Break Point Exceeded',
+      triggered: true,
+      severity: 'WARNING',
+      detail: `Appraisal break point ${input.appraisalBreakpointPercent.toFixed(2)}% > 4.83% threshold.`,
+      action: 'Renegotiate price or increase down payment to cover appraisal gap.',
+    });
+  }
+
+  // 7. Reserves not liquid / not in acceptable tier (placeholder — needs reserve engine input)
+
+  // 8. Rate > deal-break rate
+  if (input.solvedRate > input.dealBreakRate) {
+    killCriteria.push({
+      criterion: 'Rate Above Deal-Break Rate',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `Solved rate ${input.solvedRate.toFixed(3)}% > deal-break rate ${input.dealBreakRate.toFixed(2)}%.`,
+      action: 'Buy down rate, restructure, or pass.',
+    });
+  }
+
+  // 9. Declining-market LTV cap binds (CT/FL/IL/NJ/NY check)
+  if (input.isDecliningMarket && input.ltv > input.ltvCap) {
+    killCriteria.push({
+      criterion: 'Declining-Market LTV Cap Binds',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `LTV ${input.ltv}% exceeds ${input.ltvCap}% cap in declining market state.`,
+      action: 'Reduce LTV to cap or pass.',
+    });
+  }
+
+  // 10. Loan < lender minimum / sub-$150K floor
+  if (input.loanAmount < input.lenderMinLoan || input.loanAmount < 150000) {
+    killCriteria.push({
+      criterion: 'Loan Below Lender Minimum',
+      triggered: true,
+      severity: 'WARNING',
+      detail: `Loan amount $${input.loanAmount.toLocaleString()} < lender min $${input.lenderMinLoan.toLocaleString()} or sub-$150K floor.`,
+      action: 'Increase loan amount or find lender with lower minimum.',
+    });
+  }
+
+  // 11. BRRRR ARV cash-out gated by seasoning (NEW v10+)
+  if (input.brrrrGate && input.brrrrGate.applies && !input.brrrrGate.seasoningMet) {
+    killCriteria.push({
+      criterion: 'BRRRR Seasoning Not Met',
+      triggered: true,
+      severity: 'WARNING',
+      detail: input.brrrrGate.reason,
+      action: 'Wait for seasoning period or use Easy Street Capital (waives STR cash-out seasoning).',
+    });
+  }
+
+  // 12. Confidence <60 on best-fit lender
+  if (input.bestLenderConfidence < 60) {
+    killCriteria.push({
+      criterion: 'Low Confidence on Best-Fit Lender',
+      triggered: true,
+      severity: 'WARNING',
+      detail: `Best-fit lender confidence ${input.bestLenderConfidence} < 60 threshold.`,
+      action: 'Verify lender terms directly before proceeding.',
+    });
+  }
+
+  // 13. ARM double-shock at reset year breaches DSCR floor (NEW v11)
+  if (input.armReset && input.armReset.doubleShockRisk === 'CRITICAL') {
+    killCriteria.push({
+      criterion: 'ARM Double-Shock Critical Risk',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `IO+ARM double-shock year ${input.armReset.ioArmDoubleShockYear}: IO recast AND ARM reset hit simultaneously.`,
+      action: 'Switch to fixed-rate product or separate IO expiry from ARM reset.',
+    });
+  }
+
+  // 14. Monte Carlo triggers (if available)
+  if (input.monteCarloPDSCRLessThan1 !== undefined) {
+    if (input.monteCarloPDSCRLessThan1 > 0.15) {
+      killCriteria.push({
+        criterion: 'P(DSCR<1.00) > 15%',
+        triggered: true,
+        severity: 'BLOCKER',
+        detail: `Monte Carlo probability of DSCR<1.00 is ${(input.monteCarloPDSCRLessThan1 * 100).toFixed(1)}% — exceeds 15% threshold.`,
+        action: 'PASS — risk threshold exceeded.',
+      });
+    } else if (input.monteCarloPDSCRLessThan1 > 0.10) {
+      killCriteria.push({
+        criterion: 'P(DSCR<1.00) > 10%',
+        triggered: true,
+        severity: 'WARNING',
+        detail: `Monte Carlo probability of DSCR<1.00 is ${(input.monteCarloPDSCRLessThan1 * 100).toFixed(1)}% — CONDITIONAL.`,
+        action: 'Reprice or restructure.',
+      });
+    }
+  }
+  if (input.monteCarlo5thPctDSCR !== undefined && input.monteCarlo5thPctDSCR < 0.80) {
+    killCriteria.push({
+      criterion: '5th-Pct DSCR < 0.80',
+      triggered: true,
+      severity: 'BLOCKER',
+      detail: `5th-percentile DSCR ${input.monteCarlo5thPctDSCR.toFixed(3)} < 0.80 — automatic flag regardless of median.`,
+      action: 'PASS — tail risk exceeded.',
+    });
+  }
+
+  // === TRACK 2 ACKNOWLEDGMENT (not a kill — forced acknowledgment) ===
+  const track2AcknowledgmentRequired = input.track2DSCR < 1.0;
+  if (track2AcknowledgmentRequired) {
+    killCriteria.push({
+      criterion: 'Track 2 Negative Carry',
+      triggered: true,
+      severity: 'ACKNOWLEDGMENT',
+      detail: `Track 2 DSCR ${input.track2DSCR.toFixed(3)} < 1.0 — deal qualifies but loses money monthly.`,
+      action: 'Type "I understand" to proceed. Proceed only if appreciation or after-tax thesis justifies the negative carry, stated in $/mo.',
+    });
+  }
+
+  // === RETURN GRADE (Part J) ===
+  const returnGrade = computeReturnGrade(input.afterTaxIRR, input.track2DSCR);
+  const returnGradeReason = buildReturnGradeReason(returnGrade, input.afterTaxIRR, input.track2DSCR);
+
+  // === DETERMINE VERDICT ===
+  const blockers = killCriteria.filter(k => k.severity === 'BLOCKER' && k.triggered);
+  const hasEligibleLender = input.lenderRanking.some(l => l.eligible);
+
+  let verdict: 'PROCEED' | 'RESTRUCTURE' | 'PASS';
+  let bindingConstraint: string;
+
+  if (blockers.length > 0 || !hasEligibleLender || returnGrade === 'F') {
+    verdict = 'PASS';
+    bindingConstraint = blockers[0]?.criterion ?? (returnGrade === 'F' ? 'Return Grade F' : 'No eligible lender');
+  } else if (
+    input.track1DSCR >= input.lenderMinDSCR + 0.05 &&
+    (input.track2DSCR >= 1.0 || track2AcknowledgmentRequired) &&
+    returnGrade >= 'B' &&
+    input.rateHeadroomBps >= 50
+  ) {
+    verdict = 'PROCEED';
+    bindingConstraint = 'None — all gates clear.';
+  } else {
+    verdict = 'RESTRUCTURE';
+    bindingConstraint = killCriteria.find(k => k.triggered && k.severity !== 'ACKNOWLEDGMENT')?.criterion
+      ?? `Track 1 cushion: ${(input.track1DSCR - input.lenderMinDSCR).toFixed(3)}`;
+  }
+
+  // === KILL-SWITCH CONDITIONS ===
+  killSwitchConditions.push(`If solved rate rises above ${input.dealBreakRate.toFixed(2)}% → verdict flips to PASS.`);
+  killSwitchConditions.push(`If Track 1 DSCR drops below ${input.lenderMinDSCR} → verdict flips to RESTRUCTURE.`);
+  if (input.armReset) {
+    killSwitchConditions.push(`If SOFR rises to 5.0% (stress), Track 1 at reset = ${input.armReset.track1DSCRAtStressReset.toFixed(3)} → if <1.0, verdict flips to PASS.`);
+  }
+  if (input.insuranceGate && input.insuranceGate.zone !== 'STANDARD') {
+    killSwitchConditions.push(`If insurance quote not bindable within 14 days → verdict flips to PASS.`);
+  }
+
+  // === TRACK 2 ACK TEXT ===
+  const track2AcknowledgmentText = track2AcknowledgmentRequired
+    ? `This deal qualifies (Track 1 DSCR ${input.track1DSCR.toFixed(3)}) AND loses money every month (Track 2 DSCR ${input.track2DSCR.toFixed(3)}). ` +
+      `Type "I understand" to proceed. Proceed only if appreciation or after-tax thesis justifies the negative carry — ` +
+      `and that thesis must be stated in $/mo in writing.`
+    : '';
+
+  return {
+    verdict,
+    bindingConstraint,
+    killSwitchConditions,
+    returnGrade,
+    returnGradeReason,
+    track2AcknowledgmentRequired,
+    track2AcknowledgmentText,
+    killCriteriaTriggered: killCriteria.filter(k => k.triggered),
+    rescueOptions: [], // populated by rescue engine
+    note: `Verdict based on ${killCriteria.length} kill criteria checked. ${blockers.length} blockers triggered. Return Grade ${returnGrade} on after-tax IRR ${(input.afterTaxIRR * 100).toFixed(1)}%.`,
+  };
+}
+
+/**
+ * Return Grade (Part J):
+ *   A: After-tax IRR ≥15%; T2 ≥1.10
+ *   B: 12-15%; T2 ≥1.00
+ *   C: 8-12%; T2 <1.00 with appreciation thesis
+ *   D: <8% or T2 negative
+ *   F: PASS scenario (negative after-tax IRR, hard kill, or no lender)
+ */
+export function computeReturnGrade(
+  afterTaxIRR: number,
+  track2DSCR: number,
+): ReturnGrade {
+  // afterTaxIRR is passed as a decimal (0.15 = 15%)
+  const irrPct = afterTaxIRR;
+
+  if (irrPct < 0 || track2DSCR < 0) return 'F';
+  if (irrPct >= 0.15 && track2DSCR >= 1.10) return 'A';
+  if (irrPct >= 0.12 && track2DSCR >= 1.00) return 'B';
+  if (irrPct >= 0.08) return 'C';
+  return 'D';
+}
+
+function buildReturnGradeReason(
+  grade: ReturnGrade,
+  afterTaxIRR: number,
+  track2DSCR: number,
+): string {
+  const irrPct = (afterTaxIRR * 100).toFixed(1);
+  switch (grade) {
+    case 'A':
+      return `Grade A: After-tax IRR ${irrPct}% ≥ 15% AND Track 2 DSCR ${track2DSCR.toFixed(3)} ≥ 1.10. Institutional-grade return with survival cushion.`;
+    case 'B':
+      return `Grade B: After-tax IRR ${irrPct}% in 12-15% range AND Track 2 DSCR ${track2DSCR.toFixed(3)} ≥ 1.00. Solid return with adequate cash flow.`;
+    case 'C':
+      return `Grade C: After-tax IRR ${irrPct}% in 8-12% range. Track 2 DSCR ${track2DSCR.toFixed(3)} < 1.00 — proceed only with appreciation thesis in $/mo.`;
+    case 'D':
+      return `Grade D: After-tax IRR ${irrPct}% < 8% OR Track 2 DSCR ${track2DSCR.toFixed(3)} negative. Marginal return; requires structural fix.`;
+    case 'F':
+      return `Grade F: PASS scenario — negative after-tax IRR, hard kill, or no eligible lender. Do not proceed.`;
+  }
+}
+
+// ============================================================
+// IC MEMO EXPORT (Part J)
+// ============================================================
+
+export interface ICMemoInput {
+  propertyAddress: string;
+  entityType: string;
+  verdict: VerdictResult;
+  track1DSCR: number;
+  lenderMinDSCR: number;
+  debtYield: number;
+  ltv: number;
+  ltvCap: number;
+  dealBreakRate: number;
+  cushionBps: number;
+  entryCapRate: number;
+  year1CoC: number;
+  preTaxIRR: number;
+  preTaxP10: number;
+  preTaxP90: number;
+  afterTaxIRR: number;
+  equityMultiple: number;
+  sellerAnnualTax: number;
+  reassessedAnnualTax: number;
+  bindingRisk: string;
+  pDSCRLessThan1: number;
+  fifthPctDSCR: number;
+  heatmapSummary: string;
+  armReset: ARMResetResult | null;
+  lenderRanking: LenderRankingEntry[];
+  insuranceStatus: string;
+  strLegality: string;
+  reserves: { likely: number; conservative: number; stress: number; portfolioStack: number };
+  prepaySchedule: string;
+  assumptions: string[];
+  sourceDates: { name: string; date: string; provenance: ProvenanceLabel }[];
+}
+
+export function buildICMemo(input: ICMemoInput): ICMemo {
+  const riskStatement = buildRiskStatement(input);
+
+  return {
+    generatedAt: new Date().toISOString(),
+    propertyAddress: input.propertyAddress,
+    entityType: input.entityType,
+    verdict: input.verdict.verdict,
+    bindingConstraint: input.verdict.bindingConstraint,
+    killSwitch: input.verdict.killSwitchConditions[0] ?? 'None',
+    threeMetricCredit: {
+      track1DSCR: input.track1DSCR,
+      lenderMinDSCR: input.lenderMinDSCR,
+      debtYield: input.debtYield,
+      debtYieldTarget: 9,
+      ltv: input.ltv,
+      ltvCap: input.ltvCap,
+      dealBreakRate: input.dealBreakRate,
+      cushionBps: input.cushionBps,
+    },
+    returnStack: {
+      entryCapRate: input.entryCapRate,
+      year1CoC: input.year1CoC,
+      preTaxIRR: input.preTaxIRR,
+      preTaxP10: input.preTaxP10,
+      preTaxP90: input.preTaxP90,
+      afterTaxIRR: input.afterTaxIRR,
+      returnGrade: input.verdict.returnGrade,
+      equityMultiple: input.equityMultiple,
+      sellerAnnualTax: input.sellerAnnualTax,
+      reassessedAnnualTax: input.reassessedAnnualTax,
+    },
+    probabilisticStress: {
+      bindingRisk: input.bindingRisk,
+      pDSCRLessThan1: input.pDSCRLessThan1,
+      fifthPctDSCR: input.fifthPctDSCR,
+      heatmapSummary: input.heatmapSummary,
+    },
+    armReset: input.armReset ? {
+      initialRate: input.armReset.initialRate,
+      resetRateAtCurrent: input.armReset.resetRateAtCurrentIndex,
+      resetRateAtStress: input.armReset.resetRateAtStressIndex,
+      track1AtStress: input.armReset.track1DSCRAtStressReset,
+      doubleShockYear: input.armReset.ioArmDoubleShockYear,
+    } : null,
+    lenderRanking: input.lenderRanking,
+    insuranceStatus: input.insuranceStatus,
+    strLegality: input.strLegality,
+    reserves: input.reserves,
+    prepaySchedule: input.prepaySchedule,
+    riskStatement,
+    assumptions: input.assumptions,
+    sourceDates: input.sourceDates,
+    disclaimer: `PROFESSIONAL DECISION-SUPPORT — DATA AS OF JUNE 2026. Analytical recommendations for use by a licensed professional or sophisticated investor, who is the decision-maker of record. Not a loan commitment, credit decision, appraisal, tax opinion, or guarantee of approval; not a substitute for legal, tax, and financial counsel. Guidelines, rates, LTV, reserves, prepayment structures, and STR/insurance policies change without notice; verified items reflect their labeled source dates; market-pattern/unverified items require direct confirmation. Rates anchor to the 10yr/5yr Treasury and SOFR + a risk-tiered spread and must be re-priced as markets move. Annually indexed thresholds (OH/PA) re-confirmed each January. MN HF 3437 enacted April 23, 2026, effective August 1, 2026 — applies only to personal/family/household loans; business-purpose DSCR loans not reached. Tax outputs (depreciation, bonus-dep per OBBBA, recapture, NIIT, 1031, after-tax IRR) are estimates dependent on the investor's bracket, MAGI, REP status, filing status, entity, and cost-segregation election — confirm with a CPA. Return projections depend on forward assumptions (rent growth, exit cap, hold) that are estimates, not forecasts. Fit tiers are qualitative, not predictions. Scoring weights are suggested, not empirically calibrated.`,
+  };
+}
+
+function buildRiskStatement(input: ICMemoInput): string {
+  const parts: string[] = [];
+  parts.push(`Property: ${input.propertyAddress} (${input.entityType}). `);
+  parts.push(`Qualification: Track 1 DSCR ${input.track1DSCR.toFixed(3)} vs lender floor ${input.lenderMinDSCR.toFixed(2)} — cushion ${(input.track1DSCR - input.lenderMinDSCR).toFixed(3)}. `);
+  parts.push(`Return: After-tax IRR ${(input.afterTaxIRR * 100).toFixed(1)}% (Grade ${input.verdict.returnGrade}), equity multiple ${input.equityMultiple.toFixed(2)}x. `);
+  parts.push(`Risk: Binding risk = ${input.bindingRisk}. P(DSCR<1.00) = ${(input.pDSCRLessThan1 * 100).toFixed(1)}%. `);
+  parts.push(`Structural condition that flips verdict: ${input.verdict.killSwitchConditions[0] ?? 'None'}.`);
+  return parts.join('');
+}

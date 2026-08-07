@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import BottomCTA from "../design/BottomCTA";
 import { computeAfterTaxIRR } from "../engine/taxEngine";
 import { calculatePI } from "../engine/engine";
 import type { TaxProfile, FilingStatus } from "../engine/types";
@@ -61,7 +62,7 @@ export default function TaxEnginePage({
         exitCapRatePct: 6.5,
         section1031Exchange: false,
       };
-      return computeAfterTaxIRR(
+      const irrResult = computeAfterTaxIRR(
         purchasePrice,
         loanAmount,
         monthlyRent,
@@ -73,6 +74,18 @@ export default function TaxEnginePage({
         rate,
         360,
       );
+      // Compute effective tax rate: weighted avg of federal + state across all years
+      const totalTaxPaid = irrResult.yearByYear.reduce((sum, y) => sum + y.federalTax + y.stateTax, 0);
+      const totalTaxableIncome = irrResult.yearByYear.reduce((sum, y) => sum + Math.max(y.taxableIncome, 0), 0);
+      const effectiveTaxRate = totalTaxableIncome > 0 ? totalTaxPaid / totalTaxableIncome : 0;
+      
+      // Depreciation shield as % of NOI
+      const avgAnnualNOI = annualNOI; // simplified; could grow with rent
+      const depShieldPctOfNOI = avgAnnualNOI > 0 
+        ? (irrResult.totalDepreciationShield / holdYears) / avgAnnualNOI 
+        : 0;
+
+      return { ...irrResult, effectiveTaxRate, depShieldPctOfNOI, annualNOI };
     } catch {
       return null;
     }
@@ -111,7 +124,7 @@ export default function TaxEnginePage({
     !hasResult ? "rgba(238,239,211,0.3)"
     : afterTaxIRR >= 0.1 ? dc.emerald
     : afterTaxIRR >= 0.06 ? dc.lemon
-    : "#ff6b6b";
+    : "#e06363";
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -185,8 +198,9 @@ export default function TaxEnginePage({
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: dc.dark,
-                background: dc.lemon,
+                color: "rgba(238,239,211,0.62)",
+                background: "rgba(238,239,211,0.06)",
+                border: "1px solid rgba(238,239,211,0.18)",
                 padding: "7px 14px",
                 borderRadius: 100,
                 marginBottom: 24,
@@ -203,7 +217,14 @@ export default function TaxEnginePage({
             <p style={{ color: "rgba(0,55,56,0.55)", fontSize: 14, fontWeight: 500, margin: "0 0 32px", lineHeight: 1.5 }}>
               How to use: fill in the deal numbers and your income situation on the left. Compare the after-tax IRR to the pre-tax IRR — the gap is your tax drag. Real estate professional status (750hr + 50% test) can dramatically reduce that drag.
             </p>
-            <Btn label="Open the tax engine" href="#te-tool" onClick={scrollToTool} />
+            {/* Dark-fill button — the lemon-fill primary would vanish on this lemon hero */}
+            <a
+              href="#te-tool"
+              onClick={scrollToTool}
+              style={{ display: "inline-flex", alignItems: "center", gap: 9, background: dc.dark, color: dc.cream, fontWeight: 600, fontSize: 16, textDecoration: "none", padding: "16px 32px", borderRadius: dc.r.md, fontFamily: dc.sans }}
+            >
+              Open the tax engine <span style={{ fontSize: 18 }}>→</span>
+            </a>
           </div>
 
           {/* Right — live IRR card matching the mockup's dark teal panel */}
@@ -242,7 +263,7 @@ export default function TaxEnginePage({
                 {
                   label: "Tax drag",
                   val: dragStr,
-                  color: "#ff6b6b",
+                  color: "#e06363",
                 },
               ].map((r) => (
                 <div
@@ -252,7 +273,7 @@ export default function TaxEnginePage({
                     justifyContent: "space-between",
                     fontSize: 13,
                     padding: "8px 0",
-                    borderBottom: "1px solid rgba(238,239,211,0.1)",
+                    borderBottom: "1px solid rgba(238,239,211,0.16)",
                   }}
                 >
                   <span style={{ color: "rgba(238,239,211,0.6)" }}>{r.label}</span>
@@ -318,7 +339,7 @@ export default function TaxEnginePage({
               <span style={{ color: irrColor }}>{afterTaxStr}</span>
               {" "}· pre-tax {preTaxStr} · drag {dragStr}
             </h2>
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.55)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.62)", margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
               {!hasResult
                 ? "Adjust inputs to see your after-tax return."
                 : afterTaxIRR >= 0.1
@@ -360,7 +381,7 @@ export default function TaxEnginePage({
               >
                 Deal &amp; Tax profile
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", margin: "0 0 16px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 16px", lineHeight: 1.5 }}>
                 Deal numbers at the top; your personal tax situation below. Estimates are fine — numbers update live.
               </p>
 
@@ -506,13 +527,13 @@ export default function TaxEnginePage({
                       fontWeight: 600,
                       letterSpacing: "0.04em",
                       textTransform: "uppercase",
-                      color: "rgba(238,239,211,0.55)",
+                      color: "rgba(238,239,211,0.62)",
                       marginBottom: 3,
                     }}
                   >
                     {f.label}
                   </span>
-                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.35)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>{f.hint}</span>
                   <div
                     style={{
                       display: "flex",
@@ -520,11 +541,11 @@ export default function TaxEnginePage({
                       background: dc.dark,
                       borderRadius: 6,
                       padding: "0 11px",
-                      border: "1px solid rgba(238,239,211,0.1)",
+                      border: "1px solid rgba(238,239,211,0.16)",
                     }}
                   >
                     {f.prefix && (
-                      <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 14 }}>
+                      <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
                         {f.prefix}
                       </span>
                     )}
@@ -537,7 +558,7 @@ export default function TaxEnginePage({
                       style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
                     />
                     {f.suffix && (
-                      <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 14 }}>
+                      <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>
                         {f.suffix}
                       </span>
                     )}
@@ -554,7 +575,7 @@ export default function TaxEnginePage({
                     fontWeight: 600,
                     letterSpacing: "0.04em",
                     textTransform: "uppercase",
-                    color: "rgba(238,239,211,0.55)",
+                    color: "rgba(238,239,211,0.62)",
                     marginBottom: 5,
                   }}
                 >
@@ -565,7 +586,7 @@ export default function TaxEnginePage({
                     background: dc.dark,
                     borderRadius: 6,
                     padding: "0 11px",
-                    border: "1px solid rgba(238,239,211,0.1)",
+                    border: "1px solid rgba(238,239,211,0.16)",
                   }}
                 >
                   <select
@@ -618,7 +639,7 @@ export default function TaxEnginePage({
                     border: "1px solid rgba(238,239,211,0.08)",
                   }}
                 >
-                  <p style={{ color: "#ff6b6b", fontWeight: 600 }}>
+                  <p style={{ color: "#e06363", fontWeight: 600 }}>
                     Engine returned no result. Check inputs.
                   </p>
                 </div>
@@ -662,7 +683,7 @@ export default function TaxEnginePage({
                       style={{
                         fontSize: 14,
                         fontWeight: 500,
-                        color: "rgba(238,239,211,0.55)",
+                        color: "rgba(238,239,211,0.62)",
                         marginTop: 16,
                         letterSpacing: "-0.01em",
                       }}
@@ -692,7 +713,7 @@ export default function TaxEnginePage({
                     >
                       Tax breakdown — where the money goes
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 14px", lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                       Green = tax benefit that improves your return. Red = tax cost that reduces it. The difference between pre-tax and after-tax IRR is your total tax drag.
                     </p>
                     {(
@@ -703,9 +724,19 @@ export default function TaxEnginePage({
                           color: dc.emerald,
                         },
                         {
+                          label: "Depreciation shield as % of NOI — annual depreciation deduction divided by net operating income",
+                          val: ((result as any).depShieldPctOfNOI * 100).toFixed(1) + "%",
+                          color: dc.emerald,
+                        },
+                        {
+                          label: "Effective tax rate (combined federal + state) — blended rate across all operating years",
+                          val: ((result as any).effectiveTaxRate * 100).toFixed(1) + "%",
+                          color: dc.lemon,
+                        },
+                        {
                           label: "Total tax on exit — depreciation recapture + capital gains tax owed when you sell",
                           val: fmt$(result.totalTaxOnExit),
-                          color: "#ff6b6b",
+                          color: "#e06363",
                         },
                         {
                           label: "§1250 recapture rate — the tax rate on depreciation you claimed (capped at 25%)",
@@ -722,7 +753,7 @@ export default function TaxEnginePage({
                         {
                           label: "NIIT (3.8% net investment income tax) — applies if MAGI exceeds $200K single / $250K joint",
                           val: result.niitApplies ? "Yes — adds 3.8% to investment income" : "No",
-                          color: result.niitApplies ? "#ff6b6b" : dc.emerald,
+                          color: result.niitApplies ? "#e06363" : dc.emerald,
                         },
                       ] as { label: string; val: string; color: string }[]
                     ).map((r) => (
@@ -774,27 +805,27 @@ export default function TaxEnginePage({
                     >
                       Year-by-year cash flow — before and after taxes
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 12px", lineHeight: 1.5 }}>
-                      Pre-Tax = net operating income minus debt service. Dep. = depreciation deduction (reduces your taxable income each year). Fed+St Tax = federal plus state tax owed. After-Tax = what you actually keep. Green = positive; red = negative cash flow that year.
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 12px", lineHeight: 1.5 }}>
+                      Pre-Tax = net operating income minus debt service. Dep. = depreciation deduction (reduces your taxable income each year). Tax Shield = value of dep. deduction (dep. × effective tax rate). Fed+St Tax = federal plus state tax owed. After-Tax = what you actually keep. Green = positive; red = negative cash flow that year.
                     </p>
                     <div style={{ overflowX: "auto" }}>
                       <table
                         style={{
                           width: "100%",
                           borderCollapse: "collapse",
-                          minWidth: 480,
+                          minWidth: 580,
                         }}
                       >
                         <thead>
                           <tr>
-                            {["Yr", "Pre-Tax", "Dep.", "Fed+St Tax", "After-Tax"].map(
+                            {["Yr", "Pre-Tax", "Dep.", "Tax Shield", "Fed+St Tax", "After-Tax"].map(
                               (h) => (
                                 <th
                                   key={h}
                                   style={{
                                     padding: "5px 8px",
-                                    fontSize: 10,
-                                    color: "rgba(238,239,211,0.45)",
+                                    fontSize: 11,
+                                    color: "rgba(238,239,211,0.62)",
                                     textAlign: "right",
                                     fontWeight: 500,
                                     fontFamily: dc.mono,
@@ -809,14 +840,16 @@ export default function TaxEnginePage({
                         <tbody>
                           {result.yearByYear.map((row) => {
                             const atColor =
-                              row.afterTaxNCF >= 0 ? dc.emerald : "#ff6b6b";
+                              row.afterTaxNCF >= 0 ? dc.emerald : "#e06363";
+                            // Tax shield = depreciation × effective rate (approximation)
+                            const taxShield = row.depreciationDeduction * (result as any).effectiveTaxRate;
                             return (
                               <tr key={row.year}>
                                 <td
                                   style={{
                                     padding: "6px 8px",
                                     fontSize: 12,
-                                    color: "rgba(238,239,211,0.5)",
+                                    color: "rgba(238,239,211,0.62)",
                                     textAlign: "right",
                                     fontFamily: dc.mono,
                                   }}
@@ -849,7 +882,18 @@ export default function TaxEnginePage({
                                   style={{
                                     padding: "6px 8px",
                                     fontSize: 12,
-                                    color: "#ff6b6b",
+                                    color: dc.emerald,
+                                    textAlign: "right",
+                                    fontFamily: dc.mono,
+                                  }}
+                                >
+                                  {fmt$(taxShield)}
+                                </td>
+                                <td
+                                  style={{
+                                    padding: "6px 8px",
+                                    fontSize: 12,
+                                    color: "#e06363",
                                     textAlign: "right",
                                     fontFamily: dc.mono,
                                   }}
@@ -882,16 +926,16 @@ export default function TaxEnginePage({
                       padding: "14px 18px",
                       background: "rgba(238,239,211,0.05)",
                       borderRadius: 9,
-                      border: "1px solid rgba(238,239,211,0.1)",
+                      border: "1px solid rgba(238,239,211,0.16)",
                       fontSize: 12,
-                      color: "rgba(238,239,211,0.5)",
+                      color: "rgba(238,239,211,0.62)",
                       lineHeight: 1.6,
                     }}
                   >
                     <strong style={{ color: dc.lemon }}>Tax rules applied:</strong>{" "}
                     IRC §167 straight-line depreciation over 27.5 years · §469 passive-activity-loss rules (limited to $25K for incomes under $100K; phased out to $150K; suspended above unless you qualify as a real estate professional) · §1250 recapture at 25% on depreciation claimed · §1(h) long-term capital gains rates · §1411 net investment income tax 3.8%.{" "}
                     {result.disclaimer}{" "}
-                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Contact Greenstreet at +1 (555) 010-0000.
+                    This is a model estimate — consult a tax advisor. Not a commitment to lend. Submit a scenario review for exact underwriting.
                   </div>
                 </>
               )}
@@ -899,6 +943,8 @@ export default function TaxEnginePage({
           </div>
         </div>
       </section>
+
+      <BottomCTA onNavigate={onNavigate} />
     </DcShell>
   );
 }

@@ -1,0 +1,28 @@
+{
+  "name": "greenstreet-finance",
+  "version": "1.0.0",
+  "description": "Greenstreet Finance — AI-native DSCR & non-QM lending intelligence. UI based on the Greenboard Finance source HTML; all content drawn from the DSCR Loan Office knowledge base.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "build": "echo \"No build step — static frontend.\""
+  },
+  "keywords": [
+    "dscr",
+    "non-qm",
+    "lending",
+    "underwriting",
+    "greenstreet",
+    "finance"
+  ],
+  "author": "Greenstreet Finance",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,5 @@
+Crawling https://dscrcapitalpartners.com/...
+Job ID: 019eefd9-fa1f-76e8-8ebf-271afab3de02
+
+Progress: 4/178 pages (scraping)
+Progress: 178/178 pages (completed)

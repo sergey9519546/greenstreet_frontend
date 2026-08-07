@@ -1,0 +1,392 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dscr-sovereign-os.com/schemas/loan_tape_v1.json",
+  "title": "DSCR Non-QM Loan Tape Schema (KBRA-Compatible)",
+  "description": "Canonical loan tape schema for DSCR non-QM securitization. Compatible with KBRA, Verus, DBRS, Fitch, S&P presale templates. Required for Slice 4 Capital Markets v1 loan tape generation, pool eligibility scoring, and gain-on-sale analytics.",
+  "version": "1.0.0",
+  "generated_date": "2026-06-18",
+  "field_count_target": 78,
+  "definitions": {
+    "loan_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9-]{8,32}$",
+      "description": "Unique loan identifier within the tape. Suffix with pool_id for ABS submission."
+    },
+    "msa_code": {
+      "type": "string",
+      "pattern": "^[0-9]{5}$",
+      "description": "5-digit MSA / Metropolitan Division code (OMB delineation)."
+    },
+    "us_state": {
+      "type": "string",
+      "enum": ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"],
+      "description": "2-letter US state code."
+    },
+    "fico_score": {
+      "type": "integer",
+      "minimum": 300,
+      "maximum": 850,
+      "description": "Borrower FICO (middle of 3 for co-borrowers)."
+    },
+    "ltv_ratio": {
+      "type": "decimal",
+      "minimum": 0,
+      "maximum": 1.5,
+      "description": "Loan-to-Value ratio as decimal (e.g., 0.75 = 75%)."
+    },
+    "cltv_ratio": {
+      "type": "decimal",
+      "minimum": 0,
+      "maximum": 1.5,
+      "description": "Combined LTV including subordinated liens."
+    },
+    "dscr_unadjusted": {
+      "type": "decimal",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Track A DSCR = monthly_rent / monthly_PITIA. KBRA/S&P-style unadjusted submitted value."
+    },
+    "dscr_stressed_1_5x": {
+      "type": "decimal",
+      "minimum": 0,
+      "description": "DSCR stressed at S&P 1.5x adjustment factor = dscr_unadjusted / 1.5."
+    },
+    "dscr_stressed_2_0x": {
+      "type": "decimal",
+      "minimum": 0,
+      "description": "DSCR stressed at KBRA midpoint 2.0x = dscr_unadjusted / 2.0."
+    },
+    "dscr_stressed_2_5x": {
+      "type": "decimal",
+      "minimum": 0,
+      "description": "DSCR stressed at KBRA ceiling 2.5x = dscr_unadjusted / 2.5."
+    },
+    "usd_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "US Dollar amount as positive integer (cents avoided for loan tape conventions)."
+    },
+    "decimal_pct": {
+      "type": "decimal",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Percentage as decimal (e.g., 0.0725 = 7.25%)."
+    }
+  },
+  "type": "object",
+  "required": [
+    "loan_id", "pool_id", "origination_date", "note_date",
+    "borrower", "property", "loan_economics", "underwriting",
+    "pool_eligibility_flags"
+  ],
+  "properties": {
+    "loan_id": {"$ref": "#/definitions/loan_id"},
+    "pool_id": {
+      "type": ["string", "null"],
+      "description": "Pool identifier once assigned. Null at origination."
+    },
+    "origination_date": {"type": "string", "format": "date"},
+    "note_date": {"type": "string", "format": "date"},
+    "first_payment_date": {"type": "string", "format": "date"},
+    "seasoning_days": {"type": "integer", "minimum": 0},
+
+    "originator": {
+      "type": "object",
+      "required": ["nmls_id", "entity_name"],
+      "properties": {
+        "nmls_id": {"type": "string", "pattern": "^[0-9]+$"},
+        "entity_name": {"type": "string"},
+        "channel": {
+          "type": "string",
+          "enum": ["retail", "wholesale", "correspondent", "portfolio"]
+        }
+      }
+    },
+
+    "borrower": {
+      "type": "object",
+      "required": ["fico", "citizenship", "entity_type"],
+      "properties": {
+        "fico": {"$ref": "#/definitions/fico_score"},
+        "fico_secondary": {"type": ["integer", "null"]},
+        "dti": {"type": "decimal", "minimum": 0, "maximum": 2.0},
+        "citizenship": {
+          "type": "string",
+          "enum": ["us_citizen", "permanent_resident", "non_permanent_resident", "itin", "foreign_national"]
+        },
+        "itin_flag": {"type": "boolean"},
+        "foreign_national_flag": {"type": "boolean"},
+        "entity_type": {
+          "type": "string",
+          "enum": ["individual", "llc", "lp", "llp", "corp", "trust", "s_corp", "c_corp"]
+        },
+        "first_time_investor": {"type": "boolean"},
+        "portfolio_size_properties": {"type": "integer", "minimum": 1},
+        "tradeline_count": {"type": "integer", "minimum": 0},
+        "tradeline_longest_months": {"type": "integer", "minimum": 0},
+        "reserves_months_pitia": {"type": "decimal", "minimum": 0}
+      }
+    },
+
+    "property": {
+      "type": "object",
+      "required": ["address", "msa_code", "state", "zip", "property_type", "occupancy", "dwelling_value"],
+      "properties": {
+        "address": {"type": "string"},
+        "msa_code": {"$ref": "#/definitions/msa_code"},
+        "state": {"$ref": "#/definitions/us_state"},
+        "zip": {"type": "string", "pattern": "^[0-9]{5}$"},
+        "county_fips": {"type": "string", "pattern": "^[0-9]{5}$"},
+        "property_type": {
+          "type": "string",
+          "enum": ["sfr", "2_unit", "3_unit", "4_unit", "condo_warrantable", "condo_non_warrantable", "condotel", "pud", "townhome"]
+        },
+        "occupancy": {
+          "type": "string",
+          "enum": ["primary_residence", "second_home", "investment"]
+        },
+        "rental_strategy": {
+          "type": "string",
+          "enum": ["ltr", "str", "mixed"]
+        },
+        "dwelling_value": {"$ref": "#/definitions/usd_amount"},
+        "appraisal_date": {"type": "string", "format": "date"},
+        "appraisal_value": {"$ref": "#/definitions/usd_amount"},
+        "lease_in_place": {"type": "boolean"},
+        "monthly_rent_lease": {"type": ["integer", "null"]},
+        "monthly_rent_market_1007": {"type": "integer", "null"},
+        "monthly_rent_used": {"type": "integer", "description": "min(lease, market_1007) per lender convention"},
+        "flood_zone": {
+          "type": "string",
+          "enum": ["X", "X_shaded", "B", "C", "A", "AE", "AO", "AH", "AR", "A99", "V", "VE", "V1-V30", "A1-A30", "CBRS", "OPA", "D"]
+        },
+        "annual_insurance_premium": {"$ref": "#/definitions/usd_amount"},
+        "annual_property_tax": {"$ref": "#/definitions/usd_amount"},
+        "monthly_hoa": {"type": "integer", "minimum": 0},
+        "year_built": {"type": "integer", "minimum": 1700, "maximum": 2030}
+      }
+    },
+
+    "loan_economics": {
+      "type": "object",
+      "required": ["upb", "note_rate", "ltv", "cltv", "dscr"],
+      "properties": {
+        "upb": {"$ref": "#/definitions/usd_amount"},
+        "note_rate": {"$ref": "#/definitions/decimal_pct"},
+        "ltv": {"$ref": "#/definitions/ltv_ratio"},
+        "cltv": {"$ref": "#/definitions/cltv_ratio"},
+        "amortization_term_months": {"type": "integer", "enum": [120, 180, 240, 360, 480]},
+        "io_flag": {"type": "boolean"},
+        "io_term_months": {"type": ["integer", "null"], "enum": [60, 84, 120, 180, 240, 360, null]},
+        "arm_flag": {"type": "boolean"},
+        "arm_index": {"type": ["string", "null"], "enum": ["SOFR", "30_day_SOFR", "1yr_cmt", null]},
+        "arm_margin_bps": {"type": ["integer", "null"]},
+        "arm_first_adjustment_months": {"type": ["integer", "null"]},
+        "arm_subsequent_adjustment_months": {"type": ["integer", "null"]},
+        "arm_cap_initial": {"type": ["decimal", "null"]},
+        "arm_cap_lifetime": {"type": ["decimal", "null"]},
+        "arm_floor": {"type": ["decimal", "null"]},
+        "monthly_pi": {"type": "integer", "minimum": 0},
+        "monthly_pitia": {"type": "integer", "minimum": 0},
+        "monthly_itia_io": {"type": ["integer", "null"]},
+        "prepayment_penalty_type": {"type": "string", "enum": ["none", "soft", "hard", "declining"]},
+        "prepayment_penalty_term_months": {"type": ["integer", "null"]},
+        "dscr": {"$ref": "#/definitions/dscr_unadjusted"},
+        "dscr_track_b": {
+          "type": ["decimal", "null"],
+          "description": "Track B (NOI-based) DSCR for stress tests."
+        },
+        "dscr_stressed_1_5x": {"$ref": "#/definitions/dscr_stressed_1_5x"},
+        "dscr_stressed_2_0x": {"$ref": "#/definitions/dscr_stressed_2_0x"},
+        "dscr_stressed_2_5x": {"$ref": "#/definitions/dscr_stressed_2_5x"}
+      }
+    },
+
+    "underwriting": {
+      "type": "object",
+      "required": ["doc_type", "appraisal_type"],
+      "properties": {
+        "doc_type": {
+          "type": "string",
+          "enum": ["full_doc", "bank_statement", "1099_only", "p_and_l", "asset_depletion", "dscr_only", "no_doc"]
+        },
+        "appraisal_type": {
+          "type": "string",
+          "enum": ["full_appraisal", "appraisal_with_review", "two_appraisals", "avm_only", "desktop"]
+        },
+        "second_appraisal_required": {"type": "boolean"},
+        "appraisal_review_product": {
+          "type": ["string", "null"],
+          "enum": ["cu", "lca", "desk", null]
+        },
+        "lender_program": {"type": "string"},
+        "sub1_dscr_exception_used": {"type": "boolean"},
+        "exception_notes": {"type": ["string", "null"]}
+      }
+    },
+
+    "servicing": {
+      "type": "object",
+      "properties": {
+        "servicer_nmls": {"type": ["string", "null"]},
+        "servicing_fee_bps": {"type": ["integer", "null"]},
+        "subservicer": {"type": ["string", "null"]},
+        "msr_retained": {"type": "boolean"},
+        "msr_fair_value_estimate": {"type": ["integer", "null"]}
+      }
+    },
+
+    "compliance": {
+      "type": "object",
+      "properties": {
+        "hoepa_status": {
+          "type": "string",
+          "enum": ["hoepa_loan", "high_cost", "higher_cost", "non_high_cost"]
+        },
+        "qm_status": {
+          "type": "string",
+          "enum": ["qm", "non_qm", "qm_patch", "safe_harbor"]
+        },
+        "ecoa_applicable": {"type": "boolean"},
+        "adverse_action_required": {"type": "boolean"},
+        "section_1071_reportable": {"type": "boolean"},
+        "ofac_screening_complete": {"type": "boolean"},
+        "boi_filing_required": {"type": "boolean", "description": "BOI for non-LLC entities only; domestic LLCs exempt per FinCEN Mar 2025"}
+      }
+    },
+
+    "pool_eligibility_flags": {
+      "type": "object",
+      "description": "Pre-computed eligibility booleans for each rating-agency template. Slice 4 Pool Eligibility Scorer emits these.",
+      "properties": {
+        "kbra_eligible": {"type": "boolean"},
+        "kbra_fail_reason": {"type": ["string", "null"]},
+        "verus_eligible": {"type": "boolean"},
+        "verus_fail_reason": {"type": ["string", "null"]},
+        "dbrs_eligible": {"type": "boolean"},
+        "dbrs_fail_reason": {"type": ["string", "null"]},
+        "fitch_eligible": {"type": "boolean"},
+        "fitch_fail_reason": {"type": ["string", "null"]},
+        "sp_eligible": {"type": "boolean"},
+        "sp_fail_reason": {"type": ["string", "null"]},
+        "concentration_msa_pct": {"type": ["decimal", "null"], "description": "Loan concentration within MSA if part of a pool."},
+        "concentration_state_pct": {"type": ["decimal", "null"]},
+        "alt_doc_pct_pool": {"type": ["decimal", "null"]},
+        "sub_1_dscr_pool": {"type": "boolean"},
+        "foreign_national_pool": {"type": "boolean"}
+      }
+    },
+
+    "performance": {
+      "type": "object",
+      "description": "Periodic performance updates post-securitization.",
+      "properties": {
+        "last_paid_date": {"type": ["string", "null"], "format": "date"},
+        "delinquency_status": {
+          "type": "string",
+          "enum": ["current", "30_day", "60_day", "90_day", "120_plus", "foreclosure", "reo", "paid_off", "modification"]
+        },
+        "days_delinquent": {"type": "integer", "minimum": 0},
+        "bankruptcy_flag": {"type": "boolean"},
+        "foreclosure_flag": {"type": "boolean"},
+        "modification_flag": {"type": "boolean"},
+        "loss_mitigation_status": {"type": ["string", "null"]}
+      }
+    }
+  },
+  "examples": [
+    {
+      "loan_id": "PE-2026-NQM1-00001",
+      "pool_id": "PE-2026-NQM1",
+      "origination_date": "2026-03-15",
+      "note_date": "2026-04-01",
+      "first_payment_date": "2026-05-01",
+      "seasoning_days": 78,
+      "originator": {"nmls_id": "1234567", "entity_name": "PennyMac", "channel": "correspondent"},
+      "borrower": {
+        "fico": 742,
+        "dti": 0.36,
+        "citizenship": "us_citizen",
+        "itin_flag": false,
+        "foreign_national_flag": false,
+        "entity_type": "llc",
+        "first_time_investor": false,
+        "portfolio_size_properties": 4,
+        "tradeline_count": 8,
+        "tradeline_longest_months": 96,
+        "reserves_months_pitia": 6
+      },
+      "property": {
+        "address": "123 Main St, Tampa FL 33611",
+        "msa_code": "45300",
+        "state": "FL",
+        "zip": "33611",
+        "county_fips": "12057",
+        "property_type": "sfr",
+        "occupancy": "investment",
+        "rental_strategy": "ltr",
+        "dwelling_value": 425000,
+        "appraisal_date": "2026-03-10",
+        "appraisal_value": 425000,
+        "lease_in_place": true,
+        "monthly_rent_lease": 3200,
+        "monthly_rent_market_1007": 3300,
+        "monthly_rent_used": 3200,
+        "flood_zone": "X",
+        "annual_insurance_premium": 7136,
+        "annual_property_tax": 4200,
+        "monthly_hoa": 0,
+        "year_built": 1998
+      },
+      "loan_economics": {
+        "upb": 318750,
+        "note_rate": 0.0725,
+        "ltv": 0.75,
+        "cltv": 0.75,
+        "amortization_term_months": 360,
+        "io_flag": false,
+        "io_term_months": null,
+        "arm_flag": false,
+        "monthly_pi": 2157,
+        "monthly_pitia": 2899,
+        "prepayment_penalty_type": "soft",
+        "prepayment_penalty_term_months": 36,
+        "dscr": 1.1039,
+        "dscr_track_b": 1.21,
+        "dscr_stressed_1_5x": 0.7359,
+        "dscr_stressed_2_0x": 0.5519,
+        "dscr_stressed_2_5x": 0.4415
+      },
+      "underwriting": {
+        "doc_type": "dscr_only",
+        "appraisal_type": "full_appraisal",
+        "second_appraisal_required": false,
+        "lender_program": "Pennymac DSCR",
+        "sub1_dscr_exception_used": false
+      },
+      "compliance": {
+        "hoepa_status": "non_high_cost",
+        "qm_status": "non_qm",
+        "ecoa_applicable": true,
+        "adverse_action_required": false,
+        "section_1071_reportable": true,
+        "ofac_screening_complete": true,
+        "boi_filing_required": false
+      },
+      "pool_eligibility_flags": {
+        "kbra_eligible": true,
+        "kbra_fail_reason": null,
+        "verus_eligible": true,
+        "verus_fail_reason": null,
+        "dbrs_eligible": true,
+        "dbrs_fail_reason": null,
+        "fitch_eligible": true,
+        "fitch_fail_reason": null,
+        "sp_eligible": true,
+        "sp_fail_reason": null,
+        "concentration_msa_pct": 0.012,
+        "concentration_state_pct": 0.18
+      }
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+// @ts-expect-error - firebase-functions v2 optional server dependency
 import { onRequest } from "firebase-functions/v2/https";
 import { app } from "./serverApp";
 

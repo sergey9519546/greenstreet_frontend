@@ -1,8 +1,16 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { resolveInitialDeal } from "../lib/dealState";
+import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { computeStressMatrix, classifyRiskZone } from "../engine/stressMatrix";
+import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy, computeDualTrackDSCR, computeShockWaterfall } from "../engine/stressMatrix";
+import type { WaterfallShock } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
-import { DscrGauge, RiskFlame, riskFromDscr, dscrColor, MotionWorkbench } from "../design/artifacts";
+import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import BottomCTA from "../design/BottomCTA";
+import { assessDscrCovenant } from "../engine/covenantCheck";
+import type { CovenantStatus } from "../engine/covenantCheck";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
+import { PremiumSlider } from "../components/ui/PremiumSlider";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const MINT      = dc.mintBg;
@@ -17,16 +25,16 @@ const ZONE_COLORS: Record<StressRiskZone, { bg: string; ink: string }> = {
   SAFE:        { bg: RAIN,                        ink: CREAM   },
   COMFORTABLE: { bg: EMERALD,                     ink: DARK_INK},
   MARGINAL:    { bg: "rgba(216,217,88,0.85)",     ink: DARK_INK},
-  FRAGILE:     { bg: "rgba(249,115,22,0.85)",     ink: "#fff"  },
-  DEAL_BREAK:  { bg: "rgba(255,107,107,0.90)",    ink: "#fff"  },
+  FRAGILE:     { bg: "rgba(230,184,77,0.85)",     ink: "#fff"  },
+  DEAL_BREAK:  { bg: "rgba(224,99,99,0.90)",    ink: "#fff"  },
 };
 
 const ZONE_ACCENT: Record<StressRiskZone, string> = {
   SAFE:        RAIN,
   COMFORTABLE: EMERALD,
   MARGINAL:    "#d8d958",
-  FRAGILE:     "#f97316",
-  DEAL_BREAK:  "#ff6b6b",
+  FRAGILE:     "#e6b84d",
+  DEAL_BREAK:  "#e06363",
 };
 
 // ── Plain-English verdict copy ────────────────────────────────────────────────
@@ -69,6 +77,30 @@ interface PinnedCell {
   zone: StressRiskZone;
 }
 
+// ── Guided "what-if" presets ──────────────────────────────────────────────────
+// One-click stress stories: each names a real investor fear and snaps the four
+// sliders (rate / rent / vacancy / tax) to that scenario. Clicking animates the
+// sliders there so the gauge + verdict visibly react — the "guided" half of the
+// simulation (the sliders alone are the free-form sandbox).
+interface StressPreset {
+  id: string;
+  label: string;
+  sub: string;
+  rate: number;   // rate offset, bps
+  rent: number;   // rent change, %
+  vac: number;    // vacancy, %
+  tax: number;    // tax & insurance bump, %
+}
+const PRESETS: StressPreset[] = [
+  { id: "calm",      label: "Calm baseline",    sub: "No shock — your deal as underwritten",       rate: 0,   rent: 0,   vac: 5,  tax: 0  },
+  { id: "rate",      label: "Rate spike",       sub: "Fed hikes — your rate jumps +200 bps",       rate: 200, rent: 0,   vac: 5,  tax: 0  },
+  { id: "soft",      label: "Soft rental market", sub: "Rents dip 10% · vacancy doubles to 10%",   rate: 0,   rent: -10, vac: 10, tax: 0  },
+  { id: "recession", label: "2008-style shock", sub: "Rent −15% · rate +150 bps · vacancy 15%",    rate: 150, rent: -15, vac: 15, tax: 0  },
+  { id: "tax",       label: "Tax reassessment", sub: "County re-bills — taxes & insurance +25%",    rate: 0,   rent: 0,   vac: 5,  tax: 25 },
+  { id: "covid",    label: "COVID-style shock", sub: "STR/LTR vacancy surge — rent −12% · vacancy 20%", rate: 0, rent: -12, vac: 20, tax: 5  },
+  { id: "fl_ins",   label: "FL insurance crisis", sub: "Insurance spike +50% · rent −5% pressure",   rate: 50,  rent: -5,  vac: 8,  tax: 50 },
+];
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  MAIN PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -85,13 +117,17 @@ export default function StressMatrixPage({
   }, []);
 
   // ── Base deal inputs ─────────────────────────────────────────────────────
-  const [purchasePrice, setPurchasePrice] = useState(425000);
-  const [downPct,       setDownPct]       = useState(25);
-  const [baseRate,      setBaseRate]      = useState(7.0);
-  const [monthlyRent,   setMonthlyRent]   = useState(3000);
-  const [annualTaxes,   setAnnualTaxes]   = useState(5000);
-  const [annualInsurance,setAnnualInsurance] = useState(2000);
-  const [hoa,           setHoa]           = useState(0);
+  const seed = useMemo(() => resolveInitialDeal(), []);
+  const [purchasePrice, setPurchasePrice] = useState(seed.price);
+  const [downPct,       setDownPct]       = useState(seed.down);
+  const [baseRate,      setBaseRate]      = useState(seed.rate);
+  const [monthlyRent,   setMonthlyRent]   = useState(seed.rent);
+  const [annualTaxes,   setAnnualTaxes]   = useState(seed.tax);
+  const [annualInsurance,setAnnualInsurance] = useState(seed.ins);
+  const [hoa,           setHoa]           = useState(seed.hoa);
+
+  // ── Covenant threshold (typical maintenance covenant for DSCR loans) ──────
+  const [covenantThreshold, setCovenantThreshold] = useState(1.25);
 
   // ── Interactive stress sliders (the "guided simulation") ──────────────────
   // These layer a RELATIVE shock on top of the base deal.
@@ -99,6 +135,45 @@ export default function StressMatrixPage({
   const [rentChangePct, setRentChangePct] = useState(0);    // −25 … +20 %
   const [vacancyPct,    setVacancyPct]    = useState(5);    // 0 … 30 % vacancy loss
   const [taxBumpPct,    setTaxBumpPct]    = useState(0);    // 0 … 40 % tax/ins increase
+
+  // ── Guided preset state ───────────────────────────────────────────────────
+  const [activePreset, setActivePreset] = useState<string>("calm");
+  const presetTween = useRef<gsap.core.Tween | null>(null);
+
+  // Animate the four sliders to a preset so the gauge + verdict visibly react.
+  // Reduced-motion: snap straight to the values. Manual slider moves clear the
+  // active preset (handled by the wrapped setters below).
+  const applyPreset = useCallback((p: StressPreset) => {
+    setActivePreset(p.id);
+    presetTween.current?.kill();
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      setRateOffsetBps(p.rate); setRentChangePct(p.rent); setVacancyPct(p.vac); setTaxBumpPct(p.tax);
+      return;
+    }
+    const obj = { rate: rateOffsetBps, rent: rentChangePct, vac: vacancyPct, tax: taxBumpPct };
+    presetTween.current = gsap.to(obj, {
+      rate: p.rate, rent: p.rent, vac: p.vac, tax: p.tax,
+      duration: 0.7, ease: "power2.out",
+      onUpdate: () => {
+        setRateOffsetBps(Math.round(obj.rate));
+        setRentChangePct(Math.round(obj.rent));
+        setVacancyPct(Math.round(obj.vac));
+        setTaxBumpPct(Math.round(obj.tax));
+      },
+      onComplete: () => {
+        setRateOffsetBps(p.rate); setRentChangePct(p.rent); setVacancyPct(p.vac); setTaxBumpPct(p.tax);
+      },
+    });
+  }, [rateOffsetBps, rentChangePct, vacancyPct, taxBumpPct]);
+
+  // Wrapped setters for the manual sliders — any hand-move drops the preset chip
+  // highlight (you're now off-script) and cancels an in-flight preset animation.
+  const manual = (setter: (v: number) => void) => (v: number) => {
+    presetTween.current?.kill();
+    setActivePreset("");
+    setter(v);
+  };
 
   // ── Matrix state ──────────────────────────────────────────────────────────
   const [showFullMatrix, setShowFullMatrix] = useState(false);
@@ -163,6 +238,25 @@ export default function StressMatrixPage({
   const stressedTaxInsMo= (annualTaxes * (1 + taxBumpPct / 100) + annualInsurance * (1 + taxBumpPct / 100)) / 12;
   const stressedPITIA   = stressedPIAmt + stressedTaxInsMo + hoa;
   const effectiveRent   = monthlyRent * (1 + rentChangePct / 100) * (1 - vacancyPct / 100);
+  // Break-even vacancy at the CURRENT stressed rate + rent (the occupancy loss
+  // the deal can absorb before its DSCR drops below 1.00). Uses the same lender
+  // basis as the gauge: rent-after-rent-shock (pre-vacancy) ÷ stressed PITIA.
+  const breakEvenVac    = computeBreakEvenVacancy(monthlyRent * (1 + rentChangePct / 100), stressedPITIA);
+  // Dual-track at the current stressed state: lender (gross rent ÷ PITIA) vs
+  // investor survival (after the modeled vacancy + management + maintenance).
+  const dualTrack       = computeDualTrackDSCR(monthlyRent * (1 + rentChangePct / 100), stressedPITIA, { vacancyPct });
+  // Multi-shock waterfall — decompose the active sliders into each shock's
+  // marginal DSCR bite (Edge §7), so the user sees which lever breaks the deal.
+  const shockWaterfall  = (() => {
+    const shocks: WaterfallShock[] = [];
+    const rateDelta = stressedPIAmt - basePIAmt;
+    if (Math.abs(rateDelta) > 0.5) shocks.push({ label: `Rate ${rateOffsetBps >= 0 ? "+" : ""}${(rateOffsetBps / 100).toFixed(2)}%`, pitiaDelta: rateDelta });
+    const taxDelta = stressedTaxInsMo - (baseFixed - hoa);
+    if (Math.abs(taxDelta) > 0.5) shocks.push({ label: `Tax & insurance +${taxBumpPct}%`, pitiaDelta: taxDelta });
+    if (rentChangePct !== 0) shocks.push({ label: `Rent ${rentChangePct > 0 ? "+" : ""}${rentChangePct}%`, rentMultiplier: 1 + rentChangePct / 100 });
+    if (vacancyPct !== 0) shocks.push({ label: `Vacancy ${vacancyPct}%`, rentMultiplier: 1 - vacancyPct / 100 });
+    return computeShockWaterfall(monthlyRent, basePITIA, shocks);
+  })();
 
   // Cell styles
   function cellStyle(zone: StressRiskZone, isBase: boolean, isHovered: boolean): React.CSSProperties {
@@ -171,7 +265,7 @@ export default function StressMatrixPage({
       borderRadius: 4,
       background: bg,
       color: ink,
-      fontSize: 10.5,
+      fontSize: 11,
       fontWeight: 700,
       fontFamily: dc.mono,
       textAlign: "center",
@@ -224,16 +318,9 @@ export default function StressMatrixPage({
   function zoneLabel(z: StressRiskZone) { return z.replace("_", " "); }
 
   // ── DSCR change arrow color
-  const deltaColor = dscrDelta > 0.05 ? EMERALD : dscrDelta < -0.05 ? "#ff6b6b" : LEMON;
+  const deltaColor = dscrDelta > 0.05 ? EMERALD : dscrDelta < -0.05 ? "#e06363" : LEMON;
   const deltaArrow = dscrDelta > 0.01 ? "↑" : dscrDelta < -0.01 ? "↓" : "→";
 
-  // ── Slider reset
-  const resetSliders = () => {
-    setRateOffsetBps(0);
-    setRentChangePct(0);
-    setVacancyPct(5);
-    setTaxBumpPct(0);
-  };
 
   return (
     <DcShell
@@ -251,15 +338,9 @@ export default function StressMatrixPage({
         .sm-cell-mini{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;
           font-family:${dc.mono};font-size:9px;font-weight:700;}
         .sm-cell{display:block;width:100%;}
-        /* Slider resets */
-        .gs-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;
-          border-radius:3px;outline:none;cursor:pointer;background:#003738;}
-        .gs-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
-          border-radius:50%;background:${LEMON};border:2px solid #003738;cursor:pointer;
-          transition:transform .12s,box-shadow .12s;}
-        .gs-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;
-          background:${LEMON};border:2px solid #003738;cursor:pointer;}
-        .gs-slider:hover::-webkit-slider-thumb{transform:scale(1.2);box-shadow:0 0 0 4px rgba(216,217,88,.22);}
+        /* Guided preset chips */
+        .sm-preset:hover{border-color:rgba(216,217,88,0.5) !important;}
+        .sm-preset[aria-pressed="true"]:hover{filter:brightness(1.05);}
         /* Accordion */
         .sm-accord-btn{background:none;border:none;cursor:pointer;padding:0;text-align:left;width:100%;
           display:flex;align-items:center;justify-content:space-between;}
@@ -315,7 +396,7 @@ export default function StressMatrixPage({
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
-              color: DARK_INK, background: LEMON, padding: "7px 14px", borderRadius: 100, marginBottom: 24,
+              color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24,
             }}>
               Stress Matrix · 12×10 grid · 5 zones
             </div>
@@ -323,7 +404,7 @@ export default function StressMatrixPage({
               See every stress scenario in one view.
             </H1>
             <div style={{
-              fontSize: 15, fontWeight: 500, color: DARK_INK, background: LEMON,
+              fontSize: 15, fontWeight: 500, color: "rgba(0,55,56,0.82)", background: "rgba(0,55,56,0.04)", border: "1px solid rgba(0,55,56,0.12)",
               borderRadius: 8, padding: "10px 14px", maxWidth: "48ch",
               margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em", display: "inline-block",
             }}>
@@ -343,68 +424,32 @@ export default function StressMatrixPage({
             <Btn label="Open the simulator →" href="#sm-tool" onClick={scrollToTool} />
           </div>
 
-          {/* Right: animated stress preview + mini heatmap */}
-          <div style={{ display: "grid", gap: 16 }}>
-            <MotionWorkbench
-              mode="stress"
-              value={`${stressedDSCR.toFixed(2)}x`}
-              label="Live stressed DSCR"
-            />
-            <div style={{
-              display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 5,
-              background: DARK_INK, borderRadius: dc.r.lg, padding: 14,
-            }}>
+          {/* Right: ONE cohesive live-stress card (was MotionWorkbench + heatmap) */}
+          <div style={{
+            background: DARK_INK, borderRadius: dc.r.lg, padding: "clamp(18px,2vw,26px)",
+            border: "1px solid rgba(0,55,56,0.2)", boxShadow: "0 18px 44px -26px rgba(0,55,56,0.55)",
+          }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)" }}>
+                Live stressed DSCR
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <RiskFlame level={stressRisk} size={16} />
+                <Mono style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.03em", color: ZONE_ACCENT[stressZone], lineHeight: 1 }}>
+                  {stressedDSCR.toFixed(2)}x
+                </Mono>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 5 }}>
               {previewCells.map((c, i) => (
                 <div key={i} className="sm-cell-mini" style={{ background: c.bg, color: c.ink }}>
                   {c.v}
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 11, color: "rgba(0,55,56,0.5)", marginTop: 8, textAlign: "center" }}>
-              Preview: 4 rate scenarios × 10 rent scenarios — updates live with your inputs
+            <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 13, textAlign: "center", lineHeight: 1.5 }}>
+              4 rate shocks × 10 rent changes — a live preview of the full 120-cell matrix below.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════════════════
-          HOW IT WORKS — 3-step band
-      ════════════════════════════════════════════════════════════════════ */}
-      <section style={{ background: CREAM, padding: `clamp(48px,6vw,72px) ${dc.pad}` }}>
-        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div
-            className="sm-steps-grid"
-            style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1px",
-              background: "rgba(0,55,56,0.12)", borderRadius: 9, overflow: "hidden",
-            }}
-          >
-            {[
-              {
-                n: "01", bg: CREAM, headInk: DARK_INK, textInk: "rgba(0,55,56,0.6)",
-                numColor: LEMON,
-                title: "Set your base deal",
-                body: "Enter the purchase price, rate, monthly rent, taxes, and insurance. This anchors the center cell of the matrix — your deal exactly as it stands today.",
-              },
-              {
-                n: "02", bg: DARK_INK, headInk: CREAM, textInk: "rgba(238,239,211,0.65)",
-                numColor: EMERALD,
-                title: "Dial in a stress scenario",
-                body: "Use the sliders to shock the rate, trim the rent, add vacancy, or bump taxes. The DSCR gauge and verdict update instantly — no submit button.",
-              },
-              {
-                n: "03", bg: LEMON, headInk: DARK_INK, textInk: "rgba(0,55,56,0.65)",
-                numColor: "rgba(0,55,56,0.4)",
-                title: "Read 120 combinations",
-                body: "Expand the full matrix to see every rate + rent combo at once. Green = safe. Red = deal breaks. Click any cell to pin it and compare it to your base case.",
-              },
-            ].map(({ n, bg, headInk, textInk, numColor, title, body }) => (
-              <div key={n} style={{ background: bg, padding: "clamp(28px,3.5vw,44px) clamp(22px,3vw,36px)" }}>
-                <Mono style={{ display: "block", fontSize: "clamp(32px,4vw,52px)", fontWeight: 600, color: numColor, marginBottom: 14, lineHeight: 1 }}>{n}</Mono>
-                <h3 style={{ fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 10px", lineHeight: 1.1, color: headInk }}>{title}</h3>
-                <p style={{ fontSize: "clamp(15px,1.2vw,17px)", fontWeight: 500, lineHeight: 1.55, color: textInk, margin: 0 }}>{body}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -433,7 +478,7 @@ export default function StressMatrixPage({
               <span style={{ color: EMERALD }}>{passRate}</span>
               {" of scenarios still cover costs"}
             </h2>
-            <p style={{ fontSize: 14, color: "rgba(238,239,211,0.55)", margin: 0, maxWidth: "60ch", lineHeight: 1.6, fontWeight: 500 }}>
+            <p style={{ fontSize: 14, color: "rgba(238,239,211,0.62)", margin: 0, maxWidth: "60ch", lineHeight: 1.6, fontWeight: 500 }}>
               <strong style={{ color: "rgba(238,239,211,0.8)" }}>PITIA</strong>{" "}
               <span style={{ fontWeight: 400 }}>(the full monthly payment — principal, interest, taxes, insurance, and any HOA dues)</span>{" "}
               at base: <Mono style={{ color: LEMON }}>${Math.round(basePITIA).toLocaleString()}/mo</Mono>.
@@ -454,44 +499,46 @@ export default function StressMatrixPage({
               <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: LEMON, marginBottom: 4 }}>
                 Your base deal
               </div>
-              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", margin: "0 0 14px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", margin: "0 0 14px", lineHeight: 1.5 }}>
                 These numbers anchor the center cell. Change any value and all 120 cells update instantly.
               </p>
 
-              <InputField label="Purchase Price" prefix="$">
-                <input className="sm-num" type="number" step={5000} value={purchasePrice} onChange={(e) => setPurchasePrice(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Down payment" suffix="%">
-                <input className="sm-num" type="number" step={1} min={20} max={50} value={downPct} onChange={(e) => setDownPct(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Base interest rate" suffix="%">
-                <input className="sm-num" type="number" step={0.125} value={baseRate} onChange={(e) => setBaseRate(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Monthly Rent" prefix="$">
-                <input className="sm-num" type="number" step={100} value={monthlyRent} onChange={(e) => setMonthlyRent(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Annual Taxes" prefix="$">
-                <input className="sm-num" type="number" step={250} value={annualTaxes} onChange={(e) => setAnnualTaxes(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Annual Insurance" prefix="$">
-                <input className="sm-num" type="number" step={100} value={annualInsurance} onChange={(e) => setAnnualInsurance(+e.target.value)} style={inputStyle} />
-              </InputField>
-              <InputField label="Monthly HOA" prefix="$">
-                <input className="sm-num" type="number" step={25} value={hoa} onChange={(e) => setHoa(+e.target.value)} style={inputStyle} />
-              </InputField>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <InputField label="Purchase Price">
+                  <CurrencyInput prefix="$" value={purchasePrice} onChange={setPurchasePrice} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Down payment">
+                  <CurrencyInput suffix="%" decimals={0} value={downPct} onChange={setDownPct} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Base interest rate">
+                  <CurrencyInput suffix="%" decimals={3} value={baseRate} onChange={setBaseRate} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Monthly Rent">
+                  <CurrencyInput prefix="$" value={monthlyRent} onChange={setMonthlyRent} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Annual Taxes">
+                  <CurrencyInput prefix="$" value={annualTaxes} onChange={setAnnualTaxes} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Annual Insurance">
+                  <CurrencyInput prefix="$" value={annualInsurance} onChange={setAnnualInsurance} style={{ width: '100%' }} />
+                </InputField>
+                <InputField label="Monthly HOA">
+                  <CurrencyInput prefix="$" value={hoa} onChange={setHoa} style={{ width: '100%' }} />
+                </InputField>
+              </div>
 
               {/* Zone counts */}
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(238,239,211,0.10)" }}>
                 <div>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.45)", marginBottom: 2 }}>SAFE</div>
+                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>SAFE</div>
                   <Mono style={{ fontSize: 18, fontWeight: 600, color: EMERALD }}>{safeCount}</Mono>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.45)", marginBottom: 2 }}>DEAL BREAK</div>
-                  <Mono style={{ fontSize: 18, fontWeight: 600, color: "#ff6b6b" }}>{breakCount}</Mono>
+                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>DEAL BREAK</div>
+                  <Mono style={{ fontSize: 18, fontWeight: 600, color: "#e06363" }}>{breakCount}</Mono>
                 </div>
                 <div>
-                  <div style={{ fontSize: 10, color: "rgba(238,239,211,0.45)", marginBottom: 2 }}>TOTAL</div>
+                  <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>TOTAL</div>
                   <Mono style={{ fontSize: 18, fontWeight: 600, color: "rgba(238,239,211,0.7)" }}>{totalCells}</Mono>
                 </div>
               </div>
@@ -512,12 +559,12 @@ export default function StressMatrixPage({
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: LEMON, marginBottom: 2 }}>
                       Stress Simulator
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: 0, lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: 0, lineHeight: 1.5 }}>
                       Adjust sliders to layer stress on your base deal. The DSCR gauge reacts instantly.
                     </p>
                   </div>
                   <button
-                    onClick={resetSliders}
+                    onClick={() => applyPreset(PRESETS[0])}
                     style={{
                       background: "rgba(216,217,88,0.12)", border: "1px solid rgba(216,217,88,0.25)",
                       borderRadius: 6, color: LEMON, fontSize: 11, fontWeight: 600,
@@ -527,6 +574,40 @@ export default function StressMatrixPage({
                   >
                     Reset
                   </button>
+                </div>
+
+                {/* ── Guided preset chips — one-click "what-if" stories ──── */}
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 9 }}>
+                    Try a scenario
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {PRESETS.map((p) => {
+                      const on = activePreset === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => applyPreset(p)}
+                          aria-pressed={on}
+                          className="sm-preset"
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 7,
+                            background: on ? LEMON : "rgba(238,239,211,0.05)",
+                            color: on ? DARK_INK : "rgba(238,239,211,0.82)",
+                            border: `1px solid ${on ? LEMON : "rgba(238,239,211,0.14)"}`,
+                            borderRadius: 100, padding: "8px 15px", cursor: "pointer",
+                            fontSize: 12.5, fontWeight: 600, letterSpacing: "-0.01em",
+                            transition: "background 0.18s, color 0.18s, border-color 0.18s",
+                          }}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(238,239,211,0.6)", marginTop: 9, minHeight: 16, lineHeight: 1.5 }}>
+                    {PRESETS.find((p) => p.id === activePreset)?.sub || "Custom scenario — sliders set by hand."}
+                  </div>
                 </div>
 
                 {/* Sliders grid */}
@@ -541,8 +622,8 @@ export default function StressMatrixPage({
                     min={-150} max={300} step={25}
                     displayValue={`${rateOffsetBps >= 0 ? "+" : ""}${rateOffsetBps} bps`}
                     displaySub={`→ ${(baseRate + rateOffsetBps / 100).toFixed(3)}%`}
-                    onChange={setRateOffsetBps}
-                    accentColor={rateOffsetBps > 100 ? "#f97316" : rateOffsetBps > 0 ? LEMON : EMERALD}
+                    onChange={manual(setRateOffsetBps)}
+                    accentColor={rateOffsetBps > 100 ? "#e6b84d" : rateOffsetBps > 0 ? LEMON : EMERALD}
                     fillPct={(rateOffsetBps - (-150)) / (300 - (-150)) * 100}
                   />
                   <SliderField
@@ -552,8 +633,8 @@ export default function StressMatrixPage({
                     min={-25} max={20} step={5}
                     displayValue={`${rentChangePct >= 0 ? "+" : ""}${rentChangePct}%`}
                     displaySub={`→ $${Math.round(monthlyRent * (1 + rentChangePct / 100)).toLocaleString()}/mo`}
-                    onChange={setRentChangePct}
-                    accentColor={rentChangePct < -10 ? "#f97316" : rentChangePct < 0 ? LEMON : EMERALD}
+                    onChange={manual(setRentChangePct)}
+                    accentColor={rentChangePct < -10 ? "#e6b84d" : rentChangePct < 0 ? LEMON : EMERALD}
                     fillPct={(rentChangePct - (-25)) / (20 - (-25)) * 100}
                   />
                   <SliderField
@@ -563,8 +644,8 @@ export default function StressMatrixPage({
                     min={0} max={30} step={5}
                     displayValue={`${vacancyPct}%`}
                     displaySub={`−$${Math.round(monthlyRent * (1 + rentChangePct / 100) * vacancyPct / 100).toLocaleString()}/mo lost`}
-                    onChange={setVacancyPct}
-                    accentColor={vacancyPct > 15 ? "#f97316" : vacancyPct > 5 ? LEMON : EMERALD}
+                    onChange={manual(setVacancyPct)}
+                    accentColor={vacancyPct > 15 ? "#e6b84d" : vacancyPct > 5 ? LEMON : EMERALD}
                     fillPct={vacancyPct / 30 * 100}
                   />
                   <SliderField
@@ -574,8 +655,8 @@ export default function StressMatrixPage({
                     min={0} max={40} step={5}
                     displayValue={`+${taxBumpPct}%`}
                     displaySub={`→ $${Math.round((annualTaxes + annualInsurance) * (1 + taxBumpPct / 100) / 12).toLocaleString()}/mo`}
-                    onChange={setTaxBumpPct}
-                    accentColor={taxBumpPct > 20 ? "#f97316" : taxBumpPct > 0 ? LEMON : EMERALD}
+                    onChange={manual(setTaxBumpPct)}
+                    accentColor={taxBumpPct > 20 ? "#e6b84d" : taxBumpPct > 0 ? LEMON : EMERALD}
                     fillPct={taxBumpPct / 40 * 100}
                   />
                 </div>
@@ -593,18 +674,18 @@ export default function StressMatrixPage({
                     flex: 1, background: "rgba(238,239,211,0.04)", borderRadius: dc.r.sm,
                     padding: "16px 18px", border: "1px solid rgba(238,239,211,0.10)",
                   }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 8 }}>
                       Base case (no stress)
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <DscrGauge value={baseDSCR} size={88} label />
                       <div>
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", marginBottom: 2 }}>Zone</div>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>Zone</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: ZONE_ACCENT[baseZone] }}>{zoneLabel(baseZone)}</div>
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.35)", marginTop: 4 }}>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                           PITIA <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${Math.round(basePITIA).toLocaleString()}/mo</Mono>
                         </div>
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.35)" }}>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
                           Rent <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${monthlyRent.toLocaleString()}/mo</Mono>
                         </div>
                       </div>
@@ -622,28 +703,28 @@ export default function StressMatrixPage({
                   {/* Stressed case */}
                   <div style={{
                     flex: 1,
-                    background: stressZone === "DEAL_BREAK" ? "rgba(255,107,107,0.08)" :
-                                stressZone === "FRAGILE"    ? "rgba(249,115,22,0.07)"  :
+                    background: stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.08)" :
+                                stressZone === "FRAGILE"    ? "rgba(230,184,77,0.07)"  :
                                                              "rgba(238,239,211,0.04)",
                     borderRadius: dc.r.sm, padding: "16px 18px",
-                    border: `1px solid ${stressZone === "DEAL_BREAK" ? "rgba(255,107,107,0.3)" :
-                                         stressZone === "FRAGILE"    ? "rgba(249,115,22,0.25)" :
+                    border: `1px solid ${stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.3)" :
+                                         stressZone === "FRAGILE"    ? "rgba(230,184,77,0.25)" :
                                                                       "rgba(238,239,211,0.10)"}`,
                     transition: "background 0.3s, border-color 0.3s",
                   }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 8, display: "flex", gap: 8, alignItems: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 8, display: "flex", gap: 8, alignItems: "center" }}>
                       Stressed scenario
                       <RiskFlame level={stressRisk} size={14} />
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <DscrGauge value={stressedDSCR} size={88} label />
                       <div>
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", marginBottom: 2 }}>Zone</div>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>Zone</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: ZONE_ACCENT[stressZone], transition: "color 0.3s" }}>{zoneLabel(stressZone)}</div>
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.35)", marginTop: 4 }}>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                           PITIA <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${Math.round(stressedPITIA).toLocaleString()}/mo</Mono>
                         </div>
-                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.35)" }}>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
                           Eff. rent <Mono style={{ color: "rgba(238,239,211,0.6)" }}>${Math.round(effectiveRent).toLocaleString()}/mo</Mono>
                         </div>
                       </div>
@@ -651,11 +732,140 @@ export default function StressMatrixPage({
                   </div>
                 </div>
 
+                {/* ── Dual-track: lender (Track 1) vs investor survival (Track 2),
+                       with the "Qualifies but Dangerous" flag (DSCR spec) ── */}
+                <div style={{
+                  marginTop: 16,
+                  background: dualTrack.qualifiesButDangerous ? "rgba(224,99,99,0.10)" : "rgba(238,239,211,0.04)",
+                  border: `1px solid ${dualTrack.qualifiesButDangerous ? "rgba(224,99,99,0.42)" : "rgba(238,239,211,0.10)"}`,
+                  borderRadius: dc.r.sm, padding: "14px 18px",
+                  transition: "background .3s, border-color .3s",
+                }}>
+                  <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Lender · Track 1</div>
+                      <Mono style={{ fontSize: 20, fontWeight: 700, color: dualTrack.track1 >= 1.0 ? EMERALD : ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track1.toFixed(2)}x</Mono>
+                    </div>
+                    <span style={{ color: "rgba(238,239,211,0.3)", fontSize: 18, lineHeight: 1 }}>→</span>
+                    <div>
+                      <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Investor net · Track 2</div>
+                      <Mono style={{ fontSize: 20, fontWeight: 700, color: dualTrack.track2 >= 1.0 ? EMERALD : ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track2.toFixed(2)}x</Mono>
+                    </div>
+                    {dualTrack.qualifiesButDangerous && (
+                      <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 800, color: ZONE_ACCENT.DEAL_BREAK, letterSpacing: "-0.01em" }}>
+                        <RiskFlame level="high" size={16} /> Qualifies but dangerous
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "9px 0 0", lineHeight: 1.5 }}>
+                    {dualTrack.qualifiesButDangerous ? (
+                      <>The lender approves on gross rent (<strong style={{ color: dc.cream }}>{dualTrack.track1.toFixed(2)}x</strong>), but after vacancy, management, and maintenance the deal nets <strong style={{ color: ZONE_ACCENT.DEAL_BREAK }}>{dualTrack.track2.toFixed(2)}x</strong> — below 1.00. It clears underwriting and still loses money every month. This is the gap Track 2 exists to catch.</>
+                    ) : (
+                      <>Track 1 is what the lender qualifies on; Track 2 is what you actually net after vacancy, management, and maintenance. {dualTrack.track2 >= 1.0 ? "Both clear — the deal survives in reality, not just on paper." : "Track 2 below 1.0 means thin real-world cash flow even where the lender is comfortable."}</>
+                    )}
+                  </p>
+                </div>
+
+                {/* ── Covenant Check — maintenance covenant test ── */}
+                {(() => {
+                  const covenantCheck = assessDscrCovenant(stressedDSCR, covenantThreshold);
+                  const statusColor: Record<CovenantStatus, string> = {
+                    OK: EMERALD,
+                    TIGHT: LEMON,
+                    BREACH: ZONE_ACCENT.DEAL_BREAK,
+                  };
+                  return (
+                    <div style={{
+                      marginTop: 16,
+                      background: covenantCheck.breach ? "rgba(224,99,99,0.10)" : covenantCheck.status === 'TIGHT' ? "rgba(216,217,88,0.08)" : "rgba(77,189,151,0.08)",
+                      border: `1px solid ${covenantCheck.breach ? "rgba(224,99,99,0.42)" : covenantCheck.status === 'TIGHT' ? "rgba(216,217,88,0.25)" : "rgba(77,189,151,0.25)"}`,
+                      borderRadius: dc.r.sm, padding: "14px 18px",
+                      transition: "background .3s, border-color .3s",
+                    }}>
+                      <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "center" }}>
+                        <div>
+                          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Covenant Check</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <Mono style={{ fontSize: 20, fontWeight: 700, color: statusColor[covenantCheck.status] }}>{covenantCheck.status}</Mono>
+                            {covenantCheck.breach && <RiskFlame level="high" size={16} />}
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Required</div>
+                          <Mono style={{ fontSize: 20, fontWeight: 700, color: "rgba(238,239,211,0.7)" }}>{covenantCheck.covenantDscr.toFixed(2)}x</Mono>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Actual</div>
+                          <Mono style={{ fontSize: 20, fontWeight: 700, color: statusColor[covenantCheck.status] }}>{covenantCheck.actualDscr.toFixed(2)}x</Mono>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 3 }}>Cushion</div>
+                          <Mono style={{ fontSize: 20, fontWeight: 700, color: covenantCheck.cushion >= 0 ? statusColor[covenantCheck.status] : ZONE_ACCENT.DEAL_BREAK }}>
+                            {covenantCheck.cushion >= 0 ? '+' : ''}{covenantCheck.cushion.toFixed(2)}x
+                          </Mono>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "9px 0 0", lineHeight: 1.5 }}>
+                        {covenantCheck.note}
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {/* ── Break-even vacancy — how much occupancy loss the deal
+                       absorbs before DSCR < 1.00 (hardened per DSCR spec) ── */}
+                <div style={{
+                  marginTop: 16, display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap",
+                  background: "rgba(238,239,211,0.04)", border: "1px solid rgba(238,239,211,0.10)",
+                  borderRadius: dc.r.sm, padding: "14px 18px",
+                }}>
+                  <div style={{ flexShrink: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>
+                      Break-even vacancy
+                    </div>
+                    <Mono style={{ fontSize: 26, fontWeight: 700, lineHeight: 1, color:
+                      breakEvenVac.structurallyNegative ? ZONE_ACCENT.DEAL_BREAK
+                      : breakEvenVac.vacancyPct >= 20 ? EMERALD
+                      : breakEvenVac.vacancyPct >= 10 ? LEMON
+                      : ZONE_ACCENT.FRAGILE }}>
+                      {breakEvenVac.structurallyNegative ? "—" : `${breakEvenVac.vacancyPct.toFixed(0)}%`}
+                    </Mono>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: "rgba(238,239,211,0.66)", margin: 0, lineHeight: 1.5, flex: 1, minWidth: 220 }}>
+                    {breakEvenVac.structurallyNegative ? (
+                      <>Structurally cash-negative — at this rate and rent the property doesn&apos;t cover its payment even at 100% occupancy. Occupancy alone can&apos;t save it.</>
+                    ) : (
+                      <>Keeps covering the payment up to <strong style={{ color: dc.cream }}>{breakEvenVac.vacancyPct.toFixed(0)}% vacancy</strong> before DSCR drops below 1.00. You&apos;re modeling <strong style={{ color: dc.cream }}>{vacancyPct}%</strong>{vacancyPct < breakEvenVac.vacancyPct ? ` — a ${(breakEvenVac.vacancyPct - vacancyPct).toFixed(0)}-point cushion.` : " — at or past the break-even point."}</>
+                    )}
+                  </p>
+                </div>
+
+                {/* ── Multi-shock waterfall — each active lever's marginal DSCR bite ── */}
+                {shockWaterfall.steps.length > 0 && (
+                  <div style={{ marginTop: 16, background: "rgba(238,239,211,0.04)", border: "1px solid rgba(238,239,211,0.10)", borderRadius: dc.r.sm, padding: "14px 18px" }}>
+                    <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>Where the damage comes from</div>
+                    <div style={{ display: "grid", gap: 7 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, fontSize: 12.5 }}>
+                        <span style={{ color: "rgba(238,239,211,0.7)", fontWeight: 600, minWidth: 130 }}>Base (no stress)</span>
+                        <span style={{ minWidth: 48 }} />
+                        <Mono style={{ color: dc.cream, fontWeight: 700, minWidth: 52, textAlign: "right" as const }}>{shockWaterfall.baseDSCR.toFixed(2)}x</Mono>
+                      </div>
+                      {shockWaterfall.steps.map((st, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, fontSize: 12.5 }}>
+                          <span style={{ color: "rgba(238,239,211,0.72)", minWidth: 130 }}>{st.label}</span>
+                          <Mono style={{ color: st.marginalDelta < 0 ? ZONE_ACCENT.DEAL_BREAK : EMERALD, fontWeight: 600, fontSize: 11.5, minWidth: 48, textAlign: "right" as const }}>{st.marginalDelta >= 0 ? "+" : ""}{st.marginalDelta.toFixed(2)}</Mono>
+                          <Mono style={{ color: st.dscrAfter >= 1.0 ? EMERALD : ZONE_ACCENT.DEAL_BREAK, fontWeight: 700, minWidth: 52, textAlign: "right" as const }}>{st.dscrAfter.toFixed(2)}x</Mono>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* ── Plain-language verdict ─────────────────────── */}
                 <div style={{
                   marginTop: 16,
-                  background: stressZone === "DEAL_BREAK" ? "rgba(255,107,107,0.09)" :
-                              stressZone === "FRAGILE"    ? "rgba(249,115,22,0.08)"  :
+                  background: stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.09)" :
+                              stressZone === "FRAGILE"    ? "rgba(230,184,77,0.08)"  :
                               stressZone === "MARGINAL"   ? "rgba(216,217,88,0.08)"  :
                                                            "rgba(77,189,151,0.08)",
                   border: `1px solid ${ZONE_ACCENT[stressZone]}33`,
@@ -671,8 +881,8 @@ export default function StressMatrixPage({
                   <p style={{ fontSize: 13, color: "rgba(238,239,211,0.65)", margin: 0, lineHeight: 1.55 }}>
                     {verdict.sub}
                     {stressZone === "DEAL_BREAK" || stressZone === "FRAGILE" ? (
-                      <span style={{ display: "block", marginTop: 6, color: "rgba(238,239,211,0.4)", fontStyle: "italic", fontSize: 11 }}>
-                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, contact us at +1 (555) 010-0000.
+                      <span style={{ display: "block", marginTop: 6, color: "rgba(238,239,211,0.62)", fontStyle: "italic", fontSize: 11 }}>
+                        This is a preliminary estimate only — not a guaranteed rate or approval. For exact underwriting, submit a scenario review.
                       </span>
                     ) : null}
                   </p>
@@ -696,25 +906,25 @@ export default function StressMatrixPage({
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: LEMON }}>
                       {showFullMatrix ? "▾ Hide full matrix" : "▸ Show full matrix — 120 combinations"}
                     </div>
-                    <div style={{ fontSize: 12, color: "rgba(238,239,211,0.4)", marginTop: 3, lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 3, lineHeight: 1.4 }}>
                       12 rate shocks × 10 rent changes · hover any cell for exact DSCR · click to pin
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
                     <span style={{ fontSize: 11, fontWeight: 600, color: EMERALD }}>{passRate} pass</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#ff6b6b" }}>{breakCount} breaks</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#e06363" }}>{breakCount} breaks</span>
                   </div>
                 </button>
 
                 {showFullMatrix && (
                   <div style={{ marginTop: 20 }}>
                     {!result ? (
-                      <div style={{ padding: 32, textAlign: "center", color: "#ff6b6b", background: "rgba(255,107,107,0.08)", borderRadius: 9, border: "1px solid rgba(255,107,107,0.3)" }}>
+                      <div style={{ padding: 32, textAlign: "center", color: "#e06363", background: "rgba(224,99,99,0.08)", borderRadius: 9, border: "1px solid rgba(224,99,99,0.3)" }}>
                         Engine returned no result. Check inputs.
                       </div>
                     ) : (
                       <>
-                        <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(238,239,211,0.4)", marginBottom: 10, fontFamily: dc.mono, letterSpacing: "0.03em" }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(238,239,211,0.62)", marginBottom: 10, fontFamily: dc.mono, letterSpacing: "0.03em" }}>
                           Rows (down) = rate shock in bps (100 bps = 1% change) · Columns (across) = rent change %
                         </div>
 
@@ -727,9 +937,9 @@ export default function StressMatrixPage({
                           <table style={{ borderCollapse: "separate", borderSpacing: 2, minWidth: 580 }}>
                             <thead>
                               <tr>
-                                <th style={{ padding: "4px 8px", fontSize: 10, color: "rgba(238,239,211,0.4)", textAlign: "left", fontFamily: dc.mono, fontWeight: 500 }}>bps</th>
+                                <th style={{ padding: "4px 8px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "left", fontFamily: dc.mono, fontWeight: 500 }}>bps</th>
                                 {result.rentAxis.map((rp) => (
-                                  <th key={rp} style={{ padding: "4px 3px", fontSize: 10, color: "rgba(238,239,211,0.4)", textAlign: "center", fontFamily: dc.mono, fontWeight: 500 }}>
+                                  <th key={rp} style={{ padding: "4px 3px", fontSize: 11, color: "rgba(238,239,211,0.62)", textAlign: "center", fontFamily: dc.mono, fontWeight: 500 }}>
                                     {rp > 0 ? "+" : ""}{rp}%
                                   </th>
                                 ))}
@@ -743,8 +953,8 @@ export default function StressMatrixPage({
                                 return (
                                   <tr key={ri}>
                                     <td style={{
-                                      padding: "2px 8px", fontSize: 10,
-                                      color: isBaseRow ? LEMON : "rgba(238,239,211,0.4)",
+                                      padding: "2px 8px", fontSize: 11,
+                                      color: isBaseRow ? LEMON : "rgba(238,239,211,0.5)",
                                       fontFamily: dc.mono, fontWeight: isBaseRow ? 700 : 500, whiteSpace: "nowrap",
                                     }}>
                                       {offsetBps > 0 ? "+" : offsetBps === 0 ? "±" : ""}{offsetBps}bps
@@ -778,7 +988,9 @@ export default function StressMatrixPage({
                                           <div className="sm-cell" style={cellStyle(cell.riskZone, isBaseCell, isHovered)}>
                                             {cell.track1DSCR.toFixed(2)}
                                             {isDanger && !isBaseCell && !isHovered && (
-                                              <span style={{ position: "absolute", top: 1, right: 2, fontSize: 7, lineHeight: 1 }}>🔥</span>
+                                              <span style={{ position: "absolute", top: 1, right: 2, lineHeight: 0, display: "inline-flex" }}>
+                                                <RiskFlame level={riskFromDscr(cell.track1DSCR)} size={9} />
+                                              </span>
                                             )}
                                           </div>
                                         </td>
@@ -800,10 +1012,10 @@ export default function StressMatrixPage({
                               boxShadow: "0 14px 32px -8px rgba(0,0,0,0.7)", zIndex: 20,
                             }}>
                               <div style={{ display: "flex", gap: 8, marginBottom: 7, flexWrap: "wrap", alignItems: "center" }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: dc.mono, color: "rgba(238,239,211,0.55)", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "2px 6px" }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: dc.mono, color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "2px 6px" }}>
                                   {hoverCell.rateBps >= 0 ? "+" : ""}{hoverCell.rateBps} bps
                                 </span>
-                                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: dc.mono, color: "rgba(238,239,211,0.55)", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "2px 6px" }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, fontFamily: dc.mono, color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "2px 6px" }}>
                                   {hoverCell.rentPct >= 0 ? "+" : ""}{hoverCell.rentPct.toFixed(0)}% rent
                                 </span>
                                 <RiskFlame level={riskFromDscr(hoverCell.dscr)} size={14} />
@@ -811,10 +1023,10 @@ export default function StressMatrixPage({
                               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: dc.mono, color: dscrColor(hoverCell.dscr), letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 5, transition: "color 0.2s" }}>
                                 {hoverCell.dscr.toFixed(2)}x
                               </div>
-                              <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ZONE_ACCENT[hoverCell.zone], padding: "2px 0" }}>
+                              <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ZONE_ACCENT[hoverCell.zone], padding: "2px 0" }}>
                                 {zoneLabel(hoverCell.zone)}
                               </div>
-                              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.4)", marginTop: 5, lineHeight: 1.4 }}>
+                              <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 5, lineHeight: 1.4 }}>
                                 {verdictCopy(hoverCell.dscr, hoverCell.zone).headline}
                               </div>
                             </div>
@@ -833,32 +1045,32 @@ export default function StressMatrixPage({
                             <button
                               onClick={() => setPinned(null)}
                               aria-label="Dismiss pinned scenario"
-                              style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", color: "rgba(238,239,211,0.3)", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: 0 }}
+                              style={{ position: "absolute", top: 10, right: 12, background: "none", border: "none", color: "rgba(238,239,211,0.62)", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: 0 }}
                             >×</button>
 
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Rate shock</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Rate shock</div>
                               <Mono style={{ fontSize: 20, fontWeight: 700, color: CREAM }}>{pinned.rateBps >= 0 ? "+" : ""}{pinned.rateBps} bps</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Rent shock</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Rent shock</div>
                               <Mono style={{ fontSize: 20, fontWeight: 700, color: CREAM }}>{pinned.rentPct >= 0 ? "+" : ""}{pinned.rentPct.toFixed(0)}%</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Stressed DSCR</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Stressed DSCR</div>
                               <Mono style={{ fontSize: 28, fontWeight: 700, color: LEMON, letterSpacing: "-0.03em" }}>{pinned.dscr.toFixed(2)}x</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>vs. Base DSCR</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>vs. Base DSCR</div>
                               <Mono style={{ fontSize: 20, fontWeight: 700, color: dscrColor(baseDSCR) }}>{baseDSCR.toFixed(2)}x</Mono>
                             </div>
                             <div>
-                              <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.4)", marginBottom: 4 }}>Risk zone</div>
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Risk zone</div>
                               <div style={{ fontSize: 15, fontWeight: 700, color: ZONE_ACCENT[pinned.zone] }}>{zoneLabel(pinned.zone)}</div>
                               <div style={{ marginTop: 4 }}><RiskFlame level={riskFromDscr(pinned.dscr)} size={16} /></div>
                             </div>
                             <div style={{ flex: 1, minWidth: 180 }}>
-                              <div style={{ fontSize: 12, color: "rgba(238,239,211,0.55)", lineHeight: 1.5 }}>
+                              <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>
                                 {verdictCopy(pinned.dscr, pinned.zone).sub}
                               </div>
                             </div>
@@ -868,7 +1080,7 @@ export default function StressMatrixPage({
                         {/* Legend */}
                         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 14 }}>
                           {legend.map(({ zone, label }) => (
-                            <div key={zone} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.55)" }}>
+                            <div key={zone} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 500, color: "rgba(238,239,211,0.62)" }}>
                               <span style={{ width: 11, height: 11, borderRadius: 3, background: ZONE_COLORS[zone].bg, display: "inline-block", flexShrink: 0 }} />
                               {label}
                             </div>
@@ -880,7 +1092,7 @@ export default function StressMatrixPage({
                           marginTop: 14, padding: "12px 16px",
                           background: "rgba(238,239,211,0.04)",
                           borderRadius: 8, border: "1px solid rgba(238,239,211,0.10)",
-                          fontSize: 12, color: "rgba(238,239,211,0.5)", lineHeight: 1.6, fontFamily: dc.mono,
+                          fontSize: 12, color: "rgba(238,239,211,0.62)", lineHeight: 1.6, fontFamily: dc.mono,
                         }}>
                           {result.summary}
                         </div>
@@ -891,13 +1103,14 @@ export default function StressMatrixPage({
               </div>
 
               {/* ── Compliance footnote ───────────────────────────────── */}
-              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.28)", marginTop: 18, lineHeight: 1.55, maxWidth: "60ch" }}>
-                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.4)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, contact Greenstreet Finance at +1 (555) 010-0000.
+              <p style={{ fontSize: 11, color: "rgba(238,239,211,0.5)", marginTop: 18, lineHeight: 1.55, maxWidth: "60ch" }}>
+                All results are <strong style={{ fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>preliminary estimates</strong> for analytical purposes only — not a guaranteed rate, loan approval, or investment advice. For exact underwriting and rates, submit a scenario review.
               </p>
             </div>
           </div>
         </div>
       </section>
+      <BottomCTA onNavigate={onNavigate} />
     </DcShell>
   );
 }
@@ -914,20 +1127,16 @@ const inputStyle: React.CSSProperties = {
 };
 
 function InputField({
-  label, prefix, suffix, children,
+  label, children,
 }: {
-  label: string; prefix?: string; suffix?: string; children: React.ReactNode;
+  label: string; children: React.ReactNode;
 }) {
   return (
-    <label style={{ display: "block", marginBottom: 12 }}>
-      <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)", marginBottom: 4 }}>
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>
         {label}
       </span>
-      <div style={{ display: "flex", alignItems: "center", background: "#003738", borderRadius: 6, padding: "0 11px", border: "1px solid rgba(238,239,211,0.10)" }}>
-        {prefix && <span style={{ color: "rgba(238,239,211,0.4)", flexShrink: 0 }}>{prefix}</span>}
-        {children}
-        {suffix && <span style={{ color: "rgba(238,239,211,0.4)", flexShrink: 0 }}>{suffix}</span>}
-      </div>
+      {children}
     </label>
   );
 }
@@ -949,27 +1158,24 @@ function SliderField({
   return (
     <div>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.55)" }}>
+        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
           {label}
         </span>
         <Mono style={{ fontSize: 14, fontWeight: 700, color: accentColor, transition: "color 0.2s", fontVariantNumeric: "tabular-nums" }}>
           {displayValue}
         </Mono>
       </div>
-      <input
-        className="gs-slider"
-        type="range"
+      <PremiumSlider
         min={min} max={max} step={step} value={value}
-        onChange={(e) => onChange(+e.target.value)}
-        style={trackStyle}
-        aria-label={label}
-        title={glossLabel}
+        onChange={onChange}
+        accentColor={accentColor}
+        trackColor="rgba(238,239,211,0.12)"
       />
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, alignItems: "center" }}>
-        <span style={{ fontSize: 10, color: "rgba(238,239,211,0.3)", lineHeight: 1.4 }} title={glossLabel}>
+        <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.4 }} title={glossLabel}>
           {glossLabel.length > 42 ? glossLabel.slice(0, 42) + "…" : glossLabel}
         </span>
-        <Mono style={{ fontSize: 10, color: "rgba(238,239,211,0.45)", fontVariantNumeric: "tabular-nums", flexShrink: 0, marginLeft: 6 }}>
+        <Mono style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontVariantNumeric: "tabular-nums", flexShrink: 0, marginLeft: 6 }}>
           {displaySub}
         </Mono>
       </div>

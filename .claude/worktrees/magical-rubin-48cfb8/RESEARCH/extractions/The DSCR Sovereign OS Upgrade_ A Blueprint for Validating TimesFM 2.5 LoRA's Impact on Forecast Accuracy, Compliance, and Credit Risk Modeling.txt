@@ -1,0 +1,645 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: "The Dscr Sovereign Os Upgrade  A Blueprint For Validating Timesfm 2.5 Lora'S Impact On Forecast Accuracy, Compliance, And Credit Risk Modeling"
+summary: "The DSCR Sovereign OS Upgrade: A Blueprint for Validating TimesFM 2.5"
+entities:
+  - concept/arm
+  - concept/cltv
+  - concept/dscr
+  - concept/itia
+  - concept/ltv
+  - lender/visio-lending
+  - ml/conformal
+  - ml/shap
+  - ml/timesfm
+  - ml/xgboost
+  - topic/sfr
+  - topic/str
+tags:
+  - ml/xgboost
+  - topic/adverse-action
+  - topic/architecture
+  - topic/cecl
+  - topic/compliance
+  - topic/default-rate
+  - topic/lgd
+  - topic/monte-carlo
+  - topic/portfolio
+  - topic/reserves
+  - topic/stress-test
+  - topic/yield-curve
+  - type/audit
+source: "RESEARCH/pdf_extractions/The DSCR Sovereign OS Upgrade_ A Blueprint for Validating TimesFM 2.5 LoRA's Impact on Forecast Accuracy, Compliance, and Credit Risk Modeling.txt"
+vaulted_at: 2026-06-20
+---
+
+
+===== PAGE 1 =====
+
+The DSCR Sovereign OS Upgrade: A
+Blueprint for Validating TimesFM 2.5
+LoRA's Impact on Forecast Accuracy,
+Compliance, and Credit Risk Modeling
+Technical Feasibility and Forecast Enhancement
+The evaluation of the TimesFM 2.5 LoRA upgrade within the DSCR Sovereign OS
+framework begins with a rigorous assessment of its technical implementation and its
+capacity to enhance forecast accuracy. The proposed strategy represents a sophisticated
+application of parameter-efficient fine-tuning (PEFT) tailored specifically for the
+challenges of financial time-series forecasting 4 . The core decision to adopt LoRA over
+alternative approaches like In-Context Fine-Tuning (ICF) or full fine-tuning is
+strategically sound, balancing performance gains against operational cost and risk 21 87.
+ICF, while requiring zero training data and computational resources, offers only good
+few-shot performance and lacks the ability to learn deep, domain-specific patterns from
+accumulated data . Conversely, full fine-tuning, though capable of marginal gains,
+introduces significant risks of overfitting and a loss of the base model's valuable cross-
+domain generalization capabilities, alongside substantially higher infrastructure costs 59.
+LoRA emerges as the optimal "sweet spot," allowing the vast knowledge embedded in the
+200-million-parameter TimesFM 2.5 foundation model to be augmented with minimal
+trainable parameters, thus preserving its generalization power while adapting it to the
+nuances of property rent histories 35139.
+The proposed LoRA architecture, which targets only the attention mechanism projections
+(q_proj and v_proj), is a well-founded choice grounded in empirical evidence from
+financial benchmarking studies 7 . These modules are critical for determining how the
+model weighs and aggregates information across the input sequence; modifying them
+allows the adapters to learn DSCR-specific relationships without perturbing the
+foundational mechanics of the transformer backbone 3 . This surgical approach
+minimizes the risk of catastrophic interference, where extensive fine-tuning can overwrite
+crucial pre-trained knowledge 19. The selection of a rank (r) of 16 for production is a
+standard practice that provides sufficient capacity to capture complex patterns in
+
+===== PAGE 2 =====
+
+financial data while remaining computationally efficient 97. This configuration results in
+trainable parameters constituting only a small fraction (0.1–0.5%) of the total model size,
+ensuring low memory overhead and fast training times on accessible hardware like an
+A10G GPU 5 162. The FinLoRA benchmark, which demonstrated an average accuracy
+improvement of +40.1 points on financial tasks using LoRA, provides strong external
+validation for this methodological choice 7 .
+The training regime is explicitly designed to produce the type of probabilistic forecasts
+essential for robust credit risk modeling. The adoption of a multi-objective loss function
+combining Mean Absolute Error (MAE) for the central point forecast (P50) and Pinball
+Loss for the tail quantiles (P10 and P90) directly addresses the need for a complete
+predictive distribution 8 . This is a critical enhancement over single-point estimates, as it
+enables the calculation of forward-looking risk features such as the probability of a DSCR
+falling below 1.0 or the expected shortfall over a stress horizon 9 . These quantile
+outputs are fed directly into the Monte Carlo Module 1, obviating the need for a separate
+conformal wrapper on the TimesFM output itself, a simplification that streamlines the
+−4
+architecture 5 . The chosen hyperparameters—namely a learning rate of 1×10 , 2-3
+epochs, and a dropout rate of 0.05—are conservative and well-suited to the nature of
+financial time series, which tend to be smoother than text-based sequences 135. A lower
+learning rate prevents overshooting during optimization, while limiting the number of
+epochs mitigates the risk of overfitting on the typically limited volume of labeled financial
+data 90. The normalization of inputs is also mandated, a crucial step given the wide
+variation in rent levels across different markets 36. Together, these technical choices
+form a coherent and effective strategy for enhancing forecast accuracy in a manner that is
+both computationally viable and directly aligned with the downstream needs of the DSCR
+Sovereign OS.
+Approach Cost Accuracy Risk
+ICF (Current) Zero Good (few-shot) None — no training 23
+LoRA (Phase 3) Low (~66% cheaper than +40.1 pts over base (FinLoRA Low — attention-only adapters 7
+QLoRA) benchmark)
+Full Fine- High Marginal gain over LoRA High — overfitting, portability loss
+Tuning 59
+
+===== PAGE 3 =====
+
+Anti-Leakage Compliance and Temporal Generalization
+A cornerstone of any credible forecasting model in finance is its adherence to strict anti-
+leakage protocols, ensuring that predictions are based solely on information available at
+the time of the decision. The proposed LoRA upgrade blueprint demonstrates a mature
+understanding of this principle through its explicit and disciplined covariate handling
+strategy. The fundamental rule is strictly enforced: future covariates must derive only
+from deterministic, decision-time-forward curves, such as the SOFR forward rates
+generated by the NSS/Hull-White engine, and not from realized future data 132. For all
+other exogenous variables, such as vacancy rates or occupancy indices, the model is
+supplied with past-only information, simulating a real-world scenario where future values
+are unknown 22. This clear distinction between predictable future drivers and
+unpredictable past-only drivers is non-negotiable for preventing lookahead bias and
+ensuring the model's out-of-sample performance is not artificially inflated 24. By
+adhering to this discipline, the upgraded TimesFM 2.5 will learn genuine predictive
+relationships rather than simply memorizing correlations between covariates and future
+outcomes.
+Beyond static anti-leakage rules, the proposal places significant emphasis on validating
+the model's ability to generalize across different economic and geographic conditions.
+This is achieved through a rigorous temporal cross-validation strategy that explicitly
+avoids random shuffling of data points, which would violate the inherent temporal order
+of time-series data 23. Instead, the dataset is split chronologically, for instance, by
+vintage year, to create distinct train and validation sets 24. This methodology is crucial
+for testing the model's resilience and adaptability, particularly its ability to perform under
+new macroeconomic regimes. The specific requirement to validate generalization from
+the pre-2022 low-rate environment to the post-2022 high-rate era is a powerful stress test
+93. Such a transition represents a significant structural break in market dynamics, and a
+model capable of navigating it demonstrates robustness and a deeper understanding of
+underlying causal factors rather than superficial pattern matching 82. This is further
+reinforced by the inclusion of geographic hold-out tests, where coastal markets or Sun
+Belt regions are completely excluded from the training set 82. This ensures the model
+learns nationally relevant patterns and does not become overly specialized to regional
+idiosyncrasies, thereby enhancing its applicability across the entire portfolio. This
+combination of strict covariate discipline and multi-faceted cross-validation forms a
+robust defense against overfitting and establishes a strong foundation for the model's
+reliability in a dynamic and uncertain market.
+
+===== PAGE 4 =====
+
+Integration into the DSCR Sovereign OS Credit Risk
+Framework
+The successful integration of the upgraded TimesFM 2.5 into the DSCR Sovereign OS
+hinges on a modular and logical architecture that clearly separates the forecasting task
+from the final credit decision-making process. The proposed design correctly positions
+TimesFM not as a classifier, but as a dedicated "cash-flow engine" responsible for
+generating rich, forward-looking risk features 12. Its sole responsibility is to predict
+future rent and NOI paths, including their uncertainty through P10 and P90 quantiles,
+conditioned on available information at the decision timestamp 107. This specialized role
+allows the system to leverage the state-of-the-art forecasting capabilities of the
+foundation model without burdening it with the complexities of supervised classification.
+The outputs from TimesFM—the mean, P10, and P90 rent forecasts over a 12-month
+horizon—then serve as primary inputs to a suite of separate, supervised models designed
+for distinct risk and profitability objectives 45. This decoupled architecture enhances
+modularity, auditability, and maintainability, as each component can be developed,
+validated, and updated independently according to its specific purpose 12.
+This modular approach directly supports the calculation of key credit risk parameters
+within the PD/LGD/EAD framework. The TimesFM-generated rent paths are used to
+construct the corresponding Debt Service Coverage Ratio (DSCR) paths over various
+horizons (e.g., 12, 36, 60 months). From these simulated paths, a Probability of Default
+(PD) model can calculate the likelihood of the DSCR falling below a critical threshold,
+such as 1.0, providing a forward-looking measure of default risk 11. Similarly, the
+distributions of future rents inform the estimation of Loss Given Default (LGD) and
+Exposure at Default (EAD) by modeling potential cash flows and collateral values at the
+time of distress 9 44. The combination of these three pillars—PD, LGD, and EAD—
+enables the calculation of Expected Credit Loss (ECL), a cornerstone of modern credit risk
+management under standards like CECL 43 81. Furthermore, the same cash-flow engine
+powers profitability analysis. By feeding the rent and NOI distributions into a Monte
+Carlo simulation, the system can estimate the expected return on equity (ROE) or capital
+loan-to-value (CLTV) for a given deal, factoring in interest margins, fees, funding costs,
+and expected losses 42 47. This allows the DSCR Sovereign OS to define a "good
+customer" not merely as one who meets a static DSCR threshold, but as a borrower who
+satisfies minimum risk criteria (e.g., PD < x, ECL < y) while also offering a positive and
+competitive expected ROE 12. This multi-dimensional definition aligns credit decisions
+more closely with the institution's ultimate business objectives.
+
+===== PAGE 5 =====
+
+Pathway to Regulatory Defensibility and Model
+Governance
+While the technical implementation of the TimesFM 2.5 LoRA upgrade and its integration
+into the DSCR Sovereign OS represent a significant advancement, achieving full
+regulatory defensibility requires the establishment of a comprehensive model governance
+framework. A well-built forecasting and decision pipeline is only as strong as its
+validation and oversight mechanisms. The first pillar of this framework is a rigorous
+validation process that goes beyond simple backtesting. It must include formal statistical
+tests for calibration, which assess whether the predicted probabilities match observed
+frequencies (e.g., loans predicted with a 5% PD should default at approximately a 5%
+rate) 10. Discrimination tests, such as ROC/AUC and KS statistics, are also essential to
+measure the model's ability to rank borrowers by risk 125. Critically, these validation
+exercises must be performed across multiple segments defined by key risk drivers, such as
+vintages, geographic regions, and property types, to demonstrate that the model performs
+consistently and does not exhibit unexpected degradation in specific cohorts 161.
+Performance must be monitored continuously for signs of drift, ensuring the model
+remains accurate as market conditions evolve 50.
+The second pillar concerns fairness and explainability, which have become paramount in
+the regulation of AI systems in finance, particularly under instruments like the EU AI Act
+30157. Although TimesFM itself operates on income data, the downstream classifiers built
+upon its outputs (for PD and approval) must be constructed with fairness as a primary
+design constraint. This involves using models, such as tree-based ensembles (e.g.,
+XGBoost, LightGBM), that support monotonicity constraints 45. For example, a constraint
+can be applied to ensure that an increase in DSCR or borrower reserves does not lead to
+an increase in the predicted probability of default 49. Furthermore, the feature set for
+these classifiers must be carefully curated to exclude protected attributes (e.g., race,
+gender) and their proxies, a core tenet of fair-lending regulations 31. To satisfy demands
+for transparency, the system must also generate local explanations for individual
+decisions. Techniques like SHAP (SHapley Additive exPlanations) can be used to attribute
+a specific applicant's predicted PD or approval probability to the contributions of each
+input feature, providing the necessary justification for adverse action notices and
+enabling auditors to understand the logic behind automated decisions 50. All aspects of
+this governance framework—from data lineage and model documentation to validation
+results and explanation logs—must be meticulously recorded in a centralized Evidence
+Vault to provide a complete and auditable trail of the model's lifecycle and performance
+161.
+
+===== PAGE 6 =====
+
+Reference
+1. 【GitHub每日速递250923】 Google 又放大招！TimesFM 2.5 参数减半 https://
+www.cnblogs.com/freedom-w/p/19103696
+2. Time-Series Foundation Model for Value-at-Risk - arXiv https://arxiv.org/html/
+2410.11773v1
+3. RL(HF) algorithms with LoRA Support - verl documentation https://
+verl.readthedocs.io/en/latest/advance/ppo_lora.html
+4. Financial Fine-tuning a Large Time Series Model - arXiv https://arxiv.org/html/
+2412.09880v1
+5. Time Series Forecasting with Google's TimesFM 2.5 in MetaTrader 5 https://
+www.mql5.com/en/articles/22096
+6. TimesFM-2.5: A New Standard for Zero-Shot Forecasting - LinkedIn https://
+www.linkedin.com/posts/yossimatias_we-have-released-timesfm-25-the-new-leader-
+activity-7373505442469097473-Buy_
+7. [PDF] BENCHMARKING LORA METHODS FOR FINE-TUNING LLMS ON ... https://
+openreview.net/pdf?id=9rjvqK7kqx
+8. [PDF] A quantile probability model for sectoral corporate defaults in Europe https://
+www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp3207~4ec5f4abf6.en.pdf
+9. Downturn LGD modeling using quantile regression - ScienceDirect https://
+www.sciencedirect.com/science/article/abs/pii/S0378426617300523
+10. [PDF] Probability-of-default curve calibration and validation of internal ... https://
+www.bis.org/ifc/publ/ifcb43_zd.pdf
+11. Overview of Lifetime Probability of Default Models - MathWorks https://
+www.mathworks.com/help/risk/overview-of-lifetime-probability-of-default.html
+12. Credit Risk - Probability of Default (PD) Modeling. | Gabriel Ryan, FRM https://
+www.linkedin.com/posts/gabriel-ryan-frm-ba304915_credit-risk-probability-of-
+default-pd-activity-7365718378491146240-pdUq
+13. Chapter 24. Measuring and Analyzing Sovereign Risk with ... https://
+www.elibrary.imf.org/display/book/9781484368589/ch024.xml
+14. [PDF] A Credit Risk Analysis Framework for Sovereign Guarantees and On ... https://
+openknowledge.worldbank.org/bitstreams/91c3dc0d-78f8-5453-
+b440-8b638b929018/download
+
+===== PAGE 7 =====
+
+15. [PDF] HOW SOVEREIGN IS SOVEREIGN CREDIT RISK? https://en.saif.sjtu.edu.cn/
+junpan/AEJFINAL.pdf
+16. [PDF] Credit risk SREP methodology - Banking supervision https://
+www.bankingsupervision.europa.eu/activities/srep/2023/html/
+ssm.creditrisklevelsrepmethodology202305~682f93982d.en.pdf
+17. Time Series Foundation Models for Multivariate Financial ... - arXiv https://arxiv.org/
+html/2507.07296v1
+18. Multi-Scale Finetuning for Encoder-based Time Series Foundation ... https://
+arxiv.org/html/2506.14087v2
+19. [PDF] Language Pretraining Gives Structured Forecasters a Sequential Prior https://
+openreview.net/pdf/22e95e7c88006e7633b2902b4f3b89f29eeb4083.pdf
+20. Time Series Foundation Model for Improved Transformer Load ... https://
+www.mdpi.com/1996-1073/18/3/660
+21. Transfer Learning with Foundational Models for Time Series ... - arXiv https://
+arxiv.org/html/2410.11539v3
+22. [PDF] CONTEXT IS KEY:ABENCHMARK FOR FORECASTING https://openreview.net/
+pdf?id=4F1a8nNFGK
+23. (PDF) In-Context Fine-Tuning for Time-Series Foundation Models https://
+www.researchgate.net/publication/385443561_In-Context_Fine-Tuning_for_Time-
+Series_Foundation_Models
+24. In-Context Fine-Tuning for Time-Series Foundation Models https://
+www.semanticscholar.org/paper/In-Context-Fine-Tuning-for-Time-Series-Foundation-
+Das-Faw/1216a29c0beb36a2b621b59d36877edf05afcf8c
+25. A comprehensive survey of deep learning for time series forecasting https://
+link.springer.com/article/10.1007/s10462-025-11223-9
+26. [PDF] A Charter-Governed Operating System for Autonomous AI Agents ... https://
+arxiv.org/pdf/2603.14011
+27. How to Implement a Sovereign Cloud Strategy - Oracle https://www.oracle.com/cn/
+cloud/eu-sovereign-cloud/starter-checklist-for-sovereign-cloud-initiatives/
+28. [PDF] Principles for effective risk data aggregation and risk reporting https://
+www.bis.org/publ/bcbs239.pdf
+29. Large Language Model in Financial Regulatory Interpretation - arXiv https://arxiv.org/
+html/2405.06808v1
+30. [PDF] AI Act: implications for the EU banking and payments sector https://
+www.eba.europa.eu/sites/default/files/2025-11/d8b999ce-
+a1d9-4964-9606-971bbc2aaf89/
+AI%20Act%20implications%20for%20the%20EU%20banking%20sector.pdf
+
+===== PAGE 8 =====
+
+31. [PDF] regulatory approaches to artificial intelligence in finance | oecd https://
+www.oecd.org/content/dam/oecd/en/publications/reports/2024/09/regulatory-
+approaches-to-artificial-intelligence-in-finance_43d082c3/f1498c02-en.pdf
+32. TRACE: Time SeRies PArameter EffiCient FinE-tuning - arXiv https://arxiv.org/html/
+2503.16991v2
+33. (PDF) Conversational Time Series Foundation Models - ResearchGate https://
+www.researchgate.net/publication/
+398850690_Conversational_Time_Series_Foundation_Models_Towards_Explainable_a
+nd_Effective_Forecasting
+34. Time-Varying LoRA: Towards Effective Cross-Domain Fine-Tuning of... https://
+openreview.net/forum?id=SgODU2mx9T¬eId=6zdiodSHYD
+35. Google AI Ships TimesFM-2.5: Smaller, Longer-Context Foundation ... https://
+www.marktechpost.com/2025/09/16/google-ai-ships-timesfm-2-5-smaller-longer-
+context-foundation-model-that-now-leads-gift-eval-zero-shot-forecasting/
+36. [PDF] Time-LlaMA: Adapting Large Language Models for Time Series ... https://
+aclanthology.org/2025.acl-srw.90.pdf
+37. AI 101: Beyond RL: The New Fine-Tuning Stack for LLMs - Turing Post https://
+www.turingpost.com/p/beyondrl
+38. A Comprehensive Survey of Time Series Forecasting - arXiv https://arxiv.org/html/
+2411.05793v1
+39. Time-Series Foundation Models in Finance: Pretraining Corpora ... https://dl.acm.org/
+doi/full/10.1145/3785706.3785728
+40. CLEAR-E: Concept-aware lightweight energy adaptation for smart ... https://
+www.sciencedirect.com/science/article/pii/S0925231225023392
+41. [PDF] LETS-C: Leveraging Text Embedding for Time Series Classification https://
+aclanthology.org/2025.acl-long.1557.pdf
+42. Dr. Manuel Bachmann - MCMC in Credit Risk - LinkedIn https://www.linkedin.com/
+posts/dr-manuel-bachmann-a54302185_creditrisk-mcmc-bayesianmodeling-
+activity-7324805862953242624-3r9z
+43. [PDF] ECB guide to internal models - Risk-type-specific chapters https://
+www.bankingsupervision.europa.eu/framework/legal-framework/public-
+consultations/pdf/internal_models_risk_type_chapters/
+ssm.guide_to_internal_models_risk_type_chapters_201809.en.pdf
+44. Credit Line Exposure at Default Modelling Using Bayesian Mixed ... https://
+academic.oup.com/jrsssa/article/185/4/2035/7069428
+45. Research on Credit Risk Forecasting and Stress Testing for ... https://dl.acm.org/doi/
+full/10.1145/3785706.3785751
+
+===== PAGE 9 =====
+
+46. [PDF] Credit Risk Modelling: Current Practices and Applications https://www.bis.org/
+publ/bcbs49.pdf
+47. [PDF] The World Bank Group's Support to Capital Market Development https://
+documents1.worldbank.org/curated/en/349861476995767563/pdf/The-World-Bank-
+Group-s-support-to-capital-market-development.pdf
+48. Loan policy will spur rental housing, realty https://english.www.gov.cn/statecouncil/
+ministries/202202/10/content_WS62044848c6d09c94e48a4e2b.html
+49. [PDF] Managing explanations: how regulators can address AI explainability https://
+www.bis.org/fsi/fsipapers24.pdf
+50. [PDF] Model Risk Management - KPMG International https://assets.kpmg.com/
+content/dam/kpmgsites/in/pdf/2024/11/model-risk-management.pdf
+51. Multi-Scale Finetuning for Encoder-based Time Series Foundation ... https://
+openreview.net/forum?id=OPOBV0zXu7
+52. Beyond LoRA: Exploring Efficient Fine-Tuning Techniques for Time ... https://
+www.semanticscholar.org/paper/Beyond-LoRA%3A-Exploring-Efficient-Fine-Tuning-
+for-Gupta-Bhatti/71562783820e22cacfc78c4e5aeab4b9579485c3
+53. Positional Encoding in Transformer-Based Time Series Models - arXiv https://
+arxiv.org/html/2502.12370v2
+54. Is Attention All You Need for Temporal Link Prediction? A... https://openreview.net/
+forum?id=b4A20ODZBq
+55. Temporal-Series-Aware Adaptive Positional Encoding for ... https://
+www.researchgate.net/publication/403735396_Temporal-Series-
+Aware_Adaptive_Positional_Encoding_for_Transformer-
+based_Sequential_Recommendation
+56. Positional Encoding in Transformer-Based Time Series Models - arXiv https://
+arxiv.org/html/2502.12370v1
+57. [PDF] Positional Encoding in Transformer-Based Time Series Models https://
+www.semanticscholar.org/paper/Positional-Encoding-in-Transformer-Based-Time-A-
+Irani-Metsis/21846d5b9f1ba78c3e9f3fee997eecdd5d313f6b
+58. Transfer Learning with Foundational Models for Time Series ... https://
+www.sciencedirect.com/science/article/pii/S1566253525003203
+59. Sebastian Raschka, PhD's Post - LinkedIn https://www.linkedin.com/posts/
+sebastianraschka_lora-learns-less-and-forgets-less-when-i-
+activity-7197576220585201664-KA4L
+60. Fine-Tuning Time-Series Foundation Models on Business Data https://
+www.salesforce.com/blog/time-series-models-business-data/
+61. Federated Foundation Models on Heterogeneous Time Series - arXiv https://arxiv.org/
+html/2412.08906v1
+
+===== PAGE 10 =====
+
+62. Domain Fusion Controllable Generalization for Cross-Domain Time ... https://
+arxiv.org/html/2412.03068v2
+63. Diversified Scaling Inference in Time Series Foundation Models - arXiv https://
+arxiv.org/html/2601.17376v1
+64. [PDF] Federated Foundation Models on Heterogeneous Time Series https://
+ojs.aaai.org/index.php/AAAI/article/view/33739/35894
+65. An Observability Perspective on Time Series Foundation Models https://
+openreview.net/forum?id=1jDAYXfcS2
+66. [PDF] How Foundational are Foundation Models for Time Series ... - HAL https://
+hal.science/hal-05300066v1/file/Final_Version_FM.pdf
+67. How Foundational are Foundation Models for Time Series ... https://arxiv.org/html/
+2510.00742v3
+68. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v3
+69. [PDF] MUSED-FM: A BENCHMARK FOR EVALUATING MULTIVARIATE ... https://
+openreview.net/pdf/1d9f36dbdabef9be811fcb644b6fa57996840f38.pdf
+70. (PDF) Time Series Foundation Models: Benchmarking Challenges ... https://
+www.researchgate.net/publication/
+396517573_Time_Series_Foundation_Models_Benchmarking_Challenges_and_Requir
+ements
+71. Challenges and Requirements for Benchmarking Time Series ... https://arxiv.org/
+html/2510.13654v2
+72. Google TimesFM: Time-Series Model 2024 | PDF | Forecasting https://
+www.scribd.com/document/847027947/TimesFM-Google-s-Foundation-Model-For-
+Time-Series-Forecasting
+73. A decoder-only foundation model for time-series forecasting - arXiv https://arxiv.org/
+html/2310.10688v2
+74. [PDF] Final developmental validation and evaluation of the S4RIS system https://
+ec.europa.eu/research/participants/documents/downloadPublic?
+documentIds=080166e5f1a0529f&appId=PPGMS
+75. TRACE: Time SeRies PArameter EffiCient FinE-tuning - arXiv https://arxiv.org/html/
+2503.16991v3
+76. In-context Fine-tuning for Time-series Foundation Models https://openreview.net/
+forum?id=ryIHtXE9uG
+77. TimesFM 2.5 (Transformers) - 模型详情页 https://modelscope.cn/models/google/
+timesfm-2.5-200m-transformers
+
+===== PAGE 11 =====
+
+78. [PDF] Sovereign Bills & Private Credit Tokenization with Agentic Execution https://
+www.sec.gov/files/ctf-written-sec-companion-rwa-tokenization-02-25-2026.pdf
+79. Adaptive Cross-Scale Graph Fusion with Spatio-Temporal Attention ... https://
+www.mdpi.com/2079-9292/14/17/3399
+80. Time-Series Foundation Models in Finance: Pretraining Corpora ... https://dl.acm.org/
+doi/10.1145/3785706.3785728
+81. [PDF] ECB guide to internal models - Banking supervision https://
+www.bankingsupervision.europa.eu/ecb/pub/pdf/
+ssm.supervisory_guides202402_internalmodels.en.pdf
+82. Official Journal C 122/2022 - EUR-Lex - European Union https://eur-lex.europa.eu/
+legal-content/EN/TXT/HTML/?uri=OJ:C:2022:122:FULL
+83. Time Series Foundation Models: Benchmarking Challenges and ... https://arxiv.org/
+html/2510.13654v1
+84. Decision-focused fine-tuning of time series foundation models for ... https://
+www.sciencedirect.com/science/article/pii/S2666546825000655
+85. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v1
+86. [PDF] Time Series Forecasting, Anomaly Detection and Prediction https://
+theses.hal.science/tel-05296506v1/file/TH2024PA120111.pdf
+87. Low-Rank Adaptation for Foundation Models - arXiv https://arxiv.org/html/
+2501.00365v1
+88. [PDF] GLAD: Generalizable Tuning for Vision-Language Models https://
+openaccess.thecvf.com/content/ICCV2025W/MMFM/papers/
+Peng_GLAD_Generalizable_Tuning_for_Vision-
+Language_Models_ICCVW_2025_paper.pdf
+89. KG-SR-LLM: Knowledge-Guided Semantic Representation and ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12473470/
+90. Zero-shot forecasting of streamflow using time series foundation ... https://
+iopscience.iop.org/article/10.1088/3049-4753/ae4982
+91. Efficient Personalized Adaptation for Physiological Signal... https://openreview.net/
+forum?id=55ysNwbOTI
+92. What is transfer learning? - IBM https://www.ibm.com/think/topics/transfer-learning
+93. TLTRO III phase-out and bank lending conditions https://www.ecb.europa.eu/press/
+economic-bulletin/focus/2025/html/ecb.ebbox202408_07~220d11edeb.en.html
+94. NFRA issues Rules on Suitability of Financial Institutions Products https://
+www.nfra.gov.cn/en/view/pages/ItemDetail.html?docId=1220493&itemId=981
+
+===== PAGE 12 =====
+
+95. [PDF] Pillar 3 disclosure requirements - updated framework https://www.bis.org/
+bcbs/publ/d455.pdf
+96. words-333333 - cs.Princeton https://www.cs.princeton.edu/courses/archive/
+spring18/cos226/assignments/autocomplete/testing/words-333333.txt
+97. [PDF] RA-LoRA: Rank-Adaptive Parameter-Efficient Fine-Tuning for ... https://
+aclanthology.org/2024.findings-acl.933.pdf
+98. NPP-GPT: Forecasting nuclear power plants operating parameters ... https://
+www.sciencedirect.com/science/article/abs/pii/S0306261926000905
+99. Vol. 40 No. 25: AAAI-26 Technical Tracks 25 https://ojs.aaai.org/index.php/AAAI/
+issue/view/707
+100. Fine-tuning protein language models boosts predictions ... - Nature https://
+www.nature.com/articles/s41467-024-51844-2
+101. [PDF] An Adaptive Task-Arithmetic Driven Approach - CVF Open Access https://
+openaccess.thecvf.com/content/CVPR2025/papers/
+Rathore_When_Domain_Generalization_meets_Generalized_Category_Discovery_An_
+Adaptive_Task-Arithmetic_CVPR_2025_paper.pdf
+102. A Review of ARIMA vs. Machine Learning Approaches for Time ... https://
+www.researchgate.net/publication/
+372771636_A_Review_of_ARIMA_vs_Machine_Learning_Approaches_for_Time_Series
+_Forecasting_in_Data_Driven_Networks
+103. [PDF] Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/pdf/2602.12147
+104. [PDF] TempusBench: An Evaluation Framework for Time-Series Forecasting https://
+arxiv.org/pdf/2604.11529
+105. Learnable Spatial-Temporal Positional Encoding for Link Prediction https://
+openreview.net/forum?id=EoxpGWgeCH¬eId=tpwPWpYRrI
+106. A Survey on Foundation Models for Structured Data: Tabular, Time ... https://
+www.researchgate.net/publication/
+404353882_A_Survey_on_Foundation_Models_for_Structured_Data_Tabular_Time_Se
+ries_and_Graphs
+107. TimesFM: Exploring pre-trained Time Series - Kaggle https://www.kaggle.com/code/
+antonellomartiello/timesfm-exploring-pre-trained-time-series
+108. Train and evaluate a time series forecasting model - Microsoft Fabric https://
+learn.microsoft.com/en-us/fabric/data-science/time-series-forecasting
+109. (PDF) Re(Visiting) Time Series Foundation Models in Finance https://
+www.researchgate.net/publication/
+397872068_ReVisiting_Time_Series_Foundation_Models_in_Finance
+
+===== PAGE 13 =====
+
+110. Guidelines on PD estimation, LGD estimation and treatment of ... https://
+www.eba.europa.eu/activities/single-rulebook/regulatory-activities/model-validation/
+guidelines-pd-estimation-lgd
+111. [PDF] ECB guide to internal models - Banking supervision https://
+www.bankingsupervision.europa.eu/ecb/pub/pdf/
+ssm.supervisory_guide202507.en.pdf
+112. Fidelity Grand Harbour CLO 2022-1 DAC Reset Notes - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/101650195
+113. [PDF] Basel III Monitoring Report, September 2022 https://www.bis.org/bcbs/publ/
+d541.pdf
+114. [PDF] Final Report on draft RTS on PD and LGD under the internal default ... https://
+www.eba.europa.eu/sites/default/files/document_library/Publications/
+Draft%20Technical%20Standards/2022/EBA-
+RTS-2022-02%20RTS%20on%20PD%20and%20LGD/1028513/
+Final%20Report%20on%20draft%20RTS%20on%20PD%20and%20LGD%20under%2
+0the%20internal%20default%20risk%20model.pdf
+115. Frequency-Aware Attention-LSTM for PM 2.5 Time Series ... - arXiv https://arxiv.org/
+html/2503.24043v2
+116. [PDF] GraFT: Infusing Pre-trained Transformers with Relational Structure ... https://
+ojs.aaai.org/index.php/AAAI/article/view/40029/43990
+117. [PDF] Beyond LoRA: Exploring Efficient Fine-Tuning Techniques for Time ... https://
+openreview.net/pdf?id=YZJ8Re0gQv
+118. Time Series Foundation Models for Process Model Forecasting https://
+www.researchgate.net/publication/
+398476147_Time_Series_Foundation_Models_for_Process_Model_Forecasting
+119. TiRex: Zero-Shot Forecasting Across Long and Short Horizons with ... https://
+arxiv.org/html/2505.23719v1
+120. U-Cast: Learning Hierarchical Structures for High-Dimensional Time ... https://
+arxiv.org/html/2507.15119v2
+121. [PDF] A Foundation Model for Instruction-Conditioned In-Context Time ... https://
+arxiv.org/pdf/2603.22586
+122. [PDF] TiRex: Zero-Shot Forecasting Across Long and Short Horizons with ... https://
+arxiv.org/pdf/2505.23719
+123. TiRex: Zero-Shot Forecasting Across Long and Short Horizons with ... https://
+arxiv.org/html/2505.23719v2
+124. [PDF] Learning Hierarchical Structures for High-Dimensional Time Series ... https://
+arxiv.org/pdf/2507.15119
+
+===== PAGE 14 =====
+
+125. [PDF] General Topics and Credit Risk - AWS https://iason-onigiri-prod.s3.eu-
+south-1.amazonaws.com/JIT_ECB_Guide_to_internal_models_v8_4_6bfcfdd73f.pdf
+126. [PDF] Applying Machine Learning and Time Series to Predict Real Estate ... https://
+www.atlantis-press.com/article/126002612.pdf
+127. Evaluating Large Language Models on Time Series Feature ... https://
+aclanthology.org/2024.emnlp-main.1204/
+128. Fitch Ratings Publishes Quarterly Global Sovereign Data Comparator https://
+www.fitchratings.com/research/sovereigns/fitch-ratings-publishes-quarterly-global-
+sovereign-data-comparator-23-12-2025
+129. Uncertainty-aware Fine-tuning on Time Series Foundation Model for... https://
+openreview.net/forum?id=W1wlE4bPqP
+130. (PDF) Beyond LoRA: Exploring Efficient Fine-Tuning Techniques for ... https://
+www.researchgate.net/publication/
+384085253_Beyond_LoRA_Exploring_Efficient_Fine-
+Tuning_Techniques_for_Time_Series_Foundational_Models
+131. Chronos-2: From Univariate to Universal Forecasting - arXiv https://arxiv.org/html/
+2510.15821v1
+132. [PDF] Zero-Shot Time Series Forecasting with Covariates via In-Context ... https://
+arxiv.org/pdf/2506.03128
+133. Large Language Models for Forecasting and Anomaly Detection https://arxiv.org/
+html/2402.10350v1
+134. Automating Research Synthesis with Domain-Specific Large ... https://dl.acm.org/doi/
+full/10.1145/3715964
+135. Techniques for mitigating overfitting in machine learning - PMC - NIH https://
+pmc.ncbi.nlm.nih.gov/articles/PMC13053638/
+136. [PDF] Towards HydroLLM: Approaches for Building a Domain-Specific ... https://
+eartharxiv.org/repository/object/9638/download/18872/
+137. Transformers for Multivariate Time Series Forecasting - IEEE Xplore https://
+ieeexplore.ieee.org/iel8/6287639/11323511/11352790.pdf
+138. Large-Scale AI and Foundation Models for Neuroscience https://
+www.sciencedirect.com/science/article/pii/S2950162826000202
+139. [PDF] QuitoBench: A High-Quality Open Time Series Forecasting Benchmark https://
+arxiv.org/pdf/2603.26017
+140. fev-bench: A Realistic Benchmark for Time Series Forecasting - arXiv https://
+arxiv.org/html/2509.26468v2
+141. Re(Visiting) Time Series Foundation Models in Finance - arXiv https://arxiv.org/html/
+2511.18578v1
+
+===== PAGE 15 =====
+
+142. Cisco Time Series Model Technical Report - arXiv https://arxiv.org/html/
+2511.19841v1
+143. [PDF] fev-bench: A Realistic Benchmark for Time Series Forecasting - arXiv https://
+arxiv.org/pdf/2509.26468
+144. Rethinking Post-Training Recipes for Multimodal Time-Series ... - arXiv https://
+arxiv.org/html/2605.29401v1
+145. TSFM-Bench: A Comprehensive and Unified Benchmark of ... - arXiv https://arxiv.org/
+html/2410.11802v6
+146. TempusBench: An Evaluation Framework for Time-Series Forecasting https://
+arxiv.org/html/2604.11529v2
+147. ECB Updates Guide to Internal Models for Credit Risk - LinkedIn https://
+www.linkedin.com/posts/nimish-varma-scr-84b15018_ecb-egim-creditrisk-
+activity-7356290520609902593-x_XV
+148. [2503.24043] Frequency-Aware Attention-LSTM for PM - arXiv https://arxiv.org/abs/
+2503.24043
+149. [PDF] STrans: Spontaneous Architecture Evolution for Adaptive Time ... https://
+ojs.aaai.org/index.php/AAAI/article/view/39380/43341
+150. (PDF) TSRM: A Lightweight Temporal Feature Encoding ... https://
+www.researchgate.net/publication/
+389759430_TSRM_A_Lightweight_Temporal_Feature_Encoding_Architecture_for_Tim
+e_Series_Forecasting_and_Imputation
+151. Computer Science - arXiv https://arxiv.org/list/cs/new
+152. AI Security in the Foundation Model Era: A Comprehensive Survey... https://
+openreview.net/forum?id=1g7pKgClZs
+153. [PDF] Towards Foundation Models for Scientific Simulation https://escholarship.org/
+content/qt9d5986kq/qt9d5986kq.pdf
+154. Personalization Meets Safety:Mechanisms,Risks,and Mitigations in ... https://
+www.researchgate.net/publication/
+406464448_Personalization_Meets_SafetyMechanismsRisksand_Mitigations_in_Person
+alized_LLMs
+155. [PDF] Guidelines on PD and LGD estimation (EBA-GL-2017-16).pdf https://
+www.eba.europa.eu/sites/default/files/documents/
+10180/2033363/6b062012-45d6-4655-af04-801d26493ed0/
+Guidelines%20on%20PD%20and%20LGD%20estimation%20(EBA-GL-2017-16).pdf?
+156. A Survey of Reasoning and Agentic Systems in Time Series ... - arXiv https://arxiv.org/
+html/2509.11575
+157. Considerations on the regulation of AI systems in the financial sector ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC10676199/
+
+===== PAGE 16 =====
+
+158. [PDF] ADB Sovereign Default and Loss Rates - Asian Development Bank https://
+www.adb.org/sites/default/files/institutional-document/1002581/adb-sovereign-
+default-and-loss-rates.pdf
+159. [PDF] MONITORING OF LIQUIDITY COVERAGE RATIO AND NET ... https://
+www.eba.europa.eu/sites/default/files/2025-05/4d5aebfc-07dd-4ae5-
+b611-61635d5d051f/
+Report%20on%20monitoring%20of%20LCR%20and%20NSFR%20in%20EU.pdf
+160. [PDF] Guide on effective risk data aggregation and risk reporting https://
+www.bankingsupervision.europa.eu/ecb/pub/pdf/
+ssm.supervisory_guides240503_riskreporting.en.pdf
+161. Viktor Godaly's Post - LinkedIn https://www.linkedin.com/posts/viktor-
+godaly_%F0%9D%97%94-
+%F0%9D%97%A0%F0%9D%97%B2%F0%9D%97%BF%F0%9D%97%B4%F0%9D%9
+7%B6%F0%9D%97%BB%F0%9D%97%B4-%F0%9D%97%BC%F0%9D%97%B3-
+%F0%9D%97%97%F0%9D%97%AE%F0%9D%98%81%F0%9D%97%AE-
+%F0%9D%97%A5%F0%9D%97%B6%F0%9D%98%80%F0%9D%97%B8-
+activity-7395778300184363008-r6Wj
+162. timesfm-forecasting - ModelScope https://modelscope.cn/skills/@k-dense-ai/timesfm-
+forecasting
+163. A comprehensive survey of deep learning for time series forecasting https://
+www.researchgate.net/publication/
+391052504_A_comprehensive_survey_of_deep_learning_for_time_series_forecasting_
+architectural_diversity_and_open_challenges
+164. Chronos: Learning the Language of Time Series - arXiv https://arxiv.org/html/
+2403.07815v1
+165. A comprehensive survey of deep learning for time series forecasting https://
+link.springer.com/content/pdf/10.1007/s10462-025-11223-9.pdf

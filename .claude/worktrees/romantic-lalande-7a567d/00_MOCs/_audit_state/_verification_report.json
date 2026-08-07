@@ -1,0 +1,626 @@
+{
+  "generated_at": "2026-06-20T12:34:14.904212",
+  "total_files": 740,
+  "unique_hashes": 724,
+  "duplicate_groups": 10,
+  "duplicates": [
+    {
+      "hash": "250c28025e880999",
+      "count": 3,
+      "files": [
+        "DSCR Sovereign OS  Live Research Execution \u2014 Sprint 0 & 1 Findings.md",
+        "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Live_Research_Execution_\u2014_Sprint_0_&_1_Findings.md",
+        "RESEARCH\\sprint_short\\Sprint_01.md"
+      ]
+    },
+    {
+      "hash": "d1a6d7e8b6ea3120",
+      "count": 3,
+      "files": [
+        "DSCR Sovereign OS  Sprint 2 \u2014 PPP State Matrix, STR Legality Database & 40-Year Amortization.md",
+        "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_2_\u2014_PPP_State_Matrix,_STR_Legality_Database_&_40-Year_Amortization.md",
+        "RESEARCH\\sprint_short\\Sprint_02.md"
+      ]
+    },
+    {
+      "hash": "cc3836c15c524afb",
+      "count": 3,
+      "files": [
+        "DSCR Sovereign OS  Sprint 3 \u2014 Lender Intelligence, Securitization Pool Data & Competitive Moat Analysis.md",
+        "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_3_\u2014_Lender_Intelligence,_Securitization_Pool_Data_&_Competitive_Moat_Analysis.md",
+        "RESEARCH\\sprint_short\\Sprint_03.md"
+      ]
+    },
+    {
+      "hash": "b7c884eabde2fbf9",
+      "count": 3,
+      "files": [
+        "DSCR Sovereign OS  Sprint 4 \u2014 Full Tax Engine, Insurance Kill Criterion, Flood Gate & Compliance Stack.md",
+        "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_4_\u2014_Full_Tax_Engine,_Insurance_Kill_Criterion,_Flood_Gate_&_Compliance_Stack.md",
+        "RESEARCH\\sprint_short\\Sprint_04.md"
+      ]
+    },
+    {
+      "hash": "5710b580dcd27cee",
+      "count": 3,
+      "files": [
+        "DSCR Sovereign OS  Sprint 5 \u2014 Live Data APIs, Rate Anchors, Property Tax Matrix & Full System Architecture.md",
+        "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_5_\u2014_Live_Data_APIs,_Rate_Anchors,_Property_Tax_Matrix_&_Full_System_Architecture.md",
+        "RESEARCH\\sprint_short\\Sprint_05.md"
+      ]
+    },
+    {
+      "hash": "41dd2066ac190d4b",
+      "count": 3,
+      "files": [
+        "DSCR Sovereign OS  Sprint 6 \u2014 Computation Engines, Monte Carlo, After-Tax IRR, IC Memo, 1031 Exit Module & XGBoost ML Layer.md",
+        "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_6_\u2014_Computation_Engines,_Monte_Carlo,_After-Tax_IRR,_IC_Memo,_1031_Exit_Module_&_XGBoost_ML_Layer.md",
+        "RESEARCH\\sprint_short\\Sprint_06.md"
+      ]
+    },
+    {
+      "hash": "2ca497e77e3fdd61",
+      "count": 2,
+      "files": [
+        "DSCR_Underwriting_Engine_Master_Consolidated_v16.md",
+        "ANALYSIS\\v16_consolidated_extract.md"
+      ]
+    },
+    {
+      "hash": "fd80d0f1a5e71e47",
+      "count": 2,
+      "files": [
+        "THE COMPLETE SOVEREIGN MASTER DOCUMENT.md",
+        "THE COMPLETE SOVEREIGN MASTER DOCUMENT1.md"
+      ]
+    },
+    {
+      "hash": "ca9c037d820f0bf9",
+      "count": 2,
+      "files": [
+        "RESEARCH\\pdf_extractions\\Beyond the Rulebook_ Building a Competitive Edge by Integrating Dynamic Data into Cake Mortgage's Underwriting Framework.txt",
+        "RESEARCH\\pdf_short\\Beyond_Rulebook_1.txt"
+      ]
+    },
+    {
+      "hash": "2ce8b799c7af20ae",
+      "count": 2,
+      "files": [
+        "RESEARCH\\pdf_extractions\\Beyond the Rulebook_ Building a Probabilistic Underwriting Engine with Graphs, Conformal Prediction, and Tabular Foundation Models.txt",
+        "RESEARCH\\pdf_short\\Beyond_Rulebook_2.txt"
+      ]
+    }
+  ],
+  "near_duplicate_name_groups": {
+    "dscr sovereign os upgrade intelligence report": [
+      "dscr_sovereign_os_upgrade_intelligence_report (1).md",
+      "dscr_sovereign_os_upgrade_intelligence_report.md",
+      "DSCR_Sovereign_OS_Upgrade_Intelligence_Report_v2.md",
+      "_obsidian_vault\\_root\\dscr_sovereign_os_upgrade_intelligence_report (1).md",
+      "_obsidian_vault\\_root\\dscr_sovereign_os_upgrade_intelligence_report.md",
+      "_obsidian_vault\\_root\\DSCR_Sovereign_OS_Upgrade_Intelligence_Report_v2.md"
+    ],
+    "dscr sovereign os live research execution \u2014 sprint 0 & 1 findings": [
+      "DSCR Sovereign OS  Live Research Execution \u2014 Sprint 0 & 1 Findings.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Live Research Execution \u2014 Sprint 0 & 1 Findings.md",
+      "_obsidian_vault\\_research\\sprints\\DSCR_Sovereign_OS_Live_Research_Execution_\u2014_Sprint_0_&_1_Findings.md",
+      "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Live_Research_Execution_\u2014_Sprint_0_&_1_Findings.md"
+    ],
+    "dscr sovereign os sprint 2 \u2014 ppp state matrix, str legality database & 40 year amortization": [
+      "DSCR Sovereign OS  Sprint 2 \u2014 PPP State Matrix, STR Legality Database & 40-Year Amortization.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Sprint 2 \u2014 PPP State Matrix, STR Legality Database & 40-Year Amortization.md",
+      "_obsidian_vault\\_research\\sprints\\DSCR_Sovereign_OS_Sprint_2_\u2014_PPP_State_Matrix,_STR_Legality_Database_&_40-Year_Amortization.md",
+      "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_2_\u2014_PPP_State_Matrix,_STR_Legality_Database_&_40-Year_Amortization.md"
+    ],
+    "dscr sovereign os sprint 3 \u2014 lender intelligence, securitization pool data & competitive moat analysis": [
+      "DSCR Sovereign OS  Sprint 3 \u2014 Lender Intelligence, Securitization Pool Data & Competitive Moat Analysis.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Sprint 3 \u2014 Lender Intelligence, Securitization Pool Data & Competitive Moat Analysis.md",
+      "_obsidian_vault\\_research\\sprints\\DSCR_Sovereign_OS_Sprint_3_\u2014_Lender_Intelligence,_Securitization_Pool_Data_&_Competitive_Moat_Analysis.md",
+      "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_3_\u2014_Lender_Intelligence,_Securitization_Pool_Data_&_Competitive_Moat_Analysis.md"
+    ],
+    "dscr sovereign os sprint 4 \u2014 full tax engine, insurance kill criterion, flood gate & compliance stack": [
+      "DSCR Sovereign OS  Sprint 4 \u2014 Full Tax Engine, Insurance Kill Criterion, Flood Gate & Compliance Stack.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Sprint 4 \u2014 Full Tax Engine, Insurance Kill Criterion, Flood Gate & Compliance Stack.md",
+      "_obsidian_vault\\_research\\sprints\\DSCR_Sovereign_OS_Sprint_4_\u2014_Full_Tax_Engine,_Insurance_Kill_Criterion,_Flood_Gate_&_Compliance_Stack.md",
+      "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_4_\u2014_Full_Tax_Engine,_Insurance_Kill_Criterion,_Flood_Gate_&_Compliance_Stack.md"
+    ],
+    "dscr sovereign os sprint 5 \u2014 live data apis, rate anchors, property tax matrix & full system architecture": [
+      "DSCR Sovereign OS  Sprint 5 \u2014 Live Data APIs, Rate Anchors, Property Tax Matrix & Full System Architecture.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Sprint 5 \u2014 Live Data APIs, Rate Anchors, Property Tax Matrix & Full System Architecture.md",
+      "_obsidian_vault\\_research\\sprints\\DSCR_Sovereign_OS_Sprint_5_\u2014_Live_Data_APIs,_Rate_Anchors,_Property_Tax_Matrix_&_Full_System_Architecture.md",
+      "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_5_\u2014_Live_Data_APIs,_Rate_Anchors,_Property_Tax_Matrix_&_Full_System_Architecture.md"
+    ],
+    "dscr sovereign os sprint 6 \u2014 computation engines, monte carlo, after tax irr, ic memo, 1031 exit module & xgboost ml layer": [
+      "DSCR Sovereign OS  Sprint 6 \u2014 Computation Engines, Monte Carlo, After-Tax IRR, IC Memo, 1031 Exit Module & XGBoost ML Layer.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Sprint 6 \u2014 Computation Engines, Monte Carlo, After-Tax IRR, IC Memo, 1031 Exit Module & XGBoost ML Layer.md",
+      "_obsidian_vault\\_research\\sprints\\DSCR_Sovereign_OS_Sprint_6_\u2014_Computation_Engines,_Monte_Carlo,_After-Tax_IRR,_IC_Memo,_1031_Exit_Module_&_XGBoost_ML_Layer.md",
+      "RESEARCH\\sprint_clean\\DSCR_Sovereign_OS_Sprint_6_\u2014_Computation_Engines,_Monte_Carlo,_After-Tax_IRR,_IC_Memo,_1031_Exit_Module_&_XGBoost_ML_Layer.md"
+    ],
+    "the complete sovereign master document": [
+      "THE COMPLETE SOVEREIGN MASTER DOCUMENT.md",
+      "THE COMPLETE SOVEREIGN MASTER DOCUMENT1.md",
+      "_obsidian_vault\\_root\\THE COMPLETE SOVEREIGN MASTER DOCUMENT.md",
+      "_obsidian_vault\\_root\\THE COMPLETE SOVEREIGN MASTER DOCUMENT1.md"
+    ],
+    "godmode research plan": [
+      "ANALYSIS\\godmode_research_plan_20260618.md",
+      "ANALYSIS\\godmode_research_plan_20260618_v2.md",
+      "_obsidian_vault\\_analysis\\godmode_research_plan_20260618.md",
+      "_obsidian_vault\\_analysis\\godmode_research_plan_20260618_v2.md"
+    ],
+    "ai algorithm improvement prompt": [
+      "_obsidian_vault\\_research\\extractions\\AI Algorithm Improvement Prompt.txt",
+      "_obsidian_vault\\_research\\extractions\\AI Algorithm Improvement Prompt2.txt",
+      "RESEARCH\\pdf_extractions\\AI Algorithm Improvement Prompt.txt",
+      "RESEARCH\\pdf_extractions\\AI Algorithm Improvement Prompt2.txt"
+    ],
+    "advisor grade dscr decision engine organized research": [
+      "Advisor_Grade_DSCR_Decision_Engine_Organized_Research.md",
+      "_obsidian_vault\\_root\\Advisor_Grade_DSCR_Decision_Engine_Organized_Research.md"
+    ],
+    "advisor grade dscr decision engine usable master spec": [
+      "Advisor_Grade_DSCR_Decision_Engine_Usable_Master_Spec.md",
+      "_obsidian_vault\\_root\\Advisor_Grade_DSCR_Decision_Engine_Usable_Master_Spec.md"
+    ],
+    "aegis dscr advisor grade operating model upgrade pack": [
+      "AEGIS_DSCR_Advisor_Grade_Operating_Model_Upgrade_Pack.md",
+      "_obsidian_vault\\_root\\AEGIS_DSCR_Advisor_Grade_Operating_Model_Upgrade_Pack.md"
+    ],
+    "aegis dscr algorithm gap upgrade pack": [
+      "AEGIS_DSCR_Algorithm_Gap_Upgrade_Pack.md",
+      "_obsidian_vault\\_root\\AEGIS_DSCR_Algorithm_Gap_Upgrade_Pack.md"
+    ],
+    "aegis dscr complete usable master doc": [
+      "AEGIS_DSCR_Complete_Usable_Master_Doc_v3.md",
+      "_obsidian_vault\\_root\\AEGIS_DSCR_Complete_Usable_Master_Doc_v3.md"
+    ],
+    "aegis dscr deterministic core keeps detailed": [
+      "AEGIS_DSCR_Deterministic_Core_Keeps_Detailed.md",
+      "_obsidian_vault\\_root\\AEGIS_DSCR_Deterministic_Core_Keeps_Detailed.md"
+    ],
+    "deep research report critical areas for the 20x dscr deal engine": [
+      "Deep Research Report_ Critical Areas for the 20X DSCR Deal Engine.md",
+      "_obsidian_vault\\_root\\Deep Research Report_ Critical Areas for the 20X DSCR Deal Engine.md"
+    ],
+    "deep research report": [
+      "deep-research-report.md",
+      "_obsidian_vault\\_root\\deep-research-report.md"
+    ],
+    "dscr dual truth engine chatgpt research": [
+      "DSCR DUAL TRUTH ENGINE CHATGPT RESEARCH.md",
+      "_obsidian_vault\\_root\\DSCR DUAL TRUTH ENGINE CHATGPT RESEARCH.md"
+    ],
+    "dscr intelligence system complete master knowledge synthesis": [
+      "DSCR Intelligence System  Complete Master Knowledge Synthesis.md",
+      "_obsidian_vault\\_root\\DSCR Intelligence System  Complete Master Knowledge Synthesis.md"
+    ],
+    "dscr sovereign operating system the master blueprint": [
+      "DSCR SOVEREIGN OPERATING SYSTEM_ THE MASTER BLUEPRINT.md",
+      "_obsidian_vault\\_root\\DSCR SOVEREIGN OPERATING SYSTEM_ THE MASTER BLUEPRINT.md"
+    ],
+    "dscr sovereign os godmode research plan \u2014 data, algorithms & computation that beat all competitors": [
+      "DSCR Sovereign OS  Godmode Research Plan \u2014 Data, Algorithms & Computation That Beat All Competitors.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Godmode Research Plan \u2014 Data, Algorithms & Computation That Beat All Competitors.md"
+    ],
+    "dscr sovereign os upgrade intelligence report \u2014 advanced algorithms, emerging tools & architecture paths no competitor has assembled": [
+      "DSCR Sovereign OS  Upgrade Intelligence Report \u2014 Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS  Upgrade Intelligence Report \u2014 Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md"
+    ],
+    "dscr sovereign os & non qm wholesale lender the definitive master research report": [
+      "DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md",
+      "_obsidian_vault\\_root\\DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md"
+    ],
+    "dscr sovereign os master research synthesis": [
+      "DSCR SOVEREIGN OS_ MASTER RESEARCH SYNTHESIS.md",
+      "_obsidian_vault\\_root\\DSCR SOVEREIGN OS_ MASTER RESEARCH SYNTHESIS.md"
+    ],
+    "dscr sovereign os the definitive product specification": [
+      "DSCR SOVEREIGN OS_ THE DEFINITIVE PRODUCT SPECIFICATION.md",
+      "_obsidian_vault\\_root\\DSCR SOVEREIGN OS_ THE DEFINITIVE PRODUCT SPECIFICATION.md"
+    ],
+    "dscr appendix b research resolution report": [
+      "DSCR_Appendix_B_Research_Resolution_Report.md",
+      "_obsidian_vault\\_root\\DSCR_Appendix_B_Research_Resolution_Report.md"
+    ],
+    "dscr blueprint verification corrections log": [
+      "DSCR_Blueprint_Verification_Corrections_Log.md",
+      "_obsidian_vault\\_root\\DSCR_Blueprint_Verification_Corrections_Log.md"
+    ],
+    "dscr deep research report": [
+      "DSCR_deep-research-report.md",
+      "_obsidian_vault\\_root\\DSCR_deep-research-report.md"
+    ],
+    "dscr engine master specification": [
+      "DSCR_Engine_Master_Specification.md",
+      "_obsidian_vault\\_root\\DSCR_Engine_Master_Specification.md"
+    ]
+  },
+  "tiny_files": [
+    {
+      "path": "_obsidian_vault\\.obsidian\\community-plugins.json",
+      "size": 123
+    }
+  ],
+  "not_dscr_files": [
+    "_obsidian_vault\\.obsidian\\appearance.json",
+    "_obsidian_vault\\.obsidian\\community-plugins.json",
+    "_obsidian_vault\\.obsidian\\editor.json",
+    "_obsidian_vault\\.obsidian\\plugins\\dataview\\data.json",
+    "_obsidian_vault\\.obsidian\\plugins\\graph-analysis\\data.json",
+    "_obsidian_vault\\.obsidian\\plugins\\tag-wrangler\\data.json"
+  ],
+  "tags_verified": 7569,
+  "tags_missing": 681,
+  "high_missing_tag_files": [
+    {
+      "path": "AEGIS_DSCR_Complete_Usable_Master_Doc_v3.md",
+      "missing_tags": [
+        "topic/default-rate",
+        "topic/flood-insurance",
+        "topic/ppp",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "DSCR Intelligence System  Complete Master Knowledge Synthesis.md",
+      "missing_tags": [
+        "topic/40yr-amort",
+        "topic/default-rate",
+        "topic/flood-insurance",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "DSCR Sovereign OS  Godmode Research Plan \u2014 Data, Algorithms & Computation That Beat All Competitors.md",
+      "missing_tags": [
+        "lender/ad-mortgage",
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/40yr-amort",
+        "topic/default-rate",
+        "topic/flood-insurance",
+        "topic/kill-criteria",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "DSCR Sovereign OS  Sprint 5 \u2014 Live Data APIs, Rate Anchors, Property Tax Matrix & Full System Architecture.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "topic/default-rate",
+        "topic/flood-insurance",
+        "topic/kill-criteria"
+      ]
+    },
+    {
+      "path": "DSCR_Sovereign_OS_Definitive_Master_Blueprint_v3.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "topic/40yr-amort",
+        "topic/default-rate",
+        "topic/ppp",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "DSCR_Sovereign_OS_Upgrade_Intelligence_Report_v2.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "topic/40yr-amort",
+        "topic/default-rate",
+        "topic/ppp",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "Master DSCR Knowledge Document.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "topic/2-4-unit",
+        "topic/default-rate",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "SIMILARWEB ANALYTICS REPORT.md",
+      "missing_tags": [
+        "data/cotality",
+        "lender/acra-lending",
+        "lender/ad-mortgage",
+        "lender/griffin-funding",
+        "lender/visio-lending"
+      ]
+    },
+    {
+      "path": "THE DEFINITIVE BLUEPRINT_ BUILDING THE BEST NON-QM WHOLESALE LENDER.md",
+      "missing_tags": [
+        "lender/ad-mortgage",
+        "topic/compliance",
+        "topic/default-rate",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "ANALYSIS\\content_gap_analysis_20260618.md",
+      "missing_tags": [
+        "lender/ad-mortgage",
+        "lender/visio-lending",
+        "math/merton-dd",
+        "topic/2-4-unit",
+        "topic/default-rate"
+      ]
+    },
+    {
+      "path": "ANALYSIS\\deep_research_plan_20260618.md",
+      "missing_tags": [
+        "lender/acra-lending",
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "ANALYSIS\\godmode_research_plan_20260618.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "math/merton-dd",
+        "topic/flood-insurance",
+        "topic/yield-curve"
+      ]
+    },
+    {
+      "path": "ANALYSIS\\GOLDEN_VECTORS.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "topic/2-4-unit",
+        "topic/40yr-amort",
+        "topic/default-rate",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "ANALYSIS\\pennymac_dscr_product_profile.txt",
+      "missing_tags": [
+        "data/cotality",
+        "topic/2-4-unit",
+        "topic/default-rate",
+        "topic/portfolio",
+        "topic/ppp",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "ANALYSIS\\research_plan_20260618.md",
+      "missing_tags": [
+        "lender/ad-mortgage",
+        "math/merton-dd",
+        "topic/2-4-unit",
+        "topic/short-rate",
+        "topic/yield-curve"
+      ]
+    },
+    {
+      "path": "ANALYSIS\\TOPICAL_INDEX.md",
+      "missing_tags": [
+        "lender/acra-lending",
+        "topic/2-4-unit",
+        "topic/flood-insurance",
+        "topic/short-rate",
+        "topic/yield-curve"
+      ]
+    },
+    {
+      "path": "output\\DSCR_APEX2_Calibration_Memo_20260619.md",
+      "missing_tags": [
+        "math/merton-dd",
+        "topic/default-rate",
+        "topic/short-rate",
+        "topic/yield-curve"
+      ]
+    },
+    {
+      "path": "output\\DSCR_APEX_Mode_Deep_Research_Report_20260619.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "math/merton-dd",
+        "topic/default-rate",
+        "topic/flood-insurance"
+      ]
+    },
+    {
+      "path": "output\\DSCR_Gap_Audit_20260620.md",
+      "missing_tags": [
+        "topic/2-4-unit",
+        "topic/default-rate",
+        "topic/flood-insurance",
+        "topic/yield-curve"
+      ]
+    },
+    {
+      "path": "output\\DSCR_Gap_Audit_v3_Found_In_Folder_20260620.md",
+      "missing_tags": [
+        "lender/visio-lending",
+        "topic/2-4-unit",
+        "topic/default-rate",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "output\\DSCR_Gap_Audit_v4_Comprehensive_Folder_Sweep_20260620.md",
+      "missing_tags": [
+        "lender/griffin-funding",
+        "topic/2-4-unit",
+        "topic/40yr-amort",
+        "topic/kill-criteria",
+        "topic/short-rate"
+      ]
+    },
+    {
+      "path": "output\\DSCR_Wide_Research_Report_20260619.md",
+      "missing_tags": [
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "math/merton-dd",
+        "topic/flood-insurance",
+        "topic/yield-curve"
+      ]
+    },
+    {
+      "path": "output\\v3_extracted_text.txt",
+      "missing_tags": [
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/40yr-amort",
+        "topic/flood-insurance"
+      ]
+    },
+    {
+      "path": "RESEARCH\\domain_11\\portfolio_lender_matrix.csv",
+      "missing_tags": [
+        "lender/acra-lending",
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/non-qm"
+      ]
+    },
+    {
+      "path": "RESEARCH\\domain_13\\dscr_borrower_personas.csv",
+      "missing_tags": [
+        "lender/acra-lending",
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/default-rate"
+      ]
+    },
+    {
+      "path": "RESEARCH\\domain_14\\shap_to_reason_mapping.csv",
+      "missing_tags": [
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/compliance",
+        "topic/kill-criteria"
+      ]
+    },
+    {
+      "path": "RESEARCH\\domain_3\\lender_ad_mortgage_profile.md",
+      "missing_tags": [
+        "lender/ad-mortgage",
+        "topic/2-4-unit",
+        "topic/40yr-amort",
+        "topic/portfolio"
+      ]
+    },
+    {
+      "path": "RESEARCH\\domain_3\\lender_angel_oak_profile.md",
+      "missing_tags": [
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/2-4-unit",
+        "topic/40yr-amort"
+      ]
+    },
+    {
+      "path": "RESEARCH\\domain_3\\lender_crosscountry_mortgage_profile.md",
+      "missing_tags": [
+        "lender/acra-lending",
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/40yr-amort"
+      ]
+    },
+    {
+      "path": "RESEARCH\\domain_3\\lender_lima_one_capital_profile.md",
+      "missing_tags": [
+        "lender/acra-lending",
+        "lender/griffin-funding",
+        "lender/visio-lending",
+        "topic/2-4-unit"
+      ]
+    }
+  ],
+  "broken_frontmatter": [],
+  "files_with_urls": 362,
+  "top_cited_files": [
+    {
+      "path": "_obsidian_vault\\_research\\godmode\\12_T12_50state_str_regulation\\state_sources.md",
+      "url_count": 191
+    },
+    {
+      "path": "RESEARCH\\godmode_20260618\\12_T12_50state_str_regulation\\state_sources.md",
+      "url_count": 191
+    },
+    {
+      "path": "_obsidian_vault\\_deliverables\\apex3_dispatch\\github\\github_urls.txt",
+      "url_count": 161
+    },
+    {
+      "path": "output\\apex3_dispatch\\github\\github_urls.txt",
+      "url_count": 159
+    },
+    {
+      "path": "_obsidian_vault\\_research\\extractions\\From Calculator to Containment_ Adversarial Hardening of the AEGIS DSCR Engine.txt",
+      "url_count": 153
+    },
+    {
+      "path": "RESEARCH\\pdf_extractions\\From Calculator to Containment_ Adversarial Hardening of the AEGIS DSCR Engine.txt",
+      "url_count": 153
+    },
+    {
+      "path": "_obsidian_vault\\_research\\extractions\\TimesFM_From Signal Processor to Institutional Simulator_ Architecting a Multi-Engine DSCR Sovereign OS for Commercial Real Estate Credit Risk.txt",
+      "url_count": 123
+    },
+    {
+      "path": "RESEARCH\\pdf_extractions\\TimesFM_From Signal Processor to Institutional Simulator_ Architecting a Multi-Engine DSCR Sovereign OS for Commercial Real Estate Credit Risk.txt",
+      "url_count": 123
+    },
+    {
+      "path": "_obsidian_vault\\_research\\godmode\\13_T13_50state_usury_caps\\state_sources.md",
+      "url_count": 120
+    },
+    {
+      "path": "_obsidian_vault\\_deliverables\\apex3_dispatch\\open_data\\open_data_REPORT.md",
+      "url_count": 120
+    },
+    {
+      "path": "RESEARCH\\godmode_20260618\\13_T13_50state_usury_caps\\state_sources.md",
+      "url_count": 120
+    },
+    {
+      "path": "output\\apex3_dispatch\\open_data\\open_data_REPORT.md",
+      "url_count": 120
+    },
+    {
+      "path": "_obsidian_vault\\_deliverables\\apex3_dispatch\\reddit_forums\\reddit_forums_urls.txt",
+      "url_count": 119
+    },
+    {
+      "path": "output\\apex3_dispatch\\reddit_forums\\reddit_forums_urls.txt",
+      "url_count": 118
+    },
+    {
+      "path": "_obsidian_vault\\_deliverables\\apex3_dispatch\\github\\github_TOOLS_REPORT.md",
+      "url_count": 113
+    },
+    {
+      "path": "output\\apex3_dispatch\\github\\github_TOOLS_REPORT.md",
+      "url_count": 113
+    },
+    {
+      "path": "_obsidian_vault\\_deliverables\\apex3_dispatch\\open_data\\open_data_urls.txt",
+      "url_count": 102
+    },
+    {
+      "path": "output\\apex3_dispatch\\open_data\\open_data_urls.txt",
+      "url_count": 101
+    },
+    {
+      "path": "_obsidian_vault\\_research\\extractions\\From Static Snapshot to Dynamic Trajectory_ Designing an Adversarially-Hardened, Dual-Ledger DSCR Engine for True Investment Risk Assessment.txt",
+      "url_count": 94
+    },
+    {
+      "path": "RESEARCH\\pdf_extractions\\From Static Snapshot to Dynamic Trajectory_ Designing an Adversarially-Hardened, Dual-Ledger DSCR Engine for True Investment Risk Assessment.txt",
+      "url_count": 94
+    }
+  ],
+  "tier1_audit_cards": 10
+}

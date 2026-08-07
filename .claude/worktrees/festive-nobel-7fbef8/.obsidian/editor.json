@@ -1,0 +1,14 @@
+{
+  "showLineNumber": true,
+  "showInlineTitle": true,
+  "foldHeading": true,
+  "foldIndent": true,
+  "useTabIndent": false,
+  "tabSize": 2,
+  "vimMode": false,
+  "insertFinalNewline": false,
+  "spellcheck": true,
+  "moveLinksToBottom": true,
+  "showUnlinkedReferences": true,
+  "alwaysShowOutline": true
+}

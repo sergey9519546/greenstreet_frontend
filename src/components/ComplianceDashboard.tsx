@@ -12,41 +12,41 @@ import type { DSCRResult, BreakevenResult, StructureOption, PPPCheckResult, PITI
 import type { AuditLog } from "../engine/types";
 import { swatch, radius } from "../theme";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor as artifactDscrColor } from "../design/artifacts";
-import RefiTrackerPage from "../pages/RefiTrackerPage";
-import ARMPage from "../pages/ARMPage";
-import MonteCarloPage from "../pages/MonteCarloPage";
-import ReturnsPage from "../pages/ReturnsPage";
-import TaxEnginePage from "../pages/TaxEnginePage";
-import StressMatrixPage from "../pages/StressMatrixPage";
-import DecisionSupportPage from "../pages/DecisionSupportPage";
 import STRUnderwritingPage from "../pages/STRUnderwritingPage";
 import PortfolioPage from "../pages/PortfolioPage";
 import { SiteNav } from "../design/SiteShell";
+import { DcEmbeddedContext } from "../design/dc";
+
+// Tabs that embed a full tool page (each wraps itself in DcShell). Inside the
+// workspace these must render bare — no duplicate marketing nav/footer.
+const EMBEDDED_TOOL_TABS = new Set([
+  "str", "portfolio",
+]);
 
 // ─── Design tokens (inline, flat — no shadow, no blur) ──────────────────────
 const T = {
-  // Surfaces
-  pageBg: swatch.pistachio,
-  cardBg: swatch.mint,        // mint cards on pistachio page
-  cardBorder: `${swatch.midnight}20`,  // ~12% midnight — "faded" border
-  inputBg: `${swatch.midnight}08`,
-  inputBorder: `${swatch.midnight}18`,
-  inputFocusBorder: swatch.rainforest,
-  // Typography
-  ink: swatch.midnight,
-  muted: `${swatch.midnight}80`,
-  faint: `${swatch.midnight}50`,
-  // Sidebar
-  sidebarBg: swatch.midnight,
+  // Surfaces — DARK workspace ("all green"): midnight page, darker-teal cards.
+  pageBg: swatch.midnight,                  // #003738 dark page
+  cardBg: "#064a4c",                         // panel clearly lifted off the midnight page
+  cardBorder: "rgba(238,239,211,0.18)",      // readable border on dark
+  inputBg: "rgba(238,239,211,0.06)",
+  inputBorder: "rgba(238,239,211,0.2)",
+  inputFocusBorder: swatch.lemon,            // lemon focus — accent pop
+  // Typography — cream on dark
+  ink: swatch.pistachio,
+  muted: "rgba(238,239,211,0.72)",
+  faint: "rgba(238,239,211,0.62)",
+  // Sidebar — a touch darker than the page so it reads as a panel
+  sidebarBg: "#00292a",
   sidebarText: swatch.pistachio,
-  sidebarActive: `${swatch.pistachio}18`,
-  // Danger palette (flat, no soft-shadow)
-  dangerBg: "#fff0f0",
-  dangerBorder: "#ffcdd2",
-  dangerText: "#c0392b",
-  warnBg: "#fffbe6",
-  warnBorder: "#ffe58f",
-  warnText: "#7d5200",
+  sidebarActive: "rgba(216,217,88,0.16)",    // lemon-tinted active
+  // Danger / warn — dark-friendly tints
+  dangerBg: "rgba(224,99,99,0.12)",
+  dangerBorder: "rgba(224,99,99,0.32)",
+  dangerText: "#ff8f8f",
+  warnBg: "rgba(216,217,88,0.12)",
+  warnBorder: "rgba(216,217,88,0.34)",
+  warnText: "#e6e76b",
 } as const;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ function dscrLabel(dscr: number): string {
   return "DEAL BREAK";
 }
 function pppBadgeStyle(status: string): React.CSSProperties {
-  if (status === "ALLOWED") return { color: swatch.rainforest, background: `${swatch.rainforest}14`, border: `1px solid ${swatch.rainforest}30` };
+  if (status === "ALLOWED") return { color: swatch.emerald, background: `${swatch.emerald}16`, border: `1px solid ${swatch.rainforest}30` };
   if (status === "PROHIBITED") return { color: T.dangerText, background: T.dangerBg, border: `1px solid ${T.dangerBorder}` };
   if (status === "CONDITIONAL") return { color: swatch.midnight, background: `${swatch.lemon}40`, border: `1px solid ${swatch.lemon}80` };
   return { color: T.ink, background: T.cardBg, border: `1px solid ${T.cardBorder}` };
@@ -96,7 +96,7 @@ interface DealForm {
 }
 
 type DashboardTab = "dashboard" | "analyze" | "sensitivity" | "optimize" | "state" | "history" | "settings"
-  | "refi" | "arm" | "montecarlo" | "returns" | "tax" | "stress" | "decision" | "str" | "portfolio";
+  | "str" | "portfolio";
 interface ComplianceDashboardProps { onBackToMarketing: () => void; initialEmail?: string; initialTab?: DashboardTab }
 
 const PORTAL_PATHS: Record<string, string> = {
@@ -124,7 +124,7 @@ const TAB_LABELS: Partial<Record<DashboardTab, string>> = {
 function Card({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, ...style }}>
+      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
       {children}
     </div>
   );
@@ -134,7 +134,7 @@ function Card({ children, className = "", style = {} }: { children: React.ReactN
 function WhiteCard({ children, className = "", style = {} }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
     <div className={className}
-      style={{ background: swatch.white, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, ...style }}>
+      style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.md, boxShadow: "0 6px 16px -14px rgba(0,0,0,0.35), inset 0 1px 0 rgba(238,239,211,0.04)", ...style }}>
       {children}
     </div>
   );
@@ -146,9 +146,9 @@ function PrimaryBtn({ children, onClick, disabled, type = "button", className = 
   return (
     <button type={type} onClick={onClick} disabled={disabled}
       className={`inline-flex items-center justify-center gap-2 font-bold text-sm transition-colors active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${className}`}
-      style={{ background: swatch.midnight, color: swatch.pistachio, padding: "12px 22px", borderRadius: radius.sm, border: "none" }}
-      onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = swatch.rainforest; }}
-      onMouseLeave={e => { e.currentTarget.style.background = swatch.midnight; }}>
+      style={{ background: swatch.lemon, color: swatch.midnight, padding: "12px 22px", borderRadius: radius.sm, border: "none" }}
+      onMouseEnter={e => { if (!disabled) e.currentTarget.style.background = "#e3e36a"; }}
+      onMouseLeave={e => { e.currentTarget.style.background = swatch.lemon; }}>
       {children}
     </button>
   );
@@ -160,8 +160,8 @@ function GhostBtn({ children, onClick, className = "" }:
   return (
     <button type="button" onClick={onClick}
       className={`inline-flex items-center justify-center gap-1.5 font-semibold text-xs transition-colors ${className}`}
-      style={{ color: swatch.rainforest, background: "transparent", padding: "9px 16px", borderRadius: radius.sm, border: `1px solid ${swatch.rainforest}40` }}
-      onMouseEnter={e => { e.currentTarget.style.background = `${swatch.rainforest}10`; }}
+      style={{ color: swatch.pistachio, background: "transparent", padding: "9px 16px", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.5)" }}
+      onMouseEnter={e => { e.currentTarget.style.background = "rgba(238,239,211,0.08)"; }}
       onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}>
       {children}
     </button>
@@ -181,7 +181,7 @@ function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLI
           borderRadius: radius.sm,
           color: T.ink,
         }}
-        onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
+        onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = "rgba(238,239,211,0.1)"; }}
         onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }}
       />
       {helper && <p className="text-[10px]" style={{ color: T.faint }}>{helper}</p>}
@@ -241,7 +241,11 @@ function TabPane({ id, children }: { id: string; children: React.ReactNode }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.18 }}
       className="space-y-5">
-      {children}
+      {EMBEDDED_TOOL_TABS.has(id) ? (
+        <DcEmbeddedContext.Provider value={true}>{children}</DcEmbeddedContext.Provider>
+      ) : (
+        children
+      )}
     </motion.div>
   );
 }
@@ -265,7 +269,7 @@ function useMinWidth(minPx: number): boolean {
 function Disclaimer() {
   return (
     <p className="text-[10px] leading-relaxed" style={{ color: T.faint, borderTop: `1px solid ${T.cardBorder}`, paddingTop: 10 }}>
-      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Contact us at +1 (555) 010-0000.
+      Preliminary estimate — not a commitment to lend. Rates and terms subject to change. Submit a scenario review for exact underwriting.
     </p>
   );
 }
@@ -457,20 +461,20 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     return (
       <>
         <SiteNav onNavigate={handleSiteNavigate} />
-        <div className="min-h-screen flex items-center justify-center p-4" style={{ background: T.pageBg }}>
-          <div className="max-w-md w-full p-8" style={{ background: swatch.white, border: `1px solid ${T.cardBorder}`, borderRadius: radius.lg }}>
-            <button onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold mb-6 transition"
-              style={{ color: T.muted }}
-              onMouseEnter={e => e.currentTarget.style.color = swatch.rainforest}
+        <div className="flex items-center justify-center p-4" style={{ minHeight: "calc(100vh - 74px)", background: T.pageBg }}>
+          <div className="max-w-md w-full p-8" style={{ background: T.cardBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.lg }}>
+            <button type="button" onClick={onBackToMarketing} className="flex items-center gap-1.5 text-xs font-bold mb-6 transition"
+              style={{ color: T.muted, minHeight: 36, padding: "6px 0" }}
+              onMouseEnter={e => e.currentTarget.style.color = swatch.lemon}
               onMouseLeave={e => e.currentTarget.style.color = T.muted}>
               <ArrowLeft className="w-3.5 h-3.5" /><span>Back to site</span>
             </button>
             <div className="text-center mb-8">
               <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3 font-extrabold text-2xl"
-                style={{ background: swatch.midnight, color: swatch.lemon, borderRadius: radius.sm }}>G</div>
-              <h3 className="font-bold tracking-tight text-2xl" style={{ color: T.ink, letterSpacing: "-0.03em" }}>
-                INVEST<span style={{ opacity: 0.4 }}>GO</span>
-              </h3>
+                style={{ background: "rgba(216,217,88,0.14)", color: swatch.lemon, borderRadius: radius.md, border: "1px solid rgba(216,217,88,0.32)" }}>G</div>
+              <h1 className="font-bold tracking-tight text-2xl" style={{ color: T.ink, letterSpacing: "-0.03em" }}>
+                INVEST<span style={{ opacity: 0.45 }}>GO</span>
+              </h1>
               <p className="text-xs mt-1.5" style={{ color: T.muted }}>
                 {requestedTool
                   ? `${requestedTool} is part of the InvestGO workspace. Sign in or try demo mode.`
@@ -485,15 +489,15 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             <button onClick={() => setDemoMode(true)}
               className="w-full py-2.5 text-xs font-semibold transition mb-3"
               style={{ border: `1px dashed ${T.cardBorder}`, borderRadius: radius.sm, background: T.inputBg, color: T.muted }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = swatch.midnight; e.currentTarget.style.color = swatch.midnight; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(216,217,88,0.5)"; e.currentTarget.style.color = swatch.lemon; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = T.cardBorder; e.currentTarget.style.color = T.muted; }}>
               Try demo mode — no account needed
             </button>
             <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { setAuthError(e.message); } }}
               className="w-full py-3 flex items-center justify-center gap-3 text-sm font-semibold transition"
-              style={{ border: `1px solid ${T.cardBorder}`, borderRadius: radius.sm, background: swatch.white, color: T.ink }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = swatch.midnight; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = T.cardBorder; }}>
+              style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: radius.sm, background: "#ffffff", color: "#1f2430" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#f1f2ee"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "#ffffff"; }}>
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
@@ -504,28 +508,36 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
             </button>
             <div className="relative my-5 text-center text-xs" style={{ color: T.faint }}>
               <div className="absolute inset-x-0 top-1/2 h-px" style={{ background: T.cardBorder }} />
-              <span className="relative px-3 font-semibold uppercase tracking-wider" style={{ background: swatch.white }}>or email</span>
+              <span className="relative px-3 font-semibold uppercase tracking-wider" style={{ background: T.cardBg }}>or email</span>
             </div>
             <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }}
               className="space-y-3">
-              <input type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
-                placeholder="you@email.com"
-                className="w-full px-4 py-3 text-sm outline-none transition-colors"
-                style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
-                onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
-                onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
-              <input type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full px-4 py-3 text-sm outline-none transition-colors font-mono"
-                style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
-                onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
-                onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
+              <div>
+                <label htmlFor="investgo-email" className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5" style={{ color: T.muted }}>Email</label>
+                <input id="investgo-email" name="email" type="email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  autoComplete="email"
+                  className="w-full px-4 py-3 text-sm outline-none transition-colors"
+                  style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
+                  onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; }} />
+              </div>
+              <div>
+                <label htmlFor="investgo-password" className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5" style={{ color: T.muted }}>Password</label>
+                <input id="investgo-password" name="password" type="password" required value={authPassword} onChange={e => setAuthPassword(e.target.value)}
+                  placeholder="Password"
+                  autoComplete={isSignUpMode ? "new-password" : "current-password"}
+                  className="w-full px-4 py-3 text-sm outline-none transition-colors font-mono"
+                  style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
+                  onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; }} />
+              </div>
               <PrimaryBtn type="submit" className="w-full mt-2">{isSignUpMode ? "Create Account" : "Access Engine"}</PrimaryBtn>
             </form>
             <div className="mt-4 text-center">
               <button onClick={() => setIsSignUpMode(!isSignUpMode)} className="text-xs font-semibold transition"
                 style={{ color: T.muted }}
-                onMouseEnter={e => e.currentTarget.style.color = swatch.midnight}
+                onMouseEnter={e => e.currentTarget.style.color = swatch.lemon}
                 onMouseLeave={e => e.currentTarget.style.color = T.muted}>
                 {isSignUpMode ? "Already registered? Sign in" : "New here? Create account"}
               </button>
@@ -550,14 +562,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
   const navTools = [
     { key: "state",      icon: <MapPin className="w-4 h-4" />,     label: "State Rules" },
-    { key: "stress",     icon: <Shield className="w-4 h-4" />,     label: "Stress Matrix" },
-    { key: "refi",       icon: <RefreshCw className="w-4 h-4" />,  label: "Refi Tracker" },
-    { key: "returns",    icon: <TrendingUp className="w-4 h-4" />, label: "Returns / IRR" },
-    { key: "arm",        icon: <Sparkles className="w-4 h-4" />,   label: "ARM Reset" },
-    { key: "montecarlo", icon: <BarChart2 className="w-4 h-4" />,  label: "Monte Carlo" },
-    { key: "tax",        icon: <CheckCircle className="w-4 h-4" />,label: "Tax Engine" },
-    { key: "decision",   icon: <Search className="w-4 h-4" />,     label: "Decision Support" },
-    { key: "str",        icon: <Settings2 className="w-4 h-4" />,  label: "STR" },
+    { key: "str",        icon: <Settings2 className="w-4 h-4" />,  label: "STR Underwriting" },
     { key: "portfolio",  icon: <Shield className="w-4 h-4" />,     label: "Portfolio" },
     { key: "settings",   icon: <Settings2 className="w-4 h-4" />,  label: "Workspace Settings" },
   ] as const;
@@ -568,13 +573,6 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     sensitivity: "Sensitivity Lab",
     optimize: "Structure Optimizer",
     state: "State Rules",
-    refi: "Refi Tracker",
-    arm: "ARM Reset Risk",
-    montecarlo: "Monte Carlo",
-    returns: "Returns & IRR",
-    tax: "Tax Engine",
-    stress: "Stress Matrix",
-    decision: "Decision Support",
     str: "STR Underwriting",
     portfolio: "Portfolio Analyzer",
     history: "Scenario History",
@@ -599,81 +597,92 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
   // Sidebar shared render
   function SidebarContent() {
+    const NavBtn = ({ navKey, icon, label, count }: { navKey: string; icon: React.ReactNode; label: string; count?: number }) => {
+      const active = activeTab === navKey;
+      return (
+        <button onClick={() => switchTab(navKey as DashboardTab)}
+          className="w-full flex items-center gap-2.5 text-left text-sm transition"
+          style={{
+            position: "relative",
+            padding: "10px 12px",
+            borderRadius: 9,
+            fontWeight: active ? 700 : 500,
+            color: active ? swatch.pistachio : "rgba(238,239,211,0.78)",
+            background: active ? "rgba(216,217,88,0.1)" : "transparent",
+          }}
+          onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(238,239,211,0.06)"; }}
+          onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
+          {active && <span style={{ position: "absolute", left: 0, top: 9, bottom: 9, width: 3, borderRadius: 99, background: swatch.lemon }} />}
+          <span style={{ color: active ? swatch.lemon : "rgba(238,239,211,0.62)", display: "flex", alignItems: "center" }}>{icon}</span>
+          <span className="flex-1">{label}</span>
+          {count !== undefined && count > 0 && (
+            <span className="text-[10px] px-1.5 py-0.5 font-bold"
+              style={{ background: active ? "rgba(216,217,88,0.22)" : "rgba(238,239,211,0.1)", color: active ? swatch.lemon : "rgba(238,239,211,0.7)", borderRadius: radius.pill }}>
+              {count}
+            </span>
+          )}
+        </button>
+      );
+    };
+    const SectionLabel = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+      <div className={`text-[10px] font-bold uppercase tracking-[0.1em] px-3 mb-2 ${className}`} style={{ color: "rgba(238,239,211,0.5)" }}>{children}</div>
+    );
     return (
       <>
+        {/* Brand lockup */}
         <button onClick={() => { onBackToMarketing(); setSidebarOpen(false); }}
-          className="text-left font-bold mb-6 px-3 pb-5 transition block"
-          style={{ color: swatch.pistachio, fontSize: 18, letterSpacing: "-0.04em", borderBottom: `1px solid ${swatch.pistachio}18`, width: "100%" }}
-          onMouseEnter={e => e.currentTarget.style.opacity = "0.7"}
+          className="flex items-center gap-2.5 mb-5 px-1 transition"
+          style={{ width: "100%" }}
+          title="Back to greenstreetfinance.com"
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.82"}
           onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
-          Greenstreet
+          <span style={{ width: 34, height: 34, borderRadius: 9, background: "#00201f", display: "grid", placeItems: "center", border: "1px solid rgba(238,239,211,0.12)", flexShrink: 0 }}>
+            <span style={{ color: swatch.lemon, fontWeight: 900, fontSize: 17, letterSpacing: "-0.04em" }}>G</span>
+          </span>
+          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.05 }}>
+            <span style={{ color: swatch.pistachio, fontWeight: 800, fontSize: 16, letterSpacing: "-0.03em" }}>Greenstreet</span>
+            <span style={{ color: "rgba(238,239,211,0.42)", fontWeight: 800, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase" }}>InvestGO Workspace</span>
+          </span>
         </button>
 
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] px-3 mb-2"
-          style={{ color: `${swatch.pistachio}50` }}>Workspace</div>
-        <nav className="space-y-0.5 mb-4">
-          {navWorkspace.map(({ key, icon, label, count }: any) => {
-            const active = activeTab === key;
-            return (
-              <button key={key} onClick={() => switchTab(key as DashboardTab)}
-                className="w-full flex items-center gap-2.5 text-left text-sm transition"
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: radius.sm,
-                  fontWeight: active ? 600 : 500,
-                  color: active ? swatch.pistachio : `${swatch.pistachio}b0`,
-                  background: active ? T.sidebarActive : "transparent",
-                }}>
-                <span style={{ color: active ? swatch.lemon : swatch.emerald, display: "flex", alignItems: "center" }}>{icon}</span>
-                <span className="flex-1">{label}</span>
-                {count !== undefined && count > 0 && (
-                  <span className="text-[10px] px-1.5 py-0.5 font-bold"
-                    style={{ background: `${swatch.emerald}28`, color: swatch.emerald, borderRadius: radius.pill }}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        {/* Primary action */}
+        <button onClick={() => switchTab("analyze")}
+          className="w-full flex items-center justify-center gap-2 font-bold text-sm transition mb-5"
+          style={{ background: swatch.lemon, color: swatch.midnight, padding: "11px 14px", borderRadius: 9 }}
+          onMouseEnter={e => e.currentTarget.style.background = "#e3e36a"}
+          onMouseLeave={e => e.currentTarget.style.background = swatch.lemon}>
+          + New deal
+        </button>
+
+        <SectionLabel>Workspace</SectionLabel>
+        <nav className="space-y-0.5 mb-2">
+          {navWorkspace.map(({ key, icon, label, count }: any) => (
+            <NavBtn key={key} navKey={key} icon={icon} label={label} count={count} />
+          ))}
         </nav>
 
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] px-3 mb-2"
-          style={{ color: `${swatch.pistachio}50` }}>Tools</div>
+        <SectionLabel className="mt-5">Tools</SectionLabel>
         <nav className="space-y-0.5">
-          {navTools.map(({ key, icon, label }) => {
-            const active = activeTab === key;
-            return (
-              <button key={key} onClick={() => switchTab(key as DashboardTab)}
-                className="w-full flex items-center gap-2.5 text-left text-sm transition"
-                style={{
-                  padding: "9px 12px",
-                  borderRadius: radius.sm,
-                  fontWeight: active ? 600 : 400,
-                  color: active ? swatch.pistachio : `${swatch.pistachio}90`,
-                  background: active ? T.sidebarActive : "transparent",
-                }}>
-                <span style={{ color: active ? swatch.lemon : `${swatch.emerald}b0`, display: "flex", alignItems: "center" }}>{icon}</span>
-                {label}
-              </button>
-            );
-          })}
+          {navTools.map(({ key, icon, label }) => (
+            <NavBtn key={key} navKey={key} icon={icon} label={label} />
+          ))}
         </nav>
 
-        <div className="mt-auto flex items-center gap-2.5 px-3 pt-3"
-          style={{ borderTop: `1px solid ${swatch.pistachio}18` }}>
-          <span className="w-8 h-8 flex items-center justify-center text-[13px] font-semibold shrink-0"
-            style={{ background: swatch.emerald, color: swatch.midnight, borderRadius: "50%" }}>
+        <div className="mt-auto flex items-center gap-2.5 px-2 pt-4"
+          style={{ borderTop: "1px solid rgba(238,239,211,0.16)" }}>
+          <span className="w-8 h-8 flex items-center justify-center text-[13px] font-bold shrink-0"
+            style={{ background: swatch.emerald, color: swatch.midnight, borderRadius: "50%", boxShadow: "0 0 0 2px rgba(216,217,88,0.25)" }}>
             {brokerInitials}
           </span>
           <div className="overflow-hidden">
             <div className="text-[13px] font-semibold truncate" style={{ color: swatch.pistachio }}>{brokerDisplayName}</div>
-            <div className="text-[11px] truncate" style={{ color: `${swatch.pistachio}60` }}>{brokerMarket}</div>
+            <div className="text-[11px] truncate" style={{ color: "rgba(238,239,211,0.62)" }}>{brokerMarket}</div>
           </div>
           <button onClick={logoutUser} className="ml-auto p-1.5 transition shrink-0"
-            style={{ color: `${swatch.pistachio}60`, borderRadius: radius.sm }}
+            style={{ color: "rgba(238,239,211,0.62)", borderRadius: radius.sm }}
             title="Sign Out"
-            onMouseEnter={e => { e.currentTarget.style.background = `${swatch.pistachio}10`; e.currentTarget.style.color = swatch.pistachio; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = `${swatch.pistachio}60`; }}>
+            onMouseEnter={e => { e.currentTarget.style.background = "rgba(238,239,211,0.1)"; e.currentTarget.style.color = swatch.pistachio; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(238,239,211,0.62)"; }}>
             <LogOut className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -683,7 +692,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
   return (
     <>
-      <SiteNav onNavigate={handleSiteNavigate} />
+      {/* No marketing SiteNav here — the workspace has its own sidebar + top-bar.
+          (Loading/gate states above still show SiteNav.) */}
       <div className="min-h-screen antialiased font-sans flex flex-col" style={{ background: T.pageBg }}>
 
         {/* Mobile top-bar */}
@@ -716,8 +726,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
         <div className="flex flex-1">
           {/* Desktop sidebar */}
-          <aside className="hidden md:flex flex-col w-[248px] shrink-0 p-5 overflow-y-auto"
-            style={{ background: swatch.midnight, minHeight: "calc(100vh - 0px)" }}>
+          <aside className="hidden md:flex flex-col w-[256px] shrink-0 p-5 overflow-y-auto sticky top-0"
+            style={{ background: "#00292a", borderRight: "1px solid rgba(238,239,211,0.16)", height: "100vh" }}>
             <SidebarContent />
           </aside>
 
@@ -732,7 +742,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                 padding: "18px clamp(16px, 3vw, 36px)",
               }}>
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: swatch.rainforest }}>Workspace</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: "rgba(238,239,211,0.55)" }}>Workspace</div>
                 <div className="font-bold mt-0.5" style={{ fontSize: "clamp(18px, 2vw, 24px)", letterSpacing: "-0.03em", color: T.ink }}>
                   {viewTitle[activeTab] ?? "Dashboard"}
                 </div>
@@ -744,7 +754,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
             {/* Content */}
             <div className="flex-1 p-4 md:p-7">
-              <div className="max-w-5xl w-full mx-auto">
+              <div className="w-full mx-auto" style={{ maxWidth: 1320 }}>
                 <AnimatePresence mode="wait">
 
                   {/* ── DASHBOARD ── */}
@@ -753,10 +763,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       {/* KPI row */}
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {([
-                          { label: "Active deals",    value: "6",     delta: "+2 this week",       deltaColor: swatch.rainforest },
-                          { label: "Avg DSCR",        value: "1.31x", delta: "Healthy book",        deltaColor: swatch.rainforest },
-                          { label: "Pipeline vol.",   value: "$2.0M", delta: "+$0.4M MTD",           deltaColor: swatch.rainforest },
-                          { label: "Flagged states",  value: "2",     delta: "NJ · OH need review", deltaColor: "#9a7b00" },
+                          { label: "Active deals",    value: "6",     delta: "+2 this week",       deltaColor: swatch.emerald },
+                          { label: "Avg DSCR",        value: "1.31x", delta: "Healthy book",        deltaColor: swatch.emerald },
+                          { label: "Pipeline vol.",   value: "$2.0M", delta: "+$0.4M MTD",           deltaColor: swatch.emerald },
+                          { label: "Flagged states",  value: "2",     delta: "NJ · OH need review", deltaColor: "#e6e76b" },
                         ] as const).map(({ label, value, delta, deltaColor }) => (
                           <WhiteCard key={label} style={{ padding: "20px 20px 16px" }}>
                             <div className="text-[11px] font-semibold uppercase tracking-[0.04em] mb-2" style={{ color: T.faint }}>{label}</div>
@@ -776,10 +786,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               const riskLevel = riskFromDscr(d.dscr);
                               const dCol = artifactDscrColor(d.dscr);
                               const stagePill: React.CSSProperties = d.stage === "Submitted"
-                                ? { color: swatch.rainforest, background: `${swatch.rainforest}14` }
+                                ? { color: swatch.emerald, background: `${swatch.emerald}16` }
                                 : d.stage === "Priced"
-                                  ? { color: swatch.rainforest, background: `${swatch.rainforest}14` }
-                                  : { color: "#9a7b00", background: "rgba(154,123,0,0.1)" };
+                                  ? { color: swatch.emerald, background: `${swatch.emerald}16` }
+                                  : { color: "#e6e76b", background: "rgba(154,123,0,0.1)" };
                               return (
                                 <div key={d.prop}
                                   className="grid items-center gap-3 transition cursor-default"
@@ -813,8 +823,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                         {/* Right column */}
                         <div className="flex flex-col gap-4">
                           {/* Compliance status */}
-                          <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: `1px solid ${swatch.midnight}`, borderRadius: radius.md }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.lemon }}>Compliance</div>
+                          <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: "1px solid rgba(238,239,211,0.16)", boxShadow: "inset 0 1px 0 rgba(238,239,211,0.06)", borderRadius: radius.md }}>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: "rgba(238,239,211,0.55)" }}>Compliance</div>
                             {([
                               { label: "17a-4 WORM archive", status: "Active" },
                               { label: "IC memos generated", status: "6 / 6" },
@@ -837,8 +847,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.rainforest }}>State alerts</div>
                             {([
                               { mark: "✕", color: T.dangerText, text: "45 Harbor (NJ): prepay penalty high-risk for LLC — restructure or expect +0.25% rate." },
-                              { mark: "~",  color: "#9a7b00",    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
-                              { mark: "~",  color: "#9a7b00",    text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
+                              { mark: "~",  color: "#e6e76b",    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
+                              { mark: "~",  color: "#e6e76b",    text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
                             ] as const).map(({ mark, color, text }) => (
                               <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
                                 <span className="font-bold shrink-0" style={{ color }}>{mark}</span>
@@ -957,12 +967,24 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                           {/* Empty state */}
                           {!deal && !isRunning && !solveError && (
-                            <Card style={{ padding: "56px 24px", textAlign: "center" }}>
-                              <Calculator className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
-                              <p className="text-sm font-semibold" style={{ color: T.muted }}>Enter deal parameters and run the analysis.</p>
-                              <p className="text-xs mt-1" style={{ color: T.faint }}>
-                                DSCR = rent ÷ PITIA (the full monthly payment). Results appear here.
-                              </p>
+                            <Card style={{ padding: "26px 24px" }}>
+                              <div className="text-[11px] font-bold uppercase tracking-[0.08em] mb-4" style={{ color: T.faint }}>What the engine returns — in one pass</div>
+                              <div className="space-y-3">
+                                {[
+                                  { t: "DSCR & pricing", d: "Whether the rent covers the full payment (PITIA), and the rate the deal can carry." },
+                                  { t: "Sensitivity grid", d: "How the DSCR holds as rate and rent move against you — the stress map." },
+                                  { t: "Structure optimizer", d: "The LTV / reserves mix that lifts a marginal file into approval." },
+                                ].map((r, i) => (
+                                  <div key={r.t} className="flex items-start gap-3.5" style={{ padding: "15px 16px", borderRadius: radius.md, border: `1px solid ${T.cardBorder}`, background: T.inputBg }}>
+                                    <span style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(216,217,88,0.14)", color: swatch.lemon, display: "grid", placeItems: "center", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{i + 1}</span>
+                                    <div>
+                                      <div className="text-[14px] font-bold" style={{ color: T.ink, letterSpacing: "-0.01em" }}>{r.t}</div>
+                                      <div className="text-[12px] mt-0.5 leading-relaxed" style={{ color: T.muted }}>{r.d}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <p className="text-[11px] mt-4" style={{ color: T.faint }}>Set your deal on the left, then press <span style={{ color: swatch.lemon, fontWeight: 700 }}>Analyze Deal</span> to populate this panel.</p>
                             </Card>
                           )}
 
@@ -1155,7 +1177,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 ].map(({ label, value, warn }) => (
                                   <div key={label} className="flex items-center justify-between gap-3">
                                     <span className="text-xs flex-1" style={{ color: T.muted }}>{label}</span>
-                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: warn ? "#9a7b00" : swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
+                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: warn ? "#e6e76b" : swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
                                       {fmt$(value)}/mo
                                     </span>
                                   </div>
@@ -1276,8 +1298,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                           {sensResult.sensitivity.jointAppraisalRisk && (() => {
                             const rating = sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating;
                             const ratingStyle: React.CSSProperties =
-                              rating === "LOW" ? { color: swatch.rainforest, background: `${swatch.rainforest}14`, border: `1px solid ${swatch.rainforest}30` } :
-                              rating === "MODERATE" ? { color: "#9a7b00", background: "#fffbe6", border: "1px solid #ffe58f" } :
+                              rating === "LOW" ? { color: swatch.emerald, background: `${swatch.emerald}16`, border: `1px solid ${swatch.rainforest}30` } :
+                              rating === "MODERATE" ? { color: "#e6e76b", background: "#fffbe6", border: "1px solid #ffe58f" } :
                               { color: T.dangerText, background: T.dangerBg, border: `1px solid ${T.dangerBorder}` };
                             return (
                               <Card style={{ padding: "20px" }}>
@@ -1352,12 +1374,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                   style={{
                                     padding: "20px",
                                     borderRadius: radius.md,
-                                    background: isBest ? swatch.midnight : swatch.white,
-                                    border: `1px solid ${isBest ? swatch.midnight : T.cardBorder}`,
+                                    background: isBest ? swatch.pistachio : T.inputBg,
+                                    border: `1px solid ${isBest ? swatch.pistachio : T.cardBorder}`,
                                   }}>
                                   <div className="flex items-start justify-between mb-3">
                                     <div>
-                                      <p className="font-bold text-sm mb-1" style={{ color: isBest ? swatch.pistachio : T.ink }}>{opt.name}</p>
+                                      <p className="font-bold text-sm mb-1" style={{ color: isBest ? swatch.midnight : T.ink }}>{opt.name}</p>
                                       {isBest && (
                                         <span className="text-[10px] font-bold px-2 py-0.5"
                                           style={{ background: swatch.lemon, color: swatch.midnight, borderRadius: radius.pill }}>
@@ -1367,7 +1389,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                       <span className="text-2xl font-extrabold font-mono"
-                                        style={{ color: isBest ? swatch.emerald : artifactDscrColor(opt.track1DSCR), fontVariantNumeric: "tabular-nums" }}>
+                                        style={{ color: isBest ? swatch.rainforest : artifactDscrColor(opt.track1DSCR), fontVariantNumeric: "tabular-nums" }}>
                                         {opt.track1DSCR.toFixed(2)}x
                                       </span>
                                       {!isBest && optRisk !== "none" && <RiskFlame level={optRisk} size={18} />}
@@ -1381,19 +1403,38 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                       { label: "Track 2 DSCR",    value: `${opt.track2DSCR.toFixed(2)}x` },
                                     ].map(({ label, value }) => (
                                       <div key={label} className="flex justify-between text-xs">
-                                        <span style={{ color: isBest ? `${swatch.pistachio}80` : T.muted }}>{label}</span>
-                                        <span className="font-mono font-semibold" style={{ color: isBest ? swatch.pistachio : T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</span>
+                                        <span style={{ color: isBest ? "rgba(0,55,56,0.55)" : T.muted }}>{label}</span>
+                                        <span className="font-mono font-semibold" style={{ color: isBest ? swatch.midnight : T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</span>
                                       </div>
                                     ))}
                                   </div>
+                                  {/* 5yr cost of capital — the all-in figure the engine computes
+                                      but the card previously hid. This is the true comparison
+                                      number across structures (interest + points + fees + PPP). */}
+                                  <div className="flex justify-between items-baseline pt-2 mt-2 text-xs"
+                                    style={{ borderTop: `1px solid ${isBest ? "rgba(0,55,56,0.12)" : T.cardBorder}` }}>
+                                    <span style={{ color: isBest ? "rgba(0,55,56,0.55)" : T.muted }}>5-yr cost of capital</span>
+                                    <span className="font-mono font-bold text-sm" style={{ color: isBest ? swatch.midnight : T.ink, fontVariantNumeric: "tabular-nums" }}>
+                                      {fmt$(opt.fiveYearCost)}
+                                    </span>
+                                  </div>
+                                  {/* IO recast warning — payment-shock disclosure when the IO
+                                      period ends and P&I recasts on the shortened amortization. */}
+                                  {opt.ioRecastWarning && (
+                                    <div className="flex items-start gap-1.5 mt-2 text-[11px] leading-snug"
+                                      style={{ color: "#b8901f" }}>
+                                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
+                                      <span>{opt.ioRecastWarning}</span>
+                                    </div>
+                                  )}
                                   {opt.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 pt-2 mt-2" style={{ borderTop: `1px solid ${isBest ? swatch.pistachio + "18" : T.cardBorder}` }}>
+                                    <div className="flex flex-wrap gap-1 pt-2 mt-2" style={{ borderTop: `1px solid ${isBest ? "rgba(0,55,56,0.12)" : T.cardBorder}` }}>
                                       {opt.tags.slice(0, 3).map(tag => (
                                         <span key={tag} className="text-[10px] px-1.5 py-0.5 font-semibold"
                                           style={{
                                             borderRadius: radius.sm,
-                                            background: isBest ? `${swatch.pistachio}12` : T.inputBg,
-                                            color: isBest ? swatch.pistachio : T.muted,
+                                            background: isBest ? "rgba(0,55,56,0.07)" : T.inputBg,
+                                            color: isBest ? "rgba(0,55,56,0.7)" : T.muted,
                                           }}>
                                           {tag}
                                         </span>
@@ -1565,8 +1606,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             {auditLogs.map(log => (
                               <button key={log.id} onClick={() => setSelectedLog(log)} className="w-full text-left transition"
                                 style={{
-                                  background: selectedLog?.id === log.id ? `${swatch.rainforest}10` : swatch.white,
-                                  border: `1px solid ${selectedLog?.id === log.id ? swatch.rainforest : T.cardBorder}`,
+                                  background: selectedLog?.id === log.id ? "rgba(238,239,211,0.1)" : T.inputBg,
+                                  border: `1px solid ${selectedLog?.id === log.id ? "rgba(238,239,211,0.3)" : T.cardBorder}`,
                                   borderRadius: radius.md,
                                   padding: "14px 16px",
                                 }}>
@@ -1589,7 +1630,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                     style={{
                                       borderRadius: radius.pill,
                                       background: log.type === "analyze" ? `${swatch.emerald}20` : `${swatch.lemon}40`,
-                                      color: log.type === "analyze" ? swatch.rainforest : "#9a7b00",
+                                      color: log.type === "analyze" ? swatch.rainforest : "#e6e76b",
                                     }}>
                                     {log.type === "analyze" ? "DSCR Deal" : "State PPP"}
                                   </span>
@@ -1660,7 +1701,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               onChange={e => setBrokerConfig(p => ({ ...p, autoDisclaimer: e.target.value }))}
                               className="w-full px-3 py-2.5 text-sm outline-none transition-colors resize-none"
                               style={{ background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: radius.sm, color: T.ink }}
-                              onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = swatch.white; }}
+                              onFocus={e => { e.currentTarget.style.borderColor = T.inputFocusBorder; e.currentTarget.style.background = "rgba(238,239,211,0.1)"; }}
                               onBlur={e => { e.currentTarget.style.borderColor = T.inputBorder; e.currentTarget.style.background = T.inputBg; }} />
                           </div>
                           <PrimaryBtn type="submit" className="w-full">
@@ -1671,42 +1712,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                     </TabPane>
                   )}
 
-                  {/* ── PASSTHROUGH PAGES ── */}
-                  {activeTab === "refi" && (
-                    <TabPane id="refi">
-                      <RefiTrackerPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
-                    </TabPane>
-                  )}
-                  {activeTab === "arm" && (
-                    <TabPane id="arm">
-                      <ARMPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
-                    </TabPane>
-                  )}
-                  {activeTab === "montecarlo" && (
-                    <TabPane id="montecarlo">
-                      <MonteCarloPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
-                    </TabPane>
-                  )}
-                  {activeTab === "returns" && (
-                    <TabPane id="returns">
-                      <ReturnsPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
-                    </TabPane>
-                  )}
-                  {activeTab === "tax" && (
-                    <TabPane id="tax">
-                      <TaxEnginePage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
-                    </TabPane>
-                  )}
-                  {activeTab === "stress" && (
-                    <TabPane id="stress">
-                      <StressMatrixPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
-                    </TabPane>
-                  )}
-                  {activeTab === "decision" && (
-                    <TabPane id="decision">
-                      <DecisionSupportPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />
-                    </TabPane>
-                  )}
+                  {/* ── EMBEDDED WORKSPACE TOOLS (broker/lender backend) ── */}
                   {activeTab === "str" && (
                     <TabPane id="str">
                       <STRUnderwritingPage onBack={() => switchTab("dashboard")} onNavigate={() => switchTab("dashboard")} />

@@ -1,0 +1,550 @@
+
+
+===== PAGE 1 =====
+
+From Calculator to Containment:
+Adversarial Hardening of the AEGIS DSCR
+Engine
+Foundational Weaknesses of the Deterministic Core
+v1.0
+The initial phase of this research directive involved a comprehensive audit of the
+Deterministic Core (v1.0), revealing that while mathematically sound for basic Debt
+Service Coverage Ratio (DSCR) calculation, it suffers from a series of foundational
+weaknesses that preclude its use as an advisor-grade system . These flaws are not minor
+bugs but represent a fundamental disconnect between the engine's static, point-in-time
+modeling approach and the dynamic, multi-horizon reality of real estate investment and
+lending. The core mission has been to move beyond simple improvement to achieve
+measurable algorithmic superiority by transforming the engine from a calculator into a
+fiduciary-grade risk containment infrastructure . This single-period snapshot approach
+creates a dangerously misleading impression of stability and predictability for deals that
+are inherently volatile over their lifecycle.
+Another critical deficiency lies in the engine's diagnostic capabilities. While it can
+determine if a deal passes or fails a lender's minimum DSCR threshold, it cannot diagnose
+why it failed or provide actionable solutions for repair . The engine essentially acts as a
+critic without providing a clear path to redemption, leaving the user with a failing score
+and no strategy to improve it.
+The system's approach to data integrity and explainability is equally problematic. It
+assigns equal mathematical weight to all inputs, meaning a user-guessed rent figure
+carries the same analytical importance as verified lease data or an appraisal Form 1007 .
+This creates a significant risk of misrepresentation and flawed conclusions based on
+unreliable assumptions. Furthermore, the engine offers no mechanism for counterfactual
+explanation—no way to answer the crucial question, "What specific change would make
+this a 'Strong Deal'?" . It is also ill-equipped to handle multifamily properties with five or
+more units, mixed-use assets, or portfolio-level analysis, as its design is optimized for
+single-family residential (SFR) transactions . Most critically, if deployed in a credit
+
+===== PAGE 2 =====
+
+decision-making context, the engine would fail to meet the stringent requirements of
+regulations like the Equal Credit Opportunity Act (ECOA). It cannot generate the specific,
+principal reasons for adverse action mandated by CFPB Circular 2022-03, nor does it
+contain safeguards against disparate impact or proxy discrimination based on geography,
+which could lead to direct legal and regulatory exposure . | | Single-Variable Diagnosis
+| Can only solve for one input variable at a time (e.g., Required Rent) to fix a failing
+metric . | | No Data Confidence Scoring | Assigns equal weight to all inputs, regardless
+of source reliability (e.g., user guess vs. verified lease) . | | No Path Dependency
+Modeling | Uses average monthly metrics, failing to simulate month-by-month cash flow
+sequences . | | Lack of Explainability | Provides a binary pass/fail outcome without
+explaining the root cause or suggesting counterfactual solutions . | | Edge Case
+Coverage Gaps | Does not have specialized logic for STRs, multifamily 5+, or mixed-use
+properties . | | Regulatory Non-Compliance | Cannot generate compliant adverse
+action notices or monitor for fair lending violations under ECOA 38. |
+The Dual-Ledger Architectural Synthesis
+To overcome the foundational weaknesses of the Deterministic Core v1.0, the proposed
+solution is not merely an incremental update but a complete architectural synthesis
+centered on a dual-ledger concept. This framework explicitly separates the engine's
+functions into two distinct, parallel processing streams: the Lender Qualification Ledger
+and the Investor Survival Ledger. This separation is the cornerstone of the new system,
+designed to provide clarity, enhance risk detection, and create a defensible distinction
+between credit eligibility and investment advisement. The resulting architecture is a nine-
+module pipeline where data flows strictly downward, with a mandatory Audit and
+Compliance Layer governing all transitions between modules .
+The output from the Data Intake Layer serves as the input for the first ledger: the Lender
+Qualification Engine. This module operates as a pure, rule-based evaluation against a
+version-controlled database of lender matrices . The output of this engine is a suite of
+investor-centric survival metrics, most notably the Liquidity Survival Clock (LSC), which
+translates cash reserves into a concrete runway in months, and the Investor Survival
+Score (ISS), a composite index blending short-term liquidity with medium-term
+operational stress resilience .
+The divergence between the two ledgers is where the engine's true power lies. A deal
+might pass the Lender Qualification Ledger but fail catastrophically in the Investor
+
+===== PAGE 3 =====
+
+Survival Ledger. To capture this critical scenario, the Qualifies-but-Dangerous Detector
+(QDD) was invented . This algorithm explicitly checks for the condition where
+DSCR_lender >= Threshold AND ISS < 50, triggering a high-severity warning .
+This is the ultimate guardrail against mechanically approved, economically doomed
+deals. The engine's logic is designed to ensure that a positive result from the Lender
+Ledger is never allowed to override a negative finding from the Investor Ledger.
+Following the dual-ledger analysis, the data proceeds through a series of diagnostic and
+optimization modules. The Scenario & Stress Engine runs the deal through a battery of
+tests, including the newly defined correlated stress scenarios that force the deal through
+historically-grounded macro archetypes like Recession, Stagflation, and Climate Shock,
+rather than independent variable shocks . This module also calculates the DSCR Fragility
+Score (DFS), which quantifies the minimum percentage shock required to any single
+variable to breach the DSCR threshold, identifying the exact point of failure . If a deal
+fails a stress test, the Breakpoint & Repair Engine is activated. This module uses
+advanced algorithms, including multi-variable constrained optimization, to calculate the
+precise dollar or percentage changes required to fix the failing metric, providing the user
+with a concrete deal repair map . Finally, the Risk Diagnosis Engine ranks all identified
+risks using the fragility scores, presenting a prioritized list of threats to the user. The
+entire process culminates in the Recommendation Engine, a decision tree that
+synthesizes all the preceding outputs—including the ACS, lender status, ISS, QDD flag,
+and DFS—to generate a final, gated verdict . Every execution is logged in the immutable
+Audit & Compliance Layer, creating a machine-readable record that includes all inputs,
+versions, and the exact logic gate that produced the final recommendation, ensuring full
+traceability and defensibility . The proposed architecture introduces three novel,
+deterministic algorithms specifically designed to remediate these gaps: the Multi-Year
+DSCR Trajectory, the Sequential Drawdown Array, and the IO Reset Cliff Model. These
+algorithms work in concert to replace the engine's static, single-period view with a
+dynamic, forward-looking simulation that captures the essential physics of real-world
+cash flow dynamics.
+The Multi-Year DSCR Trajectory algorithm fundamentally shifts the engine's perspective
+from a single snapshot to a dynamic projection over the planned hold period, typically 10
+years . Its purpose is to expose the long-term viability of a deal by modeling the evolution
+of key financial metrics year by year. The algorithm takes as input the base deal
+parameters and a set of assumed growth and inflation rates, then iteratively projects the
+Net Operating Income (NOI), Annual Debt Service (ADS), and DSCR for each year of the
+projection . A critical feature of this algorithm is its ability to handle debt service
+evolution correctly. For instance, it models the transition from an interest-only (IO)
+period to an amortizing one. If the deal has a 10-year IO period followed by a 30-year
+
+===== PAGE 4 =====
+
+amortization, the algorithm recalculates the new monthly payment based on the full loan
+balance amortized over the remaining 30 years, accurately capturing the payment shock
+at the reset point . It also incorporates component-specific expense inflation, recognizing
+that insurance and property taxes may inflate faster than maintenance costs . The output
+is a detailed time-series report showing the DSCR trajectory, highlighting critical
+inflection points such as IO resets, ARM adjustments, and periods of negative cash flow.
+This directly counters the "single-period snapshot" flaw by revealing a deal that might
+pass Year 1 but fail catastrophically in Year 7 due to a combination of tax escalations and
+debt service step-ups.
+While the Multi-Year Trajectory provides a high-level overview, it still relies on annual
+averages, which can mask the perils of path dependency. This is addressed by the
+Sequential Drawdown Array algorithm, a sub-routine designed to detect "sequence-of-
+returns ruin" . Real estate bankruptcy is rarely caused by an average deficit over a year; it
+is almost always triggered by a cluster of negative events occurring in close succession.
+This algorithm replaces the scalar Liquidity Survival Clock (LSC) with a discrete, month-
+by-month simulation of the investor's cash position . It starts with the initial liquid
+reserves and iteratively subtracts the Net Cash Flow (NCF) for each month of a 36-month
+period. During this simulation, it can inject specific shocks, such as a large Capital
+Expenditure (CapEx) event or a period of vacancy. If the running cash balance drops
+below zero at any point during the simulation, the algorithm flags a "liquidity failure" and
+records the specific month of failure . This provides a far more accurate and realistic
+assessment of survival risk than a simple ratio of total reserves to average monthly drain.
+For example, it can identify that a $15,000 HVAC replacement in Month 2 of a 3-month
+vacancy will deplete reserves and trigger a default in Month 4, a scenario completely
+invisible to the old engine.
+The third algorithm, the IO Reset Cliff Model, provides a focused, quantitative analysis
+of one of the most common yet misunderstood risks in DSCR lending . Many borrowers
+and even some lenders conflate the IO payment with the post-reset payment, failing to
+appreciate the magnitude of the shock. This algorithm isolates the problem and solves it
+directly. Given the loan amount, interest rate, total amortization term, and IO term, it
+first calculates the IO payment. Then, it calculates the new amortizing payment that
+would apply after the IO period ends, using the remaining balance and the shortened
+remaining term . The difference between these two payments is the "reset cliff." The
+algorithm quantifies this shock as a percentage increase and, crucially, calculates the
+DSCR at the reset point assuming a projected NOI . By comparing this post-reset DSCR to
+the lender's requirements, the engine can issue a highly specific warning, such as
+"SEVERE_PAYMENT_SHOCK" or "CRITICAL_RESET_FAILURE," depending on the
+severity . This moves beyond qualitative warnings to provide a hard, numerical
+
+===== PAGE 5 =====
+
+assessment of the risk posed by the end of the IO period, allowing investors and advisors
+to plan for the inevitable payment increase. Together, these three algorithms form a
+powerful defense against the most common forms of temporal and path-dependent
+failure, grounding the engine's analysis in the realities of a multi-year investment
+horizon.
+Addressing Structural Blind Spots with Novel
+Algorithms
+Beyond the granular algorithmic gaps, a deeper adversarial validation revealed seven
+critical structural blind spots inherent in deterministic models of complex systems. These
+are not just missing features but fundamental flaws in how the model maps onto financial
+reality. They include the refinance "LTV-Cap Rate Spiral," the "Matrix Cliff" where
+continuous optimization fails, the intra-year seasonality trough of Short-Term Rentals
+(STRs), and the failure to model correlated risks in stress testing . To address these, the
+architecture must be augmented with three new core sub-routines: the Matrix Grid
+Solver, the Trough & Spiral Evaluator, and the ECOA Lockout. These additions
+transform the engine from a calculator into an institutionally-defensible risk-management
+architecture by forcing it to confront the discontinuous, cyclical, and interconnected
+nature of finance.
+The first major blind spot is the Refinance "LTV-Cap Rate Spiral". The original
+Refinance Risk Meter (RRM) calculated a break-even rate assuming property value
+remains static, a violation of macroeconomic physics . When interest rates rise, cap rates
+tend to expand, depressing appraised values and causing the Loan-to-Value (LTV) ratio to
+spike. A borrower might survive the rate shock (DSCR > 1.0), but a rising LTV could
+trigger a refinance denial . The patch is the Cap-Rate Linked Refi Solver, a new
+algorithm that links rate shocks to valuation shocks using an elasticity multiplier (βCR) .
+The algorithm's logic is as follows: Value_at_Refi = NOI_projected /
+(Cap_Rate_current + (Δ_Rate × Cap_Rate_Beta)). Using this depressed
+value, it then recalculates the exit LTV. The engine now checks both the break-even rate
+and the break-even LTV simultaneously, providing a far more realistic assessment of exit
+feasibility and flagging potential "REFI_LTV_SPIRAL_FAILURE" scenarios .
+The second blind spot is Step-Function Optimization Failure, commonly known as the
+"Matrix Cliff" . Traditional optimization solvers, based on calculus, assume smooth,
+continuous functions. However, lender matrices are discrete step functions; crossing a
+
+===== PAGE 6 =====
+
+boundary like 75% LTV can unlock significantly better pricing or different DSCR
+requirements . A gradient-based solver would miss this because it looks for linear
+relationships and would never evaluate the specific nodes of the matrix. The remedy is
+the Discrete State-Space Grid Search (also called the Matrix Grid Solver) . This
+algorithm abandons continuous mathematics and instead evaluates the deal across every
+exact node of the uploaded lender matrix (defined by FICO, LTV, DSCR tiers) 59. It
+systematically calculates the cost in cash required to cross each "cliff" to the next, more
+favorable tier and computes the return on that investment in terms of lower payments or
+higher qualification. The output is a ranked list of optimal "matrix cliffs" to pursue, such
+as "Bring down the purchase price by exactly 10,000tocrossthe75250/month and passing
+the DSCR check" . This transforms the Breakpoint Solver from a theoretical tool into a
+practical negotiation guide.
+Third, the engine must account for Correlation Blindness in Stress Testing. The
+previous method of applying isolated shocks (e.g., rent drops 5%, taxes go up 5%)
+ignores real-world correlations where risks move together . A hurricane causes insurance
+spikes, vacancy, and value declines simultaneously. The patch is the implementation of
+Deterministic Macro Archetypes . Instead of random Monte Carlo simulations, which
+introduce "black-box risk," the engine forces the deal through a set of predefined,
+historically-grounded stress vectors. These archetypes include:
+• Archetype A (Stagflation): Simultaneous OpEx increase (+10%), Rates increase
+(+200 bps), and Rent flat.
+• Archetype B (Recession): Simultaneous Rent decline (-15%), Vacancy increase
+(+10%), and Rates decrease (-100 bps).
+• Archetype C (Climate/Regional): A correlated shock to Insurance (+50%), Taxes
+(+20%), and Property Value (-10%) .
+This deterministic approach to correlated stress provides a much more realistic and
+defensible assessment of a deal's resilience than independent shocks.
+Fourth, the engine must handle Intra-Year Seasonality Troughs, a critical failure mode
+for STRs. An STR can have a stellar annualized DSCR while starving for cash in the
+winter months . The patch is the Maximum Cumulative Intra-Year Deficit detector.
+This algorithm analyzes the 12-month cash flow array generated by the Multi-Year
+Trajectory. It tracks the running cumulative deficit, resetting it to zero whenever positive
+cash flow wipes out the trough . The deepest recorded deficit is the "Maximum
+Cumulative Intra-Year Deficit." The engine compares this deficit to the available liquid
+reserves. If the deficit exceeds the reserves, the deal fails the survival analysis, regardless
+of the annual DSCR, preventing a classic STR "strangler" scenario .
+
+===== PAGE 7 =====
+
+Finally, the architecture must incorporate Fair Lending Proxy Discrimination
+Safeguards. The engine must not inadvertently engage in redlining by using proxy-
+sensitive geospatial clustering for expense or vacancy defaults without tying them to
+verifiable federal data sources . The patch is the ECOA Lockout, a hardcoded validation
+script embedded in the data intake layer . This script explicitly forbids the application of
+ZIP-code level risk adjustments for core assumptions unless they are linked to a federal
+agency dataset, such as MSA-level Census data. This architectural constraint ensures the
+engine's governance aligns with modern CFPB model-risk compliance standards and
+blocks the creation of biased, "conservative" assumptions tied to geography 89120.
+Advanced Diagnostics, Optimization, and Explainability
+To fulfill its mandate as an advisor-grade system, the AEGIS engine must provide more
+than just a pass/fail verdict; it must offer deep diagnostics, practical optimization tools,
+and transparent explanations. The proposed architecture achieves this through a suite of
+advanced, deterministic algorithms designed to fill the gaps in single-variable diagnosis,
+lack of counterfactuals, and poor data triangulation. These include the Multi-Variable
+Constrained Optimization solver, the Counterfactual Generation algorithm, the STR-
+Specific NOI calculator, and the Triangulated Market Rent validator. Each of these
+components is engineered to provide a higher level of intelligence, enabling the engine to
+not only identify problems but also prescribe sophisticated solutions and ground its
+analysis in empirically verifiable data.
+The most significant leap in diagnostic capability comes from replacing single-variable
+breakpoint solvers with a Multi-Variable Constrained Optimization framework . In the
+real world, fixing a deal involves adjusting multiple parameters simultaneously:
+negotiating a lower price, securing a better loan, and verifying higher rent. The old
+engine's approach of changing one variable at a time is a gross oversimplification. The
+new algorithm models this complexity by framing deal repair as an optimization problem.
+Its objective is to find the optimal combination of changes to price, loan amount, rent,
+and rate that achieves the target DSCR with the minimum total adjustment cost . The
+objective function is defined as the sum of weighted absolute changes (e.g., 0.5 <em>
+|ΔPrice|/Price + 1.0 </em> |ΔLoan|/Loan + 2.0 * |ΔRent|/Rent). The
+constraints reflect real-world limitations: the DSCR must meet the target, the LTV must
+not exceed the lender matrix maximum, and the proposed rent cannot exceed verified
+market comparables . Using a solver like SLSQP, the engine finds the bundle of changes
+
+===== PAGE 8 =====
+
+that minimizes the difficulty-weighted sum, providing the user with a practical and
+efficient path to a successful transaction .
+Building on this, the Counterfactual Generation algorithm addresses the critical need
+for explainability. When the engine delivers a negative verdict like "Qualifies but
+Dangerous," it must answer the user's implicit question: "What would I need to change to
+get a 'Strong Deal'?" . The counterfactual algorithm provides this by searching for the
+smallest possible change to any single input that would flip the final recommendation to
+a target state. It works by performing a binary search on each input variable (rent, price,
+etc.) to find the minimum delta required to cross the decision threshold . For example, it
+might determine that increasing the rent by just $150 per month would push the DSCR
+from 1.18x to 1.22x, changing the final recommendation. The output is a ranked list of
+counterfactual scenarios, ordered by their estimated difficulty, turning the engine from a
+passive judge into an active diagnostic partner .
+Data integrity is further strengthened by the Triangulated Market Rent Validator. User-
+provided rent is consistently cited as the largest vector for error and manipulation in
+DSCR analysis . The engine now implements a multi-source validation protocol. When a
+user enters a proposed rent, the algorithm queries multiple independent data sources in a
+hierarchy of confidence: signed leases with bank deposits (confidence 1.00), appraisal
+Form 1007 data (confidence 0.85), Multiple Listing Service (MLS) rent comps (0.70),
+and Automated Valuation Model (AVM) rent estimates (0.60) . It calculates a confidence-
+weighted average of these sources to produce a triangulated market rent estimate. It then
+calculates the coefficient of variation (CV) among the sources to assess market consensus.
+If the CV is high, it signals disagreement and a "HIGH_VARIANCE" flag. It also measures
+the deviation of the user's proposed rent from the triangulated estimate . If the deviation
+is too large (e.g., >10%), it returns a "UNREASONABLE" flag, and the overall Assumption
+Confidence Score is lowered, potentially halting the qualification process until the
+discrepancy is resolved .
+Finally, the engine is equipped with specialized logic for complex asset classes. The STR-
+Specific NOI Calculator modifies the core NOI calculation for Short-Term Rentals to
+reflect their unique characteristics . Unlike stable long-term leases, STR income is
+seasonal and subject to higher operating expense ratios (e.g., cleaning, supplies,
+management) . The algorithm takes a 12-month revenue forecast and applies a lender-
+specific haircut (e.g., 20% for some DSCR programs) to the annual revenue before
+calculating NOI . More importantly, it feeds this monthly revenue stream into the
+Maximum Cumulative Intra-Year Deficit detector to check for seasonal troughs, ensuring
+the investor has enough reserves to cover the lean winter months, a critical failure mode
+missed by annualized DSCR alone . This collection of advanced algorithms provides the
+
+===== PAGE 9 =====
+
+depth, precision, and transparency required for an advisor-grade system, moving
+decisively away from simplistic, point-in-time calculations.
+Implementation Roadmap and Validation Framework
+The transformation of the AEGIS DSCR engine from a conceptual blueprint to a
+production-grade system requires a disciplined, phased implementation and a rigorous,
+ongoing validation framework. The recommended approach is a five-phase MVP
+sequencing that prioritizes the most critical, high-risk fixes first, ensuring the system is
+safe and reliable before expanding its feature set . Completing this phase is a prerequisite
+for any production deployment involving actual credit decisions.
+Phase 2: Data Integration & Latency Reduction (Weeks 5-12). With the core
+mathematical and compliance issues addressed, this phase tackles the root cause of many
+analytical errors: stale or incorrect data. The focus is on integrating live external data
+feeds. Key deliverables include the Multi-Source Rent Triangulation API, a Rate Sheet
+Versioning Manager that flags outdated rates as STALE, and integrations with live
+parcel/assessor APIs for tax data and insurance marketplace APIs for quotes .
+Phase 3: Advanced Mechanics & Optimization (Weeks 13-20). This phase adds the
+highest-value advisor features. It involves implementing the Discrete State-Space Grid
+Search to solve for "Matrix Cliffs," the Cap-Rate Linked Refi Solver to model the "LTV-Cap
+Rate Spiral," and the Deterministic Macro Archetypes for correlated stress testing . This
+phase elevates the engine from a risk detector to a strategic planning tool.
+Phase 4: Calibration & Self-Monitoring (Weeks 21-28). This phase makes the engine
+self-aware and adaptive. It involves building the backtest framework to validate the
+model against historical deal outcomes, the statistical drift detection module to monitor
+for performance decay, and the empirical calibration engine to tune the Assumption
+Confidence Weights based on actual performance data . This allows the system to learn
+from its own predictions and adapt to changing market conditions.
+Phase 5: Coverage Expansion & Full Compliance (Weeks 29-40). The final phase
+broadens the engine's scope and strengthens its regulatory posture. It includes adding
+specialized logic for STRs and multifamily 5+ unit properties, implementing the Fair
+Lending Monitoring infrastructure, and mapping all outputs to state-specific compliance
+variations .
+
+===== PAGE 10 =====
+
+Parallel to this implementation is the Validation Framework. Every new formula and
+algorithm undergoes a strict validation process. Unit tests are written for every function,
+using 10,000 randomized synthetic deals to ensure correctness and handle edge cases
+gracefully . The engine is subjected to adversarial red-teaming, where it is actively
+attacked with poisoned data, extreme shocks, and attempts to bypass rules to verify that
+the gates and defensive layers hold . Once deployed, the backtest framework
+continuously compares predictions to actual outcomes to measure accuracy . Statistical
+drift metrics like the Population Stability Index (PSI) are monitored to detect when the
+model's assumptions become outdated, triggering alerts for recalibration . This
+combination of a phased rollout and a multi-layered validation framework ensures that
+the final AEGIS DSCR engine is not just a theoretical construct but a rigorously tested,
+production-ready, and continuously validated institutional-grade risk management
+architecture.
+Reference
+1. [PDF] Data needs and Statistics compilation for macro-prudential analysis https://
+www.bis.org/ifc/publ/ifcb46.pdf
+2. [PDF] Q4 2023 MSI Group Pillar 3 Disclosure - Morgan Stanley https://
+www.morganstanley.com/content/dam/msdotcom/en/about-us-ir/
+pillar3/2023_Pillar_3_Disclosures_Morgan_Stanley_International_Limited.pdf
+3. Commercial Real Estate Valuation Using CoStar - ResearchGate https://
+www.researchgate.net/publication/
+385873175_Commercial_Real_Estate_Valuation_Using_CoStar
+4. CLO Model Critique: Flawed Correlation Assumptions Exposed https://
+www.linkedin.com/posts/rod-dubitsky-0aa94118_clos-leveragedloans-privateequity-
+activity-7432546926736179201-iQ0Z
+5. [PDF] Frequently asked questions on climate-related financial risks https://
+www.bis.org/bcbs/publ/d543.pdf
+6. 407 International Inc.'s Senior Secured Notes Rated 'A' - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3541285
+7. “Stress Testing” Banks on Commercial Real Estate | Request PDF https://
+www.researchgate.net/publication/
+376637267_Stress_Testing_Banks_on_Commercial_Real_Estate
+
+===== PAGE 11 =====
+
+8. Reverse stress testing: Scenario design for macroprudential stress ... https://
+onlinelibrary.wiley.com/doi/full/10.1111/mafi.12373
+9. “Stress Testing” Banks on Commercial Real Estate - IDEAS/RePEc https://
+ideas.repec.org/a/fip/fedles/97471.html
+10. [PDF] Macroprudential Stress-Test Models - IMF eLibrary https://
+www.elibrary.imf.org/downloadpdf/view/journals/001/2023/173/article-A001-
+en.pdf
+11. DSCR Loan Rate Declines: Opportunity for Brokers or ... - MonitorDaily https://
+www.monitordaily.com/originator/dscr-loan-rate-declines-opportunity-for-brokers-or-
+sign-of-market-weakness/
+12. Debt-Service Coverage Ratio (DSCR): How to Use and Calculate It https://
+www.investopedia.com/terms/d/dscr.asp
+13. Debt Service Coverage Ratio Calculator (DSCR) https://www.omnicalculator.com/
+finance/dscr
+14. CRE Debt Maturities Decline, Credit Conditions Improve - LinkedIn https://
+www.linkedin.com/posts/xander-snyder-econ_cre-commercialrealestate-maturitywall-
+activity-7454619589939769344-B_Fl
+15. [PDF] Guidance to banks on non-performing loans https://
+www.bankingsupervision.europa.eu/ecb/pub/pdf/guidance_on_npl.en.pdf
+16. securities and exchange commission - SEC.gov https://www.sec.gov/Archives/edgar/
+data/1647639/000164763921000004/upstrtholdingsinc202010-k.htm
+17. [PDF] A tale of two decades: the ECB's monetary policy at 20 https://
+www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp2346~dd78042370.en.pdf
+18. Forecast-driven blockchain framework for multi-node solar ... https://
+www.tandfonline.com/doi/full/10.1080/14786451.2025.2585575
+19. Robby Tandjung, MAI, CRE, FRICS' Post - LinkedIn https://www.linkedin.com/posts/
+robby-tandjung-mai-cre-frics-6600206_last-week-phil-tily-and-i-had-the-pleasure-
+activity-7328508024845717505-WlcD
+20. words-333333 - cs.Princeton https://www.cs.princeton.edu/courses/archive/
+spring18/cos226/assignments/autocomplete/testing/words-333333.txt
+21. (PDF) Quantitative Risk Management - Academia.edu https://www.academia.edu/
+30221210/Quantitative_Risk_Management
+22. Portfolio Risk Management: Strategies for Stability - SEC.gov https://www.sec.gov/
+Archives/edgar/data/1991519/000109690624000170/rvh_ex13.htm
+23. Mistakes in Reading Credit Fund Loan Tapes Cost Me
+30K - LinkedIn <a href="https://www.linkedin.com/posts/pascalwagner_a-credit-funds-loan-tape-is-a-snapshot-in-activity-7465407828778782721-9wH4" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/posts/pascalwagner_a-credit-funds-loan-tape-is-a-snapshot-in-activity-7465407828778782721-9wH4</span></a></li><li id="ref-24">[PDF] Basel III: Finalising post-crisis reforms <a href="https://www.bis.org/bcbs/publ/d424.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.bis.org/bcbs/publ/d424.pdf</span></a></li><li id="ref-25">Presale: Wells Fargo Commercial Mortgage Trust 2026-C66 <a href="https://www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3534841" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3534841</span></a></li><li id="ref-26">DSCR Loans Show Higher Default Rates Amid Thin Margins <a href="https://www.linkedin.com/posts/jackbevier_dscr-nonqm-rentalhousing-activity-7435393447743856640-LLLh" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/posts/jackbevier_dscr-nonqm-rentalhousing-activity-7435393447743856640-LLLh</span></a></li><li id="ref-27">annual report - SEC.gov <a href="https://www.sec.gov/Archives/edgar/data/1597634/000139834424022919/fp0090510-1_ncsr.htm" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.sec.gov/Archives/edgar/data/1597634/000139834424022919/fp0090510-1_ncsr.htm</span></a></li><li id="ref-28">US real estate outlook – Edition June 2026 - UBS <a href="https://www.ubs.com/li/en/assetmanagement/insights/asset-class-perspectives/real-estate/the-red-thread-alternatives/may-edition-2026/articles/us-real-estate-outlook.html" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.ubs.com/li/en/assetmanagement/insights/asset-class-perspectives/real-estate/the-red-thread-alternatives/may-edition-2026/articles/us-real-estate-outlook.html</span></a></li><li id="ref-29">[PDF] FORM 10-K ASSOCIATED BANC-CORP - SEC.gov <a href="https://www.sec.gov/Archives/edgar/data/7789/000000778925000029/asb12312024form_compressed.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.sec.gov/Archives/edgar/data/7789/000000778925000029/asb12312024form_compressed.pdf</span></a></li><li id="ref-30">Decision-Dependent Risk Minimization in Geometrically Decaying ... <a href="https://ojs.aaai.org/index.php/AAAI/article/view/20780" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://ojs.aaai.org/index.php/AAAI/article/view/20780</span></a></li><li id="ref-31">Development and validation of QRISK3 risk prediction algorithms to ... <a href="https://pubmed.ncbi.nlm.nih.gov/28536104/" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://pubmed.ncbi.nlm.nih.gov/28536104/</span></a></li><li id="ref-32">[PDF] arXiv:2201.11962v1 [q-fin.TR] 28 Jan 2022 <a href="https://business.columbia.edu/sites/default/files-efs/citation_file_upload/exec-cvar-2022.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://business.columbia.edu/sites/default/files-efs/citation_file_upload/exec-cvar-2022.pdf</span></a></li><li id="ref-33">[2503.06913] Data-Driven Sequential Sampling for Tail Risk Mitigation <a href="https://arxiv.org/abs/2503.06913" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://arxiv.org/abs/2503.06913</span></a></li><li id="ref-34">(PDF) A value-at-risk approach to commercial real estate portfolio ... <a href="https://www.researchgate.net/publication/298822923_A_value-at-risk_approach_to_commercial_real_estate_portfolio_stress_testing_at_US_community_banks" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.researchgate.net/publication/298822923_A_value-at-risk_approach_to_commercial_real_estate_portfolio_stress_testing_at_US_community_banks</span></a></li><li id="ref-35">Financial markets' deterministic aspects modeled by a low ... - PMC <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8807815/" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://pmc.ncbi.nlm.nih.gov/articles/PMC8807815/</span></a></li><li id="ref-36">Banking Awareness and Key Institutions | PDF - Scribd <a href="https://www.scribd.com/document/806441295/Banking-Awareness-banking-Awareness-Topics-1" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.scribd.com/document/806441295/Banking-Awareness-banking-Awareness-Topics-1</span></a></li><li id="ref-37">[PDF] CFPB-Supervisory-Highlights-Advanced-Technologies-Special ... <a href="https://business.cch.com/BFLD/CFPB-Supervisory-Highlights-Advanced-Technologies-Special-Edition-Issue-38-Winter-2025-01172025.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://business.cch.com/BFLD/CFPB-Supervisory-Highlights-Advanced-Technologies-Special-Edition-Issue-38-Winter-2025-01172025.pdf</span></a></li><li id="ref-38">Form S-1 - SEC.gov <a href="https://www.sec.gov/Archives/edgar/data/2064124/000162828025041443/figuretechnologysolutionsi.htm" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.sec.gov/Archives/edgar/data/2064124/000162828025041443/figuretechnologysolutionsi.htm</span></a></li><li id="ref-39">Presale: Santander Mortgage Asset Receivable Trust 2026-NQM4 <a href="https://www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3562650" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3562650</span></a></li><li id="ref-40">Investment risk for long-term investors: risk measurement approaches <a href="https://www.researchgate.net/publication/333752498_Investment_risk_for_long-term_investors_risk_measurement_approaches_Considerations_for_pension_funds_and_insurers" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.researchgate.net/publication/333752498_Investment_risk_for_long-term_investors_risk_measurement_approaches_Considerations_for_pension_funds_and_insurers</span></a></li><li id="ref-41">[PDF] Commercial bank failures during the Great Recession: the real ... <a href="https://www.ecb.europa.eu/pub/pdf/scpwps/ecbwp1779.en.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.ecb.europa.eu/pub/pdf/scpwps/ecbwp1779.en.pdf</span></a></li><li id="ref-42">[PDF] Emerging trends in real estate 2025 - PwC <a href="https://www.pwc.com/gx/en/investment-management-real-estate/assets/emerging-trends-report-2025.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.pwc.com/gx/en/investment-management-real-estate/assets/emerging-trends-report-2025.pdf</span></a></li><li id="ref-43">Modeling Maximum drawdown Records with Piecewise Determinist <a href="https://ideas.repec.org/p/arx/papers/2503.23221.html" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://ideas.repec.org/p/arx/papers/2503.23221.html</span></a></li><li id="ref-44">Modeling Maximum drawdown Records with Piecewise ... - arXiv <a href="https://arxiv.org/abs/2503.23221" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://arxiv.org/abs/2503.23221</span></a></li><li id="ref-45">Research and Publications - 复旦大学国际金融学院(FISF) <a href="https://fisf.fudan.edu.cn/en_lists-research_publication.html" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://fisf.fudan.edu.cn/en_lists-research_publication.html</span></a></li><li id="ref-46">[PDF] Life Underwriting Risk Comparative Study - eiopa <a href="https://www.eiopa.europa.eu/document/download/dc0b515f-4ea6-4331-a1f9-c9a50181f5e3_en?filename=EIOPA%20-%20LURCS%20-%20Quantitative%20Data%20Request%20Technical%20Specifications.pdf&prefLang=lv" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.eiopa.europa.eu/document/download/dc0b515f-4ea6-4331-a1f9-c9a50181f5e3_en?filename=EIOPA%20-%20LURCS%20-%20Quantitative%20Data%20Request%20Technical%20Specifications.pdf&prefLang=lv</span></a></li><li id="ref-47">Oyu Tolgoi 2020 Technical Report Ni43-101 Finalv2 Unsecured <a href="https://www.scribd.com/document/510825331/Oyu-Tolgoi-2020-Technical-Report-Ni43-101-Finalv2-Unsecured" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.scribd.com/document/510825331/Oyu-Tolgoi-2020-Technical-Report-Ni43-101-Finalv2-Unsecured</span></a></li><li id="ref-48">California Mortgage TRID Changed Circumstance Procedures <a href="https://www.linkedin.com/posts/delphi-compliance_trid-mortgagecompliance-californiamortgage-activity-7455590822466453505-s3Ki" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/posts/delphi-compliance_trid-mortgagecompliance-californiamortgage-activity-7455590822466453505-s3Ki</span></a></li><li id="ref-49">Word Naive Ba Yes Command Ranker | PDF - Scribd <a href="https://www.scribd.com/document/714802747/Word-Naive-Ba-Yes-Command-Ranker" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.scribd.com/document/714802747/Word-Naive-Ba-Yes-Command-Ranker</span></a></li><li id="ref-50">[PDF] Reverse Stress Testing for Multivariate Scenarios - arXiv <a href="https://arxiv.org/pdf/2606.09274" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://arxiv.org/pdf/2606.09274</span></a></li><li id="ref-51">[PDF] Quantitative Reverse Stress Testing, Bottom Up - HAL <a href="https://hal.science/hal-03910136/document" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://hal.science/hal-03910136/document</span></a></li><li id="ref-52">Reverse stress tests with bottom-up approaches - Semantic Scholar <a href="https://www.semanticscholar.org/paper/Reverse-stress-tests-with-bottom-up-approaches-Grundke/db6088430996c2084498669ec5dc475a6ea07d49" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.semanticscholar.org/paper/Reverse-stress-tests-with-bottom-up-approaches-Grundke/db6088430996c2084498669ec5dc475a6ea07d49</span></a></li><li id="ref-53">AEGIS: A Backup Reflex for Physical AI Calling a Stronger Policy ... <a href="https://arxiv.org/html/2606.06660v1" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://arxiv.org/html/2606.06660v1</span></a></li><li id="ref-54">Aegis: Automated Error Generation and Attribution for Multi-Agent... <a href="https://openreview.net/forum?id=zqcYoxXiN3" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://openreview.net/forum?id=zqcYoxXiN3</span></a></li><li id="ref-55">(PDF) AEGIS: Anchor-Enforced Gradient Isolation for Knowledge ... <a href="https://www.researchgate.net/publication/403976732_AEGIS_Anchor-Enforced_Gradient_Isolation_for_Knowledge-Preserving_Vision-Language-Action_Fine-Tuning" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.researchgate.net/publication/403976732_AEGIS_Anchor-Enforced_Gradient_Isolation_for_Knowledge-Preserving_Vision-Language-Action_Fine-Tuning</span></a></li><li id="ref-56">CoreSight Program Flow Trace Architecture Specification <a href="https://developer.arm.com/documentation/ihi0035/b/" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://developer.arm.com/documentation/ihi0035/b/</span></a></li><li id="ref-57">Cryptographic Runtime Governance for Autonomous AI Systems <a href="https://arxiv.org/html/2603.16938v1" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://arxiv.org/html/2603.16938v1</span></a></li><li id="ref-58">[PDF] System Requirements, User stories, Architecture and MicroServices <a href="https://ec.europa.eu/research/participants/documents/downloadPublic?documentIds=080166e5b36cb48c&appId=PPGMS" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://ec.europa.eu/research/participants/documents/downloadPublic?documentIds=080166e5b36cb48c&appId=PPGMS</span></a></li><li id="ref-59">Finding Optimal Model Parameters by Discrete Grid Search <a href="https://www.researchgate.net/publication/225515200_Finding_Optimal_Model_Parameters_by_Discrete_Grid_Search" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.researchgate.net/publication/225515200_Finding_Optimal_Model_Parameters_by_Discrete_Grid_Search</span></a></li><li id="ref-60">How Bayesian Optimization outperforms Grid and Random Search <a href="https://www.linkedin.com/posts/avi-chawla_4-7xfasterhyperparametersearchformodel-activity-7384178373998206976-wXCX" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/posts/avi-chawla_4-7xfasterhyperparametersearchformodel-activity-7384178373998206976-wXCX</span></a></li><li id="ref-61">What is difference between Gradient Descent and Grid Search in ... <a href="https://stackoverflow.com/questions/54619814/what-is-difference-between-gradient-descent-and-grid-search-in-machine-learning" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://stackoverflow.com/questions/54619814/what-is-difference-between-gradient-descent-and-grid-search-in-machine-learning</span></a></li><li id="ref-62">[PDF] enhancing machine learning model performance - arXiv <a href="https://arxiv.org/pdf/2302.11406" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://arxiv.org/pdf/2302.11406</span></a></li><li id="ref-63">CRE Underwriting Simplified: A Step-by-Step Guide - LinkedIn <a href="https://www.linkedin.com/posts/brijdhingra_commercialrealestate-cre-underwriting-activity-7371497673734103042-Fb6N" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/posts/brijdhingra_commercialrealestate-cre-underwriting-activity-7371497673734103042-Fb6N</span></a></li><li id="ref-64">CRE30 - IRB approach: overview and asset class definitions <a href="https://www.bis.org/basel_framework/chapter/CRE/30.htm?tldate=20260918&inforce=20220101&published=20191215" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.bis.org/basel_framework/chapter/CRE/30.htm?tldate=20260918&inforce=20220101&published=20191215</span></a></li><li id="ref-65">The financial health of a company and the risk of its default: Back to ... <a href="https://www.sciencedirect.com/science/article/pii/S1057521924003818" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.sciencedirect.com/science/article/pii/S1057521924003818</span></a></li><li id="ref-66">[PDF] The Subprime Mortgage Crisis: Underwriting Standards, Loan ... <a href="https://www.columbia.edu/~lhw2110/Subprime_survey_Samson.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.columbia.edu/~lhw2110/Subprime_survey_Samson.pdf</span></a></li><li id="ref-67">Sequential Detection with Mutual Information Stopping Cost - arXiv <a href="https://arxiv.org/abs/1110.4355" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://arxiv.org/abs/1110.4355</span></a></li><li id="ref-68">[PDF] Robust Deterministic Abstractions for Supervising Discrete ... - HAL <a href="https://hal.science/hal-04739554/document" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://hal.science/hal-04739554/document</span></a></li><li id="ref-69">[PDF] Real estate indicators and financial stability - BIS Papers No 21 <a href="https://www.bis.org/publ/bppdf/bispap21.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.bis.org/publ/bppdf/bispap21.pdf</span></a></li><li id="ref-70">[PDF] OCC Releases Dodd-Frank Act Stress Test Scenarios for 2023 <a href="https://business.cch.com/BFLD/OCC-NR-2023-14-02092023.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://business.cch.com/BFLD/OCC-NR-2023-14-02092023.pdf</span></a></li><li id="ref-71">Gartner Search Results Page <a href="https://www.gartner.com/mysearch/research?ft=authorId:b9c801bc79a3&ref=authBioPage" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.gartner.com/mysearch/research?ft=authorId:b9c801bc79a3&ref=authBioPage</span></a></li><li id="ref-72">Fannie Mae vs. Freddie Mac: Know Your Options, Make Confident ... <a href="https://blog.enactmi.com/post/fannie-mae-vs-freddie-mac-know-your-options-make-confident-decisions" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://blog.enactmi.com/post/fannie-mae-vs-freddie-mac-know-your-options-make-confident-decisions</span></a></li><li id="ref-73">Computational Science and Computational Intelligence <a href="https://link.springer.com/content/pdf/10.1007/978-3-031-94962-3.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://link.springer.com/content/pdf/10.1007/978-3-031-94962-3.pdf</span></a></li><li id="ref-74">[PDF] BALKANTRIB'14 PROCEEDINGS - ResearchGate <a href="https://www.researchgate.net/profile/Razvan_George_Ripeanu/publication/273127503_The_Corrosivity_of_Some_Lubricating_Solutions_Based_on_Organic_Polymers/links/54f837e60cf28d6deca097c0/The-Corrosivity-of-Some-Lubricating-Solutions-Based-on-Organic-Polymers.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.researchgate.net/profile/Razvan_George_Ripeanu/publication/273127503_The_Corrosivity_of_Some_Lubricating_Solutions_Based_on_Organic_Polymers/links/54f837e60cf28d6deca097c0/The-Corrosivity-of-Some-Lubricating-Solutions-Based-on-Organic-Polymers.pdf</span></a></li><li id="ref-75">Navigating the regulatory challenges of BCBS 239 | McKinsey <a href="https://www.mckinsey.com/capabilities/risk-and-resilience/our-insights/bcbs-239-2-0-resurgence-strengthening-risk-management-and-decision-making" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.mckinsey.com/capabilities/risk-and-resilience/our-insights/bcbs-239-2-0-resurgence-strengthening-risk-management-and-decision-making</span></a></li><li id="ref-76">[PDF] Principles for effective risk data aggregation and risk reporting <a href="https://www.bis.org/publ/bcbs239.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.bis.org/publ/bcbs239.pdf</span></a></li><li id="ref-77">Fed Issues Revised Model Risk Guidance SR26-2 for Banks Over ... <a href="https://www.linkedin.com/posts/adityabarne_sr-letter-26-2-activity-7451537451325550592-ePRZ" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.linkedin.com/posts/adityabarne_sr-letter-26-2-activity-7451537451325550592-ePRZ</span></a></li><li id="ref-78">[PDF] Macro Trends - Deutsche Bank Research Institute <a href="https://www.dbresearch.com/PROD/IE-PROD/PROD0000000000535968.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.dbresearch.com/PROD/IE-PROD/PROD0000000000535968.pdf</span></a></li><li id="ref-79">[PDF] IMI Working Paper <a href="http://www.imi.ruc.edu.cn/docs/2025-11/1267d7cf692f4207ad53e06ddffe99f0.pdf" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">http://www.imi.ruc.edu.cn/docs/2025-11/1267d7cf692f4207ad53e06ddffe99f0.pdf</span></a></li><li id="ref-80">Stochastic Optimization System for Bank Reverse Stress Testing <a href="https://www.mdpi.com/1911-8074/13/8/174" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.mdpi.com/1911-8074/13/8/174</span></a></li><li id="ref-81">(PDF) Reverse Stress Testing Geopolitical Risk in Corporate Credit ... <a href="https://www.researchgate.net/publication/399559241_Reverse_Stress_Testing_Geopolitical_Risk_in_Corporate_Credit_Portfolios_A_Formal_and_Operational_Framework" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.researchgate.net/publication/399559241_Reverse_Stress_Testing_Geopolitical_Risk_in_Corporate_Credit_Portfolios_A_Formal_and_Operational_Framework</span></a></li><li id="ref-82">Reverse Stress Testing: A critical assessment tool for risk managers ... <a href="https://www.spglobal.com/market-intelligence/en/news-insights/research/reverse-stress-testing-assessment-tool-risk-managers-regulators" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.spglobal.com/market-intelligence/en/news-insights/research/reverse-stress-testing-assessment-tool-risk-managers-regulators</span></a></li><li id="ref-83">KBRA Releases Research – CRE CLO Loan Default and Loss Study <a href="https://www.businesswire.com/news/home/20260604499058/en/KBRA-Releases-Research-CRE-CLO-Loan-Default-and-Loss-Study-Rising-Defaults-and-Modifications-Amid-Limited-Losses" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.businesswire.com/news/home/20260604499058/en/KBRA-Releases-Research-CRE-CLO-Loan-Default-and-Loss-Study-Rising-Defaults-and-Modifications-Amid-Limited-Losses</span></a></li><li id="ref-84">CRE Maturity Wall Peaks in 2027 with
+
+===== PAGE 12 =====
+
+625B Due - LinkedIn https://www.linkedin.com/posts/capitalize-io_look-at-just-how-
+front-loaded-the-cre-maturity-activity-7450603938556313600-P7GH
+24. Shedding Light on U.S. Office CRE Risks - TD Economics https://economics.td.com/
+us-office-cre-risks
+25. [PDF] Commercial real estate loan performance at failed US banks https://
+www.bis.org/publ/bppdf/bispap64d.pdf
+26. figr-20251231 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2064124/000206412426000009/figr-20251231.htm
+27. (PDF) Banking Operations and Corporate Finance - ResearchGate https://
+www.researchgate.net/publication/
+401546099_Banking_Operations_and_Corporate_Finance
+28. [PDF] CFPB Consumer Laws and Regulations ECOA http://business.cch.com/BANKD/
+201510_cfpb_ecoa-narrative-and-procedures.pdf
+29. [PDF] Safeguarding food security in volatile global markets https://www.fao.org/3/
+i2107e/i2107e.pdf
+30. Appl. Sci., Volume 16, Issue 12 (June-2 2026) – 473 articles - MDPI https://
+www.mdpi.com/2076-3417/16/12
+31. [PDF] TA Realty Core Property Fund - CRE Analyst https://www.creanalyst.com/
+hubfs/Blog%20Contents/TA%20Realty%20Core%20Property%20Fund.pdf
+32. [PDF] OCC and FDIC Guidance.pdf - Jones Day https://www.jonesday.com/-/media/
+files/publications/2013/12/occ-and-fdic-guidance-on-supervisory-concerns-and/files/
+occ-and-fdic-guidancepdf/fileattachment/occ-and-fdic-guidance.pdf?
+rev=b95a0ec1d9994b42a4a7a6c1f5d99643&sc_lang=en
+33. FDIC Issues 2026 Consumer Compliance Supervisory Highlights https://
+finsights.cooley.com/fdic-issues-2026-consumer-compliance-supervisory-highlights/
+34. ccf holdings llc - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1766682/000104746919002630/a2238521zs-1.htm
+35. [PDF] Stacking orders and capital buffers - European Banking Authority https://
+www.eba.europa.eu/sites/default/files/2024-07/3f548b65-873a-4f0d-
+ab5a-094cd18dee33/
+Report%20on%20stacking%20orders%20and%20capital%20buffers.pdf
+36. [PDF] Intent-Preserving Policy Completion from Financial KOL Discourse https://
+arxiv.org/pdf/2604.14333
+37. [PDF] Capital and Risk Management Report Second Quarter 2025 | Nordea https://
+www.nordea.com/en/doc/nordea-kredit-capital-and-risk-management-report-
+q2-2025.pdf
+
+===== PAGE 13 =====
+
+38. Fed, OCC, FDIC Update Model Risk Management Guidance - LinkedIn https://
+www.linkedin.com/posts/kareemsaleh_news-the-fed-occ-and-fdic-just-dropped-
+activity-7451061915209949184-uXwf
+39. (DOC) Chapter7 Cholesky (LU) Decomposition - Academia.edu https://
+www.academia.edu/30023079/Chapter7_Cholesky_LU_Decomposition
+40. A Cholesky-based estimation for large-dimensional covariance ... https://
+pubmed.ncbi.nlm.nih.gov/35706916/
+41. Laminarity and Market Stress: Testing an RQA-Based Diagnostic ... https://
+www.mdpi.com/1911-8074/19/6/430
+42. Portfolio Choice with Competing Precautionary and Accumulation ... https://
+arxiv.org/html/2606.03158v1
+43. [PDF] Fannie Mae and Freddie Mac: Understanding Your Options - Enact MI https://
+content.enactmi.com/documents/training/course/
+UnderstandingOptions.Presentation.0321.pdf
+44. [PDF] FANNIE MAE & FREDDIE MAC - COMPARISON & PRICING ... - LHFS https://
+cdn.lhfs.com/lhfscdn/wholesale/download/Comparison_FNMA_FHLMC.pdf
+45. [PDF] LIHTC Price Shocks and the Fiscal Costs on New York City https://
+academiccommons.columbia.edu/doi/10.7916/r9hs-6r83/download
+46. Fundrise Real Estate Investment Trust, LLC (the "Income eREIT") https://
+www.sec.gov/Archives/edgar/data/1645583/000114420417026563/
+v466832_253g2.htm
+47. error https://grzy.cug.edu.cn/wengzhengping/en/lwcg/6345/content/8713.htm
+48. [PDF] Grid-based angle-constrained path planning - arXiv https://arxiv.org/pdf/
+1506.01864
+49. Deep Learning Architectures for Sequential Decision-Making in ... https://
+www.researchgate.net/publication/
+397242959_Deep_Learning_Architectures_for_Sequential_Decision-
+Making_in_Financial_Systems_From_Fraud_Detection_to_Risk_Management
+50. Theoretical Guarantees of Fictitious Discount Algorithms for Episodic ... https://
+ojs.aaai.org/index.php/AAAI/article/view/20633
+51. Sequential Portfolio Selection under Latent Side Information ... - arXiv https://
+arxiv.org/abs/2501.06701
+52. Deep Learning Architectures for Sequential Decision-Making i https://ideas.repec.org/
+a/ajn/jobafd/v9y2025i9p1-11id631.html
+53. [PDF] Regulation of Algorithmic Collusion, Refined: Testing Pessimistic ... https://
+arxiv.org/pdf/2501.09740
+
+===== PAGE 14 =====
+
+54. https://www.capitaliq.com/CIQDotNet/CreditResearch... https://www.capitaliq.com/
+CIQDotNet/CreditResearch/SPResearch.aspx?ArtObjectId=9080844&ArtRevId=11
+55. Adrian Cox - Deutsche Bank Research Institute
+RI_GLO&rwobj=ReFIND.zReFindSearch.class&rwsite=IE-PROD&z-AbstractCut=250&z-ColumnView=0&z-ColumnViewRwd=0&z-ColumnViewRwdFree=AT%2CDU2%2CDA%2CTI%2CDU1%2CT1%2CT4%2CT3%2CT2%2CSI%2CTE%2CTR&z-ColumnViewRwdStyle=ie_search&z-DocumentLanguage=EN&z-DocumentLayout=SRBU%2CSTHT%2CSTXT%2CSCOH%2CSNAT%2CSNAB%2CSPSB%2CSABL%2CSALI%2CSRIC%2CUHTM%2CSTEF%2CSCFI%2CSDDA%2CNPDF%2CIGRS%2COTBF%2CASIT%2CSELT%2CKNPU%2CADBU%2CNMIT%2CSEID&z-ElementKey=HIDDEN_GLOBAL_SEARCH.nalias&z-LayoutTypeResult=globalFacets&z-LayoutTypeResultContext=globalFacets&z-NoStandardPage=ON&z-OrderDirection=Desc&z-OrderTerm=Date&z-PageTitle=7kmMbAH2UvgJ9t8nN9PhtQ%3D%3D&z-Property=13&z-Topics3=RI_GLO&z-attfilt=aEcDjKe&z-autoIds=fc-1781726170075%2Crfrwd-table-1781726170076%2CRWTAB17817261700751-%2CRWTAB17817261700750-%2CRWTAB17817261700753-%2CRWTAB17817261700752-%2CRWTAB17817261700754-%2CRWTAB17817261700755-%2C&z-dateColumnFormat=7&z-prodAttributes=0&z-rfAjaxResult=true&z-rfAjaxUserFilters=707%3AADRIAN.COX&z-rfAjaxUserFiltersView=TI%2CT1%2CT4%2CT2&z-rfDisciplineSnippetItems=T1%2CT4%2CT2&z-rfDocumentType=DOCU&z-rfListItemLabel=reports&z-rfLogColumns=RD%2CAT%2CSM%2CTI%2CM3%2CMB%2CDL3%2CRCPL%2CTE%2CSI%2CTR%2CPP%2CKZPT%2CMP%2CPE&z-rwda=170626" target="_blank"><span style="color: #888888;word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">https://www.dbresearch.com/servlet/reweb2.ReWEB?rwdspl=3&rwnode=IE-PROD
+RI_GLO&rwobj=ReFIND.zReFindSearch.class&rwsite=IE-PROD&z-
+AbstractCut=250&z-ColumnView=0&z-ColumnViewRwd=0&z-
+ColumnViewRwdFree=AT%2CDU2%2CDA%2CTI%2CDU1%2CT1%2CT4%2CT3%2CT2%2CSI%2CTE%2CTR&z-
+ColumnViewRwdStyle=ie_search&z-DocumentLanguage=EN&z-
+DocumentLayout=SRBU%2CSTHT%2CSTXT%2CSCOH%2CSNAT%2CSNAB%2CSPSB%2CSABL%2CSALI%2CSRIC%2CUHTM%2CSTEF%2CSCFI%2CSDDA%2CNPDF%2CIGRS%2COTBF%2CASIT%2CSELT%2CKNPU%2CADBU%2CNMIT%2CSEID&z-
+ElementKey=HIDDEN_GLOBAL_SEARCH.nalias&z-
+LayoutTypeResult=globalFacets&z-LayoutTypeResultContext=globalFacets&z-
+NoStandardPage=ON&z-OrderDirection=Desc&z-OrderTerm=Date&z-
+PageTitle=7kmMbAH2UvgJ9t8nN9PhtQ%3D%3D&z-Property=13&z-
+Topics3=RI_GLO&z-attfilt=aEcDjKe&z-autoIds=fc-1781726170075%2Crfrwd-
+table-1781726170076%2CRWTAB17817261700751-%2CRWTAB17817261700750-
+%2CRWTAB17817261700753-%2CRWTAB17817261700752-
+%2CRWTAB17817261700754-%2CRWTAB17817261700755-%2C&z-
+dateColumnFormat=7&z-prodAttributes=0&z-rfAjaxResult=true&z-
+rfAjaxUserFilters=707%3AADRIAN.COX&z-
+rfAjaxUserFiltersView=TI%2CT1%2CT4%2CT2&z-
+rfDisciplineSnippetItems=T1%2CT4%2CT2&z-rfDocumentType=DOCU&z-
+rfListItemLabel=reports&z-
+rfLogColumns=RD%2CAT%2CSM%2CTI%2CM3%2CMB%2CDL3%2CRCPL%2CTE%2CSI%2CTR%2CPP%2CKZPT%2CMP%2CPE&z-
+rwda=170626
+56. SCIS Collection of RESEARCH PAPER - SCIENCE CHINA ... http://scis.scichina.com/
+scis-researchpaper.html
+57. [PDF] PathWise: a flexible, open-source library for the Resource ... - arXiv https://
+arxiv.org/pdf/2306.08622
+58. Deep Learning for Financial Engineering - PMC - NIH https://pmc.ncbi.nlm.nih.gov/
+articles/PMC9020550/
+59. CFPB Issues AI-Involved Adverse Actions Guidance - Jones Day https://
+www.jonesday.com/en/insights/2023/10/cfpb-issues-aiinvolved-adverse-actions-
+guidance
+60. Fannie Mae Issues AI/ML Governance Framework for Sellers and ... https://
+finsights.cooley.com/fannie-mae-issues-ai-ml-governance-framework-for-sellers-and-
+servicers/
+61. Faculty Scholarship Digest | Columbia Law School https://www.law.columbia.edu/
+faculty-scholarship/faculty-scholarship-digest
+62. [XML] https://www.cooley.com/sitemap.xml https://www.cooley.com/sitemap.xml
+63. Computational Finance Jun 2026 - arXiv https://arxiv.org/list/q-fin.CP/current
+
+===== PAGE 15 =====
+
+64. Financial Risk Assessment via Long-term Payment Behavior ... - arXiv https://
+arxiv.org/html/2411.15056v1
+65. https://irepository.cuhk.edu.cn/handle/3EPUXD0A/26... https://
+irepository.cuhk.edu.cn/handle/3EPUXD0A/26807?mode=full
+66. [PDF] MSCI / IPF UK Quarterly Market Results for Q4 2025 https://www.msci.com/
+downloads/web/msci-com/discover-msci/events/event-assets/2026/february/msci-
+ipf-seminar-4q25/MSCI%20and%20IPF%20Seminar%204Q25.pdf
+67. NCREIF Property Index Q1 2026 Released | LinkedIn - LinkedIn https://
+www.linkedin.com/posts/ncreif_the-first-quarter-2026-ncreif-property-index-
+activity-7454604923998224384-wbdH
+68. 2026 commercial real estate outlook | Deloitte Insights https://www.deloitte.com/us/
+en/insights/industry/financial-services/commercial-real-estate-outlook.html
+69. CNL Strategic Residential Credit, Inc. 10-12G - SEC.gov https://www.sec.gov/
+Archives/edgar/data/2066337/000199937125007032/cnlrcred-1012g_060225.htm
+70. [PDF] Report on the 2023 banking turmoil https://www.bis.org/bcbs/publ/d555.pdf

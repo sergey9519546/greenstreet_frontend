@@ -1,0 +1,22 @@
+# autoresearch.toml — DSCR Algorithm Innovation Tournament Loop
+
+# Target: the file the loop is allowed to modify.
+# Everything else is read-only.
+target_file = "DSCR_SOVEREIGN_OS/packages/dscr-stress/src/dscr_stress/distributional_dscr.py"
+
+# Eval: command that produces the metric.
+# Returns the number of adversarial attacks defended (0-10).
+eval_command = "python autoresearch/eval_defenses.py"
+
+# Metric: higher = better
+metric_name = "attacks_defended"
+metric_direction = "higher"
+
+# Time budget per experiment (seconds)
+time_budget = 300
+
+# Git branch for experiments
+branch = "autoresearch"
+
+# Working directory
+workspace_root = "C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE"

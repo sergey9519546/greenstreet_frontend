@@ -1,0 +1,29 @@
+/* Dataview community plugin - pre-installed config */
+/* To enable: install "Dataview" plugin from Obsidian Community Plugins */
+/* This file just pre-stages the plugin settings. */
+{
+  "taskPluginTracking": false,
+  "taskPluginDateFormat": "yyyy-MM-dd",
+  "recursiveSubTaskCompletion": false,
+  "warnOnEmptyResult": true,
+  "prettyRenderInlineFields": true,
+  "prettyRenderInlineFieldsInLivePreview": true,
+  "showCreateDate": false,
+  "showUpdateDate": false,
+  "showCurrentTime": false,
+  "showTaskCount": true,
+  "showWordCount": false,
+  "showReadingTime": false,
+  "showInlineFileLink": true,
+  "showSubtasks": true,
+  "completedSubtasks": false,
+  "completionConfirmation": false,
+  "newLineForTaskBlock": true,
+  "enableDataviewJs": true,
+  "enableInlineDataview": true,
+  "enableDataviewBlocks": true,
+  "defaultDateFormat": "yyyy-MM-dd",
+  "maxRecursiveRenderDepth": 8,
+  "tableIdColumnName": "File",
+  "alwaysShowCreateDate": false
+}

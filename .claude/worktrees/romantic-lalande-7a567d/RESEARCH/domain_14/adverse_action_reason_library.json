@@ -1,0 +1,203 @@
+{
+  "library_version": "1.0.0",
+  "schema_date": "2026-06-18",
+  "owner": "DSCR Sovereign OS — Slice 2 P0-4 (Agent 1 parallel dispatch)",
+  "regulatory_basis": [
+    "FCRA §615 (15 USC §1681m) — Adverse action based on consumer report",
+    "FCRA §615(a)(2) — Numerical credit score disclosure",
+    "FCRA §615(b) — Adverse action based on information from third parties",
+    "ECOA §701(a) (15 USC §1691) — Prohibited basis discrimination",
+    "Regulation B (12 CFR §1002.9) — Notification requirements",
+    "Regulation B (12 CFR §1002.9(b)(2)) — Specific reasons requirement",
+    "CFPB Consumer Financial Protection Circular 2022-03 — Adverse action for complex algorithms",
+    "CFPB Consumer Financial Protection Circular 2023-03 — AI/ML adverse action",
+    "12 USC §5101-5116 — SAFE Act (MLO licensing context)"
+  ],
+  "engine_rule_summary": {
+    "specific_reasons_minimum_count": 4,
+    "specific_reasons_maximum_count": 6,
+    "specific_reasons_insufficient_phrases": [
+      "Credit score was too low",
+      "Failed to meet our internal standards",
+      "Did not meet our credit criteria",
+      "Credit report insufficient",
+      "Other"
+    ],
+    "ecoa_notice_required": true,
+    "fcra_disclosure_required": true,
+    "credit_score_disclosure_required": true,
+    "score_disclosure_threshold": "score_used",
+    "timing_fcra": "30 days after adverse action",
+    "timing_ecoa": "30 days after adverse action",
+    "small_volume_creditor_threshold": 150,
+    "small_volume_oral_notification_allowed": true,
+    "record_retention_months": 25,
+    "business_purpose_exemption_ecoa_specific_reasons": "PARTIAL — ECOA requires notification but allows less specific reason text for business credit with gross revenue >$1M",
+    "shap_to_reason_required": true,
+    "shap_top_k_features": 4,
+    "shap_aggregation_components": true,
+    "directionality_score_required": true,
+    "missing_input_handling": "Use 'lack of information' phrasing"
+  },
+  "reason_categories": {
+    "credit_history": [
+      "Bankruptcy on file",
+      "Foreclosure on file",
+      "Recent delinquent accounts",
+      "Too many recent late payments",
+      "Too many accounts with late payments",
+      "Too many inquiries in the last 12 months",
+      "Unable to verify credit references",
+      "Lack of credit history",
+      "Lack of sufficient credit history"
+    ],
+    "credit_score": [
+      "Credit score below our minimum requirement",
+      "Credit score does not meet our threshold",
+      "FICO score is below our minimum"
+    ],
+    "debt_to_income": [
+      "Debt-to-income ratio is too high",
+      "Proposed mortgage payment would result in debt-to-income ratio above our limit",
+      "Existing debt obligations are too high relative to your income"
+    ],
+    "dscr_specific": [
+      "Debt Service Coverage Ratio (DSCR) is below our minimum requirement",
+      "DSCR on subject property is below 0.75",
+      "DSCR is below the lender's minimum (0.75 / 1.00 / 1.10 / 1.20 / 1.25 depending on lender program)",
+      "Qualifying rental income insufficient to support the loan amount",
+      "Subject property rental income cannot be verified",
+      "Lease is not in place (LTR income disqualified)",
+      "STR documentation insufficient (AirDNA / 12-month history not provided)"
+    ],
+    "ltv_cltv": [
+      "Loan-to-value (LTV) ratio is too high",
+      "Combined loan-to-value (CLTV) ratio is too high",
+      "Loan amount exceeds maximum LTV allowed for this property type",
+      "Loan amount exceeds maximum LTV allowed in this state (declining market)",
+      "Loan amount exceeds lender maximum ($3.5M Rocket Pro / $4M Griffin / etc.)"
+    ],
+    "fico": [
+      "FICO score below our minimum requirement (620 / 640 / 660 / 680 / 700 / 720 — varies by lender)",
+      "Credit score does not meet our minimum"
+    ],
+    "collateral": [
+      "Insufficient collateral value",
+      "Appraised value is insufficient to support the loan amount",
+      "Property is not eligible collateral (non-warrantable condo, condotel in some programs)",
+      "Property type not eligible (LTR-only lender for STR)",
+      "Property in declining market (CT/FL/IL/NJ/NY — reduced LTV caps)"
+    ],
+    "income_employment": [
+      "Unable to verify income",
+      "Income documentation insufficient",
+      "Insufficient income to qualify for loan amount",
+      "No lease in place (LTR DSCR — rental income cannot be verified)",
+      "STR projected income not supported by 12-month history",
+      "AirDNA Rentalizer not provided (STR)",
+      "Bank statement program: insufficient deposits for stated income",
+      "DSCR is below minimum"
+    ],
+    "reserves": [
+      "Reserves are below our minimum requirement",
+      "Liquid reserves insufficient to cover 3-6 months of PITIA",
+      "Reserves not liquid (non-cash assets, illiquid securities)"
+    ],
+    "loan_structure": [
+      "Loan purpose not eligible (cash-out refi season not met — BRRRR seasoning)",
+      "Cash-out amount exceeds policy limit",
+      "Loan term outside our parameters (15/20/30/40 yr fixed; 5/7/10 ARM)",
+      "Amortization type not available (no IO for this program)",
+      "Prepayment penalty structure not acceptable (state-restricted PPP — NJ, NY, MN pre-8/1/26, OH, PA, etc.)"
+    ],
+    "state_regulatory": [
+      "Lender not licensed in this state",
+      "Loan exceeds state usury cap",
+      "Prepayment penalty not permitted by state law (NJ, NY, MN pre-8/1/26, etc.)",
+      "State-specific DSCR disclosure not provided",
+      "Property in state-restricted zone (NJ LLC — lender-split matrix)"
+    ],
+    "insurance": [
+      "Flood insurance not in place (SFHA zone — kill criterion)",
+      "Flood insurance binder insufficient (effective date, named insured, dwelling coverage)",
+      "Flood insurance is in pending FIRM remap zone — re-pricing required",
+      "Property insurance insufficient for high-risk geography (FL coastal, CA wildfire, TX Gulf, LA coastal)",
+      "Property insurance carrier not approved (not on WYO list; private flood not BW-12 compliant)"
+    ],
+    "vesting_entity": [
+      "Vesting type not eligible (lender does not accept trusts, foreign entities, ITIN)",
+      "Borrower entity not in good standing with state Secretary of State",
+      "Personal guarantor does not meet credit criteria",
+      "Foreign National visa/ESTA not verifiable",
+      "ITIN documentation insufficient (per lender program)"
+    ],
+    "program": [
+      "Loan does not meet minimum loan amount (sub-$150K floor at some lenders)",
+      "Loan exceeds maximum loan amount for program",
+      "Subject property not in lender's approved state coverage",
+      "Subject property type not eligible (5+ unit, non-conforming)",
+      "Subject property not in approved MSA (some lenders have geographic restrictions)"
+    ],
+    "data_input": [
+      "Unable to verify identity",
+      "Unable to verify SSN/ITIN",
+      "Unable to verify property address",
+      "Application is incomplete — missing information",
+      "Lack of information regarding [field name]"
+    ]
+  },
+  "ecoa_prohibited_basis_disclosure": "The Federal Equal Credit Opportunity Act prohibits creditors from discriminating against credit applicants on the basis of race, color, religion, national origin, sex, marital status, age (provided the applicant has the capacity to enter into a binding contract); because all or part of the applicant's income derives from any public assistance program; or because the applicant has in good faith exercised any right under the Consumer Credit Protection Act. The Federal agency that administers compliance with this law concerning this creditor is [Federal agency name and address].",
+  "fcra_consumer_reporting_agency_disclosure": "You have the right to request a free copy of your consumer report from the consumer reporting agency that furnished the report within 60 days. You also have the right to dispute the accuracy or completeness of any information in your consumer report by contacting the consumer reporting agency directly.",
+  "credit_score_disclosure_text": "A numerical credit score, your credit score, the credit score range used, the date the credit score was created, and the name of the consumer reporting agency or other person that provided the credit score are provided above. The credit score is a numerical value derived from a statistical model that uses information from a consumer reporting agency to predict the likelihood of repayment. The credit score ranges from 300 to 850; higher scores indicate lower credit risk.",
+  "right_to_obtain_credit_score_text": "You have the right to obtain a free copy of your credit score from the consumer reporting agency that furnished the credit score within 60 days of this notice. You may also request a free credit file disclosure from the consumer reporting agency in accordance with section 612 of the Fair Credit Reporting Act (15 U.S.C. §1681j).",
+  "shap_to_reason_template": {
+    "credit_score_feature": "Credit score is below our minimum requirement",
+    "delinquencies_feature": "Recent delinquencies on credit report",
+    "inquiries_feature": "Too many recent credit inquiries",
+    "utilization_feature": "Credit card balances are too high",
+    "ltv_feature": "Loan-to-value ratio is too high",
+    "dscr_feature": "Debt Service Coverage Ratio is below our minimum requirement",
+    "reserves_feature": "Reserves are below our minimum requirement",
+    "income_feature": "Insufficient income to qualify for the loan amount",
+    "missing_input_feature": "Lack of information regarding [feature name]"
+  },
+  "example_completed_adverse_action_notice": {
+    "creditor": "Sample DSCR Lender NMLS #12345",
+    "applicant": "John Smith / 123 Main St LLC",
+    "application_id": "APP-2026-06-18-001",
+    "action_taken": "Application denied",
+    "action_date": "2026-06-18",
+    "specific_reasons": [
+      "Debt Service Coverage Ratio (DSCR) on the subject property is 0.82, which is below our minimum requirement of 1.00",
+      "Credit score (FICO) of 615 is below our minimum requirement of 660",
+      "Loan-to-value (LTV) ratio of 82% exceeds our maximum of 80%",
+      "Reserves of 2 months PITIA are below our minimum of 3 months"
+    ],
+    "credit_score": {
+      "score": 615,
+      "range": "300-850",
+      "bureau": "Experian",
+      "score_date": "2026-06-15"
+    },
+    "ecoa_notice_included": true,
+    "fcra_disclosure_included": true,
+    "cra_contact": "Experian — www.experian.com — 1-888-397-3742",
+    "right_to_request_score_disclosure": true,
+    "state_specific_disclosures_included": ["CA"],
+    "evidence_provenance": {
+      "shap_top_features": [
+        {"feature": "dscr_calculated", "shap_value": -0.18, "direction": "below_minimum"},
+        {"feature": "fico_score", "shap_value": -0.15, "direction": "below_minimum"},
+        {"feature": "ltv_calculated", "shap_value": -0.12, "direction": "above_maximum"},
+        {"feature": "reserves_months", "shap_value": -0.08, "direction": "below_minimum"}
+      ],
+      "llm_hallucination_firewall": {
+        "verified_count": 4,
+        "mismatched_count": 0,
+        "fabricated_count": 0,
+        "method": "extract_numeric_claims() cross-checked against engine_output"
+      },
+      "evidence_vault_hash": "sha256:abc123def456..."
+    }
+  }
+}

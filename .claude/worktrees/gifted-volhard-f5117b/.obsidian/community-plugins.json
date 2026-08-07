@@ -1,0 +1,8 @@
+{
+  "communityPlugins": [
+    "dataview",
+    "graph-analysis",
+    "tag-wrangler",
+    "obsidian-excalidraw-plugin"
+  ]
+}

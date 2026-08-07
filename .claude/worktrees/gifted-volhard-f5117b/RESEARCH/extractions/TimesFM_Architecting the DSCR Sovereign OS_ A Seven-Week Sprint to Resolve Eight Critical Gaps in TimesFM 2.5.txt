@@ -1,0 +1,896 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Timesfm Architecting The Dscr Sovereign Os  A Seven Week Sprint To Resolve Eight Critical Gaps In Timesfm 2.5
+summary: "Architecting the DSCR Sovereign OS: A Seven-Week Sprint to Resolve Eight"
+entities:
+  - concept/appreciation
+  - concept/arm
+  - concept/dscr
+  - concept/itia
+  - data/zillow
+  - ml/timesfm
+  - topic/str
+tags:
+  - topic/architecture
+  - topic/compliance
+  - topic/default-rate
+  - topic/flood-insurance
+  - topic/monte-carlo
+  - topic/portfolio
+  - topic/stress-test
+  - topic/tax
+  - type/audit
+source: RESEARCH/pdf_extractions/TimesFM_Architecting the DSCR Sovereign OS_ A Seven-Week Sprint to Resolve Eight Critical Gaps in TimesFM 2.5.txt
+vaulted_at: 2026-06-20
+---
+
+
+===== PAGE 1 =====
+
+Architecting the DSCR Sovereign OS: A
+Seven-Week Sprint to Resolve Eight
+Critical Gaps in TimesFM 2.5
+This report details a systematic applied research and development plan designed to
+resolve eight critical technical gaps within a production-grade forecasting architecture
+built upon the TimesFM 2.5 foundation model. The objective is to harden this system,
+dubbed the 'DSCR Sovereign OS', into an institutional-grade, mathematically rigorous
+credit engine capable of withstanding regulatory scrutiny and extreme market volatility
+77 95. The architecture utilizes Low-Rank Adaptation (LoRA) to specialize the base
+model for real estate cashflow forecasting, with a focus on enabling accurate Monte Carlo
+stress testing for Debt Service Coverage Ratio (DSCR)-based credit decisions 20111. The
+proposed work program is structured as a seven-week sprint, progressing logically from
+foundational data topology and tokenization alignment to advanced mathematical
+stabilization, sophisticated modeling for spatial generalization and regime adaptation,
+and finally, production-grade inference optimization. Each phase directly addresses one
+or more of the identified gaps, culminating in a comprehensive validation framework and
+a final deliverable designed for regulatory defensibility. The solutions proposed are
+grounded in established principles of time-series analysis, transformer architecture, and
+modern MLOps practices, drawing from a wide range of academic and industrial sources
+to ensure both theoretical soundness and practical applicability 18 70 88.
+Phase I: Data Topology and Tokenization Alignment
+The initial phase of this research sprint is dedicated to establishing a robust and
+semantically correct data topology for feeding information into the TimesFM 2.5 model.
+This involves resolving three foundational issues: misalignment between the user-defined
+context window and the model's internal patching mechanism, improper separation of
+covariate channels, and the flawed handling of missing data points, colloquially known as
+"dark months." These gaps, if unaddressed, can silently corrupt the attention mechanisms
+and degrade the model's ability to learn meaningful temporal dependencies, irrespective
+of the underlying mathematics or model architecture. The primary goal of this phase is to
+
+===== PAGE 2 =====
+
+implement a strict data contract that adheres to the expectations of the TimesFM 2.0+
+framework, ensuring that every piece of information provided to the model is correctly
+formatted, masked, and interpreted 18 88. Success will be measured through a series of
+targeted ablation studies comparing model performance against a baseline configuration
+that does not incorporate these fixes. The core hypothesis driving this phase is that
+meticulous attention to data topology is a prerequisite for unlocking the full potential of
+the foundation model and preventing subtle but critical errors from propagating through
+the entire forecasting pipeline.
+The first critical issue, Gap 2: TimesFM Patching & Context Length Mismatch, arises
+from the fundamental design of TimesFM, which employs a patch-based tokenizer similar
+to PatchTST 7 35. The model operates on fixed-size patches of time-series data, and its
+attention mechanism is designed to operate within this patched representation. If the
+specified context_len for a forecasting task (e.g., 24 months of historical rent data) is
+smaller than the model's default patch_len (which is often 32 or 64), the input tensor
+will be heavily zero-padded at the beginning to meet the minimum patch requirement 1
+2 . This excessive padding dilutes the effective signal-to-noise ratio of the context
+window. The attention mechanism, which is theoretically supposed to focus on salient
+temporal features, will instead be forced to process a large number of meaningless
+padded values, leading to a degradation of model accuracy and potentially unstable
+training dynamics 28. The proposed upgrade is to enforce a strict alignment between the
+context_len and the model's internal patch size. This can be achieved in two ways:
+either by adjusting the user-specified context_len to be a direct multiple of the patch
+size (e.g., using 32, 48, or 64 months of history) or by modifying the TimesFM
+configuration file in HuggingFace to use a smaller patch_len that better matches the
+available data granularity (e.g., setting patch_len=12 to capture annual seasonality)
+1 . Critically, any implementation must include proper attention masking. The dataset
+loader must generate an attention_mask tensor where positions corresponding to
+valid data are marked as 1 and padded positions are marked as 0. This explicit mask
+informs the Transformer to ignore the padded regions entirely, preventing it from
+treating a padded month as a month with zero rent, which would catastrophically
+mislead the model 7 . An empirical study found that masking out patches consisting
+entirely of padding values is an effective strategy for mitigating the negative impact of
+padding 7 . To evaluate this change, an ablation experiment will be conducted by
+training four distinct LoRA variants of the model, each with a different context_len:
+24, 32, 48, and 64 months. The performance of each variant will be benchmarked against
+the other on a held-out validation set. The primary success metric will be the Continuous
+Ranked Probability Score (CRPS), a proper scoring rule for evaluating probabilistic
+forecasts. A lower CRPS indicates a better-calibrated and more accurate predictive
+
+===== PAGE 3 =====
+
+distribution. Additionally, monitoring the entropy of the attention weights can provide a
+secondary insight; a well-aligned model should exhibit sharper, more focused attention
+patterns (lower entropy) compared to a diluted one 66.
+The second foundational issue, Gap 3: Covariate Routing (Past vs. Future Channels),
+stems from architectural updates in TimesFM 2.0 and later versions. These models have
+adopted a stricter, channel-aware design that mandates separate input tensors for past
+and future covariates 18 88. The blueprint's approach of stacking all covariates into a
+single tuple violates this schema and will lead to silent corruption of the model's cross-
+attention mechanism. The model's encoder processes the past_covariates to build a
+memory of the historical context, while the decoder uses both the encoded past and the
+future_covariates to autoregressively generate predictions. Mixing these two types
+of information into one tensor disrupts this carefully orchestrated flow of information,
+likely introducing subtle lookahead bias where the model inadvertently uses information
+from the forecast horizon to predict the present 16. The upgrade requires a complete
+overhaul of the custom dataset and collator logic to conform to the dictionary-based
+input format expected by TimesFM. Specifically, the __getitem__ method of the
+dataset class must return a dictionary containing explicitly separated tensors for
+past_covariates and future_covariates. The past_covariates tensor
+([batch, context_len, num_past_covs]) should contain variables that are
+known only up to the end of the context window, such as trailing indicators of
+delinquency, historical vacancy rates, and STR occupancy levels 15. Conversely, the
+future_covariates tensor ([batch, context_len + horizon_len,
+num_future_covs]) can contain variables that are known for both the context and
+forecast horizons, including deterministic seasonal features (e.g., sin/cos of the month-of-
+year), known SOFR forward curves, scheduled tax hikes, and, most importantly, the
+cross-sectional macro anchors that will be discussed in the next phase 1 . An ablation
+study will compare two model configurations: Model A, which uses the legacy mixed-
+tensor approach, and Model B, which implements the strict dictionary-based routing. The
+success of this change will be measured by comparing the out-of-sample Winkler Scores
+of the two models. The Winkler score evaluates both the accuracy of the central
+prediction and the width of the prediction interval; a significant improvement in
+calibration (i.e., a higher percentage of actual observed values falling within their
+predicted P10-P90 bands) for Model B would confirm that correct covariate routing leads
+to better-calibrated uncertainty estimates 16.
+The third and final topological issue, Gap 6: Handling "Dark" Months (Missingness),
+addresses the pervasive problem of incomplete data in real property management
+systems. It is common for rental properties to have months where no payment is recorded
+
+===== PAGE 4 =====
+
+due to renovation, vacancy, or administrative oversight. Treating these null or 0 values
+naively is a critical flaw. The sliding window approach will feed these zeros to the model,
+which will interpret them as a catastrophic market crash or a total loss of income,
+severely contaminating the training process and producing nonsensical forecasts. The
+recommended solution is a sophisticated two-pronged approach that separates the act of
+imputation from the communication of uncertainty. First, the raw rent time series should
+be preprocessed using a simple yet effective imputation strategy, such as forward-filling,
+to maintain continuity in the data stream fed to the model 61. Second, and more
+importantly, a binary Missingness Indicator Covariate must be introduced. This is a new
+feature vector added to the past_covariates that acts as a flag: it takes the value 1 if
+the corresponding rent observation was present and 0 if it was missing or imputed 10 11.
+By providing this indicator, the model's attention mechanism is explicitly told when a
+data point is unreliable. The desired learned behavior is that during periods flagged as
+missing, the model automatically widens its P10-P90 confidence bands, accurately
+reflecting the heightened uncertainty associated with those months 9 44. This approach
+is superior to simple mean or median imputation because it allows the model to learn a
+dynamic relationship between missingness events and forecast uncertainty. To test this,
+an experiment will be conducted comparing three imputation strategies for the rent
+values: (a) forward-fill (the proposed method), (b) filling with the MSA-level mean rent
+for that month, and (c) spline interpolation. The success metric will be the dynamically
+learned width of the P10-P90 confidence interval specifically during known periods of
+artificial missingness. The forward-fill method combined with the indicator covariate is
+expected to produce the most realistic and appropriately widened uncertainty bands,
+demonstrating that the model has successfully learned to reason about data quality 43
+48.
+By systematically addressing these three foundational gaps in Phase I, the DSCR
+Sovereign OS will transition from a fragile pipeline susceptible to data-related artifacts to
+a robust system built on a solid data contract. The resulting data loading infrastructure
+will be aligned with the TimesFM model's internal mechanics, ensuring that the attention
+mechanism receives clean, correctly formatted, and semantically meaningful inputs. This
+sets the stage for the subsequent phases, which will introduce more complex
+mathematical and architectural innovations.
+
+===== PAGE 5 =====
+
+Gap Problem Description Proposed Solution Success Metric
+Gap 2: Patching Context window length is smaller Align context_len to a multiple of the patch Minimize Continuous Ranked
+Misalignment than the model's patch size, causing size or adjust patch_len. Implement an Probability Score (CRPS);
+excessive zero-padding that dilutes attention_mask to ignore padded values. Monitor attention weight
+attention. entropy.
+Gap 3: Covariate Past and future covariates are Implement a strict dictionary format with Improve Winkler Score
+Routing mixed in a single tensor, corrupting separate past_covariates and calibration (e.g., achieving
+the cross-attention mechanism and future_covariates tensors as per the ~90% of actuals within the
+risking lookahead bias. TimesFM schema. P10-P90 band).
+Gap 6: Missing data ("dark months") is Forward-fill rent values and introduce a binary Dynamically widen the P10-
+Missingness treated as zero, confusing the is_missing indicator covariate to signal P90 confidence interval
+Handling model and leading to inaccurate uncertainty to the model. during imputed periods.
+forecasts.
+Phase II: Mathematical Rigor and Probabilistic
+Calibration
+With a stable data topology established, the second phase shifts focus to the core
+mathematical and statistical integrity of the forecasting model. This phase is dedicated to
+resolving three interconnected challenges: the insidious problem of log-return error
+compounding, the logical fallacy of quantile crossing in probabilistic outputs, and the
+overarching need for a mathematically sound approach to normalizing non-stationary
+financial time series. These issues are paramount for building a credit engine that can be
+trusted for high-stakes decision-making and stress testing. The solutions explored here
+move beyond heuristic fixes toward principled statistical frameworks that guarantee the
+mathematical consistency and reliability of the model's output. The central hypothesis is
+that leveraging the model's native capabilities and adopting state-of-the-art techniques for
+probabilistic forecasting are essential for transforming the DSCR Sovereign OS from a
+standard forecasting tool into a rigorously calibrated financial instrument. This phase will
+involve a comparative analysis of different mathematical formulations for the target
+variable and the output distribution, using metrics that directly measure the properties
+being addressed, such as tail risk and quantile monotonicity.
+The first challenge, Gap 1: The "Log-Return" Error Compounding Trap, identifies a
+fundamental flaw in a seemingly intuitive forecasting strategy. The initial blueprint
+suggests forecasting the logarithmic returns of rent (y_t = log(rent_t /
+rent_{t-1})) and then reconstructing the full rent path by exponentiating the
+cumulative sum of forecasts 80. While this transformation can stabilize variance over
+short horizons, it introduces a severe problem for multi-step forecasting. In quantitative
+
+===== PAGE 6 =====
+
+finance, variance is an additive property. Over a 12-month forecast horizon, the
+uncertainty (variance) of the cumulative sum of log-returns grows proportionally with
+the horizon. When this increasingly uncertain sum is exponentiated to convert it back to
+the original scale of raw rent, the additive growth of variance translates into
+multiplicative growth of tail risk 5 . This causes the upper tail of the forecast distribution
+(e.g., the P90 quantile) to explode to unrealistic, astronomically high values, while the
+lower tail (P10) is crushed towards zero. This phenomenon renders the resulting Monte
+Carlo simulations useless for stress testing, as they no longer represent plausible
+scenarios but rather statistical artifacts of the compounding process 32. The proposed
+upgrade is to abandon manual log-transformations and instead rely on the TimesFM
+model's native Reversible Instance Normalization (RevIN) for stabilization 12. RevIN
+works by subtracting the instance-specific mean and dividing by the instance-specific
+standard deviation for each time series within the batch before it enters the model. After
+the model generates its output, an inverse normalization step restores the original scale
+14. This process effectively makes the input data stationary for the purpose of learning,
+without forcing a global logarithmic scale. This is mathematically superior for preventing
+tail explosion over a 12-month horizon because it adapts the normalization parameters
+locally to the statistics of the context window, preserving the intrinsic variance structure
+of the data 12. However, this recommendation must be nuanced with recent findings. A
+comprehensive study revealed that standard RevIN contains several theoretical
+contradictions and can be fragile, particularly its reliance on non-robust statistics like the
+mean and standard deviation. On datasets with extreme outliers, naive RevIN can
+catastrophically fail, leading to massive increases in error 13. Therefore, a truly robust
+implementation might require a diagnostic-driven approach to choose the normalization
+strategy. Key diagnostics include assessing distribution skewness and the empirical k-
+factor (a measure of deviation from normality). Based on these diagnostics, one could
+select between sensitive methods like RevIN for relatively clean data or robust
+alternatives like R2-IN (a robust version of RevIN) for data with heavy tails or outliers
+13. Despite these caveats, for typical real estate rent series, RevIN remains a powerful
+and pragmatic choice that avoids the pitfalls of manual transformations. To empirically
+validate this, an experiment will compare three target variable transformations: Variant A
+(log-returns, as baseline), Variant B (raw rent, relying solely on RevIN), and Variant C
+(MSA-detrended rent, calculated as Rent / MSA_Zillow_Rent_Index). The primary
+success metric will be the P90/P10 ratio at the 12-month horizon. The log-return method
+(Variant A) is expected to show an exploded ratio (e.g., >5.0), whereas Variants B and C
+should maintain a much more realistic and bounded variance (e.g., a ratio of 1.2 - 1.5),
+demonstrating successful control over tail risk 16.
+
+===== PAGE 7 =====
+
+The second challenge, Gap 5: Quantile Crossing in the Continuous Head, addresses a
+logical inconsistency that arises when using independent optimization for each quantile.
+Standard practice for generating probabilistic forecasts with deep learning models
+involves adding multiple output heads, each trained with the Pinball loss function to
+predict a specific quantile (e.g., P10, P50, P90) 60. The Pinball loss is strictly consistent,
+meaning it encourages the model to produce an output that minimizes the loss for its
+target quantile 60. However, because each head is trained independently, there is no
+guarantee that the outputs will be ordered correctly. It is possible, especially for highly
+volatile properties or in thin markets, for the model to predict a P90 quantile that is
+numerically lower than the P50 quantile (i.e., P90 < P50). Such a result is
+mathematically impossible for a true cumulative distribution function and breaks
+downstream applications that assume monotonicity, such as Monte Carlo simulations or
+the construction of coherent risk measures 47. The assistant proposes two solutions. The
+first is a simpler penalty-based approach: augment the overall loss function with a term
+that penalizes any crossing, such as Loss + λ * max(0, q_low - q_high), where
+q_low and q_high are the predicted quantiles for the lower and higher probability
+levels, respectively 47. While straightforward to implement, this method can be brittle
+and difficult to tune the hyperparameter λ effectively. The second, preferred approach, is
+a more principled solution: replacing the discrete quantile heads with a single
+Distributional Head that predicts the parameters of a parametric probability distribution
+16. The recommended distribution for this task is the Student's t-distribution, which is
+characterized by three parameters: location (μ), scale (σ), and degrees of freedom (ν).
+The model's final layer is simply modified to output these three parameters instead of
+multiple quantiles 16. Training is then performed by minimizing the Negative Log-
+Likelihood (NLL) of the observed data under the predicted Student's t-distribution. This
+approach is superior because it guarantees monotonic quantiles by construction; the
+quantiles are derived analytically from the fitted distribution parameters, ensuring they
+are always in the correct order 32. Furthermore, the Student's t-distribution is
+particularly well-suited for financial time series, as its heavy tails (controlled by the
+degrees of freedom parameter ν) can naturally accommodate the fat-tailed nature of real
+estate returns, which are prone to extreme events 80 82. To evaluate this, an experiment
+will compare the "Crossing Rate"—the percentage of forecasts where
+q_{\tau_1} &gt; q_{\tau_2} for \tau_1 &lt; \tau_2 —between the baseline
+quantile head model and the proposed distributional head model. The target for the
+distributional head approach is a crossing rate of exactly 0.0%, demonstrating perfect
+monotonicity in the output probabilities 84.
+Together, these two solutions form a powerful combination for achieving mathematical
+rigor. By choosing a stable normalization scheme like RevIN and a guaranteed-monotonic
+
+===== PAGE 8 =====
+
+probabilistic output format like a Student-T distributional head, the DSCR Sovereign OS
+ensures that its forecasts are not only accurate but also logically consistent and
+statistically well-behaved. This level of mathematical fidelity is a cornerstone of an
+institutional-grade credit engine and is a critical step toward meeting the stringent
+requirements of regulators who demand robust model risk management frameworks 95
+101. The final validation report for the sovereign OS will need to include detailed
+calibration backtests, akin to Hosmer-Lemeshow tests for classification models, to
+demonstrate that the predicted quantiles match their empirical coverage probabilities
+across the entire forecast distribution 77.
+Phase III: Spatial Generalization and Cross-Sectional
+Anchoring
+Phase III addresses the critical need for the DSCR Sovereign OS to generalize beyond the
+idiosyncratic history of an individual property and understand the broader economic
+forces that govern real estate markets. This phase focuses on resolving Gap 4: Spatial
+Blindspots & Cross-Sectional Anchors, which describes a fundamental limitation of
+treating each property as a completely isolated forecasting unit. Without external
+guidance, the model learns local patterns from its limited context window but fails to
+grasp the concept of "contagion" or shared macroeconomic shocks that affect an entire
+Metropolitan Statistical Area (MSA) 4 23. This forces the model to relearn basic
+economic gravity for every single property, severely hampering its ability to make reliable
+forecasts for new properties in unfamiliar geographies or during novel market-wide
+events. The proposed solution is to inject Cross-Sectional Macro Anchors into the
+model's input, providing it with a crucial link to the wider economy. This technique
+effectively bridges the gap between univariate models that treat each entity
+independently and true multivariate models that explicitly capture cross-sectional
+dependencies 1 96. The core hypothesis is that by giving the attention mechanism a
+strong, consistent signal from the macro-environment, the model can learn transferable
+features and achieve vastly improved out-of-sample geographic generalization. The
+success of this intervention will be validated through a rigorous Geographic Hold-Out
+Test, measuring the reduction in error on geographically unseen MSAs.
+The architectural innovation lies in how external information is integrated. Instead of
+trying to build a complex, fully coupled multivariate model that feeds all properties' data
+simultaneously—a computationally expensive and architecturally challenging endeavor—
+
+===== PAGE 9 =====
+
+the proposed solution is more elegant and efficient 1 . It involves injecting key
+macroeconomic indicators for an MSA as a future covariate for every single property
+located within that same MSA. The most suitable candidates for these anchors are
+publicly available, high-frequency datasets that track local market conditions. The
+primary anchor is the MSA-level Zillow Rent Index (ZRI), which provides a normalized,
+repeat-sales index of rent changes across the MSA 4 . Secondary anchors could include
+the MSA-level vacancy rate or other relevant indices of economic health 23. These
+macroeconomic time series are concatenated with the property-specific past and future
+covariates and fed into the future_covariates channel of the TimesFM model. This
+gives the attention mechanism a clear "macro anchor" to latch onto. During training, the
+model learns a powerful correlation: "when the MSA-level ZRI shows a sharp decline, this
+specific property's rent trajectory is highly likely to follow suit, even if its own recent history
+doesn't yet reflect that trend." This imbues the model with a form of domain knowledge
+about real estate market dynamics, allowing it to generalize far more effectively. The
+effect is akin to teaching the model the "grammar" of how local markets behave in
+response to national or regional economic cycles 1 .
+To validate the effectiveness of this approach, a Geographic Hold-Out Test will be
+conducted. This is a more stringent evaluation than a simple time-series split. The
+procedure is as follows: 1. Data Partitioning: All properties are grouped by their MSA
+identifier. A random subset of MSAs (e.g., 10%) is reserved as a hold-out set. The model
+is trained exclusively on data from the remaining 90% of MSAs. 2. Training: The model
+is trained using the full suite of covariates, including the newly injected MSA-level ZRI
+and vacancy rates as future anchors. 3. Validation: The trained model is evaluated on the
+hold-out set of MSAs. The forecasts for properties in these unseen MSAs are compared
+against their actual rent trajectories. 4. Comparison: The performance of the model with
+macro anchors will be compared against a control model that was trained identically but
+without the MSA-level covariates.
+The primary success metric for this experiment will be the Mean Absolute Percentage
+Error (MAPE) on the hold-out MSAs. The hypothesis is that the model with macro
+anchors will exhibit a significantly lower MAPE compared to the model without them.
+This reduction in error demonstrates that the anchors have successfully transferred
+knowledge from familiar markets to unfamiliar ones, improving the model's spatial
+generalization capabilities. This is a critical capability for a sovereign AI system intended
+to operate across a diverse portfolio of properties in numerous geographies. By anchoring
+the local, micro-level predictions to a robust, macro-level signal, the DSCR Sovereign OS
+becomes less of a black box memorizing individual property histories and more of a
+transparent, reasoning engine grounded in the fundamental economic realities of the
+
+===== PAGE 10 =====
+
+housing market. This approach aligns with the principle of incorporating explanatory
+variables to leverage additional information, a practice shown to improve forecasting
+performance in various domains, including retail demand forecasting where calendar and
+price data are used to great effect 15 16. The integration of these cross-sectional anchors
+transforms the model from a collection of parallel univariate predictors into a cohesive
+system that understands its place within a larger, interconnected market ecosystem.
+Phase IV: Regime-Adaptive Forecasting with Specialized
+Adapters
+Phase IV confronts the most sophisticated challenge among the eight gaps: Gap 7:
+Regime-Blended LoRA (The "Sovereign" Edge). Financial markets, and real estate
+markets in particular, are not static; they operate in distinct economic regimes
+characterized by different interest rate environments, inflation dynamics, and liquidity
+conditions 5 . A monolithic LoRA adapter, trained on a long, continuous period that
+spans multiple regimes (e.g., 2015–2025, covering both a low-rate era and a high-rate/
+inflationary era), will inevitably struggle. The optimization process will attempt to find a
+single set of adapter weights that represents an average of the dynamics from both
+regimes. This results in a "mushy middle" that is highly accurate for neither environment.
+The model will fail to capture the unique behavioral patterns of either the low-rate or
+high-rate periods, leading to poor performance when the current economic conditions
+shift. The proposed solution is a paradigm shift in the fine-tuning strategy: instead of
+training a single generic adapter, the team will train Multiple Specialized Adapters and
+develop a mechanism to dynamically blend them at inference time based on the
+prevailing macroeconomic regime 51. This creates a regime-aware model that can adapt
+its forecasting behavior to the current economic climate without requiring continuous
+retraining, embodying the "sovereign" aspect of the DSCR Sovereign OS by making it
+resilient to structural economic changes.
+The implementation of this strategy involves a multi-step process. First, the training data
+will be partitioned chronologically to isolate the distinct regimes. Two specialized LoRA
+adapters will be trained:
+• Adapter A (LoRA-Zero): This adapter will be trained exclusively on data from the
+Low-Rate Regime, defined as the period from 2015 to early 2022. This data
+captures a market environment of historically low interest rates, steady
+
+===== PAGE 11 =====
+
+appreciation, and high liquidity, which influences tenant demand, refinancing
+behavior, and property values in specific ways 5 .
+• Adapter B (LoRA-One): This adapter will be trained exclusively on data from the
+High-Rate/Inflation Regime, covering the period from 2022 to the present. This
+data reflects a market characterized by rising interest rates, increased borrowing
+costs, potential cooling of demand, and greater economic uncertainty 5 .
+Both adapters will be initialized with identical hyperparameters (e.g., rank r=16, alpha
+α=32) and will be applied to the same layers of the frozen TimesFM base model (e.g.,
+q_proj and v_proj in the last few transformer layers) to ensure they are learning
+comparable representations of the underlying dynamics 1 2 . The rationale is that by
+training each adapter on a more homogeneous dataset, it can learn the specific patterns
+and relationships characteristic of its designated regime without being confused by
+contradictory signals from another.
+The second, and more innovative, part of the solution is the implementation of a
+Dynamic Weight Blending mechanism at inference time. This is the core of the "regime-
+aware" capability. When a new forecast is required, the system will not just apply a single
+set of adapter weights. Instead, it will compute a final set of weights by interpolating
+between the base model weights, the weights of Adapter A, and the weights of Adapter B.
+The formula for this is expressed as:
+Wfinal=Wbase+γ⋅WZero+(1−γ)⋅WOne
+Here, Wbase represents the frozen weights of the pre-trained TimesFM model, while
+WZero and WOne are the trained weights of the two specialized adapters. The blending
+factor, γ, is a scalar between 0 and 1 that determines the influence of each adapter. The
+key question is how to determine γ in real-time. The proposal is to define γ using a
+simple heuristic gating function based on a readily available, high-frequency
+macroeconomic indicator. For example, a rule could be implemented: if the current 10-
+Year Treasury yield is below 3.5%, γ is set to 1.0 (favoring the low-rate regime adapter);
+if the SOFR rate is above 4.0%, γ is set to 0.0 (favoring the high-rate regime adapter);
+and for values in between, a linear interpolation is used. This approach is inspired by
+online adaptation techniques but offers a simpler, more interpretable alternative 8 . The
+ADAPT-Z method, for instance, proposes online adjustment of latent feature
+representations, which is a more complex adaptive system 8 . For a sovereign AI, the
+transparency and determinism of the proposed blending mechanism may be more
+valuable for regulatory review than a continuously adapting system whose internal logic
+is harder to audit.
+
+===== PAGE 12 =====
+
+The success of this advanced adapter topology will be rigorously tested. The primary
+experiment will compare the performance of the blended model against a strong
+baseline: a single, monolithic LoRA adapter trained on the entire 2015–2025 dataset.
+Both models will be evaluated on an out-of-sample test set comprising vintages from
+2023–2024, a period that straddles the regime shift and is therefore challenging for the
+monolithic model. The primary success metrics will be the Continuous Ranked Probability
+Score (CRPS) and the Pinball Loss, evaluated separately for the P10, P50, and P90
+quantiles. The hypothesis is that the blended model will achieve a lower CRPS and
+Pinball Loss, indicating a more accurate and better-calibrated forecast. This phase
+represents a significant architectural evolution for the DSCR Sovereign OS, moving it
+from a static model to a dynamic system capable of navigating the inherent non-
+stationarity of financial time series. By creating and intelligently combining specialized
+experts, the system gains a crucial form of resilience, a hallmark of a truly sovereign-
+grade AI.
+Phase V: Inference Optimization for Real-Time
+Underwriting
+The final phase of the sprint is dedicated to production readiness, focusing squarely on
+Gap 8: Excessive Inference Latency. While the preceding phases have been concerned
+with the accuracy and mathematical correctness of the model, this phase addresses its
+operational viability. Running a 500-million-parameter transformer model through a
+native Python implementation via the HuggingFace Trainer is fundamentally too slow
+for the intended use case of a real-time underwriting API that must process thousands of
+loan applications per minute 6 . The current estimated latency of ~200ms per property
+is prohibitive, as it would make interactive, browser-side Monte Carlo simulations with
+10,000 paths impossible while a borrower is on the phone 1 . The goal of this phase is to
+reduce this latency by a factor of ten or more, targeting a sub-20ms inference time per
+property, thereby unlocking the system's full potential for dynamic, real-time decision
+support. The solution is a well-established, modern MLOps workflow involving model
+serialization, graph optimization, and hardware-specific compilation.
+The first step in this optimization pipeline is ONNX Export and Graph Surgery. ONNX
+(Open Neural Network Exchange) is an open-standard format for representing machine
+learning models. Exporting the finalized, merged TimesFM model (with LoRA weights
+incorporated into the base model) to the ONNX format is the critical first step toward
+
+===== PAGE 13 =====
+
+cross-platform deployment and optimization 70. This is accomplished using the
+torch.onnx.export function, which traces the model's computation graph and saves
+it in a portable format. During this export, it is important to specify dynamic axes for
+dimensions that vary at inference time, such as batch size and sequence length, to
+maximize flexibility 70. Once the model exists in the ONNX format, a process of "graph
+surgery" can be performed. This involves inspecting the ONNX graph and removing any
+nodes that were required for training but are unnecessary for inference, such as certain
+dropout operations or backward-pass computations related to normalization layers 70.
+The goal of this surgical cleanup is to create a leaner, more efficient computational graph
+that is tailored specifically for the forward pass.
+The second and most impactful step is TensorRT Compilation. NVIDIA TensorRT is a
+high-performance deep learning inference optimizer and runtime library. It takes the
+serialized ONNX graph and performs a suite of aggressive optimizations tailored to run
+on NVIDIA GPUs. These optimizations include: layer and tensor fusion (combining
+multiple operations into a single kernel launch to reduce overhead), kernel auto-tuning
+(selecting the fastest available implementation for each operation), and precision
+calibration. The most significant benefit comes from quantization. TensorRT supports
+running models in reduced precisions like FP16 (half-precision floating point) and INT8
+(8-bit integer). Converting the model to FP16 can dramatically reduce memory
+bandwidth requirements and increase computational throughput on modern GPUs,
+typically yielding a latency reduction of over 80% with minimal to no loss in forecast
+accuracy 69 70. While INT8 quantization offers even greater potential speedups, its
+performance can be hardware-dependent, and in some cases, an INT8 engine compiled
+with TensorRT can be slower than its FP16 counterpart, depending on the specific GPU
+architecture and the model's sensitivity to quantization error 71. Given the target of
+sub-20ms latency, starting with FP16 is the most prudent strategy. The final output of
+this step is a highly optimized .engine file, which is a serialized, platform-specific
+representation of the optimized model ready for execution.
+The final stage of this phase is Benchmarking and Validation. Before deploying the
+optimized engine, it must be rigorously tested against the original PyTorch
+implementation to ensure accuracy parity. This is a non-negotiable step for a system
+intended for financial risk assessment. A load test will be conducted using a tool like
+Locust or the Triton Inference Server to simulate a high-volume production workload.
+The primary success metrics for this phase are:
+• Latency: The average end-to-end latency for a single-property inference (batch size
+of 1) must be less than 20 milliseconds.
+
+===== PAGE 14 =====
+
+• Throughput: The system must be able to sustain a throughput of greater than 500
+properties per second under load.
+• Accuracy Parity: To ensure the optimization did not introduce numerical drift, the
+maximum absolute difference between the outputs of the original FP16 PyTorch
+model and the TensorRT FP16 engine must be below a very strict threshold, such as
+−3
+1×10 , for a representative sample of inputs. This cryptographic or statistical
+parity check proves that the production inference engine is functionally equivalent
+to the research model 70.
+Successfully completing this phase completes the journey from a research prototype to a
+production-grade system. The resulting sovereign OS will not only be mathematically
+sound and adaptable but also fast enough to power a truly interactive and responsive
+underwriting experience, fulfilling the core promise of the project. The final deliverable
+will include this optimized TensorRT engine, forming the operational backbone of the
+DSCR Sovereign OS.
+Synthesis and Regulatory Readiness
+This applied R&D sprint, structured over seven weeks, systematically deconstructs and
+resolves eight critical technical gaps that stand between a promising theoretical
+architecture and a production-grade, sovereign-level AI for real estate finance. The
+progression from foundational data topology to advanced mathematical and architectural
+innovations, culminating in production optimization, forms a coherent and logical
+pathway to building the DSCR Sovereign OS. The solutions proposed are not merely
+incremental tweaks but represent a holistic hardening of the system against the specific
+failure modes encountered when applying a powerful, general-purpose foundation model
+to the high-stakes domain of financial forecasting. By addressing the problems of log-
+return error compounding, patching misalignment, improper covariate routing, spatial
+blindspots, quantile crossing, data missingness, regime-agnostic training, and inference
+latency, the resulting system transitions from a "clever forecasting pipeline" to an
+"institutional-grade, mathematically rigorous credit engine" 77 95.
+The synthesis of these efforts yields a model that is fundamentally more robust and
+trustworthy. The adoption of TimesFM's native Reversible Instance Normalization
+(RevIN) provides a mathematically sound method for stabilizing non-stationary data,
+avoiding the tail-risk explosion inherent in manual log-transforms 12 14. The
+implementation of a strict data contract, with explicit attention masking and correct
+
+===== PAGE 15 =====
+
+routing of past and future covariates, ensures the model's attention mechanism receives
+clean, semantically meaningful information 7 18. The introduction of a Missingness
+Indicator Covariate allows the model to probabilistically reason about data quality,
+dynamically adjusting uncertainty estimates where data is sparse or absent 10 11.
+Furthermore, the injection of cross-sectional macro anchors, such as the MSA-level Zillow
+Rent Index, imbues the model with crucial domain knowledge, enabling it to generalize
+across geography and navigate market-wide shocks with greater fidelity 4 . At the heart
+of its probabilistic capabilities, the switch to a Student's t-distributional head guarantees
+monotonic quantiles by construction, eliminating logical inconsistencies and ensuring
+mathematical coherence for all downstream applications, including complex Monte Carlo
+simulations 16 80.
+Perhaps the most strategic enhancement is the development of a regime-adaptive
+forecasting engine through the training and dynamic blending of specialized LoRA
+adapters 51. This architecture directly confronts the non-stationarity of financial markets,
+allowing the DSCR Sovereign OS to pivot its forecasting behavior in response to changing
+macroeconomic environments, such as the shift from a low-rate to a high-rate world 5 .
+Finally, the rigorous application of the ONNX and TensorRT workflow delivers a
+production-grade inference engine capable of sub-20ms latency, making real-time,
+interactive risk assessment a tangible reality 70. This end-to-end process, from data
+cleaning to low-latency deployment, is meticulously documented and validated
+throughout the sprint.
+To ensure this engineered system is not only performant but also defensible to regulators,
+a formal governance and evidence vault integration process is paramount. Every
+experiment, from data lineage to hyperparameter tuning, must be logged with
+cryptographic integrity 77. The final deliverable is not merely the optimized model but a
+comprehensive DSCR Sovereign OS Model Card 101. This document must serve as the
+definitive source of truth, containing: 1. The complete, validated data transformation and
+preprocessing pipeline. 2. The final, merged, and TensorRT-compiled .engine file for
+inference. 3. The Python inference wrapper code, which includes the dynamic regime-
+blending logic (γ calculation). 4. A comprehensive validation report that provides
+irrefutable evidence of the system's properties, including:
+• Mathematical Stability: Proof of no quantile crossing and a bounded P90/P10
+ratio, demonstrating control over tail risk.
+• Calibration Backtests: Automated generation of Hosmer-Lemeshow-style plots for
+the quantile outputs, proving that the model's uncertainty estimates are well-
+
+===== PAGE 16 =====
+
+calibrated (e.g., the P10 quantile is exceeded by approximately 10% of actual
+observations).
+• TensorRT Parity Reports: Cryptographic hashes or statistical tests proving that the
+optimized inference engine produces bit-for-bit or numerically equivalent results to
+the original research model, confirming that no accuracy was lost in the
+optimization process 70.
+By adhering to this rigorous process, the DSCR Sovereign OS emerges not just as a
+technological achievement but as a responsible AI system. It embodies the principles of a
+risk-based approach to model risk management, where the level of rigor applied is
+commensurate with the materiality of the model's use 95. The resulting sovereign OS is a
+system that is not only capable of making accurate forecasts but is also transparent,
+auditable, and demonstrably robust, making it a worthy candidate for deployment in a
+regulated financial environment.
+Reference
+1. Time Series Forecasting with Google's TimesFM 2.5 in MetaTrader 5 https://
+www.mql5.com/en/articles/22096
+2. TimesFM时间序列预测模型微调实战：7%精度提升完整复现指南 https://
+adg.csdn.net/6972dfee437a6b40336b3a85.html
+3. TRACE: Time SeRies PArameter EffiCient FinE-tuning - arXiv https://arxiv.org/html/
+2503.16991v2
+4. Machine Learning Insights: Exploring Key Factors Influencing Sale ... https://
+www.mdpi.com/2075-5309/14/5/1471
+5. Analysis of the Impact of Interest Rate Level on the Real Estate ... https://
+www.researchgate.net/publication/
+383211361_Analysis_of_the_Impact_of_Interest_Rate_Level_on_the_Real_Estate_Indu
+stry
+6. timesfm-2.0-500m-pytorch - 模型详情页 https://modelscope.cn/models/AI-
+ModelScope/timesfm-2.0-500m-pytorch
+7. Deconstructing a Strong Baseline for Time Series Foundation Models https://
+arxiv.org/html/2602.06909v1
+
+===== PAGE 17 =====
+
+8. Online time series prediction using feature adjustment - OpenReview https://
+openreview.net/forum?id=s4U2FWEMTU
+9. Deep Ensembles Meets Quantile Regression: Uncertainty-aware ... https://arxiv.org/
+html/2312.01294v1
+10. Probabilistic wind power forecasting resilient to missing values https://
+www.sciencedirect.com/science/article/abs/pii/S0360544224013173
+11. Probabilistic Imputation for Time-series Classification with Missing ... https://
+openreview.net/forum?id=7pcZLgulIV
+12. Reversible Instance Normalization for Accurate Time-Series... https://openreview.net/
+forum?id=cGDAkQo1C0p
+13. Noise or Signal? Deconstructing Contradictions and An Adaptive ... https://arxiv.org/
+html/2510.04667v1
+14. 【论文阅读】RevIN - Reversible Instance Normalization for Accurate ... https://
+blog.csdn.net/mataolc/article/details/128438306
+15. Transformer-Based Models for Probabilistic Time Series Forecasting ... https://
+www.mdpi.com/2227-7390/13/5/814
+16. (PDF) Transformer-Based Models for Probabilistic Time Series ... https://
+www.researchgate.net/publication/389453974_Transformer-
+Based_Models_for_Probabilistic_Time_Series_Forecasting_with_Explanatory_Variables
+17. How to use TimesFM 2.5 with quantiles and covariates for inventory ... https://
+www.linkedin.com/posts/nasdag_timeseries-forecasting-googleresearch-
+activity-7381262516561014785-lTW6
+18. Adapting Time Series Foundation Model to General Covariate ... https://arxiv.org/
+html/2506.22039v1
+19. Channel-Aware Low-Rank Adaptation in Time Series Forecasting https://dl.acm.org/
+doi/pdf/10.1145/3627673.3679884
+20. Transfer Learning with Foundational Models for Time Series ... https://
+www.sciencedirect.com/science/article/pii/S1566253525003203
+21. CoRA: Boosting Time Series Foundation Models for Multivariate... https://
+openreview.net/forum?id=JRlNrcTllN
+22. (PDF) Forecasting House Prices and Rents: Combining Dynamic ... https://
+www.researchgate.net/publication/
+395667643_Forecasting_House_Prices_and_Rents_Combining_Dynamic_Factor_Model
+s_with_Machine_Learning
+23. Zillow Home Data - Time Series Forecasting - RPubs https://rpubs.com/
+nikskhandelwal5/871191
+
+===== PAGE 18 =====
+
+24. Mathematics, Volume 13, Issue 23 (December-1 2025) – 158 articles https://
+www.mdpi.com/2227-7390/13/23
+25. Railway track geometry degradation: A review of prediction methods https://
+www.sciencedirect.com/science/article/pii/S2590123026006237
+26. Diffusion-based generative AI framework for long-term degradation ... https://
+link.springer.com/content/pdf/10.1007/s10791-025-09868-9.pdf
+27. TRACE: Time SeRies PArameter EffiCient FinE-tuning - arXiv https://arxiv.org/html/
+2503.16991v3
+28. DeformableTST: Transformer for Time Series Forecasting without... https://
+openreview.net/forum?id=B1Iq1EOiVU
+29. Quantile Regression with Large Language Models for Price Prediction https://
+arxiv.org/html/2506.06657v1
+30. [PDF] Quantile Regression with Large Language Models for Price Prediction https://
+aclanthology.org/2025.findings-acl.641.pdf
+31. Multimodal information fusion for financial forecasting via cross ... https://
+www.sciencedirect.com/science/article/pii/S2666827026000058
+32. Urban theft prediction via LLM-empowered spatiotemporal transformer https://
+www.nature.com/articles/s41598-026-45681-0
+33. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v3
+34. Google Research Introduces TimesFM 2.5 for Time Series Forecasting https://
+www.linkedin.com/posts/gayathri-gowda-198266117_github-google-researchtimesfm-
+timesfm-activity-7413113029954813952-PVBb
+35. Sentinel: Multi-Patch Transformer with Temporal and Channel... https://
+openreview.net/forum?id=zV2cgXk2aY
+36. Spatial-Temporal Convolutional Transformer Network for ... - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC8838990/
+37. Are Transformers Effective for Time Series Forecasting? https://
+www.researchgate.net/publication/
+371915865_Are_Transformers_Effective_for_Time_Series_Forecasting
+38. An Imputation-Free Approach to Time Series Modeling with Missing ... https://
+arxiv.org/html/2502.15785v1
+39. (PDF) Time-Series Data Imputation via Realistic Masking-Guided Tri ... https://
+www.researchgate.net/publication/374311375_Time-
+Series_Data_Imputation_via_Realistic_Masking-Guided_Tri-Attention_Bi-GRU
+40. [PDF] Enhancing Masked Time-Series Modeling via Dropping Patches https://
+ojs.aaai.org/index.php/AAAI/article/view/34211/36366
+
+===== PAGE 19 =====
+
+41. (PDF) Integrating Real Estate Market Conditions into Home Price ... https://
+www.researchgate.net/publication/
+280466869_Integrating_Real_Estate_Market_Conditions_into_Home_Price_Forecastin
+g_Systems
+42. [PDF] Probabilistic Imputation for Time-series Classification with Missing ... https://
+arxiv.org/pdf/2308.06738
+43. [PDF] An Observed Value Consistent Diffusion Model for Imputing Missing ... http://
+home.ustc.edu.cn/~pengkun/files/Publications/KDD2023_1.pdf
+44. (PDF) Probabilistic Imputation for Time-series Classification with ... https://
+www.researchgate.net/publication/373117035_Probabilistic_Imputation_for_Time-
+series_Classification_with_Missing_Data
+45. [PDF] Generative Semi-supervised Learning for Multivariate Time Series ... https://
+ojs.aaai.org/index.php/AAAI/article/view/17086/16893
+46. [PDF] Forecasting Irregularly Sampled Time Series with Transformer ... https://
+ecmlpkdd-storage.s3.eu-central-1.amazonaws.com/preprints/2025/ads/
+preprint_ecml_pkdd_2025_ads_598.pdf
+47. Learning Quantile Functions without Quantile Crossing for ... - arXiv https://
+arxiv.org/abs/2111.06581
+48. [PDF] PROBABILISTIC IMPUTATION FOR TIME-SERIES CLAS https://
+openreview.net/pdf?id=fBoNN1Y6PjG
+49. Probabilistic Imputation for Time-Series | PDF | Statistical Classification https://
+www.scribd.com/document/933455883/2308-06738v1
+50. Missing Traffic Data Imputation with a Linear Generative Model ... https://
+www.mdpi.com/1424-8220/23/1/204
+51. [PDF] Transformer Architecture Search with Mixture-of-LoRA Experts https://
+openaccess.thecvf.com/content/CVPR2026/supplemental/Jeon_TAS-
+LoRA_Transformer_Architecture_CVPR_2026_supplemental.pdf
+52. Modeling Multivariate Time Series Correlation with Variate Embedding https://
+arxiv.org/html/2409.06169v1
+53. [PDF] EMAformer: Enhancing Transformer Through Embedding Armor for ... https://
+ojs.aaai.org/index.php/AAAI/article/view/40095/44056
+54. U-Net Inspired Transformer Architecture for Multivariate Time Series ... https://
+www.mdpi.com/1424-8220/25/13/4073
+55. (PDF) Evaluation of the Transformer Architecture for Univariate Time ... https://
+www.researchgate.net/publication/
+354541471_Evaluation_of_the_Transformer_Architecture_for_Univariate_Time_Series
+_Forecasting
+
+===== PAGE 20 =====
+
+56. iTransformer: Inverted Transformers Are Effective for Time Series... https://
+openreview.net/forum?id=JePfAI8fah
+57. timesfm-forecasting - ModelScope https://modelscope.cn/skills/@k-dense-ai/timesfm-
+forecasting
+58. Probabilistic Multivariate Time Series Forecasting with Diffusion ... https://arxiv.org/
+html/2605.19685v1
+59. Quantile regression for longitudinal data with values below the limit ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC11938297/
+60. A review of predictive uncertainty estimation with machine learning https://
+link.springer.com/article/10.1007/s10462-023-10698-8
+61. Bayesian Random Forest with Multiple Imputation by Chain ... - MDPI https://
+www.mdpi.com/2227-7390/13/6/956
+62. Quantile deep learning models for multi-step ahead time series ... https://arxiv.org/
+html/2411.15674v1
+63. Renewable penalized linear regression via inverse probability ... https://
+www.sciencedirect.com/science/article/abs/pii/S0167947325002142
+64. [PDF] Time Series Forecasting, Anomaly Detection and Prediction https://
+theses.hal.science/tel-05296506v1/file/TH2024PA120111.pdf
+65. A data-driven and expert flood knowledge model based on the ... https://
+www.sciencedirect.com/science/article/abs/pii/S0043135425015350
+66. [PDF] TempusBench: An Evaluation Framework for Time-Series Forecasting https://
+arxiv.org/pdf/2604.11529
+67. Arxiv今日论文| 2026-06-05 - 闲记算法 http://lonepatient.top/2026/06/05/
+arxiv_papers_2026-06-05.html
+68. 3D sensing and perception for precision weed management https://
+www.sciencedirect.com/science/article/pii/S0168169925013250
+69. Working with Quantized Types — NVIDIA TensorRT https://docs.nvidia.com/
+deeplearning/tensorrt/latest/inference-library/work-quantized-types.html
+70. Optimizing and deploying transformer INT8 inference with ONNX ... https://
+opensource.microsoft.com/blog/2022/05/02/optimizing-and-deploying-transformer-
+int8-inference-with-onnx-runtime-tensorrt-on-nvidia-gpus/
+71. QAT int8 TRT engine slower than fp16 - NVIDIA Developer Forums https://
+forums.developer.nvidia.com/t/qat-int8-trt-engine-slower-than-fp16/198341
+72. Adapting Univariate Foundation Models to Probabilistic Multivariate ... https://
+openreview.net/forum?id=yeICCRy3lE¬eId=jB1dScrb3v
+73. Artificial Intelligence Models for Predicting Triage in Emergency ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC13014074/
+
+===== PAGE 21 =====
+
+74. Trends in Motion Prediction Toward Deployable and Generalizable ... https://
+arxiv.org/html/2505.09074v3
+75. A Survey of Machine Learning Methods for Time Series Prediction https://
+www.mdpi.com/2076-3417/15/11/5957
+76. The Complete Guide to Data Imputation Techniques: From Basic ... https://
+www.linkedin.com/pulse/complete-guide-data-imputation-techniques-from-basic-
+advanced-saini--uqhdc
+77. OCC Federal Reserve FDIC Issue Revised Model Risk Management ... https://
+www.linkedin.com/posts/sullivanandcromwell_federal-banking-agencies-issue-
+revised-guidance-activity-7455697263927926784-WCuo
+78. RMA30 - Stress testing - Bank for International Settlements https://www.bis.org/
+basel_consolidated_guidelines/chapter/RMA/30.htm
+79. Scalable Non-Crossing Quantile Estimation via Neural Networks for ... https://
+arxiv.org/html/2510.22419v1
+80. (PDF) A New Generalization of the Student's t Distribution with an ... https://
+www.researchgate.net/publication/
+357175801_A_New_Generalization_of_the_Student's_t_Distribution_with_an_Applicat
+ion_in_Quantile_Regression
+81. Parameter Estimation of the Partially Linear Quantile Regression ... https://
+ideas.repec.org/a/hin/jjmath/6421789.html
+82. A New Generalization of the Student's t Distribution with an ... - MDPI https://
+www.mdpi.com/2073-8994/13/12/2444
+83. Additive Ensemble Neural Network with Constrained Weighted ... https://
+www.mdpi.com/1424-8220/21/9/2979
+84. Ranking probabilistic forecasting models with different loss functions https://
+arxiv.org/html/2411.17743v1
+85. Probabilistic load forecasting for integrated energy systems based ... https://
+www.researchgate.net/publication/
+392286827_Probabilistic_load_forecasting_for_integrated_energy_systems_based_on_
+quantile_regression_patch_time_series_Transformer
+86. 探秘Transformer系列之（22）--- LoRA - 罗西的思考- 博客园 https://
+www.cnblogs.com/rossiXYZ/p/18805103
+87. CARD: Channel Aligned Robust Blend Transformer for Time Series... https://
+openreview.net/forum?id=MJksrOhurE
+88. Deconstructing a Minimalist Transformer Architecture for Univariate ... https://
+www.mdpi.com/1999-4893/18/10/645
+
+===== PAGE 22 =====
+
+89. Gated Transformer Networks for Multivariate Time Series Classification https://
+www.semanticscholar.org/paper/Gated-Transformer-Networks-for-Multivariate-Time-
+Liu-Ren/f4299e47a76d5d7cf1638ba347d9848903ef5a60
+90. Towards the Next Generation of Time Series Forecasting Benchmarks https://
+arxiv.org/html/2602.12147v1
+91. Rethinking the Stationarity in Time Series Forecasting - ResearchGate https://
+www.researchgate.net/publication/360961210_Non-
+stationary_Transformers_Rethinking_the_Stationarity_in_Time_Series_Forecasting
+92. An Improved Quantile Regression Neural Network for Probabilistic ... https://
+www.researchgate.net/publication/
+326619649_An_Improved_Quantile_Regression_Neural_Network_for_Probabilistic_Lo
+ad_Forecasting
+93. [PDF] Any-Quantile Probabilistic Forecasting of Short-Term Electricity ... https://
+arxiv.org/pdf/2404.17451
+94. Probabilistic Load Forecasting via Quantile Regression Averaging ... https://
+www.researchgate.net/publication/
+282544636_Probabilistic_Load_Forecasting_via_Quantile_Regression_Averaging_on_S
+ister_Forecasts
+95. Fed, OCC, FDIC Update Model Risk Management Guidance - LinkedIn https://
+www.linkedin.com/posts/kareemsaleh_news-the-fed-occ-and-fdic-just-dropped-
+activity-7451061915209949184-uXwf
+96. ADCformer: multivariate time series forecasting with adaptive ... https://
+www.researchgate.net/publication/
+403580684_ADCformer_multivariate_time_series_forecasting_with_adaptive_different
+ial_channels_transformer
+97. Integrating Transfer Entropy into Transformer for Time Series... https://
+openreview.net/forum?id=uyDQXVkDmB
+98. Transtreaming: Adaptive Delay-aware Transformer for Real-time ... https://
+ojs.aaai.org/index.php/AAAI/article/view/33105
+99. Bayesian Transformer for Probabilistic Load Forecasting in ... - arXiv https://arxiv.org/
+html/2603.07899v1
+100. Improving Probabilistic Load Forecasting Using Quantile ... https://
+www.semanticscholar.org/paper/Improving-Probabilistic-Load-Forecasting-Using-NN-
+Zhang-Quan/290fb001e325862b4f0fd95ea88a3c2bd0cdfe9a
+101. SR 11-7 - MATLAB & Simulink - MathWorks https://www.mathworks.com/discovery/
+sr11-7.html
+102. CPTFORMER: Self-Supervised Change-Point-Aware Transformer ... https://
+www.researchgate.net/publication/404386796_CPTFORMER_Self-
+
+===== PAGE 23 =====
+
+Supervised_Change-Point-Aware_Transformer_Framework_for_Non-
+Stationary_Time_Series_Forecasting
+103. A hybrid learning framework for forecasting uncertainty and adaptive ... https://
+www.sciencedirect.com/science/article/pii/S2949863525000809
+104. A decoder-only foundation model for time-series forecasting - arXiv https://arxiv.org/
+html/2310.10688v2
+105. A Survey on Uncertainty Quantification of Large Language Models https://dl.acm.org/
+doi/full/10.1145/3744238
+106. Semantic Search At LinkedIn - arXiv https://arxiv.org/html/2602.07309v1
+107. [PDF] CL-LoRA: Continual Low-Rank Adaptation for Rehearsal-Free Class ... https://
+openaccess.thecvf.com/content/CVPR2025/papers/He_CL-LoRA_Continual_Low-
+Rank_Adaptation_for_Rehearsal-Free_Class-
+Incremental_Learning_CVPR_2025_paper.pdf
+108. Gated Integration of Low-Rank Adaptation for Continual Learning of... https://
+openreview.net/forum?id=vmfRdANa6a
+109. [PDF] Basel III: Finalising post-crisis reforms https://www.bis.org/bcbs/publ/
+d424.pdf
+110. (PDF) The Impact of LoRA Adapters on LLMs for Clinical Text ... https://
+www.researchgate.net/publication/
+392992380_The_Impact_of_LoRA_Adapters_on_LLMs_for_Clinical_Text_Classification
+_Under_Computational_and_Data_Constraints
+111. What is LoRA (Low-Rank Adaption)? - IBM https://www.ibm.com/think/topics/lora
+112. [PDF] PVeRA: Probabilistic Vector-Based Random Matrix Adaptation https://
+openaccess.thecvf.com/content/WACV2026/papers/
+Fillioux_PVeRA_Probabilistic_Vector-
+Based_Random_Matrix_Adaptation_WACV_2026_paper.pdf

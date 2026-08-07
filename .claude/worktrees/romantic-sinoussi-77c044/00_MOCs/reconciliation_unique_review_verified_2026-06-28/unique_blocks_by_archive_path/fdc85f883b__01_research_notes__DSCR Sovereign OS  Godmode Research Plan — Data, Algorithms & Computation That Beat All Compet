@@ -1,0 +1,26 @@
+# Unique Content Review
+
+- Row key: fdc85f883b
+- Source path: 01_research_notes/DSCR Sovereign OS  Godmode Research Plan — Data, Algorithms & Computation That Beat All Competitors.md
+- Archived path: 01_research_notes/_archive/superseded_by_docs_research_2026-06-28/DSCR Sovereign OS  Godmode Research Plan — Data, Algorithms & Computation That Beat All Competitors.md
+- Replacement path: docs/research/sprints/DSCR Sovereign OS  Godmode Research Plan — Data, Algorithms & Computation That Beat All Competitors.md
+- Coverage decision: BORDERLINE_REVIEW
+- Block coverage: 0.98
+- Unique words: 211
+- Preliminary classification: LIKELY_METADATA_OR_MINOR_DIFF_REVIEW
+- Review copy: 00_MOCs\reconciliation_unique_review_verified_2026-06-28\restored_for_review\fdc85f883b__01_research_notes__DSCR Sovereign OS  Godmode Research Plan — Data, Algorithms & Computation That Beat All Competitors.md
+
+## Unique Headings
+- None found by heading comparison.
+
+## First Unique Blocks
+
+### Block 1
+```text
+--- type: research status: drafted confidence: 5 title: "DSCR Sovereign OS: Godmode Research Plan" summary: "**Classification:** SOVEREIGN | **Version:** GODMODE-1.0 | **Date:** June 18, 2026" entities: - concept/arm - concept/cap-rate - concept/dscr - concept/itia - concept/ltv - concept/pitia - data/cotality - data/fannie-mae - data/fred - data/freddie-mac - data/kbra - data/zillow - lender/ad-mortgage - lender/american-heritage - lender/angel-oak - lender/deephaven - lender/easy-street - lender/griffin-funding - lender/kiavi - lender/lima-one - lender/verus - lender/visio-lending - math/copula - math/t-copula - ml/shap - ml/xgboost - regulation/cfpb - regulation/section-1071 - sprint/1 - sprint/2 - sprint/3 - sprint/4 - sprint/5 - sprint/6 - state/oh - state/pa - tax/bonus-depreciation - tax/niit - tax/pal - topic/condo - topic/multifamily - topic/non-qm - topic/str tags: - ml/xgboost - topic/40yr-amort - topic/after-tax - topic/architecture - topic/compliance - topic/default-rate - topic/flood-insurance - topic/ic-memo - topic/insurance - topic/kill-criteria - topic/monte-carlo - topic/portfolio - topic/ppp - topic/reserves - topic/short-rate - topic/stress-test - topic/tax - t ... [truncated]
+```
+
+### Block 2
+```text
+All deterministic math runs in a **pure Python module with zero ML, zero approximation, zero prose-based formulas**. Every function has a corresponding pytest golden test pinned to the v11.2 numerical anchors.
+```

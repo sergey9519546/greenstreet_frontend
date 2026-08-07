@@ -1,0 +1,313 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: Ai Algorithm Improvement Prompt
+summary: "Improving the Advisor‑Grade DSCR Engine: 15 Iterative Loops"
+entities:
+  - concept/cap-rate
+  - concept/dscr
+  - concept/itia
+  - concept/ltv
+  - concept/pitia
+  - data/fred
+  - lender/visio-lending
+  - regulation/cfpb
+  - regulation/ecoa
+  - tax/pal
+  - topic/multifamily
+  - topic/str
+tags:
+  - topic/adverse-action
+  - topic/apex
+  - topic/architecture
+  - topic/compliance
+  - topic/default-rate
+  - topic/flood-insurance
+  - topic/insurance
+  - topic/reserves
+  - topic/stress-test
+  - topic/tax
+  - type/audit
+source: RESEARCH/pdf_extractions/AI Algorithm Improvement Prompt.txt
+vaulted_at: 2026-06-20
+---
+
+
+===== PAGE 1 =====
+
+Improving the Advisor‑Grade DSCR Engine: 15
+Iterative Loops
+Introduction
+The Advisor‑grade DSCR decision engine already includes a comprehensive set of deterministic formulas
+and algorithms. To push the system to a higher institutional standard, each formula and algorithm should
+be revisited through an iterative research and testing loop. This document proposes 15 improvement
+loops designed to strengthen the engine’s accuracy, resilience and practical usefulness. Each loop draws on
+existing research or recommends new data sources for calibration. Citations from regulatory documents
+and academic/industry studies are provided to justify key enhancements.
+Loop 1 – Data Quality & Input Confidence Calibration
+Goal: Enhance the input record schema, confidence weighting and outlier handling.
+• Evidence: The Federal Reserve’s credit‑risk model documentation applies extreme‑value filters to
+variables such as vacancy rate, CRE rent index and price index to remove misreported data and
+outliers 1 . It also notes that certain commercial real‑estate variables exhibit significant seasonality
+2 .
+• Actions:
+• Introduce automated outlier detection on each input: flag values beyond the 2.5th/97.5th
+percentile relative to market data and require user confirmation or additional documentation.
+• Calibrate confidence weights (ACS trust scores) using historical deal outcomes. Inputs that showed
+strong predictive power for default or delinquency should receive higher weights, while those with
+weak predictive power should be down‑weighted.
+• Extend the confidence schema to include “Time‑Adjusted” status: inputs that are older than a
+specified window (e.g., 90 days) should automatically lose trust weight, encouraging users to refresh
+stale rents, taxes or insurance quotes.
+• Implement seasonality indicators in the input schema so that seasonally‑adjusted DSCR
+calculations can be triggered automatically when flagged.
+Loop 2 – Live Lender Matrix Adaptation
+Goal: Ensure the lender matrix engine remains current and can adapt to discrete lender‑tier structures.
+• Evidence: Lender guidelines change frequently. The research emphasises the need for versioned
+matrices and warns that the engine must not guess lender rules when the matrix is stale or missing
+1 .
+• Actions:
+1
+
+===== PAGE 2 =====
+
+• Build an API or scraping pipeline to ingest public lender rate sheets and DSCR matrices (when
+available) and convert them into the engine’s JSON/YAML format. Use natural language processing to
+detect DSCR thresholds, FICO bands and LTV caps from PDF rate sheets.
+• Add a Matrix Diff Engine that compares the current matrix to the previous version and flags any
+changes in DSCR floors, LTV tiers or property‑type eligibility.
+• Implement the Matrix Grid Solver as the default search algorithm for lender qualification. Instead
+of linear interpolation, this solver will evaluate discrete FICO/LTV/DSCR nodes and snap
+recommendations to the nearest beneficial tier (the “Matrix Cliff”).
+Loop 3 – Enhanced Economic DSCR & NOI Calculation
+Goal: Improve the DSCR_E formula by using more granular time periods and property‑specific drivers.
+• Evidence: A financial modelling handbook shows that DSCR can vary widely over short periods; a
+three‑month DSCR chart exhibits seasonal swings where the ratio falls below 1 multiple times
+despite a healthy annual average 3 . The Fed’s credit‑risk model also applies seasonal adjustment
+to CRE vacancy variables 2 .
+• Actions:
+• Quarterly or monthly cash‑flow modelling: compute EGI and OpEx_E on a rolling three‑month
+basis rather than annualising all inputs. This allows the DSCR_E to reflect trough periods where rent
+receipts are low or expenses spike.
+• Distinguish between fixed and variable expenses in the DSCR_E numerator. For example,
+management fees may vary with vacancy, while taxes and insurance remain fixed until reassessment
+or renewal.
+• Introduce a Seasonality Weight Vector where each month has a multiplier (e.g., for STR properties)
+based on local occupancy patterns. This ensures the DSCR_E responds to expected income troughs.
+• Add an inflation adjustment for insurance and taxes: update assumptions annually based on
+historical CPI and property‑tax data.
+Loop 4 – Macro‑Stress Correlation and Extreme Scenarios
+Goal: Integrate macro‑economic variables and cross‑correlated stress scenarios.
+• Evidence: The Federal Reserve’s 2026 stress test scenario assumes severe declines in house prices
+(−30 %) and commercial real‑estate prices (−39 %), along with a broader macro‑economic downturn
+4 . The credit‑risk document emphasises the need for extreme‑value filtering and seasonally
+adjusted variables 1 .
+• Actions:
+• Develop Macro Archetype Libraries (e.g., stagflation, recession, climate risk) and pre‑define
+correlated changes in rent, vacancy, cap rates, taxes and insurance.
+• Implement covariance matrices based on historical relationships between interest rates, cap rates,
+vacancy and property values. This allows the engine to apply correlated shocks rather than
+independent stress factors.
+• Enable scenario versioning tied to external regulatory guidance (e.g., Fed DFAST scenarios). Each
+scenario will store its own timestamp, variable shocks and correlation assumptions.
+• Use extreme‑value filters to remove data points outside realistic ranges in the calibration set,
+preventing unrealistic stress combinations.
+2
+
+===== PAGE 3 =====
+
+Loop 5 – Cap‑Rate & Interest‑Rate Linkage (Cap‑Rate Beta)
+Goal: Improve the refinance and valuation logic by linking cap rates to interest rate movements.
+• Evidence: Real‑estate research indicates that interest rates anchor cap rate expectations; elevated
+policy rates lead investors to demand higher unlevered returns and cap rates adjust to maintain a
+spread over risk‑free yields 5 . A UNC study regressed cap rates on the 10‑year Treasury yield,
+prior‑year cap rates and revenue growth and found that the risk‑free rate significantly influenced cap
+rates 6 .
+• Actions:
+• Define a Cap‑Rate Beta (β) parameter representing how much cap rates expand per 100 bps
+increase in the risk‑free rate. Calibrate β using historical regressions for each property type
+(multifamily, office, industrial, etc.).
+• Modify the Cap‑Rate Linked Refi Solver: when a refi rate shock occurs, compute the projected exit
+cap rate as Cap_rate_exit = Cap_rate_current + (ΔRate × β) . Then recalculate the
+projected property value and refi LTV.
+• Introduce an Interest‑Rate Trend Filter: use forward curves or macro forecasts to smooth
+short‑term rate volatility, preventing the solver from overreacting to temporary spikes.
+• Test this logic by back‑running historical cap rate and rate data and comparing predicted vs. actual
+property values (requires dataset outside this environment).
+Loop 6 – Seasonality Trough & Short‑Term Rentals
+Goal: Extend the seasonality trough detector into a comprehensive maximum cumulative intra‑year deficit
+calculation for any property with seasonal income (STR, student housing, tourism‑driven markets).
+• Evidence: The DSCR example from the financial modelling handbook demonstrates that even when
+the average DSCR is above 1, there can be months where DSCR falls below 1 due to seasonality 3 .
+The Federal Reserve credit‑risk model notes significant seasonality in CRE vacancy rates 2 .
+• Actions:
+• Build a monthly revenue curve for each seasonal property based on actual booking data, market
+occupancy patterns or platform data (e.g., AirDNA). Multiply the base rent by this curve to get
+monthly rent forecasts.
+• Calculate the Maximum Cumulative Intra‑Year Deficit by tracking cumulative cash flow
+throughout the year and identifying the largest negative trough relative to the year’s starting cash.
+Compare this trough to the investor’s liquid reserves.
+• If the trough exceeds reserves, flag the deal as failing investor survival, even if annual DSCR is
+strong. Integrate this into the QbD detector.
+• Provide rent normalisation guidelines: instruct users to provide at least 12 months of bookings to
+calibrate seasonality; otherwise require a discount to annualised rent to account for winter or
+off‑season months.
+3
+
+===== PAGE 4 =====
+
+Loop 7 – Liquidity Simulation & Path‑Dependency
+Goal: Move from a scalar liquidity clock to a full path‑dependent simulation.
+• Actions:
+• Implement a Sequential Drawdown Array as default: simulate month‑by‑month cash balance
+considering rent, expenses, debt service, CapEx events, tax reassessment, insurance renewal and refi
+resets. Flag the earliest month where cash runs negative.
+• Incorporate random or deterministic event timing: allow the engine to test worst‑case sequences
+where vacancy and a major repair occur simultaneously (the “ruin gap”).
+• Extend the Liquidity Survival Clock to return both the scalar result (months of runway) and the
+path‑dependent result (ruin month or confirm survival over a given horizon).
+• Provide a liquidity buffer recommendation: compute additional reserves required to survive the
+worst-case drawdown path.
+Loop 8 – Breakpoint Solver & Discrete Tier Optimisation
+Goal: Strengthen the breakpoint and repair solver to handle discrete lender tiers and multi‑variable
+optimisation.
+• Evidence: Lender matrices contain step‑function pricing and DSCR requirements. A calculus‑based
+solver might recommend a 0.1 % price decrease when a discrete 5 % LTV reduction would produce a
+better tier.
+• Actions:
+• Replace continuous root‑finding with a Grid‑Search / Knapsack Solver for the lender ledger:
+evaluate each combination of LTV, rate, FICO and DSCR tier and output the minimum down payment
+or additional reserves required to cross beneficial thresholds.
+• Add a Multi‑Variable Optimiser that identifies Pareto‑efficient repair bundles: for example, reduce
+price by $25 k and add $10 k reserves instead of reducing price by $40 k alone. Use a weighted
+objective function balancing DSCR improvement, cash‑to‑close, and reserves.
+• Include a Repair Feasibility Score that penalises solutions requiring unrealistic rent increases or
+unsustainable expense cuts. Base feasibility weights on local market data and property‑type norms.
+Loop 9 – Qualifies‑but‑Dangerous (QbD) Refinement
+Goal: Improve the QbD detector by incorporating severity tiers and linking them to investor actions.
+• Actions:
+• Implement severity levels: (1) QbD‑minor: DSCR_E slightly below 1 (e.g., 0.95–0.99); (2)
+QbD‑moderate: DSCR_E 0.80–0.95 or stress DSCR < 0.9; (3) QbD‑critical: DSCR_E < 0.80 or liquidity
+failure in first 12 months.
+• Provide tailored mitigation for each level. For example, a QbD‑minor case might be repaired with
+slightly higher reserves, while a QbD‑critical case requires price reduction or new income sources.
+• Use Additional Risk Drivers: integrate results from the dominant risk driver algorithm (tax shock vs.
+vacancy vs. CapEx) into the QbD explanation so that users understand the cause of fragility.
+• Link QbD to human‑review triggers and require sign‑off from a licensed advisor before
+recommending the deal.
+4
+
+===== PAGE 5 =====
+
+Loop 10 – Refinancing & Exit Modelling
+Goal: Strengthen refinance risk tests by combining interest‑rate and cap‑rate modelling with credit spreads
+and exit liquidity.
+• Evidence: The UNC study found that cap rates respond to the 10‑year treasury yield 6 . The
+Matthews article notes that investors require a durable spread over risk‑free yields 5 .
+• Actions:
+• Incorporate a Refi Spread Estimator: track current lender spreads (risk‑free + credit spread) and
+project how credit spreads might widen in a downturn.
+• Expand the Cap‑Rate Linked Solver to include credit spread shocks: when rates rise, credit spreads
+may also widen for non‑agency DSCR loans, increasing required DSCR and lowering maximum LTV.
+• Develop a CapRateBeta calibration module: allow users to select market segments (e.g., coastal
+multifamily vs. suburban) and adjust β accordingly; calibrate using historical data from credible
+sources like NCREIF, MSCI Real Assets or public REIT cap‑rate spreads.
+• Integrate a refi liquidity test: calculate cash needed to pay off outstanding loan after prepayment
+penalty and compare with projected proceeds from refi or sale, ensuring there is no liquidity gap.
+Loop 11 – Multi‑Year Projection & Dynamic Reserves
+Goal: Project DSCR, liquidity and reserves over 5 to 10 years, accounting for scheduled maintenance and
+market trends.
+• Actions:
+• Use multi‑year tables that project rent growth, expense inflation, taxes, insurance, debt service, and
+CapEx events. Each parameter can be drawn from a scenario library or user input.
+• Introduce scheduled capital improvements: require the user to input major repairs (roof, HVAC)
+with their expected year and cost; integrate these into the drawdown simulation.
+• Implement dynamic reserve requirements that increase after major CapEx events or when
+refinancing risk is high. For example, require 3 months of PITIA before Year 1, 6 months before a
+balloon maturity, and 9 months before a scheduled rate reset.
+• Provide a reserve release module: if cash flows are strong and the LTV falls below a safe threshold,
+allow the investor to reallocate reserves while still maintaining the required liquidity.
+Loop 12 – Shock Calibration & Data‑Driven Weights
+Goal: Calibrate default shock parameters (rent decline, vacancy increase, tax/insurance hikes) using
+updated market data.
+• Actions:
+• Collect historical data on rent changes, vacancy rates, insurance premiums and tax reassessments
+across different regions and property types. Use FRED, FHFA, BLS and insurance industry reports for
+macro data, and aggregator platforms for local data.
+• Compute quantiles (e.g., 90th percentile worst‑case increase) to update default shocks in
+conservative and severe scenarios. Document these assumptions as
+[ASSUMPTION – calibrated on dataset X] .
+5
+
+===== PAGE 6 =====
+
+• Use cluster analysis to group markets with similar volatility and assign region‑specific shock factors
+instead of one national shock. For example, hurricane‑prone coastal markets might have an
+insurance shock of +50 % whereas inland markets have +20 %.
+• Re‑estimate the Assumption Confidence Weights using logistic regression on default outcomes:
+assign higher weights to variables with strong predictive power (e.g., DSCR_E, LTV, reserves) and
+lower weights to less predictive ones.
+Loop 13 – Fair Lending & Compliance Enhancements
+Goal: Strengthen ECOA/Regulation B compliance and mitigate proxy discrimination.
+• Actions:
+• Implement the Proxy‑Risk Lockout as described: block geographic or demographic overlays unless
+they come from objective, business‑necessary sources such as FEMA flood maps, county tax rates or
+official insurance risk zones. Avoid using zip‑code‑level vacancy assumptions or crime scores unless
+mandated by underwriting guidelines and reviewed by compliance.
+• Generate adverse‑action reason codes automatically. When a loan fails, the engine must record
+specific principal reasons (e.g., DSCR below 1.0, LTV above matrix max) and store them in the audit
+log, aligning with CFPB guidance requiring lenders to provide specific reasons for adverse action.
+• Add a fair‑lending audit dashboard: track outcomes by borrower location, property type and other
+attributes to detect disparate impact or statistical anomalies; require periodic human review.
+• Use privacy‑preserving data transformations when integrating third‑party data to avoid inferring
+protected attributes.
+Loop 14 – Model Risk Governance & Validation Framework
+Goal: Formalise model governance and continuous validation.
+• Actions:
+• Adopt a Model Governance Policy aligned with the OCC’s 2026 guidance, which emphasises model
+development, validation, monitoring, controls and effective challenge 4 .
+• Create a champion/challenger environment: run new algorithms in parallel with existing ones on
+recent loans until performance is validated; only promote challengers after statistical tests show
+improved predictive accuracy and fairness.
+• Implement model drift detection: continuously monitor input distributions, default rates, and
+recommended repair strategies. If the environment changes (e.g., new rent control laws or tax caps),
+trigger recalibration.
+• Use backtesting: compare predicted DSCR, reserves and default outcomes against actual
+performance for deals closed in previous years; adjust models accordingly.
+Loop 15 – Continuous Improvement & Modular Architecture
+Goal: Ensure the engine can adapt to new data sources, algorithms and market conditions.
+• Actions:
+6
+
+===== PAGE 7 =====
+
+• Build a modular codebase where each algorithm (DSCR_E, LSC, Cap‑Rate Beta, Matrix Solver) is an
+independent component with its own version and test suite. This enables incremental upgrades
+without breaking the entire system.
+• Develop an auto‑update pipeline for scenarios and shock parameters: when new data arrives (e.g.,
+annual property tax rates, insurance premium indexes), the engine can recompile scenario libraries
+automatically.
+• Provide a user feedback loop: allow users to submit actual performance metrics (rent received,
+repair costs, refi outcomes). Use this feedback to refine models and calibrations.
+• Encourage open research integration: monitor academic and industry publications for new DSCR
+modelling techniques. For instance, dynamic DSCR models using stochastic differential equations
+may become more practical as data availability improves.
+Conclusion
+Strengthening the Advisor‑grade DSCR engine requires continuous research, calibration and testing. These
+15 loops outline a systematic approach to improving every component — from input quality to refinance
+risk modelling, path‑dependent liquidity simulation, seasonality and macro stress correlation. By
+incorporating evidence from regulatory documents and academic studies, calibrating models with
+real‑world data, and enforcing fair‑lending compliance, the engine can evolve from a sophisticated
+calculator into a truly institutional‑grade decision‑support system.
+1 2 Supervisory Stress Test Documentation Credit Risk Models - January 2026
+https://www.federalreserve.gov/supervisionreg/files/credit-risk-models.pdf
+3 Debt modelling - Debt service coverage ratio
+https://www.financialmodellinghandbook.org/debt-service-coverage-ratio-dscr/
+4 The Fed - 2026 Stress Test Scenarios
+https://www.federalreserve.gov/publications/2026-stress-test-scenarios.htm
+5 The Factors Influencing Cap Rates in 2026 - Matthews
+https://www.matthews.com/insights/cap-rate-real-estate
+6 Determinants of Cap Rates Across Multifamily, Industrial, Retail, and Office Asset Classes
+https://econ.unc.edu/wp-content/uploads/sites/1423/2025/03/Tsui-Morgan-Research-Paper.pdf
+7

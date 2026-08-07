@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { gsap } from "gsap";
+import { DcShell, dc, Mono, CountUp, H1, Lead } from "../design/dc";
 import { swatch, radius } from "../theme";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import TrueCostComparator from "../components/TrueCostComparator";
 
 interface Props {
   onBack?: () => void;
@@ -34,7 +36,7 @@ type ScoredProgram = {
   maxLoan: number;
   isSTR: boolean;
   multiFamily: boolean;
-  foreignNational: boolean;
+  nonUsInvestor: boolean;
   features: string[];
   checks: { ok: boolean; label: string }[];
   passed: number;
@@ -91,7 +93,7 @@ function scorePrograms(
       score,
       effectiveLTV,
     };
-  }).sort((a, b) => (b.fits ? 1 : 0) - (a.fits ? 1 : 0) || b.score - a.score) as ScoredProgram[];
+  }).sort((a, b) => (b.fits ? 1 : 0) - (a.fits ? 1 : 0) || b.score - a.score) as unknown as ScoredProgram[];
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -102,6 +104,28 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
     window.scrollTo(0, 0);
   }, []);
 
+  // FLIP re-rank: cards slide to their new positions when the deal box re-sorts
+  // them. Interaction-driven only (records prev positions; animates on change —
+  // never on mount), reduced-motion safe.
+  const listRef = useRef<HTMLDivElement>(null);
+  const flipPos = useRef<Map<string, number>>(new Map());
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    list.querySelectorAll<HTMLElement>("[data-flip-id]").forEach((card) => {
+      const id = card.getAttribute("data-flip-id")!;
+      const top = card.getBoundingClientRect().top;
+      const old = flipPos.current.get(id);
+      if (old !== undefined && Math.abs(old - top) > 1 && !reduced) {
+        gsap.fromTo(card, { y: old - top }, { y: 0, duration: 0.45, ease: "power3.out", overwrite: true });
+      }
+      flipPos.current.set(id, top);
+    });
+  });
+
   const [fico, setFico] = useState(720);
   const [ltv, setLtv] = useState(75);
   const [dscr, setDscr] = useState(1.15);
@@ -109,10 +133,25 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
   const [stateCode, setStateCode] = useState("TX");
   const [needsSTR, setNeedsSTR] = useState(false);
   const [needsMF, setNeedsMF] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
 
   const scored = scorePrograms(fico, ltv, dscr, loanAmount, stateCode, needsSTR, needsMF);
   const matchCount = scored.filter((p) => p.fits).length;
   const total = scored.length;
+
+  const toggleCompare = (id: string) => {
+    setSelectedForCompare(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size < 3) {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectedPrograms = scored.filter(p => selectedForCompare.has(p.id));
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -128,7 +167,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
       accent="#004041"
       navLinks={[
         { label: "Calculator", view: "dscr-calculator" },
-        { label: "Deal Analyzer", view: "deal-analyzer" },
+        { label: "Buy-or-Pass", view: "decision-support" },
         { label: "State Rules", view: "state-laws" },
       ]}
       cta={{ label: "Match my deal →", onClick: scrollToTool }}
@@ -139,7 +178,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         .li-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
         .li-field{display:flex;align-items:center;background:${swatch.midnight};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 13px;transition:border-color .15s;}
         .li-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;}
-        .li-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.38);}
+        .li-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.5);}
         /* Toggle buttons — 44px min touch target */
         .li-toggle{min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
         @media(max-width:991px){.li-hero-grid{grid-template-columns:1fr !important;} .li-tool-grid{grid-template-columns:1fr !important;}}
@@ -157,10 +196,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div id="gs-hero-content" className="li-hero-grid" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
+          <div id="gs-hero-content" className="li-hero-grid dc-hero" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
             {/* Left: copy + chips */}
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.5)", marginBottom: 20, letterSpacing: "-0.01em" }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginBottom: 20, letterSpacing: "-0.01em" }}>
                 Product / Our DSCR Programs
               </div>
               <H1 style={{ margin: "0 0 24px", maxWidth: "15ch" }}>
@@ -169,7 +208,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
               <Lead style={{ color: "rgba(238,239,211,0.7)", maxWidth: "52ch", margin: "0 0 16px" }}>
                 Enter your FICO score, LTV (how the loan amount compares to the property value — lower means more equity and better terms), DSCR (whether the property's rent can cover the loan payment — 1.00 = rent exactly covers it; higher is stronger), and loan amount. Every Greenstreet program is scored against your numbers instantly — green cards fit, red cards don't and show you why.
               </Lead>
-              <p style={{ color: "rgba(238,239,211,0.5)", fontSize: 14, fontWeight: 500, margin: "0 0 28px", lineHeight: 1.5 }}>
+              <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 14, fontWeight: 500, margin: "0 0 28px", lineHeight: 1.5 }}>
                 How to use: adjust the deal box on the left. Cards re-rank live. Match count updates at the top. Aim for at least one FITS card before submitting.
               </p>
               {/* Program name chips */}
@@ -186,7 +225,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                       padding: "7px 12px",
                       fontSize: 12,
                       fontWeight: 600,
-                      color: p.fits ? dc.cream : "rgba(238,239,211,0.5)",
+                      color: p.fits ? dc.cream : "rgba(238,239,211,0.62)",
                       letterSpacing: "-0.01em",
                     }}
                   >
@@ -198,7 +237,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
             {/* Right: live deal summary card with DscrGauge + match count */}
             <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 16, border: "1px solid rgba(238,239,211,0.12)", padding: "clamp(20px,2.4vw,32px)" }}>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.45)", marginBottom: 16 }}>Live deal summary</div>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 16 }}>Live deal summary</div>
 
               {/* DscrGauge centered */}
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
@@ -222,19 +261,19 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 ].map((m) => (
                   <div key={m.label} style={{ background: "rgba(238,239,211,0.07)", borderRadius: radius.sm, padding: "10px 8px", textAlign: "center" }}>
                     <Mono style={{ display: "block", fontSize: 18, fontWeight: 700, color: dc.cream, lineHeight: 1 }}>{m.val}</Mono>
-                    <div style={{ fontSize: 10, color: "rgba(238,239,211,0.45)", marginTop: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{m.label}</div>
-                    {m.note && <div style={{ fontSize: 10, color: "rgba(238,239,211,0.35)", marginTop: 1 }}>{m.note}</div>}
+                    <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>{m.label}</div>
+                    {m.note && <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 1 }}>{m.note}</div>}
                   </div>
                 ))}
               </div>
 
               {/* Match count headline */}
-              <div style={{ background: matchCount > 0 ? "rgba(77,189,151,0.12)" : "rgba(255,107,107,0.1)", border: `1px solid ${matchCount > 0 ? dc.emerald : "#ff6b6b"}`, borderRadius: radius.sm, padding: "12px 16px", textAlign: "center" }}>
-                <Mono style={{ fontSize: 32, fontWeight: 700, color: matchCount > 0 ? dc.emerald : "#ff6b6b", lineHeight: 1 }}>{matchCount}</Mono>
+              <div style={{ background: matchCount > 0 ? "rgba(77,189,151,0.12)" : "rgba(224,99,99,0.1)", border: `1px solid ${matchCount > 0 ? dc.emerald : "#e06363"}`, borderRadius: radius.sm, padding: "12px 16px", textAlign: "center" }}>
+                <Mono style={{ fontSize: 32, fontWeight: 700, color: matchCount > 0 ? dc.emerald : "#e06363", lineHeight: 1 }}>{matchCount}</Mono>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>
                   of {total} programs fit this deal
                 </div>
-                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", marginTop: 4, lineHeight: 1.4 }}>
+                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.4 }}>
                   {matchCount === 0 ? "Raise FICO, lower LTV, or increase DSCR below." : "Scroll down to see ranked programs."}
                 </div>
               </div>
@@ -248,25 +287,25 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
       {/* ── TOOL ── */}
       <section
         id="li-tool"
-        style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}
+        style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad} clamp(72px,10vh,128px)` }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 36 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live program matcher
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", lineHeight: 1.05 }}>
-              <Mono style={{ fontWeight: 600 }}>{matchCount}</Mono> of {total} programs fit this deal
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,48px)", fontWeight: 600, letterSpacing: "-0.03em", margin: "0 0 10px", lineHeight: 1.05, color: dc.cream }}>
+              <Mono style={{ fontWeight: 600, color: dc.lemon }}>{matchCount}</Mono> of {total} programs fit this deal
             </h2>
-            <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(0,55,56,0.6)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
+            <p style={{ fontSize: 17, fontWeight: 500, color: "rgba(238,239,211,0.65)", margin: "0 0 8px", letterSpacing: "-0.02em" }}>
               {matchCount === 0
                 ? "No programs match your current deal box. Try raising FICO, lowering LTV, or increasing DSCR to open more options."
                 : matchCount === 1
                 ? "One program fits. Check its check chips below — green chips are gates you clear; red chips show what's holding you back."
                 : `${matchCount} programs fit. They're sorted best-fit first. The fit score shows how much room you have above each program's minimums.`}
             </p>
-            <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(0,55,56,0.45)", margin: 0 }}>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.62)", margin: 0 }}>
               Adjust the deal box on the left — programs re-rank instantly.
             </p>
           </div>
@@ -283,22 +322,22 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 padding: "clamp(20px,2.4vw,28px)",
                 position: "sticky",
                 top: 96,
-                border: "1px solid rgba(238,239,211,0.1)",
+                border: "1px solid rgba(238,239,211,0.16)",
               }}
             >
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 6 }}>
                 Your Deal Box
               </div>
-              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.45)", margin: "0 0 16px", lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "0 0 16px", lineHeight: 1.5 }}>
                 Enter your deal details. Programs re-rank as you type — no submit needed.
               </p>
 
               {/* FICO */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   FICO Score
                 </span>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Your credit score. 620 minimum; 740+ unlocks best pricing.</span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>Your credit score. 620 minimum; 740+ unlocks best pricing.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -313,10 +352,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
               {/* LTV */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   LTV Needed
                 </span>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Loan-to-value — loan ÷ property value. E.g. 25% down = 75% LTV. Lower is better.</span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>Loan-to-value — loan ÷ property value. E.g. 25% down = 75% LTV. Lower is better.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -328,16 +367,16 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                     onChange={(e) => setLtv(+e.target.value)}
                     style={{ padding: "12px 7px", fontSize: 16, fontWeight: 600 }}
                   />
-                  <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 14 }}>%</span>
+                  <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>%</span>
                 </div>
               </label>
 
               {/* DSCR */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   Deal DSCR
                 </span>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Rent ÷ monthly payment. 1.25x is the typical strong-approval threshold. Don't know it? Use the DSCR Calculator first.</span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>Rent ÷ monthly payment. 1.25x is the typical strong-approval threshold. Don't know it? Use the DSCR Calculator first.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -349,18 +388,18 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                     onChange={(e) => setDscr(+e.target.value)}
                     style={{ padding: "12px 7px", fontSize: 16, fontWeight: 600 }}
                   />
-                  <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 14 }}>x</span>
+                  <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>x</span>
                 </div>
               </label>
 
               {/* Loan Amount */}
               <label style={{ display: "block", marginBottom: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   Loan Amount
                 </span>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Purchase price minus your down payment. Minimum $75,000 for DSCR programs.</span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>Purchase price minus your down payment. Minimum $75,000 for DSCR programs.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ color: "rgba(238,239,211,0.4)", fontSize: 14 }}>$</span>
+                  <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>$</span>
                   <input
                     className="li-in"
                     type="number"
@@ -375,10 +414,10 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
               {/* State — proper label field, consistent with other inputs */}
               <label style={{ display: "block", marginBottom: 16 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.55)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 3, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase" }}>
                   State (2-letter)
                 </span>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.38)", marginBottom: 5, lineHeight: 1.4 }}>Where the property is located. Affects prepayment penalty (a fee some loans charge if you pay off or refinance early) risk and state-specific program availability.</span>
+                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>Where the property is located. Affects prepayment penalty (a fee some loans charge if you pay off or refinance early) risk and state-specific program availability.</span>
                 <div className="li-field" style={{ display: "flex", alignItems: "center" }}>
                   <input
                     className="li-in"
@@ -437,12 +476,12 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   style={{
                     marginTop: 16,
                     padding: "10px 13px",
-                    background: "rgba(255,107,107,0.1)",
+                    background: "rgba(224,99,99,0.1)",
                     borderRadius: radius.sm,
-                    border: "1px solid rgba(255,107,107,0.3)",
+                    border: "1px solid rgba(224,99,99,0.3)",
                     fontSize: 12,
                     fontWeight: 500,
-                    color: "#ff6b6b",
+                    color: "#e06363",
                     lineHeight: 1.5,
                   }}
                 >
@@ -452,16 +491,19 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             </div>
 
             {/* ── PROGRAM LIST ── */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div ref={listRef} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {scored.map((p, i) => {
-                const statusColor = p.fits ? dc.rain : p.passed >= 3 ? swatch.lemon : "#ff6b6b";
+                const statusColor = p.fits ? dc.emerald : p.passed >= 3 ? swatch.lemon : "#e06363";
                 const statusLabel = p.fits ? "FITS" : p.passed >= 3 ? `${4 - p.passed} miss` : "NO FIT";
-                const cardBg = p.fits ? dc.white : "rgba(0,55,56,0.03)";
-                const cardBorder = p.fits ? "rgba(0,101,101,0.18)" : "rgba(0,55,56,0.1)";
+                const cardBg = p.fits ? dc.teal : "rgba(238,239,211,0.04)";
+                const cardBorder = p.fits ? "rgba(77,189,151,0.5)" : "rgba(238,239,211,0.1)";
+                const glow = p.fits ? "0 4px 24px rgba(77,189,151,0.15), inset 0 1px 0 rgba(255,255,255,0.05)" : "none";
 
                 return (
                   <div
                     key={p.id}
+                    data-flip-id={p.id}
+                    className="ix-card"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "auto 1fr auto",
@@ -471,6 +513,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                       border: `1px solid ${cardBorder}`,
                       borderRadius: radius.md,
                       padding: "clamp(16px,2vw,24px) 24px",
+                      boxShadow: glow,
+                      transition: "transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s cubic-bezier(0.16,1,0.3,1)",
                     }}
                   >
                     {/* Rank */}
@@ -478,7 +522,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                       style={{
                         fontSize: 13,
                         fontWeight: 700,
-                        color: "rgba(0,55,56,0.35)",
+                        color: "rgba(238,239,211,0.62)",
                         width: 24,
                       }}
                     >
@@ -488,17 +532,17 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                     {/* Program info */}
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-                        <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.02em", color: dc.dark }}>
+                        <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.02em", color: dc.cream }}>
                           {p.name}
                         </span>
                         <span
                           style={{
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: 700,
                             letterSpacing: "0.05em",
                             textTransform: "uppercase",
                             color: statusColor,
-                            background: p.fits ? "rgba(0,101,101,0.1)" : p.passed >= 3 ? "rgba(216,217,88,0.12)" : "rgba(255,107,107,0.1)",
+                            background: p.fits ? "rgba(77,189,151,0.16)" : p.passed >= 3 ? "rgba(216,217,88,0.12)" : "rgba(224,99,99,0.1)",
                             borderRadius: radius.sm,
                             padding: "3px 9px",
                           }}
@@ -506,14 +550,22 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           {statusLabel}
                         </span>
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 500, color: "rgba(0,55,56,0.6)", marginBottom: 10, letterSpacing: "-0.01em" }}>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 12, letterSpacing: "-0.01em" }}>
                         {p.tagline}
                         {p.effectiveLTV !== null && (
-                          <span style={{ marginLeft: 8, color: "rgba(0,55,56,0.4)", fontSize: 13 }}>
+                          <span style={{ marginLeft: 8, color: "rgba(238,239,211,0.62)", fontSize: 13 }}>
                             · up to {p.effectiveLTV}% LTV for this deal
                           </span>
                         )}
                       </div>
+                      
+                      {/* Checks Progress Bar */}
+                      <div style={{ display: "flex", gap: 3, marginBottom: 10, height: 4, width: "100%", maxWidth: 160 }}>
+                        {[0, 1, 2, 3].map(step => (
+                          <div key={step} style={{ flex: 1, background: step < p.passed ? statusColor : "rgba(238,239,211,0.1)", borderRadius: 2 }} />
+                        ))}
+                      </div>
+
                       {/* Check chips */}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {p.checks.map((c) => (
@@ -526,8 +578,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                               fontSize: 11,
                               fontWeight: 600,
                               fontFamily: dc.mono,
-                              color: c.ok ? dc.rain : "#ff6b6b",
-                              background: c.ok ? "rgba(0,101,101,0.08)" : "rgba(255,107,107,0.1)",
+                              color: c.ok ? dc.emerald : "#e06363",
+                              background: c.ok ? "rgba(77,189,151,0.12)" : "rgba(224,99,99,0.1)",
                               borderRadius: 5,
                               padding: "4px 8px",
                               letterSpacing: "-0.01em",
@@ -543,23 +595,23 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           </span>
                         )}
                         {p.isSTR && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: dc.rain, background: "rgba(0,101,101,0.08)", borderRadius: 5, padding: "4px 8px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: dc.emerald, background: "rgba(77,189,151,0.12)", borderRadius: 5, padding: "4px 8px" }}>
                             ★ STR
                           </span>
                         )}
                         {p.multiFamily && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: dc.rain, background: "rgba(0,101,101,0.08)", borderRadius: 5, padding: "4px 8px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: dc.emerald, background: "rgba(77,189,151,0.12)", borderRadius: 5, padding: "4px 8px" }}>
                             ★ 5+ units
                           </span>
                         )}
-                        {p.foreignNational && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: "rgba(0,55,56,0.5)", background: swatch.midnightFaded + "22", borderRadius: radius.sm, padding: "4px 8px" }}>
+                        {p.nonUsInvestor && (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.08)", borderRadius: radius.sm, padding: "4px 8px" }}>
                             ★ FN
                           </span>
                         )}
                       </div>
                       {/* animated fit meter — re-fills live as you change the deal box */}
-                      <div style={{ marginTop: 12, height: 6, maxWidth: 340, background: "rgba(0,55,56,0.08)", borderRadius: 999, overflow: "hidden" }}>
+                      <div style={{ marginTop: 12, height: 6, maxWidth: 340, background: "rgba(238,239,211,0.1)", borderRadius: 999, overflow: "hidden" }}>
                         <div
                           style={{
                             height: "100%",
@@ -574,7 +626,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
 
                     {/* Fit score */}
                     <div style={{ textAlign: "right", minWidth: 56 }}>
-                      <Mono
+                      <CountUp
+                        value={Math.max(0, Math.round(p.score))}
                         style={{
                           display: "block",
                           fontSize: 26,
@@ -583,25 +636,146 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                           color: statusColor,
                           lineHeight: 1,
                         }}
-                      >
-                        {Math.max(0, Math.round(p.score))}
-                      </Mono>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.4)", marginTop: 4 }}>
-                        fit score (higher = more room above minimums)
+                      />
+                      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
+                        fit score
                       </div>
+                      <button
+                        onClick={() => toggleCompare(p.id)}
+                        disabled={!selectedForCompare.has(p.id) && selectedForCompare.size >= 3}
+                        style={{
+                          marginTop: 8,
+                          padding: "6px 12px",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          background: selectedForCompare.has(p.id) ? swatch.lemon : "rgba(238,239,211,0.1)",
+                          color: selectedForCompare.has(p.id) ? swatch.midnight : "rgba(238,239,211,0.72)",
+                          border: `1px solid ${selectedForCompare.has(p.id) ? swatch.lemon : "rgba(238,239,211,0.3)"}`,
+                          borderRadius: radius.sm,
+                          cursor: (!selectedForCompare.has(p.id) && selectedForCompare.size >= 3) ? "not-allowed" : "pointer",
+                          opacity: (!selectedForCompare.has(p.id) && selectedForCompare.size >= 3) ? 0.4 : 1,
+                          transition: "all .15s",
+                        }}
+                      >
+                        {selectedForCompare.has(p.id) ? "✓ Compare" : "+ Compare"}
+                      </button>
                     </div>
                   </div>
                 );
               })}
             </div>
+
+            {/* Floating comparison bar */}
+            {selectedForCompare.size > 0 && (
+              <div style={{
+                position: "fixed",
+                bottom: 24,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 100,
+                background: swatch.midnight,
+                border: `2px solid ${swatch.lemon}`,
+                borderRadius: radius.md,
+                padding: "16px 24px",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+                maxWidth: "min(90vw, 600px)",
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: swatch.lemon, marginBottom: 4 }}>
+                    Compare Programs
+                  </div>
+                  <div style={{ fontSize: 13, color: dc.cream }}>
+                    {selectedForCompare.size} selected {selectedForCompare.size < 2 && "(select at least 2)"}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedForCompare(new Set())}
+                  style={{
+                    padding: "8px 16px",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background: "rgba(238,239,211,0.1)",
+                    color: dc.cream,
+                    border: "1px solid rgba(238,239,211,0.3)",
+                    borderRadius: radius.sm,
+                    cursor: "pointer",
+                  }}
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+
+            {/* Comparison table (when 2-3 selected) */}
+            {selectedPrograms.length >= 2 && (
+              <div style={{ marginTop: 24, background: swatch.midnight, border: `2px solid ${swatch.lemon}`, borderRadius: radius.md, padding: 24, overflow: "auto" }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: dc.cream, marginBottom: 16, letterSpacing: "-0.02em" }}>
+                  Side-by-Side Comparison
+                </h3>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid rgba(238,239,211,0.2)" }}>
+                      <th style={{ textAlign: "left", padding: "10px 12px", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)" }}>
+                        Program
+                      </th>
+                      {selectedPrograms.map(p => (
+                        <th key={p.id} style={{ textAlign: "left", padding: "10px 12px", fontWeight: 700, color: p.fits ? dc.emerald : "#e06363" }}>
+                          {p.name}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { label: "Status", key: (p: typeof selectedPrograms[0]) => p.fits ? "FITS" : "NO FIT" },
+                      { label: "Min FICO", key: (p: typeof selectedPrograms[0]) => p.minFICO.toString() },
+                      { label: "Max LTV", key: (p: typeof selectedPrograms[0]) => `${p.effectiveLTV ?? p.maxLTV}%` },
+                      { label: "DSCR Floor", key: (p: typeof selectedPrograms[0]) => p.noRatio ? "No-ratio OK" : `${p.dscrFloor.toFixed(2)}` },
+                      { label: "Max Loan", key: (p: typeof selectedPrograms[0]) => fmtLoan(p.maxLoan) },
+                      { label: "STR", key: (p: typeof selectedPrograms[0]) => p.isSTR ? "✓" : "—" },
+                      { label: "5+ Units", key: (p: typeof selectedPrograms[0]) => p.multiFamily ? "✓" : "—" },
+                      { label: "Foreign National", key: (p: typeof selectedPrograms[0]) => p.nonUsInvestor ? "✓" : "—" },
+                      { label: "Fit Score", key: (p: typeof selectedPrograms[0]) => Math.round(p.score).toString() },
+                    ].map(row => (
+                      <tr key={row.label} style={{ borderBottom: "1px solid rgba(238,239,211,0.08)" }}>
+                        <td style={{ padding: "10px 12px", fontWeight: 600, color: "rgba(238,239,211,0.72)" }}>
+                          {row.label}
+                        </td>
+                        {selectedPrograms.map(p => (
+                          <td key={p.id} style={{ padding: "10px 12px", color: dc.cream, fontFamily: dc.mono }}>
+                            {row.key(p)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Disclaimer */}
-          <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, letterSpacing: "-0.01em", lineHeight: 1.6 }}>
+          <p style={{ color: "rgba(238,239,211,0.62)", fontSize: 12, marginTop: 24, letterSpacing: "-0.01em", lineHeight: 1.6 }}>
             Program parameters effective {DSCR_PROGRAMS_AS_OF} and subject to full underwriting. Fit scores are
             indicative only; FICO &times; LTV pricing grids determine final terms. Not a rate lock or credit
             approval.
           </p>
+        </div>
+      </section>
+
+      {/* ── TRUE COST OF CAPITAL COMPARATOR ── */}
+      <section className="gs-reveal" style={{ background: dc.cream, padding: `clamp(56px,7vw,88px) ${dc.pad}` }}>
+        <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+          <div style={{ marginBottom: 28, maxWidth: "62ch" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Beyond the rate</div>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: 0, color: dc.dark, lineHeight: 1.05 }}>Two lenders, two rates — which actually costs less?</h2>
+          </div>
+          <TrueCostComparator accent={dc.rain} />
         </div>
       </section>
 
@@ -658,8 +832,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 Get my rate →
               </a>
               <a
-                href="/deal-analyzer"
-                onClick={(e) => { e.preventDefault(); onNavigate?.("deal-analyzer"); }}
+                href="/dscr-calculator"
+                onClick={(e) => { e.preventDefault(); onNavigate?.("dscr-calculator"); }}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -677,7 +851,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   minHeight: 44,
                 }}
               >
-                Full deal analyzer
+                Run the DSCR calculator
               </a>
             </div>
           </div>

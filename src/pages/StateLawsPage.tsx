@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import BottomCTA from "../design/BottomCTA";
 import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -46,12 +47,33 @@ const SPECIAL: Record<string, Omit<StateEntry, "code">> = {
 const ALL_CODES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 const CODE_TO_NAME: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia" };
 
-const TIER_COLORS: Record<Tier, string> = { 0: dc.emerald, 1: dc.lemon, 2: "#f97316", 3: "#ff6b6b" };
+const TIER_COLORS: Record<Tier, string> = { 0: dc.emerald, 1: dc.lemon, 2: "#e6b84d", 3: "#e06363" };
 const TIER_LABELS: Record<Tier, string> = { 0: "PPP Allowed", 1: "Threshold-Based", 2: "High-Risk", 3: "Effectively Banned" };
 const TIER_INK: Record<Tier, string> = { 0: dc.dark, 1: dc.dark, 2: dc.dark, 3: "#fff" };
+const MAP_CODES = Object.keys(US_PATHS);
 
-function resolve(code: string): StateEntry {
+function readStateFromQuery() {
+  if (typeof window === "undefined") return null;
+  const code = new URLSearchParams(window.location.search).get("state")?.trim().toUpperCase();
+  return code && MAP_CODES.includes(code) ? code : null;
+}
+
+const STATE_RATE_ADJ: Record<string, { adj: number; entityReq: boolean; note: string }> = {
+  NJ: { adj: 0.25, entityReq: true, note: "C-Corp/S-Corp required for full lender coverage; LLC high-risk." },
+  NY: { adj: 0.25, entityReq: false, note: "Banking Law §6-l business-purpose exemption applies; Penal Law 25% usury cap." },
+  MD: { adj: 0.50, entityReq: true, note: "PPP de facto prohibited; most lenders decline or require high rate overlay." },
+  KS: { adj: 0.50, entityReq: false, note: "PPP de facto prohibited; narrow business exemption." },
+  MN: { adj: 0.10, entityReq: false, note: "HF 3437 eff. 8/1/2026 allows business-purpose PPP." },
+  PA: { adj: 0.10, entityReq: false, note: "Threshold $319,777 (2026); loans below threshold restricted." },
+  OH: { adj: 0.10, entityReq: false, note: "1-2 unit threshold $116,356 (2026); 3-4 unit unrestricted." },
+  AK: { adj: 0.25, entityReq: true, note: "LLC/Corp entity borrower mandatory." },
+  IL: { adj: 0.10, entityReq: true, note: "Entity borrower recommended to avoid APR fall-rate testing." },
+  NM: { adj: 0.10, entityReq: true, note: "Entity borrower required by primary DSCR programs." },
+};
+
+function resolve(code: string): StateEntry & { adj: number; entityReq: boolean; note: string } {
   const sp = SPECIAL[code];
+  const sa = STATE_RATE_ADJ[code] || { adj: 0, entityReq: false, note: "Standard DSCR program pricing applies." };
   const tier: Tier = sp ? sp.tier : 0;
   return {
     code,
@@ -61,6 +83,9 @@ function resolve(code: string): StateEntry {
     usury: sp ? sp.usury : "Business-purpose exemption typically applies; confirm state cap with counsel.",
     impact: sp ? sp.impact : "Standard pricing",
     threshold: sp?.threshold,
+    adj: sa.adj,
+    entityReq: sa.entityReq,
+    note: sa.note,
   };
 }
 
@@ -68,15 +93,24 @@ const RAIN = dc.rain; // #006565 — State Laws' distinct colour identity
 
 export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   useEffect(() => {
-    document.title = "State Rules | Greenstreet Finance";
+    document.title = "Prepayment Penalty Rules by State | Greenstreet Finance";
   }, []);
 
-  const [selected, setSelected] = useState("NJ");
+  const [selected, setSelected] = useState(() => readStateFromQuery() ?? "NJ");
   const [q, setQ] = useState("");
   const [hover, setHover] = useState<string | null>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const mapRef = useRef<HTMLDivElement>(null);
   const sel = resolve(selected);
+
+  useEffect(() => {
+    const applyQueryState = () => {
+      const code = readStateFromQuery();
+      if (code) setSelected(code);
+    };
+    window.addEventListener("popstate", applyQueryState);
+    return () => window.removeEventListener("popstate", applyQueryState);
+  }, []);
 
   // Keep map regions visible from first paint. Route-level reveal effects were
   // responsible for the post-load visual drop on routed pages.
@@ -110,7 +144,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
         .sl-cell:hover{transform:scale(1.09);}
         .sl-cell:focus-visible{outline-color:#d8d958;}
         .sl-input{width:100%;border:1px solid rgba(238,239,211,0.25);background:rgba(238,239,211,0.08);outline:none;color:#eeefd3;font-family:${dc.sans};font-size:15px;letter-spacing:-0.01em;border-radius:8px;padding:12px 14px;}
-        .sl-input::placeholder{color:rgba(238,239,211,0.5);}
+        .sl-input::placeholder{color:rgba(238,239,211,0.62);}
         .sl-input:focus-visible{outline:2px solid rgba(238,239,211,0.8);outline-offset:2px;}
         .us-state{transition:fill .15s, filter .15s, stroke .12s, stroke-width .12s;}
         .us-state:focus-visible{stroke:#d8d958 !important;stroke-width:2.5px !important;}
@@ -118,10 +152,11 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
 
       {/* HERO — rain-forest, single column (distinct from the dark tool heroes) */}
       <section style={{ background: RAIN, color: dc.cream, padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`, overflow: "hidden" }}>
-        <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
+        <div id="gs-hero-content" className="dc-hero" style={{ maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,64px)", alignItems: "center" }}>
+          <div>
           <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product / 50-State Rule Engine</div>
           <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>
-            Prepayment penalty rules, all fifty states.
+            Prepayment penalty rules by state.
           </H1>
           <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "54ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
             A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) is allowed in most states for business-purpose loans — but not all. This map shows where it's clear, where thresholds apply, and where lenders decline entirely. Click any state for full details.
@@ -132,11 +167,33 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
           <div style={{ display: "flex", gap: "clamp(20px,4vw,44px)", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
               <div><Mono data-count={50} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>50</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states mapped</div></div>
-              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#ff6b6b", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
+              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#e06363", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
               <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
             </div>
             <div style={{ flex: 1, minWidth: 220, maxWidth: 320 }}>
-              <input className="sl-input" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state — type CA, TX, NJ…" />
+              <input className="sl-input" aria-label="Jump to a state" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state - type CA, TX, NJ..." />
+            </div>
+          </div>
+          </div>
+          {/* Right: 50-state risk-zone breakdown */}
+          <div style={{ background: "rgba(0,55,56,0.4)", border: "1px solid rgba(238,239,211,0.16)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>50-state risk zones</div>
+            <div style={{ display: "flex", height: 12, borderRadius: 999, overflow: "hidden", marginBottom: 18 }}>
+              {([0, 1, 2, 3] as Tier[]).map((t) => counts[t] > 0 ? (
+                <div key={t} style={{ width: `${(counts[t] / 50) * 100}%`, background: TIER_COLORS[t] }} />
+              ) : null)}
+            </div>
+            <div style={{ display: "grid", gap: 11 }}>
+              {([0, 1, 2, 3] as Tier[]).map((t) => (
+                <div key={t} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ width: 12, height: 12, borderRadius: 4, background: TIER_COLORS[t], flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.78)", flex: 1 }}>{TIER_LABELS[t]}</span>
+                  <Mono style={{ fontSize: 17, fontWeight: 700, color: dc.cream }}>{counts[t]}</Mono>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(238,239,211,0.12)", fontSize: 12, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>
+              Click any state on the map below for its exact prepay rule, usury cap, and pricing impact.
             </div>
           </div>
         </div>
@@ -198,7 +255,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                 return (
                   <div style={{ position: "absolute", left: pos.x + 14, top: pos.y + 14, pointerEvents: "none", background: dc.dark, color: dc.cream, borderRadius: 8, padding: "10px 13px", maxWidth: 240, boxShadow: "0 14px 32px -18px rgba(0,0,0,0.55)", zIndex: 5 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{r.name}</div>
-                    <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: TIER_COLORS[r.tier] }}>{TIER_LABELS[r.tier]}</div>
+                    <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: TIER_COLORS[r.tier] }}>{TIER_LABELS[r.tier]}</div>
                     <div style={{ fontSize: 11, color: "rgba(238,239,211,0.7)", marginTop: 5, lineHeight: 1.4 }}>{r.impact}</div>
                   </div>
                 );
@@ -209,6 +266,21 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{sel.code} · {sel.name}</div>
               <div style={{ fontSize: "clamp(28px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.03em", color: TIER_COLORS[sel.tier], lineHeight: 1.05, marginBottom: 20 }}>{TIER_LABELS[sel.tier]}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(238,239,211,0.12)" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 2 }}>
+                    Rate Adjustment: {sel.adj > 0 ? `+${sel.adj.toFixed(2)}%` : "Standard (0.00%)"}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(238,239,211,0.7)", lineHeight: 1.4 }}>{sel.note}</div>
+                </div>
+
+                {sel.entityReq && (
+                  <div style={{ background: "rgba(230,184,77,0.1)", borderRadius: 6, padding: "8px 12px", border: "1px solid rgba(230,184,77,0.3)" }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#e6b84d" }}>
+                      ⚠️ Entity Borrower Required (LLC / Corp)
+                    </span>
+                  </div>
+                )}
+
                 {[
                   { k: "Prepayment penalty rules", v: sel.ppp, color: "#eeefd3", weight: 500 as const },
                   { k: "Usury / max rate cap", v: sel.usury, color: "#eeefd3", weight: 500 as const },
@@ -216,21 +288,20 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                   ...(sel.threshold ? [{ k: "Key threshold to know", v: sel.threshold, color: "#eeefd3", weight: 600 as const }] : []),
                 ].map((row) => (
                   <div key={row.k}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 4 }}>{row.k}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{row.k}</div>
                     <div style={{ fontSize: 15, fontWeight: row.weight, color: row.color, lineHeight: 1.5, letterSpacing: "-0.01em" }}>{row.v}</div>
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => onNavigate("dscr-calculator")}
-                style={{ marginTop: 24, width: "100%", background: dc.lemon, color: dc.dark, border: "none", borderRadius: 6, padding: "12px 0", fontSize: 14, fontWeight: 600, fontFamily: dc.sans, cursor: "pointer" }}
-              >
-                Price a deal in {sel.code} →
-              </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
+                <Btn label={`Get ${sel.name} Rate Quote →`} href="/rate-quiz" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); }} style={{ width: "100%", justifyContent: "center" }} />
+                <Btn label={`Analyze deal in ${sel.code}`} variant="secondary" href="/dscr-calculator" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }} style={{ width: "100%", justifyContent: "center" }} />
+              </div>
             </div>
           </div>
         </div>
       </section>
+      <BottomCTA onNavigate={onNavigate} />
     </DcShell>
   );
 }

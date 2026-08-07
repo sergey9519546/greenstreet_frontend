@@ -1,0 +1,1117 @@
+---
+type: research
+status: drafted
+confidence: 3
+title: From Static Snapshot To Dynamic Trajectory  Designing An Adversarially Hardened, Dual Ledger Dscr Engine For True Investment Risk Assessment
+summary: "From Static Snapshot to Dynamic Trajectory: Designing an Adversarially-"
+entities:
+  - concept/arm
+  - concept/cap-rate
+  - concept/dscr
+  - concept/io
+  - concept/itia
+  - concept/ltv
+  - concept/pitia
+  - data/fannie-mae
+  - data/fred
+  - data/freddie-mac
+  - lender/visio-lending
+  - math/copula
+  - math/vine-copula
+  - ml/shap
+  - regulation/cfpb
+  - regulation/ecoa
+  - regulation/section-1071
+  - state/tx
+  - tax/1031
+  - tax/pal
+  - topic/multifamily
+  - topic/str
+tags:
+  - concept/io
+  - topic/adverse-action
+  - topic/apex
+  - topic/architecture
+  - topic/compliance
+  - topic/default-rate
+  - topic/insurance
+  - topic/lgd
+  - topic/monte-carlo
+  - topic/portfolio
+  - topic/reserves
+  - topic/short-rate
+  - topic/stress-test
+  - topic/tax
+  - type/audit
+source: RESEARCH/pdf_extractions/From Static Snapshot to Dynamic Trajectory_ Designing an Adversarially-Hardened, Dual-Ledger DSCR Engine for True Investment Risk Assessment.txt
+vaulted_at: 2026-06-20
+---
+
+
+===== PAGE 1 =====
+
+From Static Snapshot to Dynamic
+Trajectory: Designing an Adversarially-
+Hardened, Dual-Ledger DSCR Engine for
+True Investment Risk Assessment
+Foundational Deficiencies of Standard DSCR
+Calculations
+The development of the AEGIS DSCR Decision Engine was predicated on a rigorous audit
+of existing real estate financial tools, which revealed them to be structurally inadequate
+for any professional advisory role 93159. These standard calculators, while
+mathematically correct for their limited scope, suffer from a series of foundational
+deficiencies that render them dangerously misleading in practice. They operate on a set
+of flawed simplifications that ignore the dynamic, multi-year nature of real estate
+investment and financing 52. The most critical weakness is their treatment of time; they
+provide a static, point-in-time snapshot of a property's financial health, completely
+ignoring future events such as interest-only (IO) payment resets, adjustable-rate
+mortgage (ARM) index adjustments, and long-term expense escalations 1 224. This
+temporal blindness means a deal can appear viable in Year 1 while being destined for
+catastrophic failure in Year 5 due to unmodeled cash flow cliffs 78. Furthermore, these
+calculators fail to model discrete but severe shock events, such as a major capital
+expenditure (CapEx) event or a sudden spike in insurance premiums, which can cause
+immediate liquidity failure even if the annual Debt Service Coverage Ratio (DSCR)
+remains technically positive 56 72.
+Another core deficiency is the conflation of lender qualification requirements with true
+investor survival analysis 39. Standard tools often adhere strictly to the mathematical
+conventions of a lender's matrix, which may include optimistic assumptions about rent
+rolls and conservative estimates for expenses, creating a significant disconnect between
+getting a loan and making money on the investment 58. This leads to the approval of
+deals that are mechanically compliant with lender rules but economically doomed—a
+phenomenon known as "qualifies but dangerous" 93. The lack of explainability in these
+
+===== PAGE 2 =====
+
+black-box systems compounds the problem, as users are unable to diagnose the root
+cause of a failure or receive actionable advice on how to repair the deal 61 68. Finally,
+these calculators are easily manipulated through simple input falsification, such as
+inflating rental income or understating operating expenses, because they lack any
+mechanism to validate the confidence or reliability of the data provided 49 50. This
+combination of static inputs, ignored time dimension, conflated realities, and lack of
+explainability establishes the necessity for a paradigm shift from a simple calculator to a
+comprehensive, dynamic, and auditable decision intelligence system 202288.
+Metric Standard Equation Key Failure / Manipulation Vector
+DSCR NOI/AnnualDebtService Fails to capture timing of cash flows; easily manipulated by underestimating OpEx
+or overestimating rent 141287.
+NOI GrossScheduledRent−Vacancy−Operating E E a x si p ly en m se a s nipulated by excluding non-cash reserves or deferring maintenance 289.
+PITIA Principal+Interest+Taxes+Insurance+HAOssAumes static taxes/insurance; ignores escrow shortages and IO period mechanics
+202.
+LTV LoanAmount/PropertyValue Manipulated via inflated appraisals; ignores transaction costs and appraisal gaps
+42.
+Debt NOI/LoanAmount Ignores debt service burden and is useless for IO loans 257.
+Yield
+Cap Rate NOI/PropertyValue Highly sensitive to NOI manipulation and ignores leverage and financing costs 40.
+The Dual-Ledger Architectural Paradigm
+To overcome the limitations of single-ledger analysis, the AEGIS engine is built upon a
+dual-ledger architectural paradigm, a core principle that enforces the strict separation of
+two distinct and often divergent realities: Lender Qualification and Investor Survival 39
+58. This design choice is fundamental to preventing the approval of "qualifies but
+dangerous" deals. The first ledger, Ledger 1, models the world through the lens of the
+lending institution. It operates according to the rules, guidelines, and conventions of a
+versioned lender matrix, which may apply haircuts to income, allow for higher vacancy
+allowances, or treat IO payments differently than amortizing payments 53. Its purpose is
+to determine if the deal meets the minimum criteria for a loan commitment. The second
+ledger, Ledger 2, models the world through the lens of economic reality. It strips away
+lender-specific assumptions and calculates metrics based on verified, market-aligned
+data, incorporating realistic expenses, CapEx reserves, and true debt service 94129. Its
+purpose is to assess whether the property will generate sufficient cash flow to ensure the
+
+===== PAGE 3 =====
+
+investor's long-term survival and profitability. The engine's internal logic immediately
+forks all raw inputs into these two ledgers at the very beginning of the calculation
+process, ensuring that the separation of concerns is maintained throughout 39.
+This dual perspective gives rise to a powerful diagnostic tool: the Delta Ledger. This
+component explicitly calculates and quantifies the variance between the results of Ledger
+1 and Ledger 2, isolating the exact cost of "lender illusions" 39. For example, it can
+precisely measure the difference between the Lender DSCR and the Economic DSCR,
+revealing the degree to which the deal's viability depends on favorable, and potentially
+temporary, lender assumptions. The engine's recommendation logic is gated by a state
+machine that evaluates outcomes from both ledgers in a strict hierarchy 59. First, it
+checks the Input Confidence Score (ACS); if low, the analysis halts regardless of other
+factors 49. Second, it evaluates against the Lender Qualification (Ledger 1). If the deal
+fails here, the engine provides a list of breakpoint solutions 93. Only if the deal passes
+the Lender Qualification gate does the engine proceed to evaluate the more stringent
+Investor Survival criteria from Ledger 2 58. If the deal fails Ledger 2 despite passing
+Ledger 1, the Qualifies-but-Dangerous (QbD) Detector is triggered, overriding any
+potential "Pass" and issuing a strong warning 93. This entire architecture is designed to
+be transparent and auditable, with every step logged in a cryptographic audit trail that
+captures not only the final recommendation but also the specific inputs, matrix versions,
+and logical gates that produced it 103105. This ensures that every output is reproducible
+and legally defensible, fulfilling the mandate for a fiduciary-grade risk containment
+system rather than a simple calculator.
+Core Deterministic Formulae for Advisor-Grade Analysis
+The computational heart of the AEGIS engine is a deterministic formula core, eschewing
+black-box AI for explicit, auditable mathematics 61. Every calculation is grounded in a
+clear purpose and defined variables, allowing for rigorous testing and validation. The
+formulas are organized within the dual-ledger framework to model both lender and
+investor perspectives. For the Lender Qualification Ledger, key formulas include the
+Monthly Amortizing Payment calculated using the standard PMT function, and the
+Interest-Only (IO) Payment, which is simply the principal balance multiplied by
+the monthly interest rate 1 . The qualifying DSCR is then determined by dividing the
+lender-accepted gross rent by the matrix-defined PITIA or ITIA payment 202. In contrast,
+the Investor Survival Ledger employs formulas that reflect economic reality. Effective
+
+===== PAGE 4 =====
+
+Gross Income (EGI) adjusts gross scheduled rent for a realistic vacancy rate 289. The
+most critical formula in this ledger is the Stabilized Economic NOI, which deducts
+not just base operating expenses but also projected tax increases, insurance volatility,
+management fees, turnover costs, and, crucially, a dedicated CapEx Reserve to
+account for future major repairs 94129. The resulting Economic DSCR is the primary
+metric for assessing true investment viability 257. To move beyond static calculations, the
+engine incorporates a suite of advanced stress-testing formulas that replace arbitrary
+"what-if" scenarios with deterministic, correlated shocks. These include the Tax Shock
+DSCR, Insurance Shock DSCR, and CapEx Stress DSCR, which quantify the
+impact of isolated shocks 93. More robustly, these are embedded within Correlated
+Stress Scenarios, or "Macro Archetypes," which force the deal through historically
+plausible, multi-variable crises like stagflation, recession, or climate-related regional
+distress 248299.
+Formula Name Purpose Equation / Logic
+Sequential Models path-dependent ruin by simulating month-by- Iterates Balance += Monthly_NCF -
+Drawdown Array month cash flow depletion, identifying the precise CapEx_Shocks. Triggers if balance drops below $0.
+Ruin_Month caused by clustered shocks 72 98.
+Multi-Year DSCR Projects DSCR over a full hold period, modeling Loops year-by-year, applying (1+rate)^year to
+Trajectory differential inflation for rent, taxes, and insurance, and income/expenses and recalculating amortization after
+correctly calculating ADS evolution 57224. the IO reset.
+IO Reset Cliff Model Calculates the exact payment increase and DSCR Reset Payment = PMT(Loan_Amount, Rate,
+impact when an IO loan transitions to amortization on Total_Months - IO_Months). Compares
+a shorter remaining term 1 78. Reset_DSCR to threshold.
+Cap-Rate Linked Models the "LTV-Cap Rate Spiral," where a refinance is Value_at_Refi = Projected_NOI /
+Refi Solver denied not due to DSCR, but because a market-wide (Current_Cap_Rate + (Δ_Rate × β_CR)).
+rate shock collapses the property's appraised value 81 Checks if LTV_at_Refi breaches matrix limit.
+87.
+Discrete State-Space Replaces continuous calculus-based optimization. Maps Evaluates all possible combinations of price, loan
+Grid Search the deal across every node of a lender's matrix to find amount, and LTV within constraints to find the highest
+the optimal LTV/Rate tier 145195. ROI solution.
+Multi-Variable Finds the optimal bundle of joint repairs (e.g., lower Minimizes Σ(Weight_i × |Δ_i|) subject to
+Constrained price AND higher LTV) using methods like SLSQP to constraints (DSCR ≥ Target, LTV ≤ Max).
+Optimization minimize total adjustment cost 275279.
+Advanced Temporal & Path-Dependency Algorithms
+The most significant advancement of the AEGIS engine lies in its sophisticated temporal
+and path-dependency algorithms, which directly address the "map vs. territory" problem
+
+===== PAGE 5 =====
+
+inherent in static financial models 72 98. By moving from a single-point calculation to a
+dynamic, time-series simulation, the engine can accurately model the real-world
+complexities of commercial real estate. The cornerstone of this capability is the
+Sequential Drawdown Array, which replaces the scalar Liquidity Survival Clock (LSC)
+with a discrete, month-by-month simulation of an investor's cash position 72. This array
+explicitly accounts for the sequence of events, meaning it can detect ruin caused by the
+clustering of negative shocks—such as a $15,000 HVAC replacement occurring during a
+three-month vacancy—which a simple average-based LSC would miss entirely 72 98. The
+engine's ability to model the entire financial trajectory is further enhanced by the Multi-
+Year DSCR Trajectory algorithm. This function projects a property's DSCR over a
+specified hold period, factoring in component-specific inflation rates for rent, taxes, and
+insurance, and correctly recalculating the debt service schedule as a loan transitions from
+an interest-only period into amortization on a shortened remaining term 57224. This
+prevents the approval of deals that appear stable in Year 1 but are headed for insolvency
+in Year 5 due to predictable cash flow cliffs 1 78.
+These temporal models are complemented by algorithms that specifically target systemic
+feedback loops and macroeconomic dependencies. The Cap-Rate Linked Refi Solver
+introduces a critical layer of realism by modeling the "LTV-Cap Rate Spiral" 81 87. It
+recognizes that a sharp, rapid increase in interest rates doesn't just increase debt service;
+it also causes market-wide cap rates to expand, which collapses a property's appraised
+value. This can, in turn, push the loan-to-value (LTV) ratio past the lender's maximum
+threshold, leading to a refinance denial even if the debt-service coverage ratio (DSCR)
+remains above the required level 81 87. This spiral effect is a common source of borrower
+distress that is invisible to simpler models. Furthermore, the engine integrates
+Deterministic Macro Archetypes for stress testing, replacing independent variable
+shocks with historically-correlated crisis scenarios 248299. For instance, instead of
+randomly varying rent, vacancy, and interest rates, the engine can test the deal against a
+predefined "Recession" archetype, which simultaneously applies a 15% rent decline, a
+10% vacancy increase, and a 100-basis-point rate decrease, reflecting observed historical
+correlations 14 15. Similarly, a "Climate/Regional" archetype might apply correlated
+shocks to insurance, taxes, and property value following a natural disaster 84123. By
+combining these advanced temporal, path-dependent, and macro-correlative algorithms,
+the AEGIS engine moves far beyond a static calculator, providing a dynamic and
+empirically-grounded view of a property's financial journey.
+
+===== PAGE 6 =====
+
+System Governance, Explainability, and Regulatory
+Compliance
+The AEGIS engine is not merely a technical tool but a regulated system requiring robust
+governance, explainability, and compliance frameworks to operate safely and ethically 196
+197. Central to its governance is the ECOA Lockout, a hard-coded architectural constraint
+designed to prevent algorithmic bias and digital redlining 75100. This sub-routine
+explicitly forbids the use of proxy-sensitive geospatial clustering—for example, using ZIP
+codes or census tracts—to apply higher default assumptions for certain areas unless those
+assumptions are tied directly to verifiable, non-protected MSA-level macroeconomic data
+sources 75. This ensures that the engine's "conservative" assumptions are based on
+objective, market-wide trends rather than discriminatory proxies. Complementing this is
+the Cryptographic Audit Trail Generator, which creates an immutable and tamper-
+proof record of every calculation 103105. Before execution, the engine generates a
+SHA-256 hash of a JSON payload containing all raw inputs, the specific versions of the
+lender matrix and formula registry used, and a log of all decision logic gates triggered.
+This provides legal and regulatory bodies with a complete, verifiable history of how every
+recommendation was derived, satisfying the principles of transparency and accountability
+103.
+Explainability is another pillar of the engine's design, driven by the need to provide
+actionable advice and comply with regulations like the Equal Credit Opportunity Act
+(ECOA) 8 249. The engine avoids black-box scores and instead focuses on generating
+counterfactual explanations 68 69. When a deal is flagged, the engine doesn't just say
+"fails"; it generates minimum-change counterfactuals, such as "If your rent were
+2,900insteadof2,700, this would be a Strong Deal" 147212. This is achieved through a
+dedicated Counterfactual Explanation Generator that uses binary search techniques to
+identify the smallest input changes needed to alter a negative outcome 68 69. If the
+engine is used in a credit decision-making workflow, it is equipped with an ECOA
+Adverse Action Reason Generator 221249. This component maps the engine's
+deterministic failures (e.g., DSCR below minimum threshold, LTV exceeds maximum) to
+specific, accurate, and CFPB-compliant reason codes 221249. This fulfills the legal
+obligation to provide applicants with clear, principled reasons for adverse actions,
+preventing the use of vague or opaque justifications 9 59. The engine also includes a
+Data Integrity Layer with the Input Confidence Score (ACS), which penalizes deals
+built on user guesses by assigning them lower weights in subsequent calculations, thereby
+de-emphasizing unreliable data 49 50. Together, these governance, explainability, and
+
+===== PAGE 7 =====
+
+compliance features ensure that the AEGIS engine operates not just as a powerful
+analytical tool, but as a fair, transparent, and legally sound decision-support system.
+Final Synthesis: A Complete Algorithm Library and
+Implementation Roadmap
+The culmination of this research is a comprehensive, adversarially-hardened algorithm
+library and a phased implementation roadmap designed to build the AEGIS DSCR
+Decision Engine from the ground up. The engine is not a single monolithic system but a
+nine-module pipeline, where data flows strictly downward and no module can bypass the
+central Audit and Compliance Layer 39. The first phase of implementation must focus on
+eliminating the most critical vulnerabilities. This involves building the core temporal and
+path-dependency algorithms, including the Sequential Drawdown Array to prevent
+path-dependent ruin, the IO Reset Cliff Model to expose hidden payment shocks, and
+the Cap-Rate Linked Refi Solver to guard against the LTV-Cap Rate Spiral 1 72 87.
+Concurrently, the engine must be fortified with its governance and compliance layers,
+particularly the ECOA Lockout and Cryptographic Audit Trail Generator, which are
+fundamental to its fiduciary status 103196.
+Following the establishment of this robust core, subsequent phases should focus on
+enhancing data integrity and expanding analytical capabilities. This includes integrating
+live data feeds for rates, taxes, and insurance, and implementing the Multi-Source Rent
+Triangulation algorithm to validate one of the largest potential vectors for fraud and
+error 49 50. The engine's prescriptive capabilities will be developed next, introducing the
+Discrete State-Space Grid Search for optimal LTV/Rate recommendations and the
+Multi-Variable Constrained Optimization engine to solve for complex bundles of deal
+repairs 195275. Finally, the engine must be made self-aware through the implementation
+of a Backtest Framework and Model Drift Detection mechanisms, which will
+continuously validate its performance against real-world outcomes and monitor for
+degradation in predictive power 37 56. Throughout this process, every algorithm and
+formula is subjected to an adversarial validation protocol, where it is actively attacked
+with hostile data and logic to ensure its robustness before deployment 8 .
+The definitive, deduplicated library of the engine's core algorithms forms the basis of its
+operational logic. These formulas represent a synthesis of empirical best practices and
+
+===== PAGE 8 =====
+
+institutional-grade risk modeling, moving decisively away from the oversimplifications of
+legacy calculators.
+Category Algorithm Name Best Version Equation / Logic
+Dual-Ledger Math Stabilized Economic NOI EGI - Taxes - Insurance - Management - CapEx_Reservation
+- Other_OpEx 94129.
+Economic DSCR Stabilized_Economic_NOI / Actual_Annual_Debt_Service257.
+Temporal Dynamics Sequential Drawdown Array Simulates Balance += Monthly_NCF - CapEx_Shocks to detect
+Ruin_Month 72 98.
+Multi-Year DSCR Trajectory Projects DSCR over N years with component-specific inflation and IO reset 57
+224.
+IO Reset Cliff Model Reset_Payment = PMT(P, r, n_IO_reset_term) 1 78.
+Cap-Rate Linked Refi Solver Value_at_Refi = NOI_n / (Cap_Rate_current + (Δ_Rate ×
+β_CR)) 81 87.
+Deal Repair & Discrete State-Space Grid Maps deal across lender matrix tiers to find optimal LTV/Rate nodes 145195.
+Optimization Search
+Multi-Variable Constrained Minimizes Σ(Weight_i × |Δ_i|) subject to DSCR, LTV, and Rent
+Optimization constraints 275279.
+System Governance ECOA Lockout / Fair Lending Hardcoded block against proxy-sensitive geospatial assumptions without MSA-
+Constraint level data 75100.
+Cryptographic Audit Trail Hashes a JSON payload of inputs, matrix versions, and logic gates 103105.
+Generator
+Explainability Counterfactual Explanation Binary search for minimum change to flip a negative outcome 68 69.
+Generator
+ECOA Adverse Action Reason Maps deterministic failures to specific CFPB-compliant reason codes 221249.
+Generator
+By adhering to this synthesized library and phased roadmap, the engineering team can
+construct a decision engine that is not only mathematically superior but also robust,
+explainable, and compliant, fulfilling the ultimate goal of creating an institutional-grade
+tool for risk intelligence.
+
+===== PAGE 9 =====
+
+Reference
+1. [PDF] Interest Rate Pass-Through With Adjustable Rate Mortgages https://
+www.ecb.europa.eu/pub/research-networks/shared/pdf/champ/
+20251211_ws1/20251211_Zhao_paper.pdf
+2. Interest Rate Changes and Borrower Search Behavior - ResearchGate https://
+www.researchgate.net/publication/
+334143393_Interest_Rate_Changes_and_Borrower_Search_Behavior
+3. behavioral factors in loan default prediction a literature review on ... https://
+www.researchgate.net/publication/
+392899032_BEHAVIORAL_FACTORS_IN_LOAN_DEFAULT_PREDICTION_A_LITERAT
+URE_REVIEW_ON_PSYCHOLOGICAL_AND_SOCIOECONOMIC_RISK_INDICATORS
+4. [PDF] Housing Research Report: Mortgage Downpayment and Borrower ... https://
+eppdscrmssa01.blob.core.windows.net/cmhcprodcontainer/sf/project/archive/
+research_2/mortgage_downpayment_borrower_behaviour.pdf
+5. Recourse and (strategic) mortgage defaults: Evidence from changes ... https://
+www.sciencedirect.com/science/article/abs/pii/S0014292125000042
+6. The Behavioral Relationship Between Mortgage Prepayment and https://
+ideas.repec.org/p/fip/fedpwp/90369.html
+7. BEHAVIORAL FACTORS IN LOAN DEFAULT PREDICTION A ... https://ajates-
+scholarly.com/index.php/ajates/article/view/37
+8. Mind the gap: Securing algorithmic explainability for credit decisions ... https://
+www.sciencedirect.com/science/article/pii/S2212473X25001191
+9. Data Access and AI Explainability https://www.cambridge.org/core/elements/data-
+access-and-ai-explainability/E78C29A981519DAFF382A7946DE90A58
+10. [PDF] Interest rate risk in the banking book https://www.bis.org/bcbs/publ/d368.pdf
+11. Manage FX & Interest Rate Risk with YPC & Convera Inc. - LinkedIn https://
+www.linkedin.com/posts/jessica-oku-thought-leader_free-fx-risk-management-
+webinar-ypc-convera-activity-7451268304830382080-Ya5p
+12. [PDF] Discounted Cash Flow Valuation - NYU Stern https://pages.stern.nyu.edu/
+~adamodar/pdfiles/eqnotes/dcfall2pgOld.pdf
+13. [PDF] 10k1225.pdf - Morgan Stanley https://www.morganstanley.com/content/dam/
+msdotcom/en/about-us-ir/shareholder/10k2025/10k1225.pdf
+
+===== PAGE 10 =====
+
+14. The existence of flight-to-quality under extreme conditions https://
+www.sciencedirect.com/science/article/abs/pii/S0264999322001419
+15. [PDF] Annual Report 2025 Financial Statements - IDB Publications https://
+publications.iadb.org/publications/english/document/Inter-American-Development-
+Bank-Annual-Report-2025-Financial-Statements.pdf
+16. [PDF] Addressing commercial real estate lending risks with borrower ... https://
+www.esrb.europa.eu/pub/pdf/occasional/esrb.op29~5478fd0f14.en.pdf
+17. Credit Rating Model: Commercial Mortgage Capital - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/10024224/revId/2
+18. [PDF] Proposed Rule: Asset-Backed Securities - SEC.gov https://www.sec.gov/files/
+rules/proposed/2010/33-9117.pdf
+19. Advanced Techniques for Financial Distress Prediction - MDPI https://
+www.mdpi.com/2571-9394/8/1/2
+20. Advancing financial resilience: A systematic review of default ... - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC11564005/
+21. Testing for Multi-Asset Systemic Tail Risk - IDEAS/RePEc https://ideas.repec.org/p/
+fip/fedlwp/96490.html
+22. [2209.07092] Measuring Tail Risks - arXiv https://arxiv.org/abs/2209.07092
+23. Housing policy effects: Findings of large empirical literature - RPubs https://
+rpubs.com/Konstantin_Xo/HPE
+24. [PDF] RESERVE BANK OF INDIA DEPARTMENT OF REGULATION ... https://
+avantiscdnprodstorage.blob.core.windows.net/legalupdatedocs/44677/RBI-issued-the-
+Update-on-Master-Direction-Reserve-Bank-of-India-Non-Banking-Financial-Company-
+Scale-Based-Regulation-Directions-2023-Jul172025.pdf
+25. Copula multivariate GARCH model with constrained Hamiltonian https://
+ideas.repec.org/a/vrs/demode/v7y2019i1p133-149n6.html
+26. Copula multivariate GARCH model with constrained Hamiltonian ... https://
+www.researchgate.net/publication/
+333724113_Copula_multivariate_GARCH_model_with_constrained_Hamiltonian_Mon
+te_Carlo
+27. [PDF] Valuing FtD Contract under Copula Approach via Monte-Carlo ... https://
+arxiv.org/pdf/1310.6819
+28. Calibrating and Simulating Copula Functions in Financial Applications https://
+www.frontiersin.org/journals/applied-mathematics-and-statistics/articles/10.3389/
+fams.2021.642210/full
+29. OCC issues guidance to community banks on loan portfolio stress ... https://
+www.lexology.com/library/detail.aspx?g=14eb71b2-1ab1-45c7-bd7d-84554aa9cea4
+
+===== PAGE 11 =====
+
+30. Executive Order Seeks to Expand Access to Mortgage Credit https://
+finsights.cooley.com/executive-order-seeks-to-expand-mortgage-credit-for-customers-
+of-community-and-smaller-banks/
+31. Modeling of Commercial Real Estate credit Risks - ResearchGate https://
+www.researchgate.net/publication/
+254353411_Modeling_of_Commercial_Real_Estate_credit_Risks
+32. figr-20251231 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2064124/000206412426000009/figr-20251231.htm
+33. Form S-1 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2064124/000162828025041443/figuretechnologysolutionsi.htm
+34. Financial Stability Review, November 2025 - European Central Bank https://
+www.ecb.europa.eu/press/financial-stability-publications/fsr/html/
+ecb.fsr202511~263b5810d4.en.html
+35. Criteria | Structured Finance | General: Global F | S&P Global Ratings https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/11734324
+36. Validation of Corporate Probability of Default Models Considering ... https://
+www.mdpi.com/2227-7072/9/4/63
+37. [PDF] Risk Management & Modelling - PwC https://www.pwc.com/cz/cs/assets/Risk-
+management-and-Modelling-eBook-A4.pdf
+38. Chukwuemeka Ugwu posted this - LinkedIn https://www.linkedin.com/posts/
+ugwuchristopher_i-recently-completed-an-end-to-end-credit-
+activity-7467473843654303746-Jsat
+39. Loan Eligibility Prediction System from Scratch: Lessons Learned https://
+www.linkedin.com/posts/hamed-arjmandi-89a4aa54_slides-cover-the-full-results-
+confusion-activity-7469295351045472256-jRxB
+40. (PDF) The predictability of real estate capitalization rates https://
+www.researchgate.net/publication/
+228465044_The_predictability_of_real_estate_capitalization_rates
+41. Cap Rates as a Function of Real Economic Growth - MDPI https://www.mdpi.com/
+1911-8074/15/8/324
+42. Trends in residential real estate lending standards and implications ... https://
+www.ecb.europa.eu/press/financial-stability-publications/fsr/special/html/
+ecb.fsrart202005_01~762d09d7a2.en.html
+43. The predictability of real estate capitalization rates - Academia.edu https://
+www.academia.edu/161293782/
+The_predictability_of_real_estate_capitalization_rates
+44. Impact of housing policies on the real estate market https://www.sciencedirect.com/
+science/article/pii/S2405844023079124
+
+===== PAGE 12 =====
+
+45. Full article: An agent-based model for the assessment of LTV caps https://
+www.tandfonline.com/doi/full/10.1080/14697688.2020.1733058
+46. Redevelopment is rewarding but risky. Joint ventures need ... - TikTok https://
+www.tiktok.com/@atx_colorado_cowboy/video/7645378028138138894
+47. Navigating STR Regulatory Changes & Compliance Challenges in ... https://
+www.linkedin.com/pulse/navigating-str-regulatory-changes-compliance-
+challenges-2025-krfoc
+48. [PDF] The regulatory aspects of short-term rentals in the EU https://
+www.europarl.europa.eu/RegData/etudes/IDAN/2025/759356/
+CASP_IDA(2025)759356_EN.pdf
+49. Technology Corner | News - Dodd Frank Update https://www.doddfrankupdate.com/
+dfu/articlesdfu.aspx?taxonomy=technologycorner
+50. Orrick to discuss GenAI in mortgage compliance at MBA conference https://
+www.linkedin.com/posts/albert-vanderlaan-772a4a8_mbacompliancerisk25-genai-
+mortgagecompliance-activity-7376263331529015296-GUu5
+51. Determinants of credit spreads and cash flow-related lending in ... https://
+www.sciencedirect.com/science/article/pii/S0275531924004628
+52. Factors That Impact Cre Loan Defaults - LinkedIn https://www.linkedin.com/top-
+content/real-estate/economic-factors-in-real-estate/factors-that-impact-cre-loan-
+defaults/
+53. Coverage Ratios in Real Estate Finance: DSCR, LLCR, and PLCR ... https://
+www.mmcginvest.com/post/coverage-ratios-in-real-estate-finance-dscr-llcr-and-plcr-
+in-u-s-lending-practice
+54. Adesh Kumar - Barclays - LinkedIn https://in.linkedin.com/in/adesh-kumar-7a45569b
+55. Automation and intelligent optimization of financial processes using ... https://
+link.springer.com/article/10.1007/s44163-025-00605-1
+56. M13 Invests in AI Risk Management, Cross-Border Payments, and ... https://
+www.linkedin.com/posts/m13-company_this-year-m13-has-invested-in-ai-risk-
+management-activity-7452015469194055680-vK59
+57. Comparative Study on Exponentially Weighted Moving Average ... https://
+www.researchgate.net/publication/
+346318470_Comparative_Study_on_Exponentially_Weighted_Moving_Average_Appro
+aches_for_the_Self-Starting_Forecasting
+58. How to explain adverse action reasons in cash flow underwriting https://
+www.linkedin.com/posts/jason-rosen-42668a36_when-we-first-proposed-automated-
+cash-flow-activity-7394388564542726144-2DR9
+59. 7H Core Safe Continuing Education Course Flashcards - Quizlet https://quizlet.com/
+926661347/7h-core-safe-continuing-education-course-flash-cards/
+
+===== PAGE 13 =====
+
+60. [PDF] Managing explanations: how regulators can address AI explainability https://
+www.bis.org/fsi/fsipapers24.pdf
+61. AI in Lending: AI Credit Regulations Affecting Lending Business 2025 https://
+hesfintech.com/blog/all-legislative-trends-regulating-ai-in-lending/
+62. [PDF] regulatory approaches to artificial intelligence in finance | oecd https://
+www.oecd.org/content/dam/oecd/en/publications/reports/2024/09/regulatory-
+approaches-to-artificial-intelligence-in-finance_43d082c3/f1498c02-en.pdf
+63. Cash Flow Underwriting with Bank Transaction Data - arXiv https://arxiv.org/html/
+2510.16066v1
+64. On the Determinants of Discount Rates in Discounted Cash Flow ... https://
+www.mdpi.com/2813-8090/1/2/9
+65. (PDF) Explainable AI in Data-Driven Finance: Balancing Algorithmic ... https://
+www.researchgate.net/publication/392590520_Explainable_AI_in_Data-
+Driven_Finance_Balancing_Algorithmic_Transparency_with_Operational_Optimization
+_Demands
+66. Drug Patent IP Valuation & Financing: The Definitive Analyst's ... https://
+www.drugpatentwatch.com/blog/the-alchemists-playbook-transforming-drug-patent-
+data-into-financial-gold-with-advanced-ip-valuation-and-financing-models/
+67. Form S-1 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+2042176/000121390025025266/ea0218945-04.htm
+68. Causal Intervention and Counterfactual Reasoning for Multimodal ... https://
+www.mdpi.com/2313-433X/11/11/379
+69. [PDF] CounterScene: Counterfactual Causal Reasoning in Generative ... https://
+arxiv.org/pdf/2603.21104
+70. Estimating and Evaluating Counterfactual Prediction Models - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12503020/
+71. [PDF] Causal Intervention and Counterfactual Reasoning for Multi-modal ... https://
+aclanthology.org/2023.acl-long.37.pdf
+72. [PDF] Sequential Counterfactual Inference for Temporal Clinical Data https://
+www.researchgate.net/publication/
+401178201_Sequential_Counterfactual_Inference_for_Temporal_Clinical_Data_Addres
+sing_the_Time_Traveler_Dilemma/fulltext/699e752a64ca8a3820918456/Sequential-
+Counterfactual-Inference-for-Temporal-Clinical-Data-Addressing-the-Time-Traveler-
+Dilemma.pdf?origin=scientificContributions
+73. Temporal Causal Reasoning with (Non-Recursive) Structural ... https://ojs.aaai.org/
+index.php/AAAI/article/view/33639
+74. Explainable Artificial Intelligence (XAI) 2.0: A manifesto of open ... https://
+www.sciencedirect.com/science/article/pii/S1566253524000794
+
+===== PAGE 14 =====
+
+75. Performance, Fairness, and Explainability in AI-Based Credit Scoring https://
+www.mdpi.com/1911-8074/19/2/104
+76. An Agentic LOS for Business Banking - LinkedIn https://www.linkedin.com/pulse/
+agentic-los-business-banking-chris-shayan-o9wlc
+77. NAB's AI Applications in Mortgage Lending | NAB posted on the topic https://
+www.linkedin.com/posts/nab_how-well-are-artificial-intelligences-uses-
+activity-7402150754968670208-nqbL
+78. Prepayment Risk in Adjustable Rate Mortgages Subject to Initial ... https://
+www.researchgate.net/publication/
+23523718_Prepayment_Risk_in_Adjustable_Rate_Mortgages_Subject_to_Initial_Year_
+Discounts_Some_New_Evidence
+79. The effect of changing mortgage payments on default and prepayment https://
+ideas.repec.org/a/bla/reesec/v50y2022i5p1231-1256.html
+80. A Microeconomic Analysis with Canadian Adjustable Rate Mortgage ... https://
+www.semanticscholar.org/paper/b64c087e46ef315ccabdd42f16e747ebc3e436ed
+81. 2026 commercial real estate outlook | Deloitte Insights https://www.deloitte.com/us/
+en/insights/industry/financial-services/commercial-real-estate-outlook.html
+82. A Dynamic Double-Trigger Model of Multifamily Mortgage Default https://
+www.researchgate.net/publication/23523752_A_Dynamic_Double-
+Trigger_Model_of_Multifamily_Mortgage_Default
+83. [PDF] The Multifamily Housing Market and Value-at-Risk Implications for ... http://
+ihs-website-v2-production.s3.amazonaws.com/filer/2012/07/25/
+mfhsingmarketandvar.pdf
+84. Copula Multivariate GARCH Model with Constrained Hamiltonian https://
+ideas.repec.org/p/tor/tecipa/tecipa-638.html
+85. Bayesian Estimation of R-Vine Copula with Gaussian-Mixture ... https://
+www.mdpi.com/2227-7390/13/23/3886
+86. Bayesian Inference for Mixed Gaussian GARCH-Type Model ... - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC9708521/
+87. Cap Rates and Interest Rates in U.S. Commercial Real Estate https://
+www.mmcginvest.com/post/cap-rates-and-interest-rates-in-u-s-commercial-real-estate-
+a-data-note
+88. 2026 Commercial Real Estate Trends - J.P. Morgan https://www.jpmorgan.com/
+insights/real-estate/commercial-real-estate/commercial-real-estate-trends
+89. CRE20 - Standardised approach: individual exposures https://www.bis.org/
+basel_framework/chapter/CRE/20.htm
+90. [PDF] Final Report – Guidelines on loan origination and monitoring https://
+www.eba.europa.eu/sites/default/files/document_library/Publications/Guidelines/
+
+===== PAGE 15 =====
+
+2020/Guidelines%20on%20loan%20origination%20and%20monitoring/884283/
+EBA%20GL%202020%2006%20Final%20Report%20on%20GL%20on%20loan%20ori
+gination%20and%20monitoring.pdf
+91. [PDF] Credit Risk Measurement Under Basel II - World Bank Document https://
+documents1.worldbank.org/curated/en/431871468330983467/pdf/
+wps35560corrected.pdf
+92. [PDF] MS Basel III - Q1 - 2026 (Final) - Morgan Stanley https://
+www.morganstanley.com/content/dam/msdotcom/en/about-us-ir/pdf/
+1Q26_Basel_III_Pillar_3_Disclosures_Report.pdf
+93. DSCR Under Stress: A Three-Method Framework for Institutional ... https://
+www.mmcginvest.com/post/dscr-under-stress-a-three-method-framework-for-
+institutional-underwriting
+94. Rent Roll Assumptions in Multifamily Underwriting Models - LinkedIn https://
+www.linkedin.com/posts/val-despard_cre-multifamily-underwriting-
+activity-7459950512990339072-lAQT
+95. Model risk guidance, private fund reporting and more – April 24, 2026 https://
+www.pwc.com/us/en/industries/financial-services/library/our-take/model-risk-
+guidance-private-fund-reporting-apr-24-2026.html
+96. DSCR Loans for Short-Term Rentals: Navigating Airbnb Regulations https://
+loankea.com/blog/dscr-loans-for-short-term-rentals-navigating-airbnb-regulations/
+97. “Threshold‐crossing”: A Useful Way to Establish the Counterfactual ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC5114686/
+98. [PDF] Sequential Counterfactual Inference for Temporal Clinical Data - arXiv https://
+arxiv.org/pdf/2602.21168
+99. Credit Risk Estimation with Non-Financial Features - arXiv https://arxiv.org/html/
+2512.12783v1
+100. Algorithmic Bias in Lending: Evidence from a Fintech Audit - arXiv https://arxiv.org/
+html/2512.20753v2
+101. Product Structure Trumps Credit Models in Lending | Conor Larkin ... https://
+www.linkedin.com/posts/conor-larkin-data-analyics-ai-recruitment_you-can-have-the-
+best-underwriting-and-credit-activity-7460711662241746944-9j0r
+102. [PDF] Do Fair Models Reason Fairly? Counterfactual Explanation ... - arXiv https://
+arxiv.org/pdf/2605.12701
+103. Joanna Miler's Post - LinkedIn https://www.linkedin.com/posts/joanna-miler_most-
+enforcement-actions-dont-fail-because-activity-7391799048774651904-wgLE
+104. Enhancing financial reporting accuracy and compliance efficiency in ... https://
+www.researchgate.net/publication/
+
+===== PAGE 16 =====
+
+383047077_Enhancing_financial_reporting_accuracy_and_compliance_efficiency_in_l
+egal_firms_through_technological_innovations
+105. Kaumod Mishra's Post - LinkedIn https://www.linkedin.com/posts/
+kaumodmishra_genai-datagovernance-bfsi-activity-7467465322422456320-Hfz-
+106. (PDF) Data Science for Economics and Finance - Academia.edu https://
+www.academia.edu/108104124/Data_Science_for_Economics_and_Finance
+107. Issues in the Validation of Wholesale Credit Risk Models (Chapter 10) https://
+www.cambridge.org/core/books/validation-of-risk-management-models-for-financial-
+institutions/issues-in-the-validation-of-wholesale-credit-risk-models/
+0956A99B4B0DC8EA973592A5474C33AB
+108. Cash Flow Underwriting with Bank Transaction Data - arXiv https://arxiv.org/html/
+2510.16066v3
+109. Top 11 Commercial Loan Software in 2026 - HES FinTech https://hesfintech.com/
+blog/top-commercial-loan-underwriting-software/
+110. The effect of changing mortgage payments on default and prepayment https://
+www.researchgate.net/publication/
+358680517_The_effect_of_changing_mortgage_payments_on_default_and_prepaymen
+t_Evidence_from_HAMP_resets
+111. [PDF] Household Behavior under Macroprudential Borrower-Based ... https://
+www.imf.org/-/media/files/publications/wp/2026/english/wpiea2026066-source-
+pdf.pdf
+112. (PDF) Behavioral Finance: Loss Aversion, Market Anomalies, and ... https://
+www.researchgate.net/publication/
+381536862_Behavioral_Finance_Loss_Aversion_Market_Anomalies_and_Prospect_The
+ory_in_Financial_Decision-Making
+113. Behavioral Finance:Perceived Risk and Perceived Expected Return https://
+www.zgglkx.com/EN/abstract/abstract14357.shtml
+114. An Optimal Investment Portfolio for BOT Freeway Projects from the ... https://
+www.sciencedirect.com/science/article/pii/S1226798824015307/pdf?
+md5=3d93645f8c3cacb58269ede619490172&pid=1-s2.0-S1226798824015307-
+main.pdf
+115. ARCHIVE | Criteria | Insurance | General: Methodo - S&P Global https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/sourceId/7319970
+116. [PDF] Revisions to the Standardised Approach for credit risk https://www.bis.org/
+bcbs/publ/d347.pdf
+117. Japan: 2026 Article IV Consultation-Press Release; Staff Report https://
+www.elibrary.imf.org/view/journals/002/2026/075/article-A001-en.xml
+
+===== PAGE 17 =====
+
+118. [PDF] OECD Economic Surveys: Philippines 2026 (EN) https://www.oecd.org/
+content/dam/oecd/en/publications/reports/2026/02/oecd-economic-surveys-
+philippines-2026_cc282bc0/f0e0c581-en.pdf
+119. [PDF] RESERVE BANK OF INDIA https://ypfsresourcelibrary.blob.core.windows.net/
+fcic/YPFS/0RBIAR202021_F49F9833694E84C16AAD01BE48F53F6A2.pdf
+120. [PDF] #Housing2030 - UNECE https://unece.org/sites/default/files/2021-10/
+Housing2030%20study_E_web.pdf
+121. [PDF] Portfolio optimization through hybrid deep learning and genetic ... https://
+audencia.hal.science/hal-04631234v2/file/TFSC%202024_Final%20version.pdf
+122. Hedge funds portfolio optimisation using a vine copula-GARCH https://
+ideas.repec.org/a/ids/ijesbu/v39y2020i1-2p121-148.html
+123. [PDF] Time-varying Vine Copula model based on R-Vine structure ... - arXiv https://
+arxiv.org/pdf/2509.11192
+124. Tail Risk Dynamics under Price-Limited Constraint: A Censored ... https://
+www.mdpi.com/1099-4300/26/7/555
+125. [PDF] Enhancing Credit Risk Prediction: A Multi-stage Ensemble Pipeline https://
+arxiv.org/pdf/2509.22381
+126. 12903_2022_2246_MOESM1_E... https://static-content.springer.com/esm/
+art%3A10.1186%2Fs12903-022-02246-7/MediaObjects/
+12903_2022_2246_MOESM1_ESM.docx
+127. [PDF] Tail Risk Dynamics under Price-Limited Constraint: A Censored ... https://
+pdfs.semanticscholar.org/8694/eb00cd1422be567722195be8d021cbd86a94.pdf
+128. [PDF] Comparing the Performance of Logit and Probit Early Warning ... https://
+www.imf.org/-/media/websites/imf/imported-full-text-pdf/external/pubs/ft/wp/
+2014/_wp1465.pdf
+129. Multifamily Underwriting: Bridging the Gap Between Stabilized and ... https://
+www.mmcginvest.com/post/multifamily-underwriting-bridging-the-gap-between-
+stabilized-and-in-place-performance
+130. Chapter 7. Next-Generation Systemwide Liquidity Stress Testing in https://
+www.elibrary.imf.org/display/book/9781484368589/ch007.xml
+131. [PDF] Advancements in stress-testing methodologies for financial stability ... https://
+www.ecb.europa.eu/pub/pdf/scpops/ecb.op348~6b72fbe3cf.en.pdf
+132. On maximum likelihood estimation of competing risks using the ... https://
+www.researchgate.net/publication/
+343438123_On_maximum_likelihood_estimation_of_competing_risks_using_the_caus
+e-specific_semi-parametric_Cox_model_with_time-varying_covariates_-
+_An_application_to_credit_risk
+
+===== PAGE 18 =====
+
+133. Exploring different subtypes of recurrent event Cox-regression models https://
+arxiv.org/html/2505.01044v1
+134. Time-Series Modeling for Corporate Financial Crisis Prediction - MDPI https://
+www.mdpi.com/2227-7390/14/4/657
+135. Time Series Foundation Models for Multivariate Financial ... - arXiv https://arxiv.org/
+html/2507.07296v1
+136. [PDF] Predicting financial market stress with machine learning https://www.bis.org/
+publ/work1250.pdf
+137. (PDF) TIME SERIES BASED FINANCIAL FORECASTING MODELS https://
+www.researchgate.net/publication/
+390094824_TIME_SERIES_BASED_FINANCIAL_FORECASTING_MODELS
+138. Financial Time-Series Forecasting Dataset - Kaggle https://www.kaggle.com/datasets/
+zara2099/financial-time-series-forecasting-dataset
+139. How Real Estate Investors Use Debt Coverage Ratio | CEP Multifamily https://
+cepmultifamily.com/real-estate-investors-use-debt-coverage-ratio/
+140. What Is a Good Debt Service Coverage Ratio? Guide 2025 https://
+www.revistarealestate.com/blog/what-is-a-good-debt-service-coverage-ratio-
+guide-2025/
+141. What is debt service coverage ratio (DSCR) in real estate? https://
+www.jpmorgan.com/insights/real-estate/commercial-term-lending/what-is-debt-
+service-coverage-ratio-dscr-in-real-estate
+142. Insights Into Fannie Mae Loan Loss Data (Comparable to Freddie ... https://
+www.fitchratings.com/site/re/868000
+143. Evidence from Freddie Mac's Newest Data - Mortgage - ResearchGate https://
+www.researchgate.net/publication/
+282417389_Loss_Severity_on_Residential_Mortgages_Evidence_from_Freddie_Mac's_
+Newest_Data
+144. AI in Financial Services: Popular Use Cases and the Regulatory ... https://
+www.lexology.com/library/detail.aspx?g=536c2179-f411-4793-ae9c-1bc3c44e3651
+145. Solving large-scale discrete time–cost trade-off problem using ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC9898292/
+146. [PDF] Data needs and Statistics compilation for macro-prudential analysis https://
+www.bis.org/ifc/publ/ifcb46.pdf
+147. Explainable bank failure prediction models: Counterfactual ... - arXiv https://
+arxiv.org/html/2407.11089v2
+148. Flexible Counterfactual Explanations with Generative Models - arXiv https://arxiv.org/
+html/2502.17613v1
+
+===== PAGE 19 =====
+
+149. Counterfactual Explanation for Multivariate Time Series Forecasting ... https://
+arxiv.org/abs/2511.06906
+150. [PDF] Commercial real estate loan performance at failed US banks https://
+www.bis.org/publ/bppdf/bispap64d.pdf
+151. Mathematical optimization modelling for group counterfactual https://
+ideas.repec.org/a/eee/ejores/v319y2024i2p399-412.html
+152. [PDF] Expressive Optimal Temporal Planning via ... - AAAI Publications https://
+ojs.aaai.org/index.php/AAAI/article/view/26426/26198
+153. 无主题 https://hgxb.cip.com.cn/EN/matrix/matrix.do?
+articleId=44120&type=AbstractVersion
+154. Optimization of Spatial and Temporal Configuration of a Pressure ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC10422529/
+155. 无主题 https://www.rddl.com.cn/EN/matrix/matrix.do?
+articleId=46083&type=AbstractVersion
+156. 2026 banking and capital markets outlook | Deloitte Insights https://
+www.deloitte.com/us/en/insights/industry/financial-services/financial-services-
+industry-outlooks/banking-industry-outlook.html
+157. Big data in financial risk management: evidence, advances ... - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12521224/
+158. Engineering Sustainable Data Architectures for Modern Financial ... https://
+www.mdpi.com/2079-9292/14/8/1650
+159. Overcoming DTI Limits with DSCR Loans for Real Estate Investors https://
+www.linkedin.com/posts/ryanmcpartland_a-client-called-me-last-week-with-a-
+problem-activity-7427454059164459008-Qaxr
+160. [PDF] Annex 1 - Bank for International Settlements https://www.bis.org/publ/
+bcbs118d.pdf
+161. Criteria | Structured Finance | General: Counterp | S&P Global Ratings https://
+www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/3412992
+162. 2024_7276 Intragroup transactions in calculation of net positions ... https://
+www.eba.europa.eu/single-rule-book-qa/qna/view/publicId/2024_7276
+163. PF BASICS – PART 4: THE LLCR – AN EXTENSION OF ... - LinkedIn https://
+www.linkedin.com/pulse/pf-basics-part-4-llcr-extention-complement-dscr-julia-
+eberdal
+164. [PDF] Studies on credit risk concentration - Bank for International Settlements
+https://www.bis.org/publ/bcbs_wp15.pdf
+165. COL-23-0483.pdf - Researching https://www.researching.cn/HiringPubPDF/
+COL-23-0483.pdf
+
+===== PAGE 20 =====
+
+166. Credit Name Concentration Risk: Granularity Adjustment ... - SCIRP https://
+www.scirp.org/journal/paperinformation?paperid=72813
+167. The Interplay Between Cap Rates and Interest Rates https://rpc.cfainstitute.org/blogs/
+enterprising-investor/2024/the-interplay-between-cap-rates-and-interest-rates
+168. Study on VaR based on GARCH and copula - 北京理工大学 https://pure.bit.edu.cn/
+zh/publications/study-on-var-based-on-garch-and-copula/
+169. Simulation of VaR Based on Monte Carlo-Copula - GARCH Model https://
+www.atlantis-press.com/proceedings/icesame-17/25877602
+170. Research on the Impact of the Rent in Shanghai Based on Multiple ... https://
+www.researchgate.net/publication/
+369465626_Research_on_the_Impact_of_the_Rent_in_Shanghai_Based_on_Multiple_
+Linear_Regression_Model
+171. 详情页 - SciEngine https://www.sciengine.com/doi/10.2516/ogst:1999055
+172. 无主题 https://hgxb.cip.com.cn/EN/matrix/matrix.do?
+articleId=43952&type=AbstractVersion
+173. 无主题 https://manu44.magtech.com.cn/Jwk_infotech_wk3/EN/matrix/matrix.do?
+articleId=3555&type=AbstractVersion
+174. Linear Causal Discovery with Interventional Constraints - PMC - NIH https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12913306/
+175. 无主题 https://www.rddl.com.cn/EN/matrix/matrix.do?
+articleId=44310&type=AbstractVersion
+176. 无主题 https://xuebao.shsmu.edu.cn/EN/matrix/matrix.do?
+articleId=10365&type=AbstractVersion
+177. [PDF] Minimum Reduced-Order Models via Causal Inference - arXiv https://arxiv.org/
+pdf/2407.00271?
+178. Counterfactual Explanation for Multivariate Time Series Forecasting ... https://
+arxiv.org/html/2511.06906v1
+179. LeapFactual: Reliable Visual Counterfactual Explanation Using ... https://arxiv.org/
+html/2510.14623v1
+180. [2403.11642] Guiding the generation of counterfactual explanations ... https://
+arxiv.org/abs/2403.11642
+181. Systematic generation and analysis of counterfactuals for compound ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC11110787/
+182. Generating Counterfactual Explanations Under Temporal Constraints https://
+ojs.aaai.org/index.php/AAAI/article/view/33715
+183. CETD: Counterfactual Explanations by Considering Temporal ... https://
+www.mdpi.com/2076-3417/13/20/11176
+
+===== PAGE 21 =====
+
+184. New Definition of Default—Recalibration of Credit Risk Models ... https://
+www.mdpi.com/2227-9091/10/1/16
+185. Bootstrap Aggregation and Cross‐Validation Methods to Reduce ... https://
+www.researchgate.net/publication/342812970_Bootstrap_Aggregation_and_Cross-
+Validation_Methods_to_Reduce_Overfitting_in_Reservoir_Control_Policy_Search
+186. Bootstrap aggregation and cross-validation methods to reduce ... https://
+www.authorea.com/doi/full/10.1002/essoar.10502031
+187. Bootstrapping the out-of-sample predictions for efficient and ... - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC6191021/
+188. Bootstrapping the Cross-Validation Estimate - arXiv https://arxiv.org/html/
+2307.00260v2
+189. Robust Cross-Validation of Predictive Models Used in Credit Default ... https://
+www.mdpi.com/2076-3417/15/10/5495
+190. Model Selection for Cox Models with Time-Varying Coefficients - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC3384767/
+191. [PDF] arXiv:2306.12528v2 [stat.ME] 6 Jan 2024 https://arxiv.org/pdf/2306.12528
+192. Banks to Re-Enter Mortgage Origination as Regulatory Asymmetry ... https://
+www.linkedin.com/posts/cobyhakalir_ive-been-wrong-about-this-my-position-was-
+activity-7444361289843511296-krFK
+193. The agentic organization: A new operating model for AI | McKinsey https://
+www.mckinsey.com/capabilities/people-and-organizational-performance/our-
+insights/the-agentic-organization-contours-of-the-next-paradigm-for-the-ai-era
+194. Constraint satisfaction parameterized by solution size - arXiv https://arxiv.org/abs/
+1206.4854
+195. Existence and local stability of Pareto superior reaction function ... https://
+ideas.repec.org/a/eee/mateco/v22y1993i3p199-221.html
+196. AI Act | Shaping Europe's digital future - European Union https://digital-
+strategy.ec.europa.eu/en/policies/regulatory-framework-ai
+197. The EU AI Act Countdown: What August 2026 Means for Your AI Stack https://
+www.linkedin.com/pulse/eu-ai-act-countdown-what-august-2026-means-your-stack-
+rohit-bhosale-tpevf
+198. What Drives Loss Given Default? Evidence From Commercial Real ... https://
+www.researchgate.net/publication/
+314541164_What_Drives_Loss_Given_Default_Evidence_From_Commercial_Real_Esta
+te_Loans_at_Failed_Banks
+199. Loss Given Default, Loan Seasoning and Financial Fragility https://ideas.repec.org/a/
+kap/jrefec/v63y2021i4d10.1007_s11146-020-09783-4.html
+
+===== PAGE 22 =====
+
+200. [PDF] Revisions to the Basel Securitisation Framework https://www.bis.org/publ/
+bcbs236.pdf
+201. [PDF] Completion instructions - Hong Kong Monetary Authority https://
+www.hkma.gov.hk/media/eng/doc/key-functions/banking-stability/banking-policy-
+and-supervision/regulatory-framework/MA(BS)3/MA(BS)3(IIIb)_CIs_(202503).pdf
+202. DSCR Calculation and Formula Guide | PDF | Debt - Scribd https://www.scribd.com/
+document/421050894/Debt-Service-Coverage-Ratio-docx
+203. [PDF] Real estate indicators and financial stability - BIS Papers No 21 https://
+www.bis.org/publ/bppdf/bispap21.pdf
+204. A Monotone and Balance-Sensitive Loss Function for Ordinal ... https://ojs.aaai.org/
+index.php/AAAI/article/view/34158
+205. [PDF] Applying the Pre-Commitment Approach to bottom up stress tests a ... https://
+www.eba.europa.eu/sites/default/files/document_library/Applying%20the%20Pre-
+Commitment%20Approach%20to%20bottom%20up%20stress%20tests%20a%20new
+%20old%20story.pdf
+206. Calibration of ordinal regression networks - OpenReview https://openreview.net/
+forum?id=v27yHgKtMv
+207. [2303.02970] Rethinking Confidence Calibration for Failure Prediction https://
+arxiv.org/abs/2303.02970
+208. Stochastic Optimization System for Bank Reverse Stress Testing https://
+www.mdpi.com/1911-8074/13/8/174
+209. Determinants of Multifamily Mortgage Default - IDEAS/RePEc https://ideas.repec.org/
+a/bla/reesec/v30y2002i3p445-473.html
+210. Determinants of Multifamily Mortgage Default | Request PDF https://
+www.researchgate.net/publication/
+23523763_Determinants_of_Multifamily_Mortgage_Default
+211. Modelling the term-structure of default risk under IFRS 9 within a ... https://
+arxiv.org/html/2502.14479v1
+212. Counterfactual Explanations via Latent Space Projection and ... - arXiv https://
+arxiv.org/abs/2112.00890
+213. Generating Counterfactual Explanations Under Temporal Constraints https://
+arxiv.org/html/2503.01792v1
+214. Rental Housing Markets, the Incidence and Duration of Vacancy ... https://
+www.semanticscholar.org/paper/Rental-Housing-Markets%2C-the-Incidence-and-
+Duration-Gabriel-Nothaft/b8fcdad8506b322611252ec5a8a565ae93b29c8a
+215. [PDF] Reverse Stress Testing for Multivariate Scenarios - arXiv https://arxiv.org/pdf/
+2606.09274
+
+===== PAGE 23 =====
+
+216. (PDF) Reverse Stress Testing for Multivariate Scenarios https://
+www.researchgate.net/publication/
+406463908_Reverse_Stress_Testing_for_Multivariate_Scenarios_A_Conditional_Frame
+work_for_Stressed_Time_Series
+217. Reverse Stress Testing for Multivariate Scenarios - IDEAS/RePEc https://
+ideas.repec.org/p/arx/papers/2606.09274.html
+218. [PDF] Probability-of-default curve calibration and validation of internal ... https://
+www.bis.org/ifc/publ/ifcb43_zd.pdf
+219. The evolution of OCC expectations for model risk management - IBM https://
+www.ibm.com/think/insights/the-evolution-of-occ-expectations-for-model-risk-
+management
+220. cross-validation for regularization parameter selection | Bohrium https://
+www.bohrium.com/en/sciencepedia/hardcore/
+compressed_sensing_and_sparse_optimization_graduate-cross-
+validation_for_regularization_parameter_selection
+221. CFPB Finalizes Significant Changes to Regulation B https://finsights.cooley.com/cfpb-
+finalizes-significant-changes-to-regulation-b/
+222. On maximum likelihood estimation of competing risks using the ... https://
+ideas.repec.org/a/taf/tjorxx/v73y2022i1p5-14.html
+223. Cross-validation approaches for penalized Cox regression https://
+www.semanticscholar.org/paper/Cross-validation-approaches-for-penalized-Cox-Dai-
+Breheny/9800c314a3ba5b34f81e38d1ca717e2be98f5259
+224. Statistical modeling of SOFR term structure - arXiv https://arxiv.org/html/
+2508.02691v1
+225. Publications - Shanghai Advanced Institute of Finance (SAIF) https://
+en.saif.sjtu.edu.cn/faculty-research/publications?page=41
+226. 中国科学技术大学bolijun--Home--Scientific Research https://faculty.ustc.edu.cn/
+bolijun/en/zhym/276026/list/index.htm
+227. The Complexity of Resilience Problems via Valued Constraint ... https://arxiv.org/abs/
+2309.15654
+228. Loss aversion and focal point bias: Empirical evidence from https://ideas.repec.org/a/
+eee/beexfi/v42y2024ics2214635024000455.html
+229. [PDF] Myopic loss aversion, disappointment aversion, and the equity ... https://
+www.ecb.europa.eu/pub/pdf/scpwps/ecbwp203.pdf
+230. [PDF] Sampling from Conditional Distributions of Simplified Vines - arXiv https://
+arxiv.org/pdf/2505.17706
+231. Monte Carlo simulations for real estate valuation - IDEAS/RePEc https://
+ideas.repec.org/a/eme/jpifpp/14635780610655076.html
+
+===== PAGE 24 =====
+
+232. [PDF] Manifold Tearing and the Topological Limits of Counterfactual ... https://
+arxiv.org/pdf/2603.17385
+233. Trust-Region Based Penalty Barrier Algorithm for Constrained ... https://
+www.mdpi.com/2227-7390/9/13/1551
+234. Comprehensive financial strategies for achieving sustainable growth ... https://
+www.researchgate.net/publication/
+382857591_Comprehensive_financial_strategies_for_achieving_sustainable_growth_in
+_small_businesses
+235. Basel Committee maintains calibration of Basel II Framework https://www.bis.org/
+press/p060524.htm
+236. [PDF] Some connections between higher moments portfolio optimization ... https://
+arxiv.org/pdf/2201.00205
+237. [PDF] San Francisco Region Community Bankers Workshop 2026 https://
+higherlogicdownload.s3.amazonaws.com/UBA/51a19426-ffb5-428d-82a8-
+ea2e3ae01d12/UploadedImages/2026_FDIC/4_-_Asset_Quality_pdf.pdf
+238. CFA Level 1 Notes | PDF | Business | Computers - Scribd https://www.scribd.com/
+document/357282486/CFA-level-1-notes-docx
+239. CFPB seeks to prevent algorithmic bias - Lexology https://www.lexology.com/library/
+detail.aspx?g=b4d8f4e3-936a-4b36-a644-899cdd490341
+240. Counterfactual explanations to reduce the failure risk - arXiv https://arxiv.org/abs/
+2407.11089
+241. Publications - Shanghai Advanced Institute of Finance (SAIF) https://
+en.saif.sjtu.edu.cn/faculty-research/publications
+242. [PDF] Loan-to-value policy and housing finance: effects on constrained ... https://
+www.bis.org/publ/work673.pdf
+243. Commercial real estate finance and the lending cap rate https://
+www.researchgate.net/publication/
+357184280_Commercial_real_estate_finance_and_the_lending_cap_rate
+244. Stability Regularized Cross-Validation - arXiv https://arxiv.org/html/2505.06927v2
+245. OCC, Fed, FDIC Issue Revised MRM Guidance - LinkedIn https://www.linkedin.com/
+posts/bsm-laurent-birade_bankingregulation-modelriskmanagement-
+activity-7451029229749805056-JTxs
+246. [PDF] An Empirical Study Based on Mortgage Default Prediction - arXiv https://
+arxiv.org/pdf/2501.00034
+247. The Empirical Bayes Estimators of the Variance Parameter of ... - MDPI https://
+www.mdpi.com/2075-1680/15/2/127
+
+===== PAGE 25 =====
+
+248. (PDF) A value-at-risk approach to commercial real estate portfolio ... https://
+www.researchgate.net/publication/298822923_A_value-at-
+risk_approach_to_commercial_real_estate_portfolio_stress_testing_at_US_community_
+banks
+249. CFPB Final Rules: Regulation B (Section 1071 and Disparate ... https://kpmg.com/us/
+en/articles/2026/cfpb-final-rules-regulation-b-Section-1071-and-disparate-impact-
+liability-reg-alert.html
+250. Multi-Channel Factor Analysis: Identifiability and Asymptotics - arXiv https://
+arxiv.org/abs/2407.18896
+251. Identifiability and convergence behavior for Markov chain Monte ... https://
+pmc.ncbi.nlm.nih.gov/articles/PMC12366764/
+252. (PDF) Epsilon-Identifiability of Causal Quantities - ResearchGate https://
+www.researchgate.net/publication/367558211_Epsilon-
+Identifiability_of_Causal_Quantities
+253. [PDF] Logit Calibration and Feature Contrast for Robust Federated ... - arXiv https://
+arxiv.org/pdf/2404.06776
+254. DSCR Loans: Cash Flow Based Approval for Investors - LinkedIn https://
+www.linkedin.com/posts/levi-blum-3630b9189_dscr-loans-explainedsimple-and-
+investor-friendly-activity-7417189211595878400-FMqq
+255. What is Concentration Risk? Third Party Vendor Risk Management https://
+mitratech.com/resource-hub/blog/what-is-concentration-risk/
+256. [PDF] CEBS Guidelines on the management of concentration risk under ... https://
+www.eba.europa.eu/sites/default/files/documents/
+10180/16094/75fb2eca-955d-4c8e-a730-b491eef93188/Concentration.pdf
+257. A Required Debt Service Coverage Ratio Related to the Economic ... https://
+www.scirp.org/journal/paperinformation?paperid=137172
+258. Calculate the Debt Service Coverage Ratio (DSCR) Using Excel https://
+www.investopedia.com/ask/answers/012015/how-do-you-use-excel-calculate-debt-
+service-coverage-ratio-dscr.asp
+259. Predicting rates of cell state change caused by stochastic ... - PMC https://
+pmc.ncbi.nlm.nih.gov/articles/PMC3511108/
+260. Impact of Interest and FX Rate on Breach of DSCR in Project Finance https://
+www.researchgate.net/publication/
+319340083_Impact_of_Interest_and_FX_Rate_on_Breach_of_DSCR_in_Project_Financ
+e
+261. [PDF] Mortgage platform modernization - KPMG International https://kpmg.com/
+kpmg-us/content/dam/kpmg/pdf/2026/mortgage-platform-modernization.pdf
+
+===== PAGE 26 =====
+
+262. The AI-Enhanced Underwriting Layer: How Cowork's Finance Plugin ... https://
+www.linkedin.com/pulse/ai-enhanced-underwriting-layer-how-coworks-finance-
+plugin-pf%C3%BCtze-4gwie
+263. [PDF] Interplay between the AI Act and the EU digital legislative framework https://
+www.europarl.europa.eu/RegData/etudes/STUD/2025/778575/
+ECTI_STU(2025)778575_EN.pdf
+264. Explainable AI for EU AI Act compliance audits - Zenodo https://zenodo.org/records/
+17111809
+265. [PDF] MULTIFAMILY - IPA Texas https://ipatexasmultifamily.com/wp-content/
+uploads/2026-IPA-Multifamily-Investment-Forecast-pdf-1.pdf
+266. [PDF] Guidelines on PD estimation, LGD estimation and the treatment of ... https://
+www.eba.europa.eu/sites/default/files/documents/
+10180/2115546/990f0598-507a-4d30-bcbc-4814b66b1939/
+Vacancy%20notice_NL.pdf
+267. [PDF] tracking changes using kullback-leibler divergence - arXiv https://arxiv.org/
+pdf/2210.04865
+268. [PDF] SHANGHAITECH SEM WORKING PAPER SERIES No. 2022-001 https://
+sem.shanghaitech.edu.cn/_upload/article/files/f4/33/
+b884bc554914b7639e0912bd06a9/5da6ab20-dfc3-40cf-b49c-99d651232680.pdf
+269. (PDF) Financial Time Series Forecasting with the Deep Learning ... https://
+www.researchgate.net/publication/
+368682810_Financial_Time_Series_Forecasting_with_the_Deep_Learning_Ensemble_
+Model
+270. Systemic Financial Risk Forecasting with Decomposition–Clustering ... https://
+www.mdpi.com/2073-8994/16/4/480
+271. Financial time series forecasting model based on CEEMDAN and https://
+ideas.repec.org/a/eee/phsmap/v519y2019icp127-139.html
+272. Delinquency on Commercial Real Estate Loans | UGC Charts https://
+en.macromicro.me/charts/99424/Delinquency-on-Commercial-Real-Estate-Loans
+273. Transforming Credit Risk Analysis: A Time-Series-Driven ResE ... https://
+www.mdpi.com/2078-2489/17/1/5
+274. 无主题 https://hgxb.cip.com.cn/EN/matrix/matrix.do?
+articleId=2944&type=AbstractVersion
+275. Multi-objective synchronous calibration and Pareto optimality of ... https://
+pubmed.ncbi.nlm.nih.gov/37085679/
+276. 无主题 https://www.rddl.com.cn/EN/matrix/matrix.do?
+articleId=45540&type=AbstractVersion
+
+===== PAGE 27 =====
+
+277. Conservative Maltsev Constraint Satisfaction Problems - arXiv https://arxiv.org/abs/
+2505.11395
+278. https://chn.oversea.cnki.net/KCMS/detail/detail.as... https://chn.oversea.cnki.net/
+KCMS/detail/detail.aspx?
+dbcode=CJFD&dbname=CJFDLAST2025&filename=GJMY202501004&uniplatform=
+OVERSEA
+279. Solving Dynamic Constraint Trajectory Optimization Problems by ... https://
+www.researchgate.net/publication/
+320982734_Solving_Dynamic_Constraint_Trajectory_Optimization_Problems_by_Appl
+ying_the_Concept_of_Pareto_Frontiers
+280. Space Exploration Technologies - S-1 - SEC.gov https://www.sec.gov/Archives/edgar/
+data/1181412/000162828026036936/spaceexplorationtechnologi.htm
+281. XBRL Viewer - SEC.gov https://www.sec.gov/ix?doc=/Archives/edgar/data/
+1898496/000110465923032320/gety-20221231xs1.htm
+282. dava-20250630 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1656081/000165608125000039/dava-20250630.htm
+283. outbrain-20231231 - SEC.gov https://www.sec.gov/Archives/edgar/data/
+1454938/000145493824000024/outbrain-20231231.htm
+284. [PDF] FY 2024 Executive Budget - Message of the Mayor - NYC.gov https://
+www.nyc.gov/assets/omb/downloads/pdf/mm4-23.pdf
+285. FDIC Study on Depositor Flight in Bank Failures - LinkedIn https://
+www.linkedin.com/posts/norbertgehrke_fdic-dissecting-depositor-flight-
+activity-7461122760883195904-KPm3
+286. [PDF] ANNUAL REPORT 2022 OF J.P. MORGAN SE https://www.jpmorgan.com/
+content/dam/jpm/global/disclosures/de/english-version-of-disclosures/2022-annual-
+report-english.pdf
+287. Debt-Service Coverage Ratio (DSCR): How to Use and Calculate It https://
+www.investopedia.com/terms/d/dscr.asp
+288. Debt Service Coverage Ratio - Guide on How to Calculate DSCR https://
+corporatefinanceinstitute.com/resources/commercial-lending/debt-service-coverage-
+ratio/
+289. How to Calculate DSCR (Debt Service Coverage Ratio) in CRE https://
+www.yardiinvestmentsuite.com/blog/how-to-calculate-dscr-debt-service-coverage-
+ratio-in-commercial-real-estate/
+290. Bayesian ridge regression for survival data based on a vine copula ... https://
+ideas.repec.org/a/spr/alstar/v107y2023i4d10.1007_s10182-022-00466-4.html
+291. Rank-Based Copula-Adjusted Mann–Kendall (R-CaMK) - MDPI https://
+www.mdpi.com/2227-7390/13/23/3762
+
+===== PAGE 28 =====
+
+292. Tree structure of the 5 dimensional R-vine copula given in Example 1. https://
+www.researchgate.net/figure/Tree-structure-of-the-5-dimensional-R-vine-copula-
+given-in-Example-1_fig2_271225919
+293. Time-varying covariates and coefficients in Cox regression models https://
+www.researchgate.net/publication/324502069_Time-
+varying_covariates_and_coefficients_in_Cox_regression_models
+294. [PDF] Hierarchically penalized Cox regression with grouped variables https://
+dept.stat.lsa.umich.edu/~jizhu/pubs/Wang-Biometrika09.pdf
+295. [PDF] Loss-given-default and macroeconomic conditions https://www.ecb.europa.eu/
+pub/pdf/scpwps/ecb.wp2954~1d1f8942c9.en.pdf
+296. SR 11-7 - MATLAB & Simulink - MathWorks https://www.mathworks.com/discovery/
+sr11-7.html
+297. Federal Reserve issues SR 11-7 on Model Risk Management https://
+www.linkedin.com/posts/prateek964_riskmanagement-risk-frm-
+activity-7318819190205726721-Nfns
+298. [PDF] Multi-Scale Temporal Scenario Planning for Financial Networks https://
+aclanthology.org/2025.agentscen-1.1.pdf
+299. Stress scenario selection by empirical likelihood - IDEAS/RePEc https://
+ideas.repec.org/a/taf/quantf/v15y2015i1p25-41.html
+300. [PDF] Next Generation Balance Sheet Stress Testing https://www.imf.org/external/
+pubs/ft/wp/2011/wp1183.pdf
