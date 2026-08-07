@@ -68,3 +68,74 @@ export function computeRefiProceedsGap(input: RefiProceedsInput): RefiProceedsRe
     cashOutAvailable: Math.max(0, -proceedsGap),
   };
 }
+
+/**
+ * BRRRR Seasoning & Cash-Out Refinance Cap Engine
+ *
+ * Seasoning Rules (Fannie/Freddie & DSCR Guidelines):
+ * - Seasoning < 6 months: Delayed Financing rule (max basis = purchase price + documented rehab).
+ * - Seasoning 6-12 months: Cash-out LTV capped at 70% (5% haircut vs 75% standard).
+ * - Seasoning > 12 months: Full 75% LTV on new appraised value.
+ */
+export interface BRRRRSeasoningInput {
+  seasoningMonths: number;
+  purchasePrice: number;
+  documentedRehabCost: number;
+  newAppraisedValue: number;
+  purpose: 'CASH_OUT' | 'RATE_TERM';
+}
+
+export interface BRRRRSeasoningResult {
+  allowedMaxLtvPct: number;
+  eligibleMaxBasis: number;
+  maxLoanAmount: number;
+  seasoningTier: '<6_MONTHS_DELAYED_FINANCING' | '6_TO_12_MONTHS' | 'FULL_SEASONED_12_PLUS';
+  restrictionNote: string;
+}
+
+export function computeBRRRRSeasoningCap(input: BRRRRSeasoningInput): BRRRRSeasoningResult {
+  const { seasoningMonths, purchasePrice, documentedRehabCost, newAppraisedValue, purpose } = input;
+
+  if (seasoningMonths < 6) {
+    const basisCap = purchasePrice + documentedRehabCost;
+    const eligibleMaxBasis = Math.min(newAppraisedValue, basisCap);
+    const allowedMaxLtvPct = 75;
+    const maxLoanAmount = Math.round(eligibleMaxBasis * (allowedMaxLtvPct / 100));
+
+    return {
+      allowedMaxLtvPct,
+      eligibleMaxBasis,
+      maxLoanAmount,
+      seasoningTier: '<6_MONTHS_DELAYED_FINANCING',
+      restrictionNote: `Delayed Financing Rule (<6mo seasoning): basis capped at purchase price ($${purchasePrice.toLocaleString()}) + rehab ($${documentedRehabCost.toLocaleString()}) = $${basisCap.toLocaleString()}.`,
+    };
+  }
+
+  if (seasoningMonths < 12) {
+    const allowedMaxLtvPct = purpose === 'CASH_OUT' ? 70 : 75;
+    const eligibleMaxBasis = newAppraisedValue;
+    const maxLoanAmount = Math.round(eligibleMaxBasis * (allowedMaxLtvPct / 100));
+
+    return {
+      allowedMaxLtvPct,
+      eligibleMaxBasis,
+      maxLoanAmount,
+      seasoningTier: '6_TO_12_MONTHS',
+      restrictionNote: purpose === 'CASH_OUT'
+        ? `6-12 Month Seasoning: cash-out LTV capped at 70% (5% haircut vs 12+ month 75%).`
+        : `6-12 Month Seasoning: rate-term refi allowed at 75% LTV on new appraised value.`,
+    };
+  }
+
+  const allowedMaxLtvPct = 75;
+  const eligibleMaxBasis = newAppraisedValue;
+  const maxLoanAmount = Math.round(eligibleMaxBasis * (allowedMaxLtvPct / 100));
+
+  return {
+    allowedMaxLtvPct,
+    eligibleMaxBasis,
+    maxLoanAmount,
+    seasoningTier: 'FULL_SEASONED_12_PLUS',
+    restrictionNote: `Full 12+ Month Seasoning: 75% LTV on new appraised value ($${newAppraisedValue.toLocaleString()}).`,
+  };
+}
