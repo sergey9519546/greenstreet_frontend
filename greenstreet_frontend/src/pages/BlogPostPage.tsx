@@ -61,7 +61,7 @@ export default function BlogPostPage({
       document.title = `${post.title} | Greenstreet Finance`;
 
       const description = (post as any).metaDescription ?? post.summary;
-      const canonicalUrl = `https://greenstreet.com/blog/${post.slug}`;
+      const canonicalUrl = `https://www.greenstreet.finance/blog/${post.slug}`;
       const previousDescription = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content;
       const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]') ?? document.head.appendChild(document.createElement("link"));
       const previousCanonical = canonical.href;
@@ -94,7 +94,7 @@ export default function BlogPostPage({
         description,
         datePublished: new Date(post.date).toISOString().slice(0, 10),
         author: { "@type": authorName === "Greenstreet" ? "Organization" : "Person", name: authorName },
-        publisher: { "@type": "Organization", name: "Greenstreet Finance", url: "https://greenstreet.com" },
+        publisher: { "@type": "Organization", name: "Greenstreet Finance", url: "https://www.greenstreet.finance" },
         mainEntityOfPage: canonicalUrl,
       });
       document.getElementById(schema.id)?.remove();

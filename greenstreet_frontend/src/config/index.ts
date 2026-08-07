@@ -31,7 +31,7 @@ function loadConfig(): Config {
   return {
     app: {
       name: 'Greenstreet Finance',
-      domain: import.meta.env.VITE_DOMAIN || 'greenstreet.com',
+      domain: import.meta.env.VITE_DOMAIN || 'greenstreet.finance',
       env,
     },
     api: {

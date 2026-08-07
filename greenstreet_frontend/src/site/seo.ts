@@ -10,7 +10,7 @@ export type PageSeo = {
   canonicalPath?: string;
 };
 
-export const SITE_DOMAIN = "https://greenstreet.com";
+export const SITE_DOMAIN = "https://www.greenstreet.finance";
 
 export const PAGE_SEO: PageSeo[] = [
   {
