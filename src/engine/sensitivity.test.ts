@@ -4,6 +4,7 @@ import {
   computeRateSensitivity,
   computeLTVSensitivity,
 } from './sensitivity';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
 
 // Golden values documented in sensitivity.ts header.
 describe('computeRentSensitivity', () => {
@@ -16,10 +17,38 @@ describe('computeRentSensitivity', () => {
     expect(byRent[4500]).toBe(1.58);
   });
 
-  it('applies the LTR 21% haircut to Track 2', () => {
-    const [row] = computeRentSensitivity(2855, 2855, [2855], 'LTR');
-    expect(row.track2DSCR).toBe(0.79); // 2855 * 0.79 / 2855
-    expect(row.status).toBe('Marginal'); // 1.0 ≥1.0 and <1.25
+  /**
+   * The Track-2 haircut must come from computeTcoRate, never from a number
+   * written down here. This test previously asserted 0.79 — the flat
+   * 8/8/5 = 21% formula that tcoDscr.ts explicitly says it REPLACED — so it
+   * pinned the stale value in place and would have failed the correct one.
+   * Deriving the expectation from the canonical source means the test tracks
+   * the assumption instead of freezing a copy of it.
+   */
+  it('takes the Track 2 haircut from the canonical TCO rate, not a local constant', () => {
+    const tco = computeTcoRate({ propertyType: mapToTcoType(1, false) }); // SFR
+    const [row] = computeRentSensitivity(2855, 2855, [2855], 'LTR', 1);
+    expect(row.track2DSCR).toBeCloseTo(1 - tco.total, 2);
+    expect(tco.total).toBeGreaterThan(0.21); // the old flat rate carried no CapEx line
+  });
+
+  it('honours the strategy argument — STR is not priced as a long-term rental', () => {
+    // `strategy` was declared and never read, so every strategy received the LTR
+    // haircut. Short-term maps to CONDOTEL (63% vs SFR 28%), so the old code
+    // overstated an STR deal's Track 2 DSCR by ~116%.
+    const [ltr] = computeRentSensitivity(3000, 2500, [3000], 'LTR', 1);
+    const [str] = computeRentSensitivity(3000, 2500, [3000], 'STR', 1);
+    expect(str.track2DSCR).toBeLessThan(ltr.track2DSCR);
+
+    const strTco = computeTcoRate({ propertyType: mapToTcoType(1, true) });
+    expect(str.track2DSCR).toBeCloseTo((3000 * (1 - strTco.total)) / 2500, 2);
+  });
+
+  it('prices more doors on the multifamily rate, not the SFR rate', () => {
+    const [sfr] = computeRentSensitivity(3000, 2500, [3000], 'LTR', 1);
+    const [multi] = computeRentSensitivity(3000, 2500, [3000], 'LTR', 8);
+    // MED_MULTI (25%) is a lighter haircut than SFR (28%), so Track 2 is higher.
+    expect(multi.track2DSCR).toBeGreaterThan(sfr.track2DSCR);
   });
 });
 
