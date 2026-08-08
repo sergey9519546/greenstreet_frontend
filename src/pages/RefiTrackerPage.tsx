@@ -4,6 +4,7 @@ import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzeRefi, evaluateRefinance } from "../engine/refiTracker";
 import { computeSecondLienDscr } from "../engine/secondLienDscr";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
+import { computeRefiBreakEven, type HoldPeriodOutcome } from "../engine/amortization";
 import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenantCheck";
 import { radius, font, risk } from "../theme";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
@@ -245,61 +246,48 @@ export default function RefiTrackerPage({
       });
   };
 
-  // ── Break-even chart geometry (data-driven so the crossover is honest) ──
-  const beMonths = result?.breakEvenMonths ?? 36;
-  const ms = result?.monthlySavings ?? 0;
-  const bePct = Math.min(1, Math.max(0, beMonths / 60));
-  const beDotX = Math.round(bePct * 420);
-  const noBreakeven = result === null || ms <= 0 || beMonths >= 120;
-  const showDot = !noBreakeven;
-  // Cumulative-savings line passes through (0,178) and must cross the flat refi-cost
-  // line (y=40) exactly at beDotX — so the dot sits on the real intersection, not a
-  // decorative one. Slope therefore encodes how fast savings accrue.
-  const COST_Y = 40, BASE_Y = 178, TOP_Y = 20;
-  const crossX = Math.max(10, beDotX); // guard against a vertical/zero-width slope
-  const slope = (COST_Y - BASE_Y) / crossX; // SVG y is inverted → negative
-  let saveEndX = 420, saveEndY = BASE_Y + slope * 420;
-  if (saveEndY < TOP_Y) { saveEndX = (TOP_Y - BASE_Y) / slope; saveEndY = TOP_Y; }
-  const savePath = noBreakeven
-    ? "M 0,178 L 420,150" // savings never reach the cost line — no payoff yet
-    : `M 0,${BASE_Y} L ${Math.round(saveEndX)},${Math.round(saveEndY)}`;
+  // ── Break-even chart ──────────────────────────────────────────────────────
+  //
+  // The previous chart drew two abstract lines — a flat "refi cost" and a
+  // straight "cumulative savings" — and placed the crossover at
+  // `min(1, beMonths / 60) * 420`. At the default scenario break-even is month
+  // 84, so that clamped to 1.0 and pinned the marker to the right-hand edge of
+  // an axis labelled "mo 60", directly beneath a label reading "mo 84". The
+  // picture asserted month 60 while the text asserted month 84.
+  //
+  // It was also driven by `analyzeRefi.breakEvenMonths` — a payment-savings
+  // shortcut — while the verdict above it comes from `evaluateRefinance`, which
+  // measures total cost (payments made PLUS the balance still owed). Two
+  // different break-even numbers on one page.
+  //
+  // Now it plots the real thing: cumulative net advantage against staying, month
+  // by month, from the same evaluation the verdict uses. Zero is the baseline,
+  // so the crossover is where the curve reaches it — nothing to fake.
+  const chart = useMemo(() => {
+    if (!refi || !refi.proposedSchedule || !refi.breakEven) return null;
+    const horizon = Math.min(120, refi.breakEven.horizonMonths);
+    if (horizon < 6) return null;
 
-  // ── Draw-on chart lines via IntersectionObserver (never page-load GSAP) ──
-  // chartVisible flips true once the chart div enters the viewport (useRevealOnView).
-  // CSS transitions on strokeDashoffset handle the draw effect — reduced-motion safe.
-  useEffect(() => {
-    if (!chartVisible) return;
-    const cost = costLineRef.current;
-    const save = saveLineRef.current;
-    const dot = dotRef.current;
-    const lbl = lblRef.current;
-    if (!cost || !save) return;
-
-    const costLen = 420;
-    const saveLen = save.getTotalLength ? save.getTotalLength() : 420;
-
-    // Start hidden, then let CSS transition draw them in
-    cost.style.strokeDasharray = "6,4";
-    cost.style.strokeDashoffset = String(costLen);
-    save.style.strokeDasharray = String(saveLen);
-    save.style.strokeDashoffset = String(saveLen);
-    if (dot) { dot.style.opacity = "0"; }
-    if (lbl) { lbl.style.opacity = "0"; }
-
-    // rAF ensures the "hidden" state is painted before transition begins
-    requestAnimationFrame(() => {
-      cost.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.1s";
-      cost.style.strokeDashoffset = "0";
-      save.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.3s";
-      save.style.strokeDashoffset = "0";
-      if (dot && lbl && showDot) {
-        dot.style.transition = "opacity 0.5s ease 1.3s";
-        lbl.style.transition = "opacity 0.5s ease 1.3s";
-        dot.style.opacity = "1";
-        lbl.style.opacity = "1";
-      }
+    const be = computeRefiBreakEven({
+      currentSchedule: refi.currentSchedule,
+      proposedSchedule: refi.proposedSchedule,
+      refinanceAtMonth: monthsOwned,
+      netCashAtClose: refi.sizing.netCashToBorrower,
+      holdPeriodsMonths: Array.from({ length: horizon }, (_, i) => i + 1),
     });
-  }, [chartVisible, showDot]);
+
+    const pts = be.holdPeriods.map((h: HoldPeriodOutcome) => ({ m: h.holdMonths, adv: h.netAdvantage }));
+    if (pts.length < 2) return null;
+
+    const advs = pts.map((p: { m: number; adv: number }) => p.adv);
+    // Zero is always in range: the whole question is which side of it the curve
+    // is on, and a scale that excluded it would hide the answer.
+    const maxUp = Math.max(0, ...advs);
+    const maxDown = Math.max(0, ...advs.map((a: number) => -a));
+    const span = Math.max(maxUp + maxDown, 1);
+
+    return { pts, horizon, span, maxUp, maxDown, breakEvenMonth: be.breakEvenMonth };
+  }, [refi, monthsOwned]);
 
   // Input field definitions
   const loanFields: Array<{
@@ -430,7 +418,7 @@ export default function RefiTrackerPage({
                     lineHeight: 1,
                   }}
                 >
-                  {result && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
+                  {chart?.breakEvenMonth != null ? chart.breakEvenMonth + " mo" : "never"}
                 </Mono>
                 <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   break-even
@@ -477,76 +465,75 @@ export default function RefiTrackerPage({
             >
               Break-even crossover
             </div>
-            <svg
-              id="rf-svg"
-              viewBox="0 0 420 200"
-              style={{ width: "100%", display: "block", overflow: "visible" }}
-            >
-              {/* Axes */}
-              <line x1="0" y1="180" x2="420" y2="180" stroke="rgba(238,239,211,0.2)" strokeWidth="1" />
-              <line x1="0" y1="20" x2="0" y2="180" stroke="rgba(238,239,211,0.2)" strokeWidth="1" />
-              {/* Refi cost line — flat dashed red, animated draw */}
-              <path
-                ref={costLineRef}
-                id="rf-cost"
-                d="M 0,40 L 420,40"
-                fill="none"
-                stroke={risk.danger}
-                strokeWidth="2.5"
-                strokeDasharray="6,4"
-              />
-              {/* Cumulative savings line — rising solid emerald, animated draw */}
-              <path
-                ref={saveLineRef}
-                id="rf-save"
-                d={savePath}
-                fill="none"
-                stroke={dc.emerald}
-                strokeWidth="3"
-                style={{ transition: "d 0.35s ease" }}
-              />
-              {/* Break-even intersection dot + label */}
-              <circle
-                ref={dotRef}
-                id="rf-dot"
-                cx={beDotX}
-                cy={40}
-                r={6}
-                fill={dc.lemon}
-                opacity={showDot ? 1 : 0}
-                style={{ transition: "cx 0.35s ease" }}
-              />
-              {showDot && (
-                <text
-                  ref={lblRef}
-                  id="rf-lbl"
-                  x={Math.min(beDotX + 8, 310)}
-                  y={36}
-                  fill={dc.lemon}
-                  fontSize={11}
-                  fontFamily={dc.mono}
-                  opacity={1}
-                >
-                  break-even ≈ mo {Math.round(beMonths)}
-                </text>
-              )}
-              {/* Static labels */}
-              <text x="6" y="34" fill="rgba(224,99,99,0.8)" fontSize={10} fontFamily={dc.mono}>refi cost</text>
-              <text x="6" y="170" fill="rgba(77,189,151,0.9)" fontSize={10} fontFamily={dc.mono}>cumulative savings →</text>
-            </svg>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 11,
-                color: "rgba(238,239,211,0.62)",
-                marginTop: 8,
-                fontFamily: dc.mono,
-              }}
-            >
-              <span>mo 0</span>
-              <span>mo 60</span>
-            </div>
+            {chart ? (
+              <svg
+                id="rf-svg"
+                viewBox="0 0 420 200"
+                style={{ width: "100%", display: "block", overflow: "visible" }}
+                role="img"
+                aria-label={
+                  chart.breakEvenMonth === null
+                    ? `Refinancing never costs less than staying within ${chart.horizon} months.`
+                    : `Refinancing costs less than staying from month ${chart.breakEvenMonth} onward, measured on total cost.`
+                }
+              >
+                {(() => {
+                  const padL = 6, padR = 6, padT = 22, padB = 26;
+                  const plotH = 200 - padT - padB;
+                  const zeroY = padT + (chart.maxUp / chart.span) * plotH;
+                  const X = (m: number) => padL + ((m - 1) / (chart.horizon - 1)) * (420 - padL - padR);
+                  const Y = (adv: number) => zeroY - (adv / chart.span) * plotH;
+
+                  const line = chart.pts.map((p: { m: number; adv: number }, i: number) => `${i === 0 ? "M" : "L"} ${X(p.m).toFixed(1)} ${Y(p.adv).toFixed(1)}`).join(" ");
+                  const beX = chart.breakEvenMonth === null ? null : X(chart.breakEvenMonth);
+
+                  return (
+                    <>
+                      {/* Zero is the axis: at or above it, refinancing is cheaper. */}
+                      <line x1={padL} x2={420 - padR} y1={zeroY} y2={zeroY} stroke={dc.lemon} strokeWidth="1.5" />
+                      <text x={padL} y={zeroY - 6} fill={dc.lemon} fontSize={10} fontWeight={700} fontFamily={dc.mono}>
+                        break even
+                      </text>
+
+                      {/* Behind zero the refinance is still down on the deal. */}
+                      <path d={`${line} L ${X(chart.pts[chart.pts.length - 1].m).toFixed(1)} ${zeroY} L ${X(chart.pts[0].m).toFixed(1)} ${zeroY} Z`}
+                        fill={dc.emerald} fillOpacity="0.14" />
+                      <path d={line} fill="none" stroke={dc.emerald} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+
+                      {beX !== null && (
+                        <>
+                          <line x1={beX} x2={beX} y1={padT} y2={200 - padB} stroke={dc.lemon} strokeWidth="1" strokeDasharray="4 4" />
+                          <circle cx={beX} cy={zeroY} r={4.5} fill={dc.lemon} />
+                          <text
+                            x={beX > 300 ? beX - 8 : beX + 8}
+                            y={padT + 10}
+                            textAnchor={beX > 300 ? "end" : "start"}
+                            fill={dc.lemon}
+                            fontSize={11}
+                            fontWeight={700}
+                            fontFamily={dc.mono}
+                          >
+                            month {chart.breakEvenMonth}
+                          </text>
+                        </>
+                      )}
+
+                      <text x={padL} y={200 - 8} fill="rgba(238,239,211,0.66)" fontSize={11} fontFamily={dc.mono}>mo 0</text>
+                      <text x={420 - padR} y={200 - 8} textAnchor="end" fill="rgba(238,239,211,0.66)" fontSize={11} fontFamily={dc.mono}>
+                        mo {chart.horizon}
+                      </text>
+                    </>
+                  );
+                })()}
+              </svg>
+            ) : (
+              <div style={{ padding: "28px 4px", fontSize: 13, color: "rgba(238,239,211,0.62)", lineHeight: 1.6 }}>
+                No crossover to plot — this refinance was refused, so there is no recommendation to
+                measure against staying.
+              </div>
+            )}
+            {/* The SVG carries its own axis, labelled with the real horizon. A second
+                strip here hardcoded "mo 60" and contradicted it. */}
 
             {/* Live driver — drag the refi rate, watch the crossover move */}
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(238,239,211,0.12)" }}>
@@ -569,20 +556,26 @@ export default function RefiTrackerPage({
                 style={{ width: "100%", accentColor: dc.emerald, cursor: "pointer" }}
               />
               <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 5, fontFamily: dc.mono }}>
-                {noBreakeven
-                  ? "no break-even at this rate — savings never recoup the cost"
-                  : `break-even ≈ month ${Math.round(beMonths)} · drag to move it`}
+                {chart?.breakEvenMonth == null
+                  ? "no break-even at this rate — total cost never favours refinancing"
+                  : `break-even at month ${chart.breakEvenMonth} · drag the rate to move it`}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── TOOL (slightly lighter dark, matches mockup #003a39) ── */}
+      {/* ── TOOL ──
+          This section was #003a39 and its cards were #004041, sitting on the
+          page's #003738 ground: three greens within six RGB points of each
+          other, stacked. Read as one muddy field rather than three surfaces.
+          DESIGN_SOURCE_OF_TRUTH allows exactly two surfaces — #003738 dark and
+          #eeefd3 light — and separates blocks with a border, not a near-miss
+          fill. Both extra greens are gone; the borders were already there. */}
       <section
         id="rf-tool"
         style={{
-          background: "#003a39",
+          background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
           borderTop: "1px solid rgba(238,239,211,0.07)",
@@ -636,7 +629,7 @@ export default function RefiTrackerPage({
             {/* ── INPUTS ── */}
             <div
               style={{
-                background: dc.teal,
+                background: dc.dark,
                 border: "1px solid rgba(238,239,211,0.12)",
                 borderRadius: 14,
                 padding: 24,
@@ -693,7 +686,7 @@ export default function RefiTrackerPage({
               {/* Score card */}
               <div
                 style={{
-                  background: dc.teal,
+                  background: dc.dark,
                   border: `1px solid ${vColor}`,
                   borderRadius: 14,
                   padding: 28,
@@ -792,7 +785,7 @@ export default function RefiTrackerPage({
               {/* Refi Math */}
               <div
                 style={{
-                  background: dc.teal,
+                  background: dc.dark,
                   border: "1px solid rgba(238,239,211,0.12)",
                   borderRadius: 14,
                   padding: 24,
@@ -836,13 +829,17 @@ export default function RefiTrackerPage({
                       color: result.monthlySavings >= 0 ? dc.emerald : risk.danger,
                     },
                     {
+                      // ONE break-even number on this page. This row used to quote
+                      // analyzeRefi's payment-savings shortcut while the chart and the
+                      // verdict quoted evaluateRefinance's total-cost measure — 84
+                      // months against 41 on the same deal, both on screen at once.
                       label: "Break-even",
-                      sub: result.breakEvenMonths > 120 ? "Savings never recoup refi costs at this rate — don't refi yet." : "Months until cumulative savings exceed refi closing costs. Under 24 is excellent.",
-                      val:
-                        result.breakEvenMonths > 120
-                          ? "120+ (don't refi)"
-                          : Math.round(result.breakEvenMonths) + " mo",
-                      color: result.breakEvenMonths < 36 ? dc.emerald : dc.lemon,
+                      sub:
+                        chart?.breakEvenMonth == null
+                          ? "Total cost never favours refinancing inside the remaining term — hold the existing loan."
+                          : "Month from which refinancing costs less in total — payments made PLUS the balance still owed, not payment saving alone.",
+                      val: chart?.breakEvenMonth == null ? "never" : chart.breakEvenMonth + " mo",
+                      color: chart?.breakEvenMonth == null ? risk.dangerOnDark : chart.breakEvenMonth < 36 ? dc.emerald : dc.lemon,
                     },
                     {
                       label: "Cash-out capacity",
@@ -895,7 +892,7 @@ export default function RefiTrackerPage({
               {/* Score Breakdown */}
               <div
                 style={{
-                  background: dc.teal,
+                  background: dc.dark,
                   border: "1px solid rgba(238,239,211,0.12)",
                   borderRadius: 14,
                   padding: 24,
@@ -1025,7 +1022,7 @@ export default function RefiTrackerPage({
                   step={f.step}
                   prefix={f.pre}
                   suffix={f.suf}
-                  style={{ display: "inline-flex", background: dc.teal }}
+                  style={{ display: "inline-flex", background: dc.dark }}
                   adornmentStyle={{ fontSize: 14 }}
                   inputStyle={{ width: 140, fontWeight: 600, fontSize: 15, padding: "11px 6px" }}
                 />
@@ -1039,7 +1036,7 @@ export default function RefiTrackerPage({
               { v: fmt$(secondLien.maxSecondLien), l: `max 2nd lien · ${secondLien.bindingConstraint}-bound`, c: dc.lemon },
               { v: secondLien.qualifies ? "QUALIFIES" : "TIGHT", l: `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo`, c: secondLien.qualifies ? dc.emerald : dc.lemon },
             ].map((s) => (
-              <div key={s.l} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
+              <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
                 <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 8 }}>{s.l}</div>
               </div>
