@@ -890,7 +890,7 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
   } else if (
     (input.track1DSCR ?? 0) >= lenderMinDSCRVal + 0.05 &&
     (track2DSCRVal >= 1.0 || track2AcknowledgmentRequired) &&
-    returnGrade >= 'B' &&
+    gradeAtLeast(returnGrade, 'B') &&
     (input.rateHeadroomBps ?? 0) >= 50
   ) {
     verdict = 'PROCEED';
@@ -930,6 +930,22 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
     rescueOptions: [], // populated by rescue engine
     note: `Verdict based on ${killCriteria.length} kill criteria checked. ${blockers.length} blockers triggered. Return Grade ${returnGrade} on after-tax IRR ${(input.afterTaxIRR * 100).toFixed(1)}%.`,
   };
+}
+
+/**
+ * Ordinal rank for ReturnGrade. Higher number = better grade.
+ *
+ * ReturnGrade is a string union ('A'|'B'|'C'|'D'|'F'), so relational operators
+ * on it compare lexicographically — which is NOT the ranking we mean. 'A' >= 'B'
+ * is false and 'C' >= 'B' is true, exactly inverting a "Grade ≥ B" gate. Always
+ * rank through this table via gradeAtLeast() rather than comparing grade strings
+ * directly. (Equality checks like `grade === 'F'` are fine.)
+ */
+const GRADE_RANK: Record<ReturnGrade, number> = { A: 4, B: 3, C: 2, D: 1, F: 0 };
+
+/** True when `grade` is at least as good as `floor` (A is best, F is worst). */
+export function gradeAtLeast(grade: ReturnGrade, floor: ReturnGrade): boolean {
+  return GRADE_RANK[grade] >= GRADE_RANK[floor];
 }
 
 /**
