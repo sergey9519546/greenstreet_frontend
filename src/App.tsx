@@ -35,15 +35,14 @@ const routeModules = {
   SolutionsPage: () => import("./pages/SolutionsPage"),
   BrokersPage: () => import("./pages/BrokersPage"),
   BookDemoPage: () => import("./pages/BookDemoPage"),
-  // Tool pages that render live (the remaining tools are served by
-  // ToolReliabilityHoldPage and so need no chunk of their own).
-  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
-  ARMPage: () => import("./pages/ARMPage"),
-  MonteCarloPage: () => import("./pages/MonteCarloPage"),
-  ReturnsPage: () => import("./pages/ReturnsPage"),
-  TaxEnginePage: () => import("./pages/TaxEnginePage"),
-  StressMatrixPage: () => import("./pages/StressMatrixPage"),
-  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
+  // Tool pages that render live. Every tool named in TOOL_RELIABILITY_HOLDS is
+  // served by ToolReliabilityHoldPage instead and so needs no chunk of its own —
+  // deliberately absent here, because a chunk entry is the first step back to
+  // rendering the held page. toolReliabilityHolds.test.ts fails the build if a
+  // hold record stops being rendered.
+  CommercialDSCRPage: () => import("./pages/CommercialDSCRPage"),
+  ConstructionBridgePage: () => import("./pages/ConstructionBridgePage"),
+  TCOThresholdPage: () => import("./pages/TCOThresholdPage"),
 } as const;
 
 let _warmed = false;
@@ -75,13 +74,9 @@ const SupportPage = lazy(routeModules.SupportPage);
 const SolutionsPage = lazy(routeModules.SolutionsPage);
 const BrokersPage = lazy(routeModules.BrokersPage);
 const BookDemoPage = lazy(routeModules.BookDemoPage);
-const RefiTrackerPage = lazy(routeModules.RefiTrackerPage);
-const ARMPage = lazy(routeModules.ARMPage);
-const MonteCarloPage = lazy(routeModules.MonteCarloPage);
-const ReturnsPage = lazy(routeModules.ReturnsPage);
-const TaxEnginePage = lazy(routeModules.TaxEnginePage);
-const StressMatrixPage = lazy(routeModules.StressMatrixPage);
-const DecisionSupportPage = lazy(routeModules.DecisionSupportPage);
+const CommercialDSCRPage = lazy(routeModules.CommercialDSCRPage);
+const ConstructionBridgePage = lazy(routeModules.ConstructionBridgePage);
+const TCOThresholdPage = lazy(routeModules.TCOThresholdPage);
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 // Users get a plain-language recovery message; the raw error text lives behind a
@@ -225,12 +220,15 @@ const CLIENT_WORKSPACE_CONFIGURED = Boolean(
 
 // Views where the floating "See if you qualify" pill is suppressed.
 //
-// This list used to be named RELIABILITY_HOLD_VIEWS, back when it also selected
-// which tools rendered ToolReliabilityHoldPage. Those tools now render live pages
-// (see renderPage below), so suppressing the qualify widget is this set's ONLY
-// remaining job — hence the name. Membership is unchanged: these are the deep
-// analysis surfaces that carry their own prominent qualify CTAs, so the floating
-// overlay is redundant clutter there.
+// This list used to be named RELIABILITY_HOLD_VIEWS because it ALSO selected
+// which tools rendered ToolReliabilityHoldPage. It no longer does — that
+// decision now lives in one place, TOOL_RELIABILITY_HOLDS, and is applied in
+// renderPage below. Renaming the set was correct; what was not correct was the
+// period in which seven of those tools were dropped from the hold wiring while
+// their hold records still stood unsatisfied. Membership here is deliberately
+// unchanged and is NOT the release gate: it only means these deep analysis
+// surfaces carry their own prominent qualify CTAs, so the floating overlay is
+// redundant clutter. Do not infer a tool's hold status from this set.
 //
 // Deliberately NOT suppressed (conversion surfaces where the pill IS the primary
 // path): portal, legal, book-demo, dscr-calculator, lender-intel, external. A
@@ -311,6 +309,9 @@ function viewToPath(view: PageView): string {
     case "book-demo":         return "/book-demo";
     case "not-found":         return "/404";
     case "external":          return "/external";
+    case "commercial-dscr":     return "/tools/commercial-dscr";
+    case "construction-bridge": return "/tools/construction-bridge";
+    case "tco-threshold":       return "/tools/tco-threshold";
   }
 }
 
@@ -515,19 +516,25 @@ export default function App() {
       case "not-found":
         return <NotFoundPage key={pathname} onNavigate={goTo} />;
       case "refi-tracker":
-        return <RefiTrackerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.refiTracker} onNavigate={navigateFromReliabilityHold} />;
       case "arm-reset":
-        return <ARMPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.armReset} onNavigate={navigateFromReliabilityHold} />;
       case "monte-carlo":
-        return <MonteCarloPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.monteCarlo} onNavigate={navigateFromReliabilityHold} />;
       case "returns":
-        return <ReturnsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.returns} onNavigate={navigateFromReliabilityHold} />;
       case "tax-engine":
-        return <TaxEnginePage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.taxEngine} onNavigate={navigateFromReliabilityHold} />;
       case "stress-matrix":
-        return <StressMatrixPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stressMatrix} onNavigate={navigateFromReliabilityHold} />;
       case "decision-support":
-        return <DecisionSupportPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
+      case "commercial-dscr":
+        return <CommercialDSCRPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "construction-bridge":
+        return <ConstructionBridgePage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "tco-threshold":
+        return <TCOThresholdPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "str-underwriting":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.strUnderwriting} onNavigate={navigateFromReliabilityHold} />;
       case "structure-optimizer":

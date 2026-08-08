@@ -67,7 +67,7 @@ export default function InvestorsPage({
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>For Real Estate Investors</div>
             <H1 style={{ margin: "0 0 18px", maxWidth: "14ch" }}>Scale past the income ceiling.</H1>
             <Lead style={{ color: "rgba(238,239,211,0.72)", maxWidth: "48ch", margin: "0 0 30px" }}>
-              Conventional lenders cap how many doors you own by your debt-to-income. DSCR doesn't — every property qualifies on its own rent. Buy the next one, and the one after that.
+              Conventional lenders cap how many doors you own by your debt-to-income. DSCR programs generally don't — each property is evaluated on its own rent. Model the next one, and the one after that. Figures here are preliminary estimates, not quotes or approvals.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button onClick={() => onNavigate("dscr-calculator")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Run my next deal →</button>
@@ -130,7 +130,7 @@ export default function InvestorsPage({
                   <Mono style={{ fontSize: 16, fontWeight: 700, color: r.c }}>{r.v}</Mono>
                 </div>
               ))}
-              <button onClick={() => onNavigate("portfolio")} style={{ width: "100%", marginTop: 18, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Underwrite the whole book →</button>
+              <button onClick={() => onNavigate("portfolio")} style={{ width: "100%", marginTop: 18, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", padding: "13px", borderRadius: radius.sm, fontFamily: font.family }}>Model the whole book →</button>
             </div>
           </div>
         </div>
@@ -142,9 +142,9 @@ export default function InvestorsPage({
           <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Built for the investor who isn't stopping at one.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
             {[
-              { t: "No DTI math", s: "Your W-2, tax returns, and personal debt never enter the file. The rent qualifies the loan." },
-              { t: "Close in your LLC", s: "Vesting in an entity is standard — keep your portfolio clean and separate from your personal credit." },
-              { t: "One team, every door", s: "The same desk prices, structures, and funds each deal — no re-keying your file for every purchase." },
+              { t: "No DTI math", s: "DSCR programs qualify on the property's rent rather than your debt-to-income. Documentation rules vary by program — verify before relying on it." },
+              { t: "Entity vesting is common", s: "Most DSCR programs allow title to be vested in an LLC. Confirm each program's entity rules before you structure around it." },
+              { t: "One workflow, every door", s: "The same tools price, structure, and document each scenario — no rebuilding your model for every purchase." },
             ].map((v) => (
               <div key={v.t} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)" }}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: dc.cream, letterSpacing: "-0.02em", marginBottom: 8 }}>{v.t}</div>
@@ -157,7 +157,7 @@ export default function InvestorsPage({
 
       <BottomCTA onNavigate={onNavigate} cards={[
         { bg: dc.lemon, fg: dc.dark, blurb: "Run your next property's rent through Greenstreet — 60 seconds, no credit pull.", title: "Run my next deal", view: "dscr-calculator" },
-        { bg: dc.mintBg, fg: dc.dark, blurb: "Roll the whole book into one blended DSCR and finance it together.", title: "Blend my portfolio", view: "portfolio" },
+        { bg: dc.mintBg, fg: dc.dark, blurb: "Roll the whole book into one blended DSCR and model it as a single structure.", title: "Blend my portfolio", view: "portfolio" },
       ]} />
     </DcShell>
   );

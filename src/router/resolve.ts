@@ -28,6 +28,9 @@ export type PageView =
   | "decision-support"
   | "str-underwriting"
   | "portfolio"
+  | "commercial-dscr"
+  | "construction-bridge"
+  | "tco-threshold"
   | "about"
   | "careers"
   | "legal"
@@ -100,6 +103,9 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/tools/decision-support": "decision-support",
   "/tools/str-underwriting": "str-underwriting",
   "/tools/portfolio": "portfolio",
+  "/tools/commercial-dscr": "commercial-dscr",
+  "/tools/construction-bridge": "construction-bridge",
+  "/tools/tco-threshold": "tco-threshold",
   "/tools/workspace": "portal",
   "/tools/deal-workspace": "portal",
   "/tools/sensitivity": "portal",
@@ -137,6 +143,9 @@ export function resolveRoute(href: string): PageView {
       if (slug === "decision-support") return "decision-support";
       if (slug === "str-underwriting") return "str-underwriting";
       if (slug === "portfolio") return "portfolio";
+      if (slug === "commercial-dscr") return "commercial-dscr";
+      if (slug === "construction-bridge") return "construction-bridge";
+      if (slug === "tco-threshold") return "tco-threshold";
       if (slug === "dscr-calculator") return "dscr-calculator";
       if (slug === "lender-intel") return "lender-intel";
       if (slug === "state-laws") return "state-laws";
@@ -196,6 +205,9 @@ export function isKnownRoute(href: string): boolean {
       "decision-support",
       "str-underwriting",
       "portfolio",
+      "commercial-dscr",
+      "construction-bridge",
+      "tco-threshold",
       "dscr-calculator",
       "lender-intel",
       "state-laws",

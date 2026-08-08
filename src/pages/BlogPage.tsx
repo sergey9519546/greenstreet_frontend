@@ -105,7 +105,7 @@ const RAW_POSTS = [
       { quote: "Tax and insurance are the two PITIA components that sink deals at underwriting. Model both from real sources — county records and an actual insurance quote — before you go to contract." },
     ],
     glyph: "Σ", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Greenstreet Editorial",
+    author: "Marcus Chen",
     featured: false,
   },
   {
@@ -137,7 +137,7 @@ const RAW_POSTS = [
       { quote: "A useful comparison starts with the same assumptions and a current written quote from each provider." },
     ],
     glyph: "LTV", glyphColor: dc.rain, bg: dc.mintBg,
-    author: "Greenstreet Editorial",
+    author: "Sara López",
     featured: false,
   },
   {
@@ -173,7 +173,7 @@ const RAW_POSTS = [
       { quote: "The break-even month is the number that makes the refinance decision rational instead of emotional. Run it before you pay the appraisal." },
     ],
     glyph: "↺", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Greenstreet Editorial",
+    author: "Priya Rao",
     featured: false,
   },
   {
@@ -204,7 +204,7 @@ const RAW_POSTS = [
       { quote: "The six problems above recur in roughly that order of frequency. Check your file against all six before submission, not after the underwriter calls." },
     ],
     glyph: "✕→✓", glyphColor: dc.emerald, bg: dc.teal,
-    author: "Greenstreet Editorial",
+    author: "Sara López",
     featured: false,
   },
   {
@@ -236,7 +236,7 @@ const RAW_POSTS = [
       { quote: "Treat every foreign-national scenario as lender- and borrower-specific, with tax and legal advice obtained before closing." },
     ],
     glyph: "FN", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Greenstreet Editorial",
+    author: "Marcus Chen",
     featured: false,
   },
   {
@@ -510,7 +510,7 @@ const RAW_POSTS = [
       { quote: "No W-2s, no tax returns — but the appraisal, the insurance, and the bank statements are where DSCR files actually get held up. Have all three ready before you submit." },
     ],
     glyph: "✓", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Greenstreet Editorial",
+    author: "Marcus Chen",
     featured: false,
   },
 
@@ -572,7 +572,7 @@ const RAW_POSTS = [
       { quote: "The appraisal is the critical path. Everything else can move in parallel — docs, insurance, LLC verification. Order the appraisal as early as possible." },
     ],
     glyph: "→", glyphColor: dc.dark, bg: dc.emerald,
-    author: "Greenstreet Editorial",
+    author: "Priya Rao",
     featured: false,
   },
 
@@ -613,7 +613,7 @@ const RAW_POSTS = [
       { quote: "DSCR improvement is arithmetic. Identify which component of PITIA is largest, and decide which lever(s) move it most efficiently given the investor's capital and risk tolerance." },
     ],
     glyph: "↑", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Greenstreet Editorial",
+    author: "Marcus Chen",
     featured: false,
   },
   // ── INVESTOR DECISION GUIDES (added 2026-07-18) ────────────────────────────
@@ -1819,10 +1819,10 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ width: 34, height: 34, borderRadius: "50%", background: dc.emerald, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: dc.dark, flexShrink: 0 }}>
-                PR
+                GS
               </span>
               <span style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.7)", letterSpacing: "-0.01em" }}>
-                Priya Rao · Head of Quant
+                Greenstreet Editorial
               </span>
             </div>
           </div>

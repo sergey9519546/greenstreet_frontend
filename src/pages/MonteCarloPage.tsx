@@ -717,7 +717,7 @@ export default function MonteCarloPage({
                 Get a real rate on this deal.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
-                Submit once. Greenstreet places your file in the best-fit program and funds it.
+                Submit once. Greenstreet models your file against the best-fit programs and returns a structured scenario.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>

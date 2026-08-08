@@ -2114,8 +2114,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       contactConsent: step4.contactConsent,
       page: typeof window !== "undefined" ? window.location.pathname : "/",
       website: step4.website,
-      createdAt: new Date().toISOString(),
-      submittedAt: new Date(), // Firestore rules require this field (as Timestamp)
+      // No client timestamps. LeadSubmissionSchema is .strict() and rejects any
+      // key it does not declare, so sending createdAt/submittedAt made every
+      // real submission fail with HTTP 400. The server stamps submittedAt and
+      // contactConsentAt with FieldValue.serverTimestamp() in defaultPersistLead.
       // (lead persists to Firestore `leads` below; CRM/email sync is a future add)
     };
 

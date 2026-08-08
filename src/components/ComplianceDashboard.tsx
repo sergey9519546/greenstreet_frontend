@@ -10,6 +10,8 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import type { DSCRResult, BreakevenResult, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
 import type { AuditLog } from "../engine/types";
+import { PPP_STATE_LAWS } from "../engine/statePppLaws";
+import { formatVintage } from "../engine/dataVintage";
 import { swatch, radius, risk } from "../theme";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor as artifactDscrColor } from "../design/artifacts";
 import STRUnderwritingPage from "../pages/STRUnderwritingPage";
@@ -95,6 +97,33 @@ function pppBadgeStyle(status: string): React.CSSProperties {
 }
 const fmt$ = (n: number) => `$${Math.round(n).toLocaleString()}`;
 const fmtPct = (n: number) => `${n.toFixed(3)}%`;
+
+// ─── State-rule data vintage (derived, never asserted) ───────────────────────
+// Read straight off the engine's prepayment-penalty matrix at module load, so
+// the workspace can only ever report that matrix's real age and real coverage
+// gaps. This replaced a hardcoded panel that claimed a "17a-4 WORM archive",
+// an "Exam export" and continuously "Synced" state rules — none of which this
+// product does, and the last of which its own data contradicts.
+const STATE_LAWS = Object.values(PPP_STATE_LAWS);
+// `lastVerified` is "YYYY-MM", so lexical order is chronological order.
+const STATE_LAW_OLDEST_VERIFIED = STATE_LAWS.reduce<string | null>(
+  (oldest, law) => (oldest === null || law.lastVerified < oldest ? law.lastVerified : oldest),
+  null,
+);
+const STATE_LAW_UNVERIFIED_COUNT = STATE_LAWS.filter(law => law.provenance === "UNVERIFIED").length;
+const STATE_LAW_VINTAGE_ROWS: { label: string; value: string; tone: string }[] = [
+  { label: "States in matrix", value: String(STATE_LAWS.length), tone: T.ink },
+  {
+    label: "Oldest state verified",
+    value: STATE_LAW_OLDEST_VERIFIED ? formatVintage(`${STATE_LAW_OLDEST_VERIFIED}-01`) : "undated",
+    tone: T.ink,
+  },
+  {
+    label: "Source UNVERIFIED",
+    value: `${STATE_LAW_UNVERIFIED_COUNT} of ${STATE_LAWS.length}`,
+    tone: STATE_LAW_UNVERIFIED_COUNT > 0 ? risk.cautionOnDark : T.ink,
+  },
+];
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -699,7 +728,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         <button onClick={() => { onBackToMarketing(); setSidebarOpen(false); }}
           className="flex items-center gap-2.5 mb-5 px-1 transition"
           style={{ width: "100%" }}
-          title="Back to greenstreetfinance.com"
+          title="Back to greenstreet.finance"
           onMouseEnter={e => e.currentTarget.style.opacity = "0.82"}
           onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
           <span style={{ width: 34, height: 34, borderRadius: 9, background: "#00201f", display: "grid", placeItems: "center", border: "1px solid rgba(238,239,211,0.12)", flexShrink: 0 }}>
@@ -888,24 +917,22 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                         {/* Right column */}
                         <div className="flex flex-col gap-4">
-                          {/* Compliance status */}
+                          {/* State-rule data vintage. Every figure below is derived from
+                              src/engine/statePppLaws.ts at module load (see STATE_LAW_VINTAGE_ROWS)
+                              — this panel makes no claim about Greenstreet's own records,
+                              licensing or retention. */}
                           <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: "1px solid rgba(238,239,211,0.16)", boxShadow: "inset 0 1px 0 rgba(238,239,211,0.06)", borderRadius: radius.md }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: "rgba(238,239,211,0.55)" }}>Compliance</div>
-                            {([
-                              { label: "17a-4 WORM archive", status: "Active" },
-                              { label: "IC memos generated", status: "6 / 6" },
-                              { label: "State rules current", status: "Synced" },
-                              { label: "Exam export",         status: "Ready" },
-                            ] as const).map(({ label, status }) => (
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: "rgba(238,239,211,0.55)" }}>State rule data</div>
+                            {STATE_LAW_VINTAGE_ROWS.map(({ label, value, tone }) => (
                               <div key={label} className="flex items-center justify-between py-2.5"
                                 style={{ borderBottom: `1px solid ${swatch.pistachio}15` }}>
                                 <span className="text-[13px] font-medium" style={{ color: `${swatch.pistachio}c0` }}>{label}</span>
-                                <span className="text-[11px] font-bold px-2 py-0.5"
-                                  style={{ color: swatch.midnight, background: swatch.emerald, borderRadius: radius.pill }}>
-                                  {status}
-                                </span>
+                                <span className="font-mono text-[12px] font-bold" style={{ color: tone, fontVariantNumeric: "tabular-nums" }}>{value}</span>
                               </div>
                             ))}
+                            <p className="text-[11px] leading-relaxed mt-3" style={{ color: "rgba(238,239,211,0.52)" }}>
+                              The prepayment-penalty matrix is dated research, not a live feed. Confirm current state law before relying on it.
+                            </p>
                           </div>
 
                           {/* State alerts */}
@@ -1676,12 +1703,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       <WhiteCard className="max-w-xl" style={{ padding: "32px" }}>
                         <h2 className="font-bold text-lg mb-1" style={{ color: T.ink }}>Your Profile</h2>
                         <p className="text-xs mb-6" style={{ color: T.muted }}>
-                          Your name and license info appear on IC memos and audit exports.
+                          Saved to your account. Your name and primary market show in the workspace sidebar.
                         </p>
                         <form onSubmit={saveBrokerConfig} className="space-y-4">
                           {[
-                            { key: "brokerName",    label: "Name / Company",    helper: "Displayed on all exports" },
-                            { key: "nmls",          label: "NMLS License Number",      helper: "Required for compliance memos" },
+                            { key: "brokerName",    label: "Name / Company",           helper: "Shown in the sidebar" },
+                            { key: "nmls",          label: "NMLS License Number",      helper: "Optional" },
                             { key: "licenseType",   label: "License Type",             helper: "Optional" },
                             { key: "primaryMarket", label: "Primary Markets (States)", helper: "e.g. FL, TX, GA" },
                           ].map(({ key, label, helper }) => (

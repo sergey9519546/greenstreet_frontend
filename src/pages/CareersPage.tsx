@@ -175,7 +175,7 @@ function RoleRow({ role, isOpen, onToggle }: { role: Role; isOpen: boolean; onTo
             {role.body}
           </p>
           <a
-            href="mailto:careers@greenstreetfinance.com"
+            href="mailto:careers@greenstreet.finance"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -261,10 +261,10 @@ export default function CareersPage({
                 See open roles below
               </button>
               <a
-                href="mailto:careers@greenstreetfinance.com"
+                href="mailto:careers@greenstreet.finance"
                 style={{ display: "inline-flex", alignItems: "center", background: "transparent", color: "rgba(0,55,56,0.7)", border: "1.5px solid rgba(0,55,56,0.3)", borderRadius: 8, padding: "12px 24px", fontSize: 15, fontWeight: 500, textDecoration: "none", fontFamily: dc.sans, letterSpacing: "-0.01em" }}
               >
-                careers@greenstreetfinance.com
+                careers@greenstreet.finance
               </a>
             </div>
           </div>
@@ -468,7 +468,7 @@ export default function CareersPage({
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: "0 0 auto" }}>
             <a
-              href="mailto:careers@greenstreetfinance.com"
+              href="mailto:careers@greenstreet.finance"
               style={{
                 display: "inline-flex",
                 alignItems: "center",

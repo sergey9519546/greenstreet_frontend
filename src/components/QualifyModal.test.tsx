@@ -17,6 +17,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import QualifyModal, { classifyQuickDscr, dscrVerdict } from './QualifyModal';
+import { LeadSubmissionSchema } from '../routes/leads';
 
 type LeadPayload = {
   name: string;
@@ -176,6 +177,37 @@ describe('QualifyModal — lead funnel', () => {
 
     // Confirmation replaces the step counter entirely.
     await waitFor(() => expect(currentStep()).toBeNull());
+  });
+
+  /**
+   * The assertion above is `toMatchObject`, which ignores extra keys — which is
+   * exactly how the funnel shipped broken: the client appended `createdAt` and
+   * `submittedAt`, LeadSubmissionSchema is `.strict()`, and every real
+   * submission was rejected with HTTP 400 while this suite stayed green.
+   *
+   * So parse the payload the component actually sends with the schema the
+   * server actually enforces. Any key added to the request that the server does
+   * not declare fails here instead of silently zeroing out the lead funnel.
+   */
+  it('sends a payload the server schema accepts exactly — no extra keys', async () => {
+    const fetchMock = mockFetch(okResponse);
+    const user = userEvent.setup();
+    render(<QualifyModal open onClose={() => {}} />);
+
+    await completeStep1(user);
+    await completeStep2(user);
+    await user.click(primaryCta()); // step 3 → step 4
+    await waitFor(() => expect(currentStep()).toBe(4));
+    await completeStep4(user);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const payload = JSON.parse(String(init.body)) as unknown;
+
+    const parsed = LeadSubmissionSchema.safeParse(payload);
+    // Surface the offending keys rather than a bare `false`.
+    expect(parsed.success ? [] : parsed.error.issues.map((i) => i.path.join('.'))).toEqual([]);
+    expect(parsed.success).toBe(true);
   });
 
   it('never sends a lead until the contact step is valid', async () => {

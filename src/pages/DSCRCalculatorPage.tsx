@@ -804,7 +804,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                   {/* Fix My Deal — one-click levers when coverage is weak */}
                   {dealFixes.length > 0 && (
-                    <div style={{ marginTop: 20, background: 'rgba(216,217,88,0.06)', border: '1px solid rgba(216,217,88,0.28)', borderLeft: `3px solid ${LEMON}`, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
+                    <div style={{ marginTop: 20, background: 'rgba(216,217,88,0.06)', borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: 'rgba(216,217,88,0.28)', borderLeftColor: LEMON, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
                         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON }}>
                           Fix my deal
@@ -889,7 +889,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                   {/* Track 2 Rescue — investor cash flow fixes when Track 2 DSCR < 1.0 */}
                   {track2Rescue && dual.track2 < 1.0 && (
-                    <div style={{ marginTop: 20, background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderLeft: `3px solid ${risk.danger}`, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
+                    <div style={{ marginTop: 20, background: risk.dangerBg, borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: risk.dangerBorder, borderLeftColor: risk.danger, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
                       <button
                         type="button"
                         onClick={() => setShowTrack2Rescue((s) => !s)}
@@ -1003,7 +1003,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                 {/* ── INSURANCE GATE (high-risk markets only) ── */}
                 {insHighRisk && (
-                  <div style={{ background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderLeft: `3px solid ${risk.danger}`, borderRadius: '0 12px 12px 0', padding: '15px 20px' }}>
+                  <div style={{ background: risk.dangerBg, borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: risk.dangerBorder, borderLeftColor: risk.danger, borderRadius: '0 12px 12px 0', padding: '15px 20px' }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#ff8a8a', marginBottom: 5 }}>Insurance gate · {stateCode}</div>
                     <p style={{ fontSize: 13.5, color: 'rgba(238,239,211,0.78)', margin: 0, lineHeight: 1.55 }}>
                       {stateCode} is a high-risk insurance market. Get a <strong style={{ color: '#eeefd3' }}>bindable quote before you commit</strong> to this deal — an unconfirmed premium here is a stop, not a footnote. It&apos;s the other silent DSCR killer, and the number above assumes coverage you can actually buy.

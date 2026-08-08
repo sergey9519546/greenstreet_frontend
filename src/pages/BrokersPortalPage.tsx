@@ -41,7 +41,7 @@ const BENEFITS = [
   {
     icon: "06",
     title: "Export-ready deal package",
-    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for underwriting review or your own records.",
+    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready to hand to a licensed provider for review, or to keep for your own records.",
   },
 ];
 
@@ -510,9 +510,9 @@ export default function BrokersPortalPage({
                 margin: "0 0 14px",
               }}
             >
-              Open the portal.
+              Open the workspace.
               <br />
-              Price and submit in minutes.
+              Model and save in minutes.
             </h2>
             <p
               style={{
@@ -524,8 +524,9 @@ export default function BrokersPortalPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Access and feature availability require verification.
-              with five or more users.
+              Access and feature availability require verification. Saved
+              scenarios are planning records — not applications, quotes, or
+              approvals.
             </p>
           </div>
 

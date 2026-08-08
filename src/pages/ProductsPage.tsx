@@ -53,8 +53,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Program Intelligence",
-    desc: "Filter all 19 Greenstreet DSCR programs by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See exactly which program will fund your file — and which will decline it — before you make a single call.",
-    cta: "Match my file to a program",
+    desc: "Filter all 19 published Greenstreet DSCR program profiles by FICO, DSCR, LTV (how the loan amount compares to property value — lower means more equity and better terms), and property type. See which program parameters your scenario clears — and which it misses — before you make a single call. Screening is not an eligibility decision.",
+    cta: "Screen my scenario against the programs",
     view: "lender-intel",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
@@ -125,8 +125,8 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Short-Term Rental (STR) Underwriting",
-    desc: "Short-term rental (Airbnb / VRBO) income is modeled on average daily rate (ADR) × occupancy with seasonal haircuts — the income methodology lenders actually accept, not the optimistic projections Airbnb shows hosts. Runs against the STR program parameters so you can see the qualifying DSCR before you list the property.",
-    cta: "Underwrite my STR",
+    desc: "Short-term rental (Airbnb / VRBO) income is modeled on average daily rate (ADR) × occupancy with seasonal haircuts — a conservative methodology rather than the optimistic projections Airbnb shows hosts. Runs against published STR program parameters so you can model a qualifying DSCR before you list the property. Individual providers apply their own income rules.",
+    cta: "Model my STR income",
     view: "str-underwriting",
     panelBg: dc.teal,
     panelAccent: dc.emerald,
@@ -149,7 +149,7 @@ const TOOLS: Tool[] = [
   },
   {
     title: "Refi Tracker",
-    desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) pencils only if the monthly savings pay back closing costs before you sell or refinance again. The Refi Tracker shows break-even month, NPV of savings, and the minimum rate drop that justifies closing costs — so you refinance when the math confirms it, not when rates feel low.",
+    desc: "A rate & term refinance (replace your current loan to change the rate or term, without taking cash out) pencils only if the monthly savings pay back closing costs before you sell or refinance again. The Refi Tracker shows break-even month, NPV of savings, and the minimum rate drop that justify closing costs — so you refinance when the math confirms it, not when rates feel low.",
     cta: "Find my refi break-even",
     view: "refi-tracker",
     panelBg: dc.dark,
@@ -158,6 +158,42 @@ const TOOLS: Tool[] = [
     panelTag: "Refi Tracker",
     panelMetric: "NPV",
     panelNote: "Break-even month · min rate delta",
+  },
+  {
+    title: "Commercial 5+ Unit DSCR",
+    desc: "Analyze multifamily underwriting economics. Calculates Effective Gross Income (EGI), Net Operating Income (NOI), and verifies expense-ratio minimums to ensure your 5+ unit deal meets commercial DSCR constraints.",
+    cta: "Model 5+ Units",
+    view: "commercial-dscr",
+    panelBg: dc.teal,
+    panelAccent: dc.emerald,
+    panelBody: "rgba(238,239,211,0.6)",
+    panelTag: "Commercial",
+    panelMetric: "5+",
+    panelNote: "EGI · NOI · Expense ratios",
+  },
+  {
+    title: "Construction & Bridge Carry",
+    desc: "Analyze short-term carry costs and exit viability. Calculates progressive-draw interest reserves and ensures the permanent takeout loan can retire the bridge note before you start drawing funds.",
+    cta: "Calculate Bridge Carry",
+    view: "construction-bridge",
+    panelBg: dc.mintBg,
+    panelAccent: dc.rain,
+    panelBody: "rgba(0,55,56,0.55)",
+    panelTag: "Bridge",
+    panelMetric: "IO",
+    panelNote: "Interest reserve · takeout viability",
+  },
+  {
+    title: "TCO vs Standard DSCR",
+    desc: "Convert standard Gross-Rent DSCR into True Cost of Ownership (TCO) DSCR, which loads CapEx and Maintenance reserves into the denominator so you understand true cash flow.",
+    cta: "Convert DSCR to TCO",
+    view: "tco-threshold",
+    panelBg: dc.dark,
+    panelAccent: dc.lemon,
+    panelBody: "rgba(238,239,211,0.62)",
+    panelTag: "TCO Converter",
+    panelMetric: "CapEx",
+    panelNote: "Reserve loads · institutional conversion",
   },
 ];
 
@@ -487,11 +523,12 @@ export default function ProductsPage({
                 margin: "clamp(24px,3vw,36px) 0 0",
               }}
             >
-              Eleven tools for DSCR rental-loan underwriting — from a 60-second
-              deal check to a full after-tax returns model. Every tool runs off the
-              same deterministic core: versioned math, statutory citations, no
-              AI-generated numbers. Run a quick deal check, layer in tax and
-              returns, then stress-test before you commit. Start anywhere.
+              Eleven tools for modeling DSCR rental-loan scenarios — from a
+              60-second deal check to a full after-tax returns model. Every tool
+              runs off the same deterministic core: versioned math, statutory
+              citations, no AI-generated numbers. Run a quick deal check, layer in
+              tax and returns, then stress-test before you commit. Every output is
+              a preliminary estimate, not a quote or approval. Start anywhere.
             </Lead>
           </div>
           <MotionWorkbench mode="sim" value="11" label="Connected tools" />
@@ -677,7 +714,7 @@ export default function ProductsPage({
                 textAlign: "left" as const,
               }}
             >
-              See my rate in 5 questions →
+              Estimate my rate in 5 questions →
             </button>
             <button
               onClick={() => onNavigate("dscr-calculator")}

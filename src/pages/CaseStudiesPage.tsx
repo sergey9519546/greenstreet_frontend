@@ -99,7 +99,7 @@ const STUDIES: Study[] = [
     image: "/img/generated/scenes/underwriting-desk-velocity.png",
     scene: "vela",
     poster: "/video/scenes/cs-vela-poster.jpg",
-    headline: "From 25 minutes per file to 6. Same team, 4× the throughput.",
+    headline: "Modeled: a six-minute review instead of 25 implies 4× the file throughput.",
     metrics: [
       { v: "4×", k: "Modeled throughput ratio" },
       { v: "6 min", k: "Hypothetical review input (was 25)" },
@@ -124,7 +124,7 @@ const STUDIES: Study[] = [
     image: "/img/generated/scenes/desk-green-data.png",
     scene: "northshore",
     poster: "/video/scenes/cs-northshore-poster.jpg",
-    headline: "Same-day rate lock — and Track 2 caught the deal that should have died.",
+    headline: "Modeled: Track 1 clears while a 12% vacancy assumption sinks Track 2.",
     metrics: [
       { v: "Modeled", k: "Scenario checkpoint" },
       { v: "12%", k: "Vacancy gap caught by Track 2" },
@@ -149,7 +149,7 @@ const STUDIES: Study[] = [
     image: "/img/generated/scenes/broker-building-dusk.png",
     scene: "quintero",
     poster: "/video/scenes/cs-quintero-poster.jpg",
-    headline: "Three appraisals they never paid for. $14,800 in hard costs saved at the desk.",
+    headline: "Modeled: three marginal scenarios caught before appraisal spend.",
     metrics: [
       { v: "3", k: "Hypothetical scenarios screened" },
       { v: "$14,800", k: "Modeled diligence-cost exposure" },
@@ -160,10 +160,10 @@ const STUDIES: Study[] = [
     solution:
       "The scenario applies the expense-aware Track 2 view before diligence costs are committed. Any foreign-national or ITIN eligibility would require confirmation from the responsible licensed provider.",
     result:
-      "Three deals that would have failed post-appraisal were killed pre-appraisal, saving $14,800 in hard costs. A non-US investor ITIN file that previously took a week to get a straight answer was approved on the Global program in under three minutes.",
+      "In this hypothetical, three scenarios clear the payment-coverage view but fall below break-even once vacancy and management assumptions are applied. At the $3,000–7,000 per-file diligence assumption used here, that is $14,800 of modeled diligence-cost exposure. No approval, timeline, or customer outcome is claimed.",
     quote:
-      "Non-US investor ITIN flow used to take a week. Greenstreet's Global program approved us fast — and Track 2 stopped us from buying three appraisals we'd have regretted.",
-    program: "DSCR Global",
+      "Applying the expense-aware view before diligence costs are committed is what separates a scenario that clears on paper from one that survives its own operating assumptions.",
+    program: "Illustrative non-US investor assumptions",
   },
 ];
 
@@ -176,10 +176,10 @@ const AURORA_STORY = {
   image: "/img/generated/scenes/residential-townhomes.png",
   scene: "aurora",
   poster: "/video/scenes/cs-aurora-poster.jpg",
-  headline: "One blended view of 40 doors got the blanket line approved.",
+  headline: "Modeled: 40 doors blended into a single 1.11x coverage view.",
   metrics: [
     { v: "$18M", k: "Hypothetical balance" },
-    { v: "1.11x", k: "Blended DSCR" },
+    { v: "1.11x", k: "Modeled blended DSCR" },
     { v: "1 wk", k: "Hypothetical review" },
   ],
   challenge:

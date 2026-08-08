@@ -87,7 +87,7 @@ const DISCLOSURES: LegalDoc = {
       ],
     },
   ],
-  contactLine: "Questions about these terms? Contact legal@greenstreetfinance.com.",
+  contactLine: "Questions about these terms? Contact legal@greenstreet.finance.",
 };
 
 const PRIVACY_DOC: LegalDoc = {
@@ -128,16 +128,20 @@ const PRIVACY_DOC: LegalDoc = {
       id: "your-rights",
       title: "5. Your rights",
       paras: [
-        "A verified privacy-request channel and response-time policy have not yet been supplied for publication. The site owner must publish and monitor that process before promoting the intake at scale. Until then, do not submit sensitive information through the public form.",
+        "To ask what information you submitted through this site, to correct it, or to have it deleted, email privacy@greenstreet.finance. Describe the request and the scenario submission it concerns; we may ask you to confirm the request came from you before acting on it.",
+        "Two things are not yet published and you should not assume them: a committed response time for a privacy request, and a retention period after which submitted scenario data is deleted. Until both are published, do not submit Social Security numbers, bank-account numbers, or identity documents through the public form.",
       ],
     },
     {
       id: "contact",
       title: "6. Contact",
-      paras: ["A verified privacy contact channel is pending publication."],
+      paras: [
+        "Privacy questions and privacy requests: privacy@greenstreet.finance.",
+        "This policy does not yet publish a postal address for written privacy requests, a data-retention period, a response-time commitment, or a list of the service providers that process submitted scenario data. Those are outstanding and will be added here when confirmed.",
+      ],
     },
   ],
-  contactLine: "Privacy contact channel: pending owner verification and publication.",
+  contactLine: "Privacy questions or requests? Email privacy@greenstreet.finance.",
 };
 
 const TERMS_DOC: LegalDoc = {
@@ -184,10 +188,13 @@ const TERMS_DOC: LegalDoc = {
     {
       id: "contact",
       title: "6. Contact",
-      paras: ["A verified legal contact channel is pending publication."],
+      paras: [
+        "Questions about these terms: legal@greenstreet.finance.",
+        "This site still does not publish a legal business address, an NMLS ID, or a state-license list. Obtain those in writing from the responsible provider before relying on a program.",
+      ],
     },
   ],
-  contactLine: "Legal contact channel: pending owner verification and publication.",
+  contactLine: "Questions about these terms? Contact legal@greenstreet.finance.",
 };
 
 // ─── Path → document resolver ───────────────────────────────────────────────
@@ -502,8 +509,8 @@ export default function LegalPage({
               }}
             >
               Questions about terms? Email{" "}
-              <a href="mailto:legal@greenstreetfinance.com" style={{ color: dc.lemon, textDecoration: "none" }}>
-                legal@greenstreetfinance.com
+              <a href="mailto:legal@greenstreet.finance" style={{ color: dc.lemon, textDecoration: "none" }}>
+                legal@greenstreet.finance
               </a>
               . Ready to price a deal? The calculator has no login and takes 30 seconds.
             </p>

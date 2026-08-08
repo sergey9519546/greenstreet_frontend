@@ -60,6 +60,24 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     canonicalPath: "/tools/str-underwriting",
     jsonLdKind: "WebPage",
   },
+  "commercial-dscr": {
+    title: "Commercial DSCR | Greenstreet Finance",
+    description: "Calculate DSCR for 5+ unit commercial properties. Understand multifamily underwriting, gross rent multipliers, and vacancy factors.",
+    canonicalPath: "/tools/commercial-dscr",
+    jsonLdKind: "WebPage",
+  },
+  "construction-bridge": {
+    title: "Construction & Bridge Carry | Greenstreet Finance",
+    description: "Model the true cost of construction and bridge loans, carry costs, exit refinancing, and permanent DSCR takeout.",
+    canonicalPath: "/tools/construction-bridge",
+    jsonLdKind: "WebPage",
+  },
+  "tco-threshold": {
+    title: "TCO Threshold Converter | Greenstreet Finance",
+    description: "Convert standard DSCR targets to True Cost of Ownership (TCO) thresholds and see how reserve-loaded debt yields affect qualification.",
+    canonicalPath: "/tools/tco-threshold",
+    jsonLdKind: "WebPage",
+  },
   "borrower-profiles": {
     title: "Borrower Profiles | Greenstreet Finance",
     description: "Explore common business-purpose DSCR borrower scenarios and the information needed for a preliminary review.",

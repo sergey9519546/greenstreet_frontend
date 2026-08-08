@@ -117,6 +117,17 @@ export const dc = {
   ink: onDark,    // text-on-dark opacity ladder (AA-considered)
   inkLight: onLight,
   type: typeScale, // px ramp anchors
+
+  // ── Surface/ink aliases for tool pages rendered on the dark shell ───────────
+  // The commercial/bridge/TCO tool pages were authored against these names. They
+  // are ALIASES ONLY — every value below already exists above or in theme.ts, so
+  // no new color enters the system (see the risk-ramp rule: one restrained ramp,
+  // never reintroduce #ff6b6b / #f97316).
+  card: swatch.darkTeal,               // #004041 — card surface on midnight
+  panel: RAINFOREST,                   // #006565 — nested panel, one step lighter
+  border: "rgba(238,239,211,0.18)",    // same subtle cream hairline as .gs-range
+  light: onDark.primary,               // #eeefd3 — primary value ink on dark
+  muted: onDark.secondary,             // rgba(238,239,211,0.62) — label/eyebrow ink
 } as const;
 
 // Shared CSS injected once per page.

@@ -38,6 +38,8 @@ export type DscrProgram = {
   noRatio: boolean;
   maxLTV: number;           // headline best-case purchase LTV
   maxLoan: number;
+  minLoan?: number;
+  multiFamilyLtvGridVerified?: boolean;
   isSTR: boolean;
   multiFamily: boolean;     // 5+ units eligible
   foreignNational: boolean;
@@ -45,6 +47,16 @@ export type DscrProgram = {
   features: string[];
   grid: DscrTierGrid[];
 };
+
+// ---------------------------------------------------------------------------
+// Program qualification checks
+// ---------------------------------------------------------------------------
+export function meetsProgramDscr(program: DscrProgram, dscr: number, isMultiFamily = false): boolean {
+  if (isMultiFamily && program.id === "birch") {
+    return dscr >= 1.10;
+  }
+  return dscr >= program.dscrFloor;
+}
 
 // ---------------------------------------------------------------------------
 // Lookup helper — max LTV % for a specific deal, null = ineligible
@@ -58,8 +70,8 @@ export function lookupMaxLTV(
 ): number | null {
   const tier = program.grid.find((t) => {
     if (dscr === null) return t.dscrMin === null;
-    if (t.dscrMin === null) return false;
-    return dscr >= t.dscrMin && (t.dscrMax === null || dscr <= t.dscrMax);
+    const min = t.dscrMin ?? 0;
+    return dscr >= min && (t.dscrMax === null || dscr <= t.dscrMax);
   });
   if (!tier) return null;
   const row = tier.rows.find((r) => fico >= r.ficoMin && loanAmt <= r.loanMax);
@@ -129,7 +141,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     id: "oak",
     name: "Greenstreet Oak",
     tagline: "No-ratio & credit-event friendly",
-    minFICO: 660, dscrFloor: 0.75, noRatio: true, maxLTV: 85, maxLoan: 3_000_000,
+    minFICO: 660, dscrFloor: 0.75, noRatio: true, maxLTV: 85, maxLoan: 3_000_000, minLoan: 100_000,
     isSTR: true, multiFamily: false, foreignNational: false,
     reserves: "≤ $500k: 3 mo · ≤ $2M: 6 mo · > $2M: 12 mo",
     features: ["True no-ratio (no DSCR min)", "Recent credit events OK", "Small balance from $100k", "Condotel"],
@@ -185,7 +197,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
     id: "birch",
     name: "Greenstreet Birch",
     tagline: "Broadest box, including multi-family",
-    minFICO: 620, dscrFloor: 0, noRatio: true, maxLTV: 80, maxLoan: 3_000_000,
+    minFICO: 620, dscrFloor: 0, noRatio: true, maxLTV: 80, maxLoan: 3_000_000, multiFamilyLtvGridVerified: false,
     isSTR: true, multiFamily: true, foreignNational: false,
     reserves: "≤ $1M: 3 mo · ≤ $2M: 6 mo · > $2M: 12 mo",
     features: ["DSCR below 0.75 considered", "Multi-family (1.10 DSCR)", "New construction", "STR to 80% LTV", "ITIN"],
@@ -345,8 +357,8 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
       {
         // Note: main grid is FICO-only; loan amount overlays apply:
         //   > $1.5M → 75% max;  > $2M → 70% max, 700 min FICO
-        label: "≥ 0.80",
-        dscrMin: 0.80, dscrMax: null,
+        label: "≥ 1.00",
+        dscrMin: 1.00, dscrMax: null,
         rows: [
           { ficoMin: 700, loanMax: 1_500_000, purchase: 80, rateTerm: 80, cashOut: 75 },
           { ficoMin: 700, loanMax: 2_000_000, purchase: 75, rateTerm: 75, cashOut: 75 },
@@ -355,7 +367,7 @@ export const DSCR_PROGRAMS: DscrProgram[] = [
       },
       {
         label: "< 1.00",
-        dscrMin: 0.80, dscrMax: 0.99,
+        dscrMin: 0.80, dscrMax: 0.9999,
         rows: [
           { ficoMin: 720, loanMax: 1_500_000, purchase: 75, rateTerm: 75, cashOut: 70 },
         ],

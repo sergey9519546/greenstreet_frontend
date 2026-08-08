@@ -131,7 +131,7 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
           Five steps. One application. Your deal — funded.
         </h2>
         <p className="hiw-head" style={{ animationDelay: "0.16s", fontSize: "18px", color: ICE, opacity: 0.85, maxWidth: "640px", lineHeight: 1.6, marginBottom: "clamp(40px, 5vw, 64px)" }}>
-          Scroll through to see how a DSCR deal moves from first number to funded. Every step runs on the same engine — the one that underwrites and funds your file.
+          Scroll through to see how a DSCR deal moves from first number to a lender-ready file. Every step runs on the same engine, so the numbers never change shape between steps.
         </p>
 
         {/* Steps — each row owns its dot + connector so heights resolve naturally */}

@@ -808,7 +808,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 Ready to move this deal forward?
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
-                Submit once. We place your file in the best-fit program and fund it ourselves — no portal-hopping, no re-keying the same numbers five times.
+                Submit once. We model your file against the best-fit programs and hand you a structured scenario — no portal-hopping, no re-keying the same numbers five times.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>

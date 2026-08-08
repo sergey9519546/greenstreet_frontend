@@ -67,6 +67,18 @@ export { generateStructureOptions } from './loanOptimizer';
 // --- Decision support (verdict + IC memo; v2 wiring) ---
 export { computeVerdict, buildICMemo } from './decisionSupport';
 
+// --- Commercial (5+ unit) DSCR ---
+export { computeCommercialDscr } from './commercialDscr';
+export type { CommercialDscrInput, CommercialDscrResult, CommercialDscrDisposition, NoiSanity } from './commercialDscr';
+
+// --- Construction / bridge DSCR ---
+export { computeConstructionBridge } from './constructionBridge';
+export type { ConstructionBridgeInput, ConstructionBridgeResult, BridgeViability } from './constructionBridge';
+
+// --- TCO ↔ standard DSCR threshold conversion ---
+export { stdToTco, tcoToStd, tcoThresholdTable, DEFAULT_RESERVE_LOAD } from './tcoThreshold';
+export type { TcoThresholdRow } from './tcoThreshold';
+
 // --- Types (re-exported for the server + frontend) ---
 export type {
   PropertyInputs,

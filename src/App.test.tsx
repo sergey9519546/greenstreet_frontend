@@ -20,14 +20,18 @@ vi.mock('./marketing/MarketingHome', () => ({
 vi.mock('./pages/DSCRCalculatorPage', () => ({
   default: (props: { onNavigate?: (v: string) => void }) => (
     <div data-testid="route-dscr-calculator">
-      <button type="button" onClick={() => props.onNavigate?.('returns')}>
-        go to returns
+      <button type="button" onClick={() => props.onNavigate?.('commercial-dscr')}>
+        go to commercial dscr
       </button>
     </div>
   ),
 }));
-vi.mock('./pages/ReturnsPage', () => ({
-  default: () => <div data-testid="route-returns" />,
+// Commercial DSCR is the nested-tool stand-in on purpose: it is a released tool
+// with no record in TOOL_RELIABILITY_HOLDS, so its sentinel proves the /tools/*
+// route resolved AND its lazy chunk loaded. A held tool cannot prove either —
+// it renders ToolReliabilityHoldPage no matter how the chunk wiring is broken.
+vi.mock('./pages/CommercialDSCRPage', () => ({
+  default: () => <div data-testid="route-commercial-dscr" />,
 }));
 vi.mock('./pages/LenderIntelPage', () => ({
   default: () => <div data-testid="route-lender-intel" />,
@@ -66,9 +70,21 @@ describe('App routing', () => {
     expect(screen.queryByTestId('route-marketing-home')).toBeNull();
   });
 
-  it('renders a nested tool route (/tools/returns)', async () => {
+  it('renders a nested tool route (/tools/commercial-dscr)', async () => {
+    await renderAt('/tools/commercial-dscr');
+    expect(await screen.findByTestId('route-commercial-dscr')).toBeInTheDocument();
+    expect(screen.queryByTestId('route-marketing-home')).toBeNull();
+  });
+
+  /**
+   * The release gate seen from the router. toolReliabilityHolds.test.ts proves no
+   * hold record is orphaned by scanning App.tsx source; this proves the rendered
+   * result at a held path is the hold page, not the tool.
+   */
+  it('resolves a held tool route (/tools/returns) to its reliability hold', async () => {
     await renderAt('/tools/returns');
-    expect(await screen.findByTestId('route-returns')).toBeInTheDocument();
+    expect(await screen.findByText(/tool reliability review/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /investment returns/i })).toBeInTheDocument();
   });
 
   it('renders the not-found page for an unknown path', async () => {
@@ -99,9 +115,12 @@ describe('App routing', () => {
     await renderAt('/dscr-calculator');
     await screen.findByTestId('route-dscr-calculator');
 
-    await user.click(screen.getByRole('button', { name: /go to returns/i }));
+    await user.click(screen.getByRole('button', { name: /go to commercial dscr/i }));
 
-    expect(await screen.findByTestId('route-returns')).toBeInTheDocument();
-    expect(window.location.pathname).toBe('/tools/returns');
+    // Under test is the onNavigate wiring: the click must push the canonical path
+    // and swap the rendered view to the destination tool.
+    expect(window.location.pathname).toBe('/tools/commercial-dscr');
+    expect(await screen.findByTestId('route-commercial-dscr')).toBeInTheDocument();
+    expect(screen.queryByTestId('route-dscr-calculator')).toBeNull();
   });
 });

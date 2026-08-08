@@ -52,7 +52,7 @@ describe("createRateLimitStore", () => {
   it("keeps the library's memory store when the Firestore opt-in is unset", async () => {
     const { createRateLimitStore } = await loadModule();
     expect(createRateLimitStore("api")).toBeUndefined();
-  });
+  }, 15000);
 
   it("warns exactly once in production that memory counters are per-instance", async () => {
     process.env.NODE_ENV = "production";

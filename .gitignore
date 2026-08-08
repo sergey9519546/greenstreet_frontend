@@ -22,7 +22,12 @@ dist/
 dist-ssr/
 .vercel/
 .output/
-api/
+# NOT `api/`. api/index.js is the AUTHORED Vercel serverless entry point named in
+# vercel.json ("functions": { "api/index.js": ... }) — it is source, and ignoring
+# the directory silently kept the production backend out of git. Only the bundle
+# beside it is generated: `npm run build` emits api/_app.cjs from
+# src/serverApp.ts via esbuild.
+api/_app.cjs
 *.cjs
 
 # Dependencies
