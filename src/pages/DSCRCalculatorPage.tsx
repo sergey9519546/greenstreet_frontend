@@ -429,7 +429,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
         @keyframes gsBar { from { width: 0; } }
         .gs-bar { animation: gsBar .8s ease-out both; }
         @media (max-width: 991px) { #gs-hero-inner { grid-template-columns: 1fr !important; gap: 40px !important; } .dc-band-3, .dc-split { grid-template-columns: 1fr !important; } .calc-panel { grid-template-columns: 1fr !important; } .bottom-trio { grid-template-columns: 1fr !important; } }
-        @media (max-width: 767px) { .bottom-trio { grid-template-columns: 1fr !important; } }
+        @media (max-width: 767px) { .bottom-trio { grid-template-columns: 1fr !important; } .maxprice-answer { grid-template-columns: 1fr !important; } }
         @media (max-width: 479px) { .dscr-verdict-inner { grid-template-columns: 1fr !important; } }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
       `}</style>
@@ -1144,7 +1144,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 {/* Headline answer: scrub-able Claude gauge for target */}
                 <div style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(32px,4vw,52px)', marginBottom: 20, border: '1px solid rgba(238,239,211,0.16)' }}>
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {target.toFixed(2)}x DSCR</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
+                  {/* `1fr auto` with no stack rule squeezed the draggable Target
+                      gauge to 65.7px wide at 375px — measured in-browser. The
+                      row needs roughly 645px to seat the gauge beside the price,
+                      so below 767px the gauge moves under it and takes the full
+                      width instead of being crushed into an unusable control. */}
+                  <div className="maxprice-answer" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
                     <div>
                       <Mono style={{ fontSize: 'clamp(42px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 1, display: 'block' }}>{fmt(maxPrice)}</Mono>
                       <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 14 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
