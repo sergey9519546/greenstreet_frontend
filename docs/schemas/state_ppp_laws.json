@@ -1,0 +1,54 @@
+{
+  "version": "2026.1",
+  "statutes": {
+    "MN": {
+      "ppp_allowed": true,
+      "business_purpose_exemption": true,
+      "statute": "HF 3437 (Enacted April 23, 2026)",
+      "notes": "Restricts Sec. 58.137 to personal/family loans. LLC DSCR is exempt."
+    },
+    "OH": {
+      "ppp_allowed": true,
+      "indexed_loan_floor": 116356,
+      "statute": "ORC Sec. 1343.011",
+      "notes": "Allowed on 1-2 units only if loan > ,356. Penalty base = ORIGINAL principal."
+    },
+    "PA": {
+      "ppp_allowed": true,
+      "indexed_loan_floor": 329411,
+      "statute": "Sec. 406 LIPL",
+      "notes": "Banned on 1-2 units under ,411. Allowed above threshold or on 3-4 units."
+    },
+    "MS": {
+      "ppp_allowed": true,
+      "max_years": 5,
+      "structure": "Declining 5/4/3/2/1%",
+      "statute": "Miss. Code Sec. 75-17-31",
+      "notes": "Flat penalties prohibited."
+    },
+    "AR": {
+      "ppp_allowed": true,
+      "penalty_base": "REMAINING_BALANCE",
+      "notes": "Penalty base = remaining principal balance."
+    },
+    "WA": {
+      "ppp_allowed": true,
+      "arm_restriction": "Fixed-rate only",
+      "notes": "Prohibits PPP on ARM products."
+    },
+    "TX": {
+      "ppp_allowed": true,
+      "max_ltv_combined": 0.8,
+      "statute": "Article XVI Sec. 50(a)(6)",
+      "notes": "Non-homestead affidavit required for LLC business-purpose DSCR."
+    },
+    "NM": {
+      "ppp_allowed": false,
+      "notes": "Statutory ban on residential investment DSCR. Auto-prices as No-PPP."
+    },
+    "AK": {
+      "ppp_allowed": false,
+      "notes": "Statutory ban. Auto-prices as No-PPP."
+    }
+  }
+}
