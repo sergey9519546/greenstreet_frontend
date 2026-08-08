@@ -49,27 +49,120 @@ export function computePrepaySchedule(
   const termMonths = termYears * 12;
   const structureLabel = getPrepayStructureLabel(prepayType);
 
-  const steps = getPrepayStepRates(prepayType);
-
-  const year1Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 12);
-  const year2Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 24);
-  const year3Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 36);
-  const year4Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 48);
-  const year5Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 60);
-  const year6PlusRemaining = computeRemainingBalance(loanAmount, rate, termMonths, 72);
+  // Every year goes through resolvePrepayPenalty. This block used to multiply
+  // the balance by `steps.yearN` directly, which read the six-months-interest
+  // sentinels (0.50 / 0.40) as 50% and 40% of the balance — a 14.3x
+  // overstatement that computePrepayExitCost, in this same file, did not make.
+  const penaltyAt = (monthsHeld: number, loanYear: number) =>
+    resolvePrepayPenalty({
+      prepayType,
+      remainingBalance: computeRemainingBalance(loanAmount, rate, termMonths, monthsHeld),
+      annualRatePct: rate,
+      loanYear,
+    });
 
   return {
     structure: structureLabel,
-    year1: Math.round(year1Remaining * steps.year1 * 100) / 100,
-    year2: Math.round(year2Remaining * steps.year2 * 100) / 100,
-    year3: Math.round(year3Remaining * steps.year3 * 100) / 100,
-    year4: Math.round(year4Remaining * steps.year4 * 100) / 100,
-    year5: Math.round(year5Remaining * steps.year5 * 100) / 100,
-    year6Plus: Math.round(year6PlusRemaining * steps.year6Plus * 100) / 100,
+    year1: penaltyAt(12, 1),
+    year2: penaltyAt(24, 2),
+    year3: penaltyAt(36, 3),
+    year4: penaltyAt(48, 4),
+    year5: penaltyAt(60, 5),
+    year6Plus: penaltyAt(72, 6),
     partialAllowancePct,
     softPrepay: isSoftPrepay,
     softPrepaySaleExempt: isSoftPrepay ? 'UNCONFIRMED' : false,
   };
+}
+
+// ============================================================
+// PREPAY PENALTY — ONE FORMULA, ONE IMPLEMENTATION
+// ============================================================
+//
+// Prepayment penalties come in two genuinely different shapes, and conflating
+// them produced a 14x error that reached the page.
+//
+//   • STEPDOWN — a percent OF THE REMAINING BALANCE that declines by year
+//     (5-4-3-2-1, flat 5, soft prepay, yield maintenance).
+//   • MONTHS_INTEREST — N months of interest on the remaining balance, which
+//     depends on the RATE, not on a percentage at all. "Six months interest"
+//     on a $300K/7% loan is ~$10.4K; six percent of that balance would be
+//     ~$17.8K, and there is no percentage that expresses it across rates.
+//
+// `getPrepayStepRates` used to return 0.50 / 0.40 for the six-months
+// structures. Those were never percentages — they were sentinels meaning "six
+// months" and "6 x 80% = 4.8 months", and only `computePrepayExitCost` knew to
+// special-case them. `computePrepaySchedule` read them literally, as 50% and
+// 40% of the balance, and published a year-1 penalty of $148,476 on a $300K
+// loan where the real figure is $10,393. Both functions live in this file and
+// disagreed by 14.3x on the same input.
+//
+// The shape is now explicit in the type, so no caller can read a "months"
+// figure as a percentage: a stepdown table and a months-of-interest rule are
+// different variants, and `resolvePrepayPenalty` is the only place either is
+// turned into dollars.
+
+/** Penalty percentages of the remaining balance, by loan year. */
+export interface PrepayStepRates {
+  year1: number; year2: number; year3: number;
+  year4: number; year5: number; year6Plus: number;
+}
+
+export type PrepayFormula =
+  | { kind: 'BALANCE_PCT'; steps: PrepayStepRates }
+  /** N months of interest on the remaining balance at the note rate. */
+  | { kind: 'MONTHS_INTEREST'; months: number };
+
+export function getPrepayFormula(prepayType: PrepayType): PrepayFormula {
+  switch (prepayType) {
+    case 'SIX_MONTHS_INTEREST':
+      return { kind: 'MONTHS_INTEREST', months: 6 };
+    case 'SIX_MONTHS_80_PCT':
+      // Six months of interest charged on 80% of the balance — equivalently
+      // 4.8 months on the full balance. Written as the literal because
+      // `6 * 0.8` is 4.800000000000001 in binary floating point.
+      return { kind: 'MONTHS_INTEREST', months: 4.8 };
+    default:
+      return { kind: 'BALANCE_PCT', steps: getPrepayStepRates(prepayType) };
+  }
+}
+
+/** The stepdown rate that applies in a given loan year (1-based). */
+export function stepRateForYear(steps: PrepayStepRates, loanYear: number): number {
+  if (loanYear <= 1) return steps.year1;
+  if (loanYear <= 2) return steps.year2;
+  if (loanYear <= 3) return steps.year3;
+  if (loanYear <= 4) return steps.year4;
+  if (loanYear <= 5) return steps.year5;
+  return steps.year6Plus;
+}
+
+/**
+ * The penalty in dollars to retire `remainingBalance` in `loanYear`.
+ *
+ * The single implementation. Both the year-by-year schedule and the exit-cost
+ * wrapper route through it, so they cannot drift apart again.
+ */
+export function resolvePrepayPenalty(args: {
+  prepayType: PrepayType;
+  /** Principal still owed at payoff. Never the original loan amount. */
+  remainingBalance: number;
+  /** Note rate in percent, needed only by months-of-interest structures. */
+  annualRatePct: number;
+  /** 1-based loan year of the payoff, used only by stepdown structures. */
+  loanYear: number;
+}): number {
+  const { prepayType, remainingBalance, annualRatePct, loanYear } = args;
+  if (prepayType === 'NONE') return 0;
+  if (!Number.isFinite(remainingBalance) || remainingBalance <= 0) return 0;
+
+  const formula = getPrepayFormula(prepayType);
+  const dollars =
+    formula.kind === 'MONTHS_INTEREST'
+      ? remainingBalance * (annualRatePct / 100 / 12) * formula.months
+      : remainingBalance * stepRateForYear(formula.steps, loanYear);
+
+  return Math.round(Math.max(0, dollars) * 100) / 100;
 }
 
 function getPrepayStructureLabel(prepayType: PrepayType): string {
@@ -107,10 +200,12 @@ function getPrepayStepRates(prepayType: PrepayType): {
       return { year1: 0.05, year2: 0.04, year3: 0.03, year4: 0.03, year5: 0.03, year6Plus: 0 };
     case 'FLAT_5':
       return { year1: 0.05, year2: 0.05, year3: 0.05, year4: 0.05, year5: 0.05, year6Plus: 0 };
-    case 'SIX_MONTHS_INTEREST':
-      return { year1: 0.50, year2: 0.50, year3: 0.50, year4: 0.50, year5: 0.50, year6Plus: 0.50 };
-    case 'SIX_MONTHS_80_PCT':
-      return { year1: 0.40, year2: 0.40, year3: 0.40, year4: 0.40, year5: 0.40, year6Plus: 0.40 };
+    // SIX_MONTHS_INTEREST / SIX_MONTHS_80_PCT deliberately have NO entry here.
+    // They are months of interest, not a percent of balance, and the 0.50 /
+    // 0.40 that used to sit here were sentinels one caller read literally as
+    // 50% and 40%. getPrepayFormula routes them to MONTHS_INTEREST instead; if
+    // one reaches this table it falls through to zero rather than to a
+    // plausible-looking percentage.
     case 'YIELD_MAINTENANCE':
       return { year1: 0.05, year2: 0.04, year3: 0.03, year4: 0.02, year5: 0.01, year6Plus: 0.01 };
     case 'SOFT_PREPAY':
@@ -176,25 +271,13 @@ export function computePrepayExitCost(
   const termMonths = termYears * 12;
   const holdMonths = holdYears * 12;
   const remainingBalance = computeRemainingBalance(loanAmount, rate, termMonths, holdMonths);
-  const steps = getPrepayStepRates(prepayType);
 
-  const yearIndex = Math.ceil(holdYears);
-  let stepRate: number;
-
-  if (yearIndex <= 1) stepRate = steps.year1;
-  else if (yearIndex <= 2) stepRate = steps.year2;
-  else if (yearIndex <= 3) stepRate = steps.year3;
-  else if (yearIndex <= 4) stepRate = steps.year4;
-  else if (yearIndex <= 5) stepRate = steps.year5;
-  else stepRate = steps.year6Plus;
-
-  if (prepayType === 'SIX_MONTHS_INTEREST' || prepayType === 'SIX_MONTHS_80_PCT') {
-    const monthlyRate = rate / 100 / 12;
-    const monthsOfInterest = prepayType === 'SIX_MONTHS_80_PCT' ? 4.8 : 6;
-    return Math.round(remainingBalance * monthlyRate * monthsOfInterest * 100) / 100;
-  }
-
-  return Math.round(remainingBalance * stepRate * 100) / 100;
+  return resolvePrepayPenalty({
+    prepayType,
+    remainingBalance,
+    annualRatePct: rate,
+    loanYear: Math.ceil(holdYears),
+  });
 }
 
 // ============================================================

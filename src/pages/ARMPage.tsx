@@ -2,21 +2,26 @@ import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, useRevealOnView, H1, Lead, Btn } from "../design/dc";
 import { RiskFlame, riskFromDscr } from "../design/artifacts";
 import {
-  simulateARMResetLadder,
   DEFAULT_ARM_PROGRAMS,
-  computeRemainingBalanceAtReset,
-  CURRENT_MARKET_SNAPSHOT,
-  computeMultiScenarioARMReset,
+  buildARMSchedule,
 } from "../engine/armResetEngine";
 import { calculatePI } from "../engine/engine";
+import { summarizeByYear } from "../engine/amortization";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
-import type { ARMTerms } from "../engine/types";
+import type { ARMTerms, ARMIndex } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
 import { risk } from "../theme";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 type ArmType = "5_6_ARM" | "7_6_ARM" | "10_6_ARM";
+
+const INDEX_LABELS: Record<ARMIndex, string> = {
+  SOFR_30D: "30-Day SOFR",
+  SOFR_30D_AVG: "30-Day SOFR (avg)",
+  TREASURY_5YR: "5yr Treasury",
+  TREASURY_10YR: "10yr Treasury",
+};
 
 const SOFR_SCENARIOS: { label: string; sofr: number; color: string }[] = [
   { label: "Bullish",  sofr: 2.59, color: dc.emerald },
@@ -27,6 +32,38 @@ const SOFR_SCENARIOS: { label: string; sofr: number; color: string }[] = [
 ];
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+
+const miniLabelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 10,
+  color: "rgba(238,239,211,0.62)",
+  marginBottom: 4,
+  fontWeight: 700,
+  letterSpacing: "0.03em",
+  textTransform: "uppercase",
+};
+
+const miniInputStyle: React.CSSProperties = {
+  width: "100%",
+  background: dc.teal,
+  border: `1px solid ${dc.faded}`,
+  borderRadius: dc.r.sm,
+  padding: "9px 10px",
+  fontSize: 13,
+};
+
+const selStyle: React.CSSProperties = {
+  width: "100%",
+  background: dc.teal,
+  border: `1px solid ${dc.faded}`,
+  borderRadius: dc.r.sm,
+  padding: "10px 10px",
+  fontSize: 13,
+  fontWeight: 600,
+  color: dc.cream,
+  fontFamily: dc.sans,
+  cursor: "pointer",
+};
 
 function shockColor(pct: number): string {
   if (pct > 20) return risk.danger;
@@ -51,51 +88,130 @@ export default function ARMPage({
   // Payment-jump bars reveal on scroll-in (state-driven transition, never stuck)
   const [jumpRef, jumpShown] = useRevealOnView<HTMLDivElement>();
 
-  // Inputs
+  // Inputs — ARM type picks sane defaults; every field below is independently
+  // editable, because a preset program is not this borrower's actual note.
   const [armType, setArmType] = useState<ArmType>("5_6_ARM");
+  const [index, setIndex] = useState<ARMIndex>(DEFAULT_ARM_PROGRAMS["5_6_ARM"].index);
+  const [initialRate, setInitialRate] = useState(DEFAULT_ARM_PROGRAMS["5_6_ARM"].initialRate);
+  const [marginPct, setMarginPct] = useState(DEFAULT_ARM_PROGRAMS["5_6_ARM"].marginPct);
+  const [initialCapPct, setInitialCapPct] = useState(DEFAULT_ARM_PROGRAMS["5_6_ARM"].initialCapPct);
+  const [periodicCapPct, setPeriodicCapPct] = useState(DEFAULT_ARM_PROGRAMS["5_6_ARM"].periodicCapPct);
+  const [lifetimeCapPct, setLifetimeCapPct] = useState(DEFAULT_ARM_PROGRAMS["5_6_ARM"].lifetimeCapPct);
+  const [floorRate, setFloorRate] = useState(DEFAULT_ARM_PROGRAMS["5_6_ARM"].floorRate);
+  const [ioMonths, setIoMonths] = useState(0);
+  const [originationDate, setOriginationDate] = useState("");
   const [loanAmount, setLoanAmount]     = useState(340000);
   const [monthlyRent, setMonthlyRent]   = useState(3000);
   const [pitiaNonDebt, setPitiaNonDebt] = useState(750);
 
-  // Derived from engine
-  const result = useMemo(() => {
+  // Selecting a program prefills the note terms; the borrower's actual index,
+  // margin, caps, floor and IO period stay editable afterward.
+  const selectArmType = (t: ArmType) => {
+    const cfg = DEFAULT_ARM_PROGRAMS[t];
+    setArmType(t);
+    setIndex(cfg.index);
+    setInitialRate(cfg.initialRate);
+    setMarginPct(cfg.marginPct);
+    setInitialCapPct(cfg.initialCapPct);
+    setPeriodicCapPct(cfg.periodicCapPct);
+    setLifetimeCapPct(cfg.lifetimeCapPct);
+    setFloorRate(cfg.floorRate);
+  };
+
+  // Hand-off from the DSCR Calculator's "Rate type" selector. Read once, then
+  // cleared, so a later direct visit to this page gets the ordinary defaults
+  // rather than a stale deal from a previous session. sessionStorage, not the
+  // router: the router carries no query-string state (`goTo` takes only a
+  // route name), and adding that plumbing for one handoff was worse than this.
+  useEffect(() => {
+    let raw: string | null = null;
+    try { raw = sessionStorage.getItem('gs:arm-prefill'); } catch { /* storage may be blocked */ }
+    if (!raw) return;
+    try { sessionStorage.removeItem('gs:arm-prefill'); } catch { /* ignore */ }
     try {
-      const cfg: ARMTerms = DEFAULT_ARM_PROGRAMS[armType];
-      const fixedMonths = cfg.fixedPeriodMonths;
+      const p = JSON.parse(raw) as {
+        loanAmount?: number; initialRate?: number; armType?: ArmType;
+        monthlyRent?: number; pitiaNonDebt?: number;
+      };
+      if (p.armType && p.armType in DEFAULT_ARM_PROGRAMS) selectArmType(p.armType);
+      if (Number.isFinite(p.loanAmount) && (p.loanAmount as number) > 0) setLoanAmount(p.loanAmount as number);
+      if (Number.isFinite(p.initialRate) && (p.initialRate as number) > 0) setInitialRate(p.initialRate as number);
+      if (Number.isFinite(p.monthlyRent) && (p.monthlyRent as number) >= 0) setMonthlyRent(p.monthlyRent as number);
+      if (Number.isFinite(p.pitiaNonDebt) && (p.pitiaNonDebt as number) >= 0) setPitiaNonDebt(p.pitiaNonDebt as number);
+    } catch { /* malformed payload — ignore, keep the ordinary defaults */ }
+    // Mount-only: this is a one-shot hand-off, not a live sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const TERM_MONTHS = 360;
+
+  // Derived from engine — every number below comes from buildARMSchedule, the
+  // shared kernel-backed schedule (IO -> amortizing transition + every capped
+  // reset, re-amortized on the CURRENT balance). Fail closed: an unusable
+  // input produces no result rather than a schedule built on a guessed default.
+  const result = useMemo(() => {
+    const fixedMonths = DEFAULT_ARM_PROGRAMS[armType].fixedPeriodMonths;
+    const resetFrequencyMonths = DEFAULT_ARM_PROGRAMS[armType].resetFrequencyMonths;
+
+    const inputsValid =
+      Number.isFinite(loanAmount) && loanAmount > 0 &&
+      Number.isFinite(monthlyRent) && monthlyRent >= 0 &&
+      Number.isFinite(pitiaNonDebt) && pitiaNonDebt >= 0 &&
+      Number.isFinite(initialRate) && initialRate > 0 &&
+      Number.isFinite(marginPct) && marginPct >= 0 &&
+      Number.isFinite(initialCapPct) && initialCapPct >= 0 &&
+      Number.isFinite(periodicCapPct) && periodicCapPct >= 0 &&
+      Number.isFinite(lifetimeCapPct) && lifetimeCapPct >= 0 &&
+      Number.isFinite(floorRate) && floorRate > 0 &&
+      Number.isFinite(ioMonths) && ioMonths >= 0 && ioMonths < TERM_MONTHS;
+
+    if (!inputsValid) return null;
+
+    try {
+      const cfg: ARMTerms = {
+        armType,
+        index,
+        marginPct,
+        initialRate,
+        initialCapPct,
+        periodicCapPct,
+        lifetimeCapPct,
+        floorRate,
+        fixedPeriodMonths: fixedMonths,
+        resetFrequencyMonths,
+      };
       const firstResetYear = fixedMonths / 12;
-
-      const piInitial = calculatePI(loanAmount, cfg.initialRate, 360);
-
-      const balAtReset = computeRemainingBalanceAtReset(
-        loanAmount,
-        cfg.initialRate,
-        360,
-        fixedMonths,
-      );
-      const remTerm = 360 - fixedMonths;
+      const fixedYears = fixedMonths / 12;
+      const originDate = originationDate || undefined;
 
       const scenarios = SOFR_SCENARIOS.map((sc) => {
-        const ladder = simulateARMResetLadder(cfg, sc.sofr, 15);
-        const firstReset  = ladder.trajectory[0];
-        const lastReset   = ladder.trajectory[ladder.trajectory.length - 1];
+        const armSchedule = buildARMSchedule({
+          loanAmount,
+          armTerms: cfg,
+          termMonths: TERM_MONTHS,
+          ioMonths,
+          sustainedIndexPct: sc.sofr,
+          originationDate: originDate,
+        });
+        const firstReset = armSchedule.resets[0] ?? null;
+        const lastReset = armSchedule.resets[armSchedule.resets.length - 1] ?? null;
 
-        const piAtFirst = firstReset
-          ? calculatePI(balAtReset, firstReset.rate, remTerm)
-          : 0;
-        const dscrAtFirst =
-          piAtFirst > 0 ? monthlyRent / (piAtFirst + pitiaNonDebt) : 0;
+        const piAtFirst = firstReset ? firstReset.paymentAfter : armSchedule.schedule.rows[0].payment;
+        const dscrAtFirst = piAtFirst > 0 ? monthlyRent / (piAtFirst + pitiaNonDebt) : 0;
 
-        const piAtLast = lastReset
-          ? calculatePI(balAtReset, lastReset.rate, remTerm)
-          : 0;
-        const dscrAtLast =
-          piAtLast > 0 ? monthlyRent / (piAtLast + pitiaNonDebt) : 0;
+        const piAtLast = lastReset ? lastReset.paymentAfter : piAtFirst;
+        const dscrAtLast = piAtLast > 0 ? monthlyRent / (piAtLast + pitiaNonDebt) : 0;
 
         return {
           ...sc,
-          ladder,
-          firstReset,
-          lastReset,
+          armSchedule,
+          ladder: armSchedule.ladder,
+          firstReset: firstReset
+            ? { rate: firstReset.ratePct, capBinding: firstReset.capBinding }
+            : null,
+          lastReset: lastReset
+            ? { rate: lastReset.ratePct, capBinding: lastReset.capBinding }
+            : null,
           piAtFirst,
           dscrAtFirst,
           piAtLast,
@@ -103,42 +219,58 @@ export default function ARMPage({
         };
       });
 
-      const worstFirstResetRate = Math.min(
-        cfg.initialRate + cfg.initialCapPct,
-        cfg.initialRate + cfg.lifetimeCapPct,
-      );
-      const piAtWorstFirstReset = calculatePI(balAtReset, worstFirstResetRate, remTerm);
-      const paymentShockPct =
-        piInitial > 0
-          ? ((piAtWorstFirstReset - piInitial) / piInitial) * 100
-          : 0;
-
+      const base = scenarios.find((s) => s.label === "Base")!;
       const bearish = scenarios.find((s) => s.label === "Bearish")!;
+      const crisis = scenarios.find((s) => s.label === "Crisis")!;
 
+      const piInitial = base.armSchedule.schedule.rows[0].payment;
+
+      // Worst realistic first-reset payment/rate across the 5 scenarios — the
+      // scenario whose index+margin pushes hardest against the first-reset cap.
+      const worstFirstResetScenario = scenarios.reduce((worst, s) =>
+        (s.piAtFirst > worst.piAtFirst ? s : worst), scenarios[0]);
+      const piAtWorstFirstReset = worstFirstResetScenario.piAtFirst;
+      const worstFirstResetRate = worstFirstResetScenario.firstReset?.rate ?? cfg.initialRate;
+      const paymentShockPct =
+        piInitial > 0 ? ((piAtWorstFirstReset - piInitial) / piInitial) * 100 : 0;
+
+      // Structural ceiling — initial + lifetime cap — priced on the REAL balance
+      // and remaining term at first reset (from the schedule, so it respects the
+      // IO period), not a re-derived closed-form balance.
+      const firstResetMonth = base.armSchedule.firstResetMonth;
+      const firstResetBalance =
+        base.armSchedule.resets[0]?.balanceAtReset ?? loanAmount;
+      const remainingTermAtFirstReset = Math.max(1, TERM_MONTHS - firstResetMonth + 1);
       const lifetimeCapRate = cfg.initialRate + cfg.lifetimeCapPct;
-      const piAtLifetimeCap = calculatePI(balAtReset, lifetimeCapRate, remTerm);
+      const piAtLifetimeCap = calculatePI(firstResetBalance, lifetimeCapRate, remainingTermAtFirstReset);
 
-      const fixedYears = fixedMonths / 12;
+      const crisisHitsLifetimeCap =
+        crisis.lastReset?.capBinding === "LIFETIME_CAP";
 
       return {
         cfg,
         fixedYears,
         firstResetYear,
+        firstResetMonth,
         piInitial,
-        balAtReset,
-        remTerm,
+        firstResetBalance,
+        remTerm: remainingTermAtFirstReset,
         piAtWorstFirstReset,
         worstFirstResetRate,
         paymentShockPct,
         lifetimeCapRate,
         piAtLifetimeCap,
         scenarios,
+        base,
         bearish,
+        crisis,
+        crisisHitsLifetimeCap,
+        ioMonths,
       };
     } catch (_e) {
       return null;
     }
-  }, [armType, loanAmount, monthlyRent, pitiaNonDebt]);
+  }, [armType, index, initialRate, marginPct, initialCapPct, periodicCapPct, lifetimeCapPct, floorRate, ioMonths, originationDate, loanAmount, monthlyRent, pitiaNonDebt]);
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -164,6 +296,13 @@ export default function ARMPage({
       <style>{`
         .arm-in::-webkit-outer-spin-button,.arm-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .arm-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
+        .arm-in-mini{color:${dc.cream};font-family:${dc.sans};font-weight:600;letter-spacing:-0.01em;}
+        .arm-in-mini::-webkit-outer-spin-button,.arm-in-mini::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+        /* Option readability must hold regardless of OS color scheme — a native
+           <option> rendered in a dark-teal <select> can go invisible against a
+           light-OS system dropdown. Force it unconditionally, not just under
+           prefers-color-scheme:light. */
+        #arm-tool select option{background:${dc.teal};color:${dc.cream};}
       `}</style>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
@@ -291,12 +430,18 @@ export default function ARMPage({
               </div>
             </div>
 
-            {/* Adjusts */}
+            {/* Adjusts. Was `dc.rain` (#006565) — a near-teal that barely reads as
+                distinct from the page ground (#003738/#004041), defeating the point
+                of a 3-segment legend: Fixed/First-reset/Adjusts should each read as
+                a different phase at a glance. `dc.cream` on dark text reuses tokens
+                already in the palette instead of adding a 4th hue, and gives the
+                riskiest phase (the one with no more caps ahead) the strongest
+                contrast on the strip rather than the weakest. */}
             <div
               style={{
                 flex: 3,
-                background: dc.rain,
-                color: dc.cream,
+                background: dc.cream,
+                color: dc.dark,
                 padding: "22px 18px",
                 textAlign: "left",
               }}
@@ -304,7 +449,7 @@ export default function ARMPage({
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", opacity: 0.65 }}>
                 {result ? `Years ${result.fixedYears + 1}–30` : "Years 6–30"}
               </div>
-              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4, color: dc.cream }}>
+              <Mono style={{ display: "block", fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 600, letterSpacing: "-0.02em", marginTop: 4, color: dc.dark }}>
                 Adjusts
               </Mono>
               <div style={{ fontSize: 13, fontWeight: 500, opacity: 0.7, marginTop: 2 }}>
@@ -372,7 +517,7 @@ export default function ARMPage({
       <section
         id="arm-tool"
         style={{
-          background: "#003a39",
+          background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
           borderTop: `1px solid ${dc.faded}`,
@@ -440,7 +585,7 @@ export default function ARMPage({
             {/* ── INPUTS ── */}
             <div
               style={{
-                background: "#002a29",
+                background: dc.dark,
                 borderRadius: dc.r.lg,
                 padding: 28,
                 border: `1px solid ${dc.faded}`,
@@ -480,7 +625,7 @@ export default function ARMPage({
                   {(["5_6_ARM", "7_6_ARM", "10_6_ARM"] as ArmType[]).map((t) => (
                     <button
                       key={t}
-                      onClick={() => setArmType(t)}
+                      onClick={() => selectArmType(t)}
                       style={{
                         flex: 1,
                         padding: "9px 4px",
@@ -501,40 +646,81 @@ export default function ARMPage({
                 </div>
               </div>
 
-              {/* ARM structure readout */}
-              {result && (
-                <div
-                  style={{
-                    marginBottom: 20,
-                    padding: "14px 16px",
-                    background: "rgba(238,239,211,0.05)",
-                    borderRadius: dc.r.sm,
-                    border: `1px solid ${dc.faded}`,
-                  }}
-                >
+              {/* Loan-specific index, margin, caps, floor, IO, reset date —
+                  editable inputs, not decoration. The ARM Type buttons above
+                  only prefill these; the borrower's actual note terms win. */}
+              <div
+                style={{
+                  marginBottom: 20,
+                  padding: "14px 16px",
+                  background: "rgba(238,239,211,0.05)",
+                  borderRadius: dc.r.sm,
+                  border: `1px solid ${dc.faded}`,
+                }}
+              >
+                <label style={{ display: "block", marginBottom: 10 }}>
+                  <span style={miniLabelStyle}>Index</span>
+                  <select
+                    value={index}
+                    onChange={(e) => setIndex(e.target.value as ARMIndex)}
+                    style={selStyle}
+                  >
+                    {(Object.keys(INDEX_LABELS) as ARMIndex[]).map((ix) => (
+                      <option key={ix} value={ix}>{INDEX_LABELS[ix]}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
                   {[
-                    ["Initial rate",    `${result.cfg.initialRate.toFixed(3)}%`],
-                    ["Margin",          `${result.cfg.marginPct.toFixed(2)}%`],
-                    ["First-reset cap", `+${result.cfg.initialCapPct.toFixed(1)}%`],
-                    ["Periodic cap",    `+${result.cfg.periodicCapPct.toFixed(1)}% / reset`],
-                    ["Lifetime cap",    `+${result.cfg.lifetimeCapPct.toFixed(1)}%`],
-                  ].map(([label, val]) => (
-                    <div
-                      key={label}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "5px 0",
-                        borderBottom: `1px solid ${dc.faded}`,
-                        fontSize: 12,
-                      }}
-                    >
-                      <span style={{ color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>{label}</span>
-                      <Mono style={{ color: dc.cream, fontWeight: 700, fontSize: 12 }}>{val}</Mono>
-                    </div>
+                    { label: "Initial rate %", value: initialRate, set: setInitialRate },
+                    { label: "Margin %", value: marginPct, set: setMarginPct },
+                    { label: "First-reset cap %", value: initialCapPct, set: setInitialCapPct },
+                    { label: "Periodic cap %", value: periodicCapPct, set: setPeriodicCapPct },
+                    { label: "Lifetime cap %", value: lifetimeCapPct, set: setLifetimeCapPct },
+                    { label: "Floor rate %", value: floorRate, set: setFloorRate },
+                  ].map((f) => (
+                    <label key={f.label} style={{ flex: "1 1 120px", minWidth: 0 }}>
+                      <span style={miniLabelStyle}>{f.label}</span>
+                      <input
+                        className="arm-in arm-in-mini"
+                        type="number"
+                        step={0.125}
+                        value={f.value}
+                        onChange={(e) => f.set(e.target.value === "" ? NaN : +e.target.value)}
+                        style={miniInputStyle}
+                      />
+                    </label>
                   ))}
                 </div>
-              )}
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  <label style={{ flex: "1 1 120px", minWidth: 0 }}>
+                    <span style={miniLabelStyle}>IO period (months)</span>
+                    <input
+                      className="arm-in arm-in-mini"
+                      type="number"
+                      step={1}
+                      value={ioMonths}
+                      onChange={(e) => setIoMonths(e.target.value === "" ? NaN : +e.target.value)}
+                      style={miniInputStyle}
+                    />
+                  </label>
+                  <label style={{ flex: "1 1 140px", minWidth: 0 }}>
+                    <span style={miniLabelStyle}>Origination date</span>
+                    <input
+                      className="arm-in arm-in-mini"
+                      type="date"
+                      value={originationDate}
+                      onChange={(e) => setOriginationDate(e.target.value)}
+                      style={miniInputStyle}
+                    />
+                  </label>
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(238,239,211,0.55)", marginTop: 8, lineHeight: 1.4 }}>
+                  Reset cadence ({result ? `fixed ${result.fixedYears} yrs, then every ${result.cfg.resetFrequencyMonths} mo` : "—"}) follows the ARM Type selected above. IO period defers principal — the payment jumps when it ends, even before any rate reset.
+                </div>
+              </div>
 
               {/* Deal inputs */}
               <div
@@ -612,7 +798,7 @@ export default function ARMPage({
                     border: `1px solid ${dc.faded}`,
                   }}
                 >
-                  <div style={{ background: "#002a29", padding: 24 }}>
+                  <div style={{ background: dc.dark, padding: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.emerald, marginBottom: 10 }}>Fixed payment</div>
                     <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: dc.cream, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piInitial)}
@@ -621,7 +807,7 @@ export default function ARMPage({
                       at {result.cfg.initialRate.toFixed(3)}% — locked for {result.fixedYears} yrs
                     </div>
                   </div>
-                  <div style={{ background: "#002a29", padding: 24 }}>
+                  <div style={{ background: dc.dark, padding: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: dc.lemon, marginBottom: 10 }}>First reset (worst case)</div>
                     <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: dc.lemon, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtWorstFirstReset)}
@@ -630,7 +816,7 @@ export default function ARMPage({
                       at {result.worstFirstResetRate.toFixed(3)}% — initial cap applied
                     </div>
                   </div>
-                  <div style={{ background: "#002a29", padding: 24 }}>
+                  <div style={{ background: dc.dark, padding: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: risk.danger, marginBottom: 10 }}>Lifetime cap (absolute max)</div>
                     <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: risk.dangerOnDark, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtLifetimeCap)}
@@ -644,7 +830,7 @@ export default function ARMPage({
                 {/* 5-scenario table — with RiskFlame per row */}
                 <div
                   style={{
-                    background: "#002a29",
+                    background: dc.dark,
                     borderRadius: dc.r.lg,
                     padding: 26,
                     border: `1px solid ${dc.faded}`,
@@ -741,10 +927,12 @@ export default function ARMPage({
                   })}
                 </div>
 
-                {/* Bearish reset schedule */}
+                {/* Bearish reset schedule — every event (IO expiry AND every
+                    capped reset) pulled straight from the real schedule, in the
+                    order the note actually applies them. */}
                 <div
                   style={{
-                    background: "#002a29",
+                    background: dc.dark,
                     borderRadius: dc.r.lg,
                     padding: 26,
                     border: `1px solid ${dc.faded}`,
@@ -755,12 +943,13 @@ export default function ARMPage({
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginBottom: 16, letterSpacing: "-0.01em" }}>
                     Shows the Bearish scenario (SOFR +4.59%). Each reset the rate moves by at most the periodic cap — it cannot jump all at once. "Cap binding" tells you which cap is holding the rate back.
+                    {result.ioMonths > 0 && " The IO period ends before any rate reset can occur — that payment jump is shown too."}
                   </div>
                   <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 400 }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 460 }}>
                       <thead>
                         <tr>
-                          {["Period", "Rate", "P&I /mo", "Cap binding"].map((h, i) => (
+                          {["Event", "Rate", "P&I /mo", "Detail"].map((h, i) => (
                             <th
                               key={h}
                               style={{
@@ -781,7 +970,9 @@ export default function ARMPage({
                       </thead>
                       <tbody>
                         <tr>
-                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>Fixed period</td>
+                          <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>
+                            {result.ioMonths > 0 ? "IO period" : "Fixed period"}
+                          </td>
                           <td style={{ padding: "9px 10px", fontSize: 13, color: dc.emerald, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                             <Mono>{result.cfg.initialRate.toFixed(3)}%</Mono>
                           </td>
@@ -789,28 +980,61 @@ export default function ARMPage({
                             <Mono>{fmt$(result.piInitial)}</Mono>
                           </td>
                           <td style={{ padding: "9px 10px", fontSize: 12, color: "rgba(238,239,211,0.62)", borderBottom: `1px solid ${dc.faded}` }}>
-                            Years 1–{result.fixedYears}
+                            {result.ioMonths > 0 ? `Interest-only, months 1–${result.ioMonths}` : `Years 1–${result.fixedYears}`}
                           </td>
                         </tr>
-                        {result.bearish.ladder.trajectory.map((t) => {
-                          const piRow = calculatePI(result.balAtReset, t.rate, result.remTerm);
-                          const isLifetimeCap = t.capBinding === "LIFETIME_CAP";
-                          const rateColor = isLifetimeCap ? risk.danger : dc.cream;
-                          return (
-                            <tr key={t.resetNumber}>
-                              <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>Reset {t.resetNumber}</td>
-                              <td style={{ padding: "9px 10px", fontSize: 13, color: rateColor, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                                <Mono>{t.rate.toFixed(3)}%</Mono>
+                        {(() => {
+                          const sched = result.bearish.armSchedule;
+                          type ScheduleEvent = {
+                            key: string; label: string; month: number; date: string | null;
+                            rate: number; payment: number; detail: string; danger: boolean; warn: boolean;
+                          };
+                          const events: ScheduleEvent[] = [];
+                          if (sched.ioExpiryMonth !== null) {
+                            const row = sched.schedule.rows[sched.ioExpiryMonth - 1];
+                            events.push({
+                              key: "io-expiry",
+                              label: "IO expires",
+                              month: sched.ioExpiryMonth,
+                              date: sched.ioExpiryDate,
+                              rate: row.annualRatePct,
+                              payment: row.payment,
+                              detail: `Amortizing begins${sched.doubleShock ? " · within 12mo of a reset" : ""}`,
+                              danger: (sched.ioExpiryPaymentChangePct ?? 0) > 20,
+                              warn: (sched.ioExpiryPaymentChangePct ?? 0) > 8,
+                            });
+                          }
+                          for (const r of sched.resets) {
+                            events.push({
+                              key: `reset-${r.resetNumber}`,
+                              label: `Reset ${r.resetNumber}`,
+                              month: r.month,
+                              date: r.date,
+                              rate: r.ratePct,
+                              payment: r.paymentAfter,
+                              detail: `${r.capBinding.replace("_", " ")} · Yr ${Math.ceil(r.month / 12)}`,
+                              danger: r.capBinding === "LIFETIME_CAP",
+                              warn: r.capBinding === "INITIAL_CAP" || r.capBinding === "PERIODIC_CAP",
+                            });
+                          }
+                          events.sort((a, b) => a.month - b.month);
+                          return events.map((ev) => (
+                            <tr key={ev.key}>
+                              <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>
+                                {ev.label}{ev.date ? <span style={{ color: "rgba(238,239,211,0.5)", fontWeight: 500 }}> · {ev.date}</span> : null}
+                              </td>
+                              <td style={{ padding: "9px 10px", fontSize: 13, color: ev.danger ? risk.dangerOnDark : dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                                <Mono>{ev.rate.toFixed(3)}%</Mono>
                               </td>
                               <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                                <Mono>{fmt$(piRow)}</Mono>
+                                <Mono>{fmt$(ev.payment)}</Mono>
                               </td>
-                              <td style={{ padding: "9px 10px", fontSize: 12, color: isLifetimeCap ? risk.danger : t.capBinding === "INITIAL_CAP" ? risk.warning : "rgba(238,239,211,0.62)", borderBottom: `1px solid ${dc.faded}` }}>
-                                {t.capBinding.replace("_", " ")} · Yr {t.year}
+                              <td style={{ padding: "9px 10px", fontSize: 12, color: ev.danger ? risk.dangerOnDark : ev.warn ? dc.lemon : "rgba(238,239,211,0.62)", borderBottom: `1px solid ${dc.faded}` }}>
+                                {ev.detail}
                               </td>
                             </tr>
-                          );
-                        })}
+                          ));
+                        })()}
                       </tbody>
                     </table>
                   </div>
@@ -832,9 +1056,11 @@ export default function ARMPage({
                   <strong style={{ color: dc.emerald, fontWeight: 700 }}>Engine:</strong>{" "}
                   Fully-indexed rate = current SOFR + margin, bounded by the initial cap at first reset,
                   periodic cap each subsequent reset, and lifetime cap = start rate + life cap.
-                  P&amp;I re-amortizes over the remaining term at each reset.
-                  CRISIS scenario hits the lifetime cap after {result.cfg.lifetimeCapPct / result.cfg.periodicCapPct + 1} consecutive upward resets.
-                  Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.
+                  P&amp;I re-amortizes on the schedule's actual balance at every reset — and at IO expiry, if the loan has an IO period.
+                  {result.crisisHitsLifetimeCap
+                    ? " The CRISIS scenario (SOFR 7.00%) reaches the lifetime cap within the modeled reset ladder."
+                    : " Even the CRISIS scenario (SOFR 7.00%) stabilizes below the lifetime cap on this margin — the structural ceiling shown above is a separate, more conservative reference point."}
+                  {" "}Preliminary estimate — not a commitment to lend. Submit a scenario review for exact underwriting.
                 </div>
 
                 {/* Terminal CTA */}
@@ -910,7 +1136,7 @@ export default function ARMPage({
             ) : (
               <div
                 style={{
-                  background: "#002a29",
+                  background: dc.dark,
                   borderRadius: dc.r.lg,
                   padding: 40,
                   textAlign: "center",
@@ -923,7 +1149,7 @@ export default function ARMPage({
 
             {/* Refi Proceeds Gap — Can you refinance at maturity? */}
             {result && (
-              <div style={{ marginTop: 40, background: "#002a29", borderRadius: dc.r.lg, padding: "clamp(24px,3vw,36px)", border: `1px solid ${dc.faded}` }}>
+              <div style={{ marginTop: 40, background: dc.dark, borderRadius: dc.r.lg, padding: "clamp(24px,3vw,36px)", border: `1px solid ${dc.faded}` }}>
                 <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>
                   Maturity Risk Analysis
                 </div>
@@ -938,7 +1164,7 @@ export default function ARMPage({
                   const estimatedValue = loanAmount / 0.75;
                   const refiGap = computeRefiProceedsGap({
                     propertyValue: estimatedValue,
-                    currentBalance: result.balAtReset,
+                    currentBalance: result.firstResetBalance,
                     qualifyingRent: monthlyRent,
                     escrowsMonthly: pitiaNonDebt,
                     newRate: result.worstFirstResetRate,
@@ -986,8 +1212,8 @@ export default function ARMPage({
                       <p style={{ fontSize: 13, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5 }}>
                         <strong style={{ color: "rgba(238,239,211,0.85)" }}>Verdict:</strong> {
                           refiGap.canRetireBalance
-                            ? `You CAN refinance at maturity — max new loan (${fmt$(refiGap.maxNewLoan)}) exceeds your remaining balance (${fmt$(result.balAtReset)}). ${refiGap.cashOutAvailable > 0 ? `Cash-out available: ${fmt$(refiGap.cashOutAvailable)}.` : ''}`
-                            : `You CANNOT refinance at maturity without bringing ${fmt$(refiGap.proceedsGap)} cash to close. The ${refiGap.bindingConstraint} constraint caps your new loan at ${fmt$(refiGap.maxNewLoan)}, but you owe ${fmt$(result.balAtReset)}. Plan to pay down principal or increase rent before reset.`
+                            ? `You CAN refinance at maturity — max new loan (${fmt$(refiGap.maxNewLoan)}) exceeds your remaining balance (${fmt$(result.firstResetBalance)}). ${refiGap.cashOutAvailable > 0 ? `Cash-out available: ${fmt$(refiGap.cashOutAvailable)}.` : ''}`
+                            : `You CANNOT refinance at maturity without bringing ${fmt$(refiGap.proceedsGap)} cash to close. The ${refiGap.bindingConstraint} constraint caps your new loan at ${fmt$(refiGap.maxNewLoan)}, but you owe ${fmt$(result.firstResetBalance)}. Plan to pay down principal or increase rent before reset.`
                         }
                       </p>
                     </>
@@ -996,36 +1222,35 @@ export default function ARMPage({
               </div>
             )}
 
-            {/* 5-Scenario SOFR Stress Analysis */}
+            {/* Full amortization & IO transition schedule — the complete,
+                month-by-month schedule (rolled up by year), Base scenario.
+                This is the literal schedule gate item 2 requires: every year's
+                phase, rate, and payment, sourced from the one shared kernel. */}
             {result && (() => {
-              const multiScenario = computeMultiScenarioARMReset(
-                result.cfg,
-                result.balAtReset,
-                result.remTerm,
-                monthlyRent,
-                pitiaNonDebt,
-                CURRENT_MARKET_SNAPSHOT,
-              );
+              const years = summarizeByYear(result.base.armSchedule.schedule);
               return (
-                <div style={{ marginTop: 40, background: "#002a29", borderRadius: dc.r.lg, padding: "clamp(24px,3vw,36px)", border: `1px solid ${dc.faded}` }}>
+                <div style={{ marginTop: 40, background: dc.dark, borderRadius: dc.r.lg, padding: "clamp(24px,3vw,36px)", border: `1px solid ${dc.faded}` }}>
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>
-                    5-Scenario SOFR Stress Analysis
+                    Full amortization schedule
                   </div>
                   <h3 style={{ fontSize: "clamp(20px,2.4vw,28px)", fontWeight: 600, letterSpacing: "-0.025em", margin: "0 0 12px", color: dc.cream }}>
-                    How does your ARM perform across rate environments?
+                    Every year, IO through payoff — Base scenario (SOFR {result.base.sofr.toFixed(2)}%)
                   </h3>
                   <p style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", margin: "0 0 20px", lineHeight: 1.55, maxWidth: "68ch" }}>
-                    Each row shows DSCR at first reset and last reset under a sustained SOFR environment. First reset = when the fixed period ends. Last reset = stabilized rate after {result.cfg.periodicCapPct > 0 ? "all periodic caps" : "caps"} are applied.
+                    Rolled up by loan year from the same month-by-month schedule the tool prices every payment from — interest-only years, the amortizing years, and every reset in between, on one continuous balance.
                   </p>
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
+                  <div style={{ overflowX: "auto", overflowY: "auto", maxHeight: 420, borderRadius: dc.r.sm }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
                       <thead>
                         <tr>
-                          {["Scenario", "SOFR", "First Reset Rate", "First Reset DSCR", "Last Reset Rate", "Last Reset DSCR"].map((h, i) => (
+                          {["Year", "Phase", "Rate range", "Payment (end of yr)", "Balance (end of yr)"].map((h, i) => (
                             <th
                               key={h}
                               style={{
-                                padding: "10px 12px",
+                                position: "sticky",
+                                top: 0,
+                                background: dc.dark,
+                                padding: "8px 10px",
                                 fontSize: 11,
                                 color: "rgba(238,239,211,0.62)",
                                 textAlign: i >= 2 ? "right" : "left",
@@ -1041,49 +1266,31 @@ export default function ARMPage({
                         </tr>
                       </thead>
                       <tbody>
-                        {multiScenario.scenarios.map((sc) => {
-                          const firstReset = sc.trajectory[0];
-                          const lastReset = sc.trajectory[sc.trajectory.length - 1];
-                          const piAtFirst = firstReset ? calculatePI(result.balAtReset, firstReset.rate, result.remTerm) : 0;
-                          const dscrAtFirst = piAtFirst > 0 ? monthlyRent / (piAtFirst + pitiaNonDebt) : 0;
-                          const piAtLast = lastReset ? calculatePI(result.balAtReset, lastReset.rate, result.remTerm) : 0;
-                          const dscrAtLast = piAtLast > 0 ? monthlyRent / (piAtLast + pitiaNonDebt) : 0;
-                          const scenarioColors: Record<string, string> = {
-                            BULLISH: dc.emerald,
-                            BASE: dc.lemon,
-                            BEARISH: "#ff8c42",
-                            STRESS: risk.danger,
-                            CRISIS: "#c0392b",
-                          };
-                          const color = scenarioColors[sc.scenarioName] || dc.cream;
-                          return (
-                            <tr key={sc.scenarioName}>
-                              <td style={{ padding: "11px 12px", fontSize: 14, color: dc.cream, fontWeight: 700, borderBottom: `1px solid ${dc.faded}` }}>
-                                {sc.scenarioName.charAt(0) + sc.scenarioName.slice(1).toLowerCase()}
-                              </td>
-                              <td style={{ padding: "11px 12px", fontSize: 13, color, fontWeight: 700, borderBottom: `1px solid ${dc.faded}` }}>
-                                <Mono>{sc.indexPct.toFixed(2)}%</Mono>
-                              </td>
-                              <td style={{ padding: "11px 12px", fontSize: 13, color: dc.cream, fontWeight: 600, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                                <Mono>{firstReset ? `${firstReset.rate.toFixed(3)}%` : "—"}</Mono>
-                              </td>
-                              <td style={{ padding: "11px 12px", fontSize: 13, color: dscrAtFirst < 1.0 ? risk.danger : dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                                <Mono>{dscrAtFirst.toFixed(2)}x</Mono>
-                              </td>
-                              <td style={{ padding: "11px 12px", fontSize: 13, color: dc.cream, fontWeight: 600, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                                <Mono>{lastReset ? `${lastReset.rate.toFixed(3)}%` : "—"}</Mono>
-                              </td>
-                              <td style={{ padding: "11px 12px", fontSize: 13, color: dscrAtLast < 1.0 ? risk.danger : dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
-                                <Mono>{dscrAtLast.toFixed(2)}x</Mono>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                        {years.map((y) => (
+                          <tr key={y.year}>
+                            <td style={{ padding: "7px 10px", fontSize: 12.5, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>
+                              {y.year}
+                            </td>
+                            <td style={{ padding: "7px 10px", fontSize: 11.5, color: y.hasIo ? dc.lemon : "rgba(238,239,211,0.62)", fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>
+                              {y.hasIo ? "IO" : "Amortizing"}{y.hasPaymentChange ? " · reset" : ""}
+                            </td>
+                            <td style={{ padding: "7px 10px", fontSize: 12.5, color: dc.cream, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                              <Mono>{y.startRatePct.toFixed(3) === y.endRatePct.toFixed(3) ? `${y.startRatePct.toFixed(3)}%` : `${y.startRatePct.toFixed(3)}→${y.endRatePct.toFixed(3)}%`}</Mono>
+                            </td>
+                            <td style={{ padding: "7px 10px", fontSize: 12.5, color: dc.cream, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                              <Mono>{fmt$(y.payments / y.months)}/mo</Mono>
+                            </td>
+                            <td style={{ padding: "7px 10px", fontSize: 12.5, color: "rgba(238,239,211,0.72)", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                              <Mono>{fmt$(y.closingBalance)}</Mono>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
                   <p style={{ fontSize: 13, color: "rgba(238,239,211,0.6)", margin: "16px 0 0", lineHeight: 1.5 }}>
-                    <strong style={{ color: "rgba(238,239,211,0.85)" }}>Verdict:</strong> {multiScenario.summary}
+                    <strong style={{ color: "rgba(238,239,211,0.85)" }}>Total over {years.length} years:</strong>{" "}
+                    {fmt$(result.base.armSchedule.schedule.totalPaid)} paid, {fmt$(result.base.armSchedule.schedule.totalInterest)} interest, loan retired to {fmt$(result.base.armSchedule.schedule.finalBalance)}.
                   </p>
                 </div>
               );

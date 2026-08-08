@@ -43,46 +43,174 @@ const routeModules = {
   CommercialDSCRPage: () => import("./pages/CommercialDSCRPage"),
   ConstructionBridgePage: () => import("./pages/ConstructionBridgePage"),
   TCOThresholdPage: () => import("./pages/TCOThresholdPage"),
+  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
+  ARMPage: () => import("./pages/ARMPage"),
+  StressMatrixPage: () => import("./pages/StressMatrixPage"),
+  PortfolioPage: () => import("./pages/PortfolioPage"),
+  StateLawsPage: () => import("./pages/StateLawsPage"),
+  STRUnderwritingPage: () => import("./pages/STRUnderwritingPage"),
+  TaxEnginePage: () => import("./pages/TaxEnginePage"),
+  ReturnsPage: () => import("./pages/ReturnsPage"),
+  RateQuizPage: () => import("./pages/RateQuizPage"),
+  DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
+  PerfectPropertyPage: () => import("./pages/PerfectPropertyPage"),
+  StructureOptimizerPage: () => import("./pages/StructureOptimizerPage"),
+  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
+  MonteCarloPage: () => import("./pages/MonteCarloPage"),
 } as const;
+
+// ─── Chunk-load failure ───────────────────────────────────────────────────────
+//
+// The failure this guards against is ordinary and not rare: a deploy rotates the
+// hashed chunk filenames while a tab is still open. Every chunk that tab has not
+// already fetched now 404s.
+//
+// Three things then compounded into a dead tab:
+//   1. `React.lazy` caches a REJECTION permanently. Once a lazy component's
+//      importer rejects even once, every later render of that component rethrows
+//      the same error for the lifetime of the page — the network recovering does
+//      not help, because the importer is never called again.
+//   2. `warmAllRoutes` swallowed every failure with `.catch(() => {})`, so all
+//      25 chunks could fail with no console line and no Sentry event. The first
+//      visible symptom was the error screen, with nothing upstream to explain it.
+//   3. The error screen's only action was `window.history.back()` — SPA history,
+//      which re-fetches nothing. It could not clear a chunk failure, so the
+//      recovery button was guaranteed not to recover.
+//
+// Fix: retry a chunk-load failure once before surfacing it, and when it does
+// surface, reload the document (a real fetch of the new manifest) exactly once
+// per session so a stale tab heals itself instead of dead-ending.
+const CHUNK_RELOAD_KEY = "gs:chunk-reloaded";
+
+/** True for the several shapes browsers and bundlers use for "chunk didn't load". */
+export function isChunkLoadError(err: unknown): boolean {
+  if (!err) return false;
+  const e = err as { name?: string; message?: string };
+  const text = `${e.name ?? ""} ${e.message ?? ""}`;
+  return /ChunkLoadError|Loading chunk \d+ failed|Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed|dynamically imported module/i.test(
+    text,
+  );
+}
+
+/**
+ * Import with one retry on a chunk-load failure.
+ *
+ * A transient blip (flaky connection, a CDN edge mid-rotation) resolves on the
+ * second attempt and costs the user nothing. Only a genuine miss — the chunk is
+ * really gone — reaches React.lazy, and by then a reload is the correct answer.
+ * Non-chunk errors are rethrown immediately; retrying a module that throws while
+ * evaluating would just run its side effects twice.
+ */
+export function importWithRetry<T>(load: () => Promise<T>, attemptsLeft = 2, delayMs = 400): Promise<T> {
+  return load().catch((err: unknown) => {
+    if (attemptsLeft <= 1 || !isChunkLoadError(err)) throw err;
+    return new Promise<T>((resolve, reject) => {
+      setTimeout(() => importWithRetry(load, attemptsLeft - 1, delayMs * 2).then(resolve, reject), delayMs);
+    });
+  });
+}
+
+type RouteKey = keyof typeof routeModules;
+/** The default export of one route module, resolved per key. */
+type RouteComponent<K extends RouteKey> = Awaited<ReturnType<(typeof routeModules)[K]>>["default"];
+
+/**
+ * `lazy` for a route chunk, with the retry above applied to its importer.
+ *
+ * The indexed access `routeModules[key]` widens to a union of all 25 importer
+ * signatures, and `lazy` then resolves that union to its first member — every
+ * page would type-check against ComplianceDashboard's props. The cast pins the
+ * importer back to the one key was called with; `RouteComponent<K>` keeps the
+ * returned component's props exact at every call site.
+ */
+function lazyRoute<K extends RouteKey>(key: K): React.LazyExoticComponent<RouteComponent<K>> {
+  const load = routeModules[key] as () => Promise<{ default: RouteComponent<K> }>;
+  return lazy(() => importWithRetry(load)) as React.LazyExoticComponent<RouteComponent<K>>;
+}
 
 let _warmed = false;
 function warmAllRoutes() {
   if (_warmed || typeof window === "undefined") return;
   _warmed = true;
-  Object.values(routeModules).forEach((load) => { (load() as Promise<unknown>).catch(() => {}); });
+
+  const entries = Object.entries(routeModules);
+  const failures: string[] = [];
+  Promise.all(
+    entries.map(([name, load]) =>
+      (load() as Promise<unknown>).catch((err: unknown) => {
+        failures.push(name);
+        return err;
+      }),
+    ),
+  ).then(() => {
+    if (failures.length === 0) {
+      // Everything the deploy serves is reachable from this tab, so a past
+      // self-heal is spent. Clearing it lets a LATER deploy heal itself too —
+      // without this, one reload per session would be all a tab ever gets.
+      try { window.sessionStorage.removeItem(CHUNK_RELOAD_KEY); } catch { /* storage may be blocked */ }
+      return;
+    }
+    // Warming failing is the earliest possible signal that this tab is running
+    // against a rotated deploy. It used to be discarded entirely.
+    const summary = `[Greenstreet] ${failures.length}/${entries.length} route chunks failed to prefetch: ${failures.join(", ")}`;
+    console.warn(summary);
+    captureException(new Error(summary));
+  });
 }
 
-const ComplianceDashboard = lazy(routeModules.ComplianceDashboard);
-const DSCRCalculatorPage = lazy(routeModules.DSCRCalculatorPage);
-const LenderIntelPage = lazy(routeModules.LenderIntelPage);
-const FAQPage = lazy(routeModules.FAQPage);
-const BlogPage = lazy(routeModules.BlogPage);
-const BlogPostPage = lazy(routeModules.BlogPostPage);
-const BorrowerProfilesPage = lazy(routeModules.BorrowerProfilesPage);
-const NonUsInvestorsPage = lazy(routeModules.NonUsInvestorsPage);
-const STRHostsPage = lazy(routeModules.STRHostsPage);
-const VacationHomesPage = lazy(routeModules.VacationHomesPage);
-const BrokersPortalPage = lazy(routeModules.BrokersPortalPage);
-const InvestorsPage = lazy(routeModules.InvestorsPage);
-const AboutPage = lazy(routeModules.AboutPage);
-const CareersPage = lazy(routeModules.CareersPage);
-const CaseStudiesPage = lazy(routeModules.CaseStudiesPage);
-const LegalPage = lazy(routeModules.LegalPage);
-const ProductsPage = lazy(routeModules.ProductsPage);
-const PlatformPage = lazy(routeModules.PlatformPage);
-const SupportPage = lazy(routeModules.SupportPage);
-const SolutionsPage = lazy(routeModules.SolutionsPage);
-const BrokersPage = lazy(routeModules.BrokersPage);
-const BookDemoPage = lazy(routeModules.BookDemoPage);
-const CommercialDSCRPage = lazy(routeModules.CommercialDSCRPage);
-const ConstructionBridgePage = lazy(routeModules.ConstructionBridgePage);
-const TCOThresholdPage = lazy(routeModules.TCOThresholdPage);
+const ComplianceDashboard = lazyRoute("ComplianceDashboard");
+const DSCRCalculatorPage = lazyRoute("DSCRCalculatorPage");
+const LenderIntelPage = lazyRoute("LenderIntelPage");
+const FAQPage = lazyRoute("FAQPage");
+const BlogPage = lazyRoute("BlogPage");
+const BlogPostPage = lazyRoute("BlogPostPage");
+const BorrowerProfilesPage = lazyRoute("BorrowerProfilesPage");
+const NonUsInvestorsPage = lazyRoute("NonUsInvestorsPage");
+const STRHostsPage = lazyRoute("STRHostsPage");
+const VacationHomesPage = lazyRoute("VacationHomesPage");
+const BrokersPortalPage = lazyRoute("BrokersPortalPage");
+const InvestorsPage = lazyRoute("InvestorsPage");
+const AboutPage = lazyRoute("AboutPage");
+const CareersPage = lazyRoute("CareersPage");
+const CaseStudiesPage = lazyRoute("CaseStudiesPage");
+const LegalPage = lazyRoute("LegalPage");
+const ProductsPage = lazyRoute("ProductsPage");
+const PlatformPage = lazyRoute("PlatformPage");
+const SupportPage = lazyRoute("SupportPage");
+const SolutionsPage = lazyRoute("SolutionsPage");
+const BrokersPage = lazyRoute("BrokersPage");
+const BookDemoPage = lazyRoute("BookDemoPage");
+const CommercialDSCRPage = lazyRoute("CommercialDSCRPage");
+const ConstructionBridgePage = lazyRoute("ConstructionBridgePage");
+const TCOThresholdPage = lazyRoute("TCOThresholdPage");
+const RefiTrackerPage = lazyRoute("RefiTrackerPage");
+const ARMPage = lazyRoute("ARMPage");
+const StressMatrixPage = lazyRoute("StressMatrixPage");
+const PortfolioPage = lazyRoute("PortfolioPage");
+const StateLawsPage = lazyRoute("StateLawsPage");
+const STRUnderwritingPage = lazyRoute("STRUnderwritingPage");
+const TaxEnginePage = lazyRoute("TaxEnginePage");
+const ReturnsPage = lazyRoute("ReturnsPage");
+const RateQuizPage = lazyRoute("RateQuizPage");
+const DealAnalyzerPage = lazyRoute("DealAnalyzerPage");
+const PerfectPropertyPage = lazyRoute("PerfectPropertyPage");
+const StructureOptimizerPage = lazyRoute("StructureOptimizerPage");
+const DecisionSupportPage = lazyRoute("DecisionSupportPage");
+const MonteCarloPage = lazyRoute("MonteCarloPage");
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 // Users get a plain-language recovery message; the raw error text lives behind a
 // collapsed <details> for anyone who wants to paste it into a support thread. The
 // full error + component stack always goes to the console and Sentry (if wired),
 // so hiding it from the page costs nothing diagnostically.
+/** Reads through a try/catch — sessionStorage throws outright in some privacy modes. */
+function hasAlreadyReloadedForChunk(): boolean {
+  try { return window.sessionStorage.getItem(CHUNK_RELOAD_KEY) === "1"; } catch { return false; }
+}
+function markReloadedForChunk(): void {
+  try { window.sessionStorage.setItem(CHUNK_RELOAD_KEY, "1"); } catch { /* storage may be blocked */ }
+}
+
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
   state: { error: Error | null } = { error: null };
   static getDerivedStateFromError(error: Error) { return { error }; }
@@ -90,6 +218,16 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("[Greenstreet] Unhandled UI error:", error, info?.componentStack);
     captureException(error);
+
+    // A chunk that is really gone cannot be recovered inside this document:
+    // React.lazy has cached the rejection and will rethrow it forever. Reloading
+    // fetches the current manifest and fixes it. Guarded by sessionStorage so a
+    // chunk that is broken rather than merely stale cannot spin the tab in a
+    // reload loop — the second failure falls through to the message below.
+    if (isChunkLoadError(error) && !hasAlreadyReloadedForChunk()) {
+      markReloadedForChunk();
+      window.location.reload();
+    }
   }
 
   render() {
@@ -99,18 +237,30 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
         `${error.name || "Error"}: ${error.message || "(no message)"}`,
         error.stack ? error.stack.split("\n").slice(1, 6).join("\n") : "",
       ].filter(Boolean).join("\n");
+      // A stale chunk needs a document reload, not SPA history. "Go back" only
+      // moves within this document, which has already cached the failure, so
+      // offering it here would be offering an action that cannot work.
+      const stale = isChunkLoadError(error);
       return (
         <div style={{ minHeight: "100vh", background: depth.browse.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font.family }}>
           <div style={{ maxWidth: "520px", padding: "40px", textAlign: "center" }}>
             <div style={{ fontSize: "48px", marginBottom: "16px" }} aria-hidden="true">⚠</div>
-            <h2 style={{ color: depth.browse.ink, fontSize: "24px", marginBottom: "12px" }}>This page didn't load</h2>
+            <h2 style={{ color: depth.browse.ink, fontSize: "24px", marginBottom: "12px" }}>
+              {stale ? "This tab is running an older version" : "This page didn't load"}
+            </h2>
             <p style={{ color: swatch.rainforest, marginBottom: "24px", lineHeight: 1.55 }}>
-              Something went wrong on our side — nothing you did caused it, and no information you entered was sent
-              anywhere. Going back and retrying usually clears it.
+              {stale
+                ? "We shipped an update while this tab was open, so part of the page it was reaching for is no longer there. Reloading picks up the current version. Nothing you entered was sent anywhere."
+                : "Something went wrong on our side — nothing you did caused it, and no information you entered was sent anywhere. Going back and retrying usually clears it."}
             </p>
-            <button onClick={() => { this.setState({ error: null }); window.history.back(); }}
+            <button
+              onClick={() => {
+                if (stale) { markReloadedForChunk(); window.location.reload(); return; }
+                this.setState({ error: null });
+                window.history.back();
+              }}
               style={{ background: swatch.lemon, color: swatch.midnight, border: "none", borderRadius: radius.sm, padding: "12px 28px", fontWeight: 700, cursor: "pointer", fontSize: "15px" }}>
-              Go back
+              {stale ? "Reload the page" : "Go back"}
             </button>
             <details style={{ marginTop: "28px", textAlign: "left" }}>
               <summary style={{ cursor: "pointer", fontSize: "13px", color: swatch.rainforest, fontWeight: 600 }}>
@@ -299,6 +449,7 @@ function viewToPath(view: PageView): string {
     case "decision-support":  return "/tools/decision-support";
     case "str-underwriting":  return "/tools/str-underwriting";
     case "portfolio":         return "/tools/portfolio";
+    case "perfect-property":  return "/tools/perfect-property";
     case "about":             return "/about";
     case "careers":           return "/careers";
     case "legal":             return "/legal";
@@ -312,6 +463,12 @@ function viewToPath(view: PageView): string {
     case "commercial-dscr":     return "/tools/commercial-dscr";
     case "construction-bridge": return "/tools/construction-bridge";
     case "tco-threshold":       return "/tools/tco-threshold";
+    // Exhaustive over PageView (verified: every union member has a case
+    // above), but a 42-arm switch without a default isn't something TS proves
+    // exhaustive reliably. Fail closed to the marketing route rather than
+    // let a future desync between PageView and this switch return undefined
+    // into a pushState call.
+    default: return "/";
   }
 }
 
@@ -470,7 +627,7 @@ export default function App() {
       case "lender-intel":
         return <LenderIntelPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stateRules} onNavigate={navigateFromReliabilityHold} />;
+        return <StateLawsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "faq":
         return <FAQPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "blog":
@@ -480,9 +637,9 @@ export default function App() {
       case "case-studies":
         return <CaseStudiesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "rate-quiz":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.rateQuiz} onNavigate={navigateFromReliabilityHold} />;
+        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "deal-analyzer":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.dealAnalyzer} onNavigate={navigateFromReliabilityHold} />;
+        return <DealAnalyzerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "borrower-profiles":
         return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "non-us-investors":
@@ -516,31 +673,33 @@ export default function App() {
       case "not-found":
         return <NotFoundPage key={pathname} onNavigate={goTo} />;
       case "refi-tracker":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.refiTracker} onNavigate={navigateFromReliabilityHold} />;
+        return <RefiTrackerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "arm-reset":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.armReset} onNavigate={navigateFromReliabilityHold} />;
+        return <ARMPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "monte-carlo":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.monteCarlo} onNavigate={navigateFromReliabilityHold} />;
+        return <MonteCarloPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "returns":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.returns} onNavigate={navigateFromReliabilityHold} />;
+        return <ReturnsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "tax-engine":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.taxEngine} onNavigate={navigateFromReliabilityHold} />;
+        return <TaxEnginePage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "stress-matrix":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stressMatrix} onNavigate={navigateFromReliabilityHold} />;
+        return <StressMatrixPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "decision-support":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
+        return <DecisionSupportPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "commercial-dscr":
         return <CommercialDSCRPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "construction-bridge":
         return <ConstructionBridgePage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "tco-threshold":
         return <TCOThresholdPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "perfect-property":
+        return <PerfectPropertyPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "str-underwriting":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.strUnderwriting} onNavigate={navigateFromReliabilityHold} />;
+        return <STRUnderwritingPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "structure-optimizer":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.structureOptimizer} onNavigate={navigateFromReliabilityHold} />;
+        return <StructureOptimizerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "portfolio":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.portfolioRefi} onNavigate={navigateFromReliabilityHold} />;
+        return <PortfolioPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
           window.location.href = "https://www.greenstreet.finance";

@@ -124,8 +124,29 @@ export interface PayoffQuoteInput {
   schedule: AmortizationSchedule;
   /** Payoff month, 1-based. 0 = payoff at origination (full principal). */
   month: number;
-  /** Prepayment penalty as a percent of the principal balance. */
+  /**
+   * Prepayment penalty as a percent of the principal balance — a stepdown
+   * structure (5-4-3-2-1, flat 5, soft prepay) reduced to the rate in force at
+   * `month`.
+   *
+   * This alone cannot express every structure the product sells. Six months'
+   * interest depends on the RATE, so no percentage represents it across rates:
+   * on a $300K balance it is $10.4K at 7% and $14.9K at 10%. Pass
+   * `prepaymentPenaltyAmount` for those.
+   */
   prepaymentPenaltyPct?: number;
+  /**
+   * The penalty in dollars, already resolved by the caller. Wins over
+   * `prepaymentPenaltyPct` when both are given.
+   *
+   * This is how a months-of-interest structure (SIX_MONTHS_INTEREST,
+   * SIX_MONTHS_80_PCT) or a yield-maintenance calculation reaches a payoff
+   * quote. It takes an amount rather than a `PrepayType` on purpose: prepay
+   * structures are loan-product policy, and this module is deliberately pure
+   * arithmetic holding no lender data. `resolvePrepayPenalty` in
+   * loanOptimizer.ts is what turns a structure into this number.
+   */
+  prepaymentPenaltyAmount?: number;
   /** Demand / recording / statement fees charged by the payoff lender. */
   payoffFees?: number;
 }
@@ -365,7 +386,13 @@ export function payoffQuote(input: PayoffQuoteInput): PayoffQuote {
   const principalBalance = balanceAtMonth(schedule, month);
   const penaltyPct = Math.max(0, Number(input.prepaymentPenaltyPct ?? 0) || 0);
   const fees = Math.max(0, Number(input.payoffFees ?? 0) || 0);
-  const prepaymentPenalty = principalBalance * (penaltyPct / 100);
+  // An explicit amount wins: it is the only way a months-of-interest or
+  // yield-maintenance structure can be expressed at all, and a caller that
+  // resolved one holds strictly more information than a percentage carries.
+  const prepaymentPenalty =
+    input.prepaymentPenaltyAmount === undefined || input.prepaymentPenaltyAmount === null
+      ? principalBalance * (penaltyPct / 100)
+      : Math.max(0, Number(input.prepaymentPenaltyAmount) || 0);
 
   let interestPaidToDate = 0;
   let principalPaidToDate = 0;

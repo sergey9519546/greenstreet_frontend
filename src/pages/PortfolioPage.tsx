@@ -2,9 +2,15 @@ import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, CountUp, useRevealOnView } from "../design/dc";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzePortfolio, computePortfolioHealthScore } from "../engine/portfolio";
+import type { PortfolioPropertyInput } from "../engine/portfolio";
+import {
+  buildAmortizationSchedule,
+  balanceAtMonth,
+  paymentAtMonth,
+  type AmortizationSchedule,
+} from "../engine/amortization";
 import { buildEngineInputs } from "../engine/inputs";
 import { computeLeverageCheck } from "../engine/leverageCheck";
-import { calculatePI } from "../engine";
 import { risk } from "../theme";
 
 // Portfolio page uses pistachio nav (matching its mockup body color)
@@ -13,34 +19,66 @@ const PF_NAV_BORDER = "1px solid rgba(0,55,56,0.15)";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+// A property is described by its ORIGINATION terms — original loan amount,
+// note rate, full term, and months already paid — never by a typed "current
+// balance". The balance and the P&I payment are both READ off one real
+// amortization schedule built from these (see `computed` below); they can
+// never be independently edited into disagreement with each other.
 type RawProperty = {
   id: string;
   name: string;
   propertyType: string;
   state: string;
+  /** Current / appraised value. */
   value: number;
-  balance: number;
+  /** Principal at origination. */
+  originalLoanAmount: number;
+  /** Note rate, percent. */
   rate: number;
+  /** Full term, years. */
+  termYears: number;
+  /** Payments already made since origination. */
+  monthsOwned: number;
   rent: number;
-  /** Additional monthly obligations (taxes + insurance) */
-  pitiaExtra: number;
+  /** Taxes + insurance + HOA + flood, monthly — everything in PITIA besides P&I. */
+  escrowsMonthly: number;
   lender: string;
-  yearAcquired: number;
 };
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
+// Illustrative starting values — the same role the old flat `balance` seed
+// played, just now expressed as real origination terms.
 
 const SEED: RawProperty[] = [
-  { id: "P1", name: "Austin TX",   propertyType: "SFR",    state: "TX", value: 425000, balance: 306000, rate: 7.0,   rent: 3000, pitiaExtra: 850,  lender: "Prior loan", yearAcquired: 2023 },
-  { id: "P2", name: "Tampa FL",    propertyType: "Duplex", state: "FL", value: 520000, balance: 364000, rate: 6.875, rent: 4200, pitiaExtra: 1100, lender: "Prior loan", yearAcquired: 2022 },
-  { id: "P3", name: "Phoenix AZ",  propertyType: "SFR",    state: "AZ", value: 390000, balance: 304000, rate: 7.25,  rent: 2400, pitiaExtra: 780,  lender: "Prior loan", yearAcquired: 2022 },
-  { id: "P4", name: "Memphis TN",  propertyType: "4-plex", state: "TN", value: 640000, balance: 435000, rate: 6.99,  rent: 5800, pitiaExtra: 1400, lender: "Prior loan", yearAcquired: 2021 },
+  { id: "P1", name: "Austin TX",   propertyType: "SFR",    state: "TX", value: 425000, originalLoanAmount: 325000, rate: 7.0,   termYears: 30, monthsOwned: 36, rent: 3000, escrowsMonthly: 850,  lender: "Prior loan" },
+  { id: "P2", name: "Tampa FL",    propertyType: "Duplex", state: "FL", value: 520000, originalLoanAmount: 385000, rate: 6.875, termYears: 30, monthsOwned: 48, rent: 4200, escrowsMonthly: 1100, lender: "Prior loan" },
+  { id: "P3", name: "Phoenix AZ",  propertyType: "SFR",    state: "AZ", value: 390000, originalLoanAmount: 320000, rate: 7.25,  termYears: 30, monthsOwned: 48, rent: 2400, escrowsMonthly: 780,  lender: "Prior loan" },
+  { id: "P4", name: "Memphis TN",  propertyType: "4-plex", state: "TN", value: 640000, originalLoanAmount: 460000, rate: 6.99,  termYears: 30, monthsOwned: 60, rent: 5800, escrowsMonthly: 1400, lender: "Prior loan" },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const fmt = (n: number) =>
   (n < 0 ? "-$" : "$") + Math.round(Math.abs(n)).toLocaleString("en-US");
+
+/** Map the UI's free-text property type to the engine's TCO bucket — the
+ * ONE place this codebase derives the Track-2 operating-cost haircut from
+ * (see computeTcoRate in tcoDscr.ts). */
+function mapUiPropertyType(t: string): string {
+  switch (t) {
+    case "2-4 unit":
+    case "Duplex":
+    case "Triplex":
+      return "SMALL_MULTI";
+    case "4-plex":
+    case "5+ unit":
+      return "MED_MULTI";
+    case "STR / Airbnb":
+      return "CONDOTEL";
+    default:
+      return "SFR"; // SFR, Condo, Townhome
+  }
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -70,7 +108,7 @@ export default function PortfolioPage({
     const id = `P${rows.length + 1}`;
     setRows((prev) => [
       ...prev,
-      { id, name: "New property", propertyType: "SFR", state: "TX", value: 400000, balance: 300000, rate: 7.0, rent: 2800, pitiaExtra: 800, lender: "Prior loan", yearAcquired: 2024 },
+      { id, name: "New property", propertyType: "SFR", state: "TX", value: 400000, originalLoanAmount: 300000, rate: 7.0, termYears: 30, monthsOwned: 0, rent: 2800, escrowsMonthly: 800, lender: "Prior loan" },
     ]);
   }
 
@@ -79,14 +117,36 @@ export default function PortfolioPage({
   }
 
   // ── Per-row computed ──────────────────────────────────────────────────────
+  // One real amortization schedule per property (gate 1) — the balance and
+  // the P&I payment are both READ from it, never typed independently. A row
+  // with an invalid loan term (e.g. a blank/negative original amount) gets a
+  // `scheduleError` instead of a fabricated balance.
   const computed = useMemo(() =>
     rows.map((p) => {
-      const piMo  = calculatePI(p.balance, p.rate, 360); // 30-yr amortising P&I, engine primitive
-      const pitia = piMo + p.pitiaExtra;
-      const dscr  = pitia > 0 ? p.rent / pitia : 0;
-      const cf    = p.rent - pitia;
-      const ltv   = p.value > 0 ? (p.balance / p.value) * 100 : 0;
-      return { ...p, piMo, pitia, dscr, cf, ltv };
+      const termMonths = Math.max(1, Math.round(p.termYears * 12));
+      const monthsElapsed = Math.max(0, Math.min(Math.round(p.monthsOwned) || 0, termMonths));
+
+      let schedule: AmortizationSchedule | null = null;
+      let scheduleError: string | null = null;
+      if (!(p.originalLoanAmount > 0)) {
+        scheduleError = "Original loan amount must be a positive number.";
+      } else if (!(p.rate >= 0)) {
+        scheduleError = "Note rate must be zero or positive.";
+      } else {
+        try {
+          schedule = buildAmortizationSchedule({ principal: p.originalLoanAmount, annualRatePct: p.rate, termMonths });
+        } catch (e) {
+          scheduleError = e instanceof Error ? e.message : "Could not build a schedule for this loan.";
+        }
+      }
+
+      const balance = schedule ? balanceAtMonth(schedule, monthsElapsed) : 0;
+      const piMo    = schedule ? paymentAtMonth(schedule, monthsElapsed + 1) : 0;
+      const pitia   = piMo + p.escrowsMonthly;
+      const dscr    = pitia > 0 ? p.rent / pitia : 0;
+      const cf      = p.rent - pitia;
+      const ltv     = p.value > 0 ? (balance / p.value) * 100 : 0;
+      return { ...p, termMonths, monthsElapsed, schedule, scheduleError, balance, piMo, pitia, dscr, cf, ltv };
     }),
     [rows]
   );
@@ -109,23 +169,39 @@ export default function PortfolioPage({
   }, [computed]);
 
   // ── analyzePortfolio for rich signals ─────────────────────────────────────
+  // Feeds the engine real origination terms per property — never a typed
+  // balance/DSCR — so loanBalance, monthlyPITIA, dscr and track2DSCR below
+  // are ALL computed by analyzePortfolio off one schedule per property, on
+  // one consistent NOI basis (gates 1 and 2).
+  const portfolioInputs: PortfolioPropertyInput[] = useMemo(
+    () =>
+      computed.map((c) => ({
+        id: c.id,
+        name: c.name,
+        address: "",
+        state: c.state,
+        monthlyRent: c.rent,
+        lender: c.lender,
+        isBlanket: false,
+        originalLoanAmount: c.originalLoanAmount,
+        annualRatePct: c.rate,
+        termMonths: c.termMonths,
+        monthsElapsed: c.monthsElapsed,
+        monthlyEscrows: c.escrowsMonthly,
+        propertyValue: c.value,
+        propertyType: mapUiPropertyType(c.propertyType),
+      })),
+    [computed]
+  );
+
   const portfolioResult = useMemo(() => {
     try {
-      const enriched = computed.map((c) => ({
-        ...c,
-        address: "",
-        monthlyPITIA: c.pitia,
-        track2DSCR: c.dscr * 0.9,
-        isBlanket: false,
-        purchasePrice: c.value,
-        monthlyRent: c.rent,
-      }));
       const borrower = buildEngineInputs({ purchasePrice: 400000, monthlyRent: 2800, state: "TX", ficoScore: 720 }).borrower;
-      return analyzePortfolio(enriched as any, null, borrower, 50000);
+      return analyzePortfolio(portfolioInputs, null, borrower, 50000);
     } catch {
       return null;
     }
-  }, [computed]);
+  }, [portfolioInputs]);
 
   // ── Concentration lists ───────────────────────────────────────────────────
   const geoConc = useMemo(() => {
@@ -164,9 +240,12 @@ export default function PortfolioPage({
   }, [computed]);
 
   // ── Colors ────────────────────────────────────────────────────────────────
+  // This whole tool renders on the dark midnight ground (dc.dark), so danger
+  // reads from the dark-ground variant — the base `risk.danger` fails
+  // contrast here (see theme.ts).
   const MINT   = dc.emerald;
   const YELLOW = dc.lemon;
-  const RED    = risk.danger;
+  const RED    = risk.dangerOnDark;
 
   const blendColor = agg.blend >= 1.25 ? MINT : agg.blend >= 1.0 ? YELLOW : RED;
   const cashColor  = agg.totCash >= 0  ? MINT : RED;
@@ -332,7 +411,7 @@ export default function PortfolioPage({
                     { label: "Cash Flow",     pts: healthScore.breakdown.cashFlowPts,      max: 20 },
                     { label: "Reserves",      pts: healthScore.breakdown.reservePts,       max: 20 },
                   ].map(({ label, pts, max }) => (
-                    <div key={label} style={{ fontSize: 11, fontWeight: 600, color: pts === max ? dc.lemon : pts === 0 ? risk.danger : risk.warning, background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "3px 8px", letterSpacing: "0.03em" }}>
+                    <div key={label} style={{ fontSize: 11, fontWeight: 600, color: pts === max ? dc.lemon : pts === 0 ? RED : risk.warning, background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "3px 8px", letterSpacing: "0.03em" }}>
                       {label} {pts}/{max}
                     </div>
                   ))}
@@ -372,7 +451,7 @@ export default function PortfolioPage({
                     textTransform: "uppercase",
                     padding: "6px 14px",
                     borderRadius: dc.r.sm,
-                    background: leverageCheck.passes ? "rgba(52,211,153,0.15)" : "rgba(224,99,99,0.15)",
+                    background: leverageCheck.passes ? "rgba(52,211,153,0.15)" : risk.dangerBg,
                     color: leverageCheck.passes ? dc.emerald : RED,
                     border: `1px solid ${leverageCheck.passes ? dc.emerald : RED}`,
                   }}
@@ -396,7 +475,7 @@ export default function PortfolioPage({
                       style={{
                         padding: "8px 12px",
                         background: risk.dangerBg,
-                        border: "1px solid rgba(224,99,99,0.2)",
+                        border: `1px solid ${risk.dangerBorder}`,
                         borderRadius: dc.r.sm,
                         marginBottom: 6,
                         display: "flex",
@@ -426,17 +505,17 @@ export default function PortfolioPage({
             }}
           >
             <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-              <table className="pf-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: 780, color: dc.cream }}>
+              <table className="pf-table" style={{ width: "100%", borderCollapse: "collapse", minWidth: 1180, color: dc.cream }}>
                 <thead>
                   <tr>
-                    {["Property", "Type", "Value", "Balance", "Rate %", "Rent/mo", "LTV", "DSCR", "Cash/mo", ""].map((h, i) => (
+                    {["Property", "Type", "Value", "Orig. Loan", "Rate %", "Term", "Mo. Owned", "Escrows/mo", "Rent/mo", "LTV", "Balance", "DSCR", "Cash/mo", ""].map((h, i) => (
                       <th
                         key={i}
                         style={{
                           padding: "12px 14px",
                           fontSize: 11,
                           color: "rgba(238,239,211,0.62)",
-                          textAlign: i >= 2 && i < 9 ? "right" : "left",
+                          textAlign: i >= 2 && i < 13 ? "right" : "left",
                           fontWeight: 700,
                           letterSpacing: "0.03em",
                           textTransform: "uppercase",
@@ -451,7 +530,7 @@ export default function PortfolioPage({
                 <tbody>
                   {computed.length === 0 && (
                     <tr style={{ display: "block", width: "100%", background: "none", border: "none" }}>
-                      <td colSpan={10} style={{ display: "block", width: "100%", padding: "64px 20px", textAlign: "center", background: "rgba(238,239,211,0.02)", borderRadius: 12, border: "1px dashed rgba(238,239,211,0.15)" }}>
+                      <td colSpan={14} style={{ display: "block", width: "100%", padding: "64px 20px", textAlign: "center", background: "rgba(238,239,211,0.02)", borderRadius: 12, border: "1px dashed rgba(238,239,211,0.15)" }}>
                         <div style={{ width: 64, height: 64, margin: "0 auto 20px", background: "rgba(238,239,211,0.06)", borderRadius: 32, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <span style={{ fontSize: 24 }}>🏠</span>
                         </div>
@@ -488,16 +567,33 @@ export default function PortfolioPage({
                             <input className="pf-in" aria-label="Property value" type="number" step={5000} value={c.value} onChange={(e) => edit(c.id, "value", e.target.value)} />
                           </div>
                         </td>
-                        <td data-label="Balance" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                        <td data-label="Orig. Loan" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                             <span style={{ color: "rgba(238,239,211,0.4)", marginRight: 4 }}>$</span>
-                            <input className="pf-in" aria-label="Loan balance" type="number" step={1000} value={c.balance} onChange={(e) => edit(c.id, "balance", e.target.value)} />
+                            <input className="pf-in" aria-label="Original loan amount" type="number" step={1000} value={c.originalLoanAmount} onChange={(e) => edit(c.id, "originalLoanAmount", e.target.value)} />
                           </div>
                         </td>
                         <td data-label="Rate %" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                             <input className="pf-in" aria-label="Note rate" type="number" step={0.125} value={c.rate} onChange={(e) => edit(c.id, "rate", e.target.value)} style={{ width: 56 }} />
                             <span style={{ color: "rgba(238,239,211,0.4)", marginLeft: 2 }}>%</span>
+                          </div>
+                        </td>
+                        <td data-label="Term" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <select aria-label="Loan term, years" value={c.termYears} onChange={(e) => edit(c.id, "termYears", e.target.value)}
+                            style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: 6, color: dc.cream, fontFamily: dc.sans, fontWeight: 500, fontSize: 13, padding: "7px 7px", outline: "none", cursor: "pointer", width: 66 }}>
+                            {[15, 20, 30, 40].map((y) => (
+                              <option key={y} value={y} style={{ color: "#003738" }}>{y}yr</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td data-label="Mo. Owned" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <input className="pf-in" aria-label="Months owned" type="number" step={1} min={0} value={c.monthsOwned} onChange={(e) => edit(c.id, "monthsOwned", e.target.value)} style={{ width: 56 }} />
+                        </td>
+                        <td data-label="Escrows/mo" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                            <span style={{ color: "rgba(238,239,211,0.4)", marginRight: 4 }}>$</span>
+                            <input className="pf-in" aria-label="Monthly escrows — taxes, insurance, HOA" type="number" step={50} value={c.escrowsMonthly} onChange={(e) => edit(c.id, "escrowsMonthly", e.target.value)} />
                           </div>
                         </td>
                         <td data-label="Rent/mo" style={{ padding: "7px 10px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
@@ -507,7 +603,12 @@ export default function PortfolioPage({
                           </div>
                         </td>
                         <td data-label="LTV" style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, color: "rgba(238,239,211,0.62)", fontFamily: dc.mono, borderBottom: `1px solid ${dc.faded}` }}>
-                          {c.ltv.toFixed(0)}%
+                          {c.scheduleError ? "—" : `${c.ltv.toFixed(0)}%`}
+                        </td>
+                        {/* Balance is READ from the schedule above — never a typed field. A row
+                            with an invalid loan term shows a flag instead of a fabricated number. */}
+                        <td data-label="Balance" title={c.scheduleError ?? undefined} style={{ padding: "11px 14px", textAlign: "right", fontSize: 13, fontWeight: 600, fontFamily: dc.mono, color: c.scheduleError ? RED : "rgba(238,239,211,0.88)", borderBottom: `1px solid ${dc.faded}` }}>
+                          {c.scheduleError ? "⚠ invalid" : fmt(c.balance)}
                         </td>
                         <td data-label="DSCR" style={{ padding: "11px 14px", textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
@@ -523,7 +624,7 @@ export default function PortfolioPage({
                         <td data-label="Action" style={{ padding: "11px 14px", borderBottom: `1px solid ${dc.faded}` }}>
                           <button
                             onClick={() => removeRow(c.id)}
-                            style={{ background: "none", border: "1px solid rgba(211,47,47,0.35)", color: "#d32f2f", borderRadius: dc.r.sm, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: dc.sans }}
+                            style={{ background: "none", border: `1px solid ${risk.dangerBorder}`, color: RED, borderRadius: dc.r.sm, padding: "3px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: dc.sans }}
                           >
                             ×
                           </button>
@@ -535,6 +636,33 @@ export default function PortfolioPage({
               </table>
             </div>
           </div>
+
+          {/* Excluded-properties notice — fail-closed: a row with an invalid
+              loan term is left OUT of every total above, never counted as $0.
+              This makes that exclusion visible instead of silent. */}
+          {portfolioResult && portfolioResult.excludedProperties.length > 0 && (
+            <div
+              style={{
+                background: risk.dangerBg,
+                border: `1px solid ${risk.dangerBorder}`,
+                borderRadius: dc.r.sm,
+                padding: "14px 18px",
+                marginBottom: 16,
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: RED, marginBottom: 6 }}>
+                {portfolioResult.excludedProperties.length} propert{portfolioResult.excludedProperties.length === 1 ? "y" : "ies"} excluded from the analysis below
+              </div>
+              <p style={{ fontSize: 12, color: "rgba(238,239,211,0.72)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                These rows don't have loan terms that build a real payment schedule, so they're left out of every total rather than counted as $0.
+              </p>
+              {portfolioResult.excludedProperties.map((ex) => (
+                <div key={ex.id} style={{ fontSize: 12, color: dc.cream, marginTop: 4 }}>
+                  <strong>{ex.name}</strong> — {ex.reason}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Add property & Print Roll actions */}
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>

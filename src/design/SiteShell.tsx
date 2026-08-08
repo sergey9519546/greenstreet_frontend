@@ -8,6 +8,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { PISTACHIO, MIDNIGHT, LEMON, FADED } from "../theme";
 import { INVESTGO_TEXT, NAV_MENUS, NAV_STANDALONE_LINKS, NAV_SYNC_CSS, type NavItem, type NavMenu } from "./navModel";
+import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
+
+/** Paths that render ToolReliabilityHoldPage instead of the tool. */
+const HELD_PATHS = new Set<string>(Object.values(TOOL_RELIABILITY_HOLDS).map((h) => h.path));
+const isHeldPath = (path: string) => HELD_PATHS.has(path);
 
 const INVESTGO_LABEL = (
   <>INVEST<span style={{ opacity: 0.5 }}>GO</span></>
@@ -24,27 +29,51 @@ const renderNavLabel = (label: string) => label === INVESTGO_TEXT ? INVESTGO_LAB
 // aria-expanded + .w--open; greenboard's `:has(> .w-dropdown-toggle[aria-expanded
 // ="true"]) > .w-dropdown-list` rule does the grid-rows reveal, same as the home.
 const NAV_DD_CSS = `
+/* Nav collapse. Webflow hides .nav-links-contain at its 991px tablet breakpoint
+   via the hide-t attribute, so the burger must appear at exactly the same width
+   and never before it. This lived as an inline display:flex on the button,
+   which beats every stylesheet rule — so the burger rendered on TOP of the full
+   desktop nav at every width. Keep display here, not inline. */
+/* "In review" chip on nav entries whose tool is behind a reliability hold.
+   Muted on purpose — it informs, it must not compete with the label. */
+.gs-nav-hold{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:999px;
+  font-family:inherit;font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;
+  vertical-align:middle;color:rgba(238,239,211,0.72);border:1px solid rgba(238,239,211,0.28);}
+.burger-wrap{display:none;}
+@media screen and (max-width:991px){.burger-wrap{display:flex;}}
 .burger-line{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .2s ease;}
 .burger-wrap[aria-expanded="true"] .burger-line.top{transform:translateY(6px) rotate(45deg);}
 .burger-wrap[aria-expanded="true"] .burger-line.middle{opacity:0;transform:scaleX(0);}
 .burger-wrap[aria-expanded="true"] .burger-line.bottom{transform:translateY(-6px) rotate(-45deg);}
 /* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
    opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
-   nav-link must be the positioned containing block so the pill anchors to it. */
+   nav-link must be the positioned containing block so the pill anchors to it.
+   (This block was duplicated verbatim; the second copy is gone, not two
+   independent fixes.)
+
+   POINTER-EVENTS: NONE IS LOAD-BEARING, NOT A NICETY.
+   Measured live: inside the two <a>-tag nav-links (INVESTGO, Login — both
+   href="/investgo"), this div's containing block resolves to something far
+   above its own .nav-link parent, and it renders at {x:0, w:1515} — the
+   FULL nav row, not the one link. It stays that size inside <a> tags
+   specifically; inside the <button> dropdown toggles it is correctly scoped
+   to just that button. z-index:-1 does not save it: it still won hit-testing
+   over the sibling dropdown buttons, so a real click ANYWHERE across the nav
+   row — including squarely on "Product" or "Who We Serve" — landed on
+   whichever oversized, aria-hidden, decorative background happened to win
+   that tie, and both of them navigate to /investgo. That is why every nav
+   button "did nothing" except silently redirect: an invisible decorative div
+   was eating the click before it reached the real target.
+   Root-caused or not, an aria-hidden div must never be a click target — this
+   line is correct regardless of why the sizing is wrong, and it is the fix
+   that actually stops the redirect. */
 .gs-site-nav .nav-link{position:relative;}
 .gs-site-nav .nav-link .nav_links_text{position:relative;z-index:2;}
+.gs-site-nav .nav-link-background{pointer-events:none;}
 .gs-site-nav .nav-link:hover .nav-link-background,
 .gs-site-nav .nav-link:focus-visible .nav-link-background{opacity:1;}
 .gs-site-nav .nav-link.is-current .nav-link-background{opacity:1;}
 .gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
-/* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
-   opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
-   nav-link must be the positioned containing block so the pill anchors to it. */
-.gs-site-nav .nav-link{position:relative;}
-.gs-site-nav .nav-link .nav_links_text{position:relative;z-index:2;}
-.gs-site-nav .nav-link:hover .nav-link-background,
-.gs-site-nav .nav-link:focus-visible .nav-link-background{opacity:1;}
-.gs-site-nav .nav-link.is-current .nav-link-background{opacity:1;}
 .gs-site-nav .nav-btn{transition:filter .2s ease,transform .1s ease;}
 .gs-site-nav .nav-btn:hover{filter:brightness(1.08);}
 .gs-site-nav .nav-btn:active{transform:translateY(1px);}
@@ -210,9 +239,14 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           }}
           onFocus={() => openNow(m.label)}
         >
-          <a className="w-inline-block" href={m.path} onClick={go(m.view)}>
-            <div className="nav_links_text">{m.label}</div>
-          </a>
+          {/* The label is TEXT, not a link. It used to be <a href={m.path}> nested
+              inside this <button> — interactive content inside interactive
+              content, which is invalid HTML and, worse, meant a click on the
+              label hit the anchor and NAVIGATED instead of opening the menu.
+              Desktop hover masked it; on touch there is no hover, so tapping
+              "Product" navigated away and the mega panel was unreachable.
+              The panel below carries the destination links. */}
+          <div className="nav_links_text">{m.label}</div>
           {navCaret}
           <div className="nav-link-background" aria-hidden="true" />
         </button>
@@ -229,7 +263,16 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
                   )}
                   {cards.map((it, i) => (
                     <a key={i} role="menuitem" className={`nav_dropdown_link is-desktop w-inline-block${itemActive(it) ? " w--current" : ""}`} href={it.path} onClick={nav(it)}>
-                      <div className="nav_dropdown_text u-text-style-h4">{renderNavLabel(it.label)}</div>
+                      <div className="nav_dropdown_text u-text-style-h4">
+                        {renderNavLabel(it.label)}
+                        {/* Every tool with an unmet reliability hold renders a wall
+                            instead of the tool. Suppressing those links is not an
+                            option — currently every dropdown entry is held, so the
+                            menus would be empty. Say so before the click instead of
+                            after it. Derived from TOOL_RELIABILITY_HOLDS so the chip
+                            disappears the moment a hold record is deleted. */}
+                        {isHeldPath(it.path) && <span className="gs-nav-hold">In review</span>}
+                      </div>
                       {cardIcon}
                     </a>
                   ))}
@@ -245,6 +288,16 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   return (
     <>
       <style>{NAV_SYNC_CSS}</style>
+      {/* NAV_DD_CSS was defined above but never rendered by any <style> tag —
+          dead code. That silently took out everything it carries: the burger
+          fix (".burger-wrap{display:none}" + the 991px breakpoint — without
+          it, the burger can render on top of the full desktop nav at every
+          width, the exact bug this constant's own comment describes fixing),
+          the "In review" hold chips, the hover-pill states, and the
+          pointer-events:none guard against the nav-link-background click bug
+          (real fix lives in index.css, since that's genuinely loaded here —
+          this restores the rest of what this constant was meant to do). */}
+      <style>{NAV_DD_CSS}</style>
       {announcementVisible && (
         <div className="announcement gs-site-announcement u-container u-theme-light">
           <a
@@ -303,7 +356,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               </a>
             </div>
           </div>
-          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: 44, minWidth: 44, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: 44, minWidth: 44, flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <div className="burger-line top" aria-hidden="true"></div>
             <div className="burger-line middle" aria-hidden="true"></div>
             <div className="burger-line bottom" aria-hidden="true"></div>

@@ -200,7 +200,7 @@ export default function ConstructionBridgePage({
 
       {/* ── HERO — dark teal band. The page ships its OWN dark ground; it no
              longer leans on DcShell's pistachio shell. ── */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: PAD_HERO }}>
+      <section style={{ background: dc.dark, color: dc.cream, padding: PAD_HERO }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           {/* Real back affordance, wired to the onBack prop (was dead). */}
           <button type="button" className="tp-back" onClick={onBack} style={{ marginBottom: 24 }}>

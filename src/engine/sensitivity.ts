@@ -33,6 +33,7 @@ import type {
   DSCRGradient,
 } from './types';
 import { calculatePI, calculatePITIA, getDSCRGradient, solveDealBreakRate } from './engine';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
 
 // ── Rounding Helpers ─────────────────────────────────────────────────────
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -206,10 +207,13 @@ function defPriceSteps(purchasePrice: number): number[] {
 // ══════════════════════════════════════════════════════════════════════════
 // 1. RENT SENSITIVITY (Section 7.1)
 // Track 1 = gross rent / PITIA (no vacancy for LTR)
-// Track 2 = (gross rent × (1 - vacancy% - management% - maintenance%)) / PITIA
-//   LTR: 8% vacancy + 8% management + 5% maintenance = 21% total deduction
-//   STR: 25% vacancy + 8% management + 5% maintenance = 38% total deduction
-//   MTR: 12% vacancy + 8% management + 5% maintenance = 25% total deduction
+// Track 2 = (gross rent × (1 - TCO operating-cost rate)) / PITIA
+//
+// The Track-2 haircut is NOT defined here. It comes from computeTcoRate in
+// tcoDscr.ts, which is the single source of truth for this assumption and
+// carries property-type, age and market granularity plus an explicit CapEx
+// line. Defaults at AVERAGE age / NORMAL market: SFR 28%, SMALL_MULTI 27%,
+// MED_MULTI 25%, CONDOTEL (short-term) 63%.
 // ══════════════════════════════════════════════════════════════════════════
 
 export function computeRentSensitivity(
@@ -217,12 +221,23 @@ export function computeRentSensitivity(
   pitia: number,
   rentSteps?: number[],
   strategy: 'LTR' | 'STR' | 'MTR' = 'LTR',
+  /** Doors on the property. Drives the TCO property type (1 = SFR, 2-4 =
+   *  SMALL_MULTI, 5+ = MED_MULTI); ignored when strategy is STR, which maps to
+   *  CONDOTEL regardless of unit count. */
+  unitCount = 1,
 ): { rent: number; track1DSCR: number; track2DSCR: number; status: string }[] {
-  const vacancyPct = 8;
-  const managementPct = 8;
-  const maintenancePct = 5;
-  const totalDeductionPct = vacancyPct + managementPct + maintenancePct;
-  const track2Factor = 1 - totalDeductionPct / 100; // e.g., 0.79 for LTR, 0.62 for STR
+  // Source the haircut from computeTcoRate — the single place this assumption
+  // lives (tcoDscr.ts). This function previously hardcoded 8% vacancy + 8% mgmt
+  // + 5% maint = 21% (factor 0.79) with NO CapEx line, the formula tcoDscr.ts
+  // explicitly says it "Replaces". It also declared `strategy` and never read
+  // it, so every strategy got the LTR number. Measured divergence against the
+  // canonical rate:
+  //   LTR/SFR       0.79 vs 0.72  -> Track 2 overstated  ~9.7%
+  //   STR/CONDOTEL  0.79 vs 0.37  -> Track 2 overstated ~113%
+  // No production code called this (only its own test), so nothing shipped the
+  // error — but wiring it up would have inherited it silently.
+  const tco = computeTcoRate({ propertyType: mapToTcoType(unitCount, strategy === 'STR') });
+  const track2Factor = 1 - tco.total;
 
   const steps = rentSteps ?? defRentSteps(qualifyingRent, pitia);
   return steps.map((rent) => {

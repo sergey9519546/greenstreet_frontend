@@ -507,6 +507,23 @@ export default function STRUnderwritingPage({
                 border: "1px solid rgba(238,239,211,0.08)",
               }}
             >
+              {/* Hand-drawn A-Frame cabin artwork header */}
+              <div
+                style={{
+                  borderRadius: dc.r.md,
+                  overflow: "hidden",
+                  marginBottom: 16,
+                  border: "1px solid rgba(238,239,211,0.14)",
+                  background: "#f7f6f0",
+                }}
+              >
+                <img
+                  src="/img/properties/str_cabin.jpg"
+                  alt="Short-Term Rental Architectural Sketch"
+                  style={{ width: "100%", height: 140, objectFit: "cover" }}
+                />
+              </div>
+
               <div
                 style={{
                   fontSize: 12,
