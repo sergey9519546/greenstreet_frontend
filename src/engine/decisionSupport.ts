@@ -688,6 +688,22 @@ export interface VerdictInput {
  * PASS: hard kill; or P(DSCR<1.00) >15%; or 5th-pct DSCR < 0.80; or
  *   Return Grade ≤D with negative T2 and no thesis; or no eligible lender.
  */
+/**
+ * Ordinal rank for the return grade. Lower is better, so "B or better" is
+ * `RETURN_GRADE_RANK[g] <= RETURN_GRADE_RANK.B`.
+ *
+ * Never compare the grade letters directly: they are single characters, so `>=`
+ * compares code points and inverts the intent ('A' >= 'B' is false, 'D' >= 'B'
+ * is true).
+ */
+const RETURN_GRADE_RANK: Record<'A' | 'B' | 'C' | 'D' | 'F', number> = {
+  A: 0,
+  B: 1,
+  C: 2,
+  D: 3,
+  F: 4,
+};
+
 export function computeVerdict(input: VerdictInput): VerdictResult {
   const killCriteria: KillCriterion[] = [];
   const killSwitchConditions: string[] = [];
@@ -890,7 +906,10 @@ export function computeVerdict(input: VerdictInput): VerdictResult {
   } else if (
     (input.track1DSCR ?? 0) >= lenderMinDSCRVal + 0.05 &&
     (track2DSCRVal >= 1.0 || track2AcknowledgmentRequired) &&
-    returnGrade >= 'B' &&
+    // `returnGrade >= 'B'` was a STRING comparison: 'A' >= 'B' is false and
+    // 'D' >= 'B' is true, so the gate was inverted — grade A was rejected while
+    // C and D passed. Compare rank, not code points.
+    RETURN_GRADE_RANK[returnGrade] <= RETURN_GRADE_RANK.B &&
     (input.rateHeadroomBps ?? 0) >= 50
   ) {
     verdict = 'PROCEED';
