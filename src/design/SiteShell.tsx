@@ -217,9 +217,14 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
           }}
           onFocus={() => openNow(m.label)}
         >
-          <a className="w-inline-block" href={m.path} onClick={go(m.view)}>
-            <div className="nav_links_text">{m.label}</div>
-          </a>
+          {/* The label is TEXT, not a link. It used to be <a href={m.path}> nested
+              inside this <button> — interactive content inside interactive
+              content, which is invalid HTML and, worse, meant a click on the
+              label hit the anchor and NAVIGATED instead of opening the menu.
+              Desktop hover masked it; on touch there is no hover, so tapping
+              "Product" navigated away and the mega panel was unreachable.
+              The panel below carries the destination links. */}
+          <div className="nav_links_text">{m.label}</div>
           {navCaret}
           <div className="nav-link-background" aria-hidden="true" />
         </button>
