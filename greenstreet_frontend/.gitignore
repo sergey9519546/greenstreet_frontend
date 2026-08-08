@@ -1,5 +1,5 @@
-# Ignore large data files
-data/
+# Ignore large data files (root only — src/data is source code)
+/data/
 99_attachments/
 airdna-project/
 perfectproperty/
@@ -22,7 +22,12 @@ dist/
 dist-ssr/
 .vercel/
 .output/
-api/
+# NOT `api/`. api/index.js is the AUTHORED Vercel serverless entry point named in
+# vercel.json ("functions": { "api/index.js": ... }) — it is source, and ignoring
+# the directory silently kept the production backend out of git. Only the bundle
+# beside it is generated: `npm run build` emits api/_app.cjs from
+# src/serverApp.ts via esbuild.
+api/_app.cjs
 *.cjs
 
 # Dependencies
@@ -38,6 +43,47 @@ node_modules/
 .DS_Store
 Thumbs.db
 
+# Old build backups
+dist-cleanup-backups/
+
+# Zip archives (1MB old Greenboard product, etc.)
+*.zip
+
+# Backup files (*.bak, *.bak2, etc.)
+*.bak
+*.bak2
+*.orig
+*.rej
+*.tmp
+
+# Stray Python / debug scripts
+tmp.py
+*.pyc
+__pycache__/
+
+# Build artifacts
+.deployed-index.html
+.cake_matrices/
+
+# HyperFrames render outputs (mp4 lives in public/video)
+hf-statelaws/renders/
+hf-*/node_modules/
+hf-*/.claude/
+hf-*/renders/
+hf-*/skills-lock.json
+.tmp/
+.design-ref/
+.vercel
+
+# Generated / scratch artifacts (CI hygiene)
+graphify-out/
+_regen_tmp/
+.trash/
+.firebase/
+audit-frames/
+audit-frames-v*/
+lint_output.txt
+
 # Logs
 logs/
 *.log
@@ -46,3 +92,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Agent worktrees (never commit)
+.claude/worktrees/

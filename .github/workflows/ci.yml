@@ -1,0 +1,88 @@
+name: CI
+
+# This file MUST live at the repository root (.github/workflows/). GitHub Actions
+# only reads workflows from the root of the repo; the previous copy at
+# greenstreet_frontend/.github/workflows/ci.yml was never discovered and never ran.
+# The app is a subdirectory of the repo, so every `run` step defaults into it.
+
+on:
+  push:
+  pull_request:
+
+defaults:
+  run:
+    working-directory: greenstreet_frontend
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      # `with:` inputs are NOT affected by defaults.run.working-directory, so the
+      # cache path must be spelled relative to the repository root or npm caching
+      # silently misses on every run.
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: greenstreet_frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (tsc --noEmit)
+        run: npm run lint
+
+      - name: Test (vitest run)
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Guards the production cold-start path. api/index.js require()s a bundle
+      # emitted by `npm run build`; nothing else in CI ever resolves that
+      # specifier, so a build-output rename silently 500s every /health and
+      # /api/* request on Vercel with MODULE_NOT_FOUND. This step fails the
+      # build instead.
+      - name: Verify Vercel function entry resolves
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const entry = "api/index.js";
+            const source = fs.readFileSync(entry, "utf8");
+
+            // Static check: every require() target in the entry exists on disk.
+            const targets = [...source.matchAll(/require\(\s*["\x27](\.[^"\x27]+)["\x27]\s*\)/g)].map((m) => m[1]);
+            if (targets.length === 0) {
+              console.error(`No relative require() found in ${entry}; the guard can no longer verify it.`);
+              process.exit(1);
+            }
+            for (const target of targets) {
+              const resolved = path.resolve(path.dirname(entry), target);
+              if (!fs.existsSync(resolved)) {
+                console.error(`${entry} requires "${target}", which does not exist at ${resolved} after npm run build.`);
+                process.exit(1);
+              }
+              console.log(`ok: ${entry} -> ${target} exists at ${resolved}`);
+            }
+
+            // Dynamic check: the entry actually loads and exports a handler.
+            import(path.resolve(entry)).then((mod) => {
+              if (typeof mod.default !== "function") {
+                console.error(`${entry} must default-export a request handler; got ${typeof mod.default}.`);
+                process.exit(1);
+              }
+              console.log(`ok: ${entry} loaded and default-exports a request handler`);
+            }).catch((err) => {
+              console.error(`${entry} failed to load:`, err);
+              process.exit(1);
+            });
+          '

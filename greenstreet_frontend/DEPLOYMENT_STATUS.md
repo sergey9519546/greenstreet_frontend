@@ -1,8 +1,22 @@
+> # ⛔ SUPERSEDED — DO NOT FOLLOW THIS DOCUMENT
+>
+> **The canonical deployment runbook is [`DEPLOY.md`](./DEPLOY.md). Read that instead.**
+>
+> This file is a point-in-time snapshot from **July 15, 2026** and is retained for
+> history only. Its `Status: ⏳ Deploying...` line has been frozen for weeks and
+> reflects nothing about the current deployment; do not read it as live state.
+> Feature and test counts below were true at the time of writing and have not been
+> re-verified.
+>
+> _Marked superseded 2026-08-08._
+
+---
+
 # 🚀 DEPLOYMENT IN PROGRESS
 
 **Date:** July 15, 2026  
 **Target:** Vercel Production  
-**Status:** ⏳ Deploying...
+**Status:** ⏳ Deploying... *(frozen snapshot — see superseded notice above)*
 
 ---
 

@@ -1,9 +1,23 @@
+> # ⛔ SUPERSEDED — DO NOT FOLLOW THIS DOCUMENT
+>
+> **The canonical deployment runbook is [`DEPLOY.md`](./DEPLOY.md). Read that instead.**
+>
+> This file is a July 2026 feature changelog retained for history only. Its
+> headline metrics are a frozen snapshot, not current facts: the "357/357 tests
+> passing" claim contradicts the "372/380 passing" recorded in the sibling docs
+> from the same period, and neither number has been re-verified. Run
+> `npm test` for the real count before relying on any figure below.
+>
+> _Marked superseded 2026-08-08._
+
+---
+
 # Deployment Summary — UI Seamlessness + Advanced Metrics
 
 ## ✅ Production Ready
 
 **Build:** Clean production build in 28.5s  
-**Tests:** 357/357 passing (100%)  
+**Tests:** 357/357 passing (100%) *(stale — see superseded notice above)*  
 **TypeScript:** 0 errors  
 **Bundle Size:** 9.9MB dist/ (main entry 124KB, Firebase lazy-loaded 666KB)
 

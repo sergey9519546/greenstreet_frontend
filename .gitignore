@@ -62,3 +62,19 @@ hf-*/skills-lock.json
 .tmp/
 .design-ref/
 .vercel
+
+# ── Added 2026-08-08 (audit remediation) ─────────────────────────────────────
+# Agent worktrees: 7 near-duplicate copies of the whole repo, ~1.3 GB on disk.
+# 14,755 of them are already tracked — untracking is a separate, deliberate commit.
+.claude/worktrees/
+greenstreet_frontend/.claude/worktrees/
+
+# Hand-rolled device-sync archives and git bundles, 291 MB. One `git add -A`
+# would weld these into history irreversibly. Never commit them.
+_to_delete/
+greenstreet_frontend/_to_delete/
+*.bundle
+*.tar.gz
+
+# graphify content-hash cache — machine-generated, append-only, 1,040 files tracked.
+graphify-out/cache/

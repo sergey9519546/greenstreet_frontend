@@ -1,3 +1,17 @@
+> # ⛔ SUPERSEDED — DO NOT FOLLOW THIS DOCUMENT
+>
+> **The canonical deployment runbook is [`DEPLOY.md`](./DEPLOY.md). Read that instead.**
+>
+> This file is retained for history only. It describes a one-off July 2026
+> workaround for a deployment that timed out in a background shell; that incident
+> is over and these are not the current deploy steps. Production ships through the
+> Vercel git integration (`main` → production), not by hand from this file.
+> The "372/380 passing" figure below is a stale snapshot and has not been re-verified.
+>
+> _Marked superseded 2026-08-08._
+
+---
+
 # 🚀 MANUAL DEPLOYMENT INSTRUCTIONS
 
 **All code is ready. Deployment keeps timing out in background. Please run manually:**
