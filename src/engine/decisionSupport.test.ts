@@ -47,6 +47,18 @@ describe('computeVerdict — return-grade gate ordering', () => {
     expect(a === 'PROCEED' && d === 'PROCEED').toBe(false);
     expect(a).toBe('PROCEED');
   });
+
+  it('a BLOCKER still outranks a Grade A return ⇒ PASS', () => {
+    const r = computeVerdict({ ...clean, afterTaxIRR: 0.25, ficoScore: 600 } as typeof clean);
+    expect(r.returnGrade).toBe('A');
+    expect(r.verdict).toBe('PASS');
+  });
+
+  it('Grade F remains an unconditional PASS', () => {
+    const r = computeVerdict({ ...clean, afterTaxIRR: -0.05 } as typeof clean);
+    expect(r.returnGrade).toBe('F');
+    expect(r.verdict).toBe('PASS');
+  });
 });
 
 // afterTaxIRR passed as decimal (0.15 = 15%)
