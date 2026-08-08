@@ -24,6 +24,13 @@ const renderNavLabel = (label: string) => label === INVESTGO_TEXT ? INVESTGO_LAB
 // aria-expanded + .w--open; greenboard's `:has(> .w-dropdown-toggle[aria-expanded
 // ="true"]) > .w-dropdown-list` rule does the grid-rows reveal, same as the home.
 const NAV_DD_CSS = `
+/* Nav collapse. Webflow hides .nav-links-contain at its 991px tablet breakpoint
+   via the hide-t attribute, so the burger must appear at exactly the same width
+   and never before it. This lived as an inline display:flex on the button,
+   which beats every stylesheet rule — so the burger rendered on TOP of the full
+   desktop nav at every width. Keep display here, not inline. */
+.burger-wrap{display:none;}
+@media screen and (max-width:991px){.burger-wrap{display:flex;}}
 .burger-line{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .2s ease;}
 .burger-wrap[aria-expanded="true"] .burger-line.top{transform:translateY(6px) rotate(45deg);}
 .burger-wrap[aria-expanded="true"] .burger-line.middle{opacity:0;transform:scaleX(0);}
@@ -303,7 +310,7 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
               </a>
             </div>
           </div>
-          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: 44, minWidth: 44, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <button ref={mobileToggleRef} type="button" className="burger-wrap" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={toggleMobileMenu} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, minHeight: 44, minWidth: 44, flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
             <div className="burger-line top" aria-hidden="true"></div>
             <div className="burger-line middle" aria-hidden="true"></div>
             <div className="burger-line bottom" aria-hidden="true"></div>
