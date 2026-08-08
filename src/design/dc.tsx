@@ -354,7 +354,7 @@ export function ScenePhoto({ src, alt, caption, eyebrow, video, poster, height =
   const reduce = typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const media: React.CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" };
   return (
-    <section style={{ background: dc.teal, padding: `clamp(24px,4vh,56px) ${dc.pad}`, ...style }}>
+    <section style={{ background: dc.dark, padding: `clamp(24px,4vh,56px) ${dc.pad}`, ...style }}>
       <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
       <div style={{ position: "relative", height, borderRadius: radius.lg, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)" }}>
         {video && !reduce ? (

@@ -442,7 +442,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', background: 'rgba(238,239,211,0.06)', border: '1px solid rgba(238,239,211,0.18)', padding: '6px 13px', borderRadius: 100, marginBottom: 24 }}>
               DSCR Engine · Deterministic core
             </div>
-            <H1 style={{ fontSize: 'clamp(46px,7vw,108px)', lineHeight: 0.93, letterSpacing: '-0.045em', marginBottom: 26, color: PISTACHIO }}>
+            <H1 style={{ fontSize: 'clamp(46px,7vw,108px)', lineHeight: 1.04, letterSpacing: '-0.04em', marginBottom: 26, color: PISTACHIO }}>
               DSCR Calculator:<br/>see if rent<br/>covers the loan.
             </H1>
             <Lead style={{ color: 'rgba(238,239,211,0.68)', maxWidth: '46ch', marginBottom: 34 }}>
@@ -1094,10 +1094,15 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 <div style={{ display: 'grid', gap: 22 }}>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Monthly rent</span>
-                    <div className="calc-field" style={{ display: 'flex', alignItems: 'center' }}>
-                      <span style={{ color: 'rgba(238,239,211,0.62)' }}>$</span>
-                      <input className="gs-num" type="number" step="100" value={mRent} onChange={e => setMRent(+e.target.value)} style={{ padding: '12px 6px', fontSize: 16, fontWeight: 600 }} />
-                    </div>
+                    <CurrencyInput
+                      surface="dark"
+                      prefix="$"
+                      value={mRent}
+                      onChange={setMRent}
+                      step={100}
+                      style={{ background: PANEL, borderColor: 'rgba(238,239,211,0.2)', padding: '0 13px' }}
+                      inputStyle={{ padding: '12px 6px', fontSize: 16, fontWeight: 600 }}
+                    />
                   </label>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
@@ -1141,7 +1146,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Max purchase price at {target.toFixed(2)}x DSCR</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
                     <div>
-                      <Mono style={{ fontSize: 'clamp(42px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 0.95, display: 'block' }}>{fmt(maxPrice)}</Mono>
+                      <Mono style={{ fontSize: 'clamp(42px,6vw,80px)', fontWeight: 600, color: PISTACHIO, lineHeight: 1, display: 'block' }}>{fmt(maxPrice)}</Mono>
                       <div style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 14 }}>at {target.toFixed(2)}x target · {mRate.toFixed(3)}% · {mDown}% down</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.62)', margin: '10px 0 0', lineHeight: 1.5 }}>
                         Pay more than this and the rent won't cover the full monthly payment at the target ratio. Use this as your bid ceiling.

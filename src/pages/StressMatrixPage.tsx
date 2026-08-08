@@ -422,7 +422,7 @@ export default function StressMatrixPage({
           {/* Right: ONE cohesive live-stress card (was MotionWorkbench + heatmap) */}
           <div style={{
             background: DARK_INK, borderRadius: dc.r.lg, padding: "clamp(18px,2vw,26px)",
-            border: "1px solid rgba(0,55,56,0.2)", boxShadow: "0 18px 44px -26px rgba(0,55,56,0.55)",
+            border: "1px solid rgba(0,55,56,0.2)",
           }}>
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)" }}>
@@ -466,7 +466,7 @@ export default function StressMatrixPage({
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: LEMON, marginBottom: 12 }}>
               Guided stress simulator · preliminary estimate
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 10px", color: CREAM }}>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 10px", color: CREAM }}>
               Base{" "}
               <Mono style={{ color: CREAM }}>{baseDSCR.toFixed(2)}x</Mono>
               {" · "}
@@ -1004,7 +1004,7 @@ export default function StressMatrixPage({
                               pointerEvents: "none", background: "#001f20",
                               border: `1px solid ${ZONE_ACCENT[hoverCell.zone]}44`,
                               borderRadius: 8, padding: "10px 13px", minWidth: 176,
-                              boxShadow: "0 14px 32px -8px rgba(0,0,0,0.7)", zIndex: 20,
+                              zIndex: 20,
                             }}>
                               <div style={{ display: "flex", gap: 8, marginBottom: 7, flexWrap: "wrap", alignItems: "center" }}>
                                 <span style={{ fontSize: 11, fontWeight: 700, fontFamily: dc.mono, color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "2px 6px" }}>

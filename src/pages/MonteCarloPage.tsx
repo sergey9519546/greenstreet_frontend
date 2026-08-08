@@ -158,7 +158,7 @@ function ProbCard({
       </div>
       <Mono style={{
         fontSize: "clamp(48px,6vw,80px)", fontWeight: 600,
-        letterSpacing: "-0.04em", color, lineHeight: 0.95, display: "block",
+        letterSpacing: "-0.04em", color, lineHeight: 1, display: "block",
       }}>
         {value}
       </Mono>
@@ -203,6 +203,28 @@ function Disclosure({ label, children }: { label: string; children: React.ReactN
 // engine's horizon percentiles (year 1/3/5/10), anchored at today's rate.
 type FanPoint = { year: number; mean: number; p10: number; p90: number };
 function SofrFanChart({ points, longRun }: { points: FanPoint[]; longRun: number }) {
+  const chartRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const ctx = gsap.context(() => {
+      // Path lengths are approximate, 2000 covers it comfortably
+      gsap.fromTo(".mc-draw", 
+        { strokeDasharray: 2000, strokeDashoffset: 2000, opacity: 0 }, 
+        { strokeDashoffset: 0, opacity: 1, duration: 1.5, ease: "power2.out", stagger: 0.1 }
+      );
+      gsap.fromTo(".mc-band", 
+        { opacity: 0 }, 
+        { opacity: 0.16, duration: 1.2, ease: "power2.out", delay: 0.4 }
+      );
+      gsap.fromTo(".mc-point", 
+        { opacity: 0, scale: 0 }, 
+        { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)", stagger: 0.1, delay: 0.8, transformOrigin: "center" }
+      );
+    }, chartRef);
+    return () => ctx.revert();
+  }, [points, longRun]);
+
   const W = 520, H = 240, padL = 38, padR = 16, padT = 14, padB = 28;
   if (points.length < 2) return null;
   const xmax = Math.max(...points.map((p) => p.year)) || 1;
@@ -218,7 +240,7 @@ function SofrFanChart({ points, longRun }: { points: FanPoint[]; longRun: number
   const meanLine = points.map((p, i) => `${i === 0 ? "M" : "L"} ${X(p.year).toFixed(1)} ${Y(p.mean).toFixed(1)}`).join(" ");
   const gridY = [yMin, (yMin + yMax) / 2, yMax];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Simulated SOFR rate cone over the horizon">
+    <svg ref={chartRef} viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Simulated SOFR rate cone over the horizon">
       {gridY.map((v) => (
         <g key={v}>
           <line x1={padL} x2={W - padR} y1={Y(v)} y2={Y(v)} stroke="rgba(238,239,211,0.08)" strokeWidth="1" />
@@ -229,13 +251,13 @@ function SofrFanChart({ points, longRun }: { points: FanPoint[]; longRun: number
       <line x1={padL} x2={W - padR} y1={Y(longRun)} y2={Y(longRun)} stroke={dc.emerald} strokeWidth="1.2" strokeDasharray="4 4" opacity="0.6" />
       <text x={W - padR} y={Y(longRun) - 5} textAnchor="end" fill={dc.emerald} fontSize="10" fontWeight={700} fontFamily={dc.mono}>θ {longRun.toFixed(2)}%</text>
       {/* uncertainty band */}
-      <path d={band} fill={BLUE} fillOpacity="0.16" stroke="none" />
-      <polyline points={top.join(" ")} fill="none" stroke={BLUE} strokeOpacity="0.5" strokeWidth="1.2" />
-      <polyline points={bot.join(" ")} fill="none" stroke={BLUE} strokeOpacity="0.5" strokeWidth="1.2" />
+      <path className="mc-band" d={band} fill={BLUE} fillOpacity="0.16" stroke="none" />
+      <polyline className="mc-draw" points={top.join(" ")} fill="none" stroke={BLUE} strokeOpacity="0.5" strokeWidth="1.2" />
+      <polyline className="mc-draw" points={bot.join(" ")} fill="none" stroke={BLUE} strokeOpacity="0.5" strokeWidth="1.2" />
       {/* mean path */}
-      <path d={meanLine} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path className="mc-draw" d={meanLine} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       {points.map((p) => (
-        <g key={p.year}>
+        <g key={p.year} className="mc-point" style={{ transformBox: "fill-box" }}>
           <circle cx={X(p.year)} cy={Y(p.mean)} r="3.5" fill={BLUE} stroke={dc.dark} strokeWidth="1.5" />
           <text x={X(p.year)} y={H - 9} textAnchor="middle" fill="rgba(238,239,211,0.45)" fontSize="10" fontFamily={dc.mono}>{p.year === 0 ? "Now" : `Y${p.year}`}</text>
         </g>
@@ -418,7 +440,7 @@ export default function MonteCarloPage({
 
       {/* ── HERO ────────────────────────────────────────────────────────── */}
       <section style={{
-        position: "relative", background: dc.teal, color: dc.cream,
+        position: "relative", background: dc.dark, color: dc.cream,
         overflow: "hidden", minHeight: "clamp(480px,60vh,760px)",
         display: "flex", alignItems: "center",
       }}>
@@ -494,18 +516,18 @@ export default function MonteCarloPage({
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>
               Live Monte Carlo engine
             </div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 18px", color: dc.cream }}>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 18px", color: dc.cream }}>
               <Mono>{simulations}</Mono> paths · <Mono>{horizonYears}</Mono>yr horizon
             </h2>
-            <div style={{
+            <div className="gs-reveal" style={{
               display: "flex", alignItems: "flex-start", gap: 14,
-              background: pD1 > 20 ? risk.dangerBg : pD1 > 5 ? risk.cautionBg : "rgba(77,189,151,0.12)",
-              border: `1px solid ${pD1 > 20 ? risk.dangerBorder : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.3)"}`,
+              background: result ? (pD1 > 20 ? risk.dangerBg : pD1 > 5 ? risk.cautionBg : "rgba(77,189,151,0.12)") : "rgba(238,239,211,0.05)",
+              border: `1px solid ${result ? (pD1 > 20 ? risk.dangerBorder : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.3)") : "rgba(238,239,211,0.15)"}`,
               borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 720,
             }}>
-              <RiskFlame level={riskLevel} size={20} />
+              {result ? <RiskFlame level={riskLevel} size={20} /> : <div style={{ fontSize: 20 }}>⚠️</div>}
               <p style={{ fontSize: 14, fontWeight: 500, color: dc.cream, margin: 0, lineHeight: 1.5 }}>
-                {verdictText}
+                {result ? verdictText : "The simulation encountered invalid parameters. Please adjust the inputs to continue."}
               </p>
             </div>
           </div>
@@ -602,24 +624,24 @@ export default function MonteCarloPage({
               </div>
 
               {/* Headline probabilities — P(<1.0) dominant lemon, P(<1.25) secondary blue */}
-              <div className="mc-prob-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "stretch" }}>
+              <div className="mc-prob-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "stretch" }}>
                 <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: `1px solid ${pD1Color}44` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon }}>P(DSCR &lt; 1.0)</div>
                     <RiskFlame level={riskLevel} size={16} />
                   </div>
-                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: pD1Color, lineHeight: 0.92, display: "block" }}>{pD1.toFixed(1)}%</Mono>
+                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: pD1Color, lineHeight: 1, display: "block" }}>{pD1.toFixed(1)}%</Mono>
                   <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance the property can't cover its costs in some rate futures — below 5% is comfortable, above 20% is high-risk.</div>
                 </div>
                 <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(22px,3vw,32px)", border: "1px solid rgba(238,239,211,0.16)" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>P(DSCR &lt; 1.25)</div>
-                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 0.92, display: "block" }}>{pD125.toFixed(1)}%</Mono>
+                  <Mono style={{ fontSize: "clamp(46px,6vw,82px)", fontWeight: 700, letterSpacing: "-0.04em", color: BLUE, lineHeight: 1, display: "block" }}>{pD125.toFixed(1)}%</Mono>
                   <div style={{ fontSize: 13, color: "rgba(238,239,211,0.62)", marginTop: 12, lineHeight: 1.5 }}>chance of missing the 1.25 cushion most lenders prefer — below 30% is acceptable.</div>
                 </div>
               </div>
 
               {/* SOFR FAN CHART — the signature uncertainty cone */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(20px,2.5vw,28px)", border: "1px solid rgba(238,239,211,0.16)" }}>
+              <div className="gs-reveal" style={{ background: dc.teal, borderRadius: dc.r.md, padding: "clamp(20px,2.5vw,28px)", border: "1px solid rgba(238,239,211,0.16)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: BLUE }}>Where rates could go — {simulations} simulated SOFR paths</div>
                   <div style={{ display: "flex", gap: 14, fontSize: 11, color: "rgba(238,239,211,0.62)" }}>
@@ -634,7 +656,7 @@ export default function MonteCarloPage({
               </div>
 
               {/* Median DSCR gauge + spread — dark */}
-              <div style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
+              <div className="gs-reveal" style={{ background: dc.teal, borderRadius: dc.r.md, padding: 24, border: "1px solid rgba(238,239,211,0.16)" }}>
                 <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 24, alignItems: "center" }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 10 }}>Median DSCR</div>
@@ -713,7 +735,7 @@ export default function MonteCarloPage({
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                 Ready to move forward?
               </div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
                 Get a real rate on this deal.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>

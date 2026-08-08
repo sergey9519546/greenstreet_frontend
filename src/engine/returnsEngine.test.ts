@@ -118,8 +118,8 @@ describe("returnsEngine - IRR and Exit Proceeds", () => {
     // Rent too low to cover debt service → negative carry
     const result = computeReturns(property, loan, 1500, "LTR", 7.5, 0, 75000);
 
-    // Should still compute but IRR will be low
+    // Should still compute but IRR will be low or NaN (no positive cash flow)
     expect(result).toBeDefined();
-    expect(result.leveredIRR).toBeLessThan(15); // Not a great investment
+    expect(Number.isNaN(result.leveredIRR) || result.leveredIRR < 15).toBe(true);
   });
 });

@@ -235,7 +235,6 @@ function AggregateScoreboard() {
         background: dc.teal,
         borderRadius: dc.r.lg,
         border: `1px solid ${dc.faded}`,
-        boxShadow: "0 18px 50px -30px rgba(0,0,0,0.55)",
         padding: "clamp(28px,3.4vw,44px)",
         display: "flex",
         flexDirection: "column",
@@ -256,7 +255,7 @@ function AggregateScoreboard() {
             transition: `opacity .6s ease ${0.1 + i * 0.12}s, transform .6s cubic-bezier(.22,.7,0,1) ${0.1 + i * 0.12}s`,
           }}
         >
-          <Mono style={{ display: "block", fontSize: "clamp(34px,4.4vw,54px)", fontWeight: 700, letterSpacing: "-0.035em", color: dc.lemon, lineHeight: 1 }}>
+          <Mono style={{ display: "block", fontSize: "clamp(34px,4.4vw,54px)", fontWeight: 700, letterSpacing: "-0.03em", color: dc.lemon, lineHeight: 1 }}>
             <CountUp value={shown ? a.value : 0} prefix={a.prefix} suffix={a.suffix} group={a.group} duration={1.1} />
           </Mono>
           <div style={{ fontSize: 15, fontWeight: 600, color: dc.cream, marginTop: 8, letterSpacing: "-0.01em" }}>{a.label}</div>

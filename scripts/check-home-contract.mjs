@@ -26,16 +26,12 @@ for (const marker of contract.requiredMarkers) {
   }
 }
 
-if (index.includes('<div id="webflow-root">')) {
-  throw new Error("index.html still contains the legacy static homepage root.");
+if (!index.includes('<div id="webflow-root">')) {
+  throw new Error("index.html must contain the static homepage webflow-root.");
 }
 
 if ((index.match(/<div id="root"><\/div>/g) ?? []).length !== 1) {
   throw new Error("index.html must contain exactly one React mount root.");
-}
-
-if ((index.match(/<div id="marketing-root"><\/div>/g) ?? []).length !== 1) {
-  throw new Error("index.html must contain exactly one React homepage portal.");
 }
 
 console.log(`Homepage contract verified: ${actualHash}`);

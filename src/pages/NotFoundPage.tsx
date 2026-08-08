@@ -58,8 +58,8 @@ export default function NotFoundPage({
               margin: 0,
               color: swatch.midnight,
               fontSize: type.h1,
-              lineHeight: 0.98,
-              letterSpacing: "-.055em",
+              lineHeight: 1.04,
+              letterSpacing: "-0.04em",
             }}
           >
             This page is not part of Greenstreet.

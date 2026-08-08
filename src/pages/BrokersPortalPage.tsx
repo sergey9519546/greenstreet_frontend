@@ -135,8 +135,8 @@ export default function BrokersPortalPage({
               style={{
                 fontSize: "clamp(42px,5.4vw,82px)",
                 fontWeight: 600,
-                lineHeight: 0.98,
-                letterSpacing: "-0.035em",
+                lineHeight: 1.04,
+                letterSpacing: "-0.04em",
                 margin: "0 0 18px",
               }}
             >
@@ -398,7 +398,7 @@ export default function BrokersPortalPage({
               style={{
                 fontSize: "clamp(26px,3.2vw,44px)",
                 fontWeight: 600,
-                letterSpacing: "-0.035em",
+                letterSpacing: "-0.02em",
                 lineHeight: 1.05,
                 margin: 0,
               }}

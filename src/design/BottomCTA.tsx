@@ -24,7 +24,7 @@ export default function BottomCTA({
           <button key={i} onClick={() => onNavigate(c.view)} style={{ background: c.bg, color: c.fg || dc.dark, borderRadius: 16, padding: "clamp(32px,4vw,52px)", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 280, textAlign: "left", fontFamily: dc.sans }}>
             <div style={{ fontSize: "clamp(15px,1.4vw,19px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.3, opacity: 0.85 }}>{c.blurb}</div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 36 }}>
-              <h2 style={{ fontSize: "clamp(28px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: 0 }}>{c.title}</h2>
+              <h2 style={{ fontSize: "clamp(28px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>{c.title}</h2>
               <span style={{ fontSize: 30 }}>→</span>
             </div>
           </button>

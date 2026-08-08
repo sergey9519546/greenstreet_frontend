@@ -645,12 +645,25 @@ button,
 }
 a:focus-visible,
 button:focus-visible,
+input:focus-visible,
 [tabindex]:focus-visible,
 .w-checkbox:has(:focus-visible) .w-checkbox-input--inputType-custom,
 .w-radio:has(:focus-visible) .w-form-formradioinput--inputType-custom {
-  outline-color: var(--_theme---text);
-  outline-width: var(--focus--width);
-  outline-style: solid;
+  outline: 2px solid var(--color-lemon-lime) !important;
+  outline-offset: 2px !important;
+}
+
+.gs-field:has(input:focus-visible) {
+  outline: 2px solid var(--color-lemon-lime) !important;
+  outline-offset: 1px !important;
+}
+
+.gs-reveal {
+  animation: gs-reveal-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes gs-reveal-up {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 .w-checkbox-input--inputType-custom.w--redirected-focus,
 .w-form-formradioinput--inputType-custom.w--redirected-focus {

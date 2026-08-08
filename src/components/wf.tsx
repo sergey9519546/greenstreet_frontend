@@ -99,7 +99,7 @@ export function Card({ theme, hover = false, children, style, onClick }: CardPro
         borderRadius: radius.md, padding: "clamp(20px,2.4vw,30px)",
         transition: "border-color .18s ease, transform .18s ease, box-shadow .18s ease",
         transform: h ? "translateY(-2px)" : "none",
-        boxShadow: h ? "0 14px 40px rgba(0,0,0,0.12)" : "none",
+        boxShadow: "none",
         cursor: onClick ? "pointer" : "default", ...style,
       }}
     >{children}</div>

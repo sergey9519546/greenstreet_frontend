@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font } from "../theme";
 import BottomCTA from "../design/BottomCTA";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
 
 // ── Who-We-Serve: Vacation & Second Homes ─────────────────────────────────────
 // Signature: the Use-vs-Earn slider — split the month between nights you keep and
@@ -34,11 +35,16 @@ export default function VacationHomesPage({
   const paysForItself = net <= 0;
 
   const numIn = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
-    <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
-      <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)} style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
-    </div>
+    <CurrencyInput
+      surface="dark"
+      value={v}
+      onChange={set}
+      step={step}
+      prefix={pre}
+      suffix={suf}
+      adornmentStyle={{ fontSize: 14 }}
+      inputStyle={{ fontWeight: 600, fontSize: 15, padding: "11px 6px" }}
+    />
   );
 
   const navLinks = [

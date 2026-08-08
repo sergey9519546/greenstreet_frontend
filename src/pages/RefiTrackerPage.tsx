@@ -8,6 +8,7 @@ import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenant
 import { radius, font, risk } from "../theme";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
@@ -266,13 +267,6 @@ export default function RefiTrackerPage({
       ]}
       cta={{ label: "Check refi →", onClick: scrollToTool }}
     >
-      {/* Input spinner reset only */}
-      <style>{`
-        .rt-num::-webkit-outer-spin-button,.rt-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-        .rt-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:#eeefd3;letter-spacing:-0.02em;}
-        .rt-num:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;border-radius:3px;}
-      `}</style>
-
       {/* ── HERO — dark background (matches mockup #002423) ── */}
       <section
         id="rf-hero"
@@ -601,31 +595,16 @@ export default function RefiTrackerPage({
                   >
                     {f.label}
                   </span>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      background: dc.dark,
-                      border: "1px solid rgba(238,239,211,0.18)",
-                      borderRadius: 8,
-                      padding: "0 11px",
-                    }}
-                  >
-                    {f.prefix && (
-                      <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.prefix}</span>
-                    )}
-                    <input
-                      className="rt-num"
-                      type="number"
-                      step={f.step}
-                      value={f.value}
-                      onChange={(e) => f.set(+e.target.value)}
-                      style={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
-                    />
-                    {f.suffix && (
-                      <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.suffix}</span>
-                    )}
-                  </div>
+                  <CurrencyInput
+                    surface="dark"
+                    value={f.value}
+                    onChange={f.set}
+                    step={f.step}
+                    prefix={f.prefix}
+                    suffix={f.suffix}
+                    style={{ padding: "0 11px" }}
+                    inputStyle={{ padding: "10px 6px", fontSize: 15, fontWeight: 600 }}
+                  />
                   {f.hint && (
                     <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 4, lineHeight: 1.45, letterSpacing: 0 }}>
                       {f.hint}
@@ -923,11 +902,17 @@ export default function RefiTrackerPage({
             ].map((f) => (
               <label key={f.l} style={{ display: "block" }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)", marginBottom: 6 }}>{f.l}</span>
-                <div style={{ display: "inline-flex", alignItems: "center", background: dc.teal, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-                  {f.pre && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.pre}</span>}
-                  <input type="number" step={f.step} value={f.v} onChange={(e) => f.set(+e.target.value)} style={{ width: 140, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-                  {f.suf && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.suf}</span>}
-                </div>
+                <CurrencyInput
+                  surface="dark"
+                  value={f.v}
+                  onChange={f.set}
+                  step={f.step}
+                  prefix={f.pre}
+                  suffix={f.suf}
+                  style={{ display: "inline-flex", background: dc.teal }}
+                  adornmentStyle={{ fontSize: 14 }}
+                  inputStyle={{ width: 140, fontWeight: 600, fontSize: 15, padding: "11px 6px" }}
+                />
               </label>
             ))}
           </div>
@@ -951,7 +936,7 @@ export default function RefiTrackerPage({
       </section>
 
       {/* ── REFINANCE AT MATURITY — proceeds gap + debt covenants (Sprint 2) ── */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(48px,7vw,88px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Refinance at maturity / ARM reset</div>
           <H2 style={{ fontSize: "clamp(24px,3vw,38px)", margin: "0 0 12px", maxWidth: "22ch" }}>When the loan comes due, can the property refinance out?</H2>
@@ -965,11 +950,17 @@ export default function RefiTrackerPage({
             ].map((f) => (
               <label key={f.l} style={{ display: "block" }}>
                 <span style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(238,239,211,0.6)", marginBottom: 6 }}>{f.l}</span>
-                <div style={{ display: "inline-flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-                  {f.pre && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.pre}</span>}
-                  <input type="number" step={f.step} value={f.v} onChange={(e) => f.set(+e.target.value)} style={{ width: 150, border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-                  {f.suf && <span style={{ color: "rgba(238,239,211,0.6)", fontSize: 14 }}>{f.suf}</span>}
-                </div>
+                <CurrencyInput
+                  surface="dark"
+                  value={f.v}
+                  onChange={f.set}
+                  step={f.step}
+                  prefix={f.pre}
+                  suffix={f.suf}
+                  style={{ display: "inline-flex" }}
+                  adornmentStyle={{ fontSize: 14 }}
+                  inputStyle={{ width: 150, fontWeight: 600, fontSize: 15, padding: "11px 6px" }}
+                />
               </label>
             ))}
           </div>

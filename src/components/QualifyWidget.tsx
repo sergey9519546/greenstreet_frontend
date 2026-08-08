@@ -38,7 +38,6 @@ const WIDGET_CSS = `
   .qw-pill:hover {
     background: ${swatch.midnight} !important;
     color: ${swatch.pistachio} !important;
-    box-shadow: 0 4px 16px rgba(0,55,56,0.28) !important;
   }
   .qw-pill:active {
     transform: translateY(1px);
@@ -176,7 +175,6 @@ export default function QualifyWidget({
             fontWeight: font.bold,
             fontSize: 14,
             cursor: "pointer",
-            boxShadow: "0 2px 12px rgba(0,55,56,0.18)",
             // No perpetual animation — only a simple hover is applied via class.
             // We don't add floating/pulsing motion per brand rules.
           }}

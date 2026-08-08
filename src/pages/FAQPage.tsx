@@ -225,7 +225,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       {/* ── HERO ── */}
       <section
         style={{
-          background: dc.teal,
+          background: dc.dark,
           color: dc.cream,
           padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(48px,6vh,72px)",
           overflow: "hidden",
@@ -463,7 +463,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
       <section
         className="gs-reveal"
         style={{
-          background: dc.teal,
+          background: dc.dark,
           padding: "clamp(48px,6vw,72px) clamp(1.5rem,4vw,3rem)",
         }}
       >
@@ -485,7 +485,7 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
               fontSize: "clamp(28px,3.5vw,48px)",
               fontWeight: 600,
               lineHeight: 1.05,
-              letterSpacing: "-0.035em",
+              letterSpacing: "-0.02em",
               color: dc.cream,
               margin: "0 0 18px",
             }}

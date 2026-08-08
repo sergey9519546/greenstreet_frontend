@@ -71,7 +71,7 @@ export default function ProductLanding(p: ProductLandingProps) {
             <button key={i} onClick={() => p.onNavigate(c.view)} style={{ background: c.bg, color: c.fg || dc.dark, borderRadius: 16, padding: "clamp(32px,4vw,52px)", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 260, textAlign: "left", fontFamily: dc.sans }}>
               <div style={{ fontSize: "clamp(15px,1.4vw,19px)", fontWeight: 600, opacity: 0.7, marginBottom: 16, lineHeight: 1.35 }}>{c.blurb}</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <h2 style={{ fontSize: "clamp(26px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.035em", margin: 0 }}>{c.title}</h2>
+                <h2 style={{ fontSize: "clamp(26px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>{c.title}</h2>
                 <span style={{ fontSize: 28 }}>→</span>
               </div>
             </button>

@@ -416,8 +416,8 @@ function SpecialToolCard({
           style={{
             fontSize: "clamp(25px,2.6vw,36px)",
             lineHeight: 1,
-            letterSpacing: "-0.04em",
-            fontWeight: 650,
+            letterSpacing: "-0.02em",
+            fontWeight: 600,
             margin: "0 0 14px",
             color: dc.cream,
           }}
@@ -596,9 +596,9 @@ export default function ProductsPage({
               <h2
                 style={{
                   fontSize: "clamp(34px,4.4vw,64px)",
-                  lineHeight: 0.98,
-                  letterSpacing: "-0.045em",
-                  fontWeight: 650,
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.02em",
+                  fontWeight: 600,
                   margin: 0,
                 }}
               >

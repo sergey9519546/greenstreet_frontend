@@ -110,10 +110,6 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
           60%  { transform: scale(1.15); }
           100% { transform: scale(1); opacity: 1; }
         }
-        @keyframes hiw-pulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(77,196,255,0.55); }
-          50%     { box-shadow: 0 0 0 8px rgba(77,196,255,0); }
-        }
         .hiw-head { opacity: 0; }
         .hiw-revealed .hiw-head { animation: hiw-rise 0.7s cubic-bezier(.2,.7,.2,1) both; }
         .hiw-row { opacity: 0; }
@@ -127,7 +123,7 @@ export function HowItWorks({ onCTA }: { onCTA?: () => void }) {
         <div className="hiw-head" style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: CYAN, marginBottom: "14px" }}>
           How it works
         </div>
-        <h2 className="hiw-head" style={{ animationDelay: "0.08s", fontSize: "clamp(30px, 4vw, 52px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.08, marginBottom: "14px", maxWidth: "760px" }}>
+        <h2 className="hiw-head" style={{ animationDelay: "0.08s", fontSize: "clamp(30px, 4vw, 52px)", fontWeight: 600, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.08, marginBottom: "14px", maxWidth: "760px" }}>
           Five steps. One application. Your deal — funded.
         </h2>
         <p className="hiw-head" style={{ animationDelay: "0.16s", fontSize: "18px", color: ICE, opacity: 0.85, maxWidth: "640px", lineHeight: 1.6, marginBottom: "clamp(40px, 5vw, 64px)" }}>

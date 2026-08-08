@@ -84,6 +84,24 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     canonicalPath: "/borrower-profiles",
     jsonLdKind: "WebPage",
   },
+  "non-us-investors": {
+    title: "Foreign National & ITIN DSCR Loans | Greenstreet Finance",
+    description: "Explore DSCR loan qualification guidelines for non-US citizens, foreign nationals, and ITIN borrowers.",
+    canonicalPath: "/non-us-investors",
+    jsonLdKind: "WebPage",
+  },
+  "str-hosts": {
+    title: "Short-Term Rental & Airbnb DSCR Loans | Greenstreet Finance",
+    description: "Underwrite short-term rental properties using AirDNA or 1007 fair market rent estimates for DSCR loans.",
+    canonicalPath: "/str-airbnb",
+    jsonLdKind: "WebPage",
+  },
+  "vacation-homes": {
+    title: "Vacation Home & Second Home DSCR Loans | Greenstreet Finance",
+    description: "Explore DSCR financing options for vacation rental properties and second home real estate investments.",
+    canonicalPath: "/vacation-homes",
+    jsonLdKind: "WebPage",
+  },
   brokers: {
     title: "For Brokers | Greenstreet Finance",
     description: "Learn how Greenstreet Finance supports brokers evaluating business-purpose DSCR scenarios.",

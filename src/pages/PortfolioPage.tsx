@@ -200,6 +200,9 @@ export default function PortfolioPage({
       <style>{`
         .pf-in::-webkit-outer-spin-button,.pf-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .pf-in{width:68px;border:none;background:${dc.cream};outline:none;font-family:${dc.mono};color:${dc.dark};text-align:right;border-radius:5px;padding:6px 8px;font-size:13px;font-weight:600;}
+        /* These cells are bare chips, not the shared bordered field, so they need
+           their own keyboard ring — same lemon outline the primitive uses. */
+        .pf-in:focus-visible{outline:2px solid ${dc.lemon};outline-offset:2px;}
         .pf-row:hover{background:rgba(0,55,56,0.03);}
         .dc-nav a{color:rgba(0,55,56,0.72) !important;}
         .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
@@ -223,7 +226,7 @@ export default function PortfolioPage({
       <section
         id="pf-tool"
         style={{
-          background: dc.teal,
+          background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
           borderTop: `1px solid ${dc.faded}`,
@@ -237,7 +240,7 @@ export default function PortfolioPage({
               Live portfolio aggregator
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap", marginBottom: 10 }}>
-              <h1 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: 0, color: dc.cream }}>
+              <h1 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.04, margin: 0, color: dc.cream }}>
                 Blended DSCR{" "}
                 {rows.length === 0 ? (
                   <Mono style={{ color: "rgba(238,239,211,0.3)" }}>—</Mono>
@@ -741,7 +744,7 @@ export default function PortfolioPage({
               <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>
                 Ready to finance your portfolio?
               </div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>
                 Greenstreet underwrites your entire book — one application.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>

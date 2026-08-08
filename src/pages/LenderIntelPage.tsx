@@ -190,7 +190,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
       {/* ── HERO — dark-teal, two-col: copy left / live deal summary right ── */}
       <section
         style={{
-          background: dc.teal,
+          background: dc.dark,
           color: dc.cream,
           padding: "clamp(56px,7vh,96px) clamp(1.5rem,4vw,3rem) clamp(56px,7vh,88px)",
           overflow: "hidden",
@@ -498,7 +498,6 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 const statusLabel = p.fits ? "FITS" : p.passed >= 3 ? `${4 - p.passed} miss` : "NO FIT";
                 const cardBg = p.fits ? dc.teal : "rgba(238,239,211,0.04)";
                 const cardBorder = p.fits ? "rgba(77,189,151,0.5)" : "rgba(238,239,211,0.1)";
-                const glow = p.fits ? "0 4px 24px rgba(77,189,151,0.15), inset 0 1px 0 rgba(255,255,255,0.05)" : "none";
 
                 return (
                   <div
@@ -514,8 +513,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                       border: `1px solid ${cardBorder}`,
                       borderRadius: radius.md,
                       padding: "clamp(16px,2vw,24px) 24px",
-                      boxShadow: glow,
-                      transition: "transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s cubic-bezier(0.16,1,0.3,1)",
+                      transition: "transform 0.2s cubic-bezier(0.16,1,0.3,1)",
                     }}
                   >
                     {/* Rank */}
@@ -680,7 +678,6 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 border: `2px solid ${swatch.lemon}`,
                 borderRadius: radius.md,
                 padding: "16px 24px",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                 display: "flex",
                 alignItems: "center",
                 gap: 16,
@@ -715,7 +712,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             {/* Comparison table (when 2-3 selected) */}
             {selectedPrograms.length >= 2 && (
               <div style={{ marginTop: 24, background: swatch.midnight, border: `2px solid ${swatch.lemon}`, borderRadius: radius.md, padding: 24, overflow: "auto" }}>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: dc.cream, marginBottom: 16, letterSpacing: "-0.02em" }}>
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: dc.cream, marginBottom: 16, letterSpacing: "-0.02em" }}>
                   Side-by-Side Comparison
                 </h3>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -775,7 +772,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ marginBottom: 28, maxWidth: "62ch" }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Beyond the rate</div>
-            <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: 0, color: dc.dark, lineHeight: 1.05 }}>Two lenders, two rates — which actually costs less?</h2>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0, color: dc.dark, lineHeight: 1.05 }}>Two lenders, two rates — which actually costs less?</h2>
           </div>
           <TrueCostComparator accent={dc.rain} />
         </div>
@@ -799,7 +796,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 style={{
                   fontSize: "clamp(28px,3.5vw,48px)",
                   fontWeight: 600,
-                  letterSpacing: "-0.035em",
+                  letterSpacing: "-0.02em",
                   margin: "0 0 16px",
                   color: dc.cream,
                   lineHeight: 1.05,

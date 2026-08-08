@@ -1602,7 +1602,7 @@ function ArticleBody({ blocks }: { blocks: { p?: string; h?: string; q?: string;
           </h2>
         );
         if (b.q) return (
-          <h3 key={i} style={{ color: dc.dark, fontSize: "clamp(17px,1.5vw,20px)", fontWeight: 700, margin: "24px 0 8px", lineHeight: 1.25 }}>
+          <h3 key={i} style={{ color: dc.dark, fontSize: "clamp(17px,1.5vw,20px)", fontWeight: 600, margin: "24px 0 8px", lineHeight: 1.25 }}>
             {b.q}
           </h3>
         );

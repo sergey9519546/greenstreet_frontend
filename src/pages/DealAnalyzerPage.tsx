@@ -181,8 +181,14 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
         .da-num::-webkit-outer-spin-button,.da-num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .da-num{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.dark};letter-spacing:-0.02em;}
         .da-field{display:flex;align-items:center;background:${swatch.pistachio};border:1.5px solid ${swatch.midnightFaded};border-radius:${radius.sm};padding:0 12px;transition:border-color .15s;}
-        .da-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;border-radius:${radius.sm};}
-        .da-field:hover:not(:focus-within){border-color:rgba(0,55,56,0.35);}
+        .da-field:has(input:focus-visible){border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;border-radius:${radius.sm};}
+        .da-field:hover:not(:has(input:focus-visible)){border-color:rgba(0,55,56,0.35);}
+        .da-toggle-btn { border: none; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; }
+        .da-toggle-btn[aria-pressed="true"] { background: ${dc.dark}; color: ${dc.cream}; }
+        .da-toggle-btn[aria-pressed="false"] { background: transparent; color: ${dc.dark}; }
+        .da-toggle-btn[aria-pressed="false"]:hover { background: rgba(0,55,56,0.05); }
+        .da-program-row { padding: 12px 14px; border-radius: ${radius.sm}; border-bottom: 1px solid rgba(0,55,56,0.05); transition: all 0.2s ease; margin-bottom: 4px; }
+        .da-program-row:hover { background: rgba(0,55,56,0.03); transform: translateY(-1px); }
         .dc-nav a{color:rgba(0,55,56,0.72) !important;}
         .dc-nav a[style*="background"]{color:${dc.cream} !important;}
         .dc-nav a.dc-cta{background:${dc.dark} !important;color:${dc.cream} !important;}
@@ -283,8 +289,8 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
             </div>
             {/* floating verdict badge */}
-            <div className="da-verdict-badge" style={{ position: "absolute", bottom: -16, left: -12, background: dc.lemon, borderRadius: 10, padding: "16px 20px", zIndex: 2 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 3 }}>Deal verdict</div>
+            <div className="da-verdict-badge gs-reveal" style={{ position: "absolute", bottom: -20, left: -20, background: dc.lemon, borderRadius: 12, padding: "20px 24px", zIndex: 2, boxShadow: "0 12px 32px rgba(0,0,0,0.18)", border: "1px solid rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(0,55,56,0.6)", marginBottom: 3 }}>Deal verdict</div>
               <Mono style={{ display: "block", fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", color: dc.dark, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor, marginTop: 3 }}>{vLabel}</div>
             </div>
@@ -299,7 +305,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <div className="print-only print-header" style={{ display: "none" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
               <div>
-                <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 4px", color: "#003738" }}>GREENSTREET FINANCE</h1>
+                <h1 style={{ fontSize: 24, fontWeight: 600, margin: "0 0 4px", color: "#003738" }}>GREENSTREET FINANCE</h1>
                 <div style={{ fontSize: 14, fontWeight: 600, color: "#039692" }}>EXECUTIVE INVESTMENT UNDERWRITING MEMORANDUM</div>
               </div>
               <div style={{ textAlign: "right", fontSize: 11, color: "#555" }}>
@@ -312,7 +318,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           {/* Section header */}
           <div className="gs-reveal" style={{ marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Live deal analyzer</div>
-            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
+            <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
             <p style={{ fontSize: 15, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.6, maxWidth: "60ch" }}>
               Adjust any number and the DSCR, cash flow, and matched programs update instantly. Estimates are fine.
             </p>
@@ -328,39 +334,19 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <div style={{ display: "inline-flex", background: "rgba(0,55,56,0.06)", padding: 3, borderRadius: radius.sm, border: "1px solid rgba(0,55,56,0.1)" }}>
                   <button
                     type="button"
+                    className="da-toggle-btn"
                     aria-pressed={isQuickMode}
                     aria-label="Switch to 60-Second Quick Mode"
                     onClick={() => setIsQuickMode(true)}
-                    style={{
-                      border: "none",
-                      background: isQuickMode ? dc.dark : "transparent",
-                      color: isQuickMode ? dc.cream : dc.dark,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: "4px 10px",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
                   >
                     ⚡ 60s Quick
                   </button>
                   <button
                     type="button"
+                    className="da-toggle-btn"
                     aria-pressed={!isQuickMode}
                     aria-label="Switch to Full Pro Mode"
                     onClick={() => setIsQuickMode(false)}
-                    style={{
-                      border: "none",
-                      background: !isQuickMode ? dc.dark : "transparent",
-                      color: !isQuickMode ? dc.cream : dc.dark,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: "4px 10px",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
                   >
                     ⚙️ Full Pro
                   </button>
@@ -441,7 +427,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <RiskFlame level={riskLevel} size={22} />
-                    <Mono style={{ fontSize: "clamp(48px,6vw,80px)", fontWeight: 600, letterSpacing: "-0.04em", color: dc.dark, lineHeight: 0.9 }}>
+                    <Mono style={{ fontSize: "clamp(48px,6vw,80px)", fontWeight: 600, letterSpacing: "-0.04em", color: dc.dark, lineHeight: 1 }}>
                       {dscr.toFixed(2)}x
                     </Mono>
                     <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: verdictColor, alignSelf: "flex-end", paddingBottom: 4 }}>
@@ -559,7 +545,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               </div>
 
               {/* AI UNDERWRITER CREDIT MEMO */}
-              <div className="gs-reveal print-card" style={{ background: swatch.white, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1.5px solid ${swatch.midnightFaded}` }}>
+              <div className="gs-reveal print-card" style={{ background: `linear-gradient(145deg, ${swatch.white} 0%, rgba(238,239,211,0.2) 100%)`, borderRadius: radius.md, padding: "clamp(24px,3vw,32px)", border: `1.5px solid ${swatch.midnightFaded}`, boxShadow: "0 4px 12px rgba(0,55,56,0.03)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: dc.rain }}>
                     🧠 AI Underwriter Credit Memo
@@ -628,7 +614,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 4 }}>Matched programs</div>
                 <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 12px", lineHeight: 1.4 }}>Indicative rate offsets from the input rate. Best-tier pricing requires DSCR ≥ 1.25 and FICO ≥ 740.</p>
                 {programs.map((p, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(0,55,56,0.07)" }}>
+                  <div key={i} className="da-program-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <span style={{ fontSize: 14, fontWeight: 600, color: dc.dark }}>{p.name}</span>
                     <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.rain }}>{p.rateStr}</Mono>
                   </div>
@@ -656,7 +642,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Next step</div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers look good? Get your rate.</h2>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers look good? Get your rate.</h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
                 One application. We match your file to the best-fit Greenstreet program and take it to funding — no portal-hopping, no repeated paperwork.
               </p>

@@ -381,7 +381,7 @@ export default function AboutPage({
               style={{
                 fontSize: "clamp(28px,3.5vw,48px)",
                 fontWeight: 600,
-                letterSpacing: "-0.035em",
+                letterSpacing: "-0.02em",
                 lineHeight: 1.0,
                 margin: 0,
                 maxWidth: "22ch",
@@ -465,7 +465,7 @@ export default function AboutPage({
               style={{
                 fontSize: "clamp(34px,5vw,76px)",
                 fontWeight: 600,
-                letterSpacing: "-0.035em",
+                letterSpacing: "-0.02em",
                 lineHeight: 1.0,
                 margin: "0 auto",
                 maxWidth: "18ch",
@@ -574,7 +574,7 @@ export default function AboutPage({
               style={{
                 fontSize: "clamp(32px,4vw,56px)",
                 fontWeight: 600,
-                letterSpacing: "-0.035em",
+                letterSpacing: "-0.02em",
                 lineHeight: 1.0,
                 margin: "0 0 28px",
               }}

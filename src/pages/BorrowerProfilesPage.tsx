@@ -200,9 +200,9 @@ const PAGE_CSS = `
   max-width: 12.5ch;
   margin: 0;
   font-size: clamp(52px, 7.1vw, 92px);
-  line-height: 0.92;
+  line-height: 1.04;
   letter-spacing: -0.03em;
-  font-weight: 700;
+  font-weight: 600;
   text-wrap: balance;
 }
 .bp-hero-lead {
@@ -290,9 +290,9 @@ const PAGE_CSS = `
 .bp-section h2 {
   margin: 0;
   font-size: clamp(36px, 5vw, 76px);
-  line-height: 0.96;
+  line-height: 1.1;
   letter-spacing: -0.03em;
-  font-weight: 700;
+  font-weight: 600;
   text-wrap: balance;
 }
 .bp-section-copy { margin: 0; max-width: 58ch; color: rgba(0,55,56,0.68); font-size: 17px; line-height: 1.5; letter-spacing: 0; }
@@ -341,7 +341,6 @@ const PAGE_CSS = `
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(238,239,211,0.16);
-  box-shadow: 0 24px 80px rgba(0,55,56,0.18);
 }
 .bp-dossier-top {
   display: grid;
@@ -352,9 +351,9 @@ const PAGE_CSS = `
 .bp-dossier-main h3 {
   margin: 14px 0 0;
   font-size: clamp(34px, 4.8vw, 68px);
-  line-height: 0.95;
+  line-height: 1.2;
   letter-spacing: -0.03em;
-  font-weight: 700;
+  font-weight: 600;
 }
 .bp-dossier-fit { max-width: 62ch; margin: 18px 0 0; color: rgba(238,239,211,0.72); font-size: 17px; line-height: 1.48; letter-spacing: 0; }
 .bp-mini-label { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: ${dc.lemon}; }
@@ -427,7 +426,7 @@ const PAGE_CSS = `
   color: ${dc.dark};
 }
 .bp-card.is-active .bp-card-icon { background: ${dc.lemon}; color: ${dc.dark}; }
-.bp-card h3 { margin: 24px 0 9px; font-size: clamp(24px, 2.6vw, 38px); line-height: 1; letter-spacing: -0.025em; font-weight: 700; }
+.bp-card h3 { margin: 24px 0 9px; font-size: clamp(24px, 2.6vw, 38px); line-height: 1; letter-spacing: -0.025em; font-weight: 600; }
 .bp-card p { margin: 0; color: rgba(0,55,56,0.66); font-size: 14px; line-height: 1.48; letter-spacing: 0; }
 .bp-card.is-active p { color: rgba(238,239,211,0.70); }
 .bp-card-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
@@ -473,7 +472,7 @@ const PAGE_CSS = `
   gap: clamp(28px, 5vw, 80px);
   align-items: end;
 }
-.bp-close h2 { margin: 0; max-width: 12ch; font-size: clamp(42px, 6vw, 92px); line-height: 0.94; letter-spacing: -0.03em; }
+.bp-close h2 { margin: 0; max-width: 12ch; font-size: clamp(42px, 6vw, 92px); line-height: 1.1; letter-spacing: -0.03em; }
 .bp-close p { margin: 18px 0 0; max-width: 54ch; color: rgba(238,239,211,0.70); font-size: 17px; line-height: 1.48; letter-spacing: 0; }
 .bp-close-panel { border-top: 1px solid rgba(238,239,211,0.20); padding-top: 22px; }
 .bp-close-panel .bp-actions { margin-top: 22px; }

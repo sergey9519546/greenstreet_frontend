@@ -60,7 +60,6 @@ const BOOK_DEMO_CSS = `
     color: ${dc.cream};
     background: ${dc.dark};
     border: 1px solid rgba(238, 239, 211, .16);
-    box-shadow: 0 28px 72px rgba(0, 55, 56, .16);
   }
   .bd-card-head {
     padding: clamp(28px, 5vw, 52px);

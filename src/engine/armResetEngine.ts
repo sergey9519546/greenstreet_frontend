@@ -27,6 +27,12 @@ import type {
 } from './types';
 import { calculatePI, calculatePaymentFactor } from './engine';
 import { vintageAsOf } from './dataVintage';
+import {
+  buildAmortizationSchedule,
+  addMonthsToIsoDate,
+  type AmortizationSchedule,
+  type RateStep,
+} from './amortization';
 
 // ============================================================
 // CURRENT MARKET SNAPSHOT — Verified June 17, 2026
@@ -128,11 +134,15 @@ export const DEFAULT_ARM_PROGRAMS: Record<string, ARMTerms> = {
  *     the lifetime cap or converged to index + margin)
  *   - `yearsToLifetimeCap`: years until the rate hits lifetime cap, or null
  */
+export type ARMCapBinding = 'NONE' | 'INITIAL_CAP' | 'PERIODIC_CAP' | 'LIFETIME_CAP' | 'FLOOR';
+
 export interface ARMResetTrajectoryPoint {
   resetNumber: number;       // 1 = first reset
   year: number;              // year of reset (from loan origination)
   rate: number;              // rate after this reset
-  capBinding: 'NONE' | 'INITIAL_CAP' | 'PERIODIC_CAP' | 'LIFETIME_CAP' | 'FLOOR';
+  capBinding: ARMCapBinding;
+  /** Which way the rate moved at this reset. Caps bind in BOTH directions. */
+  direction: 'UP' | 'DOWN' | 'FLAT';
 }
 
 export interface ARMResetLadderResult {
@@ -140,6 +150,76 @@ export interface ARMResetLadderResult {
   stabilizedRate: number;          // final rate after the ladder settles
   yearsToLifetimeCap: number | null;
   lifetimeCapRate: number;         // initial + lifetimeCap
+}
+
+/** Tolerance for "the cap is exactly binding" — rates are quoted in eighths. */
+const CAP_EPS = 1e-6;
+
+export interface ARMResetCapResult {
+  rate: number;
+  capBinding: ARMCapBinding;
+  direction: 'UP' | 'DOWN' | 'FLAT';
+  /** index + margin, before any cap or floor. */
+  fullyIndexedRate: number;
+}
+
+/**
+ * Apply one reset's caps to the fully-indexed rate, in contract order.
+ *
+ * A DSCR ARM note caps the change at EVERY change date, and the cap is
+ * symmetric — the standard clause reads "will never increase or decrease on any
+ * single Change Date by more than X percentage points". The previous
+ * implementation only capped increases, so a falling index let the rate drop
+ * straight to fully-indexed in a single reset. That understates the payment on
+ * the way down and misstates every DSCR that depends on it.
+ *
+ * Order (this is the order the note applies them in, and it matters):
+ *   1. periodic band — clamp to prevRate ± cap, where cap is the FIRST-reset
+ *      cap on reset 1 and the periodic cap on every reset after it;
+ *   2. lifetime ceiling — initial rate + lifetime cap;
+ *   3. contractual floor — applied last, so it can never be capped away.
+ *
+ * Reversing 1 and 2 would let a rate jump the full distance to the lifetime cap
+ * in one reset, which no ARM contract permits.
+ */
+export function applyResetCaps(
+  armTerms: ARMTerms,
+  prevRate: number,
+  fullyIndexedRate: number,
+  isFirstReset: boolean,
+): ARMResetCapResult {
+  const periodCap = isFirstReset ? armTerms.initialCapPct : armTerms.periodicCapPct;
+  const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
+
+  const upperByPeriod = prevRate + periodCap;
+  const lowerByPeriod = prevRate - periodCap;
+
+  // 1. periodic band (both directions)
+  let rate = Math.min(Math.max(fullyIndexedRate, lowerByPeriod), upperByPeriod);
+  const periodCapBoundUp = fullyIndexedRate > upperByPeriod + CAP_EPS;
+  const periodCapBoundDown = fullyIndexedRate < lowerByPeriod - CAP_EPS;
+
+  // 2. lifetime ceiling
+  const lifetimeBound = rate > lifetimeCapRate + CAP_EPS;
+  if (lifetimeBound) rate = lifetimeCapRate;
+
+  // 3. contractual floor — last, so nothing can cap below it
+  const floorBound = rate < armTerms.floorRate - CAP_EPS;
+  if (floorBound) rate = armTerms.floorRate;
+
+  let capBinding: ARMCapBinding = 'NONE';
+  if (floorBound) capBinding = 'FLOOR';
+  else if (lifetimeBound || rate >= lifetimeCapRate - CAP_EPS) {
+    capBinding = fullyIndexedRate > rate + CAP_EPS ? 'LIFETIME_CAP' : 'NONE';
+  }
+  if (capBinding === 'NONE' && (periodCapBoundUp || periodCapBoundDown)) {
+    capBinding = isFirstReset ? 'INITIAL_CAP' : 'PERIODIC_CAP';
+  }
+
+  const direction =
+    rate > prevRate + CAP_EPS ? 'UP' : rate < prevRate - CAP_EPS ? 'DOWN' : 'FLAT';
+
+  return { rate, capBinding, direction, fullyIndexedRate };
 }
 
 export function simulateARMResetLadder(
@@ -154,10 +234,9 @@ export function simulateARMResetLadder(
   );
 
   const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
-  const fullyIndexedRate = Math.max(
-    armTerms.floorRate,
-    sustainedIndexPct + armTerms.marginPct,
-  );
+  // NOTE: the floor is deliberately NOT folded in here. It is applied after the
+  // caps inside applyResetCaps, which is the order the note uses.
+  const fullyIndexedRate = sustainedIndexPct + armTerms.marginPct;
 
   const trajectory: ARMResetTrajectoryPoint[] = [];
   let prevRate = armTerms.initialRate;
@@ -165,29 +244,16 @@ export function simulateARMResetLadder(
 
   for (let i = 1; i <= maxResets; i++) {
     const year = armTerms.fixedPeriodMonths / 12 + (i - 1) * resetPeriodYears;
-    let newRate: number;
-    let capBinding: ARMResetTrajectoryPoint['capBinding'];
+    const applied = applyResetCaps(armTerms, prevRate, fullyIndexedRate, i === 1);
+    const newRate = applied.rate;
 
-    if (i === 1) {
-      // First reset: bounded by initial + initialCap
-      const ceiling = armTerms.initialRate + armTerms.initialCapPct;
-      newRate = Math.min(fullyIndexedRate, ceiling);
-      newRate = Math.max(newRate, armTerms.floorRate);
-      capBinding =
-        newRate >= ceiling ? 'INITIAL_CAP' :
-        newRate <= armTerms.floorRate ? 'FLOOR' : 'NONE';
-    } else {
-      // Subsequent resets: bounded by prev + periodicCap, ceiling = lifetime cap
-      const ceiling = Math.min(prevRate + armTerms.periodicCapPct, lifetimeCapRate);
-      newRate = Math.min(fullyIndexedRate, ceiling);
-      newRate = Math.max(newRate, armTerms.floorRate);
-      capBinding =
-        newRate >= lifetimeCapRate ? 'LIFETIME_CAP' :
-        newRate >= prevRate + armTerms.periodicCapPct - 0.0001 ? 'PERIODIC_CAP' :
-        newRate <= armTerms.floorRate ? 'FLOOR' : 'NONE';
-    }
-
-    trajectory.push({ resetNumber: i, year: Math.round(year * 10) / 10, rate: Math.round(newRate * 1000) / 1000, capBinding });
+    trajectory.push({
+      resetNumber: i,
+      year: Math.round(year * 10) / 10,
+      rate: Math.round(newRate * 1000) / 1000,
+      capBinding: applied.capBinding,
+      direction: applied.direction,
+    });
 
     if (yearsToLifetimeCap === null && newRate >= lifetimeCapRate - 0.0001) {
       yearsToLifetimeCap = year;
@@ -247,13 +313,14 @@ export function computeARMReset(
 ): ARMResetResult {
   const currentIndex = getIndexValue(armTerms.index, marketSnapshot);
 
-  // Scenario 1: First reset at current index — capped at initialCap
-  const rawCurrentResetRate = currentIndex + armTerms.marginPct;
-  const currentResetRateBeforeFloor = Math.min(
-    rawCurrentResetRate,
-    armTerms.initialRate + armTerms.initialCapPct,
-  );
-  const resetRateAtCurrentIndex = Math.max(currentResetRateBeforeFloor, armTerms.floorRate);
+  // Scenario 1: First reset at current index — first-reset cap applied in BOTH
+  // directions, then lifetime ceiling, then floor (see applyResetCaps).
+  const resetRateAtCurrentIndex = applyResetCaps(
+    armTerms,
+    armTerms.initialRate,
+    currentIndex + armTerms.marginPct,
+    /* isFirstReset */ true,
+  ).rate;
 
   // Scenario 2: Stress — simulate the full reset ladder under sustained stress
   // SOFR = 5.0% for the entire reset horizon. Each reset applies per-period cap.
@@ -865,4 +932,234 @@ export function computeRefiTriggerRate(
     breakEvenMonths,
     recommendation,
   };
+}
+
+// ============================================================
+// FULL ARM AMORTIZATION SCHEDULE (index · margin · caps · reset dates · IO)
+// ============================================================
+//
+// Everything above answers "what rate?". This answers "what payment, on what
+// balance, in which month" — the schedule an ARM file actually needs.
+//
+// Payment shock on an ARM is not one event. It is up to three, and they can
+// land on the same month:
+//   1. the interest-only period expires and the loan starts amortizing,
+//   2. the fixed period ends and the rate resets to index + margin, capped,
+//   3. every periodic reset afterwards.
+//
+// A closed-form remaining-balance formula cannot see any of this: it assumes a
+// single rate and no IO. The schedule below walks the loan month by month with
+// the reset ladder expressed as rate steps, so the balance at reset — and the
+// payment computed from it — are the real ones.
+
+export interface ARMScheduleInput {
+  loanAmount: number;
+  armTerms: ARMTerms;
+  /** Total amortization term in months. Default 360. */
+  termMonths?: number;
+  /** Interest-only months at the front of the term. Default 0. */
+  ioMonths?: number;
+  /**
+   * The index level assumed to hold from the first reset onward, in percent.
+   * This is the loan-specific input the tool must collect — not a library
+   * average.
+   */
+  sustainedIndexPct: number;
+  /** ISO date the loan funded, e.g. '2024-03-01'. Optional; dates the resets. */
+  originationDate?: string;
+  /**
+   * ISO date of the FIRST rate change. When supplied it overrides
+   * `fixedPeriodMonths` for dating purposes only — the month index still comes
+   * from the note's fixed period so the schedule and the ladder cannot diverge.
+   */
+  firstResetDate?: string;
+}
+
+export interface ARMResetEvent {
+  resetNumber: number;
+  /** 1-based month of the loan at which the new rate takes effect. */
+  month: number;
+  /** ISO date of the reset, or null when no origination date was supplied. */
+  date: string | null;
+  priorRatePct: number;
+  ratePct: number;
+  fullyIndexedRatePct: number;
+  capBinding: ARMCapBinding;
+  direction: 'UP' | 'DOWN' | 'FLAT';
+  paymentBefore: number;
+  paymentAfter: number;
+  paymentChangePct: number;
+  balanceAtReset: number;
+}
+
+export interface ARMScheduleResult {
+  /** The shared month-by-month schedule — the same type every tool consumes. */
+  schedule: AmortizationSchedule;
+  ladder: ARMResetLadderResult;
+  rateSteps: RateStep[];
+  resets: ARMResetEvent[];
+  /** Month the IO period ends and amortization begins; null when there is none. */
+  ioExpiryMonth: number | null;
+  ioExpiryDate: string | null;
+  ioExpiryPaymentChangePct: number | null;
+  firstResetMonth: number;
+  firstResetDate: string | null;
+  /** Largest single-month payment increase anywhere in the schedule, in percent. */
+  worstPaymentChangePct: number;
+  /** The month that increase happens. */
+  worstPaymentChangeMonth: number | null;
+  lifetimeCapRate: number;
+  /**
+   * True when the IO recast and a rate reset land within 12 months of each
+   * other — the compounding event that breaks IO+ARM files.
+   */
+  doubleShock: boolean;
+}
+
+/**
+ * Build the complete ARM schedule: interest-only period, the IO -> amortizing
+ * transition, and every capped reset, re-amortized over the remaining term.
+ */
+export function buildARMSchedule(input: ARMScheduleInput): ARMScheduleResult {
+  const { armTerms } = input;
+  const termMonths = Math.max(1, Math.round(input.termMonths ?? 360));
+  const ioMonths = Math.min(Math.max(Math.round(input.ioMonths ?? 0), 0), termMonths);
+  const loanAmount = Number(input.loanAmount);
+
+  if (!Number.isFinite(loanAmount) || loanAmount <= 0) {
+    throw new Error('buildARMSchedule: loanAmount must be a positive, finite number.');
+  }
+
+  const resetFrequency = Math.max(1, Math.round(armTerms.resetFrequencyMonths || 6));
+  const firstResetMonth = Math.max(1, Math.round(armTerms.fixedPeriodMonths)) + 1;
+
+  // Walk the ladder over the WHOLE term, not a 10-year window, so a 30-year
+  // schedule carries a rate for every month it actually has.
+  const ladder = simulateARMResetLadder(armTerms, input.sustainedIndexPct, termMonths / 12);
+
+  const rateSteps: RateStep[] = ladder.trajectory
+    .map((point) => ({
+      month: firstResetMonth + (point.resetNumber - 1) * resetFrequency,
+      annualRatePct: point.rate,
+      label: `Reset ${point.resetNumber} · ${point.capBinding.replace(/_/g, ' ').toLowerCase()}`,
+    }))
+    .filter((step) => step.month <= termMonths);
+
+  const schedule = buildAmortizationSchedule({
+    principal: loanAmount,
+    annualRatePct: armTerms.initialRate,
+    termMonths,
+    ioMonths,
+    rateSteps,
+  });
+
+  const dateAnchor = input.originationDate ?? null;
+  const isoAt = (month: number): string | null =>
+    dateAnchor ? addMonthsToIsoDate(dateAnchor, month - 1) : null;
+
+  const resets: ARMResetEvent[] = [];
+  let priorRate = armTerms.initialRate;
+  const fullyIndexed = input.sustainedIndexPct + armTerms.marginPct;
+
+  for (const point of ladder.trajectory) {
+    const month = firstResetMonth + (point.resetNumber - 1) * resetFrequency;
+    if (month > termMonths) break;
+    const row = schedule.rows[month - 1];
+    const before = month > 1 ? schedule.rows[month - 2].payment : 0;
+    const after = row.payment;
+    resets.push({
+      resetNumber: point.resetNumber,
+      month,
+      date:
+        point.resetNumber === 1 && input.firstResetDate
+          ? input.firstResetDate
+          : isoAt(month),
+      priorRatePct: priorRate,
+      ratePct: point.rate,
+      fullyIndexedRatePct: fullyIndexed,
+      capBinding: point.capBinding,
+      direction: point.direction,
+      paymentBefore: before,
+      paymentAfter: after,
+      paymentChangePct: before > 0 ? ((after - before) / before) * 100 : 0,
+      balanceAtReset: row.openingBalance,
+    });
+    priorRate = point.rate;
+  }
+
+  const ioExpiryMonth = ioMonths > 0 && ioMonths < termMonths ? ioMonths + 1 : null;
+  const ioExpiryChange =
+    ioExpiryMonth !== null
+      ? schedule.paymentChanges.find((c) => c.month === ioExpiryMonth) ?? null
+      : null;
+
+  let worstPaymentChangePct = 0;
+  let worstPaymentChangeMonth: number | null = null;
+  for (const change of schedule.paymentChanges) {
+    if (change.reason === 'ORIGINATION') continue;
+    if (change.changePct > worstPaymentChangePct) {
+      worstPaymentChangePct = change.changePct;
+      worstPaymentChangeMonth = change.month;
+    }
+  }
+
+  const doubleShock =
+    ioExpiryMonth !== null && resets.some((r) => Math.abs(r.month - ioExpiryMonth) <= 12);
+
+  return {
+    schedule,
+    ladder,
+    rateSteps,
+    resets,
+    ioExpiryMonth,
+    ioExpiryDate: ioExpiryMonth !== null ? isoAt(ioExpiryMonth) : null,
+    ioExpiryPaymentChangePct: ioExpiryChange ? ioExpiryChange.changePct : null,
+    firstResetMonth,
+    firstResetDate: input.firstResetDate ?? isoAt(firstResetMonth),
+    worstPaymentChangePct,
+    worstPaymentChangeMonth,
+    lifetimeCapRate: ladder.lifetimeCapRate,
+    doubleShock,
+  };
+}
+
+/**
+ * DSCR month by month against the real schedule.
+ *
+ * Every DSCR the ARM tool quotes is `qualifyingRent / (scheduled P&I + escrows)`
+ * using the payment the schedule says is due that month — not a payment
+ * re-derived from a closed-form balance.
+ */
+export interface ARMScheduleDscrPoint {
+  month: number;
+  year: number;
+  ratePct: number;
+  payment: number;
+  pitia: number;
+  dscr: number;
+  phase: 'IO' | 'AMORTIZING';
+}
+
+export function computeScheduleDscr(
+  schedule: AmortizationSchedule,
+  qualifyingRent: number,
+  monthlyFixedExpenses: number,
+  months?: number[],
+): ARMScheduleDscrPoint[] {
+  const wanted = months ?? schedule.rows.map((r) => r.month);
+  const points: ARMScheduleDscrPoint[] = [];
+  for (const m of wanted) {
+    const row = schedule.rows[Math.min(Math.max(Math.round(m), 1), schedule.rows.length) - 1];
+    const pitia = row.payment + monthlyFixedExpenses;
+    points.push({
+      month: row.month,
+      year: row.year,
+      ratePct: row.annualRatePct,
+      payment: row.payment,
+      pitia,
+      dscr: pitia > 0 ? qualifyingRent / pitia : 0,
+      phase: row.phase,
+    });
+  }
+  return points;
 }

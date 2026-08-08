@@ -330,7 +330,7 @@ export default function TaxEnginePage({
               style={{
                 fontSize: "clamp(30px,3.8vw,52px)",
                 fontWeight: 600,
-                letterSpacing: "-0.035em",
+                letterSpacing: "-0.02em",
                 lineHeight: 1.0,
                 margin: "0 0 10px",
                 color: dc.cream,
@@ -675,7 +675,7 @@ export default function TaxEnginePage({
                         fontWeight: 600,
                         letterSpacing: "-0.04em",
                         color: irrColor,
-                        lineHeight: 0.9,
+                        lineHeight: 1,
                       }}
                     >
                       {afterTaxStr}

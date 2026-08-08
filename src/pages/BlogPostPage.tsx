@@ -14,7 +14,7 @@ const AUTHOR_META: Record<string, { initials: string; role: string }> = {
 const ARTICLE_CSS = `
   .bp-body p{font-size:clamp(17px,1.35vw,20px);font-weight:500;line-height:1.7;color:rgba(0,55,56,0.78);margin:0 0 22px;letter-spacing:-0.01em;}
   .bp-body h2{font-size:clamp(24px,2.6vw,34px);font-weight:600;letter-spacing:-0.03em;color:${dc.dark};margin:40px 0 16px;line-height:1.1;}
-  .bp-body h3{font-size:clamp(18px,1.7vw,22px);font-weight:700;letter-spacing:-0.02em;color:${dc.dark};margin:26px 0 8px;line-height:1.25;}
+  .bp-body h3{font-size:clamp(18px,1.7vw,22px);font-weight:600;letter-spacing:-0.02em;color:${dc.dark};margin:26px 0 8px;line-height:1.25;}
   .bp-body blockquote{margin:32px 0;padding:16px 0 16px 28px;border-left:3px solid ${dc.lemon};font-size:clamp(20px,2vw,26px);font-weight:600;letter-spacing:-0.02em;line-height:1.3;color:${dc.dark};}
   .bp-body strong{font-weight:700;color:${dc.dark};}
   .bp-body ul{margin:0 0 20px;padding:0;list-style:none;}
@@ -235,7 +235,7 @@ export default function BlogPostPage({
               fontSize: "clamp(34px,4.6vw,64px)",
               fontWeight: 600,
               lineHeight: 1.02,
-              letterSpacing: "-0.035em",
+              letterSpacing: "-0.04em",
               margin: "0 0 28px",
               color: dc.cream,
             }}
@@ -366,7 +366,7 @@ export default function BlogPostPage({
                 fontSize: "clamp(56px,9vw,112px)",
                 fontWeight: 700,
                 color: (post as any).glyphColor ?? dc.cream,
-                lineHeight: 0.88,
+                lineHeight: 1,
               }}
             >
               {(post as any).glyph ?? "÷"}
@@ -640,7 +640,7 @@ export default function BlogPostPage({
             style={{
               fontSize: "clamp(28px,3.6vw,48px)",
               fontWeight: 600,
-              letterSpacing: "-0.035em",
+              letterSpacing: "-0.02em",
               lineHeight: 1.02,
               margin: "0 0 20px",
               color: dc.cream,

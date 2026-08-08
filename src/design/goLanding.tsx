@@ -100,7 +100,7 @@ export default function GoLanding(p: GoLandingProps) {
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.dark, background: dc.lemon, padding: "7px 14px", borderRadius: 100, marginBottom: 26 }}>
                 {p.eyebrow}
               </div>
-              <h1 style={{ fontSize: "clamp(46px,7vw,104px)", fontWeight: 600, lineHeight: 0.94, letterSpacing: "-0.045em", margin: "0 0 26px" }}>{p.title}</h1>
+              <h1 style={{ fontSize: "clamp(46px,7vw,104px)", fontWeight: 600, lineHeight: 1.04, letterSpacing: "-0.04em", margin: "0 0 26px" }}>{p.title}</h1>
               <p style={{ fontSize: "clamp(17px,1.5vw,22px)", fontWeight: 500, lineHeight: 1.5, letterSpacing: "-0.02em", color: "rgba(238,239,211,0.7)", maxWidth: "46ch", margin: "0 0 38px" }}>{p.lead}</p>
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                 <button onClick={() => p.onNavigate(p.primaryCta.view)} style={{ display: "inline-flex", alignItems: "center", gap: 9, background: dc.lemon, color: dc.dark, fontWeight: 600, fontSize: 16, border: "none", cursor: "pointer", padding: "16px 32px", borderRadius: dc.r.md, fontFamily: dc.sans }}>
@@ -113,7 +113,7 @@ export default function GoLanding(p: GoLandingProps) {
             </div>
 
             <div style={{ position: "relative" }}>
-              <div style={{ background: dc.teal, borderRadius: 14, padding: 22, boxShadow: "0 30px 80px rgba(0,0,0,0.3)" }}>
+              <div style={{ background: dc.teal, borderRadius: 14, padding: 22, border: "1px solid rgba(238,239,211,0.16)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 16 }}>
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: dc.lemon }} />
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(238,239,211,0.3)" }} />
@@ -152,7 +152,7 @@ export default function GoLanding(p: GoLandingProps) {
         <section id="go-flow" style={{ background: dc.cream, padding: `clamp(64px,9vh,128px) ${dc.pad}` }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.rain, marginBottom: 16 }}>{p.flowEyebrow}</div>
-            <h2 style={{ fontSize: "clamp(34px,5vw,72px)", fontWeight: 600, lineHeight: 0.98, letterSpacing: "-0.04em", margin: "0 0 14px", color: dc.dark }}>{p.flowTitle}</h2>
+            <h2 style={{ fontSize: "clamp(34px,5vw,72px)", fontWeight: 600, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px", color: dc.dark }}>{p.flowTitle}</h2>
             <p style={{ fontSize: "clamp(16px,1.4vw,20px)", fontWeight: 500, color: "rgba(0,55,56,0.6)", maxWidth: "50ch", margin: "0 auto 56px", lineHeight: 1.5 }}>{p.flowLead}</p>
           </div>
           <div style={{ maxWidth: 1180, margin: "0 auto" }}>
@@ -222,7 +222,7 @@ export default function GoLanding(p: GoLandingProps) {
               <button key={i} onClick={() => p.onNavigate(c.view)} style={{ background: c.bg, color: c.fg || dc.dark, borderRadius: 16, padding: "clamp(32px,4vw,52px)", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 280, textAlign: "left", fontFamily: dc.sans }}>
                 <div style={{ fontSize: "clamp(15px,1.4vw,19px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.3, opacity: 0.85 }}>{c.blurb}</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 36 }}>
-                  <h2 style={{ fontSize: "clamp(28px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: 0 }}>{c.title}</h2>
+                  <h2 style={{ fontSize: "clamp(28px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: 0 }}>{c.title}</h2>
                   <span style={{ fontSize: 30 }}>→</span>
                 </div>
               </button>

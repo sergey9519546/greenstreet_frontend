@@ -456,7 +456,7 @@ export default function SolutionsPage({
               style={{
                 fontSize: "clamp(28px,3.4vw,46px)",
                 fontWeight: 600,
-                letterSpacing: "-0.035em",
+                letterSpacing: "-0.02em",
                 lineHeight: 1.05,
                 margin: "0 0 20px",
                 color: dc.cream,

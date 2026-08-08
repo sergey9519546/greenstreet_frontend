@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
 import { radius, font, risk } from "../theme";
 import BottomCTA from "../design/BottomCTA";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
 
 // ── Who-We-Serve: STR & Airbnb Hosts ──────────────────────────────────────────
 // Signature: the 12-Month Revenue Ribbon — real seasonal income (ADR × occupancy),
@@ -49,11 +50,16 @@ export default function STRHostsPage({
   const line = monthly.map((v, i) => `${i === 0 ? "M" : "L"} ${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
 
   const numIn = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
-    <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
-      <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)} style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
-    </div>
+    <CurrencyInput
+      surface="dark"
+      value={v}
+      onChange={set}
+      step={step}
+      prefix={pre}
+      suffix={suf}
+      adornmentStyle={{ fontSize: 14 }}
+      inputStyle={{ fontWeight: 600, fontSize: 15, padding: "11px 6px" }}
+    />
   );
 
   const navLinks = [
@@ -67,7 +73,7 @@ export default function STRHostsPage({
       <style>{`@media(max-width:760px){.str-grid{grid-template-columns:1fr !important;}}`}</style>
 
       {/* HERO */}
-      <section style={{ position: "relative", background: dc.teal, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
+      <section style={{ position: "relative", background: dc.dark, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
         <div className="gs-dot-grid" />
         <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
@@ -104,7 +110,7 @@ export default function STRHostsPage({
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>The revenue ribbon</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>The deal has to survive February — not just July.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.04, margin: "0 0 10px", maxWidth: "20ch" }}>The deal has to survive February — not just July.</h2>
           <p className="gs-reveal" style={{ fontSize: 16, color: "rgba(238,239,211,0.6)", margin: "0 0 32px", maxWidth: "58ch", lineHeight: 1.5 }}>Set your nightly rate and occupancy — scroll over the fields. Months under the lemon line don't cover the payment. We qualify on the trough, so there's no surprise at closing.</p>
           <div className="str-grid gs-reveal" style={{ display: "grid", gridTemplateColumns: "320px 1fr", gap: 28, alignItems: "stretch" }}>
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.4vw,28px)", display: "grid", gap: 16, alignContent: "start" }}>
@@ -116,7 +122,7 @@ export default function STRHostsPage({
             </div>
             <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${holds ? "rgba(77,189,151,0.4)" : risk.dangerBorder}`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: holds ? dc.emerald : RED, marginBottom: 6 }}>{holds ? "Holds the slow months" : "Breaks in the off-season"}</div>
-              <Mono style={{ fontSize: "clamp(48px,7vw,84px)", fontWeight: 700, color: holds ? dc.emerald : RED, lineHeight: 0.9 }}>{worstDSCR.toFixed(2)}x</Mono>
+              <Mono style={{ fontSize: "clamp(48px,7vw,84px)", fontWeight: 700, color: holds ? dc.emerald : RED, lineHeight: 1 }}>{worstDSCR.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "46ch" }}>
                 Worst month ({["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][worstIdx]}) brings {fmt$(worst)} against a {fmt$(pay)} payment. {holds ? "Even the trough covers the loan — that's a fundable STR." : "The trough falls short — lower the loan, or we underwrite to the months that do clear."}
               </div>
@@ -131,9 +137,9 @@ export default function STRHostsPage({
       </section>
 
       {/* WHY */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>STR income, underwritten honestly.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>STR income, underwritten honestly.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
             {[
               { t: "Real ADR × occupancy", s: "Market data, not a host's best week. The number is the one a lender will actually fund." },

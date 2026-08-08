@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
-import { radius, font, risk } from "../theme";
+import { radius, font, risk, onDark } from "../theme";
 import BottomCTA from "../design/BottomCTA";
-import { assessForeignNationalEligibility, type FnIdType } from "../engine/fnEngine";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
+import {
+  assessForeignNationalEligibility,
+  calculateForeignNationalMaxLTV,
+  calculateForeignNationalRateAdjusters,
+  type FnIdType,
+  type ForeignNationalProfile,
+} from "../engine/fnEngine";
+import { DSCR_PROGRAMS } from "../data/dscrPrograms";
 import { calculateFIRPTAImpact, nraEstateTaxNote } from "../engine/firpta";
 import { calculatePaymentFactor } from "../engine";
 
@@ -11,12 +19,95 @@ import { calculatePaymentFactor } from "../engine";
 // broker CHOICE (one application → best of many DSCR lenders) + human concierge.
 // [PARTNER] rows are tagged "via partner" so nothing overpromises a capability we
 // can't deliver without a formation/banking/FX partner lined up.
+//
+// ── COMPLIANCE — read before editing anything in the hero ────────────────────
+// This page may NOT render an approval. No stamp, no seal, no checkmark badge,
+// no "GO" / "APPROVED" / "QUALIFIES" verdict, anywhere in the DOM. LegalPage is
+// explicit that an output here "is not a pre-screen, quote, program match,
+// commitment to lend, rate lock, or credit approval", and the site publishes no
+// legal entity, NMLS id or state-license list to stand behind one. Every figure
+// on this page states either a PROGRAM PARAMETER or an ARITHMETIC RESULT.
+// Nothing states a decision about a borrower. Keep it that way.
 
-const BLUE = "#7ec8d3"; // sky — cross-border / data accent
 const RED = risk.danger;
-// Hero flight-path arc — shared by the SVG paths AND the CSS offset-path packet,
-// so the comet always rides the exact curve the arc draws.
-const ARC = "M40 132 C 120 30, 240 30, 320 132";
+// Supporting accent for eyebrows and labels. Replaces the old #7ec8d3 sky-blue,
+// which was a colour outside the two-surface system (see DESIGN_SOURCE_OF_TRUTH
+// §2). `dc.accent` is the de-lemoned chrome accent; lemon stays reserved for the
+// single primary action per view.
+const ACCENT = dc.accent;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HERO MODEL — "what is different for me?"
+//
+// The hero used to be a flight-path arc: capital leaving "your country", flying
+// a fixed bezier to "U.S. property", and an approval seal landing on it. It
+// encoded no data (the curve was a hard-coded `d` attribute) and it answered a
+// question nobody has — a foreign investor already knows their money crosses a
+// border. What they cannot find anywhere is which REQUIREMENTS change.
+//
+// So the hero is now a requirements comparison, and every figure in it is
+// COMPUTED from the same engine that would price a real file
+// (src/engine/fnEngine.ts) rather than typed in as marketing copy. If the engine
+// changes, the hero changes with it.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// The domestic benchmark. `calculateForeignNationalMaxLTV` opens on the
+// documented domestic baseline and every branch below that line is keyed to a
+// non-SSN id, a foreign entity, or an elevated country tier — so an
+// SSN / US_LLC / non-elevated profile returns that baseline untouched.
+const US_BENCHMARK: ForeignNationalProfile = {
+  idType: "SSN", countryCode: "US", hasUsFico: true, hasUsResidency: true, entityType: "US_LLC",
+};
+
+// The two identity paths the engine models for a non-US borrower, both held on a
+// PREFERRED-tier country (MX) so the spread shown is the PROGRAM spread and not
+// a country-risk spread. The country-tier effect is measured separately below.
+const FN_PATHS: ForeignNationalProfile[] = (["ITIN", "PASSPORT_ONLY"] as FnIdType[]).map((idType) => ({
+  idType, countryCode: "MX", hasUsFico: false, hasUsResidency: false, entityType: "US_LLC",
+}));
+
+const spanPct = (ns: number[]) => {
+  const lo = Math.min(...ns), hi = Math.max(...ns);
+  return lo === hi ? `${lo}%` : `${lo}–${hi}%`;
+};
+const totalBps = (p: ForeignNationalProfile) =>
+  calculateForeignNationalRateAdjusters(p).reduce((s, a) => s + a.basisPoints, 0);
+
+const US_LTV = calculateForeignNationalMaxLTV(US_BENCHMARK);
+const FN_LTV = FN_PATHS.map(calculateForeignNationalMaxLTV);
+const FN_BPS = FN_PATHS.map(totalBps);
+
+// Country-tier effect, measured rather than asserted: the same ITIN profile
+// moved from a PREFERRED country (MX) to an enhanced-due-diligence one (CN).
+const EDD_PATH: ForeignNationalProfile = { ...FN_PATHS[0], countryCode: "CN" };
+const EDD_BPS = totalBps(EDD_PATH) - FN_BPS[0];
+const EDD_LTV_DROP = FN_LTV[0].purchase - calculateForeignNationalMaxLTV(EDD_PATH).purchase;
+
+// Greenstreet's own lineup — how many programs take a non-US borrower at all.
+const FN_PROGRAMS = DSCR_PROGRAMS.filter((p) => p.foreignNational).length;
+const ALL_PROGRAMS = DSCR_PROGRAMS.length;
+
+// Minimum down payment implied by the non-US purchase caps (100 − max LTV).
+const FN_DOWN = spanPct(FN_LTV.map((l) => 100 - l.purchase));
+
+/** The rows that DIFFER. This is the whole point of the panel. */
+const CMP_DIFF: { label: string; us: string; fn: string }[] = [
+  { label: "Identification", us: "SSN", fn: "Passport" },
+  { label: "Credit file", us: "U.S. FICO", fn: "Home-country report" },
+  { label: "Max LTV — purchase", us: `${US_LTV.purchase}%`, fn: spanPct(FN_LTV.map((l) => l.purchase)) },
+  { label: "Max LTV — cash-out", us: `${US_LTV.cashOut}%`, fn: spanPct(FN_LTV.map((l) => l.cashOut)) },
+  { label: "Rate add-on", us: "None", fn: `+${Math.min(...FN_BPS)}–${Math.max(...FN_BPS)} bps` },
+  { label: "Title vesting", us: "Individual or entity", fn: "U.S. LLC + EIN" },
+];
+
+/** The rows that are the SAME. They stop being a comparison and span both
+ *  columns — the divide physically disappears, which is the point worth making:
+ *  the thing that actually decides a DSCR loan does not change with a passport. */
+const CMP_SAME: { label: string; both: string }[] = [
+  { label: "What qualifies the loan", both: "The property's rent against its payment" },
+  { label: "Personal income documents", both: "None" },
+  { label: "Reserves", both: "Set by loan size and program, not by residency" },
+];
 
 // 30-yr amortising payment factor, sourced from the golden-tested engine
 // primitive. The wrapper only pins the term to 360 and keeps this page's
@@ -44,9 +135,12 @@ const STEPS = [
   { t: "Close remotely", s: "~21–45 days. Then do it again for the next property." },
 ];
 
+// Down payment is derived from the engine's non-US purchase caps, not typed in.
+// The old "20–30%" implied an 80% LTV, which is the DOMESTIC baseline — it is
+// not reachable on a non-US file and contradicted the hero comparison.
 const QUALIFY = [
-  { v: "20–30%", l: "down payment", s: "of the purchase price" },
-  { v: "~1.0x+", l: "DSCR to qualify", s: "rent covers the payment" },
+  { v: FN_DOWN, l: "down payment", s: "of the purchase price" },
+  { v: "~1.0x+", l: "DSCR to price best", s: "rent against the payment" },
   { v: "$100K–$2M+", l: "loan size", s: "depending on lender" },
   { v: "6–12 mo", l: "reserves", s: "held after closing" },
 ];
@@ -54,7 +148,7 @@ const QUALIFY = [
 const FAQS = [
   { q: "Can a non-U.S. citizen really get a U.S. mortgage?", a: "Yes — no citizenship or residency required. These are business-purpose investment loans on the property's income." },
   { q: "Do I need a U.S. credit score?", a: "No. We review your home-country financial history; the property's rent is the qualifier." },
-  { q: "How much down payment?", a: "Typically 20–30% of the purchase price." },
+  { q: "How much down payment?", a: `${FN_DOWN} of the purchase price — the non-US purchase LTV caps in our program rules are ${spanPct(FN_LTV.map((l) => l.purchase))}.` },
   { q: "What documents do I actually need?", a: "Passport, the property / lease info, and basic financials. No U.S. tax returns or W-2s." },
   { q: "Can I hold the property in an LLC?", a: "Yes — usually required. We help you form one through our formation partner.", partner: true },
   { q: "Why is my rate higher than a U.S. citizen's?", a: "It's an investment, non-QM loan — that carries a premium over owner-occupied conventional. We shop lenders to keep it tight." },
@@ -102,12 +196,16 @@ export default function NonUsInvestorsPage({
   const vColor = go ? dc.emerald : dscr >= 1.0 ? dc.lemon : RED;
 
   const num = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
-    <div style={{ display: "flex", alignItems: "center", background: dc.dark, border: "1.5px solid rgba(238,239,211,0.18)", borderRadius: radius.sm, padding: "0 12px" }}>
-      {pre && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{pre}</span>}
-      <input type="number" step={step} value={v} onChange={(e) => set(+e.target.value)}
-        style={{ width: "100%", border: "none", background: "none", outline: "none", color: dc.cream, fontFamily: font.family, fontWeight: 600, fontSize: 15, padding: "11px 6px", letterSpacing: "-0.02em" }} />
-      {suf && <span style={{ color: "rgba(238,239,211,0.62)", fontSize: 14 }}>{suf}</span>}
-    </div>
+    <CurrencyInput
+      surface="dark"
+      value={v}
+      onChange={set}
+      step={step}
+      prefix={pre}
+      suffix={suf}
+      adornmentStyle={{ fontSize: 14 }}
+      inputStyle={{ fontWeight: 600, fontSize: 15, padding: "11px 6px" }}
+    />
   );
 
   const partnerTag = (
@@ -123,39 +221,54 @@ export default function NonUsInvestorsPage({
   return (
     <DcShell onNavigate={onNavigate} accent={dc.teal} navLinks={navLinks} cta={{ label: "Check your buying power →", view: "dscr-calculator" }}>
       <style>{`
-        /* ── hero "global capital flight path" (loops ~3.6s) ──
-           Capital launches from your country, flies the arc to a U.S. property,
-           and an approval seal thuds in on arrival. Pure CSS; the base arc is
-           always solid so the composition still reads when paused / reduced. */
-        @keyframes fnFlow   { to { stroke-dashoffset:-32; } }
-        @keyframes fnFly    { 0%{offset-distance:0%;opacity:0} 5%{opacity:1} 52%{offset-distance:100%;opacity:1} 60%{offset-distance:100%;opacity:0} 100%{offset-distance:100%;opacity:0} }
-        @keyframes fnLaunch { 0%{transform:scale(.5);opacity:.6} 26%{transform:scale(2.6);opacity:0} 100%{opacity:0} }
-        @keyframes fnLand   { 0%,50%{transform:scale(.4);opacity:0} 56%{opacity:.6} 82%{transform:scale(2.7);opacity:0} 100%{opacity:0} }
-        @keyframes fnStampIn{ 0%,50%{transform:scale(0) rotate(-20deg);opacity:0} 58%{transform:scale(1.2) rotate(5deg);opacity:1} 66%{transform:scale(.94) rotate(-1deg)} 74%,92%{transform:scale(1) rotate(0);opacity:1} 100%{transform:scale(1) rotate(0);opacity:0} }
-        @keyframes fnPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.16)} }
-        .fn-svg   { display:block; overflow:visible; margin:6px 0 4px; }
-        .fn-flow  { stroke-dasharray:5 11; opacity:.85; animation:fnFlow 1.05s linear infinite; }
-        .fn-packet{ offset-path:path('${ARC}'); offset-rotate:auto; offset-distance:0%; animation:fnFly 3.6s cubic-bezier(.5,0,.5,1) .3s infinite; }
-        .fn-stampG{ transform-box:fill-box; transform-origin:center; animation:fnStampIn 3.6s ease-out .3s infinite; }
-        .fn-dot   { transform-box:fill-box; transform-origin:center; }
-        .fn-dot.b { animation:fnPulse 3.6s ease-in-out .3s infinite; }
-        .fn-launch{ transform-box:fill-box; transform-origin:center; animation:fnLaunch 3.6s ease-out .3s infinite; }
-        .fn-land  { transform-box:fill-box; transform-origin:center; animation:fnLand 3.6s ease-out .3s infinite; }
+        /* ── hero requirements comparison ──
+           A real <table>: the two subjects are columns, the requirements are
+           rows, so screen readers get row/column headers for free and there is
+           no aria-label paraphrasing a picture. Flat by intent — no shadow, no
+           blur, no motion of any kind. The only visual devices are ink strength
+           and one raised column. */
+        .fn-cmp{width:100%;border-collapse:collapse;table-layout:fixed;}
+        .fn-cmp caption{caption-side:top;text-align:left;font-size:clamp(17px,1.5vw,20px);font-weight:600;line-height:1.2;color:${dc.cream};padding:0 0 6px;}
+        .fn-cmp th,.fn-cmp td{text-align:left;vertical-align:top;padding:9px 12px;overflow-wrap:anywhere;}
+        .fn-cmp thead th{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${onDark.secondary};padding-bottom:8px;border-bottom:1px solid rgba(238,239,211,.20);}
+        .fn-cmp tbody th{font-size:12px;font-weight:600;line-height:1.3;color:${onDark.secondary};padding-left:0;}
+        .fn-cmp tbody td{font-size:14px;font-weight:600;line-height:1.3;color:${dc.cream};}
+        .fn-cmp tbody tr + tr th,.fn-cmp tbody tr + tr td{border-top:1px solid rgba(238,239,211,.10);}
+        /* the reader's column — one raised track, so the eye lands on the values
+           that apply to them and reads leftward to compare */
+        .fn-cmp .fn-you{background:rgba(238,239,211,.06);}
+        /* sameness recedes: the row stops being a comparison, spans both value
+           columns, and drops to secondary ink */
+        .fn-cmp .fn-same th{color:${onDark.tertiary};font-weight:500;}
+        .fn-cmp .fn-same td{background:none;color:${onDark.secondary};font-weight:500;font-size:13px;}
+        .fn-cmp .fn-rule th{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${onDark.tertiary};padding:16px 0 4px;border-top:1px solid rgba(238,239,211,.20) !important;}
+        /* ≤560px the hero is already one column, so the table restacks: the
+           requirement name takes its own full-width line and the two values sit
+           side by side beneath it, still exactly equal so the comparison holds */
+        @media(max-width:560px){
+          .fn-cmp,.fn-cmp thead,.fn-cmp tbody,.fn-cmp tr,.fn-cmp th,.fn-cmp td{display:block;width:auto;}
+          .fn-cmp thead{display:none;}
+          .fn-cmp tbody tr{display:grid;grid-template-columns:1fr 1fr;padding:10px 0;border-top:1px solid rgba(238,239,211,.10);}
+          .fn-cmp tbody tr:first-child{border-top:none;}
+          .fn-cmp tbody th{grid-column:1 / -1;padding:0 0 5px;}
+          .fn-cmp tbody td{padding:6px 10px;}
+          .fn-cmp tbody tr + tr th,.fn-cmp tbody tr + tr td{border-top:none;}
+          .fn-cmp tbody td::before{content:attr(data-col);display:block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${onDark.tertiary};margin-bottom:2px;}
+          .fn-cmp .fn-same td{grid-column:1 / -1;}
+          .fn-cmp .fn-same td::before{content:none;}
+          .fn-cmp .fn-rule{display:block;padding:0;}
+          .fn-cmp .fn-rule th{border-top:1px solid rgba(238,239,211,.20) !important;}
+        }
         .fn-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.01em;color:rgba(238,239,211,.85);background:rgba(238,239,211,.07);border:1px solid rgba(238,239,211,.16);border-radius:100px;padding:7px 14px;}
-        .fn-chip b{color:#7ec8d3;}
+        .fn-chip b{color:${ACCENT};font-weight:700;}
         .fn-fearwrap{display:grid;gap:12px;}
         .fn-fear{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);gap:20px;align-items:center;}
         @media(max-width:760px){.fn-fear{grid-template-columns:1fr !important;gap:10px;}}
-        @media(prefers-reduced-motion:reduce){
-          .fn-flow,.fn-packet,.fn-stampG,.fn-dot,.fn-launch,.fn-land{animation:none !important;}
-          .fn-packet,.fn-launch,.fn-land{display:none !important;}
-          .fn-stampG{opacity:1 !important;transform:none !important;}
-        }
       `}</style>
       {/* ── HERO ── */}
-      <section style={{ position: "relative", background: dc.teal, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
+      <section style={{ position: "relative", background: dc.dark, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
         <div className="gs-dot-grid" />
-        <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.08fr 0.92fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
+        <div id="gs-hero-content" className="dc-hero" style={{ position: "relative", maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(32px,5vw,72px)", alignItems: "center" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", background: "rgba(238,239,211,0.06)", border: "1px solid rgba(238,239,211,0.18)", padding: "6px 13px", borderRadius: 100, marginBottom: 24 }}>
               Non-US Investor Program
@@ -172,7 +285,7 @@ export default function NonUsInvestorsPage({
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <button onClick={() => onNavigate("dscr-calculator")} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "15px 26px", borderRadius: radius.sm, fontFamily: font.family }}>See how much you can borrow — 60 sec, no credit pull →</button>
             </div>
-            <button onClick={() => onNavigate("book-demo")} style={{ marginTop: 14, background: "none", border: "none", cursor: "pointer", fontFamily: font.family, color: BLUE, fontWeight: 600, fontSize: 14, padding: 0 }}>
+            <button onClick={() => onNavigate("book-demo")} style={{ marginTop: 14, background: "none", border: "none", cursor: "pointer", fontFamily: font.family, color: ACCENT, fontWeight: 600, fontSize: 14, padding: 0 }}>
               Prefer to talk? Message a DSCR specialist on WhatsApp →
             </button>
             <div style={{ marginTop: 22, fontSize: 12, color: "rgba(238,239,211,0.62)", letterSpacing: "0.01em" }}>
@@ -180,49 +293,56 @@ export default function NonUsInvestorsPage({
             </div>
           </div>
 
-          {/* home → US arc */}
-          <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(20px,2.5vw,30px)" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 4 }}>One application · many lenders</div>
-            <svg className="fn-svg" viewBox="0 0 360 178" width="100%" role="img" aria-label="Your capital travels from your country to a U.S. property and is approved">
-              <defs>
-                <linearGradient id="fnTail" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stopColor={dc.lemon} stopOpacity="0" />
-                  <stop offset="1" stopColor={dc.lemon} stopOpacity="0.95" />
-                </linearGradient>
-              </defs>
-              {/* arc — solid base + animated flowing dashes (live route) */}
-              <path d={ARC} fill="none" stroke="rgba(126,200,211,0.22)" strokeWidth="2.6" strokeLinecap="round" />
-              <path className="fn-flow" d={ARC} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" />
-              {/* endpoints + launch / landing ripples */}
-              <circle className="fn-launch" cx="40" cy="132" r="8" fill="none" stroke={dc.lemon} strokeWidth="2" />
-              <circle className="fn-land" cx="320" cy="132" r="8" fill="none" stroke={dc.emerald} strokeWidth="2" />
-              <circle className="fn-dot a" cx="40" cy="132" r="8" fill={dc.lemon} />
-              <circle className="fn-dot b" cx="320" cy="132" r="8" fill={dc.emerald} />
-              <text x="40" y="158" textAnchor="middle" fill="rgba(238,239,211,0.6)" fontSize="11" fontFamily={font.family} fontWeight={600}>Your country</text>
-              <text x="320" y="158" textAnchor="middle" fill="rgba(238,239,211,0.6)" fontSize="11" fontFamily={font.family} fontWeight={600}>U.S. property</text>
-              {/* flying capital comet (head + tapered tail, rides the arc) */}
-              <g className="fn-packet">
-                <line x1="0" y1="0" x2="-24" y2="0" stroke="url(#fnTail)" strokeWidth="3.6" strokeLinecap="round" />
-                <circle r="4.6" fill={dc.lemon} />
-                <circle r="1.8" fill="#fff" fillOpacity="0.9" />
-              </g>
-              {/* approval seal — thuds in when the capital lands */}
-              <g transform="translate(180,52)">
-                <g className="fn-stampG">
-                  <circle r="21" fill="rgba(77,189,151,0.14)" stroke={dc.emerald} strokeWidth="2" strokeDasharray="3 4" />
-                  <circle r="15" fill="none" stroke={dc.emerald} strokeWidth="1" strokeOpacity="0.5" />
-                  <path d="M-8 0 L-2.5 6.5 L9 -7.5" fill="none" stroke={dc.emerald} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                </g>
-              </g>
-            </svg>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 12 }}>
-              {[{ v: dscr.toFixed(2) + "x", l: "DSCR" }, { v: "75%", l: "max LTV" }, { v: go ? "GO" : "—", l: "verdict" }].map((t, i) => (
-                <div key={i} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 8px", textAlign: "center" }}>
-                  <Mono style={{ fontSize: 20, fontWeight: 700, color: i === 2 ? vColor : dc.cream, display: "block", lineHeight: 1 }}>{t.v}</Mono>
-                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginTop: 5 }}>{t.l}</div>
-                </div>
-              ))}
-            </div>
+          {/* ── The requirements comparison ──────────────────────────────────
+              Same rows, both sides. The differences are the six rows the eye
+              catches; the three that are identical collapse into a single
+              spanning cell and drop to secondary ink, because "this part does
+              not change" is the reassurance a foreign investor is actually
+              looking for. Every number here comes out of fnEngine.ts. */}
+          <div style={{ background: "rgba(238,239,211,0.05)", borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(18px,2.2vw,28px)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: ACCENT, marginBottom: 8 }}>Side by side</div>
+            <table className="fn-cmp">
+              <caption>What changes when the borrower isn&apos;t a U.S. person</caption>
+              <colgroup>
+                <col style={{ width: "34%" }} />
+                <col style={{ width: "33%" }} />
+                <col style={{ width: "33%" }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col"><span className="u-sr-only">Requirement</span></th>
+                  <th scope="col">U.S. borrower</th>
+                  <th scope="col" className="fn-you">Non-U.S. investor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {CMP_DIFF.map((r) => (
+                  <tr key={r.label}>
+                    <th scope="row">{r.label}</th>
+                    <td data-col="U.S. borrower">{r.us}</td>
+                    <td data-col="Non-U.S. investor" className="fn-you">{r.fn}</td>
+                  </tr>
+                ))}
+                <tr className="fn-rule">
+                  <th scope="colgroup" colSpan={3}>Unchanged either way</th>
+                </tr>
+                {CMP_SAME.map((r) => (
+                  <tr key={r.label} className="fn-same">
+                    <th scope="row">{r.label}</th>
+                    <td colSpan={2}>{r.both}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p style={{ fontSize: 11.5, lineHeight: 1.5, color: onDark.tertiary, margin: "14px 0 0", borderTop: "1px solid rgba(238,239,211,0.12)", paddingTop: 12 }}>
+              Caps and add-ons are our published program parameters, not a quote, a
+              program match, or a decision on any file. A home-country credit file
+              means 3 trade lines over 2 years. The rate add-on is the ID,
+              no-U.S.-credit and no-visa adjusters summed on a preferred-tier
+              country; an enhanced-due-diligence country adds up to {EDD_BPS} bps more
+              and takes {EDD_LTV_DROP} points off each cap. {FN_PROGRAMS} of our {ALL_PROGRAMS} DSCR
+              programs accept a non-U.S. borrower.
+            </p>
           </div>
         </div>
       </section>
@@ -255,11 +375,11 @@ export default function NonUsInvestorsPage({
       </section>
 
       {/* ── LIVE: CHECK YOUR BUYING POWER ── */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ marginBottom: 32, maxWidth: "62ch" }}>
-            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 12 }}>Decided by the property, not your passport</div>
-            <h2 style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.035em", lineHeight: 1.05, margin: 0, color: dc.cream }}>
+            <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 12 }}>Decided by the property, not your passport</div>
+            <h2 style={{ fontSize: "clamp(28px,3.6vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.05, margin: 0, color: dc.cream }}>
               Check your buying power. Notice there's no income field.
             </h2>
           </div>
@@ -284,14 +404,14 @@ export default function NonUsInvestorsPage({
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: vColor }} />
                 <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: vColor }}>{verdict}</span>
               </div>
-              <Mono style={{ fontSize: "clamp(52px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 0.9 }}>{dscr.toFixed(2)}x</Mono>
+              <Mono style={{ fontSize: "clamp(52px,8vw,96px)", fontWeight: 700, letterSpacing: "-0.04em", color: vColor, lineHeight: 1 }}>{dscr.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "44ch" }}>
                 {fmt$(rent)} rent ÷ {fmt$(pitia)} full payment. {go ? "Rent covers the loan and the LTV fits — this is fundable. Example: $4,000 rent vs ~$3,000 payment is a strong 1.33x." : dscr >= 1.0 ? "Rent covers the loan, but lower the LTV to ≤75% for the non-US investor program." : "Rent falls short of the payment — raise rent or lower the loan to clear 1.00x."}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
                 <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ltvOk ? dc.emerald : dc.lemon, display: "block" }}>{ltv}%</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>LTV (cap ≈75%)</div></div>
                 <div><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{fmt$(loan)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>loan amount</div></div>
-                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: BLUE, display: "block" }}>$0</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>income docs</div></div>
+                <div><Mono style={{ fontSize: 22, fontWeight: 700, color: ACCENT, display: "block" }}>$0</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 2 }}>income docs</div></div>
               </div>
             </div>
           </div>
@@ -301,7 +421,7 @@ export default function NonUsInvestorsPage({
       {/* ── HOW IT WORKS ── */}
       <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Four steps. You never have to fly here.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Four steps. You never have to fly here.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {STEPS.map((s, i) => (
               <div key={s.t} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", display: "flex", gap: 16 }}>
@@ -317,10 +437,10 @@ export default function NonUsInvestorsPage({
       </section>
 
       {/* ── WHAT YOU'LL LIKELY QUALIFY FOR ── */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 12 }}>What you'll likely qualify for</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
+          <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 12 }}>What you'll likely qualify for</div>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>Set your expectations up front.</h2>
           <div className="gs-reveal dc-band-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
             {QUALIFY.map((q) => (
               <div key={q.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(20px,2.2vw,28px)" }}>
@@ -345,7 +465,7 @@ export default function NonUsInvestorsPage({
             );
             return (
               <div className="gs-reveal" style={{ marginTop: 28, background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(22px,2.6vw,32px)" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: BLUE, marginBottom: 16 }}>Your exact terms by profile</div>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: ACCENT, marginBottom: 16 }}>Your exact terms by profile</div>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
                   <select aria-label="ID type" value={idType} onChange={(e) => setIdType(e.target.value as FnIdType)} style={selStyle}>
                     <option value="ITIN">ITIN holder</option>
@@ -372,7 +492,7 @@ export default function NonUsInvestorsPage({
                   <strong style={{ color: dc.cream }}>At sale (FIRPTA):</strong> 15% of the gross sale price is withheld — ≈{fmt$(firpta.federalWithholdingAmount)} on a {fmt$(price)} sale.{firpta.withholdingCertificateRecommended ? ` Apply for a withholding certificate (Form 8288-B) to free up the excess over the ~${fmt$(firpta.estimatedTaxOnGain)} actually owed on the gain.` : ""} Refinancing (rate-term or cash-out) is not a sale — no FIRPTA.
                 </div>
                 <div style={{ marginTop: 14, borderTop: "1px solid rgba(238,239,211,0.12)", paddingTop: 16, fontSize: 13, color: "rgba(238,239,211,0.66)", lineHeight: 1.55 }}>
-                  <strong style={{ color: BLUE }}>Estate-tax exposure:</strong> non-resident aliens get only a $60,000 U.S. estate-tax exemption (vs $13.99M for citizens) — so ≈{fmt$(nraEstate.exposedValue)} of a {fmt$(price)} property is exposed, up to ≈{fmt$(nraEstate.estTaxAt40)} at the 40% rate if the owner passes while holding it personally. Holding through a properly structured entity can change the situs analysis — plan this with a cross-border tax advisor.
+                  <strong style={{ color: ACCENT }}>Estate-tax exposure:</strong> non-resident aliens get only a $60,000 U.S. estate-tax exemption (vs $13.99M for citizens) — so ≈{fmt$(nraEstate.exposedValue)} of a {fmt$(price)} property is exposed, up to ≈{fmt$(nraEstate.estTaxAt40)} at the 40% rate if the owner passes while holding it personally. Holding through a properly structured entity can change the situs analysis — plan this with a cross-border tax advisor.
                 </div>
                 <div style={{ fontSize: 11, color: "rgba(238,239,211,0.45)", marginTop: 10 }}>Screening guidance, not legal or tax advice. Entity vesting (U.S. LLC) required.</div>
               </div>
@@ -392,9 +512,9 @@ export default function NonUsInvestorsPage({
       </section>
 
       {/* ── FAQ ── */}
-      <section style={{ background: dc.teal, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.035em", margin: "0 0 28px", color: dc.cream }}>The questions you're Googling.</h2>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(26px,3.2vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 28px", color: dc.cream }}>The questions you're Googling.</h2>
           <div className="gs-reveal dc-band-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {FAQS.map((f) => (
               <div key={f.q} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(18px,2vw,24px)" }}>

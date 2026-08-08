@@ -8,6 +8,7 @@ import { buildEngineInputs } from "../engine/inputs";
 import type { LenderRankingEntry } from "../engine/types";
 import { DSCR_PROGRAMS, lookupMaxLTV } from "../data/dscrPrograms";
 import BottomCTA from "../design/BottomCTA";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
 
 // ── helpers ─────────────────────────────────────────────────────────────────
 function verdictColor(v: string): string {
@@ -263,13 +264,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       ]}
       cta={{ label: "Get the verdict →", onClick: scrollToTool }}
     >
-      {/* Extra CSS: hide number spinners; unified dark-panel input style */}
+      {/* Field chrome now comes from the shared <CurrencyInput> primitive. */}
       <style>{`
-        .ds-in::-webkit-outer-spin-button,.ds-in::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-        .ds-in{width:100%;border:none;background:none;outline:none;font-family:${dc.sans};color:${dc.cream};letter-spacing:-0.02em;}
-        .ds-field{display:flex;align-items:center;background:${swatch.darkTeal};border:1.5px solid rgba(238,239,211,0.18);border-radius:${radius.sm};padding:0 13px;transition:border-color .15s;}
-        .ds-field:focus-within{border-color:${swatch.lemon};outline:2px solid ${swatch.lemon};outline-offset:1px;}
-        .ds-field:hover:not(:focus-within){border-color:rgba(238,239,211,0.5);}
         @media(max-width:991px){.ds-tool-grid{grid-template-columns:1fr !important;} .dc-hero{grid-template-columns:1fr !important;} .ds-verdict-inner{grid-template-columns:1fr !important;} .ds-bottom-2{grid-template-columns:1fr !important;} }
         @media(max-width:767px){.ds-band-2{grid-template-columns:1fr !important;}}
       `}</style>
@@ -337,7 +333,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
       {/* ── TOOL — dark teal ── */}
       <section
         id="ds-tool"
-        style={{ background: dc.teal, color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.08)" }}
+        style={{ background: dc.dark, color: dc.cream, padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`, borderTop: "1px solid rgba(238,239,211,0.08)" }}
       >
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           {/* Section header */}
@@ -388,18 +384,16 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 5, lineHeight: 1.4 }}>
                     {f.hint}
                   </span>
-                  <div className="ds-field" style={{ display: "flex", alignItems: "center" }}>
-                    {f.prefix && <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.prefix}</span>}
-                    <input
-                      className="ds-in"
-                      type="number"
-                      step={f.step}
-                      value={f.value}
-                      onChange={(e) => (f.set as (n: number) => void)(+e.target.value)}
-                      style={{ padding: "12px 7px", fontSize: 16, fontWeight: 600 }}
-                    />
-                    {f.suffix && <span style={{ color: "rgba(238,239,211,0.62)" }}>{f.suffix}</span>}
-                  </div>
+                  <CurrencyInput
+                    surface="dark"
+                    value={f.value}
+                    onChange={f.set as (n: number) => void}
+                    step={f.step}
+                    prefix={f.prefix}
+                    suffix={f.suffix}
+                    style={{ background: swatch.darkTeal, padding: "0 13px" }}
+                    inputStyle={{ padding: "12px 7px", fontSize: 16, fontWeight: 600 }}
+                  />
                 </label>
               ))}
             </div>
@@ -430,7 +424,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor(result.verdict.verdict) }}>IC verdict</span>
                       </div>
                     </div>
-                    <Mono style={{ display: "block", fontSize: "clamp(42px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.035em", color: verdictColor(result.verdict.verdict), lineHeight: 1, marginBottom: 12 }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(42px,5vw,64px)", fontWeight: 600, letterSpacing: "-0.03em", color: verdictColor(result.verdict.verdict), lineHeight: 1, marginBottom: 12 }}>
                       {result.verdict.verdict}
                     </Mono>
                     <p style={{ fontSize: "clamp(14px,1.2vw,16px)", fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.72)", margin: 0 }}>
@@ -453,7 +447,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                       </Mono>
                       <div style={{ width: "100%", maxWidth: 210 }}>
                         <div style={{ position: "relative", height: 10, borderRadius: 999, background: `linear-gradient(90deg,${risk.danger} 0 33%,${risk.caution} 33% 66%,${risk.positive} 66% 100%)` }}>
-                          <div style={{ position: "absolute", top: "50%", left: `${Math.max(2, Math.min(98, result.composite))}%`, transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: dc.cream, border: `3px solid ${verdictColor(result.verdict.verdict)}`, boxShadow: "0 2px 7px rgba(0,0,0,0.45)" }} />
+                          <div style={{ position: "absolute", top: "50%", left: `${Math.max(2, Math.min(98, result.composite))}%`, transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: dc.cream, border: `3px solid ${verdictColor(result.verdict.verdict)}` }} />
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontSize: 11, fontFamily: dc.mono, letterSpacing: "0.04em", color: "rgba(238,239,211,0.45)" }}>
                           <span>NO-GO</span><span>COND</span><span>GO</span>

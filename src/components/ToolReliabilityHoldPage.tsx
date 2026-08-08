@@ -123,8 +123,8 @@ export default function ToolReliabilityHoldPage({
                   margin: 0,
                   maxWidth: 760,
                   fontSize: type.h1,
-                  lineHeight: 0.98,
-                  letterSpacing: "-0.055em",
+                  lineHeight: 1.04,
+                  letterSpacing: "-0.04em",
                   fontWeight: font.semibold,
                 }}
               >

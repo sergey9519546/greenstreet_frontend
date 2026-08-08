@@ -348,8 +348,8 @@ export default function LegalPage({
           <H1
             style={{
               fontSize: "clamp(40px,5vw,76px)",
-              lineHeight: 0.99,
-              letterSpacing: "-0.035em",
+              lineHeight: 1.04,
+              letterSpacing: "-0.04em",
               marginBottom: 18,
               maxWidth: "18ch",
               color: MIDNIGHT,

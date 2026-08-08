@@ -26,7 +26,6 @@ export function AnimatedCard({
     gsap.to(cardRef.current, {
       y: -4,
       scale: 1.01,
-      boxShadow: "0 12px 24px rgba(0, 55, 56, 0.08)",
       borderColor: swatch.lemon,
       duration: 0.3,
       ease: "power2.out",
@@ -38,7 +37,6 @@ export function AnimatedCard({
     gsap.to(cardRef.current, {
       y: 0,
       scale: 1,
-      boxShadow: "0 4px 12px rgba(0, 55, 56, 0.03)",
       borderColor: theme.border,
       duration: 0.3,
       ease: "power2.out",
