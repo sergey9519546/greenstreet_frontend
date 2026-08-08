@@ -184,21 +184,59 @@ describe('DEFECT A — Track 2 negative carry must be able to fail', () => {
   });
 
   /**
-   * Pins the documented spec contradiction: Grade B itself requires T2 ≥ 1.00,
-   * so the return-grade gate independently blocks every sub-1.0 Track 2. No
-   * acknowledgment, however complete, can currently produce PROCEED. If this
-   * test ever fails, someone changed the grade thresholds or the gate — that is
-   * an owner decision, not a refactor.
+   * THE PART J CONTRADICTION, RESOLVED.
+   *
+   * This test used to assert the opposite — that no acknowledgment could ever
+   * flip a sub-1.0 Track 2, because Grade B itself required T2 ≥ 1.00 and so
+   * the return-grade gate independently blocked every negative-carry deal. The
+   * whole acknowledgment apparatus was unreachable.
+   *
+   * The ruling is that each fact is gated once: the return grade grades the
+   * RETURN, and Track 2 coverage is decided by the Track 2 gate. See the note
+   * on `computeReturnGrade`. This is the live path that ruling opens, and the
+   * three tests after it are the fences around it.
    */
-  it('no acknowledgment can flip a sub-1.0 Track 2 to PROCEED (return grade still binds)', () => {
+  it('a complete acknowledgment now carries a sub-1.0 Track 2 to PROCEED', () => {
     const { verdict, gates } = detailOf({
       track2DSCR: 0.99,
       track2MonthlyCashFlow: -50,
       track2Acknowledgment: { acknowledged: true, thesisMonthlyDollars: 5000, thesisStatement: 'Strong thesis.' },
     });
     expect(gate(gates, 'TRACK2_CARRY').passed).toBe(true);
-    expect(gate(gates, 'RETURN_GRADE').passed).toBe(false);
+    expect(gate(gates, 'RETURN_GRADE').passed).toBe(true);
+    expect(verdict.verdict).toBe('PROCEED');
+  });
+
+  it('the same deal WITHOUT an acknowledgment still cannot PROCEED', () => {
+    // The loosening is exactly one step wide. Removing the acknowledgment — the
+    // default state — must put the deal straight back to RESTRUCTURE, or the
+    // ruling would have deleted the gate rather than made it reachable.
+    const { verdict, gates } = detailOf({ track2DSCR: 0.99, track2MonthlyCashFlow: -50 });
+    expect(gate(gates, 'TRACK2_CARRY').passed).toBe(false);
     expect(verdict.verdict).toBe('RESTRUCTURE');
+  });
+
+  it('an acknowledgment whose thesis does not cover the bleed still cannot PROCEED', () => {
+    const { verdict, gates } = detailOf({
+      track2DSCR: 0.72,
+      track2MonthlyCashFlow: -1554,
+      track2Acknowledgment: { acknowledged: true, thesisMonthlyDollars: 200, thesisStatement: 'It will appreciate.' },
+    });
+    expect(gate(gates, 'TRACK2_CARRY').passed).toBe(false);
+    expect(verdict.verdict).not.toBe('PROCEED');
+  });
+
+  it('a NEGATIVE Track 2 is still an unconditional F — no thesis can be written against it', () => {
+    // Sub-1.0 carry is a thesis case. Negative NOI is not: the property does
+    // not produce positive operating income at all.
+    const { verdict, gates } = detailOf({
+      track2DSCR: -0.2,
+      track2MonthlyCashFlow: -4000,
+      track2Acknowledgment: { acknowledged: true, thesisMonthlyDollars: 99_999, thesisStatement: 'Anything.' },
+    });
+    expect(verdict.returnGrade).toBe('F');
+    expect(gate(gates, 'RETURN_GRADE').passed).toBe(false);
+    expect(verdict.verdict).toBe('PASS');
   });
 
   it('an unknown Track 2 still requires an acknowledgment and cannot PROCEED', () => {
@@ -494,8 +532,23 @@ describe('computeReturnGrade (Part J)', () => {
     expect(computeReturnGrade(0.20, -0.1)).toBe('F');
   });
 
-  it('A requires the cushion — strong IRR but thin Track 2 drops to B', () => {
-    expect(computeReturnGrade(0.16, 1.05)).toBe('B');
+  it('grades the return, not the carry — Track 2 no longer caps the letter', () => {
+    // Previously 0.16/1.05 graded B, because A demanded T2 ≥ 1.10. Grading
+    // Track 2 here AS WELL AS at the Track 2 gate is what made that gate
+    // unreachable; see the ruling on computeReturnGrade.
+    expect(computeReturnGrade(0.16, 1.05)).toBe('A');
+    expect(computeReturnGrade(0.16, 0.80)).toBe('A');
+    expect(computeReturnGrade(0.13, 0.80)).toBe('B');
+    expect(computeReturnGrade(0.09, 2.00)).toBe('C');
+  });
+
+  it('the grade moves on IRR alone across the whole Track 2 range', () => {
+    for (const t2 of [0.0, 0.5, 0.99, 1.0, 1.09, 1.10, 2.5]) {
+      expect(computeReturnGrade(0.16, t2)).toBe('A');
+      expect(computeReturnGrade(0.13, t2)).toBe('B');
+      expect(computeReturnGrade(0.09, t2)).toBe('C');
+      expect(computeReturnGrade(0.03, t2)).toBe('D');
+    }
   });
 
   it('F: a non-finite IRR or Track 2 grades F, not D', () => {

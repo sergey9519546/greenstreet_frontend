@@ -1372,12 +1372,48 @@ export function computeVerdictDetail(input: VerdictInput): VerdictDetail {
 }
 
 /**
- * Return Grade (Part J):
- *   A: After-tax IRR ≥15%; T2 ≥1.10
- *   B: 12-15%; T2 ≥1.00
- *   C: 8-12%; T2 <1.00 with appreciation thesis
- *   D: <8% or T2 negative
- *   F: PASS scenario (negative after-tax IRR, hard kill, or no lender)
+ * Return Grade — grades the RETURN, on after-tax IRR.
+ *
+ *   A: after-tax IRR ≥ 15%
+ *   B: 12–15%
+ *   C: 8–12%
+ *   D: 0–8%
+ *   F: negative IRR, a negative Track 2, or either figure unestablished
+ *
+ * PART J CONTRADICTION — RESOLVED HERE. READ BEFORE CHANGING.
+ *
+ * Part J states PROCEED as a conjunction of independent conditions, two of
+ * which were "Track 2 ≥1.0 OR an explicit appreciation/tax thesis in $/mo" AND
+ * "Return Grade ≥B". But the grade itself used to require Track 2 (A needed
+ * ≥1.10, B needed ≥1.00), so "grade ≥B" strictly implied "Track 2 ≥1.0" and
+ * the "OR explicit thesis" branch could never be the deciding factor. The
+ * entire acknowledgment apparatus — the affirmative act, the non-empty
+ * statement, the $/mo figure, the check that the thesis covers the bleed —
+ * could be satisfied in full and change no outcome. PROCEED required Track 2
+ * ≥1.0 no matter what.
+ *
+ * The ruling: EACH FACT IS GATED ONCE. Track 2 coverage already has its own
+ * gate (TRACK2_CARRY) in the same conjunction, so grading it a second time
+ * inside the return grade is what made the first gate unreachable. The grade
+ * now measures return and nothing else; coverage is measured by the coverage
+ * gate.
+ *
+ * This LOOSENS the verdict, deliberately and in one specific way: a deal with
+ * a strong after-tax IRR and negative monthly carry can now reach PROCEED. It
+ * can only do so by clearing TRACK2_CARRY, which requires an acknowledgment
+ * that is `acknowledged`, carries a non-empty statement, states
+ * `thesisMonthlyDollars > 0`, and covers the actual monthly bleed. Absent that
+ * input — the default — a negative-carry deal still cannot PROCEED. No
+ * threshold moved; nothing became unfalsifiable.
+ *
+ * What did NOT change: a negative Track 2 DSCR still forces F. That is not a
+ * carry an appreciation thesis can be written against — it means the property
+ * does not produce positive net operating income at all.
+ *
+ * The alternative ruling was to keep Track 2 inside the grade and accept that
+ * the acknowledgment is decorative. That was rejected because it leaves live,
+ * tested, load-bearing-looking code that can never affect an outcome, which is
+ * exactly the class of defect this engine has already shipped twice.
  */
 export function computeReturnGrade(
   afterTaxIRR: number,
@@ -1389,9 +1425,12 @@ export function computeReturnGrade(
   // A non-finite input fails every `<` comparison below and would have fallen
   // through to 'D'. Unknown grades as F, never as a passing grade.
   if (!Number.isFinite(irrPct) || !Number.isFinite(track2DSCR)) return 'F';
+  // A negative Track 2 DSCR means the property does not produce positive net
+  // operating income at all. That is a structural failure, not a carry an
+  // appreciation thesis can be written against, so it still forces F.
   if (irrPct < 0 || track2DSCR < 0) return 'F';
-  if (irrPct >= 0.15 && track2DSCR >= 1.10) return 'A';
-  if (irrPct >= 0.12 && track2DSCR >= 1.00) return 'B';
+  if (irrPct >= 0.15) return 'A';
+  if (irrPct >= 0.12) return 'B';
   if (irrPct >= 0.08) return 'C';
   return 'D';
 }
@@ -1404,17 +1443,25 @@ function buildReturnGradeReason(
   const irrPct = (afterTaxIRR * 100).toFixed(1);
   const t2Val = (track2DSCR ?? 0).toFixed(3);
 
+  // The grade states the return and only the return. Monthly carry is reported
+  // alongside it, never folded into the letter — see the contradiction note on
+  // computeReturnGrade for why Track 2 was removed from the grading itself.
+  const carry =
+    track2DSCR >= 1.0
+      ? `Track 2 DSCR ${t2Val} covers monthly carry.`
+      : `Track 2 DSCR ${t2Val} is below 1.00 — carry is negative, and the Track 2 gate decides that separately.`;
+
   switch (grade) {
     case 'A':
-      return `Grade A: After-tax IRR ${irrPct}% ≥ 15% AND Track 2 DSCR ${t2Val} ≥ 1.10. Institutional-grade return with survival cushion.`;
+      return `Grade A: After-tax IRR ${irrPct}% ≥ 15%. Institutional-grade return. ${carry}`;
     case 'B':
-      return `Grade B: After-tax IRR ${irrPct}% in 12-15% range AND Track 2 DSCR ${t2Val} ≥ 1.00. Solid return with adequate cash flow.`;
+      return `Grade B: After-tax IRR ${irrPct}% in the 12-15% range. Solid return. ${carry}`;
     case 'C':
-      return `Grade C: After-tax IRR ${irrPct}% in 8-12% range. Track 2 DSCR ${t2Val} < 1.00 — proceed only with appreciation thesis in $/mo.`;
+      return `Grade C: After-tax IRR ${irrPct}% in the 8-12% range — below the B floor the verdict requires. ${carry}`;
     case 'D':
-      return `Grade D: After-tax IRR ${irrPct}% < 8% OR Track 2 DSCR ${t2Val} negative. Marginal return; requires structural fix.`;
+      return `Grade D: After-tax IRR ${irrPct}% below 8%. Marginal return; requires a structural fix. ${carry}`;
     case 'F':
-      return `Grade F: PASS scenario — negative after-tax IRR, hard kill, or no eligible lender. Do not proceed.`;
+      return `Grade F: after-tax IRR is negative or unestablished, or Track 2 DSCR is negative (the property does not produce positive net operating income). Do not proceed.`;
   }
 }
 
