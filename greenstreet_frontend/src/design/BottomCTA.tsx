@@ -7,7 +7,7 @@ export type BottomCTACard = { bg: string; fg?: string; blurb: string; title: str
 // goLanding so the same investor-facing calls-to-action appear sitewide.
 const DEFAULT_CARDS: BottomCTACard[] = [
   { bg: dc.lemon, fg: dc.dark, blurb: "Run the property's rent through Greenstreet — a real number in 60 seconds, no account, no credit pull.", title: "See what you can borrow", view: "dscr-calculator" },
-  { bg: dc.mintBg, fg: dc.dark, blurb: "Questions on a deal? Talk to a Greenstreet loan specialist — one team prices, structures, and funds it.", title: "Talk to a specialist", view: "book-demo" },
+  { bg: dc.mintBg, fg: dc.dark, blurb: "Questions on a deal? Talk to a Greenstreet specialist — one workflow prices, structures, and stress-tests it.", title: "Talk to a specialist", view: "book-demo" },
 ];
 
 export default function BottomCTA({

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono, CountUp, H1, Lead } from "../design/dc";
-import { swatch, radius } from "../theme";
+import DataVintageLine from "../design/DataVintageLine";
+import { swatch, radius, risk } from "../theme";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import TrueCostComparator from "../components/TrueCostComparator";
@@ -268,8 +269,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
               </div>
 
               {/* Match count headline */}
-              <div style={{ background: matchCount > 0 ? "rgba(77,189,151,0.12)" : "rgba(224,99,99,0.1)", border: `1px solid ${matchCount > 0 ? dc.emerald : "#e06363"}`, borderRadius: radius.sm, padding: "12px 16px", textAlign: "center" }}>
-                <Mono style={{ fontSize: 32, fontWeight: 700, color: matchCount > 0 ? dc.emerald : "#e06363", lineHeight: 1 }}>{matchCount}</Mono>
+              <div style={{ background: matchCount > 0 ? "rgba(77,189,151,0.12)" : risk.dangerBg, border: `1px solid ${matchCount > 0 ? dc.emerald : risk.danger}`, borderRadius: radius.sm, padding: "12px 16px", textAlign: "center" }}>
+                <Mono style={{ fontSize: 32, fontWeight: 700, color: matchCount > 0 ? dc.emerald : risk.danger, lineHeight: 1 }}>{matchCount}</Mono>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>
                   of {total} programs fit this deal
                 </div>
@@ -476,12 +477,12 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                   style={{
                     marginTop: 16,
                     padding: "10px 13px",
-                    background: "rgba(224,99,99,0.1)",
+                    background: risk.dangerBg,
                     borderRadius: radius.sm,
-                    border: "1px solid rgba(224,99,99,0.3)",
+                    border: `1px solid ${risk.dangerBorder}`,
                     fontSize: 12,
                     fontWeight: 500,
-                    color: "#e06363",
+                    color: risk.danger,
                     lineHeight: 1.5,
                   }}
                 >
@@ -493,7 +494,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             {/* ── PROGRAM LIST ── */}
             <div ref={listRef} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {scored.map((p, i) => {
-                const statusColor = p.fits ? dc.emerald : p.passed >= 3 ? swatch.lemon : "#e06363";
+                const statusColor = p.fits ? dc.emerald : p.passed >= 3 ? swatch.lemon : risk.danger;
                 const statusLabel = p.fits ? "FITS" : p.passed >= 3 ? `${4 - p.passed} miss` : "NO FIT";
                 const cardBg = p.fits ? dc.teal : "rgba(238,239,211,0.04)";
                 const cardBorder = p.fits ? "rgba(77,189,151,0.5)" : "rgba(238,239,211,0.1)";
@@ -542,7 +543,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                             letterSpacing: "0.05em",
                             textTransform: "uppercase",
                             color: statusColor,
-                            background: p.fits ? "rgba(77,189,151,0.16)" : p.passed >= 3 ? "rgba(216,217,88,0.12)" : "rgba(224,99,99,0.1)",
+                            background: p.fits ? "rgba(77,189,151,0.16)" : p.passed >= 3 ? risk.cautionBg : risk.dangerBg,
                             borderRadius: radius.sm,
                             padding: "3px 9px",
                           }}
@@ -578,8 +579,8 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                               fontSize: 11,
                               fontWeight: 600,
                               fontFamily: dc.mono,
-                              color: c.ok ? dc.emerald : "#e06363",
-                              background: c.ok ? "rgba(77,189,151,0.12)" : "rgba(224,99,99,0.1)",
+                              color: c.ok ? dc.emerald : risk.danger,
+                              background: c.ok ? "rgba(77,189,151,0.12)" : risk.dangerBg,
                               borderRadius: 5,
                               padding: "4px 8px",
                               letterSpacing: "-0.01em",
@@ -590,7 +591,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                         ))}
                         {/* Specialty flags */}
                         {p.noRatio && (
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: swatch.lemon, background: "rgba(216,217,88,0.12)", borderRadius: radius.sm, padding: "4px 8px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: dc.mono, color: swatch.lemon, background: risk.cautionBg, borderRadius: radius.sm, padding: "4px 8px" }}>
                             ★ no-ratio
                           </span>
                         )}
@@ -724,7 +725,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                         Program
                       </th>
                       {selectedPrograms.map(p => (
-                        <th key={p.id} style={{ textAlign: "left", padding: "10px 12px", fontWeight: 700, color: p.fits ? dc.emerald : "#e06363" }}>
+                        <th key={p.id} style={{ textAlign: "left", padding: "10px 12px", fontWeight: 700, color: p.fits ? dc.emerald : risk.danger }}>
                           {p.name}
                         </th>
                       ))}
@@ -765,6 +766,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             indicative only; FICO &times; LTV pricing grids determine final terms. Not a rate lock or credit
             approval.
           </p>
+          <DataVintageLine ground="dark" />
         </div>
       </section>
 
@@ -806,7 +808,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
                 Ready to move this deal forward?
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch", letterSpacing: "-0.01em" }}>
-                Submit once. We place your file in the best-fit program and fund it ourselves — no portal-hopping, no re-keying the same numbers five times.
+                Submit once. We model your file against the best-fit programs and hand you a structured scenario — no portal-hopping, no re-keying the same numbers five times.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>

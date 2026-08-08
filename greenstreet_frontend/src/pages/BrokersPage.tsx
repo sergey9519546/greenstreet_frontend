@@ -131,9 +131,9 @@ export default function BrokersPage({
             <H1 style={{ margin: 0 }}>
               One deal.
               <br />
-              We underwrite
+              Priced, structured,
               <br />
-              and fund it.
+              and stress-tested.
             </H1>
             <Lead
               style={{
@@ -142,10 +142,9 @@ export default function BrokersPage({
                 maxWidth: "38ch",
               }}
             >
-              Greenstreet is the broker and the lender — direct to you. Five tools
-              price, qualify, and stress-test your DSCR rental deal — no income
-              docs, no income tax returns, no middleman. Price a deal in under 60
-              seconds, then we fund it in-house.
+              Five tools price, qualify, and stress-test your DSCR rental deal —
+              no income docs, no income tax returns. Price a deal in under 60
+              seconds and take a structured scenario straight to the desk.
             </Lead>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Btn

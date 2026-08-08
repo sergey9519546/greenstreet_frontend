@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useId } from "react";
 import { auth, db, loginWithGoogle, logoutUser, loginAnonymously } from "../firebase";
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
@@ -8,14 +8,30 @@ import {
   Calculator, TrendingUp, BarChart2, Settings2, Zap, ChevronDown, Menu, X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import type { DSCRResult, BreakevenResult, StructureOption, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
+import type { DSCRResult, BreakevenResult, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
 import type { AuditLog } from "../engine/types";
-import { swatch, radius } from "../theme";
+import { PPP_STATE_LAWS } from "../engine/statePppLaws";
+import { formatVintage } from "../engine/dataVintage";
+import { swatch, radius, risk } from "../theme";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor as artifactDscrColor } from "../design/artifacts";
 import STRUnderwritingPage from "../pages/STRUnderwritingPage";
 import PortfolioPage from "../pages/PortfolioPage";
 import { SiteNav } from "../design/SiteShell";
 import { DcEmbeddedContext } from "../design/dc";
+import Notice from "./ui/Notice";
+import { captureException } from "../monitoring/sentry";
+
+/**
+ * One client-side reporting path for workspace failures. The pino `logger` in
+ * src/logger.ts is server-only (it reads process.env and pulls a transport), so
+ * browser code reports through the console with a stable prefix plus Sentry when
+ * a DSN is configured. Every catch below either surfaces a Notice to the user or
+ * calls this — no failure is swallowed silently.
+ */
+function reportWorkspaceError(scope: string, err: unknown) {
+  console.error(`[InvestGO] ${scope}`, err);
+  captureException(err);
+}
 
 // Tabs that embed a full tool page (each wraps itself in DcShell). Inside the
 // workspace these must render bare — no duplicate marketing nav/footer.
@@ -41,12 +57,12 @@ const T = {
   sidebarText: swatch.pistachio,
   sidebarActive: "rgba(216,217,88,0.16)",    // lemon-tinted active
   // Danger / warn — dark-friendly tints
-  dangerBg: "rgba(224,99,99,0.12)",
-  dangerBorder: "rgba(224,99,99,0.32)",
-  dangerText: "#ff8f8f",
-  warnBg: "rgba(216,217,88,0.12)",
-  warnBorder: "rgba(216,217,88,0.34)",
-  warnText: "#e6e76b",
+  dangerBg: risk.dangerBg,
+  dangerBorder: risk.dangerBorder,
+  dangerText: risk.dangerOnDark,
+  warnBg: risk.cautionBg,
+  warnBorder: risk.cautionBorder,
+  warnText: risk.cautionOnDark,
 } as const;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -82,11 +98,37 @@ function pppBadgeStyle(status: string): React.CSSProperties {
 const fmt$ = (n: number) => `$${Math.round(n).toLocaleString()}`;
 const fmtPct = (n: number) => `${n.toFixed(3)}%`;
 
+// ─── State-rule data vintage (derived, never asserted) ───────────────────────
+// Read straight off the engine's prepayment-penalty matrix at module load, so
+// the workspace can only ever report that matrix's real age and real coverage
+// gaps. This replaced a hardcoded panel that claimed a "17a-4 WORM archive",
+// an "Exam export" and continuously "Synced" state rules — none of which this
+// product does, and the last of which its own data contradicts.
+const STATE_LAWS = Object.values(PPP_STATE_LAWS);
+// `lastVerified` is "YYYY-MM", so lexical order is chronological order.
+const STATE_LAW_OLDEST_VERIFIED = STATE_LAWS.reduce<string | null>(
+  (oldest, law) => (oldest === null || law.lastVerified < oldest ? law.lastVerified : oldest),
+  null,
+);
+const STATE_LAW_UNVERIFIED_COUNT = STATE_LAWS.filter(law => law.provenance === "UNVERIFIED").length;
+const STATE_LAW_VINTAGE_ROWS: { label: string; value: string; tone: string }[] = [
+  { label: "States in matrix", value: String(STATE_LAWS.length), tone: T.ink },
+  {
+    label: "Oldest state verified",
+    value: STATE_LAW_OLDEST_VERIFIED ? formatVintage(`${STATE_LAW_OLDEST_VERIFIED}-01`) : "undated",
+    tone: T.ink,
+  },
+  {
+    label: "Source UNVERIFIED",
+    value: `${STATE_LAW_UNVERIFIED_COUNT} of ${STATE_LAWS.length}`,
+    tone: STATE_LAW_UNVERIFIED_COUNT > 0 ? risk.cautionOnDark : T.ink,
+  },
+];
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface SolveResult { deal: DSCRResult; topLenders: { name: string; score: number; tier: string; rank: number | null; topReasons: string[] }[] }
+interface SolveResult { deal: DSCRResult }
 interface SensResult { sensitivity: BreakevenResult }
-interface OptResult { options: StructureOption[] }
 interface StateResult { state: string; ppp: PPPCheckResult }
 
 interface DealForm {
@@ -169,11 +211,14 @@ function GhostBtn({ children, onClick, className = "" }:
 }
 
 /** Flat label input */
-function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; helper?: string }) {
+function FieldInput({ label, helper, id, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; helper?: string }) {
+  const generatedId = useId();
+  const fieldId = id ?? generatedId;
   return (
     <div className="space-y-1">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <label htmlFor={fieldId} className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
       <input {...props}
+        id={fieldId}
         className="w-full px-3 py-2.5 text-sm font-mono outline-none transition-colors"
         style={{
           background: T.inputBg,
@@ -190,11 +235,14 @@ function FieldInput({ label, helper, ...props }: React.InputHTMLAttributes<HTMLI
 }
 
 /** Flat label select */
-function FieldSelect({ label, helper, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; helper?: string }) {
+function FieldSelect({ label, helper, children, id, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; helper?: string }) {
+  const generatedId = useId();
+  const fieldId = id ?? generatedId;
   return (
     <div className="space-y-1">
-      <label className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
+      <label htmlFor={fieldId} className="block text-[11px] font-semibold uppercase tracking-[0.06em]" style={{ color: T.muted }}>{label}</label>
       <select {...props}
+        id={fieldId}
         className="w-full px-3 py-2.5 text-sm outline-none transition-colors appearance-none"
         style={{
           background: T.inputBg,
@@ -298,6 +346,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [brokerSaved, setBrokerSaved] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  // Dismissible failure surfaces for the three user-initiated Firestore paths
+  // (load/delete history, load/save settings, save a solved scenario). Each is
+  // cleared on the next successful attempt or by the user.
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [scenarioSaveWarning, setScenarioSaveWarning] = useState<string | null>(null);
 
   const [dealForm, setDealForm] = useState<DealForm>({
     purchasePrice: "450000", loanAmount: "337500", monthlyRent: "3200",
@@ -308,10 +362,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [isRunning, setIsRunning] = useState(false);
   const [solveError, setSolveError] = useState<string | null>(null);
   const [sensError, setSensError] = useState<string | null>(null);
-  const [optError, setOptError] = useState<string | null>(null);
   const [solveResult, setSolveResult] = useState<SolveResult | null>(null);
   const [sensResult, setSensResult] = useState<SensResult | null>(null);
-  const [optResult, setOptResult] = useState<OptResult | null>(null);
   const [stateInput, setStateInput] = useState("FL");
   const [isLoadingState, setIsLoadingState] = useState(false);
   const [stateError, setStateError] = useState<string | null>(null);
@@ -335,35 +387,67 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   useEffect(() => {
     if (!currentUser && !demoMode) return;
     const ref = collection(db, "artifacts", "default-app-id", "users", userUid, "audits");
-    const unsub = onSnapshot(ref, (snap) => {
-      const logs: AuditLog[] = [];
-      snap.forEach(d => logs.push({ id: d.id, ...d.data() } as AuditLog));
-      logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setAuditLogs(logs);
-    });
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const logs: AuditLog[] = [];
+        snap.forEach(d => logs.push({ id: d.id, ...d.data() } as AuditLog));
+        logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setAuditLogs(logs);
+        setHistoryError(null);
+      },
+      (err) => {
+        // Without this handler a permissions/offline failure left History showing
+        // the empty state — indistinguishable from "you have no scenarios".
+        reportWorkspaceError("Scenario history subscription failed", err);
+        setHistoryError("We couldn't load your saved scenarios. They're still stored — reload the page to try again.");
+      },
+    );
     return () => unsub();
-  }, [currentUser]);
+  }, [currentUser, demoMode]);
 
   useEffect(() => {
     if (!currentUser && !demoMode) return;
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
-    getDoc(ref).then(snap => { if (snap.exists()) setBrokerConfig(snap.data() as any); });
-  }, [currentUser]);
+    getDoc(ref)
+      .then(snap => {
+        if (snap.exists()) setBrokerConfig(prev => ({ ...prev, ...(snap.data() as Partial<typeof prev>) }));
+        setSettingsError(null);
+      })
+      .catch(err => {
+        // Silently falling back to defaults here is dangerous: the user would see
+        // a blank profile and could overwrite their real saved settings on save.
+        reportWorkspaceError("Failed to load broker settings", err);
+        setSettingsError("We couldn't load your saved profile, so these fields show defaults. Reload before saving — otherwise you may overwrite what's on file.");
+      });
+  }, [currentUser, demoMode]);
 
   const saveBrokerConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser && !demoMode) return;
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
-    await setDoc(ref, brokerConfig);
-    setBrokerSaved(true);
-    setTimeout(() => setBrokerSaved(false), 3000);
+    try {
+      await setDoc(ref, brokerConfig);
+      setSettingsError(null);
+      setBrokerSaved(true);
+      setTimeout(() => setBrokerSaved(false), 3000);
+    } catch (err) {
+      reportWorkspaceError("Failed to save broker settings", err);
+      setSettingsError("Your profile changes weren't saved. Check your connection and press Save Profile again — nothing you typed has been lost.");
+    }
   };
 
   const deleteLog = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if ((!currentUser && !demoMode) || !id) return;
-    await deleteDoc(doc(db, "artifacts", "default-app-id", "users", userUid, "audits", id));
-    if (selectedLog?.id === id) setSelectedLog(null);
+    try {
+      await deleteDoc(doc(db, "artifacts", "default-app-id", "users", userUid, "audits", id));
+      if (selectedLog?.id === id) setSelectedLog(null);
+      setHistoryError(null);
+    } catch (err) {
+      reportWorkspaceError("Failed to delete audit log", err);
+      setHistoryError("That scenario couldn't be deleted — it's still in your history. Try again in a moment.");
+    }
   };
 
   const saveLog = async (type: AuditLog["type"], title: string, input: string, output: any) => {
@@ -387,22 +471,26 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const handleAnalyze = useCallback(async () => {
     const payload = buildPayload();
     setIsRunning(true);
-    setSolveResult(null); setSensResult(null); setOptResult(null);
-    setSolveError(null); setSensError(null); setOptError(null);
+    setSolveResult(null); setSensResult(null);
+    setSolveError(null); setSensError(null);
+    setScenarioSaveWarning(null);
     try {
-      const [solveRes, sensRes, optRes] = await Promise.all([
+      const [solveRes, sensRes] = await Promise.all([
         fetch("/api/dscr/solve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
         fetch("/api/dscr/sensitivity", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
-        fetch("/api/dscr/optimize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
       ]);
-      const [solve, sens, opt] = await Promise.all([solveRes.json(), sensRes.json(), optRes.json()]);
+      const [solve, sens] = await Promise.all([solveRes.json(), sensRes.json()]);
       if (!solveRes.ok) throw new Error(solve.error || "Solve failed");
       setSolveResult(solve);
       if (sensRes.ok) { setSensResult(sens); } else { setSensError(sens.error || "Sensitivity engine failed. Re-run from Deal Workspace."); }
-      if (optRes.ok) { setOptResult(opt); } else { setOptError(opt.error || "Optimizer engine failed. Re-run from Deal Workspace."); }
-      await saveLog("analyze",
+      saveLog("analyze",
         `DSCR ${solve.deal.dscr.toFixed(2)}x — ${dealForm.propertyType} ${dealForm.state} ${dscrLabel(solve.deal.dscr)}`,
-        JSON.stringify(payload), solve);
+        JSON.stringify(payload), solve).catch(err => {
+          // The solve itself succeeded and is on screen; only the archive write
+          // failed. Warn (not error) so the user knows History will be missing it.
+          reportWorkspaceError("Failed to save audit log", err);
+          setScenarioSaveWarning("This analysis ran, but it couldn't be archived to Scenario History. The result below is still valid — export or re-run it if you need a saved copy.");
+        });
     } catch (err: any) {
       setSolveError(err.message || "Engine error. Check your inputs and try again.");
     } finally {
@@ -413,12 +501,19 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const handleStateRules = useCallback(async () => {
     if (!stateInput.trim()) return;
     setIsLoadingState(true); setStateResult(null); setStateError(null);
+    setScenarioSaveWarning(null);
     try {
       const res = await fetch("/api/dscr/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state: stateInput }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setStateResult(data);
-      await saveLog("state-rules", `State PPP: ${stateInput.toUpperCase()}`, stateInput, data);
+      // Archiving is a side effect of the lookup, so it gets its own handler —
+      // previously an archive failure surfaced as "State lookup failed" even
+      // though the rules had already rendered.
+      saveLog("state-rules", `State PPP: ${stateInput.toUpperCase()}`, stateInput, data).catch(err => {
+        reportWorkspaceError("Failed to save state-rules audit log", err);
+        setScenarioSaveWarning("This lookup ran, but it couldn't be archived to Scenario History. The rules below are still valid.");
+      });
     } catch (err: any) {
       setStateError(err.message || "State lookup failed. Try again.");
     } finally {
@@ -493,7 +588,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               onMouseLeave={e => { e.currentTarget.style.borderColor = T.cardBorder; e.currentTarget.style.color = T.muted; }}>
               Try demo mode — no account needed
             </button>
-            <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { setAuthError(e.message); } }}
+            <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { reportWorkspaceError("Google sign-in failed", e); setAuthError(e?.message || "Google sign-in didn't complete. Try again, or use email below."); } }}
               className="w-full py-3 flex items-center justify-center gap-3 text-sm font-semibold transition"
               style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: radius.sm, background: "#ffffff", color: "#1f2430" }}
               onMouseEnter={e => { e.currentTarget.style.background = "#f1f2ee"; }}
@@ -510,7 +605,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               <div className="absolute inset-x-0 top-1/2 h-px" style={{ background: T.cardBorder }} />
               <span className="relative px-3 font-semibold uppercase tracking-wider" style={{ background: T.cardBg }}>or email</span>
             </div>
-            <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }}
+            <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { reportWorkspaceError("Email sign-in failed", err); setAuthError(err?.message || "We couldn't sign you in. Check your email and password and try again."); } }}
               className="space-y-3">
               <div>
                 <label htmlFor="investgo-email" className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5" style={{ color: T.muted }}>Email</label>
@@ -633,7 +728,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
         <button onClick={() => { onBackToMarketing(); setSidebarOpen(false); }}
           className="flex items-center gap-2.5 mb-5 px-1 transition"
           style={{ width: "100%" }}
-          title="Back to greenstreetfinance.com"
+          title="Back to greenstreet.finance"
           onMouseEnter={e => e.currentTarget.style.opacity = "0.82"}
           onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
           <span style={{ width: 34, height: 34, borderRadius: 9, background: "#00201f", display: "grid", placeItems: "center", border: "1px solid rgba(238,239,211,0.12)", flexShrink: 0 }}>
@@ -766,7 +861,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                           { label: "Active deals",    value: "6",     delta: "+2 this week",       deltaColor: swatch.emerald },
                           { label: "Avg DSCR",        value: "1.31x", delta: "Healthy book",        deltaColor: swatch.emerald },
                           { label: "Pipeline vol.",   value: "$2.0M", delta: "+$0.4M MTD",           deltaColor: swatch.emerald },
-                          { label: "Flagged states",  value: "2",     delta: "NJ · OH need review", deltaColor: "#e6e76b" },
+                          { label: "Flagged states",  value: "2",     delta: "NJ · OH need review", deltaColor: risk.cautionOnDark },
                         ] as const).map(({ label, value, delta, deltaColor }) => (
                           <WhiteCard key={label} style={{ padding: "20px 20px 16px" }}>
                             <div className="text-[11px] font-semibold uppercase tracking-[0.04em] mb-2" style={{ color: T.faint }}>{label}</div>
@@ -789,7 +884,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 ? { color: swatch.emerald, background: `${swatch.emerald}16` }
                                 : d.stage === "Priced"
                                   ? { color: swatch.emerald, background: `${swatch.emerald}16` }
-                                  : { color: "#e6e76b", background: "rgba(154,123,0,0.1)" };
+                                  : { color: risk.cautionOnDark, background: "rgba(154,123,0,0.1)" };
                               return (
                                 <div key={d.prop}
                                   className="grid items-center gap-3 transition cursor-default"
@@ -822,24 +917,22 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                         {/* Right column */}
                         <div className="flex flex-col gap-4">
-                          {/* Compliance status */}
+                          {/* State-rule data vintage. Every figure below is derived from
+                              src/engine/statePppLaws.ts at module load (see STATE_LAW_VINTAGE_ROWS)
+                              — this panel makes no claim about Greenstreet's own records,
+                              licensing or retention. */}
                           <div className="rounded-lg p-5 flex-1" style={{ background: swatch.midnight, border: "1px solid rgba(238,239,211,0.16)", boxShadow: "inset 0 1px 0 rgba(238,239,211,0.06)", borderRadius: radius.md }}>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: "rgba(238,239,211,0.55)" }}>Compliance</div>
-                            {([
-                              { label: "17a-4 WORM archive", status: "Active" },
-                              { label: "IC memos generated", status: "6 / 6" },
-                              { label: "State rules current", status: "Synced" },
-                              { label: "Exam export",         status: "Ready" },
-                            ] as const).map(({ label, status }) => (
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: "rgba(238,239,211,0.55)" }}>State rule data</div>
+                            {STATE_LAW_VINTAGE_ROWS.map(({ label, value, tone }) => (
                               <div key={label} className="flex items-center justify-between py-2.5"
                                 style={{ borderBottom: `1px solid ${swatch.pistachio}15` }}>
                                 <span className="text-[13px] font-medium" style={{ color: `${swatch.pistachio}c0` }}>{label}</span>
-                                <span className="text-[11px] font-bold px-2 py-0.5"
-                                  style={{ color: swatch.midnight, background: swatch.emerald, borderRadius: radius.pill }}>
-                                  {status}
-                                </span>
+                                <span className="font-mono text-[12px] font-bold" style={{ color: tone, fontVariantNumeric: "tabular-nums" }}>{value}</span>
                               </div>
                             ))}
+                            <p className="text-[11px] leading-relaxed mt-3" style={{ color: "rgba(238,239,211,0.52)" }}>
+                              The prepayment-penalty matrix is dated research, not a live feed. Confirm current state law before relying on it.
+                            </p>
                           </div>
 
                           {/* State alerts */}
@@ -847,8 +940,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.rainforest }}>State alerts</div>
                             {([
                               { mark: "✕", color: T.dangerText, text: "45 Harbor (NJ): prepay penalty high-risk for LLC — restructure or expect +0.25% rate." },
-                              { mark: "~",  color: "#e6e76b",    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
-                              { mark: "~",  color: "#e6e76b",    text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
+                              { mark: "~",  color: risk.cautionOnDark,    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
+                              { mark: "~",  color: risk.cautionOnDark,    text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
                             ] as const).map(({ mark, color, text }) => (
                               <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
                                 <span className="font-bold shrink-0" style={{ color }}>{mark}</span>
@@ -873,6 +966,18 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                       {/* Error */}
                       {solveError && <ErrorBanner message={solveError} onRetry={handleAnalyze} />}
+
+                      {/* Degraded, not failed: the solve is on screen but wasn't archived. */}
+                      {scenarioSaveWarning && (
+                        <Notice
+                          tone="warning"
+                          ground="dark"
+                          title="Not saved to Scenario History"
+                          onDismiss={() => setScenarioSaveWarning(null)}
+                        >
+                          {scenarioSaveWarning}
+                        </Notice>
+                      )}
 
                       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
@@ -1082,40 +1187,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                   ))}
                                 </div>
 
-                                {/* Top Programs */}
-                                {solveResult!.topLenders.length > 0 && (
-                                  <WhiteCard style={{ padding: "20px" }}>
-                                    <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
-                                      <div>
-                                        <h4 className="font-bold text-sm" style={{ color: T.ink }}>Top Matching Programs</h4>
-                                        <p className="text-[11px] mt-0.5" style={{ color: T.faint }}>Programs ranked by fit score for this deal. Ready to submit to underwriting.</p>
-                                      </div>
-                                      <GhostBtn onClick={() => switchTab("optimize")}>
-                                        See all structures →
-                                      </GhostBtn>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {solveResult!.topLenders.map((l, i) => (
-                                        <div key={i} className="px-3 py-1.5 text-xs"
-                                          style={{ background: T.inputBg, border: `1px solid ${T.cardBorder}`, borderRadius: radius.sm }}>
-                                          <span className="font-bold" style={{ color: T.ink }}>{l.name}</span>
-                                          <span className="ml-2 font-mono" style={{ color: T.faint }}>{l.score}/100</span>
-                                          {l.tier && <span className="ml-2 font-semibold uppercase text-[9px]" style={{ color: swatch.rainforest }}>{l.tier}</span>}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </WhiteCard>
-                                )}
-
                                 {/* Quick-nav */}
-                                {(sensResult || optResult) && (
+                                {sensResult && (
                                   <div className="flex flex-wrap gap-3">
-                                    {sensResult && (
-                                      <GhostBtn onClick={() => switchTab("sensitivity")}>View Sensitivity Lab →</GhostBtn>
-                                    )}
-                                    {optResult && (
-                                      <GhostBtn onClick={() => switchTab("optimize")}>View Structure Optimizer →</GhostBtn>
-                                    )}
+                                    <GhostBtn onClick={() => switchTab("sensitivity")}>View Sensitivity Lab →</GhostBtn>
                                   </div>
                                 )}
                               </>
@@ -1177,7 +1252,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 ].map(({ label, value, warn }) => (
                                   <div key={label} className="flex items-center justify-between gap-3">
                                     <span className="text-xs flex-1" style={{ color: T.muted }}>{label}</span>
-                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: warn ? "#e6e76b" : swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
+                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: warn ? risk.cautionOnDark : swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
                                       {fmt$(value)}/mo
                                     </span>
                                   </div>
@@ -1299,7 +1374,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             const rating = sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating;
                             const ratingStyle: React.CSSProperties =
                               rating === "LOW" ? { color: swatch.emerald, background: `${swatch.emerald}16`, border: `1px solid ${swatch.rainforest}30` } :
-                              rating === "MODERATE" ? { color: "#e6e76b", background: "#fffbe6", border: "1px solid #ffe58f" } :
+                              rating === "MODERATE" ? { color: risk.cautionOnDark, background: "#fffbe6", border: "1px solid #ffe58f" } :
                               { color: T.dangerText, background: T.dangerBg, border: `1px solid ${T.dangerBorder}` };
                             return (
                               <Card style={{ padding: "20px" }}>
@@ -1329,124 +1404,38 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── STRUCTURE OPTIMIZER ── */}
                   {activeTab === "optimize" && (
                     <TabPane id="optimize">
-                      <div className="pb-1">
-                        <p className="text-sm" style={{ color: T.muted }}>
-                          Compares every loan structure Greenstreet offers — 30yr P&amp;I, interest-only, 40yr amort — ranked by DSCR so you can see which structure gives the deal the most room. Run <strong>Analyze</strong> in Deal Workspace first; optimizer runs in the same call.
-                        </p>
-                      </div>
-
-                      {/* Loading */}
-                      {isRunning && (
-                        <Card style={{ padding: "28px" }}>
-                          <div className="flex items-center gap-3 mb-5">
-                            <RefreshCw className="w-5 h-5 animate-spin" style={{ color: swatch.rainforest }} />
-                            <span className="text-sm font-semibold" style={{ color: T.ink }}>Evaluating loan structures…</span>
+                      <Card style={{ padding: "clamp(28px, 5vw, 52px)" }}>
+                        <div className="flex items-start gap-4">
+                          <span
+                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold"
+                            style={{ background: swatch.lemon, color: swatch.midnight }}
+                          >
+                            01
+                          </span>
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.08em]" style={{ color: swatch.rainforest }}>
+                              Tool reliability review
+                            </p>
+                            <h2 className="mt-2 text-2xl font-bold" style={{ color: T.ink }}>
+                              Structure recommendations are temporarily held.
+                            </h2>
+                            <p className="mt-3 max-w-2xl text-sm leading-6" style={{ color: T.muted }}>
+                              Payment schedules, rate units, and ranking criteria must be independently validated before one loan structure is recommended over another. No optimizer decision output is available right now.
+                            </p>
+                            <ul className="mt-5 grid gap-2 text-sm" style={{ color: T.muted }}>
+                              <li>• Structure-specific amortization and interest-only schedules</li>
+                              <li>• Verified pricing inputs expressed in one rate unit</li>
+                              <li>• Ranking tests using lender coverage and investor cash flow</li>
+                            </ul>
+                            <div className="mt-6">
+                              <PrimaryBtn onClick={() => switchTab("analyze")}>Open Deal Workspace →</PrimaryBtn>
+                            </div>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {[1,2,3].map(i => <Skeleton key={i} h={160} rounded={radius.md} />)}
                           </div>
-                        </Card>
-                      )}
-
-                      {/* Error */}
-                      {optError && !isRunning && (
-                        <ErrorBanner message={optError} onRetry={() => switchTab("analyze")} />
-                      )}
-
-                      {!isRunning && !optError && !optResult ? (
-                        <Card style={{ padding: "64px 24px", textAlign: "center" }}>
-                          <Zap className="w-10 h-10 mx-auto mb-3" style={{ color: `${T.ink}25` }} />
-                          <p className="text-sm font-semibold" style={{ color: T.muted }}>No structure data yet.</p>
-                          <p className="text-xs mt-1 mb-5" style={{ color: T.faint }}>Go to Deal Workspace, fill in the deal inputs, and run Analyze. The optimizer evaluates all structures in the same pass.</p>
-                          <div className="mt-5"><PrimaryBtn onClick={() => switchTab("analyze")}>Go to Deal Workspace →</PrimaryBtn></div>
-                        </Card>
-                      ) : !isRunning && optResult ? (
-                        <>
-                          <p className="text-xs" style={{ color: T.faint }}>
-                            {optResult.options.length} structures evaluated — sorted by Track 1 DSCR, highest first
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {[...optResult.options].sort((a, b) => b.track1DSCR - a.track1DSCR).map((opt, i) => {
-                              const isBest = i === 0;
-                              const optRisk = riskFromDscr(opt.track1DSCR);
-                              return (
-                                <div key={opt.name}
-                                  style={{
-                                    padding: "20px",
-                                    borderRadius: radius.md,
-                                    background: isBest ? swatch.pistachio : T.inputBg,
-                                    border: `1px solid ${isBest ? swatch.pistachio : T.cardBorder}`,
-                                  }}>
-                                  <div className="flex items-start justify-between mb-3">
-                                    <div>
-                                      <p className="font-bold text-sm mb-1" style={{ color: isBest ? swatch.midnight : T.ink }}>{opt.name}</p>
-                                      {isBest && (
-                                        <span className="text-[10px] font-bold px-2 py-0.5"
-                                          style={{ background: swatch.lemon, color: swatch.midnight, borderRadius: radius.pill }}>
-                                          BEST DSCR
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-2xl font-extrabold font-mono"
-                                        style={{ color: isBest ? swatch.rainforest : artifactDscrColor(opt.track1DSCR), fontVariantNumeric: "tabular-nums" }}>
-                                        {opt.track1DSCR.toFixed(2)}x
-                                      </span>
-                                      {!isBest && optRisk !== "none" && <RiskFlame level={optRisk} size={18} />}
-                                    </div>
-                                  </div>
-                                  <div className="space-y-1.5">
-                                    {[
-                                      { label: "Rate",             value: fmtPct(opt.rate) },
-                                      { label: "Monthly P&I",     value: fmt$(opt.monthlyPayment) },
-                                      { label: "Monthly Cash Flow", value: `${opt.monthlyCashFlow >= 0 ? "+" : ""}${fmt$(opt.monthlyCashFlow)}` },
-                                      { label: "Track 2 DSCR",    value: `${opt.track2DSCR.toFixed(2)}x` },
-                                    ].map(({ label, value }) => (
-                                      <div key={label} className="flex justify-between text-xs">
-                                        <span style={{ color: isBest ? "rgba(0,55,56,0.55)" : T.muted }}>{label}</span>
-                                        <span className="font-mono font-semibold" style={{ color: isBest ? swatch.midnight : T.ink, fontVariantNumeric: "tabular-nums" }}>{value}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  {/* 5yr cost of capital — the all-in figure the engine computes
-                                      but the card previously hid. This is the true comparison
-                                      number across structures (interest + points + fees + PPP). */}
-                                  <div className="flex justify-between items-baseline pt-2 mt-2 text-xs"
-                                    style={{ borderTop: `1px solid ${isBest ? "rgba(0,55,56,0.12)" : T.cardBorder}` }}>
-                                    <span style={{ color: isBest ? "rgba(0,55,56,0.55)" : T.muted }}>5-yr cost of capital</span>
-                                    <span className="font-mono font-bold text-sm" style={{ color: isBest ? swatch.midnight : T.ink, fontVariantNumeric: "tabular-nums" }}>
-                                      {fmt$(opt.fiveYearCost)}
-                                    </span>
-                                  </div>
-                                  {/* IO recast warning — payment-shock disclosure when the IO
-                                      period ends and P&I recasts on the shortened amortization. */}
-                                  {opt.ioRecastWarning && (
-                                    <div className="flex items-start gap-1.5 mt-2 text-[11px] leading-snug"
-                                      style={{ color: "#b8901f" }}>
-                                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
-                                      <span>{opt.ioRecastWarning}</span>
-                                    </div>
-                                  )}
-                                  {opt.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 pt-2 mt-2" style={{ borderTop: `1px solid ${isBest ? "rgba(0,55,56,0.12)" : T.cardBorder}` }}>
-                                      {opt.tags.slice(0, 3).map(tag => (
-                                        <span key={tag} className="text-[10px] px-1.5 py-0.5 font-semibold"
-                                          style={{
-                                            borderRadius: radius.sm,
-                                            background: isBest ? "rgba(0,55,56,0.07)" : T.inputBg,
-                                            color: isBest ? "rgba(0,55,56,0.7)" : T.muted,
-                                          }}>
-                                          {tag}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </>
-                      ) : null}
+                        </div>
+                      </Card>
                     </TabPane>
                   )}
 
@@ -1510,6 +1499,17 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                       {/* Error */}
                       {stateError && !isLoadingState && <ErrorBanner message={stateError} onRetry={handleStateRules} />}
+
+                      {scenarioSaveWarning && !isLoadingState && (
+                        <Notice
+                          tone="warning"
+                          ground="dark"
+                          title="Not saved to Scenario History"
+                          onDismiss={() => setScenarioSaveWarning(null)}
+                        >
+                          {scenarioSaveWarning}
+                        </Notice>
+                      )}
 
                       {stateResult && !isLoadingState && (
                         <div className="space-y-4">
@@ -1586,6 +1586,16 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── HISTORY ── */}
                   {activeTab === "history" && (
                     <TabPane id="history">
+                      {historyError && (
+                        <Notice
+                          tone="danger"
+                          ground="dark"
+                          title="Scenario history is out of sync"
+                          onDismiss={() => setHistoryError(null)}
+                        >
+                          {historyError}
+                        </Notice>
+                      )}
                       <div className="pb-1">
                         <p className="text-sm" style={{ color: T.muted }}>
                           Every deal you've analyzed and every state lookup, in chronological order. Click a row to inspect the full result.
@@ -1630,7 +1640,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                     style={{
                                       borderRadius: radius.pill,
                                       background: log.type === "analyze" ? `${swatch.emerald}20` : `${swatch.lemon}40`,
-                                      color: log.type === "analyze" ? swatch.rainforest : "#e6e76b",
+                                      color: log.type === "analyze" ? swatch.rainforest : risk.cautionOnDark,
                                     }}>
                                     {log.type === "analyze" ? "DSCR Deal" : "State PPP"}
                                   </span>
@@ -1646,7 +1656,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                               <h3 className="font-bold text-sm mb-0.5" style={{ color: T.ink }}>{selectedLog.title}</h3>
                               <p className="text-[10px] mb-4" style={{ color: T.faint }}>{new Date(selectedLog.timestamp).toLocaleString()}</p>
                               {/* Human-readable summary if analyze type */}
-                              {selectedLog.type === "analyze" && selectedLog.output?.deal && (() => {
+                              {selectedLog.type === "analyze" && selectedLog.output?.deal && typeof selectedLog.output.deal.dscr === "number" && (() => {
                                 const d = selectedLog.output.deal as DSCRResult;
                                 return (
                                   <div className="space-y-2 mb-4 pb-4" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
@@ -1679,15 +1689,26 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── SETTINGS ── */}
                   {activeTab === "settings" && (
                     <TabPane id="settings">
+                      {settingsError && (
+                        <Notice
+                          tone="danger"
+                          ground="dark"
+                          title="Your profile didn't sync"
+                          onDismiss={() => setSettingsError(null)}
+                          style={{ maxWidth: 576 }}
+                        >
+                          {settingsError}
+                        </Notice>
+                      )}
                       <WhiteCard className="max-w-xl" style={{ padding: "32px" }}>
                         <h2 className="font-bold text-lg mb-1" style={{ color: T.ink }}>Your Profile</h2>
                         <p className="text-xs mb-6" style={{ color: T.muted }}>
-                          Your name and license info appear on IC memos and audit exports.
+                          Saved to your account. Your name and primary market show in the workspace sidebar.
                         </p>
                         <form onSubmit={saveBrokerConfig} className="space-y-4">
                           {[
-                            { key: "brokerName",    label: "Name / Company",    helper: "Displayed on all exports" },
-                            { key: "nmls",          label: "NMLS License Number",      helper: "Required for compliance memos" },
+                            { key: "brokerName",    label: "Name / Company",           helper: "Shown in the sidebar" },
+                            { key: "nmls",          label: "NMLS License Number",      helper: "Optional" },
                             { key: "licenseType",   label: "License Type",             helper: "Optional" },
                             { key: "primaryMarket", label: "Primary Markets (States)", helper: "e.g. FL, TX, GA" },
                           ].map(({ key, label, helper }) => (

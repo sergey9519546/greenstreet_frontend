@@ -1,14 +1,16 @@
 import React, { useState, useRef, useCallback, useMemo } from "react";
 import { resolveInitialDeal } from "../lib/dealState";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
-import { computeReturns } from "../engine/returnsEngine";
+import { computeReturns, computeRemainingBalance } from "../engine/returnsEngine";
 import type { PropertyInputs, LoanStructure } from "../engine/types";
 import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeLossScenarios, type LossScenario } from "../engine/lossFraming";
+import { calculatePI } from "../engine";
+import { risk } from "../theme";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
-const RED    = "#e06363";
-const ORANGE = "#e6b84d";
+const RED    = risk.danger;
+const ORANGE = risk.warning;
 
 function fmt$(n: number) {
   return "$" + Math.round(n).toLocaleString("en-US");
@@ -33,19 +35,12 @@ function calcIRR(opts: {
   const { purchasePrice, ltv, rate, monthlyRent, annualTaxes, annualInsurance, hoa, holdYears, exitCapRate, rentGrowth, vacancy, prepayAtExit } = opts;
   const loan    = purchasePrice * (ltv / 100);
   const cashInv = purchasePrice - loan;
-  const r       = rate / 100 / 12;
   const n       = 360;
-  const piMo    = r === 0
-    ? loan / n
-    : (loan * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  const piMo    = calculatePI(loan, rate, n); // golden-tested engine primitive
 
-  const remBal = (elapsed: number) => {
-    if (elapsed >= n) return 0;
-    if (r === 0) return loan * (1 - elapsed / n);
-    const f = Math.pow(1 + r, n);
-    const e = Math.pow(1 + r, elapsed);
-    return Math.max(0, (loan * (f - e)) / (f - 1));
-  };
+  // Standard closed-form remaining balance — engine primitive (bit-identical to
+  // the previous inline formula this replaced).
+  const remBal = (elapsed: number) => computeRemainingBalance(loan, rate, n, elapsed);
 
   const OPEX_PCT = 15;
   const hold = Math.max(1, Math.min(15, holdYears));
@@ -191,7 +186,7 @@ function buildJourney(o: {
   const loan = o.purchasePrice * (o.ltv / 100);
   const cashInv = o.purchasePrice - loan;
   const r = o.rate / 100 / 12;
-  const pmt = r === 0 ? loan / 360 : (loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
+  const pmt = calculatePI(loan, o.rate, 360); // golden-tested engine primitive
   const annualDS = pmt * 12;
   const fixed = o.annualTaxes + o.annualInsurance + o.hoa * 12;
   let cum = -cashInv, bal = loan;
@@ -346,9 +341,8 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
 
   // DSCR for the gauge (NOI / annual debt service)
   const annualNOI  = entryCapRate > 0 ? purchasePrice * (entryCapRate / 100) : 0;
-  const r_         = rate / 100 / 12;
   const loan_      = purchasePrice * (ltv / 100);
-  const piMoCalc   = r_ === 0 ? loan_ / 360 : (loan_ * r_ * Math.pow(1 + r_, 360)) / (Math.pow(1 + r_, 360) - 1);
+  const piMoCalc   = calculatePI(loan_, rate, 360); // golden-tested engine primitive
   const annualPITIA = piMoCalc * 12;
   const dscrValue   = annualPITIA > 0 ? annualNOI / annualPITIA : 1.5;
   const dscrRisk    = riskFromDscr(dscrValue);
@@ -474,7 +468,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
             </h2>
             <div style={{
               display: "flex", alignItems: "flex-start", gap: 14,
-              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : "rgba(224,99,99,0.08)",
+              background: levIRR >= 12 ? "rgba(77,189,151,0.1)" : levIRR >= 8 ? "rgba(216,217,88,0.1)" : risk.dangerBg,
               border: `1px solid ${levIRR >= 12 ? "rgba(77,189,151,0.25)" : levIRR >= 8 ? "rgba(216,217,88,0.25)" : "rgba(224,99,99,0.2)"}`,
               borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 660,
             }}>
@@ -669,9 +663,9 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                     const isNegative = scenario.monthlyCashFlow < 0;
                     const isLowCashFlow = scenario.monthlyCashFlow >= 0 && scenario.monthlyCashFlow < 200;
                     const bgColor = isNegative 
-                      ? "rgba(224,99,99,0.08)" 
+                      ? risk.dangerBg 
                       : isLowCashFlow 
-                      ? "rgba(230,184,77,0.08)" 
+                      ? risk.warningBg 
                       : "rgba(77,189,151,0.08)";
                     const borderColor = isNegative 
                       ? "rgba(224,99,99,0.25)" 
@@ -777,7 +771,7 @@ export default function ReturnsPage({ onBack, onNavigate }: { onBack: () => void
                 Lock the numbers in. Get your rate.
               </h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
-                Submit once. Greenstreet places your file in the best-fit program and funds it — no re-keying the same numbers five times.
+                Submit once. Greenstreet models your file against the best-fit programs and returns a structured scenario — no re-keying the same numbers five times.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
