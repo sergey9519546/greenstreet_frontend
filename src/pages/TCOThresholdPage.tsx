@@ -47,11 +47,11 @@ export default function TCOThresholdPage({
             <PremiumSlider label="Standard DSCR" value={standardDscr} min={0.75} max={1.5} step={0.05} formatValue={(v) => `${v}x`} onChange={setStandardDscr} />
             <PremiumSlider label="Reserve Load vs PITIA" value={reserveLoad} min={15} max={60} step={0.1} formatValue={(v) => `${v}%`} onChange={setReserveLoad} />
             
-            <div style={{ marginTop: 24, padding: 20, background: "rgba(238,239,211,0.03)", borderRadius: dc.r.md, border: `1px solid ${dc.border}` }}>
+            <div style={{ marginTop: 24, padding: 20, background: "rgba(0,55,56,0.04)", borderRadius: dc.r.md, border: `1px solid ${dc.border}` }}>
               <div style={{ fontSize: 14, color: dc.muted, marginBottom: 12 }}>
                 <strong>Formula:</strong> TCO DSCR = Standard DSCR / (1 + Reserve Load %)
               </div>
-              <div style={{ fontSize: 13, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, color: "rgba(0,55,56,0.66)", lineHeight: 1.5 }}>
                 A 38.89% reserve load represents typical institutional CapEx, Maintenance, and Vacancy reserves applied atop standard PITIA payments.
               </div>
             </div>

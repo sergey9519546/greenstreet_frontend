@@ -1819,10 +1819,10 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ width: 34, height: 34, borderRadius: "50%", background: dc.emerald, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: dc.dark, flexShrink: 0 }}>
-                GS
+                PR
               </span>
               <span style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.7)", letterSpacing: "-0.01em" }}>
-                Greenstreet Editorial
+                Priya Rao · Head of Quant
               </span>
             </div>
           </div>

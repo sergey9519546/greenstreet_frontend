@@ -70,6 +70,13 @@ export function lookupMaxLTV(
 ): number | null {
   const tier = program.grid.find((t) => {
     if (dscr === null) return t.dscrMin === null;
+    // Deliberate: a rated deal whose DSCR is below every numeric tier falls
+    // through to the no-ratio tier rather than being rejected outright — that is
+    // what a no-ratio program is for, and it prices at lower leverage (maple 70%
+    // vs 85%, oak 75% vs 85%). Pinned by "retains a real no-ratio fallback when
+    // no numeric tier applies" in dscrPrograms.test.ts. Do not "restore" the old
+    // `if (t.dscrMin === null) return false;` guard — it makes low-DSCR
+    // borrowers ineligible instead of routing them to no-ratio.
     const min = t.dscrMin ?? 0;
     return dscr >= min && (t.dscrMax === null || dscr <= t.dscrMax);
   });

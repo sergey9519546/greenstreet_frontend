@@ -61,7 +61,7 @@ export default function ConstructionBridgePage({
             <PremiumSlider label="Bridge Loan Amount" value={loanAmount} min={100000} max={4000000} step={10000} formatValue={(v) => `$${v.toLocaleString()}`} onChange={setLoanAmount} />
             <PremiumSlider label="Bridge Note Rate (IO)" value={bridgeRate} min={8.0} max={15.0} step={0.25} formatValue={(v) => `${v}%`} onChange={setBridgeRate} />
             <PremiumSlider label="Construction Term (Months)" value={months} min={6} max={24} step={1} onChange={setMonths} />
-            <div style={{ height: 1, background: "rgba(238,239,211,0.1)", margin: "8px 0" }} />
+            <div style={{ height: 1, background: "rgba(0,55,56,0.12)", margin: "8px 0" }} />
             <PremiumSlider label="Projected Stabilized Rent" value={stabilizedRent} min={1000} max={30000} step={100} formatValue={(v) => `$${v.toLocaleString()}`} onChange={setStabilizedRent} />
             <PremiumSlider label="Stabilized Escrows (Tax/Ins/HOA)" value={stabilizedEscrows} min={100} max={5000} step={50} formatValue={(v) => `$${v.toLocaleString()}`} onChange={setStabilizedEscrows} />
             <PremiumSlider label="Exit Takeout Rate" value={exitRate} min={5.0} max={9.0} step={0.125} formatValue={(v) => `${v}%`} onChange={setExitRate} />
@@ -96,7 +96,7 @@ export default function ConstructionBridgePage({
 
                 {result.viability === "SHORTFALL" && (
                   <div style={{ marginTop: 20, background: risk.dangerBg, borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: risk.dangerBorder, borderLeftColor: risk.danger, borderRadius: '0 8px 8px 0', padding: 16 }}>
-                    <div style={{ fontSize: 13, color: "rgba(238,239,211,0.8)", lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 13, color: "rgba(0,55,56,0.75)", lineHeight: 1.5 }}>
                       The projected stabilized rent cannot support a takeout loan large enough to retire the bridge note at a 1.00x DSCR floor. Cash-in will be required at refinance.
                     </div>
                   </div>
@@ -116,7 +116,7 @@ export default function ConstructionBridgePage({
                     <span style={{ color: dc.muted }}>Peak IO Payment (100% Drawn)</span>
                     <Mono style={{ color: dc.light }}>{fmt$(result.monthlyIOPaymentFull)}/mo</Mono>
                   </div>
-                  <div style={{ height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
+                  <div style={{ height: 1, background: "rgba(0,55,56,0.12)", margin: "4px 0" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600 }}>
                     <span style={{ color: LEMON }}>Required Interest Reserve</span>
                     <Mono style={{ color: LEMON }}>{fmt$(result.interestReserveNeeded)}</Mono>

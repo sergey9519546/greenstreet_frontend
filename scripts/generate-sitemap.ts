@@ -40,9 +40,20 @@ const heldPaths = new Set<string>(
 const blogSource = readFileSync(resolve(ROOT, "src/pages/BlogPage.tsx"), "utf8");
 const blogPaths = [...blogSource.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => `/blog/${m[1]}`);
 
+// Legal surfaces that are routable and publicly linked but are NOT in
+// CANONICAL_PUBLIC_PATHS, which carries only "/legal". Both resolve to the legal
+// view (src/router/resolve.ts:85-86) and both are linked with target="_blank"
+// from the lead-capture consent text (src/components/QualifyModal.tsx:1769-1770),
+// so a borrower is asked to accept terms at URLs search engines can reach.
+// The first generated sitemap dropped them — they were published before it and
+// must stay published. Listed explicitly rather than widened into
+// CANONICAL_PUBLIC_PATHS, because that registry drives canonical-tag behaviour
+// and these three URLs share one page.
+const EXTRA_PUBLISHED_PATHS = ["/privacy-policy", "/terms-of-service"] as const;
+
 const paths: string[] = [];
 const seen = new Set<string>();
-for (const path of [...CANONICAL_PUBLIC_PATHS, ...blogPaths]) {
+for (const path of [...CANONICAL_PUBLIC_PATHS, ...EXTRA_PUBLISHED_PATHS, ...blogPaths]) {
   if (heldPaths.has(path) || seen.has(path)) continue;
   seen.add(path);
   paths.push(path);

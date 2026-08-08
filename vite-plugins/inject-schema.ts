@@ -12,7 +12,7 @@ export function injectSchemaPlugin(): Plugin {
   "@type": "FinancialService",
   "name": "Greenstreet Finance",
   "url": "https://www.greenstreet.finance",
-  "logo": "https://www.greenstreet.finance/img/favicon-32.png",
+  "logo": "https://www.greenstreet.finance/img/favicon-16.png",
   "description": "DSCR loan calculator and non-QM mortgage platform for rental property investors. Compare specialized DSCR lender programs instantly.",
   "serviceType": ["DSCR Loan Calculator", "Non-QM Mortgage Brokerage", "Rental Property Financing Tools"]
 }

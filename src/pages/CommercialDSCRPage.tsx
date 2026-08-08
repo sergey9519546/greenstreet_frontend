@@ -60,7 +60,7 @@ export default function CommercialDSCRPage({
             <PremiumSlider label="Gross Scheduled Rent /mo" value={grossRent} min={4000} max={50000} step={100} formatValue={(v) => `$${v.toLocaleString()}`} onChange={setGrossRent} />
             <PremiumSlider label="Vacancy & Collection Loss %" value={vacancy} min={3} max={15} step={0.5} formatValue={(v) => `${v}%`} onChange={setVacancy} />
             <PremiumSlider label="Operating Expenses /mo" value={opex} min={1000} max={20000} step={100} formatValue={(v) => `$${v.toLocaleString()}`} onChange={setOpex} />
-            <div style={{ height: 1, background: "rgba(238,239,211,0.1)", margin: "8px 0" }} />
+            <div style={{ height: 1, background: "rgba(0,55,56,0.12)", margin: "8px 0" }} />
             <PremiumSlider label="Target Loan Amount" value={loanAmount} min={500000} max={5000000} step={50000} formatValue={(v) => `$${v.toLocaleString()}`} onChange={setLoanAmount} />
             <PremiumSlider label="Interest Rate" value={rate} min={5.0} max={10.0} step={0.125} formatValue={(v) => `${v}%`} onChange={setRate} />
           </div>
@@ -85,7 +85,7 @@ export default function CommercialDSCRPage({
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: risk.danger, textTransform: "uppercase", marginBottom: 6 }}>
                       OpEx Sanity Warning
                     </div>
-                    <div style={{ fontSize: 13, color: "rgba(238,239,211,0.8)", lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 13, color: "rgba(0,55,56,0.75)", lineHeight: 1.5 }}>
                       {result.noiSanity.warningMessage}
                     </div>
                   </div>
@@ -108,7 +108,7 @@ export default function CommercialDSCRPage({
                       {result.noiSanity.expenseRatioPct.toFixed(1)}%
                     </Mono>
                   </div>
-                  <div style={{ height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
+                  <div style={{ height: 1, background: "rgba(0,55,56,0.12)", margin: "4px 0" }} />
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, fontWeight: 600 }}>
                     <span style={{ color: dc.light }}>Net Operating Income (NOI)</span>
                     <Mono style={{ color: LEMON }}>{fmt$(result.noiMonthly)}/mo</Mono>
