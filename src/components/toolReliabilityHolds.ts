@@ -103,18 +103,6 @@ export const TOOL_RELIABILITY_HOLDS = {
       "Golden scenarios covering acquisition, operations, and sale",
     ],
   },
-  refiTracker: {
-    view: "refi-tracker",
-    path: "/tools/refi-tracker",
-    title: "Refinance Tracker",
-    reason:
-      "We are validating payoff balance, closing costs, remaining term, and rate assumptions before showing a refinance recommendation.",
-    whatIsNeeded: [
-      "A complete current-loan amortization schedule",
-      "Verified new-loan costs and payoff requirements",
-      "Break-even tests across realistic hold periods",
-    ],
-  },
   portfolioRefi: {
     view: "portfolio",
     path: "/tools/portfolio",

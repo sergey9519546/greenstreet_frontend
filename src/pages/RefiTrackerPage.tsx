@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { DcShell, dc, Mono, H1, H2, Lead, Btn, useRevealOnView } from "../design/dc";
 import { RiskFlame, riskFromDscr } from "../design/artifacts";
-import { analyzeRefi } from "../engine/refiTracker";
+import { analyzeRefi, evaluateRefinance } from "../engine/refiTracker";
 import { computeSecondLienDscr } from "../engine/secondLienDscr";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
 import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenantCheck";
@@ -42,11 +42,30 @@ export default function RefiTrackerPage({
 
   // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
-  const [currentBalance, setCurrentBalance] = useState(340000);
+  // The existing note, not a remembered balance.
+  //
+  // This page used to take "Current Loan Balance" and "Current Monthly P&I" as
+  // typed numbers. Both are derivable from the note, and taking them by hand
+  // let the two disagree with each other and with the rate — a balance, a
+  // payment and a rate that do not describe the same loan produce a payoff
+  // figure nothing can reconcile. The release gate for this tool is "a complete
+  // current-loan amortization schedule", so the schedule is now built from the
+  // note terms and the balance and payment are read out of it.
+  // 70.6% of the $425K purchase. The old default was $340K — 80% LTV, above
+  // the 75% rate-term cap, so this page opened on a deal that could not
+  // refinance at all. Nothing said so, because nothing checked.
+  const [origLoanAmount, setOrigLoanAmount] = useState(300000);
+  const [currentTermYears, setCurrentTermYears] = useState(30);
   const [currentRate, setCurrentRate] = useState(7.25);
-  const [currentPayment, setCurrentPayment] = useState(2317);
   const [monthlyRent, setMonthlyRent] = useState(3000);
   const [monthsOwned, setMonthsOwned] = useState(8);
+  // New-loan costs and payoff requirements — gate 2. Zeroes here would quietly
+  // claim a refinance is free, so they are real inputs with real defaults.
+  const [newLenderFees, setNewLenderFees] = useState(1800);
+  const [newThirdPartyFees, setNewThirdPartyFees] = useState(2400);
+  const [newPrepaids, setNewPrepaids] = useState(1500);
+  const [prepayPenaltyPct, setPrepayPenaltyPct] = useState(0);
+  const [payoffFees, setPayoffFees] = useState(495);
   const [projectedRate, setProjectedRate] = useState(6.5);
   const [projectedAppreciation, setProjectedAppreciation] = useState(5);
   const [annualTaxes, setAnnualTaxes] = useState(5000);
@@ -59,7 +78,42 @@ export default function RefiTrackerPage({
   const [covenantDscr, setCovenantDscr] = useState(1.20);
   const [inPlaceRent, setInPlaceRent] = useState(3000);
   const currentValue = Math.round(purchasePrice * (1 + (projectedAppreciation / 100) * (monthsOwned / 12)));
-  const firstLienPITIA = currentPayment + (annualTaxes + annualInsurance) / 12 + hoa;
+  const escrowsMonthly = (annualTaxes + annualInsurance) / 12 + hoa;
+
+  // ── The existing loan, evaluated against the shared amortization kernel ──
+  // Balance and payment are READ from the schedule. Nothing here is typed.
+  const refi = useMemo(() => {
+    try {
+      return evaluateRefinance({
+        current: {
+          originalAmount: origLoanAmount,
+          annualRatePct: currentRate,
+          termMonths: Math.round(currentTermYears * 12),
+          monthsElapsed: monthsOwned,
+          prepaymentPenaltyPct: prepayPenaltyPct,
+          payoffFees,
+        },
+        proposed: {
+          annualRatePct: projectedRate,
+          termMonths: 360,
+          lenderFees: newLenderFees,
+          thirdPartyFees: newThirdPartyFees,
+          prepaidsAndEscrows: newPrepaids,
+        },
+        property: { value: currentValue, qualifyingRent: monthlyRent, monthlyEscrows: escrowsMonthly },
+      });
+    } catch {
+      return null;
+    }
+  }, [
+    origLoanAmount, currentRate, currentTermYears, monthsOwned, prepayPenaltyPct, payoffFees,
+    projectedRate, newLenderFees, newThirdPartyFees, newPrepaids,
+    currentValue, monthlyRent, escrowsMonthly,
+  ]);
+
+  const currentBalance = refi ? Math.round(refi.payoff.principalBalance) : 0;
+  const currentPayment = refi ? refi.currentPayment : 0;
+  const firstLienPITIA = currentPayment + escrowsMonthly;
   const secondLien = computeSecondLienDscr({
     monthlyRent, firstLienPITIA, firstLienBalance: currentBalance,
     propertyValue: currentValue, secondLienAmount: secondAmount, secondLienRate: secondRate,
@@ -70,7 +124,7 @@ export default function RefiTrackerPage({
     propertyValue: currentValue,
     currentBalance,
     qualifyingRent: monthlyRent,
-    escrowsMonthly: (annualTaxes + annualInsurance) / 12 + hoa,
+    escrowsMonthly,
     newRate: projectedRate,
   });
   // Maintenance-covenant test on the current loan + day-one (in-place rent) vs
@@ -160,14 +214,26 @@ export default function RefiTrackerPage({
   ]);
 
   const score = result?.totalScore ?? 0;
-  const vColor = result ? scoreColor(score) : risk.danger;
-  const vLabel = result
-    ? score >= 80
-      ? "REFI READY"
-      : score >= 55
-      ? "CONDITIONAL"
-      : "NOT READY"
-    : "INPUTS REQUIRED";
+
+  // THE HEADLINE IS THE DECISION, NOT THE READINESS SCORE.
+  //
+  // The score measures how ready the borrower looks — seasoning, equity, DSCR
+  // headroom, monthly saving. It cannot see whether the new loan actually
+  // raises enough to retire the existing lien, so a deal that is short at the
+  // closing table could still read "REFI READY". `evaluateRefinance` answers
+  // that question and refuses when the answer is no; its decision governs, and
+  // the score is reported underneath it as supporting detail.
+  const decision = refi?.decision ?? null;
+  const vColor =
+    decision === 'PROCEED' ? dc.emerald
+    : decision === 'CONDITIONAL' ? dc.lemon
+    : decision === 'REFUSED' ? risk.danger
+    : risk.danger;
+  const vLabel =
+    decision === 'PROCEED' ? 'REFI READY'
+    : decision === 'CONDITIONAL' ? 'CONDITIONAL'
+    : decision === 'REFUSED' ? 'NOT RECOMMENDED'
+    : 'INPUTS REQUIRED';
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -246,9 +312,9 @@ export default function RefiTrackerPage({
     suffix?: string;
   }> = [
     { label: "Purchase Price", hint: "What you originally paid — sets your equity baseline.", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
-    { label: "Current Loan Balance", hint: "What you still owe today. Estimate is fine.", value: currentBalance, set: setCurrentBalance, step: 1000, prefix: "$" },
+    { label: "Original Loan Amount", hint: "What you borrowed at closing. The balance today is calculated from this, not estimated.", value: origLoanAmount, set: setOrigLoanAmount, step: 1000, prefix: "$" },
     { label: "Current Rate", hint: "Your existing interest rate — drives savings math.", value: currentRate, set: setCurrentRate, step: 0.125, suffix: "%" },
-    { label: "Current Monthly P&I", hint: "Principal + interest only (not taxes/insurance). Check your statement.", value: currentPayment, set: setCurrentPayment, step: 25, prefix: "$" },
+    { label: "Original Term", hint: "Years on the existing note. Sets the amortization your payoff is read from.", value: currentTermYears, set: setCurrentTermYears, step: 5, suffix: " yr" },
     { label: "Months Owned", hint: "Most lenders require 6 months before you can refi a DSCR loan.", value: monthsOwned, set: setMonthsOwned, step: 1 },
     { label: "Monthly Rent (qualifying)", hint: "The rent your lender will count — lease amount or appraised rent, whichever is lower.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
     { label: "Projected Rate at Refi", hint: "The rate you expect to get on the new loan. Use today's market rate as your starting estimate.", value: projectedRate, set: setProjectedRate, step: 0.125, suffix: "%" },
@@ -256,6 +322,14 @@ export default function RefiTrackerPage({
     { label: "Annual Taxes", hint: "Your property tax bill per year. Find it on your last tax statement.", value: annualTaxes, set: setAnnualTaxes, step: 500, prefix: "$" },
     { label: "Annual Insurance", hint: "Homeowner's insurance premium per year.", value: annualInsurance, set: setAnnualInsurance, step: 250, prefix: "$" },
     { label: "Monthly HOA", hint: "Enter 0 if there is no HOA.", value: hoa, set: setHoa, step: 25, prefix: "$" },
+    // Costs. Leaving these out does not make a refinance free — it just stops
+    // the tool from counting what the refinance costs, which is the single
+    // largest input to whether it is worth doing.
+    { label: "New Lender Fees", hint: "Origination and underwriting charged by the new lender.", value: newLenderFees, set: setNewLenderFees, step: 100, prefix: "$" },
+    { label: "Title, Appraisal & Recording", hint: "Third-party costs at the new closing.", value: newThirdPartyFees, set: setNewThirdPartyFees, step: 100, prefix: "$" },
+    { label: "Prepaids & Escrow Deposits", hint: "Prepaid interest and escrow funded at close.", value: newPrepaids, set: setNewPrepaids, step: 100, prefix: "$" },
+    { label: "Prepayment Penalty", hint: "Percent of the payoff balance charged by your CURRENT lender. 0 if your penalty has expired.", value: prepayPenaltyPct, set: setPrepayPenaltyPct, step: 1, suffix: "%" },
+    { label: "Payoff / Demand Fees", hint: "Demand, recording and statement fees charged to retire the existing loan.", value: payoffFees, set: setPayoffFees, step: 50, prefix: "$" },
   ];
 
   return (
@@ -637,30 +711,72 @@ export default function RefiTrackerPage({
                     marginBottom: 12,
                   }}
                 >
-                  Refi Readiness Score
+                  Refinance Decision
                 </div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: 72,
-                    fontWeight: 700,
-                    color: vColor,
-                    lineHeight: 1,
-                  }}
-                >
-                  {result ? Math.round(score) : "—"}
-                </Mono>
                 <div
                   style={{
-                    fontSize: 13,
+                    fontSize: "clamp(28px,4vw,44px)",
                     fontWeight: 700,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
+                    letterSpacing: "-0.02em",
                     color: vColor,
-                    margin: "8px 0 14px",
+                    lineHeight: 1.05,
+                    fontFamily: font.family,
                   }}
                 >
                   {vLabel}
+                </div>
+
+                {/* The refusal, verbatim. When the proceeds cannot retire the
+                    existing lien there is no recommendation to soften — the
+                    number that decides it is stated instead. */}
+                {refi && refi.refusals.length > 0 && (
+                  <div
+                    style={{
+                      textAlign: "left",
+                      margin: "14px 0 0",
+                      padding: "12px 14px",
+                      borderRadius: radius.sm,
+                      background: risk.dangerBg,
+                      border: `1px solid ${risk.dangerBorder}`,
+                      fontSize: 13,
+                      lineHeight: 1.55,
+                      color: dc.cream,
+                    }}
+                  >
+                    {refi.refusals.map((r) => (
+                      <p key={r.code} style={{ margin: "0 0 6px" }}>{r.message}</p>
+                    ))}
+                  </div>
+                )}
+
+                {/* The three figures the decision rests on, always shown so the
+                    verdict can be checked rather than taken on trust. */}
+                {refi && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, margin: "16px 0 0" }}>
+                    {[
+                      { l: "Payoff today", v: fmt$(refi.payoff.totalPayoff) },
+                      { l: "New loan funds at", v: fmt$(refi.sizing.fundedAmount) },
+                      {
+                        l: refi.sizing.netCashToBorrower >= 0 ? "Cash to you" : "Cash to close",
+                        v: fmt$(Math.abs(refi.sizing.netCashToBorrower)),
+                      },
+                    ].map((c) => (
+                      <div key={c.l} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "10px 12px" }}>
+                        <Mono style={{ display: "block", fontSize: 16, fontWeight: 700, color: dc.cream }}>{c.v}</Mono>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{c.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Readiness is reported UNDER the decision, never as it. It
+                    cannot see whether the loan retires the lien. */}
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "14px 0 12px" }}>
+                  Borrower readiness{" "}
+                  <Mono style={{ color: result ? scoreColor(score) : "inherit", fontWeight: 700 }}>
+                    {result ? Math.round(score) : "—"}/100
+                  </Mono>{" "}
+                  — seasoning, equity, coverage and saving. Separate from whether the proceeds clear the payoff.
                 </div>
                 <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)" }}>
                   {result?.refiType === "RATE_TERM" &&

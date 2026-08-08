@@ -43,7 +43,6 @@ describe("tool reliability hold definitions", () => {
       "/state-laws",
       "/tools/str-underwriting",
       "/tools/tax-engine",
-      "/tools/refi-tracker",
       "/tools/portfolio",
       "/tools/monte-carlo",
       "/tools/arm-reset",

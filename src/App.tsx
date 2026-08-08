@@ -43,6 +43,7 @@ const routeModules = {
   CommercialDSCRPage: () => import("./pages/CommercialDSCRPage"),
   ConstructionBridgePage: () => import("./pages/ConstructionBridgePage"),
   TCOThresholdPage: () => import("./pages/TCOThresholdPage"),
+  RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
 } as const;
 
 // ─── Chunk-load failure ───────────────────────────────────────────────────────
@@ -169,6 +170,7 @@ const BookDemoPage = lazyRoute("BookDemoPage");
 const CommercialDSCRPage = lazyRoute("CommercialDSCRPage");
 const ConstructionBridgePage = lazyRoute("ConstructionBridgePage");
 const TCOThresholdPage = lazyRoute("TCOThresholdPage");
+const RefiTrackerPage = lazyRoute("RefiTrackerPage");
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 // Users get a plain-language recovery message; the raw error text lives behind a
@@ -638,7 +640,7 @@ export default function App() {
       case "not-found":
         return <NotFoundPage key={pathname} onNavigate={goTo} />;
       case "refi-tracker":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.refiTracker} onNavigate={navigateFromReliabilityHold} />;
+        return <RefiTrackerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "arm-reset":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.armReset} onNavigate={navigateFromReliabilityHold} />;
       case "monte-carlo":
