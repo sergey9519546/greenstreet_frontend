@@ -12,7 +12,7 @@ import { computeReturns } from "../engine/returnsEngine";
 import { computeExecutionRisk } from "../engine/decisionSupport";
 import { computeReassessedTax, computeReassessmentDSCRImpact } from "../engine/reassessmentEngine";
 import { rescueTrack2 } from "../engine/loanOptimizer";
-import type { PropertyInputs, LoanStructure, BorrowerProfile } from "../engine/types";
+import type { PropertyInputs, LoanStructure, BorrowerProfile, ARMType } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
@@ -88,6 +88,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const [down, setDown] = useState(initial.down);
   const [rent, setRent] = useState(initial.rent);
   const [rate, setRate] = useState(initial.rate);
+  // Rate type. This was hardcoded to 'FIXED' in every LoanStructure this page
+  // builds, so a user underwriting an ARM had no path from the flagship
+  // calculator into the ARM Reset tool at all — it only existed as a page two
+  // marketing links pointed at. Real state now, threaded into both loan
+  // structures below.
+  const [rateType, setRateType] = useState<ARMType>('FIXED');
   const [tax, setTax] = useState(initial.tax);
   const [ins, setIns] = useState(initial.ins);
   const [hoa, setHoa] = useState(initial.hoa);
@@ -202,7 +208,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
       ltv: 100 - down,
       term: '30_YR',
       ioPeriod: 'NONE',
-      armType: 'FIXED',
+      armType: rateType,
       prepayPreference: 'NONE',
       purpose: 'PURCHASE',
       expectedHoldYears: 5,
@@ -216,7 +222,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     } catch {
       return null;
     }
-  }, [price, rent, hoa, taxYr, ins, stateCode, down, rate, cashInvested]);
+  }, [price, rent, hoa, taxYr, ins, stateCode, down, rate, rateType, cashInvested]);
 
   // Fix My Deal — concrete, one-click levers when coverage is weak.
   const dealFixes = useMemo(
@@ -268,7 +274,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
       ltv: 100 - down,
       term: '30_YR',
       ioPeriod: 'NONE',
-      armType: 'FIXED',
+      armType: rateType,
       prepayPreference: 'NONE',
       purpose: 'PURCHASE',
       expectedHoldYears: 5,
@@ -294,7 +300,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     const computedBeRate = targetPI > 0 ? breakEvenRate(loanAmount, targetPI) : 0;
     const dscrResult = { dscr, solvedRate: rate, breakEvenRate: computedBeRate };
     return computeExecutionRisk(dscrResult as any, borrower, loan, property, null);
-  }, [price, rent, hoa, taxYr, ins, stateCode, down, dscr, rate]);
+  }, [price, rent, hoa, taxYr, ins, stateCode, down, dscr, rate, rateType]);
 
   // ── Property Tax Reassessment ──
   const [showTaxReassess, setShowTaxReassess] = useState(false);
@@ -534,6 +540,66 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     </div>
                     <PremiumSlider min={4} max={12} step={0.125} value={rate} onChange={setRate} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>4%</span><span>12%</span></div>
+                  </div>
+                  <div>
+                    <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 9 }}>Rate type</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                      {([
+                        { v: 'FIXED', l: 'Fixed' },
+                        { v: '5_6_ARM', l: '5/6 ARM' },
+                        { v: '7_6_ARM', l: '7/6 ARM' },
+                        { v: '10_6_ARM', l: '10/6 ARM' },
+                      ] as const).map((o) => (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => setRateType(o.v)}
+                          style={{
+                            padding: '9px 6px',
+                            background: rateType === o.v ? LEMON : 'transparent',
+                            border: `1.5px solid ${rateType === o.v ? LEMON : 'rgba(238,239,211,0.3)'}`,
+                            borderRadius: radius.sm,
+                            color: rateType === o.v ? MIDNIGHT : PISTACHIO,
+                            fontWeight: 600,
+                            fontSize: 12,
+                            fontFamily: font.family,
+                            cursor: 'pointer',
+                            minHeight: 40,
+                          }}
+                        >
+                          {o.l}
+                        </button>
+                      ))}
+                    </div>
+                    {rateType !== 'FIXED' && (
+                      <div style={{ marginTop: 10, padding: '12px 14px', background: swatch.midnightFaded, border: `1px solid ${risk.warningBorder}`, borderRadius: radius.sm, fontSize: 12, color: PISTACHIO, lineHeight: 1.55 }}>
+                        The rate above holds for {rateType === '5_6_ARM' ? 5 : rateType === '7_6_ARM' ? 7 : 10} years, then
+                        adjusts every 6 months against an index, margin and caps — every number here assumes it never
+                        moves.{' '}
+                        <a
+                          href="/tools/arm-reset"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            // Hand off this deal's numbers so the reset tool opens
+                            // already loaded instead of asking for them twice. Read
+                            // once on mount there, then cleared — see ARMPage.tsx.
+                            try {
+                              sessionStorage.setItem('gs:arm-prefill', JSON.stringify({
+                                loanAmount: Math.round(price * (100 - down) / 100),
+                                initialRate: rate,
+                                armType: rateType,
+                                monthlyRent: rent,
+                                pitiaNonDebt: Math.round(taxYr / 12 + ins / 12 + hoa),
+                              }));
+                            } catch { /* storage may be blocked; ARM page falls back to its own defaults */ }
+                            onNavigate?.('arm-reset');
+                          }}
+                          style={{ color: swatch.emerald, fontWeight: 700, textDecoration: 'none' }}
+                        >
+                          See the full reset ladder, loaded with this deal →
+                        </a>
+                      </div>
+                    )}
                   </div>
                   <label style={{ display: 'block' }}>
                     <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Purchase price</span>
