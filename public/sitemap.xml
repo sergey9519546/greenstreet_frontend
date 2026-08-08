@@ -23,6 +23,9 @@
   <url><loc>https://www.greenstreet.finance/tools/construction-bridge</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/tools/tco-threshold</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/tools/refi-tracker</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/arm-reset</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/stress-matrix</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/portfolio</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/privacy-policy</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/terms-of-service</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/blog/greenstreet-go-launch</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>

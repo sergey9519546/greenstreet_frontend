@@ -44,6 +44,9 @@ const routeModules = {
   ConstructionBridgePage: () => import("./pages/ConstructionBridgePage"),
   TCOThresholdPage: () => import("./pages/TCOThresholdPage"),
   RefiTrackerPage: () => import("./pages/RefiTrackerPage"),
+  ARMPage: () => import("./pages/ARMPage"),
+  StressMatrixPage: () => import("./pages/StressMatrixPage"),
+  PortfolioPage: () => import("./pages/PortfolioPage"),
 } as const;
 
 // ─── Chunk-load failure ───────────────────────────────────────────────────────
@@ -171,6 +174,9 @@ const CommercialDSCRPage = lazyRoute("CommercialDSCRPage");
 const ConstructionBridgePage = lazyRoute("ConstructionBridgePage");
 const TCOThresholdPage = lazyRoute("TCOThresholdPage");
 const RefiTrackerPage = lazyRoute("RefiTrackerPage");
+const ARMPage = lazyRoute("ARMPage");
+const StressMatrixPage = lazyRoute("StressMatrixPage");
+const PortfolioPage = lazyRoute("PortfolioPage");
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 // Users get a plain-language recovery message; the raw error text lives behind a
@@ -642,7 +648,7 @@ export default function App() {
       case "refi-tracker":
         return <RefiTrackerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "arm-reset":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.armReset} onNavigate={navigateFromReliabilityHold} />;
+        return <ARMPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "monte-carlo":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.monteCarlo} onNavigate={navigateFromReliabilityHold} />;
       case "returns":
@@ -650,7 +656,7 @@ export default function App() {
       case "tax-engine":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.taxEngine} onNavigate={navigateFromReliabilityHold} />;
       case "stress-matrix":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stressMatrix} onNavigate={navigateFromReliabilityHold} />;
+        return <StressMatrixPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "decision-support":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
       case "commercial-dscr":
@@ -664,7 +670,7 @@ export default function App() {
       case "structure-optimizer":
         return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.structureOptimizer} onNavigate={navigateFromReliabilityHold} />;
       case "portfolio":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.portfolioRefi} onNavigate={navigateFromReliabilityHold} />;
+        return <PortfolioPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "external":
         if (typeof window !== "undefined") {
           window.location.href = "https://www.greenstreet.finance";

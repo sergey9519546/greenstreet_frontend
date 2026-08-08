@@ -103,18 +103,6 @@ export const TOOL_RELIABILITY_HOLDS = {
       "Golden scenarios covering acquisition, operations, and sale",
     ],
   },
-  portfolioRefi: {
-    view: "portfolio",
-    path: "/tools/portfolio",
-    title: "Portfolio Refinance Review",
-    reason:
-      "We are validating cross-property debt, seasoning, and refinance assumptions before showing portfolio-level recommendations.",
-    whatIsNeeded: [
-      "Loan-level balances, terms, and payment schedules",
-      "Consistent portfolio cash-flow and reserve treatment",
-      "Recommendation tests for concentration and refinance timing",
-    ],
-  },
   monteCarlo: {
     view: "monte-carlo",
     path: "/tools/monte-carlo",
@@ -127,18 +115,6 @@ export const TOOL_RELIABILITY_HOLDS = {
       "Reproducible scenario and probability checks",
     ],
   },
-  armReset: {
-    view: "arm-reset",
-    path: "/tools/arm-reset",
-    title: "ARM Reset Review",
-    reason:
-      "We are validating index, margin, caps, payment schedule, and reset timing before showing an adjustable-rate recommendation.",
-    whatIsNeeded: [
-      "Loan-specific index, margin, caps, and reset dates",
-      "A complete amortization and interest-only transition schedule",
-      "Regression tests across every reset and payment-change boundary",
-    ],
-  },
   returns: {
     view: "returns",
     path: "/tools/returns",
@@ -149,18 +125,6 @@ export const TOOL_RELIABILITY_HOLDS = {
       "One approved cash-flow schedule from acquisition through sale",
       "Explicit capex, reserve, tax, and disposition assumptions",
       "Independent checks for IRR, equity multiple, and after-tax results",
-    ],
-  },
-  stressMatrix: {
-    view: "stress-matrix",
-    path: "/tools/stress-matrix",
-    title: "Stress Matrix",
-    reason:
-      "We are aligning every stress scenario to the same approved payment and operating-income basis before showing a risk verdict.",
-    whatIsNeeded: [
-      "One canonical base scenario shared by every stress",
-      "Documented rent, vacancy, expense, and rate shocks",
-      "Monotonicity and boundary tests for every risk classification",
     ],
   },
   structureOptimizer: {

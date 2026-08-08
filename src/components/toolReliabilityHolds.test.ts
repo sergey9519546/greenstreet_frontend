@@ -43,11 +43,8 @@ describe("tool reliability hold definitions", () => {
       "/state-laws",
       "/tools/str-underwriting",
       "/tools/tax-engine",
-      "/tools/portfolio",
       "/tools/monte-carlo",
-      "/tools/arm-reset",
       "/tools/returns",
-      "/tools/stress-matrix",
       "/tools/structure-optimizer",
     ]);
     expect(new Set(paths).size).toBe(paths.length);
