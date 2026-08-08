@@ -10,10 +10,31 @@ import { CurrencyInput } from "../components/ui/CurrencyInput";
 
 const BLUE = "#7ec8d3";
 const RED = risk.danger;
+// The whole page sits on the dark ground, where base `danger` sinks into the
+// surface instead of reading as an alert. `dangerOnDark` is the token's own
+// dark-ground pair — see the note beside it in theme.ts.
+const RED_ON_DARK = risk.dangerOnDark;
 const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+const MONTHS_FULL = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 // seasonal multipliers — summer-peak vacation market
 const SEASON = [0.62, 0.68, 0.84, 0.96, 1.12, 1.28, 1.34, 1.26, 1.04, 0.88, 0.70, 0.78];
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+
+/** True on phone-width viewports. Re-evaluates on change, not just on mount. */
+function useNarrowViewport(query = "(max-width: 760px)"): boolean {
+  const [narrow, setNarrow] = useState(
+    () => typeof window !== "undefined" && !!window.matchMedia && window.matchMedia(query).matches,
+  );
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia(query);
+    const onChange = () => setNarrow(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [query]);
+  return narrow;
+}
 
 export default function STRHostsPage({
   onBack: _onBack,
@@ -39,15 +60,48 @@ export default function STRHostsPage({
   const worstDSCR = pay > 0 ? worst / pay : 0;
   const avgDSCR = pay > 0 ? annualAvg / pay : 0;
   const worstIdx = monthly.indexOf(worst);
+  const peakIdx = monthly.indexOf(peak);
   const holds = worstDSCR >= 1.0;
 
-  // chart geometry
-  const W = 560, H = 230, padL = 8, padR = 8, padT = 16, padB = 26;
-  const yMax = peak * 1.12;
-  const X = (i: number) => padL + (i / 11) * (W - padL - padR);
-  const Y = (v: number) => padT + (1 - v / yMax) * (H - padT - padB);
-  const area = `M ${X(0)},${Y(0)} ` + monthly.map((v, i) => `L ${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ") + ` L ${X(11)},${Y(0)} Z`;
-  const line = monthly.map((v, i) => `${i === 0 ? "M" : "L"} ${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
+  // ── Chart model ───────────────────────────────────────────────────────────
+  // The question this picture answers is "which months don't cover the payment,
+  // and by how much". So the payment IS the baseline and each month is drawn as
+  // its deviation from it — surplus up, shortfall down.
+  //
+  // The previous version plotted raw revenue with the payment as a dashed line
+  // floating through the middle, and it got the story wrong in three ways:
+  //   - it filled the area from revenue down to $0, encoding a quantity nobody
+  //     asked about, while the surplus/shortfall vs the payment — the whole
+  //     point — had no visual weight at all;
+  //   - it marked only `worstIdx` in red. At the default inputs THREE months
+  //     fall short (Jan, Feb, Nov) and two of them were drawn the same teal as
+  //     July, directly above copy reading "months under the lemon line don't
+  //     cover the payment";
+  //   - it scaled to `peak * 1.12`, so raising ADR moved the payment line down
+  //     the frame and made a fixed shortfall look smaller.
+  const shortfalls = monthly.map((v) => v - pay);
+  const shortMonths = shortfalls.filter((d) => d < 0).length;
+  const maxUp = Math.max(0, ...shortfalls);
+  const maxDown = Math.max(0, ...shortfalls.map((d) => -d));
+  // One scale for both directions, so a $500 surplus and a $500 shortfall are
+  // the same number of pixels. Separate scales would flatter the good months.
+  const span = Math.max(maxUp + maxDown, 1);
+
+  // The viewBox narrows on small screens. An SVG scales its type with the
+  // drawing, so a 560-wide box rendered into a 303px phone card puts 11px text
+  // on screen at 6px — under any readable floor. A 320-wide box renders at
+  // roughly 1:1 there, so the month letters stay the size they were authored at
+  // instead of shrinking with the picture.
+  const narrow = useNarrowViewport();
+  const W = narrow ? 320 : 560;
+  const H = narrow ? 190 : 240;
+  const padL = 8, padR = 8, padT = 26, padB = 40;
+  const plotH = H - padT - padB;
+  const band = (W - padL - padR) / 12;
+  const barW = Math.min(26, band * 0.56);
+  const baseY = padT + (maxUp / span) * plotH;
+  const X = (i: number) => padL + band * (i + 0.5);
+  const Y = (delta: number) => baseY - (delta / span) * plotH;
 
   const numIn = (v: number, set: (n: number) => void, step: number, pre = "", suf = "") => (
     <CurrencyInput
@@ -85,22 +139,94 @@ export default function STRHostsPage({
             <button onClick={() => onNavigate("str-underwriting")} style={{ background: dc.lemon, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Underwrite my STR →</button>
           </div>
           <div style={{ background: dc.dark, borderRadius: radius.lg, border: "1px solid rgba(238,239,211,0.16)", padding: "clamp(18px,2.2vw,26px)" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE, marginBottom: 6 }}>Your year, month by month</div>
-            <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }} role="img" aria-label="Seasonal STR revenue vs the payment">
-              <path d={area} fill={BLUE} fillOpacity="0.16" />
-              <path d={line} fill="none" stroke={BLUE} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1={padL} x2={W - padR} y1={Y(pay)} y2={Y(pay)} stroke={dc.lemon} strokeWidth="1.4" strokeDasharray="5 5" />
-              <text x={W - padR} y={Y(pay) - 5} textAnchor="end" fill={dc.lemon} fontSize="10" fontWeight={700} fontFamily={dc.mono}>payment {fmt$(pay)}</text>
-              {monthly.map((v, i) => (
-                <g key={i}>
-                  <circle cx={X(i)} cy={Y(v)} r={i === worstIdx ? 5 : 3} fill={i === worstIdx ? RED : BLUE} stroke={dc.dark} strokeWidth="1.5" />
-                  <text x={X(i)} y={H - 8} textAnchor="middle" fill="rgba(238,239,211,0.5)" fontSize="9" fontFamily={dc.mono}>{MONTHS[i]}</text>
-                </g>
-              ))}
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: BLUE }}>Every month against the payment</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: shortMonths > 0 ? RED_ON_DARK : dc.emerald, fontFamily: dc.mono }}>
+                {shortMonths === 0 ? "all 12 clear" : `${shortMonths} of 12 short`}
+              </div>
+            </div>
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              width="100%"
+              style={{ display: "block", overflow: "visible" }}
+              role="img"
+              aria-label={`Monthly short-term-rental revenue measured against a ${fmt$(pay)} payment. ${
+                shortMonths === 0
+                  ? "Every month covers the payment."
+                  : `${shortMonths} of 12 months fall short: ${MONTHS_FULL.filter((_, i) => shortfalls[i] < 0).join(", ")}. Worst is ${MONTHS_FULL[worstIdx]} at ${fmt$(Math.abs(shortfalls[worstIdx]))} below.`
+              }`}
+            >
+              {monthly.map((_, i) => {
+                const d = shortfalls[i];
+                const short = d < 0;
+                const h = Math.max(1.5, Math.abs(Y(d) - baseY));
+                return (
+                  <g key={i}>
+                    <rect
+                      x={X(i) - barW / 2}
+                      y={short ? baseY : baseY - h}
+                      width={barW}
+                      height={h}
+                      rx={2}
+                      fill={short ? RED_ON_DARK : BLUE}
+                      fillOpacity={short ? 1 : i === peakIdx ? 1 : 0.55}
+                    />
+                    <text
+                      x={X(i)}
+                      y={H - 8}
+                      textAnchor="middle"
+                      fill={short ? RED_ON_DARK : "rgba(238,239,211,0.66)"}
+                      fontSize="11"
+                      fontWeight={short ? 700 : 500}
+                      fontFamily={dc.mono}
+                    >
+                      {MONTHS[i]}
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* The payment line is the axis, not a floating reference. Its label
+                  sits at the left edge so it can never land on December's bar —
+                  the old right-anchored label shared an x with the last point. */}
+              <line x1={padL} x2={W - padR} y1={baseY} y2={baseY} stroke={dc.lemon} strokeWidth="1.5" />
+              <text x={padL} y={baseY - 7} fill={dc.lemon} fontSize="10" fontWeight={700} fontFamily={dc.mono}>
+                payment {fmt$(pay)}
+              </text>
+
+              {/* The worst month carries a number, so the depth of the trough is
+                  readable rather than merely visible. */}
+              {shortMonths > 0 && (
+                <text
+                  x={X(worstIdx)}
+                  y={Y(shortfalls[worstIdx]) + 13}
+                  textAnchor={worstIdx < 2 ? "start" : worstIdx > 9 ? "end" : "middle"}
+                  fill={RED_ON_DARK}
+                  fontSize="11"
+                  fontWeight={700}
+                  fontFamily={dc.mono}
+                >
+                  −{fmt$(Math.abs(shortfalls[worstIdx]))}
+                </text>
+              )}
+              {maxUp > 0 && (
+                <text
+                  x={X(peakIdx)}
+                  y={Y(shortfalls[peakIdx]) - 7}
+                  textAnchor={peakIdx < 2 ? "start" : peakIdx > 9 ? "end" : "middle"}
+                  fill={BLUE}
+                  fontSize="11"
+                  fontWeight={700}
+                  fontFamily={dc.mono}
+                >
+                  +{fmt$(maxUp)}
+                </text>
+              )}
             </svg>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: holds ? dc.emerald : RED, display: "block" }}>{worstDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>worst-month DSCR</div></div>
-              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 22, fontWeight: 700, color: dc.cream, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>year-round avg</div></div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 14 }}>
+              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 20, fontWeight: 700, color: holds ? dc.emerald : RED_ON_DARK, display: "block" }}>{worstDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>worst-month DSCR</div></div>
+              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 20, fontWeight: 700, color: shortMonths > 0 ? RED_ON_DARK : dc.emerald, display: "block" }}>{shortMonths}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>months short</div></div>
+              <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "12px 14px" }}><Mono style={{ fontSize: 20, fontWeight: 700, color: dc.cream, display: "block" }}>{avgDSCR.toFixed(2)}x</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>year-round avg</div></div>
             </div>
           </div>
         </div>
@@ -124,7 +250,9 @@ export default function STRHostsPage({
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: holds ? dc.emerald : RED, marginBottom: 6 }}>{holds ? "Holds the slow months" : "Breaks in the off-season"}</div>
               <Mono style={{ fontSize: "clamp(48px,7vw,84px)", fontWeight: 700, color: holds ? dc.emerald : RED, lineHeight: 1 }}>{worstDSCR.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "46ch" }}>
-                Worst month ({["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][worstIdx]}) brings {fmt$(worst)} against a {fmt$(pay)} payment. {holds ? "Even the trough covers the loan — that's a fundable STR." : "The trough falls short — lower the loan, or we underwrite to the months that do clear."}
+                Worst month ({MONTHS_FULL[worstIdx]}) brings {fmt$(worst)} against a {fmt$(pay)} payment. {holds
+                  ? "Even the trough covers the loan — that's a fundable STR."
+                  : `${shortMonths === 1 ? "That month falls" : `${shortMonths} months fall`} short — lower the loan, or we underwrite to the months that do clear.`}
               </div>
               <div style={{ display: "flex", gap: 22, marginTop: 22, flexWrap: "wrap" }}>
                 <div><Mono style={{ fontSize: 20, fontWeight: 700, color: BLUE, display: "block" }}>{fmt$(annualAvg)}</Mono><div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)" }}>avg month</div></div>
