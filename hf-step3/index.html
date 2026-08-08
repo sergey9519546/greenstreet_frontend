@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #003738; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #eeefd3; }
+      #stage { position: absolute; inset: 0; }
+      .dotgrid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 2px, transparent 2px); background-size: 46px 46px; }
+
+      /* Wordmark */
+      #wordmark { position: absolute; left: 160px; top: 90px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #eeefd3; }
+
+      /* Step label */
+      #stepLabel { position: absolute; right: 160px; top: 96px; font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(238,239,211,0.45); }
+
+      /* Center column */
+      #center {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 960px;
+      }
+
+      /* Headline */
+      #headline {
+        font-size: 52px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        color: rgba(238,239,211,0.5);
+        text-align: center;
+        margin-bottom: 52px;
+      }
+
+      /* Progress dots row */
+      #dotsRow {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+      .dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(238,239,211,0.14);
+        border: 2px solid rgba(238,239,211,0.18);
+      }
+
+      /* Progress bar track */
+      #barTrack {
+        width: 960px;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(238,239,211,0.09);
+        overflow: hidden;
+        margin-bottom: 60px;
+      }
+      #barFill {
+        height: 100%;
+        width: 0%;
+        background: #d8d958;
+        border-radius: 3px;
+      }
+
+      /* Question cards area */
+      #cardsArea {
+        width: 960px;
+        height: 124px;
+        position: relative;
+        margin-bottom: 56px;
+      }
+      .qcard {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 800px;
+        background: rgba(238,239,211,0.055);
+        border: 1px solid rgba(238,239,211,0.11);
+        border-radius: 20px;
+        padding: 28px 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .qcard-text {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #eeefd3;
+        font-variant-numeric: tabular-nums;
+      }
+      .qcard-check {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: #4dbd97;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .qcard-check svg { display: block; }
+
+      /* Result card */
+      #resultCard {
+        width: 800px;
+        background: #003738;
+        border: 2px solid #d8d958;
+        border-radius: 20px;
+        padding: 34px 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 50px;
+      }
+      #resultLabel {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: rgba(238,239,211,0.48);
+        margin-bottom: 10px;
+      }
+      #resultRate {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 84px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        color: #eeefd3;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      #resultPill {
+        display: inline-block;
+        background: #d8d958;
+        color: #003738;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 14px 36px;
+        border-radius: 40px;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+
+      /* Caption */
+      #caption {
+        font-size: 30px;
+        font-weight: 500;
+        color: rgba(238,239,211,0.38);
+        text-align: center;
+        letter-spacing: 0.01em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="6" data-width="1920" data-height="1080"
+         style="position: relative; width: 1920px; height: 1080px; overflow: hidden;">
+
+      <div id="stage" class="clip" data-start="0" data-duration="6" data-track-index="1">
+        <div class="dotgrid"></div>
+
+        <div id="wordmark">Greenstreet</div>
+        <div id="stepLabel">Step 3 of 5</div>
+
+        <div id="center">
+          <div id="headline">Rate quiz</div>
+
+          <!-- 5 progress dots -->
+          <div id="dotsRow">
+            <div class="dot" id="dot1"></div>
+            <div class="dot" id="dot2"></div>
+            <div class="dot" id="dot3"></div>
+            <div class="dot" id="dot4"></div>
+            <div class="dot" id="dot5"></div>
+          </div>
+
+          <!-- Progress bar -->
+          <div id="barTrack">
+            <div id="barFill"></div>
+          </div>
+
+          <!-- Question cards stacked in same space -->
+          <div id="cardsArea">
+            <div class="qcard" id="card1">
+              <div class="qcard-text">FICO 740+</div>
+              <div class="qcard-check">
+                <svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10L9.5 17.5L24 2" stroke="#003738" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="qcard" id="card2">
+              <div class="qcard-text">LTV &le;75%</div>
+              <div class="qcard-check">
+                <svg width="26" height="20" viewBox="0 0 26 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10L9.5 17.5L24 2" stroke="#003738" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result card -->
+          <div id="resultCard">
+            <div>
+              <div id="resultLabel">Best tier</div>
+              <div id="resultRate">6.125%</div>
+            </div>
+            <div id="resultPill">Qualified</div>
+          </div>
+
+          <!-- Caption -->
+          <div id="caption">Five questions. No email, no credit pull.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ── Dot fill colors via JS so initial state stays clean ── */
+      var DOT_ACTIVE = "#d8d958";
+      var DOT_IDLE   = "rgba(238,239,211,0.14)";
+
+      /* ── Initial states ── */
+      gsap.set("#wordmark",   { opacity: 0 });
+      gsap.set("#stepLabel",  { opacity: 0 });
+      gsap.set("#headline",   { opacity: 0, y: 28 });
+      gsap.set("#dotsRow",    { opacity: 0 });
+      gsap.set("#barTrack",   { opacity: 0 });
+      gsap.set("#barFill",    { width: "0%" });
+      gsap.set("#cardsArea",  { opacity: 0 });
+      gsap.set("#card1",      { opacity: 0, y: 32 });
+      gsap.set("#card2",      { opacity: 0, y: 32 });
+      gsap.set("#resultCard", { opacity: 0, scale: 0.9, y: 20 });
+      gsap.set("#resultPill", { opacity: 0, scale: 0.72 });
+      gsap.set("#caption",    { opacity: 0, y: 18 });
+
+      /* ── Phase 1 (0.15 → 0.8s): chrome fades in, headline rises ── */
+      tl.to("#wordmark",  { opacity: 1, duration: 0.45, ease: "power2.out" }, 0.15);
+      tl.to("#stepLabel", { opacity: 1, duration: 0.45, ease: "power2.out" }, 0.2);
+      tl.to("#headline",  { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.28);
+
+      /* ── Phase 2 (0.55 → 2.8s): dots pop one by one, bar advances ── */
+      tl.to("#dotsRow",  { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.55);
+      tl.to("#barTrack", { opacity: 1, duration: 0.25 }, 0.6);
+
+      /* dot 1 */
+      tl.to("#dot1", { backgroundColor: DOT_ACTIVE, borderColor: DOT_ACTIVE, scale: 1.18, duration: 0.2, ease: "back.out(2.5)" }, 0.7);
+      tl.to("#dot1", { scale: 1, duration: 0.15, ease: "power2.out" }, 0.9);
+      tl.to("#barFill", { width: "20%", duration: 0.28, ease: "power2.out" }, 0.72);
+
+      /* dot 2 */
+      tl.to("#dot2", { backgroundColor: DOT_ACTIVE, borderColor: DOT_ACTIVE, scale: 1.18, duration: 0.2, ease: "back.out(2.5)" }, 1.05);
+      tl.to("#dot2", { scale: 1, duration: 0.15, ease: "power2.out" }, 1.25);
+      tl.to("#barFill", { width: "40%", duration: 0.28, ease: "power2.out" }, 1.07);
+
+      /* dot 3 — card1 appears */
+      tl.to("#dot3", { backgroundColor: DOT_ACTIVE, borderColor: DOT_ACTIVE, scale: 1.18, duration: 0.2, ease: "back.out(2.5)" }, 1.4);
+      tl.to("#dot3", { scale: 1, duration: 0.15, ease: "power2.out" }, 1.6);
+      tl.to("#barFill", { width: "60%", duration: 0.28, ease: "power2.out" }, 1.42);
+      tl.to("#cardsArea", { opacity: 1, duration: 0.2 }, 1.38);
+      tl.to("#card1", { opacity: 1, y: 0, duration: 0.4, ease: "expo.out" }, 1.46);
+
+      /* dot 4 — card1 exits, card2 enters */
+      tl.to("#dot4", { backgroundColor: DOT_ACTIVE, borderColor: DOT_ACTIVE, scale: 1.18, duration: 0.2, ease: "back.out(2.5)" }, 1.95);
+      tl.to("#dot4", { scale: 1, duration: 0.15, ease: "power2.out" }, 2.15);
+      tl.to("#barFill", { width: "80%", duration: 0.28, ease: "power2.out" }, 1.97);
+      tl.to("#card1", { opacity: 0, y: -30, duration: 0.28, ease: "power2.in" }, 1.98);
+      tl.to("#card2", { opacity: 1, y: 0, duration: 0.38, ease: "expo.out" }, 2.22);
+
+      /* dot 5 — bar completes */
+      tl.to("#dot5", { backgroundColor: DOT_ACTIVE, borderColor: DOT_ACTIVE, scale: 1.18, duration: 0.2, ease: "back.out(2.5)" }, 2.55);
+      tl.to("#dot5", { scale: 1, duration: 0.15, ease: "power2.out" }, 2.75);
+      tl.to("#barFill", { width: "100%", duration: 0.32, ease: "power2.out" }, 2.57);
+
+      /* ── Phase 3 (3.0 → 3.9s): card2 exits, result card reveals ── */
+      tl.to("#card2",     { opacity: 0, y: -30, duration: 0.28, ease: "power2.in" }, 3.0);
+      tl.to("#cardsArea", { opacity: 0, duration: 0.22 }, 3.18);
+      tl.to("#resultCard",{ opacity: 1, scale: 1, y: 0, duration: 0.55, ease: "back.out(1.5)" }, 3.22);
+      tl.to("#resultPill",{ opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)" }, 3.6);
+
+      /* ── Phase 4 (3.9s): caption appears ── */
+      tl.to("#caption", { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, 3.9);
+
+      /* ── Phase 5 (4.85 → 6.0s): ease all back to initial for seamless loop ── */
+      var L = 4.85;
+      tl.to("#caption",    { opacity: 0, y: 18, duration: 0.3, ease: "power2.in" }, L);
+      tl.to("#resultPill", { opacity: 0, scale: 0.72, duration: 0.28, ease: "power2.in" }, L + 0.05);
+      tl.to("#resultCard", { opacity: 0, scale: 0.9, y: 20, duration: 0.38, ease: "power2.in" }, L + 0.1);
+      tl.to("#barFill",    { width: "0%", duration: 0.48, ease: "power2.inOut" }, L + 0.15);
+      tl.to("#dot5", { backgroundColor: DOT_IDLE, borderColor: "rgba(238,239,211,0.18)", scale: 0.4, opacity: 0, duration: 0.22, ease: "power2.in" }, L + 0.18);
+      tl.to("#dot4", { backgroundColor: DOT_IDLE, borderColor: "rgba(238,239,211,0.18)", scale: 0.4, opacity: 0, duration: 0.22, ease: "power2.in" }, L + 0.22);
+      tl.to("#dot3", { backgroundColor: DOT_IDLE, borderColor: "rgba(238,239,211,0.18)", scale: 0.4, opacity: 0, duration: 0.22, ease: "power2.in" }, L + 0.26);
+      tl.to("#dot2", { backgroundColor: DOT_IDLE, borderColor: "rgba(238,239,211,0.18)", scale: 0.4, opacity: 0, duration: 0.22, ease: "power2.in" }, L + 0.30);
+      tl.to("#dot1", { backgroundColor: DOT_IDLE, borderColor: "rgba(238,239,211,0.18)", scale: 0.4, opacity: 0, duration: 0.22, ease: "power2.in" }, L + 0.34);
+      tl.to("#dotsRow",   { opacity: 0, duration: 0.22 }, L + 0.46);
+      tl.to("#barTrack",  { opacity: 0, duration: 0.22 }, L + 0.46);
+      tl.to("#headline",  { opacity: 0, y: 28, duration: 0.32, ease: "power2.in" }, L + 0.34);
+      tl.to("#stepLabel", { opacity: 0, duration: 0.28, ease: "power2.in" }, L + 0.42);
+      tl.to("#wordmark",  { opacity: 0, duration: 0.28, ease: "power2.in" }, L + 0.46);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

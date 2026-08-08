@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Greenstreet Finance — themed avatar av2
+  Original: White man, 50s, glasses, light blue shirt, salt-and-pepper hair.
+  Theme: pistachio tile, midnight head, emerald accent (sage calm).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Avatar 2">
+  <title>Avatar 2 — Sage calm</title>
+  <rect width="1024" height="1024" fill="#eeefd3"/>
+  <!-- emerald corner ribbon -->
+  <path d="M0 0 L320 0 L0 320 Z" fill="#4dbd97"/>
+  <!-- mint corner ribbon -->
+  <path d="M1024 1024 L1024 760 L760 1024 Z" fill="#e8e9bf"/>
+  <!-- shoulders in midnight -->
+  <path d="M200 1024 C 200 740, 320 680, 512 680 C 704 680, 824 740, 824 1024 Z" fill="#003738"/>
+  <!-- shirt collar in pistachio -->
+  <path d="M420 1024 L460 800 L512 870 L564 800 L604 1024 Z" fill="#eeefd3"/>
+  <!-- neck -->
+  <rect x="476" y="580" width="72" height="120" fill="#eeefd3"/>
+  <!-- head silhouette in midnight -->
+  <circle cx="512" cy="520" r="190" fill="#003738"/>
+  <!-- salt-and-pepper hair (mottled pistachio dots) -->
+  <g fill="#eeefd3" opacity="0.5">
+    <circle cx="420" cy="380" r="8"/>
+    <circle cx="460" cy="350" r="6"/>
+    <circle cx="500" cy="335" r="9"/>
+    <circle cx="540" cy="345" r="7"/>
+    <circle cx="580" cy="365" r="8"/>
+    <circle cx="610" cy="395" r="6"/>
+    <circle cx="450" cy="410" r="7"/>
+    <circle cx="560" cy="410" r="8"/>
+  </g>
+  <!-- glasses (thin pistachio frames) -->
+  <g stroke="#eeefd3" stroke-width="8" fill="none">
+    <rect x="380" y="500" width="100" height="60" rx="20"/>
+    <rect x="544" y="500" width="100" height="60" rx="20"/>
+    <line x1="480" y1="528" x2="544" y2="528"/>
+  </g>
+  <!-- subtle emerald collar pin -->
+  <circle cx="512" cy="780" r="12" fill="#4dbd97"/>
+</svg>

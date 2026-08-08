@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #006565; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #eeefd3; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      #stage { position: absolute; inset: 0; }
+      .dotgrid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.05) 2px, transparent 2px); background-size: 46px 46px; }
+      #title { position: absolute; left: 160px; top: 340px; }
+      #bignum { font-size: 300px; font-weight: 700; color: #d8d958; line-height: 0.9; letter-spacing: -0.04em; }
+      #t1 { font-size: 92px; font-weight: 600; margin-top: 6px; }
+      #t2 { font-size: 40px; font-weight: 500; color: rgba(238,239,211,0.72); margin-top: 18px; }
+      #grid { position: absolute; left: 160px; top: 300px; display: grid; grid-template-columns: repeat(10, 104px); grid-auto-rows: 104px; gap: 12px; }
+      .cell { border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 30px; font-weight: 700; }
+      #miniTitle { position: absolute; left: 160px; top: 150px; opacity: 0; }
+      #miniTitle .k { font-size: 22px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #d8d958; }
+      #miniTitle .h { font-size: 58px; font-weight: 600; margin-top: 6px; }
+      #legend { position: absolute; left: 160px; bottom: 110px; display: flex; gap: 40px; opacity: 0; }
+      .lg { display: flex; align-items: center; gap: 14px; font-size: 28px; font-weight: 500; color: rgba(238,239,211,0.85); }
+      .sw { width: 28px; height: 28px; border-radius: 8px; }
+      .callout { position: absolute; opacity: 0; background: #003738; border-radius: 16px; padding: 22px 28px; width: 460px; box-shadow: 0 24px 60px -30px rgba(0,0,0,0.6); }
+      .callout .code { font-family: "JetBrains Mono", monospace; font-size: 26px; font-weight: 700; }
+      .callout .txt { font-size: 26px; font-weight: 500; color: rgba(238,239,211,0.85); margin-top: 8px; line-height: 1.35; }
+      #end { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; background: #006565; }
+      #endH { font-size: 96px; font-weight: 600; text-align: center; max-width: 20ch; line-height: 1.0; }
+      #endSub { font-size: 38px; font-weight: 500; color: rgba(238,239,211,0.75); margin-top: 30px; }
+      #wordmark { position: absolute; left: 160px; top: 90px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #eeefd3; opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="9.5" data-width="1920" data-height="1080">
+      <div id="stage" class="clip" data-start="0" data-duration="9.5" data-track-index="1">
+        <div class="dotgrid"></div>
+        <div id="wordmark">Greenstreet</div>
+
+        <div id="title">
+          <div id="bignum" class="mono">50</div>
+          <div id="t1">states.</div>
+          <div id="t2">One rule engine.</div>
+        </div>
+
+        <div id="miniTitle">
+          <div class="k">50-State Rule Engine</div>
+          <div class="h">Prepayment penalty, mapped.</div>
+        </div>
+
+        <div id="grid"></div>
+
+        <div id="legend">
+          <div class="lg"><span class="sw" style="background:#4dbd97"></span>Allowed</div>
+          <div class="lg"><span class="sw" style="background:#d8d958"></span>Threshold</div>
+          <div class="lg"><span class="sw" style="background:#f97316"></span>High-risk</div>
+          <div class="lg"><span class="sw" style="background:#ff6b6b"></span>Banned</div>
+        </div>
+
+        <div class="callout" id="cNJ" style="left:1230px; top:300px;">
+          <div class="code" style="color:#f97316">NJ · New Jersey</div>
+          <div class="txt">PPP high-risk for LLCs — C/S-Corp only. Flag every NJ deal.</div>
+        </div>
+        <div class="callout" id="cMN" style="left:1230px; top:470px;">
+          <div class="code" style="color:#d8d958">MN · Minnesota</div>
+          <div class="txt">Business-purpose allowed — HF 3437, eff. 8/1/2026.</div>
+        </div>
+        <div class="callout" id="cOH" style="left:1230px; top:640px;">
+          <div class="code" style="color:#d8d958">OH · Ohio</div>
+          <div class="txt">Threshold $116,356 — above it, max 1% / 5yr.</div>
+        </div>
+        <div class="callout" id="cTX" style="left:1230px; top:810px;">
+          <div class="code" style="color:#4dbd97">TX · Texas</div>
+          <div class="txt">Business-purpose PPP allowed. Clear to quote.</div>
+        </div>
+
+        <div id="end">
+          <div id="endH">Prepayment rules,<br/>all fifty states.</div>
+          <div id="endSub">Click any state. — Greenstreet</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var TIER = { 0: "#4dbd97", 1: "#d8d958", 2: "#f97316", 3: "#ff6b6b" };
+      var INK = { 0: "#003738", 1: "#003738", 2: "#003738", 3: "#ffffff" };
+      var STATES = [
+        ["AL",0],["AK",2],["AZ",0],["AR",1],["CA",1],["CO",0],["CT",0],["DE",0],["FL",0],["GA",0],
+        ["HI",0],["ID",0],["IL",1],["IN",0],["IA",0],["KS",3],["KY",0],["LA",0],["ME",1],["MD",3],
+        ["MA",0],["MI",0],["MN",1],["MS",1],["MO",0],["MT",0],["NE",0],["NV",0],["NH",0],["NJ",2],
+        ["NM",1],["NY",1],["NC",0],["ND",3],["OH",1],["OK",1],["OR",0],["PA",1],["RI",1],["SC",1],
+        ["SD",0],["TN",0],["TX",0],["UT",0],["VT",0],["VA",0],["WA",1],["WV",1],["WI",1],["WY",0]
+      ];
+      var grid = document.getElementById("grid");
+      STATES.forEach(function (s) {
+        var d = document.createElement("div");
+        d.className = "cell";
+        d.id = "st-" + s[0];
+        d.textContent = s[0];
+        d.style.background = TIER[s[1]];
+        d.style.color = INK[s[1]];
+        grid.appendChild(d);
+      });
+
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      gsap.set("#grid .cell", { scale: 0, opacity: 0 });
+      gsap.set("#miniTitle", { opacity: 0, y: 20 });
+      gsap.set("#wordmark", { opacity: 0 });
+      gsap.set(["#cNJ", "#cMN", "#cOH", "#cTX"], { opacity: 0, x: 40 });
+      gsap.set("#legend", { opacity: 0, y: 20 });
+      gsap.set("#end", { opacity: 0 });
+
+      tl.from("#bignum", { scale: 0.6, opacity: 0, duration: 0.7, ease: "back.out(1.6)" }, 0.2);
+      tl.from("#t1", { y: 40, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.5);
+      tl.from("#t2", { y: 30, opacity: 0, duration: 0.6, ease: "power3.out" }, 0.75);
+
+      tl.to("#title", { opacity: 0, x: -60, duration: 0.5, ease: "power2.in" }, 1.9);
+      tl.to("#miniTitle", { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 2.1);
+      tl.to("#wordmark", { opacity: 1, duration: 0.5 }, 2.1);
+
+      tl.to("#grid .cell", { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(1.5)", stagger: { each: 0.018, from: "start" } }, 2.2);
+      tl.to("#legend", { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 3.4);
+
+      ["NJ", "MN", "OH", "TX"].forEach(function (c, i) {
+        tl.to("#st-" + c, { boxShadow: "0 0 0 5px #eeefd3", scale: 1.12, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut", overwrite: "auto" }, 4.4 + i * 0.5);
+      });
+
+      tl.to("#cNJ", { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 4.5);
+      tl.to("#cMN", { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 5.0);
+      tl.to("#cOH", { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 5.5);
+      tl.to("#cTX", { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 6.0);
+
+      tl.to(["#grid", "#legend", "#miniTitle", "#cNJ", "#cMN", "#cOH", "#cTX"], { opacity: 0, duration: 0.6, ease: "power2.in" }, 7.4);
+      tl.to("#end", { opacity: 1, duration: 0.7, ease: "power2.out" }, 7.7);
+      tl.from("#endH", { y: 40, opacity: 0, duration: 0.8, ease: "power3.out" }, 7.9);
+      tl.from("#endSub", { y: 24, opacity: 0, duration: 0.7, ease: "power3.out" }, 8.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Outfit"; src: url("fonts/Outfit.woff2") format("woff2"); font-weight: 400 800; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 600 700; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #003738; }
+      body { font-family: "Outfit", sans-serif; letter-spacing: -0.02em; color: #eeefd3; }
+      .mono { font-family: "JetBrains Mono", monospace; }
+      #stage { position: absolute; inset: 0; }
+      .dotgrid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,0.04) 2px, transparent 2px); background-size: 46px 46px; }
+
+      #wordmark { position: absolute; left: 160px; top: 90px; font-size: 40px; font-weight: 600; letter-spacing: -0.04em; color: #eeefd3; opacity: 0; }
+
+      /* ── Scene A: Title ── */
+      #sceneA { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+      #titleLine1 { font-size: 120px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.0; color: #eeefd3; opacity: 0; }
+      #titleAccent { color: #d8d958; }
+      #titleLine2 { font-size: 120px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.0; color: rgba(238,239,211,0.42); opacity: 0; }
+
+      /* ── Scene B: Bar chart ── */
+      #sceneB { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 140px; opacity: 0; }
+      #sceneBLabel { font-size: 24px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(238,239,211,0.48); margin-bottom: 52px; opacity: 0; }
+      #barChart { display: flex; align-items: flex-end; justify-content: center; gap: 56px; height: 460px; }
+      .bar-col { display: flex; flex-direction: column; align-items: center; }
+      .bar-val { font-family: "JetBrains Mono", monospace; font-size: 46px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 18px; opacity: 0; }
+      .bar-body { width: 148px; border-radius: 10px 10px 0 0; height: 0; }
+      .bar-label { font-size: 26px; font-weight: 500; color: rgba(238,239,211,0.6); margin-top: 22px; opacity: 0; }
+      #barCoc  .bar-body  { background: #4dbd97; }
+      #barUnlev .bar-body { background: #4dbd97; }
+      #barLev  .bar-body  { background: #d8d958; width: 188px; border-radius: 10px 10px 0 0; }
+      #barLev  .bar-val   { color: #d8d958; font-size: 54px; }
+      #barLev  .bar-label { color: #d8d958; }
+      #barCoc  .bar-val   { color: #4dbd97; }
+      #barUnlev .bar-val  { color: #4dbd97; }
+      #barAxis { width: 700px; height: 3px; background: rgba(238,239,211,0.14); border-radius: 2px; margin-top: 0; opacity: 0; }
+
+      /* ── Scene C: Sensitivity grid 5×4 ── */
+      #sceneC { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 32px; opacity: 0; }
+      #sceneCLabel { font-size: 24px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(238,239,211,0.48); }
+      #gridWrap { display: flex; flex-direction: column; gap: 0; }
+      #gridHeader { display: flex; gap: 0; margin-bottom: 10px; padding-left: 118px; }
+      .gh { width: 152px; text-align: center; font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 700; color: rgba(238,239,211,0.45); letter-spacing: -0.01em; }
+      .grid-row { display: flex; align-items: center; gap: 0; margin-bottom: 10px; }
+      .row-label { width: 118px; font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 700; color: rgba(238,239,211,0.5); }
+      .gcell { width: 144px; height: 68px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: "JetBrains Mono", monospace; font-size: 24px; font-weight: 700; margin: 0 4px; opacity: 0; }
+
+      /* ── Scene D: Equity badge ── */
+      #sceneD { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; opacity: 0; }
+      #sceneDLabel { font-size: 26px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(238,239,211,0.5); opacity: 0; }
+      #emBadge { background: #d8d958; color: #003738; font-family: "JetBrains Mono", monospace; font-size: 130px; font-weight: 700; letter-spacing: -0.04em; padding: 30px 80px; border-radius: 22px; opacity: 0; }
+      #emSub { font-size: 36px; font-weight: 500; color: rgba(238,239,211,0.55); opacity: 0; }
+
+      /* ── Scene E: End card ── */
+      #sceneE { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; opacity: 0; background: #003738; }
+      #endLine { width: 120px; height: 4px; background: #d8d958; border-radius: 2px; opacity: 0; }
+      #endH { font-size: 96px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.0; text-align: center; color: #eeefd3; max-width: 22ch; opacity: 0; }
+      #endSub { font-size: 38px; font-weight: 500; color: rgba(238,239,211,0.6); opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="9" data-width="1920" data-height="1080"
+         style="position: relative; width: 1920px; height: 1080px; overflow: hidden;">
+
+      <div id="stage" class="clip" data-start="0" data-duration="9" data-track-index="1">
+        <div class="dotgrid"></div>
+        <div id="wordmark">Greenstreet</div>
+
+        <!-- A: Title -->
+        <div id="sceneA">
+          <div id="titleLine1">The full return,<span id="titleAccent"> /</span></div>
+          <div id="titleLine2">not just the cash flow.</div>
+        </div>
+
+        <!-- B: Bar chart — CoC · Unlevered · Levered IRR -->
+        <div id="sceneB">
+          <div id="sceneBLabel">Return stack — illustrative deal</div>
+          <div id="barChart">
+            <div class="bar-col" id="barCoc">
+              <div class="bar-val">8.2%</div>
+              <div class="bar-body"></div>
+              <div class="bar-label">Cash-on-cash</div>
+            </div>
+            <div class="bar-col" id="barUnlev">
+              <div class="bar-val">9.1%</div>
+              <div class="bar-body"></div>
+              <div class="bar-label">Unlevered IRR</div>
+            </div>
+            <div class="bar-col" id="barLev">
+              <div class="bar-val">14.3%</div>
+              <div class="bar-body"></div>
+              <div class="bar-label">Levered IRR</div>
+            </div>
+          </div>
+          <div id="barAxis"></div>
+        </div>
+
+        <!-- C: Sensitivity grid 5 hold × 4 rent-growth, color-graded green→amber -->
+        <div id="sceneC">
+          <div id="sceneCLabel">Hold × Rent Growth sensitivity (Levered IRR)</div>
+          <div id="gridWrap">
+            <div id="gridHeader">
+              <div class="gh">+1% rent</div>
+              <div class="gh">+2% rent</div>
+              <div class="gh">+3% rent</div>
+              <div class="gh">+4% rent</div>
+            </div>
+            <div class="grid-row">
+              <div class="row-label">3 yr</div>
+              <div class="gcell" style="background:rgba(77,189,151,0.16);color:#4dbd97">9.4%</div>
+              <div class="gcell" style="background:rgba(77,189,151,0.22);color:#4dbd97">10.1%</div>
+              <div class="gcell" style="background:rgba(77,189,151,0.28);color:#4dbd97">10.9%</div>
+              <div class="gcell" style="background:rgba(77,189,151,0.34);color:#4dbd97">11.6%</div>
+            </div>
+            <div class="grid-row">
+              <div class="row-label">5 yr</div>
+              <div class="gcell" style="background:rgba(77,189,151,0.22);color:#4dbd97">10.8%</div>
+              <div class="gcell" style="background:rgba(77,189,151,0.30);color:#4dbd97">11.9%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.26);color:#d8d958">13.1%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.38);color:#d8d958">14.3%</div>
+            </div>
+            <div class="grid-row">
+              <div class="row-label">7 yr</div>
+              <div class="gcell" style="background:rgba(77,189,151,0.26);color:#4dbd97">11.6%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.22);color:#d8d958">13.0%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.36);color:#d8d958">14.4%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.50);color:#d8d958">15.8%</div>
+            </div>
+            <div class="grid-row">
+              <div class="row-label">10 yr</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.20);color:#d8d958">12.7%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.34);color:#d8d958">14.4%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.50);color:#d8d958">16.1%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.64);color:#d8d958">17.8%</div>
+            </div>
+            <div class="grid-row">
+              <div class="row-label">12 yr</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.28);color:#d8d958">13.5%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.44);color:#d8d958">15.3%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.60);color:#d8d958">17.2%</div>
+              <div class="gcell" style="background:rgba(216,217,88,0.76);color:#d8d958">19.0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- D: Equity multiple badge -->
+        <div id="sceneD">
+          <div id="sceneDLabel">Equity multiple</div>
+          <div id="emBadge">1.9x</div>
+          <div id="emSub">on a 5-year hold</div>
+        </div>
+
+        <!-- E: End card -->
+        <div id="sceneE">
+          <div id="endLine"></div>
+          <div id="endH">See the whole return.</div>
+          <div id="endSub">— Greenstreet</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ── initial states ── */
+      gsap.set("#wordmark",    { opacity: 0 });
+      gsap.set("#sceneB",      { opacity: 0 });
+      gsap.set("#sceneBLabel", { opacity: 0 });
+      gsap.set(".bar-val",     { opacity: 0 });
+      gsap.set(".bar-label",   { opacity: 0 });
+      gsap.set(".bar-body",    { height: 0 });
+      gsap.set("#barAxis",     { opacity: 0 });
+      gsap.set("#sceneC",      { opacity: 0 });
+      gsap.set(".gcell",       { opacity: 0, scale: 0.85 });
+      gsap.set("#sceneD",      { opacity: 0 });
+      gsap.set("#sceneDLabel", { opacity: 0 });
+      gsap.set("#emBadge",     { opacity: 0, scale: 0.7 });
+      gsap.set("#emSub",       { opacity: 0 });
+      gsap.set("#sceneE",      { opacity: 0 });
+      gsap.set("#endLine",     { opacity: 0 });
+      gsap.set("#endH",        { opacity: 0 });
+      gsap.set("#endSub",      { opacity: 0 });
+
+      /* ── Scene A: Title (0 → 2.0s) ── */
+      tl.to("#wordmark",   { opacity: 1, duration: 0.5 }, 0.15);
+      tl.to("#titleLine1", { opacity: 1, duration: 0.7, ease: "power3.out", overwrite: "auto" }, 0.2);
+      tl.to("#titleLine2", { opacity: 1, duration: 0.7, ease: "power3.out", overwrite: "auto" }, 0.52);
+
+      /* fade A out */
+      tl.to("#sceneA", { opacity: 0, duration: 0.4, ease: "power2.in" }, 1.82);
+
+      /* ── Scene B: Bar chart (2.05 → 4.6s) ── */
+      tl.to("#sceneB",      { opacity: 1, duration: 0.35, ease: "power2.out" }, 2.05);
+      tl.to("#sceneBLabel", { opacity: 1, duration: 0.4,  ease: "power2.out" }, 2.15);
+      tl.to("#barAxis",     { opacity: 1, duration: 0.4,  ease: "power2.out" }, 2.25);
+
+      /* CoC bar — 8.2/14.3 * 460 ≈ 264px */
+      tl.to("#barCoc .bar-body",   { height: 264, duration: 0.62, ease: "power2.out", overwrite: "auto" }, 2.38);
+      tl.to("#barCoc .bar-val",    { opacity: 1,  duration: 0.35, ease: "power2.out", overwrite: "auto" }, 2.65);
+      tl.to("#barCoc .bar-label",  { opacity: 1,  duration: 0.35, ease: "power2.out", overwrite: "auto" }, 2.82);
+
+      /* Unlevered bar — 9.1/14.3 * 460 ≈ 293px */
+      tl.to("#barUnlev .bar-body",  { height: 293, duration: 0.62, ease: "power2.out", overwrite: "auto" }, 2.56);
+      tl.to("#barUnlev .bar-val",   { opacity: 1,  duration: 0.35, ease: "power2.out", overwrite: "auto" }, 2.84);
+      tl.to("#barUnlev .bar-label", { opacity: 1,  duration: 0.35, ease: "power2.out", overwrite: "auto" }, 3.0);
+
+      /* Levered IRR bar — tallest = 460px, lemon */
+      tl.to("#barLev .bar-body",  { height: 460, duration: 0.72, ease: "power2.out", overwrite: "auto" }, 2.76);
+      tl.to("#barLev .bar-val",   { opacity: 1,  duration: 0.42, ease: "back.out(1.4)", overwrite: "auto" }, 3.15);
+      tl.to("#barLev .bar-label", { opacity: 1,  duration: 0.35, ease: "power2.out", overwrite: "auto" }, 3.36);
+
+      /* fade B out */
+      tl.to("#sceneB", { opacity: 0, duration: 0.45, ease: "power2.in" }, 4.4);
+
+      /* ── Scene C: Sensitivity grid (4.65 → 6.75s) ── */
+      tl.to("#sceneC", { opacity: 1, duration: 0.38, ease: "power2.out" }, 4.65);
+      /* stagger all 20 cells reading order */
+      tl.to(".gcell", {
+        opacity: 1, scale: 1, duration: 0.36, ease: "back.out(1.5)",
+        stagger: { each: 0.04, from: "start" }, overwrite: "auto"
+      }, 4.85);
+
+      /* fade C out */
+      tl.to("#sceneC", { opacity: 0, duration: 0.45, ease: "power2.in" }, 6.52);
+
+      /* ── Scene D: Equity multiple badge (6.75 → 7.9s) ── */
+      tl.to("#sceneD",      { opacity: 1, duration: 0.35, ease: "power2.out" }, 6.75);
+      tl.to("#sceneDLabel", { opacity: 1, duration: 0.4,  ease: "power3.out", overwrite: "auto" }, 6.85);
+      tl.to("#emBadge",     { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.6)", overwrite: "auto" }, 6.95);
+      tl.to("#emSub",       { opacity: 1, duration: 0.4,  ease: "power3.out", overwrite: "auto" }, 7.3);
+
+      /* fade D out */
+      tl.to("#sceneD", { opacity: 0, duration: 0.38, ease: "power2.in" }, 7.72);
+
+      /* ── Scene E: End card (7.9 → 9.0s) ── */
+      tl.to("#sceneE",  { opacity: 1, duration: 0.45, ease: "power2.out" }, 7.9);
+      tl.to("#endLine", { opacity: 1, duration: 0.45, ease: "power3.out", overwrite: "auto" }, 8.0);
+      tl.to("#endH",    { opacity: 1, duration: 0.6,  ease: "power3.out", overwrite: "auto" }, 8.15);
+      tl.to("#endSub",  { opacity: 1, duration: 0.5,  ease: "power3.out", overwrite: "auto" }, 8.44);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

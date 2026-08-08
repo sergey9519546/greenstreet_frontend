@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #003738; font-family: "Outfit", sans-serif; }
+      #root { width: 1920px; height: 1080px; position: relative; }
+      .bg-circle { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; }
+      .c1 { width: 800px; height: 800px; background: #006565; top: -200px; right: -200px; }
+      
+      .title {
+        font-size: 80px;
+        color: #EEEFD3;
+        font-weight: 700;
+        position: absolute;
+        top: 150px;
+        left: 0;
+        width: 1920px;
+        text-align: center;
+        letter-spacing: -0.03em;
+      }
+      .accent { color: #D8D958; }
+
+      .lender-grid {
+        position: absolute;
+        top: 350px;
+        left: 360px;
+        width: 1200px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+      }
+
+      .lender-card {
+        background: #004D4E;
+        border-radius: 20px;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        opacity: 0;
+      }
+
+      .l-name { font-size: 32px; font-weight: 700; color: #EEEFD3; }
+      .l-rate { font-size: 48px; font-weight: 700; color: #D8D958; }
+      .l-tags { display: flex; gap: 10px; }
+      .tag { background: #006565; color: #EEEFD3; padding: 6px 12px; border-radius: 6px; font-size: 16px; font-weight: 600; }
+
+      .match-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border: 4px solid #D8D958;
+        border-radius: 20px;
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(216,217,88,0.1);
+      }
+      .match-badge {
+        background: #D8D958; color: #003738; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 24px;
+        transform: scale(0.5); opacity: 0;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="step-02" data-start="0" data-duration="6" data-width="1920" data-height="1080">
+      <div class="bg-circle c1"></div>
+      
+      <div id="title" class="title">Match the <span class="accent">right lender</span> for every file</div>
+
+      <div class="lender-grid">
+        <div class="lender-card" id="l1">
+          <div class="l-name">Apex Capital</div>
+          <div class="l-rate">6.85%</div>
+          <div class="l-tags"><div class="tag">Min 680 FICO</div><div class="tag">No PPP</div></div>
+        </div>
+        <div class="lender-card" id="l2" style="position:relative;">
+          <div class="l-name">Silverwood</div>
+          <div class="l-rate">7.10%</div>
+          <div class="l-tags"><div class="tag">Min 650 FICO</div><div class="tag">5yr PPP</div></div>
+          <div class="match-overlay" id="m-over"><div class="match-badge" id="m-badge">Best Match</div></div>
+        </div>
+        <div class="lender-card" id="l3">
+          <div class="l-name">Oak Finance</div>
+          <div class="l-rate">7.25%</div>
+          <div class="l-tags"><div class="tag">Min 660 FICO</div><div class="tag">3yr PPP</div></div>
+        </div>
+        <div class="lender-card" id="l4">
+          <div class="l-name">Horizon</div>
+          <div class="l-rate">7.50%</div>
+          <div class="l-tags"><div class="tag">Foreign Nat.</div></div>
+        </div>
+        <div class="lender-card" id="l5">
+          <div class="l-name">Lender E</div>
+          <div class="l-rate">7.75%</div>
+          <div class="l-tags"><div class="tag">Interest Only</div></div>
+        </div>
+        <div class="lender-card" id="l6">
+          <div class="l-name">Blue Rock</div>
+          <div class="l-rate">8.00%</div>
+          <div class="l-tags"><div class="tag">Sub 1.0 DSCR</div></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      
+      gsap.set("#title", { opacity: 0, y: 30 });
+
+      tl.to("#title", { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, 0.2);
+      
+      // Reveal lenders
+      tl.to(".lender-card", { opacity: 1, y: -20, duration: 0.8, stagger: 0.1, ease: "power2.out" }, 0.6);
+
+      // Filter animation (fade out non-matches)
+      tl.to(["#l1", "#l3", "#l4", "#l5", "#l6"], { opacity: 0.3, duration: 0.5 }, 2.5);
+      tl.to("#l2", { scale: 1.05, duration: 0.5, ease: "power2.out" }, 2.5);
+
+      // Show match badge
+      tl.to("#m-over", { opacity: 1, duration: 0.3 }, 3.0);
+      tl.to("#m-badge", { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, 3.0);
+
+      // Outro
+      tl.to(["#title", ".lender-card"], { opacity: 0, y: -50, duration: 0.8, stagger: 0.05, ease: "power3.in" }, 5.0);
+
+      window.__timelines["step-02"] = tl;
+    </script>
+  </body>
+</html>

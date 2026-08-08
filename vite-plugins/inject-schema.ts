@@ -11,8 +11,8 @@ export function injectSchemaPlugin(): Plugin {
   "@context": "https://schema.org",
   "@type": "FinancialService",
   "name": "Greenstreet Finance",
-  "url": "https://greenstreet.com",
-  "logo": "https://greenstreet.com/img/logo.png",
+  "url": "https://www.greenstreet.finance",
+  "logo": "https://www.greenstreet.finance/img/favicon-32.png",
   "description": "DSCR loan calculator and non-QM mortgage platform for rental property investors. Compare specialized DSCR lender programs instantly.",
   "serviceType": ["DSCR Loan Calculator", "Non-QM Mortgage Brokerage", "Rental Property Financing Tools"]
 }
