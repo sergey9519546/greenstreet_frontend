@@ -5,7 +5,7 @@ import { analyzeRefi } from "../engine/refiTracker";
 import { computeSecondLienDscr } from "../engine/secondLienDscr";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
 import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenantCheck";
-import { radius, font } from "../theme";
+import { radius, font, risk } from "../theme";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
 
@@ -16,9 +16,9 @@ const MINT = dc.mintBg; // #e8e9bf
 
 // Colour helpers (via dc tokens only, no local consts)
 const scoreColor = (score: number) =>
-  score >= 80 ? dc.emerald : score >= 55 ? dc.lemon : "#e06363";
+  score >= 80 ? dc.emerald : score >= 55 ? dc.lemon : risk.danger;
 const factorColor = (v: number) =>
-  v >= 20 ? dc.emerald : v >= 12 ? dc.lemon : "#e06363";
+  v >= 20 ? dc.emerald : v >= 12 ? dc.lemon : risk.danger;
 
 export default function RefiTrackerPage({
   onBack,
@@ -159,7 +159,7 @@ export default function RefiTrackerPage({
   ]);
 
   const score = result?.totalScore ?? 0;
-  const vColor = result ? scoreColor(score) : "#e06363";
+  const vColor = result ? scoreColor(score) : risk.danger;
   const vLabel = result
     ? score >= 80
       ? "REFI READY"
@@ -423,7 +423,7 @@ export default function RefiTrackerPage({
                 id="rf-cost"
                 d="M 0,40 L 420,40"
                 fill="none"
-                stroke="#e06363"
+                stroke={risk.danger}
                 strokeWidth="2.5"
                 strokeDasharray="6,4"
               />
@@ -729,7 +729,7 @@ export default function RefiTrackerPage({
                       label: "DSCR after refi",
                       sub: result.refiDSCR >= 1.0 ? "Still qualifies after the new payment." : "Caution — rent may not cover the new payment.",
                       val: result.refiDSCR.toFixed(2) + "x",
-                      color: result.refiDSCR >= 1.0 ? dc.emerald : "#e06363",
+                      color: result.refiDSCR >= 1.0 ? dc.emerald : risk.danger,
                       flame: riskFromDscr(result.refiDSCR),
                     },
                     {
@@ -738,7 +738,7 @@ export default function RefiTrackerPage({
                       val:
                         (result.monthlySavings >= 0 ? "+" : "") +
                         fmt$(result.monthlySavings),
-                      color: result.monthlySavings >= 0 ? dc.emerald : "#e06363",
+                      color: result.monthlySavings >= 0 ? dc.emerald : risk.danger,
                     },
                     {
                       label: "Break-even",
@@ -761,7 +761,7 @@ export default function RefiTrackerPage({
                       val: result.seasoningMet
                         ? "Met (6 mo)"
                         : `${monthsOwned}/6 mo — not yet met`,
-                      color: result.seasoningMet ? dc.emerald : "#e06363",
+                      color: result.seasoningMet ? dc.emerald : risk.danger,
                     },
                   ].map((r, i) => (
                     <div
@@ -788,7 +788,7 @@ export default function RefiTrackerPage({
                   <div
                     style={{
                       fontSize: 13,
-                      color: "#e06363",
+                      color: risk.danger,
                       padding: "8px 0",
                     }}
                   >
@@ -933,8 +933,8 @@ export default function RefiTrackerPage({
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }} className="dc-band-4">
             {[
-              { v: `${secondLien.combinedDSCR.toFixed(2)}x`, l: "combined DSCR", c: secondLien.combinedDSCR >= 1.0 ? dc.emerald : "#e06363" },
-              { v: `${secondLien.cltv.toFixed(0)}%`, l: "CLTV (cap 75%)", c: secondLien.cltv <= 75 ? dc.cream : "#e06363" },
+              { v: `${secondLien.combinedDSCR.toFixed(2)}x`, l: "combined DSCR", c: secondLien.combinedDSCR >= 1.0 ? dc.emerald : risk.danger },
+              { v: `${secondLien.cltv.toFixed(0)}%`, l: "CLTV (cap 75%)", c: secondLien.cltv <= 75 ? dc.cream : risk.danger },
               { v: fmt$(secondLien.maxSecondLien), l: `max 2nd lien · ${secondLien.bindingConstraint}-bound`, c: dc.lemon },
               { v: secondLien.qualifies ? "QUALIFIES" : "TIGHT", l: `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo`, c: secondLien.qualifies ? dc.emerald : dc.lemon },
             ].map((s) => (
@@ -978,9 +978,9 @@ export default function RefiTrackerPage({
               { v: fmt$(refiGap.maxNewLoan), l: `max new loan · ${refiGap.bindingConstraint}-bound`, c: dc.lemon },
               refiGap.canRetireBalance
                 ? { v: fmt$(refiGap.cashOutAvailable), l: "cash-out available", c: dc.emerald }
-                : { v: fmt$(refiGap.proceedsGap), l: "cash to close (gap)", c: "#e06363" },
+                : { v: fmt$(refiGap.proceedsGap), l: "cash to close (gap)", c: risk.danger },
               { v: fmt$(refiGap.newPayment), l: "new P&I / mo", c: dc.cream },
-              { v: refiGap.canRetireBalance ? "CLEARS" : "SHORT", l: `vs ${fmt$(currentBalance)} balance`, c: refiGap.canRetireBalance ? dc.emerald : "#e06363" },
+              { v: refiGap.canRetireBalance ? "CLEARS" : "SHORT", l: `vs ${fmt$(currentBalance)} balance`, c: refiGap.canRetireBalance ? dc.emerald : risk.danger },
             ].map((s) => (
               <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
                 <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
@@ -992,22 +992,22 @@ export default function RefiTrackerPage({
           {/* debt-test flags */}
           <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
             {!refiGap.canRetireBalance && (
-              <div style={{ background: "rgba(224,99,99,0.1)", border: "1px solid rgba(224,99,99,0.4)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e0635f", marginBottom: 4 }}>Refi proceeds gap · {refiGap.bindingConstraint}-constrained</div>
+              <div style={{ background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderLeft: `3px solid ${risk.danger}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: risk.danger, marginBottom: 4 }}>Refi proceeds gap · {refiGap.bindingConstraint}-constrained</div>
                 <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>
                   A new loan tops out at {fmt$(refiGap.maxNewLoan)} — {fmt$(refiGap.proceedsGap)} short of the {fmt$(currentBalance)} balance. You'd bring that cash to close, or negotiate an extension/paydown. The {refiGap.bindingConstraint === "LTV" ? "value (LTV)" : "rent (DSCR)"} is the binding limit.
                 </p>
               </div>
             )}
             {covenant.status !== "OK" && (
-              <div style={{ background: covenant.status === "BREACH" ? "rgba(224,99,99,0.1)" : "rgba(230,184,77,0.1)", border: `1px solid ${covenant.status === "BREACH" ? "rgba(224,99,99,0.4)" : "rgba(230,184,77,0.4)"}`, borderLeft: `3px solid ${covenant.status === "BREACH" ? "#e06363" : "#e6b84d"}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: covenant.status === "BREACH" ? "#e0635f" : "#e6b84d", marginBottom: 4 }}>DSCR covenant · {covenant.status}</div>
+              <div style={{ background: covenant.status === "BREACH" ? risk.dangerBg : risk.warningBg, border: `1px solid ${covenant.status === "BREACH" ? risk.dangerBorder : risk.warningBorder}`, borderLeft: `3px solid ${covenant.status === "BREACH" ? risk.danger : risk.warning}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: covenant.status === "BREACH" ? risk.danger : risk.warning, marginBottom: 4 }}>DSCR covenant · {covenant.status}</div>
                 <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{covenant.note}</p>
               </div>
             )}
             {dayOne.leaseUpRisk && (
-              <div style={{ background: "rgba(230,184,77,0.1)", border: "1px solid rgba(230,184,77,0.4)", borderLeft: "3px solid #e6b84d", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e6b84d", marginBottom: 4 }}>Day-one vs stabilized · lease-up risk</div>
+              <div style={{ background: risk.warningBg, border: `1px solid ${risk.warningBorder}`, borderLeft: `3px solid ${risk.warning}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: risk.warning, marginBottom: 4 }}>Day-one vs stabilized · lease-up risk</div>
                 <p style={{ fontSize: 13.5, color: "rgba(238,239,211,0.75)", margin: 0, lineHeight: 1.5 }}>{dayOne.note}</p>
               </div>
             )}

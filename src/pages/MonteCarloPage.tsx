@@ -1,14 +1,15 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn, useRevealOnView } from "../design/dc";
 import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT } from "../engine/monteCarloRatePath";
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
+import { risk } from "../theme";
 
 // ─── color helpers ────────────────────────────────────────────────────────────
-const RED     = "#e06363";
-const ORANGE  = "#e6b84d";
+const RED     = risk.danger;
+const ORANGE  = risk.warning;
 const YELLOW  = dc.lemon;   // warn signal — bright on the dark canvas
 const YELLOW_DARK = dc.lemon;
 const BLUE    = "#7ec8d3";  // sky-blue — the rates / SOFR / uncertainty color
@@ -251,6 +252,11 @@ export default function MonteCarloPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  useEffect(() => {
+    document.title = "Monte Carlo Simulator | Greenstreet Finance";
+    window.scrollTo(0, 0);
+  }, []);
+
   // ── inputs ────────────────────────────────────────────────────────────────
   const [loanAmount,    setLoanAmount]    = useState(340000);
   const [monthlyRent,   setMonthlyRent]   = useState(3000);
@@ -493,8 +499,8 @@ export default function MonteCarloPage({
             </h2>
             <div style={{
               display: "flex", alignItems: "flex-start", gap: 14,
-              background: pD1 > 20 ? "rgba(224,99,99,0.1)" : pD1 > 5 ? "rgba(216,217,88,0.12)" : "rgba(77,189,151,0.12)",
-              border: `1px solid ${pD1 > 20 ? "rgba(224,99,99,0.3)" : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.3)"}`,
+              background: pD1 > 20 ? risk.dangerBg : pD1 > 5 ? risk.cautionBg : "rgba(77,189,151,0.12)",
+              border: `1px solid ${pD1 > 20 ? risk.dangerBorder : pD1 > 5 ? "rgba(216,217,88,0.3)" : "rgba(77,189,151,0.3)"}`,
               borderRadius: dc.r.sm, padding: "14px 18px", maxWidth: 720,
             }}>
               <RiskFlame level={riskLevel} size={20} />

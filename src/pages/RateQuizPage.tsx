@@ -17,7 +17,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono } from "../design/dc";
 import { DscrGauge, RiskFlame } from "../design/artifacts";
-import { swatch, radius, font } from "../theme";
+import { swatch, radius, font, risk } from "../theme";
 
 interface Props {
   onBack?: () => void;
@@ -593,7 +593,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
       ? swatch.emerald
       : result?.tier === "GOOD"
       ? swatch.lemon
-      : "#e6b84d";
+      : risk.warning;
 
   const tierLabel =
     result?.tier === "BEST"
@@ -1215,7 +1215,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {result.tier === "WEAK" && (
                   <div
                     style={{
-                      background: "rgba(230,184,77,0.08)",
+                      background: risk.warningBg,
                       border: "1px solid rgba(230,184,77,0.28)",
                       borderRadius: radius.sm,
                       padding: "14px 18px",
@@ -1228,7 +1228,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,
-                        color: "#e6b84d",
+                        color: risk.warning,
                         marginBottom: 6,
                       }}
                     >

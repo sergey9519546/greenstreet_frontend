@@ -117,7 +117,20 @@ const CLIENT_WORKSPACE_CONFIGURED = Boolean(
   import.meta.env.VITE_FIREBASE_APP_ID
 );
 
-const RELIABILITY_HOLD_VIEWS = new Set<PageView>([
+// Views where the floating "See if you qualify" pill is suppressed.
+//
+// This list used to be named RELIABILITY_HOLD_VIEWS, back when it also selected
+// which tools rendered ToolReliabilityHoldPage. Those tools now render live pages
+// (see renderPage below), so suppressing the qualify widget is this set's ONLY
+// remaining job — hence the name. Membership is unchanged: these are the deep
+// analysis surfaces that carry their own prominent qualify CTAs, so the floating
+// overlay is redundant clutter there.
+//
+// Deliberately NOT suppressed (conversion surfaces where the pill IS the primary
+// path): portal, legal, book-demo, dscr-calculator, lender-intel, external. A
+// since-deleted local constant suppressed the widget on those too; that behavior
+// was not adopted — flagged for a product decision.
+const QUALIFY_WIDGET_SUPPRESSED_VIEWS = new Set<PageView>([
   "decision-support",
   "deal-analyzer",
   "rate-quiz",
@@ -194,17 +207,6 @@ function viewToPath(view: PageView): string {
     case "external":          return "/external";
   }
 }
-
-// Views where the floating "See if you qualify" pill is suppressed: the logged-in
-// portal, and every tool/calculator page (those carry their own prominent qualify
-// CTAs, so the overlay just clutters them). It still shows on marketing/persona
-// pages, where it's the primary conversion path.
-const QUALIFY_WIDGET_EXCLUDED_VIEWS: ReadonlySet<PageView> = new Set([
-  "portal", "external", "legal", "rate-quiz", "book-demo",
-  "dscr-calculator", "lender-intel", "state-laws", "deal-analyzer",
-  "refi-tracker", "arm-reset", "monte-carlo", "returns", "tax-engine",
-  "stress-matrix", "decision-support", "str-underwriting", "portfolio",
-]);
 
 export default function App() {
   const [view, setView] = useState<PageView>(() => {
@@ -447,7 +449,7 @@ export default function App() {
         {view === "marketing" ||
         view === "not-found" ||
         (view === "portal" && !CLIENT_WORKSPACE_CONFIGURED) ||
-        RELIABILITY_HOLD_VIEWS.has(view) ? null : (
+        QUALIFY_WIDGET_SUPPRESSED_VIEWS.has(view) ? null : (
           <QualifyWidget
             showTrigger={view !== "book-demo"}
             autoOpen={view !== "book-demo"}

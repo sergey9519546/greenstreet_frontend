@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import type { DSCRResult, BreakevenResult, PPPCheckResult, PITIABreakdown, DualTrackDSCR } from "../engine/types";
 import type { AuditLog } from "../engine/types";
-import { swatch, radius } from "../theme";
+import { swatch, radius, risk } from "../theme";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor as artifactDscrColor } from "../design/artifacts";
 import STRUnderwritingPage from "../pages/STRUnderwritingPage";
 import PortfolioPage from "../pages/PortfolioPage";
@@ -41,12 +41,12 @@ const T = {
   sidebarText: swatch.pistachio,
   sidebarActive: "rgba(216,217,88,0.16)",    // lemon-tinted active
   // Danger / warn — dark-friendly tints
-  dangerBg: "rgba(224,99,99,0.12)",
-  dangerBorder: "rgba(224,99,99,0.32)",
-  dangerText: "#ff8f8f",
-  warnBg: "rgba(216,217,88,0.12)",
-  warnBorder: "rgba(216,217,88,0.34)",
-  warnText: "#e6e76b",
+  dangerBg: risk.dangerBg,
+  dangerBorder: risk.dangerBorder,
+  dangerText: risk.dangerOnDark,
+  warnBg: risk.cautionBg,
+  warnBorder: risk.cautionBorder,
+  warnText: risk.cautionOnDark,
 } as const;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -777,7 +777,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                           { label: "Active deals",    value: "6",     delta: "+2 this week",       deltaColor: swatch.emerald },
                           { label: "Avg DSCR",        value: "1.31x", delta: "Healthy book",        deltaColor: swatch.emerald },
                           { label: "Pipeline vol.",   value: "$2.0M", delta: "+$0.4M MTD",           deltaColor: swatch.emerald },
-                          { label: "Flagged states",  value: "2",     delta: "NJ · OH need review", deltaColor: "#e6e76b" },
+                          { label: "Flagged states",  value: "2",     delta: "NJ · OH need review", deltaColor: risk.cautionOnDark },
                         ] as const).map(({ label, value, delta, deltaColor }) => (
                           <WhiteCard key={label} style={{ padding: "20px 20px 16px" }}>
                             <div className="text-[11px] font-semibold uppercase tracking-[0.04em] mb-2" style={{ color: T.faint }}>{label}</div>
@@ -800,7 +800,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 ? { color: swatch.emerald, background: `${swatch.emerald}16` }
                                 : d.stage === "Priced"
                                   ? { color: swatch.emerald, background: `${swatch.emerald}16` }
-                                  : { color: "#e6e76b", background: "rgba(154,123,0,0.1)" };
+                                  : { color: risk.cautionOnDark, background: "rgba(154,123,0,0.1)" };
                               return (
                                 <div key={d.prop}
                                   className="grid items-center gap-3 transition cursor-default"
@@ -858,8 +858,8 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             <div className="text-[11px] font-semibold uppercase tracking-[0.06em] mb-3" style={{ color: swatch.rainforest }}>State alerts</div>
                             {([
                               { mark: "✕", color: T.dangerText, text: "45 Harbor (NJ): prepay penalty high-risk for LLC — restructure or expect +0.25% rate." },
-                              { mark: "~",  color: "#e6e76b",    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
-                              { mark: "~",  color: "#e6e76b",    text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
+                              { mark: "~",  color: risk.cautionOnDark,    text: "19 Pine (OH): threshold PPP — confirm loan clears $116,356 exemption." },
+                              { mark: "~",  color: risk.cautionOnDark,    text: "7 Desert Vw (AZ): DSCR 0.98x — route to a sub-1.0 program with reserves." },
                             ] as const).map(({ mark, color, text }) => (
                               <div key={text} className="flex gap-2.5 py-2.5" style={{ borderBottom: `1px solid ${T.cardBorder}` }}>
                                 <span className="font-bold shrink-0" style={{ color }}>{mark}</span>
@@ -1158,7 +1158,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                 ].map(({ label, value, warn }) => (
                                   <div key={label} className="flex items-center justify-between gap-3">
                                     <span className="text-xs flex-1" style={{ color: T.muted }}>{label}</span>
-                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: warn ? "#e6e76b" : swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
+                                    <span className="font-mono font-bold text-sm shrink-0" style={{ color: warn ? risk.cautionOnDark : swatch.rainforest, fontVariantNumeric: "tabular-nums" }}>
                                       {fmt$(value)}/mo
                                     </span>
                                   </div>
@@ -1280,7 +1280,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                             const rating = sensResult.sensitivity.jointAppraisalRisk.combinedRiskRating;
                             const ratingStyle: React.CSSProperties =
                               rating === "LOW" ? { color: swatch.emerald, background: `${swatch.emerald}16`, border: `1px solid ${swatch.rainforest}30` } :
-                              rating === "MODERATE" ? { color: "#e6e76b", background: "#fffbe6", border: "1px solid #ffe58f" } :
+                              rating === "MODERATE" ? { color: risk.cautionOnDark, background: "#fffbe6", border: "1px solid #ffe58f" } :
                               { color: T.dangerText, background: T.dangerBg, border: `1px solid ${T.dangerBorder}` };
                             return (
                               <Card style={{ padding: "20px" }}>
@@ -1525,7 +1525,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                                     style={{
                                       borderRadius: radius.pill,
                                       background: log.type === "analyze" ? `${swatch.emerald}20` : `${swatch.lemon}40`,
-                                      color: log.type === "analyze" ? swatch.rainforest : "#e6e76b",
+                                      color: log.type === "analyze" ? swatch.rainforest : risk.cautionOnDark,
                                     }}>
                                     {log.type === "analyze" ? "DSCR Deal" : "State PPP"}
                                   </span>

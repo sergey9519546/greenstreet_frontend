@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
-import { radius, font } from "../theme";
+import { radius, font, risk } from "../theme";
 import BottomCTA from "../design/BottomCTA";
 
 // ── Who-We-Serve: STR & Airbnb Hosts ──────────────────────────────────────────
@@ -8,7 +8,7 @@ import BottomCTA from "../design/BottomCTA";
 // the worst-month DSCR a lender actually underwrites to. Not the peak-season fantasy.
 
 const BLUE = "#7ec8d3";
-const RED = "#e06363";
+const RED = risk.danger;
 const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
 // seasonal multipliers — summer-peak vacation market
 const SEASON = [0.62, 0.68, 0.84, 0.96, 1.12, 1.28, 1.34, 1.26, 1.04, 0.88, 0.70, 0.78];
@@ -114,7 +114,7 @@ export default function STRHostsPage({
               ))}
               <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", lineHeight: 1.5 }}>Seasonality models a summer-peak market. Real underwriting uses your market's AirDNA history.</div>
             </div>
-            <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${holds ? "rgba(77,189,151,0.4)" : "rgba(224,99,99,0.4)"}`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <div style={{ background: dc.teal, borderRadius: radius.lg, border: `1px solid ${holds ? "rgba(77,189,151,0.4)" : risk.dangerBorder}`, padding: "clamp(24px,3vw,40px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: holds ? dc.emerald : RED, marginBottom: 6 }}>{holds ? "Holds the slow months" : "Breaks in the off-season"}</div>
               <Mono style={{ fontSize: "clamp(48px,7vw,84px)", fontWeight: 700, color: holds ? dc.emerald : RED, lineHeight: 0.9 }}>{worstDSCR.toFixed(2)}x</Mono>
               <div style={{ fontSize: 15, color: "rgba(238,239,211,0.7)", marginTop: 14, lineHeight: 1.5, maxWidth: "46ch" }}>

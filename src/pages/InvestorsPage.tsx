@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
-import { radius, font } from "../theme";
+import { radius, font, risk } from "../theme";
 import BottomCTA from "../design/BottomCTA";
 
 // ── Who-We-Serve: Real Estate Investors (primary wedge) ───────────────────────
@@ -8,7 +8,7 @@ import BottomCTA from "../design/BottomCTA";
 // there's no income ceiling. Conventional DTI caps you; DSCR doesn't.
 
 const BLUE = "#7ec8d3";
-const RED = "#e06363";
+const RED = risk.danger;
 const fmt$ = (n: number) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
 
 type Door = { rent: number; pay: number };

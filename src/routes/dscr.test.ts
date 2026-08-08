@@ -34,3 +34,36 @@ describe("DSCR reliability holds", () => {
     });
   });
 });
+
+describe("DSCR request validation", () => {
+  const validDeal = { purchasePrice: 400_000, monthlyRent: 3_000, state: "TX" };
+
+  // Validation must reject before the engine is reached — an unknown enum that
+  // slipped through would be silently re-interpreted as a different loan
+  // structure (worst case: an interest-only loan the borrower never asked for).
+  it.each([
+    ["propertyType", "MULTIFAMILY"],
+    ["entityType", "PARTNERSHIP"],
+    ["experience", "NOVICE"],
+    ["loanPurpose", "REFI"],
+    ["ioPeriod", "3_YR"],
+    ["strategy", "FLIP"],
+  ])("rejects %s=%s with 400 before invoking the engine", async (field, value) => {
+    const response = await post("/api/dscr/solve", { ...validDeal, [field]: value });
+
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error).toBe("Validation failed");
+    expect(body.issues.map((issue: { field: string }) => issue.field)).toContain(field);
+  });
+
+  it.each(["/api/dscr/solve", "/api/dscr/sensitivity"])(
+    "rejects a payload missing required core fields on %s",
+    async (path) => {
+      const response = await post(path, { state: "TX" });
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ error: "Validation failed" });
+    },
+  );
+});

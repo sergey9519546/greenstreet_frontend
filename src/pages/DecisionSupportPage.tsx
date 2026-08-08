@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
-import { swatch, radius } from "../theme";
+import { swatch, radius, risk } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeVerdict, computeDealKillCheck, computeAcquisitionScore, computeReturnGrade } from "../engine/decisionSupport";
 import { solveDSCR } from "../engine/engine";
@@ -12,8 +12,8 @@ import BottomCTA from "../design/BottomCTA";
 // ── helpers ─────────────────────────────────────────────────────────────────
 function verdictColor(v: string): string {
   if (v === "PROCEED") return dc.emerald;
-  if (v === "RESTRUCTURE") return "#d8d958";
-  return "#e06363";
+  if (v === "RESTRUCTURE") return risk.caution;
+  return risk.danger;
 }
 function verdictBg(v: string): string {
   if (v === "PROCEED") return swatch.emerald;
@@ -32,8 +32,8 @@ function gradeColor(g: string): string {
 }
 function factorColor(v: number): string {
   if (v >= 66) return dc.emerald;
-  if (v >= 40) return "#d8d958";
-  return "#e06363";
+  if (v >= 40) return risk.caution;
+  return risk.danger;
 }
 
 // Map composite 0-100 to needle rotation -74..+74 deg (left=NO-GO, right=GO)
@@ -59,9 +59,9 @@ function VerdictGauge({ composite }: { composite: number }) {
         aria-label={`Verdict gauge — composite score ${composite}/100`}
       >
         {/* Arc segments: NO-GO (red), CONDITIONAL (yellow), GO (green) */}
-        <path d="M 30,150 A 110,110 0 0 1 73,64"   fill="none" stroke="#e06363" strokeWidth="16" strokeLinecap="round" />
-        <path d="M 86,54  A 110,110 0 0 1 194,54"  fill="none" stroke="#d8d958" strokeWidth="16" strokeLinecap="round" />
-        <path d="M 207,64 A 110,110 0 0 1 250,150" fill="none" stroke="#4dbd97" strokeWidth="16" strokeLinecap="round" />
+        <path d="M 30,150 A 110,110 0 0 1 73,64"   fill="none" stroke={risk.danger} strokeWidth="16" strokeLinecap="round" />
+        <path d="M 86,54  A 110,110 0 0 1 194,54"  fill="none" stroke={risk.caution} strokeWidth="16" strokeLinecap="round" />
+        <path d="M 207,64 A 110,110 0 0 1 250,150" fill="none" stroke={risk.positive} strokeWidth="16" strokeLinecap="round" />
 
         {/* Needle */}
         <g style={needleStyle}>
@@ -213,8 +213,8 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
 
       // IC memo bullets driven by real values
       const MINT = dc.emerald;
-      const YLW  = "#d8d958";
-      const RED  = "#e06363";
+      const YLW  = risk.caution;
+      const RED  = risk.danger;
       const memo: { mark: string; color: string; text: string }[] = [];
       memo.push(
         deal.dscr >= 1.25
@@ -407,7 +407,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
             {/* ── RESULTS ── */}
             {!result ? (
               <div style={{ background: dc.dark, borderRadius: radius.lg, padding: 40, border: "1px solid rgba(238,239,211,0.16)", textAlign: "center" }}>
-                <p style={{ color: "#e06363", fontWeight: 600 }}>Engine returned no result — check inputs.</p>
+                <p style={{ color: risk.danger, fontWeight: 600 }}>Engine returned no result — check inputs.</p>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -425,7 +425,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   {/* Headline answer — verdict first */}
                   <div style={{ marginBottom: 24 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: result.verdict.verdict === "PROCEED" ? "rgba(77,189,151,0.12)" : result.verdict.verdict === "RESTRUCTURE" ? "rgba(216,217,88,0.12)" : "rgba(224,99,99,0.12)", border: `1px solid ${verdictColor(result.verdict.verdict)}`, borderRadius: 100, padding: "6px 14px" }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: result.verdict.verdict === "PROCEED" ? "rgba(77,189,151,0.12)" : result.verdict.verdict === "RESTRUCTURE" ? risk.cautionBg : risk.dangerBg, border: `1px solid ${verdictColor(result.verdict.verdict)}`, borderRadius: 100, padding: "6px 14px" }}>
                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: verdictColor(result.verdict.verdict), display: "inline-block" }} />
                         <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: verdictColor(result.verdict.verdict) }}>IC verdict</span>
                       </div>
@@ -452,7 +452,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                         {result.composite}<span style={{ fontSize: "0.42em", color: "rgba(238,239,211,0.62)" }}>/100</span>
                       </Mono>
                       <div style={{ width: "100%", maxWidth: 210 }}>
-                        <div style={{ position: "relative", height: 10, borderRadius: 999, background: "linear-gradient(90deg,#e06363 0 33%,#d8d958 33% 66%,#4dbd97 66% 100%)" }}>
+                        <div style={{ position: "relative", height: 10, borderRadius: 999, background: `linear-gradient(90deg,${risk.danger} 0 33%,${risk.caution} 33% 66%,${risk.positive} 66% 100%)` }}>
                           <div style={{ position: "absolute", top: "50%", left: `${Math.max(2, Math.min(98, result.composite))}%`, transform: "translate(-50%,-50%)", width: 16, height: 16, borderRadius: "50%", background: dc.cream, border: `3px solid ${verdictColor(result.verdict.verdict)}`, boxShadow: "0 2px 7px rgba(0,0,0,0.45)" }} />
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontSize: 11, fontFamily: dc.mono, letterSpacing: "0.04em", color: "rgba(238,239,211,0.45)" }}>
@@ -557,7 +557,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                       BLOCKER = must resolve before any lender will proceed. WARNING = worth addressing; may be offset by compensating factors. Each item includes a suggested action.
                     </p>
                     {result.kill.criteria.map((k, i) => {
-                      const kc = k.severity === "BLOCKER" ? "#e06363" : k.severity === "WARNING" ? "#e6b84d" : dc.emerald;
+                      const kc = k.severity === "BLOCKER" ? risk.danger : k.severity === "WARNING" ? risk.warning : dc.emerald;
                       return (
                         <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid rgba(238,239,211,0.07)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
@@ -591,7 +591,7 @@ export default function DecisionSupportPage({ onBack, onNavigate }: { onBack: ()
                   <div style={{ background: dc.dark, padding: "28px 24px", textAlign: "center" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.emerald, marginBottom: 4 }}>Acquisition score</div>
                     <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 10 }}>75+ = strong buy · 60–74 = conditional · below 60 = restructure</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? "#e6b84d" : "#e06363", lineHeight: 1 }}>
+                    <Mono style={{ display: "block", fontSize: "clamp(52px,7vw,80px)", fontWeight: 700, color: result.acq.score >= 75 ? dc.emerald : result.acq.score >= 60 ? risk.warning : risk.danger, lineHeight: 1 }}>
                       {Math.round(result.acq.score)}
                     </Mono>
                     <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>{result.acq.band}</div>

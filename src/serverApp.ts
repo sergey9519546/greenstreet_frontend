@@ -8,6 +8,7 @@ import { dscrRouter } from "./routes/dscr";
 import { narrateRouter } from "./routes/narrate";
 import { createLeadsRouter } from "./routes/leads";
 import { verifyFirebaseToken, requireAuth } from "./middleware/auth";
+import { createRateLimitStore } from "./middleware/rateLimitStore";
 
 export const app = express();
 
@@ -104,28 +105,26 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // ── Rate limiters ─────────────────────────────────────────────────────────────
-// Note: In a true serverless environment, memory-based limiters reset on cold starts.
-// For production scale, replace this with a Redis store or Firestore store.
-const narrateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Persistence is pluggable (src/middleware/rateLimitStore.ts): Firestore-backed
+// when RATE_LIMIT_FIRESTORE=true, otherwise the in-memory store — which resets
+// on every serverless cold start and is NOT shared between concurrent
+// instances. The store factory logs that caveat once in production so the real
+// enforcement guarantee is never silently weaker than the configured numbers.
+function createLimiter(bucket: string, windowMs: number, max: number) {
+  const store = createRateLimitStore(bucket);
+  return rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Must be omitted (not passed as undefined) to keep the library default.
+    ...(store ? { store } : {}),
+  });
+}
 
-const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 120,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const leadLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+const narrateLimiter = createLimiter("narrate", 60 * 1000, 10);
+const apiLimiter = createLimiter("api", 60 * 1000, 120);
+const leadLimiter = createLimiter("leads", 15 * 60 * 1000, 5);
 
 // ── API Routes ────────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {

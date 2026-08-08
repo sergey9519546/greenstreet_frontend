@@ -17,6 +17,7 @@ import {
 import { DcShell, dc, Mono } from "../design/dc";
 import ComplianceNote from "../design/ComplianceNote";
 import { DscrGauge } from "../design/artifacts";
+import { risk } from "../theme";
 
 type BorrowerProfile = {
   id: string;
@@ -387,7 +388,7 @@ const PAGE_CSS = `
 .bp-dossier-list { display: grid; gap: 12px; margin-top: 18px; }
 .bp-dossier-item { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: start; color: rgba(238,239,211,0.76); font-size: 14px; line-height: 1.45; letter-spacing: 0; }
 .bp-dossier-item svg { color: ${dc.lemon}; margin-top: 1px; }
-.bp-dossier-item.is-risk svg { color: #e6b84d; }
+.bp-dossier-item.is-risk svg { color: ${risk.warning}; }
 .bp-dossier-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .bp-note { margin-top: 20px; max-width: 860px; }
 .bp-matrix { background: ${dc.mintBg}; border-top: 1px solid rgba(0,55,56,0.16); }

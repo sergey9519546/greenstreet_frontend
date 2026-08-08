@@ -33,10 +33,18 @@ export const risk = {
   caution: swatch.lemon,    // #d8d958 — watch / marginal
   warning: "#e6b84d",       // amber — fragile / sub-threshold
   danger: "#e06363",        // red — break / high-risk
+  // Dark-ground variants. On the midnight/dark-teal app surface the base red and
+  // lemon sit too close to the ground to read as an alert, so these lightened
+  // pairs are the dark-ground equivalents of `danger` / `caution`. Use ONLY on a
+  // dark surface — on the cream marketing ground they fail contrast.
+  dangerOnDark: "#e88a8a",
+  cautionOnDark: "#e6e76b",
   warningBg: "rgba(230,184,77,0.10)",
   warningBorder: "rgba(230,184,77,0.30)",
   dangerBg: "rgba(224,99,99,0.10)",
   dangerBorder: "rgba(224,99,99,0.30)",
+  cautionBg: "rgba(216,217,88,0.12)",
+  cautionBorder: "rgba(216,217,88,0.34)",
 } as const;
 
 export const font = {

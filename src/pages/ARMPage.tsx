@@ -12,6 +12,7 @@ import { calculatePI } from "../engine/engine";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
 import type { ARMTerms } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
+import { risk } from "../theme";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -21,14 +22,14 @@ const SOFR_SCENARIOS: { label: string; sofr: number; color: string }[] = [
   { label: "Bullish",  sofr: 2.59, color: dc.emerald },
   { label: "Base",     sofr: 3.59, color: dc.lemon },
   { label: "Bearish",  sofr: 4.59, color: "#ff8c42" },
-  { label: "Stress",   sofr: 5.00, color: "#e06363" },
+  { label: "Stress",   sofr: 5.00, color: risk.danger },
   { label: "Crisis",   sofr: 7.00, color: "#c0392b" },
 ];
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
 function shockColor(pct: number): string {
-  if (pct > 20) return "#e06363";
+  if (pct > 20) return risk.danger;
   if (pct > 8)  return dc.lemon;
   return dc.emerald;
 }
@@ -485,7 +486,7 @@ export default function ARMPage({
                         padding: "9px 4px",
                         borderRadius: dc.r.sm,
                         border: `1px solid ${armType === t ? dc.lemon : dc.faded}`,
-                        background: armType === t ? "rgba(216,217,88,0.12)" : "transparent",
+                        background: armType === t ? risk.cautionBg : "transparent",
                         color: armType === t ? dc.lemon : "rgba(238,239,211,0.62)",
                         cursor: "pointer",
                         fontSize: 12,
@@ -630,8 +631,8 @@ export default function ARMPage({
                     </div>
                   </div>
                   <div style={{ background: "#002a29", padding: 24 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: "#e06363", marginBottom: 10 }}>Lifetime cap (absolute max)</div>
-                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: "#e88a8a", letterSpacing: "-0.02em" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", color: risk.danger, marginBottom: 10 }}>Lifetime cap (absolute max)</div>
+                    <Mono style={{ display: "block", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: risk.dangerOnDark, letterSpacing: "-0.02em" }}>
                       {fmt$(result.piAtLifetimeCap)}
                     </Mono>
                     <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
@@ -710,13 +711,13 @@ export default function ARMPage({
                           </div>
                           <div>
                             DSCR @ reset&nbsp;
-                            <Mono style={{ color: s.dscrAtFirst < 1.0 ? "#e06363" : dc.cream, fontWeight: 700 }}>
+                            <Mono style={{ color: s.dscrAtFirst < 1.0 ? risk.danger : dc.cream, fontWeight: 700 }}>
                               {s.dscrAtFirst.toFixed(2)}x
                             </Mono>
                           </div>
                           <div>
                             DSCR @ stable&nbsp;
-                            <Mono style={{ color: s.dscrAtLast < 1.0 ? "#e06363" : dc.cream, fontWeight: 700 }}>
+                            <Mono style={{ color: s.dscrAtLast < 1.0 ? risk.danger : dc.cream, fontWeight: 700 }}>
                               {s.dscrAtLast.toFixed(2)}x
                             </Mono>
                           </div>
@@ -729,7 +730,7 @@ export default function ARMPage({
                               fontWeight: 700,
                               letterSpacing: "0.04em",
                               textTransform: "uppercase",
-                              color: "#e06363",
+                              color: risk.danger,
                             }}
                           >
                             Deal breaks at this SOFR — DSCR drops below 1.0
@@ -794,7 +795,7 @@ export default function ARMPage({
                         {result.bearish.ladder.trajectory.map((t) => {
                           const piRow = calculatePI(result.balAtReset, t.rate, result.remTerm);
                           const isLifetimeCap = t.capBinding === "LIFETIME_CAP";
-                          const rateColor = isLifetimeCap ? "#e06363" : dc.cream;
+                          const rateColor = isLifetimeCap ? risk.danger : dc.cream;
                           return (
                             <tr key={t.resetNumber}>
                               <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, fontWeight: 600, borderBottom: `1px solid ${dc.faded}` }}>Reset {t.resetNumber}</td>
@@ -804,7 +805,7 @@ export default function ARMPage({
                               <td style={{ padding: "9px 10px", fontSize: 13, color: dc.cream, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                                 <Mono>{fmt$(piRow)}</Mono>
                               </td>
-                              <td style={{ padding: "9px 10px", fontSize: 12, color: isLifetimeCap ? "#e06363" : t.capBinding === "INITIAL_CAP" ? "#e6b84d" : "rgba(238,239,211,0.62)", borderBottom: `1px solid ${dc.faded}` }}>
+                              <td style={{ padding: "9px 10px", fontSize: 12, color: isLifetimeCap ? risk.danger : t.capBinding === "INITIAL_CAP" ? risk.warning : "rgba(238,239,211,0.62)", borderBottom: `1px solid ${dc.faded}` }}>
                                 {t.capBinding.replace("_", " ")} · Yr {t.year}
                               </td>
                             </tr>
@@ -916,7 +917,7 @@ export default function ARMPage({
                   border: `1px solid ${dc.faded}`,
                 }}
               >
-                <p style={{ color: "#e06363", margin: 0 }}>Engine returned no result — adjust inputs.</p>
+                <p style={{ color: risk.danger, margin: 0 }}>Engine returned no result — adjust inputs.</p>
               </div>
             )}
 
@@ -945,7 +946,7 @@ export default function ARMPage({
                     minDscr: 1.0,
                     termYears: 30,
                   });
-                  const gapColor = refiGap.canRetireBalance ? dc.emerald : "#e06363";
+                  const gapColor = refiGap.canRetireBalance ? dc.emerald : risk.danger;
                   return (
                     <>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
@@ -965,7 +966,7 @@ export default function ARMPage({
                             {fmt$(refiGap.maxLoanByDscr)}
                           </Mono>
                         </div>
-                        <div style={{ background: refiGap.canRetireBalance ? "rgba(77,189,151,0.1)" : "rgba(224,99,99,0.1)", borderRadius: dc.r.md, padding: "16px 18px", border: `2px solid ${gapColor}` }}>
+                        <div style={{ background: refiGap.canRetireBalance ? "rgba(77,189,151,0.1)" : risk.dangerBg, borderRadius: dc.r.md, padding: "16px 18px", border: `2px solid ${gapColor}` }}>
                           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: gapColor, marginBottom: 6 }}>
                             {refiGap.bindingConstraint} binds
                           </div>
@@ -973,7 +974,7 @@ export default function ARMPage({
                             {fmt$(refiGap.maxNewLoan)}
                           </Mono>
                         </div>
-                        <div style={{ background: refiGap.canRetireBalance ? "rgba(77,189,151,0.1)" : "rgba(224,99,99,0.1)", borderRadius: dc.r.md, padding: "16px 18px", border: `2px solid ${gapColor}` }}>
+                        <div style={{ background: refiGap.canRetireBalance ? "rgba(77,189,151,0.1)" : risk.dangerBg, borderRadius: dc.r.md, padding: "16px 18px", border: `2px solid ${gapColor}` }}>
                           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: gapColor, marginBottom: 6 }}>
                             {refiGap.canRetireBalance ? "Cash out available" : "Proceeds gap"}
                           </div>
@@ -1051,7 +1052,7 @@ export default function ARMPage({
                             BULLISH: dc.emerald,
                             BASE: dc.lemon,
                             BEARISH: "#ff8c42",
-                            STRESS: "#e06363",
+                            STRESS: risk.danger,
                             CRISIS: "#c0392b",
                           };
                           const color = scenarioColors[sc.scenarioName] || dc.cream;
@@ -1066,13 +1067,13 @@ export default function ARMPage({
                               <td style={{ padding: "11px 12px", fontSize: 13, color: dc.cream, fontWeight: 600, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                                 <Mono>{firstReset ? `${firstReset.rate.toFixed(3)}%` : "—"}</Mono>
                               </td>
-                              <td style={{ padding: "11px 12px", fontSize: 13, color: dscrAtFirst < 1.0 ? "#e06363" : dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                              <td style={{ padding: "11px 12px", fontSize: 13, color: dscrAtFirst < 1.0 ? risk.danger : dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                                 <Mono>{dscrAtFirst.toFixed(2)}x</Mono>
                               </td>
                               <td style={{ padding: "11px 12px", fontSize: 13, color: dc.cream, fontWeight: 600, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                                 <Mono>{lastReset ? `${lastReset.rate.toFixed(3)}%` : "—"}</Mono>
                               </td>
-                              <td style={{ padding: "11px 12px", fontSize: 13, color: dscrAtLast < 1.0 ? "#e06363" : dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
+                              <td style={{ padding: "11px 12px", fontSize: 13, color: dscrAtLast < 1.0 ? risk.danger : dc.cream, fontWeight: 700, textAlign: "right", borderBottom: `1px solid ${dc.faded}` }}>
                                 <Mono>{dscrAtLast.toFixed(2)}x</Mono>
                               </td>
                             </tr>

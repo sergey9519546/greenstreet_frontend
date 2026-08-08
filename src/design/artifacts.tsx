@@ -223,7 +223,7 @@ export function ClaudeDscrGauge({
             inset: 0,
             borderRadius: "50%",
             background:
-              "conic-gradient(from 225deg,#e06363 0deg 67.5deg,#e6b84d 67.5deg 135deg,#d8d958 135deg 189deg,#4dbd97 189deg 270deg,rgba(238,239,211,0.07) 270deg 360deg)",
+              `conic-gradient(from 225deg,${risk.danger} 0deg 67.5deg,${risk.warning} 67.5deg 135deg,${risk.caution} 135deg 189deg,${risk.positive} 189deg 270deg,rgba(238,239,211,0.07) 270deg 360deg)`,
             WebkitMask: "radial-gradient(circle,transparent 0 59%,#000 60% 100%)",
             mask: "radial-gradient(circle,transparent 0 59%,#000 60% 100%)",
           }}

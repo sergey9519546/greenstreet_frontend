@@ -4,6 +4,7 @@
  * one continuous desk instead of disconnected pages.
  */
 
+import { calculatePaymentFactor } from "../engine";
 import { rescueTrack1 } from "../engine/loanOptimizer";
 
 export type CalcTab = "dscr" | "maxprice";
@@ -231,23 +232,24 @@ export interface DealFix {
   apply: Partial<DealSnapshot>;
 }
 
-function pf(r: number) {
-  if (r === 0) return 0;
-  const m = r / 12;
-  return (m * Math.pow(1 + m, 360)) / (Math.pow(1 + m, 360) - 1);
-}
+// 30-yr amortising payment factor. The math is the golden-tested engine
+// primitive (`calculatePaymentFactor`, pinned at 8.25%/30yr = 0.0075127) — this
+// wrapper only pins the term to 360 and keeps the calculator's display
+// convention that a 0% rate means "no payment" (the engine returns 1/n there).
+// NOTE: takes the rate as a PERCENT (7.25), matching the engine.
+const pf = (ratePct: number) => (ratePct === 0 ? 0 : calculatePaymentFactor(ratePct, 360));
 
 function breakEvenRate(loan: number, targetPI: number): number {
   if (loan <= 0 || targetPI <= 0) return 0;
   const pfTarget = targetPI / loan;
   let lo = 0;
-  let hi = 0.3;
+  let hi = 30; // percent space — pf() takes a percent rate
   for (let i = 0; i < 60; i++) {
     const mid = (lo + hi) / 2;
     if (pf(mid) < pfTarget) lo = mid;
     else hi = mid;
   }
-  return ((lo + hi) / 2) * 100;
+  return (lo + hi) / 2;
 }
 
 export function computeDealFixes(
@@ -258,7 +260,7 @@ export function computeDealFixes(
   const { price, down, rent, rate, ins, hoa } = deal;
   const taxYr = opts.taxYr;
   const loan = price * (1 - down / 100);
-  const pAndI = loan * pf(rate / 100);
+  const pAndI = loan * pf(rate);
   const pitia = pAndI + taxYr / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
   if (dscr >= targetDscr) return [];
@@ -281,7 +283,7 @@ export function computeDealFixes(
   const fixed = taxYr / 12 + ins / 12 + hoa;
   const maxPI = rent / targetDscr - fixed;
   if (maxPI > 0) {
-    const maxLoan = maxPI / pf(rate / 100);
+    const maxLoan = maxPI / pf(rate);
     const maxPrice = Math.floor(maxLoan / (1 - down / 100));
     const cut = price - maxPrice;
     if (cut > 500) {
@@ -300,7 +302,7 @@ export function computeDealFixes(
   const targetPITIA = rent / targetDscr;
   const targetPI = targetPITIA - fixed;
   if (targetPI > 0) {
-    const targetLoan = targetPI / pf(rate / 100);
+    const targetLoan = targetPI / pf(rate);
     const targetDownPct = Math.ceil((1 - targetLoan / price) * 100);
     if (targetDownPct > down && targetDownPct <= 60) {
       fixes.push({
@@ -366,7 +368,7 @@ export function computeRescueAnalysis(
   const { price, down, rent, rate, ins, hoa } = deal;
   const taxYr = opts.taxYr;
   const loanAmount = price * (1 - down / 100);
-  const pAndI = loanAmount * pf(rate / 100);
+  const pAndI = loanAmount * pf(rate);
   const pitia = pAndI + taxYr / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
   if (dscr >= targetDscr || pitia <= 0) return null;

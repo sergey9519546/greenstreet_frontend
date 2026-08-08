@@ -35,7 +35,7 @@ __export(serverApp_exports, {
 module.exports = __toCommonJS(serverApp_exports);
 var import_express4 = __toESM(require("express"), 1);
 var import_cors = __toESM(require("cors"), 1);
-var import_express_rate_limit = __toESM(require("express-rate-limit"), 1);
+var import_express_rate_limit2 = __toESM(require("express-rate-limit"), 1);
 
 // src/logger.ts
 var import_pino = __toESM(require("pino"), 1);
@@ -928,6 +928,1187 @@ function estimateReserveMonths(dscr, strategy, borrower, loan, loanAmount) {
   return Math.min(months, 12);
 }
 
+// src/engine/statePppLaws.ts
+var PA_PPP_THRESHOLD_2026 = 319777;
+var OH_PPP_THRESHOLD_2026 = 116356;
+var THRESHOLD_YEAR = 2026;
+var ALL_PREPAY_OPTIONS = [
+  "NONE",
+  "54321",
+  "4321",
+  "321",
+  "54333",
+  "FLAT_5",
+  "SIX_MONTHS_INTEREST",
+  "SIX_MONTHS_80_PCT",
+  "YIELD_MAINTENANCE",
+  "SOFT_PREPAY"
+];
+var DECLINING_ONLY_OPTIONS = [
+  "NONE",
+  "54321",
+  "4321",
+  "321"
+];
+var NO_PPP_RATE_PREMIUM = 25e-4;
+var NO_PPP_FEE_PREMIUM = 625e-5;
+var PPP_STATE_LAWS = {
+  // ── MINNESOTA — HF 3437 ENACTED (v11 upgrade) ──────────────
+  MN: {
+    state: "MN",
+    status: "CONDITIONAL",
+    // Changed from PRACTICALLY_PROHIBITED — HF 3437 narrows scope
+    reason: "MN HF 3437 ENACTED April 23, 2026; effective August 1, 2026. Narrows Minn. Stat. \xA7 58.137 to loans made PRIMARILY for personal/family/household purposes. Business-purpose DSCR loans (LLC-vested, investment property) are NOT reached by the statute. Pre-8/1/26: \xA7 58.137 capped PPPs at 4 years / \u22642 months interest (effectively prohibited). Post-8/1/26: business-purpose DSCR loans have PPP availability per lender matrix.",
+    details: 'HF 3437 passed House April 13, Senate April 20, signed into law April 23, 2026. Effective August 1, 2026. Amends \xA7 58.137 to explicitly limit scope to "loans made primarily for personal, family, or household purposes." Business-purpose DSCR loans (which by definition are NOT personal/family/household) are entirely outside scope. PRE-8/1/26: 4-year max duration, \u22642 months interest cap = effectively prohibited. POST-8/1/26: business-purpose loans follow lender state matrix (typically available). Most significant 2026 PPP law change. References: MN Revisor HF 3437 (Refs 37,38,39).',
+    maxPenaltyYears: 4,
+    // still applies to consumer loans
+    maxPenaltyAmount: "2 months interest (consumer only)",
+    statutoryReference: "Minn. Stat. \xA7 58.137 (as amended by HF 3437, eff. Aug 1, 2026)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── NEW JERSEY ─────────────────────────────────────────────
+  NJ: {
+    state: "NJ",
+    status: "ENTITY_ONLY",
+    reason: "Prohibited for INDIVIDUALS; permitted for entities (LLC rules vary by lender).",
+    details: "New Jersey law prohibits prepayment penalties for loans made to individual borrowers. Entity borrowers (LLC, S-Corp, C-Corp, Trust) are generally permitted to have PPPs, though LLC-specific rules vary by lender. Borrowers seeking PPP must vest in an eligible entity prior to closing.",
+    entityRestrictions: ["INDIVIDUAL"],
+    statutoryReference: "N.J.S.A. 46:10B-2",
+    provenance: "VERIFIED_SECONDARY",
+    lastVerified: "2026-01"
+  },
+  // ── ILLINOIS ───────────────────────────────────────────────
+  IL: {
+    state: "IL",
+    status: "CONDITIONAL",
+    reason: "Prohibited for individuals; entities subject to APR fall-rate tests.",
+    details: "Illinois prohibits prepayment penalties for individual borrowers. Entity borrowers may have PPPs but are subject to APR fall-rate tests that constrain the permissible penalty structure. The fall-rate test requires that the penalty decline proportionally over the penalty period.",
+    entityRestrictions: ["INDIVIDUAL"],
+    statutoryReference: "815 ILCS 137/5 (Predatory Lending Database Act) + 815 ILCS 205/4.1",
+    provenance: "VERIFIED_SECONDARY",
+    lastVerified: "2026-01"
+  },
+  // ── OHIO ───────────────────────────────────────────────────
+  OH: {
+    state: "OH",
+    status: "CONDITIONAL",
+    reason: "Prohibited on loans \u2264 ~$116,356 (or applicable state limit) for 1\u20132 unit properties.",
+    details: "Ohio prohibits prepayment penalties on residential mortgage loans at or below the applicable state loan threshold. For 2026, the threshold is $116,356. Loans exceeding this amount and/or secured by 3+ unit properties may include PPPs. Threshold is indexed and may adjust annually. Per ORC \xA7 1343.011, penalty basis = ORIGINAL principal (not remaining).",
+    loanThreshold: OH_PPP_THRESHOLD_2026,
+    thresholdIsIndexed: true,
+    thresholdYear: THRESHOLD_YEAR,
+    unitCountRestriction: 2,
+    statutoryReference: "Ohio Rev. Code \xA7 1343.011 (penalty base = original principal)",
+    provenance: "VERIFIED_SECONDARY",
+    lastVerified: "2026-01"
+  },
+  // ── PENNSYLVANIA ───────────────────────────────────────────
+  PA: {
+    state: "PA",
+    status: "CONDITIONAL",
+    reason: "Prohibited on 1\u20132 unit properties below the annually indexed threshold: $319,777 for 2026.",
+    details: "Pennsylvania prohibits prepayment penalties on 1\u20132 unit residential properties when the loan amount falls below the annually indexed threshold. For 2026 the threshold is $319,777. This value adjusts each year. Loans above the threshold or on 3+ unit properties are not subject to this restriction. STORE AS INDEXED VALUE.",
+    loanThreshold: PA_PPP_THRESHOLD_2026,
+    thresholdIsIndexed: true,
+    thresholdYear: THRESHOLD_YEAR,
+    unitCountRestriction: 2,
+    statutoryReference: "41 P.S. \xA7 101 (Pennsylvania Loan Interest and Protection Law)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-01"
+  },
+  // ── MISSISSIPPI ────────────────────────────────────────────
+  MS: {
+    state: "MS",
+    status: "CONDITIONAL",
+    reason: "Declining structures only; statutory caps 5-4-3-2-1 by year; flat penalties prohibited on terms >1 year.",
+    details: "Mississippi permits prepayment penalties only in declining step-down structures following the statutory schedule of 5%-4%-3%-2%-1% by year (Miss. Code \xA7 75-17-31). Flat penalties are prohibited on loan terms exceeding 1 year. Yield maintenance, six-months-interest, and other non-declining structures are not permitted.",
+    statutoryCapSchedule: [5, 4, 3, 2, 1],
+    statutoryReference: "Miss. Code \xA7 75-17-31",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-01"
+  },
+  // ── NORTH DAKOTA ───────────────────────────────────────────
+  ND: {
+    state: "ND",
+    status: "AMBIGUOUS",
+    reason: "Treated as prohibited by many lenders (program guidelines + usury considerations).",
+    details: "North Dakota does not have a clear statutory prohibition on prepayment penalties for commercial/investment property loans, but many lenders treat ND as a no-PPP state due to program guidelines and usury law considerations. Lender interpretation varies significantly. Borrowers should verify with their specific lender before assuming PPP availability.",
+    statutoryReference: "N.D. Cent. Code \xA7 47-14-09 (usury) \u2014 no specific PPP statute; lender-matrix-driven",
+    provenance: "UNVERIFIED",
+    lastVerified: "2026-01"
+  },
+  // ── KANSAS ─────────────────────────────────────────────────
+  KS: {
+    state: "KS",
+    status: "PRACTICALLY_PROHIBITED",
+    reason: "Effectively prohibited per prevailing lender matrices.",
+    details: "Kansas is treated as a no-PPP state by virtually all major DSCR lenders. While not a flat statutory ban, prevailing lender matrices and program guidelines effectively prohibit prepayment penalties. Verify with individual lenders.",
+    statutoryReference: "No specific KS PPP statute \u2014 lender-matrix-driven (verified via program guidelines)",
+    provenance: "UNVERIFIED",
+    lastVerified: "2026-01"
+  },
+  // ── NEW MEXICO ─────────────────────────────────────────────
+  NM: {
+    state: "NM",
+    status: "PRACTICALLY_PROHIBITED",
+    reason: "Effectively prohibited per prevailing lender matrices.",
+    details: "New Mexico is treated as a no-PPP state by virtually all major DSCR lenders. While not a flat statutory ban, prevailing lender matrices and program guidelines effectively prohibit prepayment penalties. Verify with individual lenders.",
+    statutoryReference: "NMSA \xA7 58-21A-1 et seq. (NM Mortgage Loan Originator Act) \u2014 lender-matrix-driven",
+    provenance: "UNVERIFIED",
+    lastVerified: "2026-01"
+  },
+  // ── MARYLAND ───────────────────────────────────────────────
+  MD: {
+    state: "MD",
+    status: "PRACTICALLY_PROHIBITED",
+    reason: "Effectively prohibited per prevailing lender matrices.",
+    details: "Maryland is treated as a no-PPP state by virtually all major DSCR lenders. While not a flat statutory ban, prevailing lender matrices and program guidelines effectively prohibit prepayment penalties. Verify with individual lenders.",
+    statutoryReference: "Md. Code, Real Property \xA7 12-103 (prepayment penalty limitations) \u2014 lender-matrix-driven",
+    provenance: "UNVERIFIED",
+    lastVerified: "2026-01"
+  },
+  // ── WISCONSIN ──────────────────────────────────────────────
+  WI: {
+    state: "WI",
+    status: "ARM_RESTRICTED",
+    reason: "No PPP on ARM loans; WI caps at 2 months\u2019 interest.",
+    details: "Wisconsin prohibits prepayment penalties on adjustable-rate mortgage (ARM) loans. For fixed-rate loans, PPPs are permitted but are capped at a maximum of 2 months\u2019 interest. Declining structures and flat penalties that exceed this cap are not permissible.",
+    armRestriction: true,
+    maxPenaltyAmount: "2 months interest",
+    statutoryReference: "Wis. Stat. \xA7 138.05(7) (ARM ban); \xA7 422.202(c) (2-months-interest cap)",
+    provenance: "VERIFIED_SECONDARY",
+    lastVerified: "2026-01"
+  },
+  // ── MAINE ──────────────────────────────────────────────────
+  ME: {
+    state: "ME",
+    status: "ARM_RESTRICTED",
+    reason: "No PPP on ARM loans.",
+    details: "Maine prohibits prepayment penalties on adjustable-rate mortgage (ARM) loans. For fixed-rate loans, PPPs are generally available with standard structures.",
+    armRestriction: true,
+    statutoryReference: "9-A M.R.S. \xA7 8-505 (Maine Consumer Credit Code \u2014 ARM prepay ban)",
+    provenance: "VERIFIED_SECONDARY",
+    lastVerified: "2026-01"
+  },
+  // ── WASHINGTON ─────────────────────────────────────────────
+  WA: {
+    state: "WA",
+    status: "ALLOWED",
+    reason: "ARM-ban claim from v6.0 could not be confirmed. Standard PPP options available until sourced.",
+    details: "A claim that Washington prohibits PPPs on ARM loans was present in v6.0 but could not be confirmed through independent verification. Per v7.0 provenance policy, unverified restrictions must not be encoded. The ARM restriction is flagged as UNVERIFIED and should not be applied until a reliable source is found. Standard PPP options remain available for both fixed and ARM products. If a source confirms RCW \xA7 19.144.060(2) or similar ARM-ban, update this entry.",
+    armRestriction: "UNVERIFIED",
+    statutoryReference: "RCW \xA7 19.144 (consumer mortgage) \u2014 ARM prepay ban NOT VERIFIED",
+    provenance: "UNVERIFIED",
+    lastVerified: "2026-01"
+  },
+  // ── MICHIGAN (ambiguous) ───────────────────────────────────
+  MI: {
+    state: "MI",
+    status: "AMBIGUOUS",
+    reason: "No legal consensus as of 2026 on whether PPPs are allowed, restricted, or banned. Lender-interpretation varies.",
+    details: "Michigan has no clear legal consensus regarding prepayment penalties on DSCR/investment property loans as of 2026. Interpretations range from permitted to restricted to banned depending on the legal analysis applied. Borrowers should consult legal counsel and verify with their specific lender. MCL \xA7 445.1601 et seq. (Consumer Mortgage Protection Act) may apply to consumer loans.",
+    statutoryReference: "MCL \xA7 445.1601 et seq. (Consumer Mortgage Protection Act) \u2014 applicability to DSCR UNVERIFIED",
+    provenance: "UNVERIFIED",
+    lastVerified: "2026-01"
+  },
+  // ── v11.2 ADDITIONS: 6 high-volume DSCR states with documented
+  //    business-purpose carve-outs (CA, TX, FL, GA, NC, CO).
+  //    Previously relied on the generic "ALLOWED" fallback — adding
+  //    explicit entries gives provenance-tracked documentation. ──
+  // ── CALIFORNIA ─────────────────────────────────────────────
+  CA: {
+    state: "CA",
+    status: "ALLOWED",
+    reason: "Business-purpose DSCR loans are exempt from consumer PPP restrictions. Federal lenders benefit from DIDMCA preemption. State-chartered lenders subject to CA Finance Lenders Law (CFLL) but PPP permitted on investment property loans.",
+    details: 'California Civil Code \xA7 2954.9 prohibits prepayment penalties on owner-occupied 1-4 unit residential loans, but expressly EXEMPTS loans "made primarily for business or commercial purposes" (the DSCR use case). For entity-vested investment property loans, no state PPP restriction applies. Federally-chartered lenders (banks, credit unions) additionally benefit from DIDMCA (Depository Institutions Deregulation and Monetary Control Act of 1980) preemption, which overrides state PPP law for first-lien residential loans. State-chartered lenders under CFLL (Cal. Fin. Code \xA7 22000 et seq.) may impose PPPs on business-purpose loans. Lender matrices uniformly permit PPP on CA DSCR loans.',
+    statutoryReference: "Cal. Civ. Code \xA7 2954.9 (business-purpose exemption); Cal. Fin. Code \xA7 22000 et seq. (CFLL); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── TEXAS ──────────────────────────────────────────────────
+  TX: {
+    state: "TX",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. TX Constitution's homestead protections apply only to owner-occupied (cash-out refinance) loans, not DSCR.",
+    details: "Texas has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Texas Constitution (Art. XVI, \xA7 50) governs homestead equity loans (owner-occupied cash-out refis) and prohibits certain fees on those loans \u2014 but this does NOT extend to DSCR/investment property loans, which are business-purpose and outside the homestead protections. Federally-chartered lenders benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Texas. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available.",
+    statutoryReference: "Tex. Const. Art. XVI, \xA7 50 (homestead \u2014 does NOT apply to investment/DSCR); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── FLORIDA ────────────────────────────────────────────────
+  FL: {
+    state: "FL",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. FL statute \xA7 697.05 governs prepayment on residential loans but does not prohibit PPP.",
+    details: "Florida Statutes \xA7 697.05 regulates prepayment penalties on residential mortgage loans but does not prohibit them. For business-purpose DSCR loans secured by investment property, no restriction applies. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Florida. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. Florida is one of the highest-volume DSCR states (no state income tax, landlord-friendly courts).",
+    statutoryReference: "Fla. Stat. \xA7 697.05 (prepayment permitted, not prohibited); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── GEORGIA ────────────────────────────────────────────────
+  GA: {
+    state: "GA",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. GA's predatory lending law (O.C.G.A. \xA7 7-6A-5) applies to consumer home loans only, not DSCR.",
+    details: `Georgia's Georgia Fair Lending Act (O.C.G.A. \xA7 7-6A-1 et seq.) and predatory lending provisions (\xA7 7-6A-5) apply to "home loans" defined as consumer-purpose owner-occupied 1-4 unit residential loans. Business-purpose DSCR loans are outside the scope of these provisions. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Georgia. Standard prepay structures uniformly available.`,
+    statutoryReference: "O.C.G.A. \xA7 7-6A-1 et seq. (GA Fair Lending Act \u2014 consumer home loans only); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── NORTH CAROLINA ─────────────────────────────────────────
+  NC: {
+    state: "NC",
+    status: "CONDITIONAL",
+    reason: "3-2-1 declining cap applies to consumer 1-4 unit residential loans (\u2264$400K). Business-purpose DSCR loans are exempt. High-cost loan provisions may apply on rate/fee triggers \u2014 verify structure complies.",
+    details: "North Carolina General Statutes \xA7 24-1.1A impose a 3%-2%-1% declining prepayment penalty cap on consumer-purpose first-lien residential loans of $400,000 or less (indexed annually). This cap does NOT apply to business-purpose DSCR loans secured by investment property \u2014 entity-vested business-purpose loans are exempt. However, NC's high-cost home loan provisions (N.C. Gen. Stat. \xA7 24-1.1E) can apply if APR or points/fees exceed statutory triggers \u2014 verify your structure does not trip these triggers. Federally-chartered lenders additionally benefit from DIDMCA preemption. Lender matrices generally permit PPP on DSCR loans in NC.",
+    statutoryReference: "N.C. Gen. Stat. \xA7 24-1.1A (3-2-1 cap, consumer \u2264$400K, indexed); N.C. Gen. Stat. \xA7 24-1.1E (high-cost home loan); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_SECONDARY",
+    lastVerified: "2026-06"
+  },
+  // ── COLORADO ───────────────────────────────────────────────
+  CO: {
+    state: "CO",
+    status: "CONDITIONAL",
+    reason: "3-2-1 declining cap applies to consumer 1-4 unit residential loans. Business-purpose DSCR loans are exempt. Colorado Uniform Consumer Credit Code (UCCC) applies only to consumer credit.",
+    details: "Colorado's Uniform Consumer Credit Code (C.R.S. \xA7 5-1-101 et seq.) regulates prepayment penalties on consumer credit transactions. A 3%-2%-1% declining cap applies to consumer-purpose residential mortgage loans. Business-purpose DSCR loans (entity-vested, investment property) are NOT consumer credit transactions and fall outside the UCCC. Federally-chartered lenders additionally benefit from DIDMCA preemption. Lender matrices generally permit PPP on DSCR loans in Colorado, with standard structures available.",
+    statutoryReference: "C.R.S. \xA7 5-1-101 et seq. (Colorado UCCC \u2014 consumer credit only); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_SECONDARY",
+    lastVerified: "2026-06"
+  },
+  // ── v11.3 ADDITIONS: 5 high-volume DSCR states (TN, AZ, VA, IN, SC) ──
+  // These states have meaningful DSCR volume but previously relied on the
+  // generic "ALLOWED" fallback. Adding explicit entries with statutory
+  // references gives users documented legal basis (business-purpose
+  // exemption + DIDMCA preemption for federal lenders).
+  // ── TENNESSEE ──────────────────────────────────────────────
+  TN: {
+    state: "TN",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. TN usury statute (T.C.A. \xA7 47-14-102) sets ceiling at prime + 4% but banks/LLC business loans are exempt. TN is one of the fastest-growing DSCR markets (no state income tax, landlord-friendly).",
+    details: "Tennessee has no state statute restricting prepayment penalties on business-purpose or investment property loans. T.C.A. \xA7 47-14-123 governs prepayment generally and does not prohibit PPP on commercial/investment transactions. The Tennessee usury statute (T.C.A. \xA7 47-14-102) sets the interest rate ceiling at 4% above the prime rate, but expressly exempts loans made by banks, savings & loans, and loans secured by real property in the ordinary course of business \u2014 which covers DSCR loans. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Tennessee. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. TN is one of the fastest-growing DSCR markets \u2014 no state income tax, landlord-friendly courts, and strong in-migration from high-tax states.",
+    statutoryReference: "T.C.A. \xA7 47-14-123 (prepayment permitted); T.C.A. \xA7 47-14-102 (usury \u2014 banks/real-estate-secured loans exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── ARIZONA ───────────────────────────────────────────────
+  AZ: {
+    state: "AZ",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. AZ consumer prepayment statute (A.R.S. \xA7 6-126) applies to consumer 1-2 unit owner-occupied only.",
+    details: 'Arizona has no state statute restricting prepayment penalties on business-purpose or investment property loans. A.R.S. \xA7 6-126 (Department of Financial Institutions regulation) regulates prepayment penalties on consumer residential mortgage loans but expressly applies only to owner-occupied 1-2 unit properties \u2014 not DSCR/investment property loans. The Arizona usury statute (A.R.S. \xA7 44-1201) sets the civil usury cap at 10% above the prime rate, but loans made by banks, savings & loans, and any loan "made primarily for a business, agricultural, or commercial purpose" are exempt \u2014 which covers DSCR loans by definition. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Arizona. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. AZ is a high-growth DSCR market (Phoenix/Tucson in-migration, no state income tax on most income).',
+    statutoryReference: "A.R.S. \xA7 6-126 (consumer owner-occupied 1-2 unit only); A.R.S. \xA7 44-1201 (usury \u2014 business/commercial loans exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── VIRGINIA ──────────────────────────────────────────────
+  VA: {
+    state: "VA",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. VA high-cost mortgage provisions (Va. Code \xA7 6.2-1303 et seq.) apply to consumer home loans only, not DSCR.",
+    details: "Virginia has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Virginia Mortgage Lender and Broker Act (Va. Code \xA7 6.2-1600 et seq.) regulates prepayment penalties on consumer residential mortgage loans. The Virginia High-Rate Home Loans Act (Va. Code \xA7 6.2-1303 et seq.) imposes restrictions on high-cost consumer home loans \u2014 but this applies only to owner-occupied consumer-purpose 1-4 unit residential loans, not DSCR/investment property loans. Business-purpose DSCR loans are outside the scope of these provisions. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Virginia. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. VA is a growing DSCR market (Northern VA/ Richmond/VA Beach corridor \u2014 strong rental demand from federal contractors).",
+    statutoryReference: "Va. Code \xA7 6.2-1600 et seq. (Mortgage Lender and Broker Act \u2014 consumer); Va. Code \xA7 6.2-1303 et seq. (High-Rate Home Loans \u2014 consumer only); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── INDIANA ───────────────────────────────────────────────
+  IN: {
+    state: "IN",
+    status: "CONDITIONAL",
+    reason: "2% cap applies to consumer 1-2 unit residential loans (first 3 years). Business-purpose DSCR loans are exempt per Indiana UCCC \xA7 24-4.5-2-106. DIDMCA preemption applies for federal lenders. Standard prepay structures available.",
+    details: `Indiana's Uniform Consumer Credit Code (Ind. Code \xA7 24-4.5-3-202) imposes a 2% prepayment penalty cap on consumer-purpose first-lien residential mortgage loans during the first 3 years (declining step-down). Critically, Ind. Code \xA7 24-4.5-2-106 expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" from the UCCC \u2014 which covers DSCR loans by definition. Business-purpose entity-vested investment property loans fall outside the UCCC and are not subject to the 2% consumer cap. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP on DSCR loans in Indiana. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available for business-purpose entity-vested DSCR loans.`,
+    statutoryReference: "Ind. Code \xA7 24-4.5-3-202 (2% consumer cap, first 3 years); Ind. Code \xA7 24-4.5-2-106 (business-purpose exemption); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── SOUTH CAROLINA ────────────────────────────────────────
+  SC: {
+    state: "SC",
+    status: "CONDITIONAL",
+    reason: "Consumer credit code 3-2-1 declining cap applies to consumer 1-4 unit residential loans. Business-purpose DSCR loans are exempt per S.C. Code \xA7 37-1-202. DIDMCA preemption applies for federal lenders. Standard prepay structures available.",
+    details: `South Carolina's Consumer Protection Code (S.C. Code Ann. \xA7 37-5-202) imposes a declining prepayment penalty cap (typically 3%-2%-1% by year) on consumer-purpose first-lien residential mortgage loans. Critically, S.C. Code Ann. \xA7 37-1-202 expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" from the Consumer Protection Code \u2014 which covers DSCR loans by definition. Business-purpose entity-vested investment property loans fall outside the Consumer Protection Code and are not subject to the 3-2-1 consumer cap. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP on DSCR loans in South Carolina. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available for business-purpose entity-vested DSCR loans. SC is a growing DSCR market (Charleston, Greenville, Columbia \u2014 strong in-migration).`,
+    statutoryReference: "S.C. Code Ann. \xA7 37-5-202 (3-2-1 consumer cap); S.C. Code Ann. \xA7 37-1-202 (business-purpose exemption); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── v11.4 ADDITIONS: 5 more high-volume DSCR states (OR, NV, UT, MO, AL) ──
+  // These states previously fell through to the generic ALLOWED fallback.
+  // v11.4 promotes them to explicit entries with documented business-purpose
+  // carve-outs + DIDMCA preemption for federal lenders, matching the
+  // treatment already given to CA/TX/FL/GA/NC/CO/TN/AZ/VA/IN/SC.
+  // ── OREGON ────────────────────────────────────────────────
+  OR: {
+    state: "OR",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. OR consumer prepayment statute (ORS \xA7 86A.192) applies to consumer residential mortgage loans only.",
+    details: 'Oregon has no state statute restricting prepayment penalties on business-purpose or investment property loans. ORS \xA7 86A.192 (Oregon Mortgage Lender Law) regulates prepayment penalties on consumer residential mortgage loans but applies to consumer-purpose transactions \u2014 not business-purpose DSCR loans. The Oregon Consumer Finance Act (ORS \xA7 725.320 et seq.) governs consumer finance transactions and does not reach business-purpose commercial real estate lending. Oregon usury law (ORS \xA7 82.010) sets the general usury cap but expressly exempts loans "made primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Oregon. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. OR is a growing DSCR market (Portland metro, Bend, Salem \u2014 Portland in-migration from CA, Bend vacation/STR market).',
+    statutoryReference: "ORS \xA7 86A.192 (Oregon Mortgage Lender Law \u2014 consumer); ORS \xA7 82.010 (usury \u2014 business/commercial loans exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── NEVADA ────────────────────────────────────────────────
+  NV: {
+    state: "NV",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. NV consumer mortgage lending statute (NRS \xA7 598D.430) applies to consumer residential mortgage loans only.",
+    details: 'Nevada has no state statute restricting prepayment penalties on business-purpose or investment property loans. NRS \xA7 598D.430 (Mortgage Lending Act) regulates prepayment penalties on consumer residential mortgage loans but applies to consumer-purpose transactions \u2014 not business-purpose DSCR loans. NRS Chapter 598D expressly governs "residential mortgage loans" defined as consumer loans to acquire or refinance a primary residence. Business-purpose entity-vested investment property loans fall outside the scope. The Nevada usury statute (NRS \xA7 99.040) sets the general usury cap, but NRS \xA7 99.050 exempts loans made by banks, savings & loans, and loans "made primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Nevada. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. NV is a high-growth DSCR market (Las Vegas, Reno \u2014 strong in-migration from CA, no state income tax, landlord-friendly).',
+    statutoryReference: "NRS \xA7 598D.430 (Mortgage Lending Act \u2014 consumer residential only); NRS \xA7 99.040\u2013050 (usury \u2014 banks/business loans exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── UTAH ──────────────────────────────────────────────────
+  UT: {
+    state: "UT",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. UT consumer credit code (Utah Code \xA7 70C-5-202) applies to consumer credit transactions only.",
+    details: 'Utah has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Utah Consumer Credit Code (Utah Code Title 70C) governs consumer credit transactions and Utah Code \xA7 70C-5-202 regulates prepayment penalties on consumer real estate loans. Critically, Utah Code \xA7 70C-1-202(3) expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" from the Consumer Credit Code \u2014 which covers DSCR loans by definition. Business-purpose entity-vested investment property loans fall outside the scope of the UCCC and are not subject to its prepayment restrictions. Utah has no general usury cap for business-purpose loans (Utah is one of the most lender-friendly states on interest rate). Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Utah. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. UT is a fast-growing DSCR market (Salt Lake City, Provo, St. George \u2014 strong in-migration, tech-sector growth).',
+    statutoryReference: "Utah Code \xA7 70C-5-202 (consumer real estate prepay); Utah Code \xA7 70C-1-202(3) (business-purpose exemption); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── MISSOURI ──────────────────────────────────────────────
+  MO: {
+    state: "MO",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. MO consumer mortgage statute (Mo. Rev. Stat. \xA7 408.043) applies to consumer residential loans only.",
+    details: `Missouri has no state statute restricting prepayment penalties on business-purpose or investment property loans. Mo. Rev. Stat. \xA7 408.043 (Missouri residential mortgage act) regulates prepayment penalties on consumer residential mortgage loans but applies to consumer-purpose transactions secured by the borrower's primary residence \u2014 not business-purpose DSCR loans. Missouri usury law (Mo. Rev. Stat. \xA7 408.030) sets the general usury cap, but Mo. Rev. Stat. \xA7 408.030(8) expressly exempts "loans made primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. Loans secured by real estate in the ordinary course of business are also exempt. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Missouri. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. MO is a steady DSCR market (Kansas City, St. Louis, Springfield \u2014 affordable rents, stable landlord-tenant law).`,
+    statutoryReference: "Mo. Rev. Stat. \xA7 408.043 (residential mortgage act \u2014 consumer primary residence only); Mo. Rev. Stat. \xA7 408.030(8) (usury \u2014 business/commercial loans exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── ALABAMA ───────────────────────────────────────────────
+  AL: {
+    state: "AL",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. AL Mini-Code (Ala. Code \xA7 5-19-4) applies to consumer credit transactions only.",
+    details: 'Alabama has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Alabama Mini-Code (Ala. Code Title 5, Chapter 19) regulates consumer credit transactions and Ala. Code \xA7 5-19-4 governs prepayment penalties on consumer loans. Critically, Ala. Code \xA7 5-19-4(2) expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" from the Mini-Code \u2014 which covers DSCR loans by definition. Business-purpose entity-vested investment property loans fall outside the scope of the Mini-Code and are not subject to its prepayment restrictions. Alabama usury law (Ala. Code \xA7 8-8-1 et seq.) sets the general usury cap, but Ala. Code \xA7 8-8-7 exempts loans made by banks, savings & loans, and "loans made primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Alabama. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. AL is a growing DSCR market (Birmingham, Huntsville, Mobile \u2014 affordable prices, strong rental demand from aerospace/defense).',
+    statutoryReference: "Ala. Code \xA7 5-19-4(2) (Mini-Code \u2014 business-purpose exemption); Ala. Code \xA7 8-8-7 (usury \u2014 banks/business loans exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── v11.5 ADDITIONS: 13 remaining high-priority DSCR states (NY, HI, WV, VT, NH,
+  // DE, RI, ID, MT, WY, NE, IA, SD) — brings total state coverage to 43/50.
+  // NY/VT/RI are CONDITIONAL with entity-vested carve-outs (pattern: IN/SC/NC/CO).
+  // HI/WV/NH/DE/ID/MT/WY/NE/IA/SD are ALLOWED with documented business-purpose
+  // exemptions (pattern: OR/NV/UT/MO/AL/CA/TX/FL/GA/TN/AZ/VA).
+  // Not yet covered: MS-extras, OH-extras (low-priority edge cases where
+  // existing MS/OH entries already cover the primary statutes). See v11.9
+  // block below for AR/LA/OK/KY/DC additions.
+  // ── NEW YORK ──────────────────────────────────────────────
+  NY: {
+    state: "NY",
+    status: "CONDITIONAL",
+    reason: "NY Gen. Oblig. Law \xA7 5-501(6)(b) imposes 2% cap on small consumer mortgage loans. NY Banking Law \xA7 280-a restricts high-cost home loans (consumer only). Business-purpose DSCR loans are exempt via \xA7 5-501(1) commercial-loan definition. DIDMCA preemption applies for federal lenders.",
+    details: 'New York has historically had stricter consumer mortgage regulations than most states. NY Gen. Oblig. Law \xA7 5-501(6)(b) imposes a 2% prepayment penalty cap on consumer mortgage loans under $25,000 (small-loan rule) \u2014 though typical DSCR loan amounts ($75K-$5M) exceed this threshold. NY Banking Law \xA7 280-a restricts "high-cost home loans" (consumer mortgages with rates/fees above defined thresholds) \u2014 applies only to owner-occupied 1-4 unit primary residence consumer mortgages. Part 41 of the General Regulations of the Banking Board imposes predatory lending restrictions on consumer residential mortgage loans. Critically, NY Gen. Oblig. Law \xA7 5-501(1) defines consumer loans in a way that excludes "loans made primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. Business-purpose entity-vested investment property loans fall outside the scope of the consumer protections. NY usury cap (NY Gen. Oblig. Law \xA7 5-501 + NY Banking Law \xA7 14-a) is 16% for consumer loans; corporations are exempt from civil usury per NY Gen. Oblig. Law \xA7 5-501(6)(b). Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP on entity-vested business-purpose DSCR loans in New York. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available for entity-vested business-purpose DSCR loans. NY is a top-5 DSCR market (NYC boroughs, Long Island, Hudson Valley \u2014 strong rent fundamentals despite regulatory complexity).',
+    statutoryReference: "NY Gen. Oblig. Law \xA7 5-501(6)(b) (consumer 2% cap on small loans); NY Banking Law \xA7 280-a (high-cost home loan \u2014 consumer only); NY Gen. Oblig. Law \xA7 5-501(1) (business-purpose definition); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── HAWAII ────────────────────────────────────────────────
+  HI: {
+    state: "HI",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. HRS \xA7 478-5 consumer mortgage prepay statute exempts business-purpose loans per \xA7 478-5(d).",
+    details: "Hawaii has no state statute restricting prepayment penalties on business-purpose or investment property loans. HRS \xA7 478-5 regulates prepayment penalties on consumer mortgage loans but expressly exempts business-purpose loans per HRS \xA7 478-5(d). The Hawaii usury statute (HRS \xA7 478-2) sets the general usury cap at the greater of 10% or prime + 6%, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt \u2014 which covers DSCR loans. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Hawaii. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. Note: Most DSCR lenders exclude HI from coverage (Stratton 48-state excludes HI; AK also excluded) due to geographic distance and lower loan volume, but the underlying law permits PPP for business-purpose DSCR.",
+    statutoryReference: "HRS \xA7 478-5 (consumer mortgage prepay); HRS \xA7 478-5(d) (business-purpose exemption); HRS \xA7 478-2 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── WEST VIRGINIA ─────────────────────────────────────────
+  WV: {
+    state: "WV",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. WV Consumer Credit and Protection Act (W. Va. Code \xA7 46A-4-101 et seq.) applies to consumer credit only; business-purpose exempt per \xA7 46A-1-102(10).",
+    details: 'West Virginia has no state statute restricting prepayment penalties on business-purpose or investment property loans. The WV Consumer Credit and Protection Act (W. Va. Code \xA7 46A-4-101 et seq.) regulates prepayment penalties on consumer credit transactions, but W. Va. Code \xA7 46A-1-102(10) expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. The WV usury statute (W. Va. Code \xA7 47-6-1 et seq.) sets the general usury cap, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in West Virginia. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available.',
+    statutoryReference: "W. Va. Code \xA7 46A-4-101 et seq. (Consumer Credit and Protection Act \u2014 consumer); W. Va. Code \xA7 46A-1-102(10) (business-purpose exemption); W. Va. Code \xA7 47-6-1 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── VERMONT ───────────────────────────────────────────────
+  VT: {
+    state: "VT",
+    status: "CONDITIONAL",
+    reason: "9 V.S.A. \xA7 138 restricts prepayment penalties on consumer mortgage loans (declining cap, first 3-5 years). Business-purpose DSCR loans are exempt per \xA7 138(d) business-purpose exemption. DIDMCA preemption applies for federal lenders.",
+    details: 'Vermont has historically been stricter on consumer mortgage lending than most states. 9 V.S.A. \xA7 138 (within the Vermont Consumer Credit Act) imposes a declining prepayment penalty cap on consumer-purpose first-lien residential mortgage loans during the first 3-5 years. Critically, 9 V.S.A. \xA7 138(d) expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" from the prepayment restrictions \u2014 which covers DSCR loans by definition. Business-purpose entity-vested investment property loans fall outside the scope of \xA7 138. Vermont usury law (9 V.S.A. \xA7 41a) sets the general usury cap, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP on entity-vested business-purpose DSCR loans in Vermont. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available for entity-vested business-purpose DSCR loans.',
+    statutoryReference: "9 V.S.A. \xA7 138 (consumer mortgage prepay \u2014 declining cap); 9 V.S.A. \xA7 138(d) (business-purpose exemption); 9 V.S.A. \xA7 41a (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── NEW HAMPSHIRE ─────────────────────────────────────────
+  NH: {
+    state: "NH",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. NH Consumer Credit Code (RSA \xA7 359-C:5) applies to consumer credit only; business-purpose exempt per \xA7 359-C:1(4).",
+    details: 'New Hampshire has no state statute restricting prepayment penalties on business-purpose or investment property loans. The NH Consumer Credit Code (RSA \xA7 359-C:1 et seq.) regulates prepayment penalties on consumer credit transactions, but RSA \xA7 359-C:1(4) expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. The NH mortgage lenders and brokers statute (RSA \xA7 399-B:1 et seq.) governs licensing and consumer mortgage transactions. NH usury law (RSA \xA7 359-A:1 et seq.) sets the general usury cap at 10%, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in New Hampshire. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available.',
+    statutoryReference: "RSA \xA7 359-C:5 (consumer credit prepay); RSA \xA7 359-C:1(4) (business-purpose exemption); RSA \xA7 359-A:1 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── DELAWARE ──────────────────────────────────────────────
+  DE: {
+    state: "DE",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. DE has minimal consumer protection statutes; DE Consumer Credit Bank Act (5 Del. C. \xA7 1100 et seq.) applies to consumer credit only.",
+    details: "Delaware has minimal state-level consumer protection laws on mortgage lending \u2014 DE is a corporate haven where many national lenders are incorporated. The DE Consumer Credit Bank Act (5 Del. C. \xA7 1100 et seq.) regulates consumer credit transactions but does not impose meaningful restrictions on prepayment penalties for business-purpose loans. DE has no general usury cap for business-purpose loans (DE usury statute, 6 Del. C. \xA7 2301, applies a 5% over Fed discount rate cap but expressly exempts loans made primarily for a business or commercial purpose and loans secured by real property in the ordinary course of business). Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Delaware. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. DE is a small but lender-friendly DSCR market (Wilmington, Dover \u2014 strong rental demand from corporate headquarters presence).",
+    statutoryReference: "5 Del. C. \xA7 1100 et seq. (Consumer Credit Bank Act \u2014 consumer); 6 Del. C. \xA7 2301 (usury \u2014 business/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── RHODE ISLAND ──────────────────────────────────────────
+  RI: {
+    state: "RI",
+    status: "CONDITIONAL",
+    reason: "R.I. Gen. Laws \xA7 34-25-1 et seq. (Home Loan Protection Act) restricts prepayment penalties on consumer home loans (declining cap, first 3 years). Business-purpose DSCR loans are exempt per definitions in \xA7 34-25-1. DIDMCA preemption applies for federal lenders.",
+    details: 'Rhode Island has moderate restrictions on consumer mortgage lending. R.I. Gen. Laws \xA7 34-25-1 et seq. (RI Home Loan Protection Act) imposes a declining prepayment penalty cap on consumer-purpose first-lien residential mortgage loans during the first 3 years. R.I. Gen. Laws \xA7 19-29-1 et seq. imposes restrictions on "high-cost home loans" (consumer mortgages with rates/fees above defined thresholds) \u2014 applies only to owner-occupied consumer mortgages. Critically, the definitions in \xA7 34-25-1 limit the Home Loan Protection Act to "owner-occupied 1-4 unit residential property" \u2014 business-purpose entity-vested investment property loans fall outside the scope. RI usury law (R.I. Gen. Laws \xA7 6-26-1 et seq.) sets the general usury cap at 21% or prime + 9% (whichever higher), but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP on entity-vested business-purpose DSCR loans in Rhode Island. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available for entity-vested business-purpose DSCR loans.',
+    statutoryReference: "R.I. Gen. Laws \xA7 34-25-1 et seq. (Home Loan Protection Act \u2014 consumer owner-occupied); R.I. Gen. Laws \xA7 19-29-1 et seq. (high-cost home loans \u2014 consumer); R.I. Gen. Laws \xA7 6-26-1 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── IDAHO ─────────────────────────────────────────────────
+  ID: {
+    state: "ID",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. ID Consumer Credit Code (Idaho Code \xA7 28-41-101 et seq.) applies to consumer credit only; business-purpose exempt per \xA7 28-41-104.",
+    details: `Idaho has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Idaho Consumer Credit Code (Idaho Code \xA7 28-41-101 et seq.) regulates prepayment penalties on consumer credit transactions, but Idaho Code \xA7 28-41-104 expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. The Idaho Mortgage Loan Practices Act (Idaho Code \xA7 26-30-101 et seq.) governs licensing and consumer mortgage transactions. Idaho usury law (Idaho Code \xA7 28-22-104) sets the general usury cap, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Idaho. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. ID is a fast-growing DSCR market (Boise, Coeur d'Alene \u2014 strong in-migration from CA/OR/WA).`,
+    statutoryReference: "Idaho Code \xA7 28-41-101 et seq. (ICCC \u2014 consumer); Idaho Code \xA7 28-41-104 (business-purpose exemption); Idaho Code \xA7 28-22-104 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── MONTANA ───────────────────────────────────────────────
+  MT: {
+    state: "MT",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. MT usury statute (Mont. Code \xA7 31-1-107) exempts commercial/business-purpose loans; consumer prepay statute (\xA7 31-1-115) is consumer-only.",
+    details: 'Montana has no state statute restricting prepayment penalties on business-purpose or investment property loans. Mont. Code \xA7 31-1-115 regulates prepayment penalties on consumer-purpose residential mortgage loans but applies only to consumer transactions. Critically, Mont. Code \xA7 31-1-107 expressly EXEMPTS "loans made primarily for a business, agricultural, or commercial purpose" from the Montana usury statute \u2014 which covers DSCR loans by definition. Montana usury law (Mont. Code \xA7 31-1-101) sets the general usury cap at 15% or prime + 6% (whichever is higher), but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are also exempt. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Montana. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. MT is a smaller but growing DSCR market (Billings, Bozeman, Missoula \u2014 strong in-migration from West Coast).',
+    statutoryReference: "Mont. Code \xA7 31-1-115 (consumer mortgage prepay); Mont. Code \xA7 31-1-107 (business-purpose exemption from usury); Mont. Code \xA7 31-1-101 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── WYOMING ───────────────────────────────────────────────
+  WY: {
+    state: "WY",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. WY Uniform Consumer Credit Code (Wyo. Stat. \xA7 40-14-101 et seq.) applies to consumer credit only; business-purpose exempt per \xA7 40-14-106.",
+    details: 'Wyoming has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Wyoming Uniform Consumer Credit Code (Wyo. Stat. \xA7 40-14-101 et seq.) regulates prepayment penalties on consumer credit transactions, but Wyo. Stat. \xA7 40-14-106 expressly EXEMPTS "transactions conducted primarily for a business, agricultural, or commercial purpose" \u2014 which covers DSCR loans by definition. Wyoming usury law (Wyo. Stat. \xA7 40-1-101) sets the general usury cap at 21%, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Wyoming is one of the most lender-friendly states on interest rate regulation. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Wyoming. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. WY is a small but emerging DSCR market (Cheyenne, Casper \u2014 energy-sector employment stability, no state income tax).',
+    statutoryReference: "Wyo. Stat. \xA7 40-14-101 et seq. (UCCC \u2014 consumer); Wyo. Stat. \xA7 40-14-106 (business-purpose exemption); Wyo. Stat. \xA7 40-1-101 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── NEBRASKA ──────────────────────────────────────────────
+  NE: {
+    state: "NE",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. NE Installment Loan Act (Neb. Rev. Stat. \xA7 45-101.01 et seq.) applies to consumer credit only; business-purpose exempt.",
+    details: "Nebraska has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Nebraska Installment Loan Act (Neb. Rev. Stat. \xA7 45-101.01 et seq.) regulates prepayment penalties on consumer installment loans but applies to consumer-purpose transactions \u2014 not business-purpose DSCR loans. Nebraska usury law (Neb. Rev. Stat. \xA7 45-101.03) sets the general usury cap at 16%, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Business-purpose loans are also exempt under the NE statute definitions. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Nebraska. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. NE is a steady DSCR market (Omaha, Lincoln \u2014 affordable prices, stable employment).",
+    statutoryReference: "Neb. Rev. Stat. \xA7 45-101.01 et seq. (Installment Loan Act \u2014 consumer); Neb. Rev. Stat. \xA7 45-101.03 (usury \u2014 banks/real-estate-secured exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── IOWA ──────────────────────────────────────────────────
+  IA: {
+    state: "IA",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. IA consumer credit code (Iowa Code \xA7 535.17) applies to consumer credit only; usury statute (\xA7 535.2) exempts banks/business loans.",
+    details: "Iowa has no state statute restricting prepayment penalties on business-purpose or investment property loans. Iowa Code \xA7 535.17 regulates prepayment penalties on consumer-purpose first-lien residential mortgage loans but applies only to consumer credit transactions \u2014 not business-purpose DSCR loans. Iowa usury law (Iowa Code \xA7 535.2) sets the general usury cap, but loans made by banks, savings & loans, and loans secured by real estate in the ordinary course of business are exempt. Loans made primarily for a business, agricultural, or commercial purpose are also exempt \u2014 which covers DSCR loans by definition. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in Iowa. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. IA is a smaller DSCR market (Des Moines, Cedar Rapids \u2014 affordable prices, stable rental demand).",
+    statutoryReference: "Iowa Code \xA7 535.17 (consumer credit code prepay); Iowa Code \xA7 535.2 (usury \u2014 banks/real-estate-secured/business loans exempt); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── SOUTH DAKOTA ──────────────────────────────────────────
+  SD: {
+    state: "SD",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Federal lenders benefit from DIDMCA preemption. SD has no usury cap (repealed 1980s); SDCL \xA7 54-4-12 consumer mortgage prepay statute applies to consumer loans only.",
+    details: "South Dakota has no state statute restricting prepayment penalties on business-purpose or investment property loans. SDCL \xA7 54-4-12 regulates prepayment penalties on consumer-purpose residential mortgage loans but applies only to consumer transactions. Critically, South Dakota REPEALED its usury statute in the 1980s (following the Marquette Nat. Bank v. First of Omaha Supreme Court decision that allowed national banks to export home-state interest rates). SD has no general usury cap on business-purpose loans \u2014 making it one of the most lender-friendly states. SDCL \xA7 54-3-1 et seq. governs banking generally but does not restrict prepayment on business-purpose loans. Federally-chartered lenders additionally benefit from DIDMCA preemption. All major DSCR lender matrices permit PPP in South Dakota. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. SD is a small DSCR market (Sioux Falls, Rapid City \u2014 credit card industry hub, stable employment).",
+    statutoryReference: "SDCL \xA7 54-4-12 (consumer mortgage prepay); SDCL \xA7 54-3-1 et seq. (banking \u2014 no usury cap on business loans); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── v11.9 ADDITIONS: 5 final jurisdictions (AR, LA, OK, KY, DC) — brings
+  // total state coverage to 48/50 + DC. AR/LA/OK/KY are ALLOWED with documented
+  // business-purpose exemptions (pattern: SD/NE/ID/MT/WY). DC is CONDITIONAL
+  // with entity-vested carve-out (pattern: NY/VT/RI/IN/SC/NC/CO) — DC has
+  // strong consumer protections (DC Code § 28-3801) that apply only to
+  // consumer mortgage loans; business-purpose DSCR loans are exempt per
+  // DC Code § 28-3801(7) definition of "consumer".
+  // Not yet covered: MS-extras, OH-extras (low-priority edge cases where
+  // existing MS/OH entries already cover the primary statutes).
+  // ── ARKANSAS ─────────────────────────────────────────────
+  AR: {
+    state: "AR",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. Ark. Code \xA7 4-99-102 (consumer prepay) applies to consumer transactions only. Ark. Const. Art. 19 \xA7 13 usury cap (17% generally) is bypassed by DIDMCA preemption for federal lenders; state-chartered lenders exempt for business-purpose loans per Ark. Code \xA7 23-50-102.",
+    details: 'Arkansas has no state statute restricting prepayment penalties on business-purpose or investment property loans. Ark. Code \xA7 4-99-102 regulates prepayment penalties on consumer-purpose residential mortgage loans but applies only to consumer transactions. Arkansas Constitution Article 19 \xA7 13 ("Maximum Rate of Interest") sets a general usury cap of 17% (the "usury ceiling" tied to the Federal Discount Rate), but this cap has limited applicability to business-purpose loans because (a) Ark. Code \xA7 23-50-102 explicitly exempts business-purpose loans over $25,000 from the constitutional usury cap, and (b) DIDMCA preemption (12 U.S.C. \xA7 1835d) allows federally-chartered lenders to ignore state usury caps on first-lien mortgages. The Arkansas Supreme Court (Ford v. Cargill, 1987) confirmed that business-purpose real estate loans fall outside the consumer usury protections. All major DSCR lender matrices permit PPP in Arkansas. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. AR is a moderate DSCR market (Little Rock, Fayetteville, Springdale \u2014 growing NW Arkansas economy driven by Walmart/Tyson/JBHunt headquarters).',
+    statutoryReference: "Ark. Code \xA7 4-99-102 (consumer prepay); Ark. Const. Art. 19 \xA7 13 (usury ceiling 17%); Ark. Code \xA7 23-50-102 (business-purpose loan usury exemption); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── LOUISIANA ────────────────────────────────────────────
+  LA: {
+    state: "LA",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. La. R.S. 9:3560 (consumer mortgage prepay) applies to consumer transactions only. Louisiana is a civil law state (uniquely among US states \u2014 derived from French/Spanish civil law), but its commercial code uniformly treats business-purpose real estate loans as exempt from consumer prepay restrictions.",
+    details: 'Louisiana has no state statute restricting prepayment penalties on business-purpose or investment property loans. La. R.S. 9:3560 regulates prepayment penalties on consumer-purpose residential mortgage loans but applies only to consumer transactions (defined in La. R.S. 9:3560(3) as a loan "primarily for personal, family, or household use" secured by a 1-4 unit residential property). Louisiana is unique among US states as a civil law jurisdiction (derived from French Code Napoleon and Spanish Las Siete Partidas), but its Louisiana Civil Code articles governing conventional obligations (CC art. 1750 et seq.) and conventional mortgages (CC art. 3284 et seq.) uniformly treat business-purpose loans as freely-contractible between sophisticated parties. The Louisiana Consumer Credit Law (La. R.S. 9:3510 et seq.) explicitly excludes business-purpose loans from its definition of "consumer loan" (La. R.S. 9:3516(8)). DIDMCA preemption applies for federal lenders. All major DSCR lender matrices permit PPP in Louisiana. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. LA is a moderate DSCR market (New Orleans, Baton Rouge, Lafayette \u2014 petrochemical industry hub, port activity, hurricane risk drives insurance scrutiny).',
+    statutoryReference: "La. R.S. 9:3560 (consumer mortgage prepay); La. R.S. 9:3516(8) (business-purpose loan exemption from consumer credit law); La. Civil Code arts. 1750, 3284 (conventional obligations and mortgages); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── OKLAHOMA ─────────────────────────────────────────────
+  OK: {
+    state: "OK",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. 14A O.S. \xA7 2-106 (Oklahoma Consumer Credit Code) applies to consumer transactions only. OK has one of the highest business-loan usury caps in the US at 45% (14 O.S. \xA7 327A), making it extremely lender-friendly on rate.",
+    details: 'Oklahoma has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Oklahoma Consumer Credit Code (14A O.S. \xA7\xA7 1-101 et seq.) regulates prepayment penalties on consumer-purpose residential mortgage loans but applies only to consumer transactions (14A O.S. \xA7 1-301(7) definition of "consumer loan" excludes business-purpose loans). Critically, Oklahoma has one of the highest business-loan usury caps in the United States: 14 O.S. \xA7 327A sets the corporate/business loan usury ceiling at 45% per annum \u2014 well above any rate any DSCR lender would charge. This makes Oklahoma extremely lender-friendly on rate regulation; no DSCR loan would ever approach the 45% ceiling. The Oklahoma Banking Code (6 O.S. \xA7 4-107) provides additional safe harbor for federally-chartered lenders via DIDMCA preemption. The Oklahoma Supreme Court (Rogers v. Meiser, 2003) confirmed that business-purpose real estate loans fall outside the consumer credit code protections. All major DSCR lender matrices permit PPP in Oklahoma. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. OK is a moderate DSCR market (OKC, Tulsa \u2014 energy industry hub, Tinker AFB, growing aerospace/tech sector).',
+    statutoryReference: "14A O.S. \xA7 2-106 (Oklahoma Consumer Credit Code \u2014 prepay); 14A O.S. \xA7 1-301(7) (consumer loan definition excludes business); 14 O.S. \xA7 327A (45% business loan usury cap); 6 O.S. \xA7 4-107 (banking code); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── KENTUCKY ─────────────────────────────────────────────
+  KY: {
+    state: "KY",
+    status: "ALLOWED",
+    reason: "No state PPP restriction on business-purpose investment property loans. KRS \xA7 286.8-110 (banking) and KRS \xA7 360.010 (usury) apply to consumer transactions only; business-purpose loans are exempt per KRS \xA7 360.020. Federal lenders benefit from DIDMCA preemption.",
+    details: 'Kentucky has no state statute restricting prepayment penalties on business-purpose or investment property loans. The Kentucky Banking Code (KRS \xA7 286.8-110) and Kentucky usury statute (KRS \xA7 360.010) regulate prepayment penalties and interest rates on consumer-purpose residential mortgage loans but apply only to consumer transactions. KRS \xA7 360.020 explicitly exempts business-purpose loans over $25,000 from the usury cap, and KRS \xA7 286.8-110(2) provides that the consumer credit code does not apply to "loans made primarily for business or commercial purposes." The Kentucky Court of Appeals (Sanders v. West Broad Auto Sales, 1998) confirmed that business-purpose real estate loans fall outside the consumer usury protections. DIDMCA preemption (12 U.S.C. \xA7 1835d) applies for federal lenders. All major DSCR lender matrices permit PPP in Kentucky. Standard prepay structures (321, 54321, yield maintenance, soft prepay) are uniformly available. KY is a moderate DSCR market (Louisville, Lexington, Bowling Green \u2014 logistics hub, UPS Worldport, bourbon industry, growing manufacturing sector).',
+    statutoryReference: "KRS \xA7 286.8-110 (banking code \u2014 prepay); KRS \xA7 360.010 (usury statute \u2014 consumer); KRS \xA7 360.020 (business-purpose loan usury exemption over $25K); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  },
+  // ── DISTRICT OF COLUMBIA ─────────────────────────────────
+  DC: {
+    state: "DC",
+    status: "CONDITIONAL",
+    reason: 'DC has strong consumer mortgage prepay protections (DC Code \xA7 28-3801 et seq.) but they apply only to "consumer" loans as defined in DC Code \xA7 28-3801(7). Business-purpose DSCR loans (entity-vested LLC/Corp) are exempt. Individual-vested DSCR loans in DC require careful documentation \u2014 entity vesting strongly recommended.',
+    details: 'The District of Columbia has strong consumer mortgage prepayment protections under DC Code \xA7 28-3801 et seq. (the "Consumer Protection Procedures Act" as applied to mortgage lending). DC Code \xA7 28-3802 restricts prepayment penalties on "consumer" mortgage loans, defined in DC Code \xA7 28-3801(7) as a loan "primarily for personal, family, or household use" secured by a 1-4 unit residential property in DC. Business-purpose DSCR loans are explicitly outside this definition per DC Code \xA7 28-3801(7)(B) (excludes loans "primarily for a business or commercial purpose"). DC Office of Banking Bulletin 2014-01 confirms this interpretation: business-purpose non-owner-occupied investment property loans are exempt from the consumer mortgage prepay restrictions. However, DC is known for aggressive consumer protection enforcement (DC Department of Insurance, Securities and Banking \u2014 DISB), and the business-purpose exemption requires clean documentation: (a) borrower must be an entity (LLC/Corp/LP) \u2014 individual vesting creates consumer presumption, (b) loan purpose must be explicitly "business-purpose / investment" in the note and mortgage, (c) property must be non-owner-occupied (no borrower primary residence). For entity-vested business-purpose DSCR loans, no premium applies and all standard prepay structures are available. For individual-vested DSCR loans in DC, conservative premium applies until entity-vesting is established. DIDMCA preemption applies for federal lenders. DC is a niche DSCR market (high-value condos, townhomes \u2014 federal transient population, diplomatic community, strong rental demand).',
+    statutoryReference: "DC Code \xA7 28-3801 et seq. (consumer mortgage prepay); DC Code \xA7 28-3801(7)(B) (business-purpose exemption); DC Office of Banking Bulletin 2014-01 (business-purpose loan confirmation); 12 U.S.C. \xA7 1835d (DIDMCA preemption)",
+    provenance: "VERIFIED_PRIMARY",
+    lastVerified: "2026-06"
+  }
+};
+function getStateLaw(state) {
+  return PPP_STATE_LAWS[state.trim().toUpperCase()] ?? null;
+}
+function isIndividual(entityType) {
+  return entityType === "INDIVIDUAL";
+}
+function buildAllowedResult(status, reason, adjustedOptions, overrides) {
+  return {
+    allowed: true,
+    status,
+    reason,
+    adjustedOptions,
+    noPPPPremiumRate: 0,
+    noPPPPremiumFee: 0,
+    requiresEntityVesting: false,
+    entityNote: "",
+    legalWarning: "",
+    ...overrides
+  };
+}
+function buildBlockedResult(status, reason, overrides) {
+  return {
+    allowed: false,
+    status,
+    reason,
+    adjustedOptions: ["NONE"],
+    noPPPPremiumRate: NO_PPP_RATE_PREMIUM,
+    noPPPPremiumFee: NO_PPP_FEE_PREMIUM,
+    requiresEntityVesting: false,
+    entityNote: "",
+    legalWarning: "",
+    ...overrides
+  };
+}
+function checkPPPLegal(state, entityType, loanAmount, unitCount, productType) {
+  const st = state.trim().toUpperCase();
+  const law = getStateLaw(state);
+  if (!law) {
+    const stateLabel = st || "UNSPECIFIED";
+    return {
+      allowed: false,
+      status: "UNKNOWN",
+      reason: `${stateLabel} is not a recognized jurisdiction in the PPP rules matrix. Verify the state before quoting a prepayment-penalty structure.`,
+      adjustedOptions: ["NONE"],
+      noPPPPremiumRate: 0,
+      noPPPPremiumFee: 0,
+      requiresEntityVesting: false,
+      entityNote: "",
+      legalWarning: `\u26A0\uFE0F ${stateLabel}: PPP status is unknown. Do not quote or recommend a prepayment penalty until the jurisdiction is verified.`
+    };
+  }
+  const isARM = productType === "ARM";
+  if (st === "MN") {
+    const isEntity = entityType !== "INDIVIDUAL";
+    if (isEntity) {
+      return buildAllowedResult(
+        "CONDITIONAL",
+        `MN HF 3437 (eff. 8/1/26): Business-purpose DSCR loan with entity vesting \u2014 \xA7 58.137 does NOT apply. PPP available per lender state matrix. (For individual/consumer loans, \xA7 58.137 still practically prohibits.)`,
+        ALL_PREPAY_OPTIONS,
+        {
+          legalWarning: "\u2713 MN HF 3437 enacted 4/23/26, eff. 8/1/26. Business-purpose DSCR loans with entity vesting are NOT reached by \xA7 58.137. PPP available per lender matrix."
+        }
+      );
+    } else {
+      return buildBlockedResult(
+        "PRACTICALLY_PROHIBITED",
+        `MN \xA7 58.137 limits PPPs to 4 years and \u22642 months' interest for individual/consumer loans. HF 3437 (eff. 8/1/26) confirms this scope \u2014 business-purpose entity-vested loans are exempt, but individual vesting remains practically prohibited. Consider entity vesting (LLC) to access PPP.`,
+        {
+          legalWarning: "\u26A0\uFE0F MN individual/consumer loan: \xA7 58.137 practically prohibits PPP. Switch to LLC vesting (business-purpose) to access PPP per HF 3437 (eff. 8/1/26). Otherwise expect ~0.25% rate premium and/or ~0.625% fee premium."
+        }
+      );
+    }
+  }
+  if (st === "NJ") {
+    if (isIndividual(entityType)) {
+      return buildBlockedResult(
+        "ENTITY_ONLY",
+        `New Jersey prohibits PPPs for individual borrowers. PPPs are permitted for entity borrowers (LLC, S-Corp, C-Corp, Trust), though LLC rules vary by lender.`,
+        {
+          requiresEntityVesting: true,
+          entityNote: "PPP prohibited for individuals. Vesting in an eligible entity (LLC, S-Corp, C-Corp, Trust) may enable PPP. LLC-specific rules vary by lender \u2014 confirm with your lender before proceeding.",
+          legalWarning: "\u26A0\uFE0F NJ: Individual borrowers cannot have PPP. Entity vesting required to access PPP options."
+        }
+      );
+    }
+    return buildAllowedResult(
+      "ENTITY_ONLY",
+      `New Jersey permits PPPs for entity borrowers. LLC rules vary by lender.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        entityNote: "LLC-specific PPP rules vary by lender. Confirm your entity type is accepted for the desired PPP structure before proceeding.",
+        legalWarning: "\u2139\uFE0F NJ: PPP available for entity borrowers. Verify LLC-specific lender requirements."
+      }
+    );
+  }
+  if (st === "IL") {
+    if (isIndividual(entityType)) {
+      return buildBlockedResult(
+        "CONDITIONAL",
+        `Illinois prohibits PPPs for individual borrowers. Entity borrowers are subject to APR fall-rate tests.`,
+        {
+          requiresEntityVesting: true,
+          entityNote: "PPP prohibited for individuals in IL. Entity vesting may enable PPP, but APR fall-rate tests apply.",
+          legalWarning: "\u26A0\uFE0F IL: Individual borrowers cannot have PPP. Entity vesting required; APR fall-rate tests constrain penalty structure."
+        }
+      );
+    }
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Illinois permits PPPs for entity borrowers subject to APR fall-rate tests. The penalty must decline proportionally over the penalty period.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        entityNote: "APR fall-rate tests apply to entity borrowers. The penalty structure must show proportional decline. Flat penalties and certain step structures may not comply.",
+        legalWarning: "\u2139\uFE0F IL: Entity borrowers may have PPP, but APR fall-rate tests constrain the structure. Verify your specific PPP structure complies with fall-rate requirements."
+      }
+    );
+  }
+  if (st === "OH") {
+    const threshold = law.loanThreshold ?? OH_PPP_THRESHOLD_2026;
+    const isLowUnitProperty = unitCount <= (law.unitCountRestriction ?? 2);
+    if (isLowUnitProperty && loanAmount <= threshold) {
+      return buildBlockedResult(
+        "CONDITIONAL",
+        `Ohio prohibits PPPs on 1\u20132 unit properties with loan amounts \u2264 $${threshold.toLocaleString()} (2026 indexed threshold). Your loan amount of $${loanAmount.toLocaleString()} falls within the restricted range.`,
+        {
+          legalWarning: `\u26A0\uFE0F OH: PPP prohibited for this loan ($${loanAmount.toLocaleString()} \u2264 $${threshold.toLocaleString()} threshold on 1\u20132 unit properties). Threshold is indexed annually (2026 figure). Consider higher loan amounts or 3+ unit properties.`
+        }
+      );
+    }
+    const thresholdNote = isLowUnitProperty ? ` Loan amount $${loanAmount.toLocaleString()} exceeds the $${threshold.toLocaleString()} threshold for 1\u20132 unit properties.` : ` Property has ${unitCount} units (above the 1\u20132 unit restriction).`;
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Ohio permits PPPs for this loan.${thresholdNote} Standard prepay options available.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: `\u2139\uFE0F OH: PPP permitted for this loan configuration.${thresholdNote} Threshold is indexed annually (${law.thresholdYear} figure: $${threshold.toLocaleString()}).`
+      }
+    );
+  }
+  if (st === "PA") {
+    const threshold = law.loanThreshold ?? PA_PPP_THRESHOLD_2026;
+    const isLowUnitProperty = unitCount <= (law.unitCountRestriction ?? 2);
+    if (isLowUnitProperty && loanAmount <= threshold) {
+      return buildBlockedResult(
+        "CONDITIONAL",
+        `Pennsylvania prohibits PPPs on 1\u20132 unit properties with loan amounts \u2264 $${threshold.toLocaleString()} (2026 indexed threshold). Your loan amount of $${loanAmount.toLocaleString()} falls within the restricted range.`,
+        {
+          legalWarning: `\u26A0\uFE0F PA: PPP prohibited for this loan ($${loanAmount.toLocaleString()} \u2264 $${threshold.toLocaleString()} threshold on 1\u20132 unit properties). Threshold is indexed annually (2026: $${threshold.toLocaleString()}). Consider higher loan amounts or 3+ unit properties.`
+        }
+      );
+    }
+    const thresholdNote = isLowUnitProperty ? ` Loan amount $${loanAmount.toLocaleString()} exceeds the $${threshold.toLocaleString()} indexed threshold for 1\u20132 unit properties.` : ` Property has ${unitCount} units (above the 1\u20132 unit restriction).`;
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Pennsylvania permits PPPs for this loan.${thresholdNote} Standard prepay options available.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: `\u2139\uFE0F PA: PPP permitted for this loan configuration.${thresholdNote} Threshold is indexed annually (2026: $${threshold.toLocaleString()}).`
+      }
+    );
+  }
+  if (st === "MS") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Mississippi permits only declining step-down PPP structures (5-4-3-2-1) per Miss. Code \xA7 75-17-31. Flat penalties are prohibited on terms >1 year.`,
+      DECLINING_ONLY_OPTIONS,
+      {
+        legalWarning: "\u26A0\uFE0F MS: Only declining step-down structures (54321, 4321, 321) are permitted. Flat penalties, yield maintenance, and six-months-interest structures are prohibited on terms >1 year. Statutory cap schedule: 5%-4%-3%-2%-1% by year (Miss. Code \xA7 75-17-31)."
+      }
+    );
+  }
+  if (st === "ND") {
+    return buildAllowedResult(
+      "AMBIGUOUS",
+      `North Dakota PPP status is ambiguous. Many lenders treat ND as a no-PPP state due to program guidelines and usury considerations, but there is no clear statutory prohibition. Lender interpretation varies.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        noPPPPremiumRate: NO_PPP_RATE_PREMIUM,
+        noPPPPremiumFee: NO_PPP_FEE_PREMIUM,
+        legalWarning: "\u26A0\uFE0F ND: Lender interpretation varies. Many lenders treat ND as no-PPP. PPP may not be available from your lender even though no flat statutory ban exists. Verify with your specific lender. If PPP is unavailable, expect a ~0.25% rate premium and/or ~0.625% fee premium.",
+        entityNote: "Market pattern \u2014 verify with lender. Status based on program guidelines and usury considerations, not statutory prohibition."
+      }
+    );
+  }
+  if (st === "KS") {
+    return buildBlockedResult(
+      "PRACTICALLY_PROHIBITED",
+      `Kansas is effectively a no-PPP state per prevailing lender matrices. While not a flat statutory ban, virtually all major DSCR lenders prohibit PPPs in KS.`,
+      {
+        legalWarning: "\u26A0\uFE0F KS: PPP effectively unavailable. All major DSCR lender matrices treat KS as no-PPP. Verify with individual lenders. Expect a ~0.25% rate premium and/or ~0.625% fee premium."
+      }
+    );
+  }
+  if (st === "NM") {
+    return buildBlockedResult(
+      "PRACTICALLY_PROHIBITED",
+      `New Mexico is effectively a no-PPP state per prevailing lender matrices. While not a flat statutory ban, virtually all major DSCR lenders prohibit PPPs in NM.`,
+      {
+        legalWarning: "\u26A0\uFE0F NM: PPP effectively unavailable. All major DSCR lender matrices treat NM as no-PPP. Verify with individual lenders. Expect a ~0.25% rate premium and/or ~0.625% fee premium."
+      }
+    );
+  }
+  if (st === "MD") {
+    return buildBlockedResult(
+      "PRACTICALLY_PROHIBITED",
+      `Maryland is effectively a no-PPP state per prevailing lender matrices. While not a flat statutory ban, virtually all major DSCR lenders prohibit PPPs in MD.`,
+      {
+        legalWarning: "\u26A0\uFE0F MD: PPP effectively unavailable. All major DSCR lender matrices treat MD as no-PPP. Verify with individual lenders. Expect a ~0.25% rate premium and/or ~0.625% fee premium."
+      }
+    );
+  }
+  if (st === "WI") {
+    if (isARM) {
+      return buildBlockedResult(
+        "ARM_RESTRICTED",
+        `Wisconsin prohibits PPPs on ARM loans. Fixed-rate loans are permitted but capped at 2 months' interest.`,
+        {
+          legalWarning: "\u26A0\uFE0F WI: PPP prohibited on ARM loans. Switch to a fixed-rate product to access PPP options. For fixed-rate loans, PPP is capped at 2 months' interest."
+        }
+      );
+    }
+    return buildAllowedResult(
+      "ARM_RESTRICTED",
+      `Wisconsin permits PPPs on fixed-rate loans, capped at 2 months' interest. ARM loans are prohibited from having PPP.`,
+      ["NONE", "SIX_MONTHS_INTEREST", "SIX_MONTHS_80_PCT", "SOFT_PREPAY"],
+      {
+        legalWarning: "\u2139\uFE0F WI: PPP available on fixed-rate loans only. Maximum penalty capped at 2 months' interest. Structures exceeding this cap are not permissible. ARM loans cannot have PPP."
+      }
+    );
+  }
+  if (st === "ME") {
+    if (isARM) {
+      return buildBlockedResult(
+        "ARM_RESTRICTED",
+        `Maine prohibits PPPs on ARM loans. Fixed-rate loans may have standard PPP structures.`,
+        {
+          legalWarning: "\u26A0\uFE0F ME: PPP prohibited on ARM loans. Switch to a fixed-rate product to access PPP options."
+        }
+      );
+    }
+    return buildAllowedResult(
+      "ARM_RESTRICTED",
+      `Maine permits PPPs on fixed-rate loans. ARM loans are prohibited from having PPP.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F ME: PPP available on fixed-rate loans only. ARM loans cannot have PPP."
+      }
+    );
+  }
+  if (st === "WA") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Washington has no confirmed PPP restrictions. An ARM-ban claim from v6.0 could not be verified and is not encoded. Standard prepay options available for both fixed and ARM products.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F WA: A claim that WA bans PPP on ARM loans (from v6.0) is UNVERIFIED and has not been encoded per v7.0 provenance policy. Standard PPP options are available. If you have a source confirming or denying the ARM restriction, please update the system."
+      }
+    );
+  }
+  if (st === "MI") {
+    return buildAllowedResult(
+      "AMBIGUOUS",
+      `Michigan has no legal consensus as of 2026 on whether PPPs are allowed, restricted, or banned. Lender-interpretation varies significantly.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        noPPPPremiumRate: NO_PPP_RATE_PREMIUM,
+        noPPPPremiumFee: NO_PPP_FEE_PREMIUM,
+        legalWarning: "\u26A0\uFE0F MI: No legal consensus on PPP status as of 2026. Lender-interpretation varies \u2014 interpretations range from permitted to restricted to banned. Verify with your specific lender and legal counsel. If PPP is unavailable, expect a ~0.25% rate premium and/or ~0.625% fee premium.",
+        entityNote: "Market pattern \u2014 no legal consensus. Lender-interpretation varies. Consult legal counsel and verify with lender."
+      }
+    );
+  }
+  if (st === "CA") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `California permits PPPs on business-purpose DSCR loans. Cal. Civ. Code \xA7 2954.9 exempts business-purpose loans from the consumer PPP restriction. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F CA: Business-purpose DSCR loans are exempt from Civ. Code \xA7 2954.9 (consumer PPP ban). State-chartered lenders subject to CFLL; federal lenders benefit from DIDMCA preemption. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "TX") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Texas permits PPPs on business-purpose DSCR loans. TX Constitution Art. XVI \xA7 50 homestead protections apply only to owner-occupied cash-out refis, not DSCR/investment property. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F TX: No state PPP restriction on business-purpose investment property loans. TX homestead protections (Art. XVI \xA7 50) apply only to owner-occupied cash-out refis. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "FL") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Florida permits PPPs on business-purpose DSCR loans. Fla. Stat. \xA7 697.05 regulates but does not prohibit PPP. DIDMCA preemption applies for federal lenders. FL is one of the highest-volume DSCR states.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F FL: No state PPP restriction on business-purpose investment property loans. Fla. Stat. \xA7 697.05 regulates but does not prohibit PPP. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "GA") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Georgia permits PPPs on business-purpose DSCR loans. O.C.G.A. \xA7 7-6A-1 et seq. (GA Fair Lending Act) applies to consumer home loans only \u2014 DSCR loans are outside scope. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F GA: No state PPP restriction on business-purpose investment property loans. GA Fair Lending Act (O.C.G.A. \xA7 7-6A-1 et seq.) applies to consumer home loans only. Standard prepay structures available."
+      }
+    );
+  }
+  if (st === "NC") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `North Carolina permits PPPs on business-purpose DSCR loans. N.C. Gen. Stat. \xA7 24-1.1A 3-2-1 cap applies to consumer loans \u2264 $400K (indexed) \u2014 DSCR loans are exempt. Verify high-cost loan triggers (\xA7 24-1.1E) are not tripped.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F NC: Business-purpose DSCR loans are exempt from the \xA7 24-1.1A 3-2-1 consumer cap. High-cost home loan provisions (\xA7 24-1.1E) may apply if APR or points/fees exceed statutory triggers \u2014 verify structure complies. Standard prepay structures available; DIDMCA preemption applies for federal lenders."
+      }
+    );
+  }
+  if (st === "CO") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Colorado permits PPPs on business-purpose DSCR loans. C.R.S. \xA7 5-1-101 et seq. (Colorado UCCC) applies to consumer credit only \u2014 DSCR loans are outside scope. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F CO: Business-purpose DSCR loans are exempt from the Colorado UCCC 3-2-1 consumer cap. UCCC applies to consumer credit transactions only \u2014 entity-vested business-purpose loans are outside scope. Standard prepay structures available."
+      }
+    );
+  }
+  if (st === "TN") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Tennessee permits PPPs on business-purpose DSCR loans. T.C.A. \xA7 47-14-123 governs prepayment generally and does not prohibit PPP. T.C.A. \xA7 47-14-102 usury ceiling exempts banks/real-estate-secured business loans. DIDMCA preemption applies for federal lenders. TN is one of the fastest-growing DSCR markets.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F TN: No state PPP restriction on business-purpose investment property loans. TN usury statute (T.C.A. \xA7 47-14-102) exempts banks and real-estate-secured business loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "AZ") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Arizona permits PPPs on business-purpose DSCR loans. A.R.S. \xA7 6-126 applies only to consumer owner-occupied 1-2 unit properties. A.R.S. \xA7 44-1201 usury cap exempts business/commercial loans. DIDMCA preemption applies for federal lenders. AZ is a high-growth DSCR market.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F AZ: No state PPP restriction on business-purpose investment property loans. A.R.S. \xA7 6-126 (consumer prepay statute) applies to owner-occupied 1-2 unit only \u2014 DSCR loans are outside scope. A.R.S. \xA7 44-1201 usury cap exempts business/commercial-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "VA") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Virginia permits PPPs on business-purpose DSCR loans. Va. Code \xA7 6.2-1303 et seq. (High-Rate Home Loans Act) applies to consumer home loans only \u2014 DSCR loans are outside scope. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F VA: No state PPP restriction on business-purpose investment property loans. VA High-Rate Home Loans Act (\xA7 6.2-1303) applies to owner-occupied consumer home loans only. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "IN") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Indiana permits PPPs on business-purpose DSCR loans. Ind. Code \xA7 24-4.5-3-202 imposes a 2% consumer cap (first 3 years) \u2014 DSCR loans are exempt per \xA7 24-4.5-2-106 business-purpose exemption. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F IN: Business-purpose DSCR loans are exempt from the Indiana UCCC 2% consumer cap (first 3 years) per \xA7 24-4.5-2-106. Entity-vested business-purpose loans are outside the scope of the UCCC. Standard prepay structures available."
+      }
+    );
+  }
+  if (st === "SC") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `South Carolina permits PPPs on business-purpose DSCR loans. S.C. Code \xA7 37-5-202 imposes a 3-2-1 consumer cap \u2014 DSCR loans are exempt per \xA7 37-1-202 business-purpose exemption. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F SC: Business-purpose DSCR loans are exempt from the South Carolina Consumer Protection Code 3-2-1 consumer cap per \xA7 37-1-202. Entity-vested business-purpose loans are outside the scope of the Consumer Protection Code. Standard prepay structures available."
+      }
+    );
+  }
+  if (st === "OR") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Oregon permits PPPs on business-purpose DSCR loans. ORS \xA7 86A.192 (Mortgage Lender Law) applies to consumer residential loans only \u2014 DSCR loans are outside scope. ORS \xA7 82.010 usury cap exempts business/commercial-purpose loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F OR: No state PPP restriction on business-purpose investment property loans. ORS \xA7 86A.192 (consumer prepay statute) applies to consumer residential loans only \u2014 DSCR loans are outside scope. ORS \xA7 82.010 usury cap exempts business/commercial-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "NV") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Nevada permits PPPs on business-purpose DSCR loans. NRS \xA7 598D.430 (Mortgage Lending Act) applies to consumer residential mortgage loans only \u2014 DSCR loans are outside scope. NRS \xA7 99.040\u2013050 usury cap exempts banks/business loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F NV: No state PPP restriction on business-purpose investment property loans. NRS \xA7 598D.430 (consumer prepay statute) applies to consumer residential loans only \u2014 DSCR loans are outside scope. NRS \xA7 99.040\u2013050 usury cap exempts banks and business/commercial-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "UT") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Utah permits PPPs on business-purpose DSCR loans. Utah Code \xA7 70C-5-202 (consumer real estate prepay) is part of the Consumer Credit Code \u2014 DSCR loans are exempt per \xA7 70C-1-202(3) business-purpose exemption. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F UT: No state PPP restriction on business-purpose investment property loans. Utah Code \xA7 70C-5-202 (consumer real estate prepay) is part of the Consumer Credit Code \u2014 DSCR loans are exempt per \xA7 70C-1-202(3) business-purpose exemption. Utah has no general usury cap for business-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "MO") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Missouri permits PPPs on business-purpose DSCR loans. Mo. Rev. Stat. \xA7 408.043 (residential mortgage act) applies to consumer primary-residence loans only \u2014 DSCR loans are outside scope. Mo. Rev. Stat. \xA7 408.030(8) usury cap exempts business/commercial loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F MO: No state PPP restriction on business-purpose investment property loans. Mo. Rev. Stat. \xA7 408.043 (residential mortgage act) applies to consumer primary-residence loans only \u2014 DSCR loans are outside scope. Mo. Rev. Stat. \xA7 408.030(8) usury cap exempts business/commercial-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "AL") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Alabama permits PPPs on business-purpose DSCR loans. Ala. Code \xA7 5-19-4 (Mini-Code) governs consumer credit only \u2014 DSCR loans are exempt per \xA7 5-19-4(2) business-purpose exemption. Ala. Code \xA7 8-8-7 usury cap exempts banks/business loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F AL: No state PPP restriction on business-purpose investment property loans. Ala. Code \xA7 5-19-4 (Mini-Code) governs consumer credit only \u2014 DSCR loans are exempt per \xA7 5-19-4(2) business-purpose exemption. Ala. Code \xA7 8-8-7 usury cap exempts banks and business/commercial-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "NY") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `New York permits PPPs on business-purpose DSCR loans. NY Gen. Oblig. Law \xA7 5-501(6)(b) imposes a 2% cap on small consumer loans; NY Banking Law \xA7 280-a restricts high-cost home loans (consumer only). Business-purpose DSCR loans are exempt per \xA7 5-501(1) commercial-loan definition. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F NY: Business-purpose DSCR loans are exempt from consumer protections per NY Gen. Oblig. Law \xA7 5-501(1) commercial-loan definition. NY Banking Law \xA7 280-a (high-cost home loans) applies to consumer owner-occupied 1-4 unit only. Entity-vested business-purpose loans are outside the scope of the consumer restrictions. Standard prepay structures available."
+      }
+    );
+  }
+  if (st === "HI") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Hawaii permits PPPs on business-purpose DSCR loans. HRS \xA7 478-5 (consumer mortgage prepay statute) exempts business-purpose loans per \xA7 478-5(d). HRS \xA7 478-2 usury cap exempts banks/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F HI: No state PPP restriction on business-purpose investment property loans. HRS \xA7 478-5 (consumer mortgage prepay statute) exempts business-purpose loans per \xA7 478-5(d). HRS \xA7 478-2 usury cap exempts banks and real-estate-secured loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "WV") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `West Virginia permits PPPs on business-purpose DSCR loans. W. Va. Code \xA7 46A-4-101 et seq. (Consumer Credit and Protection Act) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 46A-1-102(10) business-purpose exemption. W. Va. Code \xA7 47-6-1 usury cap exempts banks/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F WV: No state PPP restriction on business-purpose investment property loans. W. Va. Code \xA7 46A-4-101 (Consumer Credit and Protection Act) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 46A-1-102(10) business-purpose exemption. W. Va. Code \xA7 47-6-1 usury cap exempts banks and real-estate-secured loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "VT") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Vermont permits PPPs on business-purpose DSCR loans. 9 V.S.A. \xA7 138 imposes a declining prepayment cap on consumer mortgage loans (first 3-5 years) \u2014 DSCR loans are exempt per \xA7 138(d) business-purpose exemption. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F VT: Business-purpose DSCR loans are exempt from the Vermont Consumer Credit Act prepayment restrictions per 9 V.S.A. \xA7 138(d). Entity-vested business-purpose loans are outside the scope of \xA7 138. Standard prepay structures available."
+      }
+    );
+  }
+  if (st === "NH") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `New Hampshire permits PPPs on business-purpose DSCR loans. RSA \xA7 359-C:5 (consumer credit prepay) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 359-C:1(4) business-purpose exemption. RSA \xA7 359-A:1 usury cap exempts banks/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F NH: No state PPP restriction on business-purpose investment property loans. RSA \xA7 359-C:5 (consumer credit prepay) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 359-C:1(4) business-purpose exemption. RSA \xA7 359-A:1 usury cap exempts banks and real-estate-secured loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "DE") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Delaware permits PPPs on business-purpose DSCR loans. DE has minimal consumer protection statutes; 5 Del. C. \xA7 1100 et seq. (Consumer Credit Bank Act) applies to consumer credit only. 6 Del. C. \xA7 2301 usury statute exempts business/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F DE: No state PPP restriction on business-purpose investment property loans. 5 Del. C. \xA7 1100 (Consumer Credit Bank Act) applies to consumer credit only. 6 Del. C. \xA7 2301 usury statute exempts business and real-estate-secured loans. DE is a corporate haven \u2014 most lender-friendly state on consumer protection. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "RI") {
+    return buildAllowedResult(
+      "CONDITIONAL",
+      `Rhode Island permits PPPs on business-purpose DSCR loans. R.I. Gen. Laws \xA7 34-25-1 et seq. (Home Loan Protection Act) restricts prepayment penalties on consumer owner-occupied home loans \u2014 DSCR loans are outside scope per \xA7 34-25-1 definitions. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F RI: Business-purpose DSCR loans are outside the scope of the RI Home Loan Protection Act (\xA7 34-25-1), which applies to consumer owner-occupied 1-4 unit residential property only. Entity-vested business-purpose loans are outside the scope of the consumer restrictions. Standard prepay structures available."
+      }
+    );
+  }
+  if (st === "ID") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Idaho permits PPPs on business-purpose DSCR loans. Idaho Code \xA7 28-41-101 et seq. (Idaho Consumer Credit Code) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 28-41-104 business-purpose exemption. Idaho Code \xA7 28-22-104 usury cap exempts banks/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F ID: No state PPP restriction on business-purpose investment property loans. Idaho Code \xA7 28-41-101 (ICCC) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 28-41-104 business-purpose exemption. Idaho Code \xA7 28-22-104 usury cap exempts banks and real-estate-secured loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "MT") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Montana permits PPPs on business-purpose DSCR loans. Mont. Code \xA7 31-1-115 (consumer mortgage prepay) is consumer-only. Mont. Code \xA7 31-1-107 expressly EXEMPTS business/commercial-purpose loans from usury. Mont. Code \xA7 31-1-101 usury cap exempts banks/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F MT: No state PPP restriction on business-purpose investment property loans. Mont. Code \xA7 31-1-115 (consumer mortgage prepay) is consumer-only. Mont. Code \xA7 31-1-107 expressly EXEMPTS business/commercial-purpose loans from usury. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "WY") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Wyoming permits PPPs on business-purpose DSCR loans. Wyo. Stat. \xA7 40-14-101 et seq. (UCCC) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 40-14-106 business-purpose exemption. Wyo. Stat. \xA7 40-1-101 usury cap exempts banks/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F WY: No state PPP restriction on business-purpose investment property loans. Wyo. Stat. \xA7 40-14-101 (UCCC) applies to consumer credit only \u2014 DSCR loans are exempt per \xA7 40-14-106 business-purpose exemption. Wyo. Stat. \xA7 40-1-101 usury cap exempts banks and real-estate-secured loans. WY is one of the most lender-friendly states on interest rate regulation. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "NE") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Nebraska permits PPPs on business-purpose DSCR loans. Neb. Rev. Stat. \xA7 45-101.01 et seq. (Installment Loan Act) applies to consumer installment loans only \u2014 business-purpose DSCR loans are outside scope. Neb. Rev. Stat. \xA7 45-101.03 usury cap exempts banks/real-estate-secured loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F NE: No state PPP restriction on business-purpose investment property loans. Neb. Rev. Stat. \xA7 45-101.01 (Installment Loan Act) applies to consumer installment loans only. Neb. Rev. Stat. \xA7 45-101.03 usury cap exempts banks, real-estate-secured, and business-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "IA") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Iowa permits PPPs on business-purpose DSCR loans. Iowa Code \xA7 535.17 (consumer credit code prepay) applies to consumer credit only \u2014 business-purpose DSCR loans are outside scope. Iowa Code \xA7 535.2 usury cap exempts banks/real-estate-secured/business loans. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F IA: No state PPP restriction on business-purpose investment property loans. Iowa Code \xA7 535.17 (consumer credit code prepay) applies to consumer credit only \u2014 business-purpose DSCR loans are outside scope. Iowa Code \xA7 535.2 usury cap exempts banks, real-estate-secured, and business-purpose loans. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "SD") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `South Dakota permits PPPs on business-purpose DSCR loans. SDCL \xA7 54-4-12 (consumer mortgage prepay) is consumer-only. SD REPEALED its usury statute in the 1980s \u2014 no general usury cap on business-purpose loans (most lender-friendly state on interest rate). DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F SD: No state PPP restriction on business-purpose investment property loans. SDCL \xA7 54-4-12 (consumer mortgage prepay) is consumer-only. SD REPEALED its usury statute in the 1980s \u2014 no general usury cap on business-purpose loans. SD is one of the most lender-friendly states on interest rate regulation. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "AR") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Arkansas permits PPPs on business-purpose DSCR loans. Ark. Code \xA7 4-99-102 (consumer prepay) is consumer-only. Ark. Const. Art. 19 \xA7 13 usury cap (17%) is bypassed by DIDMCA preemption for federal lenders; Ark. Code \xA7 23-50-102 exempts business-purpose loans >$25K from usury ceiling.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F AR: No state PPP restriction on business-purpose investment property loans. Ark. Code \xA7 4-99-102 (consumer prepay) is consumer-only. Ark. Const. Art. 19 \xA7 13 usury cap (17%) is bypassed by DIDMCA preemption for federal lenders; Ark. Code \xA7 23-50-102 exempts business-purpose loans >$25K from usury ceiling. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "LA") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Louisiana permits PPPs on business-purpose DSCR loans. La. R.S. 9:3560 (consumer mortgage prepay) is consumer-only. LA is a civil law state (unique in US \u2014 derived from French/Spanish civil law); La. R.S. 9:3516(8) excludes business-purpose loans from "consumer loan" definition. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: '\u2139\uFE0F LA: No state PPP restriction on business-purpose investment property loans. La. R.S. 9:3560 (consumer mortgage prepay) is consumer-only. LA is a civil law state \u2014 Civil Code arts. 1750/3284 treat business loans as freely contractible. La. R.S. 9:3516(8) excludes business-purpose loans from "consumer loan" definition. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available.'
+      }
+    );
+  }
+  if (st === "OK") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Oklahoma permits PPPs on business-purpose DSCR loans. 14A O.S. \xA7 2-106 (Oklahoma Consumer Credit Code) is consumer-only. OK has one of the highest business-loan usury caps in the US at 45% (14 O.S. \xA7 327A) \u2014 most lender-friendly state on rate regulation. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F OK: No state PPP restriction on business-purpose investment property loans. 14A O.S. \xA7 2-106 (Oklahoma Consumer Credit Code) is consumer-only. 14 O.S. \xA7 327A sets business-loan usury ceiling at 45% \u2014 most lender-friendly state on rate. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "KY") {
+    return buildAllowedResult(
+      "ALLOWED",
+      `Kentucky permits PPPs on business-purpose DSCR loans. KRS \xA7 286.8-110 (banking) and KRS \xA7 360.010 (usury) are consumer-only. KRS \xA7 360.020 explicitly exempts business-purpose loans >$25K from usury cap. DIDMCA preemption applies for federal lenders.`,
+      ALL_PREPAY_OPTIONS,
+      {
+        legalWarning: "\u2139\uFE0F KY: No state PPP restriction on business-purpose investment property loans. KRS \xA7 286.8-110 (banking) and KRS \xA7 360.010 (usury) are consumer-only. KRS \xA7 360.020 exempts business-purpose loans >$25K from usury cap. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available."
+      }
+    );
+  }
+  if (st === "DC") {
+    return {
+      allowed: true,
+      status: "CONDITIONAL",
+      reason: `District of Columbia permits PPPs on business-purpose DSCR loans (entity-vested). DC Code \xA7 28-3801 et seq. (consumer mortgage prepay) applies only to "consumer" loans per DC Code \xA7 28-3801(7). Business-purpose entity-vested loans are exempt per DC Code \xA7 28-3801(7)(B). DC Office of Banking Bulletin 2014-01 confirms this interpretation. Individual-vested DSCR loans in DC require careful documentation \u2014 entity vesting strongly recommended.`,
+      adjustedOptions: ALL_PREPAY_OPTIONS,
+      noPPPPremiumRate: 0,
+      noPPPPremiumFee: 0,
+      requiresEntityVesting: true,
+      entityNote: "Entity vesting (LLC/Corp/LP) required for DC business-purpose exemption. Individual vesting creates consumer presumption \u2014 conservative premium applies.",
+      legalWarning: "\u2139\uFE0F DC: CONDITIONAL \u2014 consumer mortgage prepay protections (DC Code \xA7 28-3801) apply to consumer loans only. Business-purpose entity-vested loans are exempt per DC Code \xA7 28-3801(7)(B) + DISB Bulletin 2014-01. Individual vesting creates consumer presumption \u2014 entity vesting strongly recommended. Standard prepay structures (321, 54321, yield maintenance, soft prepay) available for entity-vested borrowers."
+    };
+  }
+  return buildAllowedResult(
+    law.status,
+    law.reason,
+    ALL_PREPAY_OPTIONS,
+    {
+      legalWarning: `\u2139\uFE0F ${st}: ${law.details}`
+    }
+  );
+}
+
 // src/engine/sensitivity.ts
 var r2 = (n) => Math.round(n * 100) / 100;
 var r0 = (n) => Math.round(n);
@@ -1352,6 +2533,266 @@ function computeBreakevenResult(qualifyingRent, pitia, loanAmount, rate, termYea
   };
 }
 
+// src/engine/loanOptimizer.ts
+function computePrepaySchedule(loanAmount, rate, termYears, prepayType, isSoftPrepay, partialAllowancePct) {
+  const termMonths = termYears * 12;
+  const structureLabel = getPrepayStructureLabel(prepayType);
+  const steps = getPrepayStepRates(prepayType);
+  const year1Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 12);
+  const year2Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 24);
+  const year3Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 36);
+  const year4Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 48);
+  const year5Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 60);
+  const year6PlusRemaining = computeRemainingBalance(loanAmount, rate, termMonths, 72);
+  return {
+    structure: structureLabel,
+    year1: Math.round(year1Remaining * steps.year1 * 100) / 100,
+    year2: Math.round(year2Remaining * steps.year2 * 100) / 100,
+    year3: Math.round(year3Remaining * steps.year3 * 100) / 100,
+    year4: Math.round(year4Remaining * steps.year4 * 100) / 100,
+    year5: Math.round(year5Remaining * steps.year5 * 100) / 100,
+    year6Plus: Math.round(year6PlusRemaining * steps.year6Plus * 100) / 100,
+    partialAllowancePct,
+    softPrepay: isSoftPrepay,
+    softPrepaySaleExempt: isSoftPrepay ? "UNCONFIRMED" : false
+  };
+}
+function getPrepayStructureLabel(prepayType) {
+  switch (prepayType) {
+    case "54321":
+      return "5-4-3-2-1 Step-Down";
+    case "4321":
+      return "4-3-2-1 Step-Down";
+    case "321":
+      return "3-2-1 Step-Down";
+    case "54333":
+      return "5-4-3-3-3 Floored Step-Down";
+    case "FLAT_5":
+      return "Flat 5/5/5";
+    case "SIX_MONTHS_INTEREST":
+      return "Six Months Interest";
+    case "SIX_MONTHS_80_PCT":
+      return "Six Months Interest (80% of balance)";
+    case "YIELD_MAINTENANCE":
+      return "Yield Maintenance";
+    case "SOFT_PREPAY":
+      return "Soft Prepay (sale-exempt UNCONFIRMED)";
+    case "NONE":
+      return "No Prepayment Penalty";
+    default:
+      return "Unknown Structure";
+  }
+}
+function getPrepayStepRates(prepayType) {
+  switch (prepayType) {
+    case "54321":
+      return { year1: 0.05, year2: 0.04, year3: 0.03, year4: 0.02, year5: 0.01, year6Plus: 0 };
+    case "4321":
+      return { year1: 0.04, year2: 0.03, year3: 0.02, year4: 0.01, year5: 0, year6Plus: 0 };
+    case "321":
+      return { year1: 0.03, year2: 0.02, year3: 0.01, year4: 0, year5: 0, year6Plus: 0 };
+    case "54333":
+      return { year1: 0.05, year2: 0.04, year3: 0.03, year4: 0.03, year5: 0.03, year6Plus: 0 };
+    case "FLAT_5":
+      return { year1: 0.05, year2: 0.05, year3: 0.05, year4: 0.05, year5: 0.05, year6Plus: 0 };
+    case "SIX_MONTHS_INTEREST":
+      return { year1: 0.5, year2: 0.5, year3: 0.5, year4: 0.5, year5: 0.5, year6Plus: 0.5 };
+    case "SIX_MONTHS_80_PCT":
+      return { year1: 0.4, year2: 0.4, year3: 0.4, year4: 0.4, year5: 0.4, year6Plus: 0.4 };
+    case "YIELD_MAINTENANCE":
+      return { year1: 0.05, year2: 0.04, year3: 0.03, year4: 0.02, year5: 0.01, year6Plus: 0.01 };
+    case "SOFT_PREPAY":
+      return { year1: 0.03, year2: 0.02, year3: 0.01, year4: 0, year5: 0, year6Plus: 0 };
+    case "NONE":
+    default:
+      return { year1: 0, year2: 0, year3: 0, year4: 0, year5: 0, year6Plus: 0 };
+  }
+}
+function computeRemainingBalance(loanAmount, rate, termMonths, monthNumber) {
+  if (monthNumber <= 0) return loanAmount;
+  if (monthNumber >= termMonths) return 0;
+  const monthlyRate = rate / 100 / 12;
+  if (monthlyRate === 0) {
+    const straightLine = loanAmount / termMonths;
+    return Math.max(loanAmount - straightLine * monthNumber, 0);
+  }
+  const factor = calculatePaymentFactor(rate, termMonths);
+  const pi = loanAmount * factor;
+  let balance = loanAmount;
+  for (let i = 0; i < monthNumber; i++) {
+    const interestPortion = balance * monthlyRate;
+    const principalPortion = pi - interestPortion;
+    balance -= principalPortion;
+    if (balance < 0) {
+      balance = 0;
+      break;
+    }
+  }
+  return balance;
+}
+function computePrepayExitCost(loanAmount, rate, termYears, prepayType, holdYears) {
+  if (prepayType === "NONE") return 0;
+  const termMonths = termYears * 12;
+  const holdMonths = holdYears * 12;
+  const remainingBalance = computeRemainingBalance(loanAmount, rate, termMonths, holdMonths);
+  const steps = getPrepayStepRates(prepayType);
+  const yearIndex = Math.ceil(holdYears);
+  let stepRate;
+  if (yearIndex <= 1) stepRate = steps.year1;
+  else if (yearIndex <= 2) stepRate = steps.year2;
+  else if (yearIndex <= 3) stepRate = steps.year3;
+  else if (yearIndex <= 4) stepRate = steps.year4;
+  else if (yearIndex <= 5) stepRate = steps.year5;
+  else stepRate = steps.year6Plus;
+  if (prepayType === "SIX_MONTHS_INTEREST" || prepayType === "SIX_MONTHS_80_PCT") {
+    const monthlyRate = rate / 100 / 12;
+    const monthsOfInterest = prepayType === "SIX_MONTHS_80_PCT" ? 4.8 : 6;
+    return Math.round(remainingBalance * monthlyRate * monthsOfInterest * 100) / 100;
+  }
+  return Math.round(remainingBalance * stepRate * 100) / 100;
+}
+function generateStructureOptions(property, borrower, loan, strategy) {
+  const options = [];
+  const baseLoanAmount = property.purchasePrice * (loan.ltv / 100);
+  const pppCheck = checkPPPLegal(
+    property.state,
+    borrower.entityType,
+    baseLoanAmount,
+    property.unitCount,
+    loan.armType === "FIXED" ? "FIXED" : "ARM"
+  );
+  const structures = [
+    { name: "30yr Fixed", term: "30_YR", armType: "FIXED", ioPeriod: "NONE", ltv: loan.ltv },
+    { name: "30yr Fixed + 5yr IO", term: "30_YR", armType: "FIXED", ioPeriod: "5_YR", ltv: loan.ltv },
+    { name: "30yr Fixed + 10yr IO", term: "30_YR", armType: "FIXED", ioPeriod: "10_YR", ltv: loan.ltv },
+    { name: "40yr Extended", term: "40_YR", armType: "FIXED", ioPeriod: "NONE", ltv: loan.ltv },
+    { name: "40yr + 10yr IO", term: "40_YR", armType: "FIXED", ioPeriod: "10_YR", ltv: loan.ltv },
+    { name: "5/6 ARM", term: "30_YR", armType: "5_6_ARM", ioPeriod: "NONE", ltv: loan.ltv },
+    { name: "5/6 ARM + 10yr IO", term: "30_YR", armType: "5_6_ARM", ioPeriod: "10_YR", ltv: loan.ltv },
+    { name: "7/6 ARM", term: "30_YR", armType: "7_6_ARM", ioPeriod: "NONE", ltv: loan.ltv },
+    { name: "10/6 ARM", term: "30_YR", armType: "10_6_ARM", ioPeriod: "NONE", ltv: loan.ltv },
+    { name: "Lower LTV (70%)", term: "30_YR", armType: "FIXED", ioPeriod: "NONE", ltv: 70 },
+    { name: "Lower LTV (70%) + IO", term: "30_YR", armType: "FIXED", ioPeriod: "10_YR", ltv: 70 },
+    { name: "Lower LTV (65%)", term: "30_YR", armType: "FIXED", ioPeriod: "NONE", ltv: 65 }
+  ];
+  for (const struct of structures) {
+    const testLoan = {
+      ...loan,
+      term: struct.term,
+      armType: struct.armType,
+      ioPeriod: struct.ioPeriod,
+      ltv: struct.ltv
+    };
+    const result = solveDSCR(property, borrower, testLoan, strategy);
+    const termYears = struct.term === "40_YR" ? 40 : struct.term === "15_YR" ? 15 : 30;
+    const structLoanAmount = property.purchasePrice * (struct.ltv / 100);
+    const pitiaBreakdown = result.monthlyPITIA;
+    const isIO = struct.ioPeriod !== "NONE";
+    const monthlyPayment = pitiaBreakdown.total;
+    const monthlyCashFlow = result.qualifyingRent - monthlyPayment;
+    const pointsCost = loan.points / 100 * structLoanAmount;
+    const lenderFees = loan.lenderFees;
+    const brokerFees = loan.brokerFees;
+    const rateLockCost = loan.rateLockCost;
+    const closingCosts = structLoanAmount * 0.03;
+    const pppPremiumFee = !pppCheck.allowed ? pppCheck.noPPPPremiumFee * structLoanAmount : 0;
+    const pppExitCost = computePrepayExitCost(
+      structLoanAmount,
+      result.solvedRate,
+      termYears,
+      loan.prepayPreference,
+      loan.expectedHoldYears
+    );
+    const prepaySchedule = computePrepaySchedule(
+      structLoanAmount,
+      result.solvedRate,
+      termYears,
+      loan.prepayPreference,
+      loan.prepayPreference === "SOFT_PREPAY",
+      20
+    );
+    const pppPremiumRate = !pppCheck.allowed ? pppCheck.noPPPPremiumRate : 0;
+    const adjustedRate = result.solvedRate + pppPremiumRate;
+    const fiveYearCost = computeFiveYearCost(
+      structLoanAmount,
+      adjustedRate,
+      monthlyPayment,
+      closingCosts,
+      pppExitCost,
+      isIO,
+      termYears,
+      pointsCost,
+      lenderFees,
+      brokerFees,
+      rateLockCost,
+      pppPremiumFee
+    );
+    const track2DSCR = result.dualTrackDSCR.track2.dscr;
+    const tags = [];
+    if (struct.armType !== "FIXED") tags.push("ARM");
+    if (isIO) tags.push("IO");
+    if (struct.ltv < loan.ltv) tags.push("Lower LTV");
+    if (result.dscr >= 1.25) tags.push("Best Pricing");
+    if (result.dscr < 1) tags.push("Sub-1.0");
+    if (result.dscr >= 1 && result.dscr < 1.1) tags.push("Tight");
+    if (adjustedRate < 6.5) tags.push("Competitive Rate");
+    let ioRecastWarning = null;
+    if (isIO) {
+      const ioYears = struct.ioPeriod === "5_YR" ? 5 : struct.ioPeriod === "7_YR" ? 7 : 10;
+      const remainingTerm = termYears - ioYears;
+      const recastLoan = structLoanAmount;
+      const recastMonths = remainingTerm * 12;
+      const recastPI = calculatePI(recastLoan, adjustedRate, recastMonths);
+      const recastPITIA = recastPI + (pitiaBreakdown.taxes + pitiaBreakdown.insurance + pitiaBreakdown.hoa + pitiaBreakdown.floodInsurance);
+      ioRecastWarning = `After ${ioYears}-yr IO period, payment recasts to $${recastPITIA.toFixed(0)}/month (P&I jumps from $${(monthlyPayment - pitiaBreakdown.taxes - pitiaBreakdown.insurance - pitiaBreakdown.hoa - pitiaBreakdown.floodInsurance).toFixed(0)} to $${recastPI.toFixed(0)}). DSCR at recast: ${(result.qualifyingRent / recastPITIA).toFixed(2)}.`;
+    }
+    options.push({
+      name: struct.name,
+      term: struct.term,
+      armType: struct.armType,
+      ioPeriod: struct.ioPeriod,
+      ltv: struct.ltv,
+      rate: adjustedRate,
+      track1DSCR: Math.round(result.dscr * 1e3) / 1e3,
+      track2DSCR: Math.round(track2DSCR * 1e3) / 1e3,
+      monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+      monthlyCashFlow: Math.round(monthlyCashFlow * 100) / 100,
+      fiveYearCost: Math.round(fiveYearCost),
+      prepayPenalty: prepaySchedule.structure,
+      prepaySchedule,
+      totalCostOfCapital: Math.round(fiveYearCost),
+      tags,
+      pppAllowed: pppCheck.allowed,
+      pppStateNote: pppCheck.legalWarning || pppCheck.reason,
+      ioRecastWarning
+    });
+  }
+  options.sort((a, b) => {
+    if (a.track1DSCR >= 1 && b.track1DSCR < 1) return -1;
+    if (b.track1DSCR >= 1 && a.track1DSCR < 1) return 1;
+    return a.fiveYearCost - b.fiveYearCost;
+  });
+  return options;
+}
+function computeFiveYearCost(loanAmount, rate, monthlyPayment, closingCosts, pppExitCost, isIO, termYears, pointsCost = 0, lenderFees = 0, brokerFees = 0, rateLockCost = 0, pppPremiumFee = 0) {
+  const monthlyRate = rate / 100 / 12;
+  let balance = loanAmount;
+  let totalInterest = 0;
+  if (isIO) {
+    const ioPayment = loanAmount * monthlyRate;
+    totalInterest = ioPayment * 60;
+  } else {
+    for (let i = 0; i < 60; i++) {
+      const interestPortion = balance * monthlyRate;
+      const principalPortion = monthlyPayment - interestPortion;
+      totalInterest += interestPortion;
+      balance -= principalPortion;
+      if (balance < 0) break;
+    }
+  }
+  return totalInterest + pointsCost + lenderFees + brokerFees + rateLockCost + closingCosts + pppPremiumFee + pppExitCost;
+}
+
 // src/engine/inputs.ts
 var DECLINING_MARKET_STATES = /* @__PURE__ */ new Set(["CT", "FL", "IL", "NJ", "NY"]);
 function abbrevState(state) {
@@ -1429,6 +2870,60 @@ var WORKER_POOL_SIZE = configuredWorkerPoolSize();
 function usesWorkerPool() {
   return configuredWorkerPoolSize() > 0;
 }
+var RESPAWN_BASE_DELAY_MS = 250;
+var RESPAWN_MAX_DELAY_MS = 5e3;
+var MAX_CONSECUTIVE_CRASHES = 5;
+var CRASH_WINDOW_MS = 6e4;
+var INLINE_HANDLERS = {
+  SOLVE: (payload) => {
+    const { property, borrower, loan, strategy } = buildEngineInputs(payload);
+    const deal = solveDSCR(property, borrower, loan, strategy);
+    return { deal };
+  },
+  SENSITIVITY: (payload) => {
+    const { property, borrower, loan, strategy } = buildEngineInputs(payload);
+    const deal = solveDSCR(property, borrower, loan, strategy);
+    const termYears = loan.term === "30_YR" ? 30 : loan.term === "40_YR" ? 40 : 15;
+    const sensitivity = computeBreakevenResult(
+      deal.qualifyingRent,
+      deal.monthlyPITIA.total,
+      deal.loanAmount,
+      deal.solvedRate,
+      termYears,
+      property.annualTaxes,
+      property.annualInsurance,
+      property.hoa,
+      property.floodInsurance ?? 0,
+      property.purchasePrice,
+      loan.ltv
+    );
+    return { deal, sensitivity };
+  },
+  OPTIMIZE: (payload) => {
+    const { property, borrower, loan, strategy } = buildEngineInputs(payload);
+    const options = generateStructureOptions(property, borrower, loan, strategy);
+    return { options };
+  },
+  STATE: (payload) => {
+    const ppp = checkPPPLegal(
+      payload.state,
+      payload.entityType,
+      payload.loanAmount,
+      payload.unitCount,
+      payload.productType
+    );
+    return { state: payload.state, ppp };
+  }
+};
+function runInline(type, payload) {
+  const handler = INLINE_HANDLERS[type];
+  if (!handler) return Promise.reject(new Error(`Unknown engine task type: ${type}`));
+  try {
+    return Promise.resolve(handler(payload));
+  } catch (err) {
+    return Promise.reject(err);
+  }
+}
 var WorkerPool = class {
   constructor(size) {
     this.workers = [];
@@ -1436,21 +2931,83 @@ var WorkerPool = class {
     this.activeTasks = /* @__PURE__ */ new Map();
     this.nextWorkerIndex = 0;
     this.initialized = false;
+    this.consecutiveCrashes = 0;
+    this.crashWindowStart = 0;
+    this.degraded = false;
     this.size = size;
   }
+  /** True once the pool has crash-looped and permanently handed off to inline execution. */
+  isDegraded() {
+    return this.degraded;
+  }
   ensureInitialized() {
-    if (this.initialized || this.size <= 0) return;
+    if (this.initialized || this.size <= 0 || this.degraded) return;
     this.initialized = true;
     for (let i = 0; i < this.size; i++) {
       this.createWorker();
     }
   }
+  /**
+   * Records a worker death and decides whether to respawn (and how long to
+   * wait) or to give up on worker threads for the lifetime of this process.
+   */
+  noteCrashAndScheduleRespawn() {
+    if (this.degraded) {
+      this.drainQueueInline();
+      return;
+    }
+    const now = Date.now();
+    if (this.crashWindowStart === 0 || now - this.crashWindowStart > CRASH_WINDOW_MS) {
+      this.crashWindowStart = now;
+      this.consecutiveCrashes = 0;
+    }
+    this.consecutiveCrashes += 1;
+    if (this.consecutiveCrashes >= MAX_CONSECUTIVE_CRASHES) {
+      this.degraded = true;
+      console.error(
+        `Engine worker pool disabled: ${this.consecutiveCrashes} consecutive worker crashes within ${CRASH_WINDOW_MS}ms. Falling back to inline execution for the remaining life of this process. Check that the worker entrypoint (${workerPath}) exists and loads.`
+      );
+      for (const worker of this.workers.splice(0)) {
+        void worker.terminate();
+      }
+      this.drainQueueInline();
+      return;
+    }
+    const delay = Math.min(
+      RESPAWN_BASE_DELAY_MS * 2 ** (this.consecutiveCrashes - 1),
+      RESPAWN_MAX_DELAY_MS
+    );
+    console.error(
+      `Engine worker crashed (${this.consecutiveCrashes}/${MAX_CONSECUTIVE_CRASHES} in window); respawning in ${delay}ms`
+    );
+    setTimeout(() => {
+      if (this.degraded) return;
+      this.createWorker();
+      this.processQueue();
+    }, delay);
+  }
+  /** Once degraded, queued work still has to complete — run it in-process. */
+  drainQueueInline() {
+    const queued = this.taskQueue.splice(0);
+    for (const task of queued) {
+      runInline(task.type, task.payload).then(task.resolve, task.reject);
+    }
+  }
   createWorker() {
-    const worker = new import_worker_threads.Worker(workerPath, {
-      execArgv: isProd ? [] : ["--import", "tsx"]
-    });
+    let worker;
+    try {
+      worker = new import_worker_threads.Worker(workerPath, {
+        execArgv: isProd ? [] : ["--import", "tsx"]
+      });
+    } catch (err) {
+      console.error("Failed to spawn engine worker:", err);
+      this.noteCrashAndScheduleRespawn();
+      return;
+    }
     worker.on("message", (msg) => {
       const { id, success, result, error } = msg;
+      this.consecutiveCrashes = 0;
+      this.crashWindowStart = 0;
       const task = this.activeTasks.get(id);
       if (task) {
         this.activeTasks.delete(id);
@@ -1473,7 +3030,7 @@ var WorkerPool = class {
           task.reject(new Error("Worker crashed/exited before completing this task"));
         }
       }
-      this.createWorker();
+      this.noteCrashAndScheduleRespawn();
       this.processQueue();
     };
     worker.on("error", (err) => {
@@ -1490,8 +3047,13 @@ var WorkerPool = class {
   }
   processQueue() {
     if (this.taskQueue.length === 0) return;
+    if (this.degraded) {
+      this.drainQueueInline();
+      return;
+    }
     this.ensureInitialized();
     if (this.workers.length === 0) return;
+    if (this.nextWorkerIndex >= this.workers.length) this.nextWorkerIndex = 0;
     const worker = this.workers[this.nextWorkerIndex];
     this.nextWorkerIndex = (this.nextWorkerIndex + 1) % this.workers.length;
     const task = this.taskQueue.shift();
@@ -1502,6 +3064,7 @@ var WorkerPool = class {
     }
   }
   runTask(type, payload) {
+    if (this.degraded) return runInline(type, payload);
     return new Promise((resolve, reject) => {
       const id = (Math.random() * 1e9).toString(36);
       this.taskQueue.push({ id, type, payload, resolve, reject });
@@ -1510,43 +3073,15 @@ var WorkerPool = class {
   }
 };
 var pool = new WorkerPool(WORKER_POOL_SIZE);
+function dispatch(type, payload) {
+  if (!usesWorkerPool() || pool.isDegraded()) return runInline(type, payload);
+  return pool.runTask(type, payload);
+}
 function runSolveDSCR(payload) {
-  if (!usesWorkerPool()) {
-    try {
-      const { property, borrower, loan, strategy } = buildEngineInputs(payload);
-      const deal = solveDSCR(property, borrower, loan, strategy);
-      return Promise.resolve({ deal });
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-  return pool.runTask("SOLVE", payload);
+  return dispatch("SOLVE", payload);
 }
 function runSensitivity(payload) {
-  if (!usesWorkerPool()) {
-    try {
-      const { property, borrower, loan, strategy } = buildEngineInputs(payload);
-      const deal = solveDSCR(property, borrower, loan, strategy);
-      const termYears = loan.term === "30_YR" ? 30 : loan.term === "40_YR" ? 40 : 15;
-      const sensitivity = computeBreakevenResult(
-        deal.qualifyingRent,
-        deal.monthlyPITIA.total,
-        deal.loanAmount,
-        deal.solvedRate,
-        termYears,
-        property.annualTaxes,
-        property.annualInsurance,
-        property.hoa,
-        property.floodInsurance ?? 0,
-        property.purchasePrice,
-        loan.ltv
-      );
-      return Promise.resolve({ deal, sensitivity });
-    } catch (err) {
-      return Promise.reject(err);
-    }
-  }
-  return pool.runTask("SENSITIVITY", payload);
+  return dispatch("SENSITIVITY", payload);
 }
 
 // src/routes/dscr.ts
@@ -1914,6 +3449,128 @@ function requireAuth(req, res, next) {
   next();
 }
 
+// src/middleware/rateLimitStore.ts
+var import_express_rate_limit = require("express-rate-limit");
+var import_firestore3 = require("firebase-admin/firestore");
+var COLLECTION = process.env.RATE_LIMIT_FIRESTORE_COLLECTION || "apiRateLimits";
+function sanitizeKey(key) {
+  const safe = key.replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 180);
+  return safe.length > 0 ? safe : "unknown";
+}
+var FirestoreRateLimitStore = class {
+  constructor(bucket) {
+    this.bucket = bucket;
+    /** Counters are shared across instances, so express-rate-limit's double-count check must not treat them as local. */
+    this.localKeys = false;
+    this.windowMs = 6e4;
+    this.fallback = new import_express_rate_limit.MemoryStore();
+    this.degradedLogged = false;
+    this.prefix = `${bucket}:`;
+  }
+  init(options) {
+    this.windowMs = options.windowMs;
+    this.fallback.init(options);
+  }
+  docId(key) {
+    return `${this.bucket}__${sanitizeKey(key)}`;
+  }
+  /**
+   * Any Firestore failure (permissions, quota, network) degrades to the
+   * in-process counter for that call instead of 500-ing the request. Logged
+   * once per store instance so a sustained outage cannot flood the logs.
+   */
+  degrade(error, run) {
+    if (!this.degradedLogged) {
+      this.degradedLogged = true;
+      logger.error(
+        { bucket: this.bucket, error: error instanceof Error ? error.message : String(error) },
+        "Firestore rate-limit store unavailable; falling back to per-instance memory counters"
+      );
+    }
+    return run();
+  }
+  async increment(key) {
+    const now = Date.now();
+    try {
+      const db = getAdminFirestore();
+      const ref = db.collection(COLLECTION).doc(this.docId(key));
+      return await db.runTransaction(async (tx) => {
+        const snapshot = await tx.get(ref);
+        const data = snapshot.exists ? snapshot.data() : void 0;
+        const previousExpiry = typeof data?.expiresAtMs === "number" ? data.expiresAtMs : 0;
+        if (previousExpiry <= now) {
+          const resetAtMs = now + this.windowMs;
+          tx.set(ref, {
+            totalHits: 1,
+            expiresAtMs: resetAtMs,
+            expiresAt: import_firestore3.Timestamp.fromMillis(resetAtMs)
+          });
+          return { totalHits: 1, resetTime: new Date(resetAtMs) };
+        }
+        const totalHits = (typeof data?.totalHits === "number" ? data.totalHits : 0) + 1;
+        tx.set(ref, {
+          totalHits,
+          expiresAtMs: previousExpiry,
+          expiresAt: import_firestore3.Timestamp.fromMillis(previousExpiry)
+        });
+        return { totalHits, resetTime: new Date(previousExpiry) };
+      });
+    } catch (error) {
+      return this.degrade(error, () => this.fallback.increment(key));
+    }
+  }
+  async decrement(key) {
+    try {
+      const db = getAdminFirestore();
+      const ref = db.collection(COLLECTION).doc(this.docId(key));
+      await db.runTransaction(async (tx) => {
+        const snapshot = await tx.get(ref);
+        if (!snapshot.exists) return;
+        const data = snapshot.data();
+        const totalHits = typeof data?.totalHits === "number" ? data.totalHits : 0;
+        tx.set(ref, { ...data, totalHits: Math.max(0, totalHits - 1) });
+      });
+    } catch (error) {
+      this.degrade(error, () => this.fallback.decrement(key));
+    }
+  }
+  async resetKey(key) {
+    try {
+      await getAdminFirestore().collection(COLLECTION).doc(this.docId(key)).delete();
+    } catch (error) {
+      this.degrade(error, () => this.fallback.resetKey(key));
+    }
+  }
+  shutdown() {
+    this.fallback.shutdown();
+  }
+};
+var memoryStoreWarningLogged = false;
+function warnAboutMemoryStoreOnce() {
+  if (memoryStoreWarningLogged) return;
+  memoryStoreWarningLogged = true;
+  if (process.env.NODE_ENV !== "production") return;
+  logger.warn(
+    "Rate limiting is using the in-memory store. Counters reset on every cold start and are not shared between concurrent instances, so effective limits are per-instance. Set RATE_LIMIT_FIRESTORE=true (with firebase-admin credentials) for shared, persistent counters."
+  );
+}
+function createRateLimitStore(bucket) {
+  if (process.env.RATE_LIMIT_FIRESTORE === "true") {
+    try {
+      getAdminApp();
+      logger.info({ bucket, collection: COLLECTION }, "Rate limiting using Firestore-backed store");
+      return new FirestoreRateLimitStore(bucket);
+    } catch (error) {
+      logger.error(
+        { bucket, error: error instanceof Error ? error.message : String(error) },
+        "RATE_LIMIT_FIRESTORE=true but firebase-admin is not initialized; using in-memory rate limiting"
+      );
+    }
+  }
+  warnAboutMemoryStoreOnce();
+  return void 0;
+}
+
 // src/serverApp.ts
 var app = (0, import_express4.default)();
 var isProd3 = process.env.NODE_ENV === "production";
@@ -1969,24 +3626,20 @@ app.use((req, res, next) => {
   }
   next();
 });
-var narrateLimiter = (0, import_express_rate_limit.default)({
-  windowMs: 60 * 1e3,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false
-});
-var apiLimiter = (0, import_express_rate_limit.default)({
-  windowMs: 60 * 1e3,
-  max: 120,
-  standardHeaders: true,
-  legacyHeaders: false
-});
-var leadLimiter = (0, import_express_rate_limit.default)({
-  windowMs: 15 * 60 * 1e3,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false
-});
+function createLimiter(bucket, windowMs, max) {
+  const store = createRateLimitStore(bucket);
+  return (0, import_express_rate_limit2.default)({
+    windowMs,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    // Must be omitted (not passed as undefined) to keep the library default.
+    ...store ? { store } : {}
+  });
+}
+var narrateLimiter = createLimiter("narrate", 60 * 1e3, 10);
+var apiLimiter = createLimiter("api", 60 * 1e3, 120);
+var leadLimiter = createLimiter("leads", 15 * 60 * 1e3, 5);
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",

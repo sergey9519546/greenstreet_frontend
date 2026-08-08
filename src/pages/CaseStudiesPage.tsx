@@ -11,6 +11,7 @@ import velaScene from "../../hyperframes/cs-vela.html?raw";
 import northshoreScene from "../../hyperframes/cs-northshore.html?raw";
 import quinteroScene from "../../hyperframes/cs-quintero.html?raw";
 import auroraScene from "../../hyperframes/cs-aurora.html?raw";
+import { risk } from "../theme";
 
 const SCENE_HTML: Record<string, string> = {
   vela: velaScene,
@@ -275,7 +276,7 @@ function DualTrackProof() {
   const [ref, shown] = useRevealOnView<HTMLDivElement>();
   const tracks = [
     { name: "Track 1 · Lender-qualifying DSCR", v: 1.18, color: dc.emerald, verdict: "Funds", note: "Rent covers the note. Most desks stop reading here." },
-    { name: "Track 2 · Investor-survival DSCR", v: 0.98, color: "#e0635f", verdict: "Stops", note: "Price in a 12% vacancy and the same deal goes underwater." },
+    { name: "Track 2 · Investor-survival DSCR", v: 0.98, color: risk.danger, verdict: "Stops", note: "Price in a 12% vacancy and the same deal goes underwater." },
   ];
   return (
     <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: "clamp(26px,3vw,40px)" }}>

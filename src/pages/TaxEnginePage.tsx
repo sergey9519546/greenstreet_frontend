@@ -4,6 +4,7 @@ import BottomCTA from "../design/BottomCTA";
 import { computeAfterTaxIRR } from "../engine/taxEngine";
 import { calculatePI } from "../engine/engine";
 import type { TaxProfile, FilingStatus } from "../engine/types";
+import { risk } from "../theme";
 
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
@@ -124,7 +125,7 @@ export default function TaxEnginePage({
     !hasResult ? "rgba(238,239,211,0.3)"
     : afterTaxIRR >= 0.1 ? dc.emerald
     : afterTaxIRR >= 0.06 ? dc.lemon
-    : "#e06363";
+    : risk.danger;
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -263,7 +264,7 @@ export default function TaxEnginePage({
                 {
                   label: "Tax drag",
                   val: dragStr,
-                  color: "#e06363",
+                  color: risk.danger,
                 },
               ].map((r) => (
                 <div
@@ -639,7 +640,7 @@ export default function TaxEnginePage({
                     border: "1px solid rgba(238,239,211,0.08)",
                   }}
                 >
-                  <p style={{ color: "#e06363", fontWeight: 600 }}>
+                  <p style={{ color: risk.danger, fontWeight: 600 }}>
                     Engine returned no result. Check inputs.
                   </p>
                 </div>
@@ -736,7 +737,7 @@ export default function TaxEnginePage({
                         {
                           label: "Total tax on exit — depreciation recapture + capital gains tax owed when you sell",
                           val: fmt$(result.totalTaxOnExit),
-                          color: "#e06363",
+                          color: risk.danger,
                         },
                         {
                           label: "§1250 recapture rate — the tax rate on depreciation you claimed (capped at 25%)",
@@ -753,7 +754,7 @@ export default function TaxEnginePage({
                         {
                           label: "NIIT (3.8% net investment income tax) — applies if MAGI exceeds $200K single / $250K joint",
                           val: result.niitApplies ? "Yes — adds 3.8% to investment income" : "No",
-                          color: result.niitApplies ? "#e06363" : dc.emerald,
+                          color: result.niitApplies ? risk.danger : dc.emerald,
                         },
                       ] as { label: string; val: string; color: string }[]
                     ).map((r) => (
@@ -840,7 +841,7 @@ export default function TaxEnginePage({
                         <tbody>
                           {result.yearByYear.map((row) => {
                             const atColor =
-                              row.afterTaxNCF >= 0 ? dc.emerald : "#e06363";
+                              row.afterTaxNCF >= 0 ? dc.emerald : risk.danger;
                             // Tax shield = depreciation × effective rate (approximation)
                             const taxShield = row.depreciationDeduction * (result as any).effectiveTaxRate;
                             return (
@@ -893,7 +894,7 @@ export default function TaxEnginePage({
                                   style={{
                                     padding: "6px 8px",
                                     fontSize: 12,
-                                    color: "#e06363",
+                                    color: risk.danger,
                                     textAlign: "right",
                                     fontFamily: dc.mono,
                                   }}

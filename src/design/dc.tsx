@@ -435,7 +435,7 @@ export function HeroProof({
   const t2NumRef = useRef<HTMLSpanElement>(null);
   const fmtNum = valueFmt || ((n: number) => n.toFixed(2) + "x");
 
-  const CORAL = "#e0635f";
+  const CORAL = risk.danger;
   const ARC_LEN = Math.PI * 110;            // semicircle gauge, r=110
   const t1 = valueNum ?? (typeof value === "string" ? parseFloat(value) : 0);
   const hasDual = track2Num !== undefined && track2Num < t1 - 0.001;
