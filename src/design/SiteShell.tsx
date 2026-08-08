@@ -8,6 +8,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { PISTACHIO, MIDNIGHT, LEMON, FADED } from "../theme";
 import { INVESTGO_TEXT, NAV_MENUS, NAV_STANDALONE_LINKS, NAV_SYNC_CSS, type NavItem, type NavMenu } from "./navModel";
+import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
+
+/** Paths that render ToolReliabilityHoldPage instead of the tool. */
+const HELD_PATHS = new Set<string>(Object.values(TOOL_RELIABILITY_HOLDS).map((h) => h.path));
+const isHeldPath = (path: string) => HELD_PATHS.has(path);
 
 const INVESTGO_LABEL = (
   <>INVEST<span style={{ opacity: 0.5 }}>GO</span></>
@@ -29,6 +34,11 @@ const NAV_DD_CSS = `
    and never before it. This lived as an inline display:flex on the button,
    which beats every stylesheet rule — so the burger rendered on TOP of the full
    desktop nav at every width. Keep display here, not inline. */
+/* "In review" chip on nav entries whose tool is behind a reliability hold.
+   Muted on purpose — it informs, it must not compete with the label. */
+.gs-nav-hold{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:999px;
+  font-family:inherit;font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;
+  vertical-align:middle;color:rgba(238,239,211,0.72);border:1px solid rgba(238,239,211,0.28);}
 .burger-wrap{display:none;}
 @media screen and (max-width:991px){.burger-wrap{display:flex;}}
 .burger-line{display:block;width:22px;height:2px;background:currentColor;border-radius:2px;transition:transform .25s ease,opacity .2s ease;}
@@ -241,7 +251,16 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
                   )}
                   {cards.map((it, i) => (
                     <a key={i} role="menuitem" className={`nav_dropdown_link is-desktop w-inline-block${itemActive(it) ? " w--current" : ""}`} href={it.path} onClick={nav(it)}>
-                      <div className="nav_dropdown_text u-text-style-h4">{renderNavLabel(it.label)}</div>
+                      <div className="nav_dropdown_text u-text-style-h4">
+                        {renderNavLabel(it.label)}
+                        {/* Every tool with an unmet reliability hold renders a wall
+                            instead of the tool. Suppressing those links is not an
+                            option — currently every dropdown entry is held, so the
+                            menus would be empty. Say so before the click instead of
+                            after it. Derived from TOOL_RELIABILITY_HOLDS so the chip
+                            disappears the moment a hold record is deleted. */}
+                        {isHeldPath(it.path) && <span className="gs-nav-hold">In review</span>}
+                      </div>
                       {cardIcon}
                     </a>
                   ))}
