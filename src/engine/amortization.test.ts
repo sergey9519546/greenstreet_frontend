@@ -617,3 +617,61 @@ describe('the schedule is one primitive, shared', () => {
     expect(cumulativePayments(s, 0, 240)).toBeCloseTo(s.totalPaid, 4);
   });
 });
+
+// ---------------------------------------------------------------------------
+// payoffQuote could only express a penalty as a percent of the balance, so the
+// structures the product actually sells — SIX_MONTHS_INTEREST and
+// SIX_MONTHS_80_PCT — had no representation. Those are months of INTEREST, so
+// they scale with the rate and no single percentage covers them: $10.4K on a
+// $300K balance at 7%, $14.9K at 10%.
+//
+// The amount is passed in rather than the PrepayType, because prepay structures
+// are loan-product policy and this module is deliberately pure arithmetic.
+// resolvePrepayPenalty in loanOptimizer.ts turns a structure into the number.
+// ---------------------------------------------------------------------------
+describe('payoffQuote — structures a percentage cannot express', () => {
+  const s = buildAmortizationSchedule({ principal: P, annualRatePct: RATE, termMonths: TERM });
+
+  it('takes an explicit penalty amount', () => {
+    const balance = balanceAtMonth(s, 24);
+    const sixMonthsInterest = balance * (RATE / 100 / 12) * 6;
+    const q = payoffQuote({ schedule: s, month: 24, prepaymentPenaltyAmount: sixMonthsInterest, payoffFees: 350 });
+
+    expect(q.prepaymentPenalty).toBeCloseTo(sixMonthsInterest, 6);
+    expect(q.totalPayoff).toBeCloseTo(balance + sixMonthsInterest + 350, 6);
+  });
+
+  it('the amount wins over a percentage when both are given', () => {
+    const q = payoffQuote({ schedule: s, month: 24, prepaymentPenaltyPct: 5, prepaymentPenaltyAmount: 1234.56 });
+    expect(q.prepaymentPenalty).toBe(1234.56);
+  });
+
+  it('an explicit ZERO is honoured, not treated as absent', () => {
+    // `?? ` on a numeric field would have let a real zero fall through to the
+    // percentage — a waived penalty silently becoming a charged one.
+    const q = payoffQuote({ schedule: s, month: 24, prepaymentPenaltyPct: 5, prepaymentPenaltyAmount: 0 });
+    expect(q.prepaymentPenalty).toBe(0);
+    expect(q.totalPayoff).toBeCloseTo(balanceAtMonth(s, 24), 6);
+  });
+
+  it('still uses the percentage when no amount is supplied', () => {
+    const q = payoffQuote({ schedule: s, month: 24, prepaymentPenaltyPct: 3 });
+    expect(q.prepaymentPenalty).toBeCloseTo(balanceAtMonth(s, 24) * 0.03, 6);
+  });
+
+  it('never credits a negative amount', () => {
+    const q = payoffQuote({ schedule: s, month: 24, prepaymentPenaltyAmount: -50_000 });
+    expect(q.prepaymentPenalty).toBe(0);
+  });
+
+  it('a months-of-interest penalty tracks the rate — the reason a percentage failed', () => {
+    const cheap = buildAmortizationSchedule({ principal: P, annualRatePct: 7, termMonths: TERM });
+    const dear = buildAmortizationSchedule({ principal: P, annualRatePct: 10, termMonths: TERM });
+    const six = (sch: typeof cheap, rate: number) =>
+      balanceAtMonth(sch, 24) * (rate / 100 / 12) * 6;
+
+    const a = payoffQuote({ schedule: cheap, month: 24, prepaymentPenaltyAmount: six(cheap, 7) });
+    const b = payoffQuote({ schedule: dear, month: 24, prepaymentPenaltyAmount: six(dear, 10) });
+    expect(b.prepaymentPenalty).toBeGreaterThan(a.prepaymentPenalty * 1.3);
+  });
+});
