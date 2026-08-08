@@ -1526,12 +1526,27 @@ export function buildICMemo(input: ICMemoInput): ICMemo {
   };
 }
 
+/**
+ * The IC memo's prose summary.
+ *
+ * Every number goes through `fmt`, so an unestablished input reads "not
+ * established" instead of the literal string "NaN". A memo is the artefact a
+ * human signs off on; "NaN%" invites the reader to assume a rendering glitch
+ * over a missing measurement, and a silently substituted default is worse
+ * still — it reads as a figure somebody computed.
+ */
 function buildRiskStatement(input: ICMemoInput): string {
+  const t1 = finite(input.track1DSCR);
+  const floor = finite(input.lenderMinDSCR);
+  const cushion = t1 !== null && floor !== null ? t1 - floor : null;
+  const irr = finite(input.afterTaxIRR);
+  const pFail = finite(input.pDSCRLessThan1);
+
   const parts: string[] = [];
   parts.push(`Property: ${input.propertyAddress} (${input.entityType}). `);
-  parts.push(`Qualification: Track 1 DSCR ${input.track1DSCR.toFixed(3)} vs lender floor ${input.lenderMinDSCR.toFixed(2)} — cushion ${(input.track1DSCR - input.lenderMinDSCR).toFixed(3)}. `);
-  parts.push(`Return: After-tax IRR ${(input.afterTaxIRR * 100).toFixed(1)}% (Grade ${input.verdict.returnGrade}), equity multiple ${input.equityMultiple.toFixed(2)}x. `);
-  parts.push(`Risk: Binding risk = ${input.bindingRisk}. P(DSCR<1.00) = ${(input.pDSCRLessThan1 * 100).toFixed(1)}%. `);
+  parts.push(`Qualification: Track 1 DSCR ${fmt(t1)} vs lender floor ${fmt(floor, 2)} — cushion ${fmt(cushion)}. `);
+  parts.push(`Return: After-tax IRR ${fmt(irr === null ? null : irr * 100, 1, '%')} (Grade ${input.verdict.returnGrade}), equity multiple ${fmt(finite(input.equityMultiple), 2, 'x')}. `);
+  parts.push(`Risk: Binding risk = ${input.bindingRisk}. P(DSCR<1.00) = ${fmt(pFail === null ? null : pFail * 100, 1, '%')}. `);
   parts.push(`Structural condition that flips verdict: ${input.verdict.killSwitchConditions[0] ?? 'None'}.`);
   return parts.join('');
 }

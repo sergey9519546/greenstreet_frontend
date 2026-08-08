@@ -35,7 +35,14 @@ import { computeReassessedTax, computeReassessmentDSCRImpact } from './reassessm
 import { computeARMReset, DEFAULT_ARM_PROGRAMS, CURRENT_MARKET_SNAPSHOT, computeRemainingBalanceAtReset } from './armResetEngine';
 import { computeReturns, computeRemainingBalance } from './returnsEngine';
 import { computeAfterTaxIRR, assessCostSegViability } from './taxEngine';
-import { computeVerdict, buildICMemo, type VerdictInput, type ICMemoInput } from './decisionSupport';
+import {
+  computeVerdict,
+  buildICMemo,
+  type VerdictInput,
+  type ICMemoInput,
+  type Track2Acknowledgment,
+} from './decisionSupport';
+import { evaluateProgramFit } from './programFit';
 
 // ============================================================
 // INTEGRATED V11 ANALYSIS RESULT
@@ -208,8 +215,17 @@ export interface V11AnalysisInput {
   insuranceQuoteConfirmed?: boolean;
   isCoastalProperty?: boolean;
   isWildfireZone?: boolean;
-  // Optional lender ranking (from external lender fit)
+  // Optional lender ranking (from external lender fit). When absent, the runner
+  // evaluates the dated program matrix itself via `evaluateProgramFit` rather
+  // than passing an empty array — an empty ranking means "never evaluated" to
+  // the verdict, which is a PASS, not a clean slate.
   lenderRanking?: LenderRankingEntry[];
+  /**
+   * The investor's explicit Track-2 negative-carry acknowledgment, when one has
+   * been given. Absent by default: the verdict fails closed without it, and a
+   * runner must never manufacture an acknowledgment on the investor's behalf.
+   */
+  track2Acknowledgment?: Track2Acknowledgment | null;
   // PPP
   pppAllowed?: boolean;
   // Property address (for IC memo)
@@ -364,10 +380,55 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
   // 0.08/0.12/0.15 thresholds). So: taxEngine-sourced values pass through UNCHANGED
   // (already decimal — do NOT divide by 100 again; that was the bug: 0.15 → 0.0015,
   // a 100x error), while returnsEngine-sourced PERCENT values get /100 to become decimal.
+  // PROGRAM FIT — real floors from the dated matrix, not house constants.
+  //
+  // This block used to read:
+  //     lenderMinDSCR: 1.0,   // standard floor
+  //     ltvCap: 80,           // standard cap
+  //     lenderMinLoan: 75000,
+  //     bestLenderConfidence: input.lenderRanking?.[0]?.confidenceScore ?? 75,
+  //     lenderRanking: input.lenderRanking ?? [],
+  //
+  // None of those came from a program. `computeVerdict` fails closed on an
+  // unknown floor/cap/minimum precisely so an unverified deal cannot claim to
+  // have cleared underwriting — but every one of these substitutes is finite,
+  // so each one satisfied the gate it was supposed to trip. The `?? 75`
+  // confidence also sat above the "<60 confidence" kill criterion, disarming it
+  // with a number no model produced.
+  //
+  // `evaluateProgramFit` reads `dscrPrograms.ts` (vintage DSCR_PROGRAMS_AS_OF)
+  // and returns NaN when nothing fits, which the verdict reports as "not
+  // established". A caller that already has a real ranking may still pass one;
+  // its values win, because they came from somewhere this module cannot see.
+  const programFit = evaluateProgramFit({
+    fico: input.borrower.ficoScore,
+    loanAmount,
+    dscr: track1DSCR,
+    ltvNeeded: input.loan.ltv,
+    txType: input.loan.purpose === 'CASH_OUT' ? 'cashOut'
+          : input.loan.purpose === 'RATE_TERM' ? 'rateTerm'
+          : 'purchase',
+    solvedRate: dscr.solvedRate,
+    isMultiFamily: input.property.propertyType === '5+_UNIT' || input.property.unitCount >= 5,
+    isSTR: input.strategy === 'STR',
+    isForeignNational: input.borrower.isNonUsInvestor,
+  });
+
+  const suppliedRanking = input.lenderRanking?.length ? input.lenderRanking : null;
+  const lenderRanking = suppliedRanking ?? programFit.lenderRanking;
+
+  // Confidence is null unless a caller supplied a ranking that carries a real
+  // score. `programFit` scores 0 meaning "not scored" — reporting that as 0
+  // would trip the <60 kill as though a model had judged the lender poor, and
+  // substituting a plausible number is what this change exists to stop.
+  const bestLenderConfidence = suppliedRanking
+    ? (suppliedRanking[0].confidenceScore > 0 ? suppliedRanking[0].confidenceScore : null)
+    : null;
+
   const verdictInput: VerdictInput = {
     track1DSCR,
     track2DSCR,
-    lenderMinDSCR: 1.0, // standard floor
+    lenderMinDSCR: programFit.lenderMinDSCR,
     afterTaxIRR: afterTaxIRR.afterTaxIRR, // already decimal — see convention note above
     preTaxIRR: afterTaxIRR.preTaxIRR,     // already decimal — see convention note above
     year1CoC: returns.year1CashOnCash / 100, // returnsEngine gives percent -> convert to decimal
@@ -378,18 +439,28 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     insuranceGate,
     brrrrGate,
     armReset,
-    strLegalityStatus: 'CLEAR', // assume CLEAR for LTR; STR gate would set this
+    // Derived from the strategy actually being underwritten. Hardcoding 'CLEAR'
+    // asserted a jurisdiction clearance nobody checked, and because 'CLEAR' is a
+    // recognised status it also silenced the verdict's own
+    // "STR Legality Not Evaluated" warning.
+    //
+    // STR maps to NOT_EVALUATED, not UNCERTAIN: this runner holds no
+    // jurisdiction data at all, and UNCERTAIN is a recognised status that would
+    // read as "we looked and could not tell".
+    strLegalityStatus: input.strategy === 'STR' ? 'NOT_EVALUATED' : 'NOT_APPLICABLE',
     pppAllowed: input.pppAllowed ?? true,
     ficoScore: input.borrower.ficoScore,
     ltv: input.loan.ltv,
-    ltvCap: 80, // standard cap
+    ltvCap: programFit.ltvCap,
     loanAmount,
-    lenderMinLoan: 75000,
-    bestLenderConfidence: input.lenderRanking?.[0]?.confidenceScore ?? 75,
-    lenderRanking: input.lenderRanking ?? [],
+    lenderMinLoan: programFit.lenderMinLoan,
+    bestLenderConfidence,
+    lenderRanking,
     isDecliningMarket: input.property.isDecliningMarket,
     monteCarloPDSCRLessThan1: input.monteCarloPDSCRLessThan1,
     monteCarlo5thPctDSCR: input.monteCarlo5thPctDSCR,
+    track2MonthlyCashFlow: dscr.dualTrackDSCR.track2.monthlyCashFlow,
+    track2Acknowledgment: input.track2Acknowledgment ?? null,
   };
   const verdict = computeVerdict(verdictInput);
 
@@ -415,13 +486,28 @@ export function runV11Analysis(input: V11AnalysisInput): V11AnalysisResult {
     sellerAnnualTax: input.sellerAnnualTax ?? input.property.annualTaxes,
     reassessedAnnualTax: reassessment.reassessedAnnualTax,
     bindingRisk: 'Rent (Track 1 sensitivity)', // simplified
-    pDSCRLessThan1: input.monteCarloPDSCRLessThan1 ?? 0.10,
-    fifthPctDSCR: input.monteCarlo5thPctDSCR ?? 0.85,
-    heatmapSummary: `Fails at vacancy >12% + rent -10%`,
+    // No Monte Carlo was run unless the caller supplied one. `?? 0.10` and
+    // `?? 0.85` printed a 10% failure probability and a 0.85 tail DSCR on a
+    // signed memo for a simulation that never happened — and both sat just
+    // inside the thresholds the verdict tests (>0.15 and <0.80), so the
+    // invented figures also read as "checked and passed".
+    pDSCRLessThan1: input.monteCarloPDSCRLessThan1 ?? Number.NaN,
+    fifthPctDSCR: input.monteCarlo5thPctDSCR ?? Number.NaN,
+    heatmapSummary: input.monteCarloPDSCRLessThan1 !== undefined
+      ? `P(DSCR<1.00) ${(input.monteCarloPDSCRLessThan1 * 100).toFixed(1)}% from the supplied simulation.`
+      : 'No stress heatmap was run for this scenario.',
     armReset,
-    lenderRanking: input.lenderRanking ?? [],
+    // Same ranking the verdict was decided on. This used to be
+    // `input.lenderRanking ?? []`, so an IC memo could show an empty lender
+    // section beneath a verdict reached from a different set of lenders.
+    lenderRanking,
     insuranceStatus: insuranceGate.verdict === 'CLEAR' ? 'CLEAR' : insuranceGate.verdict === 'KILL' ? 'UNCONFIRMED — kill criterion' : 'CONFIRMED',
-    strLegality: input.strategy === 'STR' ? 'CLEAR' : 'N/A (LTR)',
+    // An STR memo used to read 'CLEAR' — a jurisdiction clearance stated on a
+    // signed document with no jurisdiction ever checked. STR legality is the
+    // one gate that can void the income the whole deal rests on.
+    strLegality: input.strategy === 'STR'
+      ? 'NOT EVALUATED — no jurisdiction check has been run for this property'
+      : 'N/A (LTR)',
     reserves: {
       likely: dscr.cashToClose.reserveRequirement,
       conservative: dscr.cashToClose.reserveConservative,
