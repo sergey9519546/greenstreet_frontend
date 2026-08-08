@@ -47,6 +47,16 @@ const routeModules = {
   ARMPage: () => import("./pages/ARMPage"),
   StressMatrixPage: () => import("./pages/StressMatrixPage"),
   PortfolioPage: () => import("./pages/PortfolioPage"),
+  StateLawsPage: () => import("./pages/StateLawsPage"),
+  STRUnderwritingPage: () => import("./pages/STRUnderwritingPage"),
+  TaxEnginePage: () => import("./pages/TaxEnginePage"),
+  ReturnsPage: () => import("./pages/ReturnsPage"),
+  RateQuizPage: () => import("./pages/RateQuizPage"),
+  DealAnalyzerPage: () => import("./pages/DealAnalyzerPage"),
+  PerfectPropertyPage: () => import("./pages/PerfectPropertyPage"),
+  StructureOptimizerPage: () => import("./pages/StructureOptimizerPage"),
+  DecisionSupportPage: () => import("./pages/DecisionSupportPage"),
+  MonteCarloPage: () => import("./pages/MonteCarloPage"),
 } as const;
 
 // ─── Chunk-load failure ───────────────────────────────────────────────────────
@@ -177,6 +187,16 @@ const RefiTrackerPage = lazyRoute("RefiTrackerPage");
 const ARMPage = lazyRoute("ARMPage");
 const StressMatrixPage = lazyRoute("StressMatrixPage");
 const PortfolioPage = lazyRoute("PortfolioPage");
+const StateLawsPage = lazyRoute("StateLawsPage");
+const STRUnderwritingPage = lazyRoute("STRUnderwritingPage");
+const TaxEnginePage = lazyRoute("TaxEnginePage");
+const ReturnsPage = lazyRoute("ReturnsPage");
+const RateQuizPage = lazyRoute("RateQuizPage");
+const DealAnalyzerPage = lazyRoute("DealAnalyzerPage");
+const PerfectPropertyPage = lazyRoute("PerfectPropertyPage");
+const StructureOptimizerPage = lazyRoute("StructureOptimizerPage");
+const DecisionSupportPage = lazyRoute("DecisionSupportPage");
+const MonteCarloPage = lazyRoute("MonteCarloPage");
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
 // Users get a plain-language recovery message; the raw error text lives behind a
@@ -429,6 +449,7 @@ function viewToPath(view: PageView): string {
     case "decision-support":  return "/tools/decision-support";
     case "str-underwriting":  return "/tools/str-underwriting";
     case "portfolio":         return "/tools/portfolio";
+    case "perfect-property":  return "/tools/perfect-property";
     case "about":             return "/about";
     case "careers":           return "/careers";
     case "legal":             return "/legal";
@@ -442,6 +463,12 @@ function viewToPath(view: PageView): string {
     case "commercial-dscr":     return "/tools/commercial-dscr";
     case "construction-bridge": return "/tools/construction-bridge";
     case "tco-threshold":       return "/tools/tco-threshold";
+    // Exhaustive over PageView (verified: every union member has a case
+    // above), but a 42-arm switch without a default isn't something TS proves
+    // exhaustive reliably. Fail closed to the marketing route rather than
+    // let a future desync between PageView and this switch return undefined
+    // into a pushState call.
+    default: return "/";
   }
 }
 
@@ -600,7 +627,7 @@ export default function App() {
       case "lender-intel":
         return <LenderIntelPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "state-laws":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.stateRules} onNavigate={navigateFromReliabilityHold} />;
+        return <StateLawsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "faq":
         return <FAQPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "blog":
@@ -610,9 +637,9 @@ export default function App() {
       case "case-studies":
         return <CaseStudiesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "rate-quiz":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.rateQuiz} onNavigate={navigateFromReliabilityHold} />;
+        return <RateQuizPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "deal-analyzer":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.dealAnalyzer} onNavigate={navigateFromReliabilityHold} />;
+        return <DealAnalyzerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "borrower-profiles":
         return <BorrowerProfilesPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "non-us-investors":
@@ -650,25 +677,27 @@ export default function App() {
       case "arm-reset":
         return <ARMPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "monte-carlo":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.monteCarlo} onNavigate={navigateFromReliabilityHold} />;
+        return <MonteCarloPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "returns":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.returns} onNavigate={navigateFromReliabilityHold} />;
+        return <ReturnsPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "tax-engine":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.taxEngine} onNavigate={navigateFromReliabilityHold} />;
+        return <TaxEnginePage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "stress-matrix":
         return <StressMatrixPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "decision-support":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.decisionSupport} onNavigate={navigateFromReliabilityHold} />;
+        return <DecisionSupportPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "commercial-dscr":
         return <CommercialDSCRPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "construction-bridge":
         return <ConstructionBridgePage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "tco-threshold":
         return <TCOThresholdPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
+      case "perfect-property":
+        return <PerfectPropertyPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "str-underwriting":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.strUnderwriting} onNavigate={navigateFromReliabilityHold} />;
+        return <STRUnderwritingPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "structure-optimizer":
-        return <ToolReliabilityHoldPage {...TOOL_RELIABILITY_HOLDS.structureOptimizer} onNavigate={navigateFromReliabilityHold} />;
+        return <StructureOptimizerPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "portfolio":
         return <PortfolioPage key={pathname} onBack={() => goTo("marketing")} onNavigate={goTo} />;
       case "external":

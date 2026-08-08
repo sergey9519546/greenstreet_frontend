@@ -231,7 +231,26 @@ export default function CommercialDSCRPage({
             {/* Right — the METHOD, not a second copy of the result. The live
                 figures live in one place only (the tool band below). */}
             <Card tone="raised" pad="clamp(24px,2.6vw,34px)">
-              <Eyebrow style={{ marginBottom: 18 }}>How the number is built</Eyebrow>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
+                  marginBottom: 18,
+                  borderRadius: dc.r.md,
+                  overflow: "hidden",
+                }}
+              >
+                <div style={{ background: "#f7f6f0", borderRadius: dc.r.sm, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)" }}>
+                  <img src="/img/properties/multifamily_brownstone.jpg" alt="Commercial Multi-Family Line Art" style={{ width: "100%", height: 110, objectFit: "cover" }} />
+                  <div style={{ fontSize: 10, fontWeight: 700, textAlign: "center", padding: "4px 0", color: "#003738", background: "#f7f6f0" }}>5+ Unit Multi-Family</div>
+                </div>
+                <div style={{ background: "#f7f6f0", borderRadius: dc.r.sm, overflow: "hidden", border: "1px solid rgba(238,239,211,0.12)" }}>
+                  <img src="/img/properties/mixed_use_storefront.jpg" alt="Mixed-Use Retail Storefront Line Art" style={{ width: "100%", height: 110, objectFit: "cover" }} />
+                  <div style={{ fontSize: 10, fontWeight: 700, textAlign: "center", padding: "4px 0", color: "#003738", background: "#f7f6f0" }}>Mixed-Use Commercial</div>
+                </div>
+              </div>
+              <Eyebrow style={{ marginBottom: 14 }}>How the number is built</Eyebrow>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {METHOD.map((m) => (
                   <div key={m.n} style={{ display: "grid", gridTemplateColumns: "34px 1fr", gap: 14, alignItems: "start" }}>

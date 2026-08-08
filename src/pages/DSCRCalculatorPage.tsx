@@ -11,11 +11,13 @@ import { estimateAnnualInsurance } from "../engine/insuranceEstimate";
 import { computeReturns } from "../engine/returnsEngine";
 import { computeExecutionRisk } from "../engine/decisionSupport";
 import { computeReassessedTax, computeReassessmentDSCRImpact } from "../engine/reassessmentEngine";
-import { rescueTrack2 } from "../engine/loanOptimizer";
-import type { PropertyInputs, LoanStructure, BorrowerProfile, ARMType } from "../engine/types";
+import { rescueTrack2, generateStructureOptions } from "../engine/loanOptimizer";
+import PropertyTypesGallery from '../components/PropertyTypesGallery';
+import type { PropertyInputs, LoanStructure, BorrowerProfile, ARMType, StructureOption } from "../engine/types";
 import BottomCTA from "../design/BottomCTA";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
+import { ControlTooltip } from "../components/ui/ControlTooltip";
 import {
   type DealSnapshot,
   type CalcTab,
@@ -245,6 +247,61 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     const maintenancePct = 3;
     return rescueTrack2(rent, pitia, dual.track2, vacancyPct, managementPct, maintenancePct);
   }, [rent, pitia, dual.track2]);
+
+  // ── 12 Loan Structure Comparator ──
+  const [showStructOptions, setShowStructOptions] = useState(false);
+  const structOptions: StructureOption[] = useMemo(() => {
+    const propInputs: PropertyInputs = {
+      purchasePrice: price,
+      leaseRent: rent,
+      marketRent: rent,
+      strProjectedRent: 0,
+      strDocumentedRent: 0,
+      hoa,
+      annualTaxes: taxYr,
+      annualInsurance: ins,
+      floodInsurance: 0,
+      propertyType: 'SFR',
+      state: stateCode,
+      unitCount: 1,
+      sqft: 0,
+      yearBuilt: 2000,
+      isCondotel: false,
+      isNonWarrantable: false,
+      isRural: false,
+      isDecliningMarket: false,
+      hoaSTRPolicy: 'UNKNOWN',
+    };
+    const borrowerProf: BorrowerProfile = {
+      ficoScore: 720,
+      experience: 'EXPERIENCED',
+      existingFinancedProperties: 2,
+      entityType: 'LLC',
+      isUSCitizenOrPR: true,
+      availableReserves: 50000,
+      reserveAssets: [],
+      isFirstResponder: false,
+      isNonUsInvestor: false,
+    };
+    const loanStruct: LoanStructure = {
+      ltv: 100 - down,
+      term: '30_YR',
+      ioPeriod: 'NONE',
+      armType: rateType,
+      prepayPreference: 'NONE',
+      purpose: 'PURCHASE',
+      expectedHoldYears: 5,
+      points: 0,
+      lenderFees: 0,
+      brokerFees: 0,
+      rateLockCost: 0,
+    };
+    try {
+      return generateStructureOptions(propInputs, borrowerProf, loanStruct, 'LTR');
+    } catch {
+      return [];
+    }
+  }, [price, rent, hoa, taxYr, ins, stateCode, down, rateType]);
 
   // ── Execution Risk (approval likelihood) ──
   const [showExecRisk, setShowExecRisk] = useState(false);
@@ -522,27 +579,56 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
               {/* INPUT RAIL */}
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
+                {/* Plain-English DSCR Explainer Box */}
+                <div style={{ background: "rgba(216, 217, 88, 0.08)", border: "1px solid rgba(216, 217, 88, 0.25)", borderRadius: radius.sm, padding: "14px 16px", marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: LEMON, marginBottom: 4 }}>💡 What is DSCR?</div>
+                  <div style={{ fontSize: 12, color: PISTACHIO, lineHeight: 1.45 }}>
+                    <strong>Debt Service Coverage Ratio (DSCR)</strong> = Monthly Rent ÷ Monthly Loan Payment (PITIA). A ratio of <strong>1.25x</strong> means rent is 25% higher than your payment. Qualification is based entirely on property rental income — no tax returns or W-2s needed.
+                  </div>
+                </div>
+
                 <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: swatch.emerald, marginBottom: 6 }}>Property inputs</div>
                 <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 20, lineHeight: 1.5 }}>Estimates are fine — adjust any number and results update instantly.</p>
                 <div style={{ display: 'grid', gap: 24 }}>
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Down payment — sets your LTV (loan ÷ value)</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', display: 'inline-flex', alignItems: 'center' }}>
+                        Down payment — sets your LTV
+                        <ControlTooltip
+                          title="Down Payment (%)"
+                          description="The percentage of the purchase price paid upfront in cash."
+                          impact="A higher down payment reduces your loan balance, lowers interest rates, and boosts your DSCR ratio."
+                        />
+                      </span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{down}% · {fmt(price * down / 100)}</Mono>
                     </div>
                     <PremiumSlider min={20} max={50} step={5} value={down} onChange={setDown} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>20%</span><span>50%</span></div>
                   </div>
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Interest rate — drives P&amp;I payment</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', display: 'inline-flex', alignItems: 'center' }}>
+                        Interest rate — drives P&amp;I payment
+                        <ControlTooltip
+                          title="Interest Rate (%)"
+                          description="Annual interest rate for your DSCR loan."
+                          impact="Lower interest rates reduce your monthly P&I payment, directly increasing your DSCR ratio and cash flow."
+                        />
+                      </span>
                       <Mono style={{ fontSize: 14, fontWeight: 600, color: LEMON }}>{rate.toFixed(3)}%</Mono>
                     </div>
                     <PremiumSlider min={4} max={12} step={0.125} value={rate} onChange={setRate} />
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}><span>4%</span><span>12%</span></div>
                   </div>
                   <div>
-                    <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 9 }}>Rate type</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 9 }}>
+                      Rate type
+                      <ControlTooltip
+                        title="Loan Structure"
+                        description="Choose between a 30-year fixed rate or an Adjustable Rate Mortgage (ARM)."
+                        impact="ARM loans often start at lower rates but adjust periodically after the initial fixed term."
+                      />
+                    </span>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                       {([
                         { v: 'FIXED', l: 'Fixed' },
@@ -580,9 +666,6 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                           href="/tools/arm-reset"
                           onClick={(e) => {
                             e.preventDefault();
-                            // Hand off this deal's numbers so the reset tool opens
-                            // already loaded instead of asking for them twice. Read
-                            // once on mount there, then cleared — see ARMPage.tsx.
                             try {
                               sessionStorage.setItem('gs:arm-prefill', JSON.stringify({
                                 loanAmount: Math.round(price * (100 - down) / 100),
@@ -591,7 +674,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                                 monthlyRent: rent,
                                 pitiaNonDebt: Math.round(taxYr / 12 + ins / 12 + hoa),
                               }));
-                            } catch { /* storage may be blocked; ARM page falls back to its own defaults */ }
+                            } catch {}
                             onNavigate?.('arm-reset');
                           }}
                           style={{ color: swatch.emerald, fontWeight: 700, textDecoration: 'none' }}
@@ -601,16 +684,41 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </div>
                     )}
                   </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', display: 'inline-flex', alignItems: 'center' }}>
+                        Purchase price
+                      </span>
+                      <ControlTooltip
+                        title="Purchase Price ($)"
+                        description="The total purchase contract price or target property valuation."
+                        impact="Sets total loan amount and calculated property tax reset basis."
+                      />
+                    </div>
+                    <CurrencyInput ariaLabel="Purchase price" prefix="$" value={price} onChange={setPrice} style={{ width: '100%' }} />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', display: 'inline-flex', alignItems: 'center' }}>
+                        Monthly rent
+                      </span>
+                      <ControlTooltip
+                        title="Monthly Rental Income ($)"
+                        description="Gross monthly rent generated by the rental property (lease or market appraisal)."
+                        impact="Directly increases your DSCR ratio. Lenders use the lower of signed lease or appraisal 1007 rent."
+                      />
+                    </div>
+                    <CurrencyInput ariaLabel="Monthly rent" prefix="$" value={rent} onChange={setRent} style={{ width: '100%' }} />
+                  </div>
                   <label style={{ display: 'block' }}>
-                    <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Purchase price</span>
-                    <CurrencyInput prefix="$" value={price} onChange={setPrice} style={{ width: '100%' }} />
-                  </label>
-                  <label style={{ display: 'block' }}>
-                    <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Monthly rent</span>
-                    <CurrencyInput prefix="$" value={rent} onChange={setRent} style={{ width: '100%' }} />
-                  </label>
-                  <label style={{ display: 'block' }}>
-                    <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>State — sets the tax reset &amp; insurance rules</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>
+                      State — sets tax reset &amp; insurance
+                      <ControlTooltip
+                        title="Property State"
+                        description="State where the property is located."
+                        impact="Applies state-specific property tax reset rates, insurance benchmarks, and prepayment penalty laws."
+                      />
+                    </span>
                     <div style={{ display: "flex", alignItems: "center", background: swatch.pistachio, border: `1.5px solid ${swatch.midnightFaded}`, borderRadius: radius.sm, padding: "0 12px", transition: "border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)", width: "100%" }}>
                       <select value={stateCode} onChange={e => setStateCode(e.target.value)} style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', color: swatch.midnight, fontFamily: font.family, fontSize: 16, fontWeight: 700, padding: '12px 0', cursor: 'pointer', appearance: "none" }}>
                         {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -621,7 +729,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <label style={{ display: 'block' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-                        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Taxes /yr</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', display: 'inline-flex', alignItems: 'center' }}>
+                          Taxes /yr
+                          <ControlTooltip
+                            title="Annual Property Taxes ($)"
+                            description="Annual property tax bill."
+                            impact="Greenstreet automatically calculates the post-purchase reassessment tax to protect your DSCR from stale seller tax figures."
+                          />
+                        </span>
                         <button type="button" onClick={() => { if (taxAuto) { setTax(estTax); setTaxAuto(false); } else { setTaxAuto(true); } }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: taxAuto ? swatch.emerald : 'rgba(238,239,211,0.45)' }}>
                           {taxAuto ? '● Auto reset' : 'Manual'}
                         </button>
@@ -631,7 +746,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       </div>
                     </label>
                     <label style={{ display: 'block' }}>
-                      <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>Ins. /yr</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>
+                        Ins. /yr
+                        <ControlTooltip
+                          title="Annual Hazard Insurance ($)"
+                          description="Annual property insurance premium."
+                          impact="Higher hazard/flood insurance in coastal/wildfire states reduces monthly net cash flow and DSCR ratio."
+                        />
+                      </span>
                       <CurrencyInput prefix="$" value={ins} onChange={setIns} style={{ width: '100%' }} />
                       {Math.abs(ins - estIns) > 50 && (
                         <button type="button" onClick={() => setIns(estIns)} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 600, color: LEMON, textAlign: 'left' as const }}>
@@ -640,7 +762,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       )}
                     </label>
                     <label style={{ display: 'block' }}>
-                      <span style={{ display: 'block', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>HOA /mo</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)', marginBottom: 8 }}>
+                        HOA /mo
+                        <ControlTooltip
+                          title="Monthly HOA / Condo Fee ($)"
+                          description="Monthly HOA or Condo maintenance dues."
+                          impact="HOA fees are added directly to your monthly PITIA debt payment."
+                        />
+                      </span>
                       <CurrencyInput prefix="$" value={hoa} onChange={setHoa} style={{ width: '100%' }} />
                     </label>
                   </div>
@@ -1049,6 +1178,81 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   </div>
                 </div>
 
+                {/* ── 12 LOAN STRUCTURE COMPARATOR ── */}
+                {structOptions.length > 0 && (
+                  <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(20px,2.4vw,28px)', border: '1px solid rgba(238,239,211,0.16)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowStructOptions((s) => !s)}
+                      aria-expanded={showStructOptions}
+                      style={{ all: 'unset', width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+                    >
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 4 }}>
+                          {showStructOptions ? '▾' : '▸'} Compare 12 Loan Structures — Fixed vs. ARM vs. Interest-Only
+                        </div>
+                        <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', margin: 0, lineHeight: 1.4 }}>
+                          Compare 30-Yr Fixed, ARMs, 40-Yr Extended, and Interest-Only options by monthly payment, DSCR, and 5-year total cost of capital.
+                        </p>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: swatch.emerald, whiteSpace: 'nowrap' }}>
+                        {structOptions.length} structures →
+                      </span>
+                    </button>
+
+                    {showStructOptions && (
+                      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(238,239,211,0.1)', overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, textAlign: 'left' as const }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid rgba(238,239,211,0.15)', color: 'rgba(238,239,211,0.5)', fontSize: 10.5, textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>
+                              <th style={{ padding: '8px 10px' }}>Structure Name</th>
+                              <th style={{ padding: '8px 10px' }}>Rate</th>
+                              <th style={{ padding: '8px 10px' }}>Monthly PITIA</th>
+                              <th style={{ padding: '8px 10px' }}>Track 1 DSCR</th>
+                              <th style={{ padding: '8px 10px' }}>Track 2 DSCR</th>
+                              <th style={{ padding: '8px 10px' }}>5-Yr Total Cost</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {structOptions.map((opt, idx) => {
+                              const isMatch = opt.armType === rateType && opt.ltv === (100 - down);
+                              return (
+                                <tr key={idx} style={{ borderBottom: '1px solid rgba(238,239,211,0.06)', background: isMatch ? 'rgba(77,189,151,0.08)' : 'transparent' }}>
+                                  <td style={{ padding: '10px', fontWeight: 600, color: PISTACHIO }}>
+                                    {opt.name}
+                                    {isMatch && (
+                                      <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 800, textTransform: 'uppercase' as const, color: MIDNIGHT, background: swatch.emerald, borderRadius: 100, padding: '2px 6px' }}>your tier</span>
+                                    )}
+                                  </td>
+                                  <td style={{ padding: '10px' }}>
+                                    <Mono style={{ fontWeight: 600, color: LEMON }}>{opt.rate.toFixed(3)}%</Mono>
+                                  </td>
+                                  <td style={{ padding: '10px' }}>
+                                    <Mono style={{ fontWeight: 600, color: '#eeefd3' }}>{fmt(opt.monthlyPayment)}</Mono>
+                                  </td>
+                                  <td style={{ padding: '10px' }}>
+                                    <Mono style={{ fontWeight: 700, color: opt.track1DSCR >= 1.25 ? risk.positive : opt.track1DSCR >= 1.0 ? LEMON : risk.danger }}>
+                                      {opt.track1DSCR.toFixed(2)}x
+                                    </Mono>
+                                  </td>
+                                  <td style={{ padding: '10px' }}>
+                                    <Mono style={{ fontWeight: 600, color: opt.track2DSCR >= 1.0 ? risk.positive : risk.danger }}>
+                                      {opt.track2DSCR.toFixed(2)}x
+                                    </Mono>
+                                  </td>
+                                  <td style={{ padding: '10px' }}>
+                                    <Mono style={{ color: 'rgba(238,239,211,0.75)' }}>{fmt(opt.fiveYearCost)}</Mono>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* ── THE AFTER-TAX EDGE — led-with differentiator ── */}
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(22px,2.5vw,30px)', border: `1px solid ${LEMON}66` }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 10 }}>The after-tax edge — what other brokers don&apos;t quote</div>
@@ -1243,6 +1447,9 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
           )}
         </div>
       </section>
+
+      {/* ── PROPERTY TYPES ARCHITECTURAL GALLERY ── */}
+      <PropertyTypesGallery />
 
       <BottomCTA onNavigate={(v) => onNavigate?.(v)} />
     </DcShell>

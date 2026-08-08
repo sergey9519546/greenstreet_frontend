@@ -60,6 +60,12 @@ const PUBLIC_PAGES: Partial<Record<PageView, PublicPageDefinition>> = {
     canonicalPath: "/tools/str-underwriting",
     jsonLdKind: "WebPage",
   },
+  "perfect-property": {
+    title: "Perfect Property Engine | Greenstreet Finance",
+    description: "Regime-aware, loss-calibrated property prediction and underwriting copilot powered by Monte Carlo certainty scoring.",
+    canonicalPath: "/tools/perfect-property",
+    jsonLdKind: "WebPage",
+  },
   "commercial-dscr": {
     title: "Commercial DSCR | Greenstreet Finance",
     description: "Calculate DSCR for 5+ unit commercial properties. Understand multifamily underwriting, gross rent multipliers, and vacancy factors.",

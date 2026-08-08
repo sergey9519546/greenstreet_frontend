@@ -12,6 +12,16 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// This suite verifies the reliability-hold branch. Keep it independent of a
+// developer's local Firebase configuration by clearing the four release-gate
+// variables before App evaluates CLIENT_WORKSPACE_CONFIGURED.
+vi.hoisted(() => {
+  vi.stubEnv('VITE_FIREBASE_API_KEY', '');
+  vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', '');
+  vi.stubEnv('VITE_FIREBASE_PROJECT_ID', '');
+  vi.stubEnv('VITE_FIREBASE_APP_ID', '');
+});
+
 // Sentinels for the heavy route modules App pulls in via React.lazy / dynamic
 // import. vi.mock intercepts dynamic imports, so the real chunks never load.
 vi.mock('./marketing/MarketingHome', () => ({
@@ -81,10 +91,10 @@ describe('App routing', () => {
    * hold record is orphaned by scanning App.tsx source; this proves the rendered
    * result at a held path is the hold page, not the tool.
    */
-  it('resolves a held tool route (/tools/returns) to its reliability hold', async () => {
-    await renderAt('/tools/returns');
+  it('resolves a held tool route (/investgo) to its reliability hold', async () => {
+    await renderAt('/investgo');
     expect(await screen.findByText(/tool reliability review/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /investment returns/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /investgo workspace/i })).toBeInTheDocument();
   });
 
   it('renders the not-found page for an unknown path', async () => {
