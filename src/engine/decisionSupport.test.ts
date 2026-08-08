@@ -318,6 +318,18 @@ describe('DEFECT C — return-grade gate ordering', () => {
     expect(v.returnGrade).toBe('F');
     expect(v.verdict).toBe('PASS');
   });
+
+  it('a BLOCKER still outranks a Grade A return ⇒ PASS', () => {
+    const r = computeVerdict({ ...clean, afterTaxIRR: 0.25, ficoScore: 600 } as typeof clean);
+    expect(r.returnGrade).toBe('A');
+    expect(r.verdict).toBe('PASS');
+  });
+
+  it('Grade F remains an unconditional PASS', () => {
+    const r = computeVerdict({ ...clean, afterTaxIRR: -0.05 } as typeof clean);
+    expect(r.returnGrade).toBe('F');
+    expect(r.verdict).toBe('PASS');
+  });
 });
 
 // ── every BLOCKER path ──────────────────────────────────────────────────────
