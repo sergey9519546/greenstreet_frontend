@@ -20,8 +20,16 @@
     visibility: visible;
     min-height: 100vh;
   }
+  /* The static marketing markup below lives in <div id="webflow-root"> (see
+     further down this file). This rule previously targeted #marketing-root — an
+     id that exists nowhere in this document; it was a React portal host that
+     disappeared when the homepage markup was restored inline. Because the
+     selector matched nothing, the marketing DOM was never hidden on SPA routes,
+     so every non-"/" route rendered a full copy of the homepage above its own
+     content and the visitor had to scroll ~15,000px to reach the page they
+     asked for. */
   html:not(.is-spa-route) #root,
-  html.is-spa-route #marketing-root {
+  html.is-spa-route #webflow-root {
     display: none !important;
   }
 </style>
@@ -329,10 +337,17 @@ svg {
 section, header, footer {
 	position: relative;
 }
-@media (prefers-color-scheme: light) {
-	option {
-		color: black;
-	}
+/* Native <select> dropdown lists render on an OS-default (usually white)
+   surface. Selects on dark cards use light text (e.g. #eeefd3) which the
+   <option>s inherit — cream-on-white = invisible. Force readable dark-on-white
+   for option lists UNCONDITIONALLY. The old rule only did this in light OS
+   mode, so dark-mode users saw blank dropdowns (the pre-qual card bug). */
+option {
+	color: #003738;
+	background-color: #ffffff;
+}
+option:disabled {
+	color: #5f6f5e;
 }
 img::selection {
 	background: transparent;

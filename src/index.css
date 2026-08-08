@@ -536,10 +536,17 @@ header,
 footer {
   position: relative;
 }
-@media (prefers-color-scheme: light) {
-  option {
-    color: black;
-  }
+/* Native <select> dropdown lists render on an OS-default (usually white)
+   surface. Selects on dark cards use light text which the <option>s inherit —
+   invisible on white. Force readable dark-on-white for option lists
+   UNCONDITIONALLY. The old rule only applied in light OS mode, so dark-mode
+   users saw blank dropdowns. */
+option {
+  color: #003738;
+  background-color: #ffffff;
+}
+option:disabled {
+  color: #5f6f5e;
 }
 img::selection {
   background: transparent;
