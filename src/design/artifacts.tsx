@@ -10,7 +10,7 @@
 // off the VALUE (never a page-load from()), and fully reduced-motion safe.
 import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { swatch, risk } from "../theme";
+import { swatch, risk, onDark, font, tracking } from "../theme";
 
 const LEMON = swatch.lemon;
 const EMERALD = swatch.emerald;
@@ -37,8 +37,15 @@ function ensureCss() {
 .gsa-flame{transform-origin:50% 100%;}
 .gsa-path{stroke-dasharray:none;stroke-dashoffset:0;}
 .gsa-pulse-dot{transform-origin:center;}
+/* DSCR coverage meter — a linear scale, one fill, labelled thresholds.
+   Position transitions are value-driven only; nothing loops. */
+.gsa-meter{outline:none;}
+.gsa-meter:focus-visible{outline:2px solid ${LEMON};outline-offset:5px;border-radius:4px;}
+.gsa-meter-fill,.gsa-meter-mark{transition:width .46s cubic-bezier(.22,.68,.3,1),left .46s cubic-bezier(.22,.68,.3,1);}
+/* While dragging, the meter must track the pointer with no easing lag. */
+.gsa-meter-live .gsa-meter-fill,.gsa-meter-live .gsa-meter-mark{transition:none;}
 @media (prefers-reduced-motion: reduce){
-  .gsa-needle,.gsa-beam,.gsa-pan,.gsa-fill{transition:none !important;}
+  .gsa-needle,.gsa-beam,.gsa-pan,.gsa-fill,.gsa-meter-fill,.gsa-meter-mark{transition:none !important;}
 }`;
   document.head.appendChild(el);
 }
@@ -94,15 +101,45 @@ export function DscrGauge({ value, size = 200, label = true }: { value: number; 
   );
 }
 
-// ── ClaudeDscrGauge ─────────────────────────────────────────────────────────
-// Restores the larger Claude-design dial: conic color bands, glowing needle,
-// center readout. GSAP only responds to value / pointer interactions.
+// ── ClaudeDscrGauge — the DSCR coverage meter ────────────────────────────────
+// WHAT THIS INSTRUMENT HAS TO SAY: does the rent cover the debt, and by how much
+// margin? That is a comparison of one value against one or two fixed lines
+// (1.00 break-even; the lender floor, typically 1.20). Position along a common
+// scale reads that comparison far more accurately than arc length on a dial, and
+// a horizontal axis is the only orientation that can carry a *legible* threshold
+// label — which is the whole point, since an unlabelled colour band forces the
+// reader to decode a legend instead of reading a number against a line.
+//
+// So this is a linear meter, not a dial:
+//   • ONE neutral track, ONE fill from the scale start to the value.
+//   • Fill colour = state against the thresholds, in three steps of the approved
+//     ramp (below break-even / covers-but-under-floor / clears floor). No blended
+//     bands, no rainbow, no decorative use of the risk ramp.
+//   • Every threshold that changes the answer is drawn AND named on the axis.
+//   • No rings, no glow, no ambient gradient. Flat, per the homepage.
+// It remains a real control: drag or arrow-key it when `onValueChange` is given.
+
+/** DSCR state against the two decisive lines. Three steps, deliberately. */
+export type DscrCoverage = "fail" | "marginal" | "pass";
+export function dscrCoverage(value: number, breakEven = 1.0, floor = 1.2): DscrCoverage {
+  if (value < breakEven) return "fail";
+  if (value < floor) return "marginal";
+  return "pass";
+}
+const COVERAGE_COLOR: Record<DscrCoverage, string> = {
+  fail: RED,        // risk.danger  — rent does not cover the debt
+  marginal: ORANGE, // risk.warning — covers the debt, short of the lender floor
+  pass: EMERALD,    // emerald      — clears the floor with margin
+};
+
 export function ClaudeDscrGauge({
   value,
   size = 320,
   min = 0.5,
   max = 1.5,
   label = "DSCR",
+  breakEven = 1.0,
+  floor = 1.2,
   onValueChange,
 }: {
   value: number;
@@ -110,164 +147,208 @@ export function ClaudeDscrGauge({
   min?: number;
   max?: number;
   label?: string;
+  /** The line where rent exactly equals the debt service. */
+  breakEven?: number;
+  /** The commercial line — the lender's minimum coverage. */
+  floor?: number;
   onValueChange?: (value: number) => void;
 }) {
   ensureCss();
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-  const needleRef = useRef<HTMLDivElement | null>(null);
-  const glowRef = useRef<HTMLDivElement | null>(null);
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
   const displayRef = useRef(value);
   const [displayValue, setDisplayValue] = useState(value);
-  const clamped = Math.max(min, Math.min(max, value));
-  const pct = (clamped - min) / (max - min);
-  const angle = -135 + pct * 270;
-  const col = dscrColor(value);
+  const [dragging, setDragging] = useState(false);
+
+  const span = max - min || 1;
+  const posOf = (v: number) => Math.max(0, Math.min(1, (v - min) / span));
+  const pct = posOf(value);
+  const state = dscrCoverage(value, breakEven, floor);
+  const col = COVERAGE_COLOR[state];
+
+  // A threshold is only drawn if it actually falls on this scale, and only if it
+  // sits clear of the end labels — a tick crushed against "0.50" reads as noise.
+  const marks = [
+    { at: breakEven, name: "break-even" },
+    { at: floor, name: "floor" },
+  ].filter((m) => m.at > min && m.at < max && posOf(m.at) > 0.07 && posOf(m.at) < 0.93);
+
+  const delta = Math.abs(value - (state === "fail" ? breakEven : floor));
+  const sentence =
+    state === "fail"
+      ? `${delta.toFixed(2)} short of ${breakEven.toFixed(2)} break-even`
+      : state === "marginal"
+        ? `${delta.toFixed(2)} short of the ${floor.toFixed(2)} floor`
+        : delta < 0.005
+          ? `at the ${floor.toFixed(2)} floor`
+          : `${delta.toFixed(2)} above the ${floor.toFixed(2)} floor`;
+  const stateWord = state === "fail" ? "does not cover debt" : state === "marginal" ? "covers debt" : "clears lender floor";
+
   const reduced =
     typeof window !== "undefined" &&
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // The readout counts to the new value. Positions are CSS transitions (above),
+  // so this is the only tween — and it is skipped while dragging or reduced.
   useEffect(() => {
-    const needle = needleRef.current;
-    if (!needle) return;
-    if (reduced) {
-      gsap.set(needle, { xPercent: -50, rotation: angle, transformOrigin: "50% 100%" });
-      setDisplayValue(value);
+    if (reduced || dragging) {
+      gsap.killTweensOf(displayRef);
       displayRef.current = value;
+      setDisplayValue(value);
       return;
     }
-    gsap.to(needle, {
-      xPercent: -50,
-      rotation: angle,
-      transformOrigin: "50% 100%",
-      duration: 0.74,
-      ease: "back.out(1.35)",
-      overwrite: true,
-    });
     gsap.to(displayRef, {
       current: value,
-      duration: 0.48,
+      duration: 0.46,
       ease: "power2.out",
       overwrite: true,
       onUpdate: () => setDisplayValue(displayRef.current),
+      onComplete: () => setDisplayValue(value),
     });
-    if (glowRef.current) {
-      gsap.fromTo(
-        glowRef.current,
-        { scale: 0.78, opacity: 0.72 },
-        { scale: 1, opacity: 1, duration: 0.36, ease: "power2.out", overwrite: true }
-      );
-    }
-  }, [angle, reduced, value]);
+  }, [value, reduced, dragging]);
 
-  const setFromPointer = (clientX: number, clientY: number) => {
-    if (!onValueChange || !wrapRef.current) return;
-    const rect = wrapRef.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const raw = Math.atan2(clientX - cx, -(clientY - cy)) * 180 / Math.PI;
-    const nextAngle = Math.max(-135, Math.min(135, raw));
-    const next = min + ((nextAngle + 135) / 270) * (max - min);
+  const setFromPointer = (clientX: number) => {
+    const track = trackRef.current;
+    if (!onValueChange || !track) return;
+    const rect = track.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const p = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const next = Math.max(min, Math.min(max, min + p * span));
     onValueChange(Number(next.toFixed(2)));
   };
 
+  const nudge = (by: number) => {
+    if (!onValueChange) return;
+    onValueChange(Number(Math.max(min, Math.min(max, value + by)).toFixed(2)));
+  };
+
+  // Type scales off `size` so the 300px verdict meter and the 170px target
+  // picker both stay legible without a second component.
+  const valueSize = Math.max(24, Math.min(46, Math.round(size * 0.155)));
+  const trackH = Math.max(12, Math.min(18, Math.round(size * 0.055)));
+  const capSize = size < 210 ? 9 : 10;
+  const tick = 6; // how far the caliper marks protrude past the track
+
+  const interactive = Boolean(onValueChange);
+  const valueText = `${value.toFixed(2)}x — ${stateWord}, ${sentence}`;
+  const a11y = interactive
+    ? { role: "slider" as const, tabIndex: 0, "aria-orientation": "horizontal" as const }
+    : { role: "meter" as const };
+
+  const capLabel = (left: string, text: string, sub?: string, transform?: string) => (
+    <div style={{ position: "absolute", top: 0, left, transform, textAlign: "center" as const, whiteSpace: "nowrap" as const }}>
+      <div style={{ fontFamily: font.mono, fontSize: capSize + 1, fontWeight: 600, color: onDark.dim, lineHeight: 1.3 }}>{text}</div>
+      {sub && (
+        <div style={{ fontSize: capSize, fontWeight: 600, letterSpacing: tracking.wide, textTransform: "uppercase" as const, color: onDark.tertiary, lineHeight: 1.3 }}>{sub}</div>
+      )}
+    </div>
+  );
+
   return (
-    <div
-      ref={cardRef}
-      onMouseEnter={() => !reduced && cardRef.current && gsap.to(cardRef.current, { y: -2, duration: 0.22, ease: "power2.out" })}
-      onMouseLeave={() => !reduced && cardRef.current && gsap.to(cardRef.current, { y: 0, duration: 0.22, ease: "power2.out" })}
-      style={{
-        width: "100%",
-        maxWidth: size,
-        margin: "0 auto",
-        position: "relative",
-        touchAction: onValueChange ? "none" : "auto",
-      }}
-    >
+    // `width: size` (not 100%) so the meter still claims its space inside a
+    // greedy `1fr auto` grid track, where a fluid item collapses to min-content;
+    // `maxWidth: 100%` keeps it fluid once the container is narrower than `size`.
+    <div style={{ width: size, maxWidth: "100%", margin: "0 auto" }}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: tracking.caps, textTransform: "uppercase", color: onDark.secondary }}>{label}</div>
       <div
-        ref={wrapRef}
-        role="slider"
-        aria-label={`${label} gauge`}
+        style={{
+          fontFamily: font.mono,
+          fontSize: valueSize,
+          fontWeight: 700,
+          letterSpacing: tracking.tight,
+          color: col,
+          lineHeight: 1.1,
+          marginTop: 2,
+        }}
+      >
+        {displayValue.toFixed(2)}
+        <span style={{ fontSize: "0.46em", fontWeight: 600 }}>x</span>
+      </div>
+
+      <div
+        {...a11y}
+        className={`gsa-meter${dragging ? " gsa-meter-live" : ""}`}
+        aria-label={`${label} — debt service coverage ratio`}
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={Number(value.toFixed(2))}
-        tabIndex={onValueChange ? 0 : -1}
+        aria-valuetext={valueText}
         onPointerDown={(e) => {
-          if (!onValueChange) return;
+          if (!interactive) return;
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-          setFromPointer(e.clientX, e.clientY);
+          setDragging(true);
+          setFromPointer(e.clientX);
         }}
         onPointerMove={(e) => {
-          if (!onValueChange || !(e.buttons & 1)) return;
-          setFromPointer(e.clientX, e.clientY);
+          if (!interactive || !(e.buttons & 1)) return;
+          setFromPointer(e.clientX);
         }}
+        onPointerUp={(e) => {
+          if (!interactive) return;
+          try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch { /* already released */ }
+          setDragging(false);
+        }}
+        onPointerCancel={() => setDragging(false)}
         onKeyDown={(e) => {
-          if (!onValueChange) return;
+          if (!interactive) return;
           const step = e.shiftKey ? 0.1 : 0.05;
-          if (e.key === "ArrowLeft" || e.key === "ArrowDown") onValueChange(Math.max(min, Number((value - step).toFixed(2))));
-          if (e.key === "ArrowRight" || e.key === "ArrowUp") onValueChange(Math.min(max, Number((value + step).toFixed(2))));
+          if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); nudge(-step); }
+          else if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); nudge(step); }
+          else if (e.key === "PageDown") { e.preventDefault(); nudge(-0.25); }
+          else if (e.key === "PageUp") { e.preventDefault(); nudge(0.25); }
+          else if (e.key === "Home") { e.preventDefault(); onValueChange?.(Number(min.toFixed(2))); }
+          else if (e.key === "End") { e.preventDefault(); onValueChange?.(Number(max.toFixed(2))); }
         }}
         style={{
-          position: "relative",
-          width: "100%",
-          aspectRatio: "1",
-          cursor: onValueChange ? "grab" : "default",
-          borderRadius: "50%",
-          background: "radial-gradient(circle at 50% 56%, rgba(238,239,211,0.08), transparent 42%)",
+          marginTop: 10,
+          padding: `${tick + 4}px 0`,
+          cursor: interactive ? (dragging ? "grabbing" : "grab") : "default",
+          touchAction: interactive ? "none" : "auto",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "50%",
-            background:
-              `conic-gradient(from 225deg,${risk.danger} 0deg 67.5deg,${risk.warning} 67.5deg 135deg,${risk.caution} 135deg 189deg,${risk.positive} 189deg 270deg,rgba(238,239,211,0.07) 270deg 360deg)`,
-            WebkitMask: "radial-gradient(circle,transparent 0 59%,#000 60% 100%)",
-            mask: "radial-gradient(circle,transparent 0 59%,#000 60% 100%)",
-          }}
-        />
-        <div style={{ position: "absolute", inset: "10.5%", borderRadius: "50%", border: "1px dashed rgba(238,239,211,0.16)" }} />
-        <div style={{ position: "absolute", inset: "22%", borderRadius: "50%", border: "1px solid rgba(238,239,211,0.08)" }} />
-        <div
-          ref={needleRef}
-          className="gsa-needle"
-          style={{
-            position: "absolute",
-            left: "50%",
-            bottom: "50%",
-            width: 5,
-            height: "39%",
-            borderRadius: 5,
-            background: "linear-gradient(#eeefd3,#d8d958)",
-            transform: `translateX(-50%) rotate(${angle}deg)`,
-            transformOrigin: "50% 100%",
-            zIndex: 3,
-          }}
-        >
+        {/* The scale itself */}
+        <div ref={trackRef} style={{ position: "relative", width: "100%", height: trackH, background: swatch.pistachioFaded, borderRadius: 2 }}>
           <div
-            ref={glowRef}
+            className="gsa-meter-fill"
+            style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct * 100}%`, background: col, borderRadius: 2 }}
+          />
+          {/* Caliper marks: two segments framing the threshold, above and below
+              the track. They never cross the fill, so they stay readable at any
+              value without fighting it for contrast. */}
+          {marks.map((m) => (
+            <React.Fragment key={m.name}>
+              <div style={{ position: "absolute", left: `${posOf(m.at) * 100}%`, top: -tick, width: 2, height: tick, marginLeft: -1, background: onDark.dim }} />
+              <div style={{ position: "absolute", left: `${posOf(m.at) * 100}%`, top: trackH, width: 2, height: tick, marginLeft: -1, background: onDark.dim }} />
+            </React.Fragment>
+          ))}
+          {/* Current value marker — the one element that reads as "here". */}
+          <div
+            className="gsa-meter-mark"
             style={{
               position: "absolute",
-              top: -8,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: 16,
-              height: 16,
-              borderRadius: "50%",
-              background: col,
+              left: `${pct * 100}%`,
+              top: -(tick + 1),
+              width: 4,
+              marginLeft: -2,
+              height: trackH + (tick + 1) * 2,
+              background: onDark.primary,
+              borderRadius: 2,
             }}
           />
         </div>
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingBottom: "7%", pointerEvents: "none", zIndex: 5 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>{label}</div>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "clamp(32px,4vw,48px)", fontWeight: 700, color: "#eeefd3", lineHeight: 1 }}>
-            {displayValue.toFixed(2)}<span style={{ fontSize: "0.48em" }}>x</span>
-          </div>
-        </div>
-        <div style={{ position: "absolute", left: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{min.toFixed(2)}</div>
-        <div style={{ position: "absolute", right: "8%", bottom: "11%", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 600, color: "rgba(238,239,211,0.62)" }}>{max.toFixed(2)}</div>
+      </div>
+
+      {/* Axis: the ends of the scale, plus every threshold, NAMED. */}
+      <div style={{ position: "relative", height: capSize * 2.8, marginTop: 2 }}>
+        {capLabel("0", min.toFixed(2))}
+        {capLabel("100%", max.toFixed(2), undefined, "translateX(-100%)")}
+        {marks.map((m) => (
+          <React.Fragment key={m.name}>{capLabel(`${posOf(m.at) * 100}%`, m.at.toFixed(2), m.name, "translateX(-50%)")}</React.Fragment>
+        ))}
+      </div>
+
+      <div style={{ fontSize: size < 210 ? 11 : 12, fontWeight: 500, color: onDark.secondary, marginTop: 8, lineHeight: 1.4 }}>
+        {sentence}
       </div>
     </div>
   );
