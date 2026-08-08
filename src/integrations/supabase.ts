@@ -1,16 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://ddqhewwswlgogzziamku.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkcWhld3dzd2xnb2d6emlhbWt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0MTUwNjQsImV4cCI6MjA5ODk5MTA2NH0.RvmTGcqwq7suswRBT6yi1O-uqS7ytU5wVlEYppUTdaw";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.trim();
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY?.trim();
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+export const supabase =
+  SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+        },
+      })
+    : null;
 
 export interface LiveDealParcel {
   id: string;
@@ -34,6 +35,10 @@ export interface LiveDealParcel {
  * Fetch enriched off-market deals with active distress triggers from perfectproperty backend.
  */
 export async function fetchLiveDistressedDeals(limit = 12): Promise<LiveDealParcel[]> {
+  if (!supabase) {
+    return FALLBACK_DEALS;
+  }
+
   try {
     const { data, error } = await supabase
       .from("parcels")
