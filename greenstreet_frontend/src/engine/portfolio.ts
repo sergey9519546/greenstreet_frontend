@@ -12,6 +12,8 @@ import type {
   RefiOpportunity,
 } from './types';
 import { computeTcoRate } from './tcoDscr';
+// Semantic risk ramp — the ONE danger/warn system. See theme.ts.
+import { risk } from '../theme';
 
 export function analyzePortfolio(
   existingProperties: PortfolioProperty[],
@@ -64,7 +66,7 @@ export function analyzePortfolio(
   const totalDebtYield = totalLoanBalance > 0 ? totalNOI / totalLoanBalance : 0;
 
   // Cash-on-Cash (Track 2 income)
-  const totalCashInvested = allProperties.reduce((sum, p) => sum + p.loanBalance * 0.25, 0); // estimate 25% down
+  const totalCashInvested = allProperties.reduce((sum, p) => sum + p.loanBalance * (0.25 / 0.75), 0); // estimate 25% down at ~75% LTV (down/loan = 0.25/0.75)
   const annualTrack2CF = totalNOI - totalAnnualDebtService;
   const weightedCashOnCash = totalCashInvested > 0 ? annualTrack2CF / totalCashInvested : 0;
 
@@ -284,11 +286,14 @@ export function computePortfolioHealthScore(result: ReturnType<typeof analyzePor
     score >= 65 ? 'HEALTHY'  :
     score >= 50 ? 'WATCH'    :
     score >= 30 ? 'AT RISK'  : 'CRITICAL';
+  // Risk ramp pulls from the semantic theme tokens — theme.ts bans the old
+  // orange (#f97316/#fb923c) outright, and the three lower tiers map 1:1 onto
+  // the named states: WATCH → caution, AT RISK → warning, CRITICAL → danger.
   const color =
-    score >= 80 ? '#4ade80'  :
-    score >= 65 ? '#a3e635'  :
-    score >= 50 ? '#e6b84d'  :
-    score >= 30 ? '#fb923c'  : '#e06363';
+    score >= 80 ? '#4ade80'   :
+    score >= 65 ? '#a3e635'   :
+    score >= 50 ? risk.caution :
+    score >= 30 ? risk.warning : risk.danger;
 
   return { score, label, color, breakdown: { dscrPts, concentrationPts, cashFlowPts, reservePts } };
 }

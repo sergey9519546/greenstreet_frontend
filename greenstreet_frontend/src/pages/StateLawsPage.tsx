@@ -1,91 +1,113 @@
 import React, { useEffect, useState, useRef } from "react";
-import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import BottomCTA from "../design/BottomCTA";
+import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import DataVintageLine from "../design/DataVintageLine";
 import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
+import { PPP_STATE_LAWS, getNoPPPPremium } from "../engine";
+import type { PPPStateStatus } from "../engine";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tier = 0 | 1 | 2 | 3; // 0 allowed, 1 threshold, 2 high-risk, 3 banned
+// Tier is a purely presentational bucketing of the ENGINE's PPPStateStatus —
+// it never invents a status of its own. See tierForStatus() below, which is
+// the single place that maps engine truth onto a map colour.
+//   0 ALLOWED · 1 CONDITIONAL / ARM_RESTRICTED · 2 ENTITY_ONLY
+//   3 PRACTICALLY_PROHIBITED / PROHIBITED · 4 AMBIGUOUS (no legal consensus)
+//   5 NOT_RESEARCHED (state has no entry in the engine's PPP_STATE_LAWS table)
+type Tier = 0 | 1 | 2 | 3 | 4 | 5;
 
 interface StateEntry {
   code: string;
   name: string;
   tier: Tier;
+  status: PPPStateStatus | "NOT_RESEARCHED";
   ppp: string;
-  usury: string;
+  statutoryReference: string;
   impact: string;
   threshold?: string;
 }
 
-// ─── State data (statutory citations preserved verbatim) ────────────────────────
-const SPECIAL: Record<string, Omit<StateEntry, "code">> = {
-  AK: { name: "Alaska", tier: 2, ppp: "Individual borrower: PROHIBITED. LLC / Corp entity: ALLOWED.", usury: "Business-purpose exemption applies; confirm state cap with counsel.", impact: "Entity borrower required" },
-  AR: { name: "Arkansas", tier: 1, ppp: "First 3 years allowed on remaining balance. Max 3/2/1 schedule.", usury: "5% above Federal Reserve discount rate or 17%; usury ceiling applies.", impact: "Structure penalty carefully" },
-  CA: { name: "California", tier: 1, ppp: "Allowed on business-purpose; consumer 6-month/20% rule. Confirm lender overlay.", usury: "10% general; broker & business-purpose exemptions broad.", impact: "Standard" },
-  FL: { name: "Florida", tier: 0, ppp: "PPP allowed. High climate-risk zone — insurance availability kill gate applies.", usury: "18% general; business-purpose exemption applies.", impact: "Standard pricing" },
-  GA: { name: "Georgia", tier: 0, ppp: "No state PPP restrictions for business-purpose loans.", usury: "16% general; business exemption applies.", impact: "Standard pricing" },
-  IL: { name: "Illinois", tier: 1, ppp: "Individual: PROHIBITED or APR ≥ 8%. Entity: APR fall-rate tests apply.", usury: "9% general; business exemption applies.", impact: "Standard (entity structure)" },
-  KS: { name: "Kansas", tier: 3, ppp: "PPP de facto prohibited. Most DSCR lenders decline.", usury: "15% general; business exemptions narrow.", impact: "+0.50% / most lenders decline" },
-  ME: { name: "Maine", tier: 1, ppp: "ARM loans: no PPP (cap 2 months interest).", usury: "Business-purpose exemption; confirm applicable cap.", impact: "ARM restrictions apply" },
-  MD: { name: "Maryland", tier: 3, ppp: "PPP de facto prohibited on most residential business-purpose loans.", usury: "Capped; varies by loan type. Confirm exemption.", impact: "+0.50% / lenders decline" },
-  MN: { name: "Minnesota", tier: 1, ppp: "Business-purpose ALLOWED (HF 3437 enacted 4/23/26, eff. 8/1/2026). Consumer still prohibited (§58.137).", usury: "8% legal / contract up to agreed for business.", impact: "+0.10% rate adj", threshold: "eff. 8/1/2026" },
-  MS: { name: "Mississippi", tier: 1, ppp: "Declining-only structure. Flat PPP above 1 yr prohibited (§75-17-31).", usury: "Business-purpose exemption; confirm applicable cap.", impact: "Declining structure required" },
-  NJ: { name: "New Jersey", tier: 2, ppp: "Individual: PROHIBITED. LLC: HIGH-RISK (lender-split). C-Corp/S-Corp: ALLOWED. Flag NJ LLC deals.", usury: "Criminal usury 30%; civil 16% (business exemption applies).", impact: "+0.25% rate adj" },
-  NM: { name: "New Mexico", tier: 1, ppp: "Individual: PROHIBITED. Entity: varies by lender.", usury: "Business-purpose exemption; confirm applicable cap.", impact: "Entity borrower required" },
-  NY: { name: "New York", tier: 1, ppp: "Residential: PROHIBITED. Business-purpose: ALLOWED (Banking Law §6-l). Criminal usury cap: 25% (Penal Law §190.40).", usury: "Criminal usury cap 25% (Penal Law §190.40).", impact: "+0.25% rate adj" },
-  ND: { name: "North Dakota", tier: 3, ppp: "PPP de facto prohibited.", usury: "Business-purpose exemption; confirm applicable cap.", impact: "Most lenders decline" },
-  OH: { name: "Ohio", tier: 1, ppp: "1–2 unit: threshold $116,356 (2026, indexed Jan 1). Above threshold: ALLOWED, max 1% penalty, max 5 years (ORC §1343.011). 3–4 unit: no restriction.", usury: "8% general; business-purpose exemption.", impact: "+0.10% near threshold", threshold: "$116,356 (2026)" },
-  OK: { name: "Oklahoma", tier: 1, ppp: "APR ≥ 13%: BANNED.", usury: "Business-purpose exemption; APR 13% trigger.", impact: "Rate must stay below 13% APR" },
-  PA: { name: "Pennsylvania", tier: 1, ppp: "1–2 unit: threshold $319,777 (2026). Below: restricted. Above: business-purpose ALLOWED. PA rate cap 7.25% (Jun/Jul 2026).", usury: "6% legal; business exemption over $35k.", impact: "+0.10% if below threshold", threshold: "$319,777 (2026)" },
-  RI: { name: "Rhode Island", tier: 1, ppp: "Max 1 year, max 2% of remaining balance.", usury: "Business-purpose exemption; confirm applicable cap.", impact: "Term/amount cap applies" },
-  SC: { name: "South Carolina", tier: 1, ppp: "Below $690,000: NOT ALLOWED.", usury: "Business-purpose exemption; confirm applicable cap.", impact: "Loan amount gate ($690K)" },
-  TX: { name: "Texas", tier: 0, ppp: "Business-purpose PPP allowed. No special residential bar. APR ≥ 12%: BANNED.", usury: "18% general; business exemptions broad.", impact: "Standard pricing" },
-  WA: { name: "Washington", tier: 1, ppp: "5/6 ARM: no PPP on some lender matrices. Blanket ARM ban unverified.", usury: "Business-purpose exemption; confirm applicable cap.", impact: "ARM structure check required" },
-  WV: { name: "West Virginia", tier: 1, ppp: "Max 3 years, max 1% penalty.", usury: "Business-purpose exemption; confirm applicable cap.", impact: "Term/amount cap applies" },
-  WI: { name: "Wisconsin", tier: 1, ppp: "ARM loans: no PPP (cap 2 months interest).", usury: "Business-purpose exemption; confirm applicable cap.", impact: "ARM restrictions apply" },
-};
-
+// ─── State code / full-name lookup — plain US state names, not a legal claim ──
 const ALL_CODES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 const CODE_TO_NAME: Record<string, string> = { AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"District of Columbia" };
 
-const TIER_COLORS: Record<Tier, string> = { 0: dc.emerald, 1: dc.lemon, 2: "#e6b84d", 3: "#e06363" };
-const TIER_LABELS: Record<Tier, string> = { 0: "PPP Allowed", 1: "Threshold-Based", 2: "High-Risk", 3: "Effectively Banned" };
-const TIER_INK: Record<Tier, string> = { 0: dc.dark, 1: dc.dark, 2: dc.dark, 3: "#fff" };
-const MAP_CODES = Object.keys(US_PATHS);
+const TIER_COLORS: Record<Tier, string> = { 0: dc.emerald, 1: dc.lemon, 2: "#f97316", 3: "#ff6b6b", 4: "#a78bfa", 5: "#9aa3ab" };
+const TIER_LABELS: Record<Tier, string> = { 0: "PPP Allowed", 1: "Conditional — Restrictions Apply", 2: "Entity Vesting Required", 3: "Effectively Prohibited", 4: "Ambiguous — No Consensus", 5: "Not Determined — Verify" };
 
-function readStateFromQuery() {
-  if (typeof window === "undefined") return null;
-  const code = new URLSearchParams(window.location.search).get("state")?.trim().toUpperCase();
-  return code && MAP_CODES.includes(code) ? code : null;
+// ─── Engine status → page tier ────────────────────────────────────────────────
+// The ONLY place that decides how an engine status paints on the map. Anything
+// that isn't explicitly ALLOWED must never fall through to the green tier.
+function tierForStatus(status: PPPStateStatus): Tier {
+  switch (status) {
+    case "ALLOWED":
+      return 0;
+    case "CONDITIONAL":
+    case "ARM_RESTRICTED":
+      return 1;
+    case "ENTITY_ONLY":
+      return 2;
+    case "PRACTICALLY_PROHIBITED":
+    case "PROHIBITED":
+      return 3;
+    case "AMBIGUOUS":
+      return 4;
+    default:
+      // Defensive: any future engine status this page hasn't been taught yet
+      // renders as "verify" rather than silently defaulting to green.
+      return 5;
+  }
 }
 
-const STATE_RATE_ADJ: Record<string, { adj: number; entityReq: boolean; note: string }> = {
-  NJ: { adj: 0.25, entityReq: true, note: "C-Corp/S-Corp required for full lender coverage; LLC high-risk." },
-  NY: { adj: 0.25, entityReq: false, note: "Banking Law §6-l business-purpose exemption applies; Penal Law 25% usury cap." },
-  MD: { adj: 0.50, entityReq: true, note: "PPP de facto prohibited; most lenders decline or require high rate overlay." },
-  KS: { adj: 0.50, entityReq: false, note: "PPP de facto prohibited; narrow business exemption." },
-  MN: { adj: 0.10, entityReq: false, note: "HF 3437 eff. 8/1/2026 allows business-purpose PPP." },
-  PA: { adj: 0.10, entityReq: false, note: "Threshold $319,777 (2026); loans below threshold restricted." },
-  OH: { adj: 0.10, entityReq: false, note: "1-2 unit threshold $116,356 (2026); 3-4 unit unrestricted." },
-  AK: { adj: 0.25, entityReq: true, note: "LLC/Corp entity borrower mandatory." },
-  IL: { adj: 0.10, entityReq: true, note: "Entity borrower recommended to avoid APR fall-rate testing." },
-  NM: { adj: 0.10, entityReq: true, note: "Entity borrower required by primary DSCR programs." },
-};
+// ─── Pricing-impact caption — derived from the engine's own no-PPP premium
+// math (getNoPPPPremium), never a hand-typed guess. ───────────────────────────
+function impactFor(tier: Tier, ratePremium: number, feePremium: number): string {
+  if (tier === 5) return "Not determined — verify before quoting";
+  if (tier === 2) return "Entity vesting required — individual borrowers barred";
+  if (tier === 4) {
+    return ratePremium > 0 || feePremium > 0
+      ? `No consensus — if treated as no-PPP: +${(ratePremium * 100).toFixed(2)}% rate / +${(feePremium * 100).toFixed(3)}% fee`
+      : "No legal consensus — confirm with lender before quoting";
+  }
+  if (ratePremium > 0 || feePremium > 0) {
+    return `+${(ratePremium * 100).toFixed(2)}% rate / +${(feePremium * 100).toFixed(3)}% fee if PPP unavailable`;
+  }
+  return "Standard pricing";
+}
 
-function resolve(code: string): StateEntry & { adj: number; entityReq: boolean; note: string } {
-  const sp = SPECIAL[code];
-  const sa = STATE_RATE_ADJ[code] || { adj: 0, entityReq: false, note: "Standard DSCR program pricing applies." };
-  const tier: Tier = sp ? sp.tier : 0;
+// ─── Resolve a state's DISPLAYED status straight from the compliance engine
+// (PPP_STATE_LAWS + getNoPPPPremium, both imported from ../engine). A state
+// with no entry in PPP_STATE_LAWS has not been legally researched and must
+// never be presented as green/"allowed" — it renders as tier 5 instead.
+function resolve(code: string): StateEntry {
+  const st = code.toUpperCase();
+  const name = CODE_TO_NAME[st] ?? st;
+  const law = PPP_STATE_LAWS[st];
+
+  if (!law) {
+    return {
+      code: st,
+      name,
+      tier: 5,
+      status: "NOT_RESEARCHED",
+      ppp:
+        "Not yet researched in the Greenstreet compliance engine. Do not assume prepayment penalties are allowed here — confirm directly with your lender and legal counsel before quoting a PPP structure.",
+      statutoryReference: "No statutory research on file for this state.",
+      impact: impactFor(5, 0, 0),
+    };
+  }
+
+  const tier = tierForStatus(law.status);
+  const { ratePremium, feePremium } = getNoPPPPremium(st, "LLC");
+
   return {
-    code,
-    name: sp ? sp.name : (CODE_TO_NAME[code] ?? code),
+    code: st,
+    name,
     tier,
-    ppp: sp ? sp.ppp : "Business-purpose prepayment penalties generally permitted. No special residential restriction on record.",
-    usury: sp ? sp.usury : "Business-purpose exemption typically applies; confirm state cap with counsel.",
-    impact: sp ? sp.impact : "Standard pricing",
-    threshold: sp?.threshold,
-    adj: sa.adj,
-    entityReq: sa.entityReq,
-    note: sa.note,
+    status: law.status,
+    ppp: law.reason,
+    statutoryReference: law.statutoryReference ?? "Statutory reference not on file.",
+    impact: impactFor(tier, ratePremium, feePremium),
+    threshold: law.loanThreshold
+      ? `$${law.loanThreshold.toLocaleString()}${law.thresholdYear ? ` (${law.thresholdYear})` : ""}`
+      : undefined,
   };
 }
 
@@ -93,29 +115,21 @@ const RAIN = dc.rain; // #006565 — State Laws' distinct colour identity
 
 export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => void; onNavigate: (v: any) => void }) {
   useEffect(() => {
-    document.title = "Prepayment Penalty Rules by State | Greenstreet Finance";
+    document.title = "State Rules | Greenstreet Finance";
   }, []);
 
-  const [selected, setSelected] = useState(() => readStateFromQuery() ?? "NJ");
+  const [selected, setSelected] = useState("NJ");
   const [q, setQ] = useState("");
   const [hover, setHover] = useState<string | null>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const mapRef = useRef<HTMLDivElement>(null);
   const sel = resolve(selected);
 
-  useEffect(() => {
-    const applyQueryState = () => {
-      const code = readStateFromQuery();
-      if (code) setSelected(code);
-    };
-    window.addEventListener("popstate", applyQueryState);
-    return () => window.removeEventListener("popstate", applyQueryState);
-  }, []);
-
   // Keep map regions visible from first paint. Route-level reveal effects were
   // responsible for the post-load visual drop on routed pages.
 
-  const counts = ALL_CODES.map(resolve).reduce((a, r) => { a[r.tier]++; return a; }, [0, 0, 0, 0] as number[]);
+  const counts = ALL_CODES.map(resolve).reduce((a, r) => { a[r.tier]++; return a; }, [0, 0, 0, 0, 0, 0] as number[]);
+  const researchedCount = ALL_CODES.length - counts[5];
 
   const scrollToTool = () => {
     const el = document.querySelector("#sl-tool");
@@ -135,7 +149,6 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
       accent={RAIN}
       navLinks={[
         { label: "Calculator", view: "dscr-calculator" },
-        { label: "Lender Intel", view: "lender-intel" },
       ]}
       cta={{ label: "Check a state →", onClick: scrollToTool }}
     >
@@ -144,7 +157,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
         .sl-cell:hover{transform:scale(1.09);}
         .sl-cell:focus-visible{outline-color:#d8d958;}
         .sl-input{width:100%;border:1px solid rgba(238,239,211,0.25);background:rgba(238,239,211,0.08);outline:none;color:#eeefd3;font-family:${dc.sans};font-size:15px;letter-spacing:-0.01em;border-radius:8px;padding:12px 14px;}
-        .sl-input::placeholder{color:rgba(238,239,211,0.62);}
+        .sl-input::placeholder{color:rgba(238,239,211,0.5);}
         .sl-input:focus-visible{outline:2px solid rgba(238,239,211,0.8);outline-offset:2px;}
         .us-state{transition:fill .15s, filter .15s, stroke .12s, stroke-width .12s;}
         .us-state:focus-visible{stroke:#d8d958 !important;stroke-width:2.5px !important;}
@@ -152,64 +165,41 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
 
       {/* HERO — rain-forest, single column (distinct from the dark tool heroes) */}
       <section style={{ background: RAIN, color: dc.cream, padding: `clamp(56px,7vh,96px) ${dc.pad} clamp(48px,6vh,72px)`, overflow: "hidden" }}>
-        <div id="gs-hero-content" className="dc-hero" style={{ maxWidth: dc.maxW, margin: "0 auto", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "clamp(32px,5vw,64px)", alignItems: "center" }}>
-          <div>
+        <div id="gs-hero-content" style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginBottom: 20, letterSpacing: "-0.01em" }}>Product / 50-State Rule Engine</div>
           <H1 style={{ margin: "0 0 18px", maxWidth: "16ch" }}>
-            Prepayment penalty rules by state.
+            Prepayment penalty rules, all fifty states.
           </H1>
           <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "54ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-            A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) is allowed in most states for business-purpose loans — but not all. This map shows where it's clear, where thresholds apply, and where lenders decline entirely. Click any state for full details.
+            A prepayment penalty (a fee some loans charge if you pay the loan off or refinance early) is allowed in most states for business-purpose loans — but not all. This map shows where it's clear, where thresholds or entity structuring apply, where lenders decline entirely, and where the law isn't settled or hasn't been researched yet. Click any state for full details.
           </div>
           <Lead style={{ color: "rgba(238,239,211,0.78)", maxWidth: "54ch", margin: "0 0 28px" }}>
-            Also shows the usury cap — the maximum interest rate a lender can legally charge. In most states, business-purpose loans are exempt, but a few have binding caps that can affect your rate.
+            Every state entry cites the governing statute — including where a usury cap could apply — so you can verify it yourself. In most states business-purpose loans are exempt from consumer usury caps, but always confirm with your lender or counsel.
           </Lead>
           <div style={{ display: "flex", gap: "clamp(20px,4vw,44px)", alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "clamp(16px,3vw,32px)" }}>
-              <div><Mono data-count={50} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>50</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states mapped</div></div>
-              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#e06363", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
+              <div><Mono data-count={researchedCount} style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.lemon, lineHeight: 1, display: "block" }}>{researchedCount}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>states researched</div></div>
+              <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: "#ff6b6b", lineHeight: 1, display: "block" }}>{counts[2] + counts[3]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>need restructure</div></div>
               <div><Mono style={{ fontSize: "clamp(30px,3.4vw,44px)", fontWeight: 600, color: dc.emerald, lineHeight: 1, display: "block" }}>{counts[0]}</Mono><div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.6)", marginTop: 4 }}>clear to quote</div></div>
             </div>
             <div style={{ flex: 1, minWidth: 220, maxWidth: 320 }}>
-              <input className="sl-input" aria-label="Jump to a state" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state - type CA, TX, NJ..." />
-            </div>
-          </div>
-          </div>
-          {/* Right: 50-state risk-zone breakdown */}
-          <div style={{ background: "rgba(0,55,56,0.4)", border: "1px solid rgba(238,239,211,0.16)", borderRadius: dc.r.lg, padding: "clamp(20px,2.4vw,28px)" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>50-state risk zones</div>
-            <div style={{ display: "flex", height: 12, borderRadius: 999, overflow: "hidden", marginBottom: 18 }}>
-              {([0, 1, 2, 3] as Tier[]).map((t) => counts[t] > 0 ? (
-                <div key={t} style={{ width: `${(counts[t] / 50) * 100}%`, background: TIER_COLORS[t] }} />
-              ) : null)}
-            </div>
-            <div style={{ display: "grid", gap: 11 }}>
-              {([0, 1, 2, 3] as Tier[]).map((t) => (
-                <div key={t} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ width: 12, height: 12, borderRadius: 4, background: TIER_COLORS[t], flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(238,239,211,0.78)", flex: 1 }}>{TIER_LABELS[t]}</span>
-                  <Mono style={{ fontSize: 17, fontWeight: 700, color: dc.cream }}>{counts[t]}</Mono>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(238,239,211,0.12)", fontSize: 12, color: "rgba(238,239,211,0.6)", lineHeight: 1.5 }}>
-              Click any state on the map below for its exact prepay rule, usury cap, and pricing impact.
+              <input className="sl-input" value={q} onChange={(e) => onSearch(e.target.value)} placeholder="Jump to a state — type CA, TX, NJ…" />
             </div>
           </div>
         </div>
       </section>
 
-      
+
 
       {/* MAP GRID — the signature: animated 10-col state grid + sticky detail */}
       <section id="sl-tool" style={{ background: dc.cream, padding: `clamp(56px,7vw,96px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
           <div className="gs-reveal" style={{ marginBottom: 28 }}>
             <p style={{ fontSize: 13, color: "rgba(0,55,56,0.6)", margin: "0 0 12px", lineHeight: 1.5 }}>
-              Click any state to see full prepayment penalty rules, usury cap, and pricing impact. Hover to preview.
+              Click any state to see full prepayment penalty rules, statutory reference, and pricing impact. Hover to preview.
             </p>
             <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
-              {([0, 1, 2, 3] as Tier[]).map((t) => (
+              {([0, 1, 2, 3, 4, 5] as Tier[]).map((t) => (
                 <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 500, color: "rgba(0,55,56,0.7)" }}>
                   <span style={{ width: 14, height: 14, borderRadius: 4, background: TIER_COLORS[t] }} />{TIER_LABELS[t]}
                 </div>
@@ -244,7 +234,17 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                       strokeWidth={isSel ? 2.4 : 0.8}
                       onMouseEnter={() => setHover(code)}
                       onClick={() => setSelected(code)}
-                      style={{ cursor: "pointer", filter: isHov ? "brightness(1.12)" : "none" }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelected(code);
+                        }
+                      }}
+                      onFocus={() => setHover(code)}
+                      onBlur={() => setHover(null)}
+                      style={{ cursor: "pointer", filter: isHov ? "brightness(1.12)" : "none", outline: isHov ? `2px solid ${dc.dark}` : "none" }}
                       aria-label={`${r.name}: ${TIER_LABELS[r.tier]}`}
                     />
                   );
@@ -255,7 +255,7 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
                 return (
                   <div style={{ position: "absolute", left: pos.x + 14, top: pos.y + 14, pointerEvents: "none", background: dc.dark, color: dc.cream, borderRadius: 8, padding: "10px 13px", maxWidth: 240, boxShadow: "0 14px 32px -18px rgba(0,0,0,0.55)", zIndex: 5 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{r.name}</div>
-                    <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: TIER_COLORS[r.tier] }}>{TIER_LABELS[r.tier]}</div>
+                    <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: TIER_COLORS[r.tier] }}>{TIER_LABELS[r.tier]}</div>
                     <div style={{ fontSize: 11, color: "rgba(238,239,211,0.7)", marginTop: 5, lineHeight: 1.4 }}>{r.impact}</div>
                   </div>
                 );
@@ -266,42 +266,36 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 8 }}>{sel.code} · {sel.name}</div>
               <div style={{ fontSize: "clamp(28px,3vw,40px)", fontWeight: 600, letterSpacing: "-0.03em", color: TIER_COLORS[sel.tier], lineHeight: 1.05, marginBottom: 20 }}>{TIER_LABELS[sel.tier]}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={{ background: "rgba(238,239,211,0.06)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(238,239,211,0.12)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.lemon, marginBottom: 2 }}>
-                    Rate Adjustment: {sel.adj > 0 ? `+${sel.adj.toFixed(2)}%` : "Standard (0.00%)"}
-                  </div>
-                  <div style={{ fontSize: 12, color: "rgba(238,239,211,0.7)", lineHeight: 1.4 }}>{sel.note}</div>
-                </div>
-
-                {sel.entityReq && (
-                  <div style={{ background: "rgba(230,184,77,0.1)", borderRadius: 6, padding: "8px 12px", border: "1px solid rgba(230,184,77,0.3)" }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#e6b84d" }}>
-                      ⚠️ Entity Borrower Required (LLC / Corp)
-                    </span>
-                  </div>
-                )}
-
                 {[
                   { k: "Prepayment penalty rules", v: sel.ppp, color: "#eeefd3", weight: 500 as const },
-                  { k: "Usury / max rate cap", v: sel.usury, color: "#eeefd3", weight: 500 as const },
+                  { k: "Statutory reference", v: sel.statutoryReference, color: "#eeefd3", weight: 500 as const },
                   { k: "Pricing impact for your deal", v: sel.impact, color: TIER_COLORS[sel.tier], weight: 600 as const },
                   ...(sel.threshold ? [{ k: "Key threshold to know", v: sel.threshold, color: "#eeefd3", weight: 600 as const }] : []),
                 ].map((row) => (
                   <div key={row.k}>
-                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>{row.k}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.5)", marginBottom: 4 }}>{row.k}</div>
                     <div style={{ fontSize: 15, fontWeight: row.weight, color: row.color, lineHeight: 1.5, letterSpacing: "-0.01em" }}>{row.v}</div>
                   </div>
                 ))}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
-                <Btn label={`Get ${sel.name} Rate Quote →`} href="/rate-quiz" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("rate-quiz"); }} style={{ width: "100%", justifyContent: "center" }} />
-                <Btn label={`Analyze deal in ${sel.code}`} variant="secondary" href="/dscr-calculator" size="sm" onClick={(e) => { e.preventDefault(); onNavigate("dscr-calculator"); }} style={{ width: "100%", justifyContent: "center" }} />
-              </div>
+              <button
+                onClick={() => onNavigate("dscr-calculator")}
+                style={{ marginTop: 24, width: "100%", background: dc.lemon, color: dc.dark, border: "none", borderRadius: 6, padding: "12px 0", fontSize: 14, fontWeight: 600, fontFamily: dc.sans, cursor: "pointer" }}
+              >
+                Price a deal in {sel.code} →
+              </button>
             </div>
           </div>
+
+          {/* Disclaimer */}
+          <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
+            Statutory research, not legal advice. Prepayment-penalty treatment turns on entity
+            vesting, loan purpose and the specific lender matrix — confirm with your lender or
+            counsel before relying on any entry here.
+          </p>
+          <DataVintageLine ground="light" />
         </div>
       </section>
-      <BottomCTA onNavigate={onNavigate} />
     </DcShell>
   );
 }

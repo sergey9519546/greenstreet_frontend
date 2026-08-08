@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, CountUp, Btn } from "../design/dc";
-import { radius } from "../theme";
+import { radius, risk } from "../theme";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
 import type { PropertyInputs } from "../engine/types";
 import { calculateFIRPTAImpact } from "../engine/firpta";
@@ -140,7 +140,7 @@ function MonthTable({
                 ? dc.emerald
                 : m.monthlyDSCR >= 1.0
                 ? dc.lemon
-                : "#e06363";
+                : risk.danger;
             return (
               <tr key={m.month}>
                 <td
@@ -221,7 +221,7 @@ function SeasonalityBars({
             ? dc.emerald
             : m.monthlyDSCR >= 1.0
             ? dc.lemon
-            : "#e06363";
+            : risk.danger;
         const bgAlpha = m.isOffSeason ? "22" : "33";
         return (
           <div
@@ -282,6 +282,13 @@ export default function STRUnderwritingPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  // Title matches PUBLIC_PAGES["str-underwriting"] in src/seo/routeMetadata.ts.
+  // The route is currently behind a reliability hold, so ToolReliabilityHoldPage
+  // renders instead — this keeps the page from shipping untitled if that lifts.
+  useEffect(() => {
+    document.title = "STR Underwriting | Greenstreet Finance";
+  }, []);
+
   // ── inputs ───────────────────────────────────────────────────────────────
   const [state, setState] = useState("TX");
   const [purchasePrice, setPurchasePrice] = useState(480000);
@@ -326,7 +333,7 @@ export default function STRUnderwritingPage({
         loanAmount,
         rate,
         30,
-        "0",
+        "NONE", // ioPeriod — fully amortizing (IOPeriod union: NONE | 5_YR | 7_YR | 10_YR)
         annualTaxes,
         annualInsurance,
         hoa,
@@ -384,7 +391,7 @@ export default function STRUnderwritingPage({
   const dscrStr = bestDSCR !== null ? bestDSCR.toFixed(2) + "x" : "—";
   const verdict = bestDSCR !== null ? dscrLabel(bestDSCR) : "—";
   const vColor = bestDSCR !== null
-    ? (bestDSCR >= 1.25 ? dc.emerald : bestDSCR >= 1.0 ? dc.lemon : "#e06363")
+    ? (bestDSCR >= 1.25 ? dc.emerald : bestDSCR >= 1.0 ? dc.lemon : risk.danger)
     : "rgba(238,239,211,0.35)";
 
   const grossAnnual = result
@@ -617,7 +624,7 @@ export default function STRUnderwritingPage({
                     border: "1px solid rgba(238,239,211,0.08)",
                   }}
                 >
-                  <p style={{ color: "#e06363", margin: 0 }}>Engine returned no result. Check inputs.</p>
+                  <p style={{ color: risk.danger, margin: 0 }}>Engine returned no result. Check inputs.</p>
                 </div>
               ) : (
                 <>
@@ -750,7 +757,7 @@ export default function STRUnderwritingPage({
                               fontSize: "clamp(22px,2.8vw,36px)",
                               fontWeight: 600,
                               letterSpacing: "-0.03em",
-                              color: world.dscr >= 1.25 ? dc.emerald : world.dscr >= 1.0 ? dc.lemon : "#e06363",
+                              color: world.dscr >= 1.25 ? dc.emerald : world.dscr >= 1.0 ? dc.lemon : risk.danger,
                             }}
                           >
                             {world.dscr.toFixed(2)}x
@@ -825,7 +832,7 @@ export default function STRUnderwritingPage({
                       {/* off-season / peak legend */}
                       <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(224,99,99,0.2)", border: "1px solid #e06363" }} />
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(224,99,99,0.2)", border: `1px solid ${risk.danger}` }} />
                           <span style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", fontWeight: 500 }}>Off-season (DSCR &lt; 1.0)</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -847,11 +854,11 @@ export default function STRUnderwritingPage({
                           style={{
                             marginTop: 14,
                             padding: "12px 16px",
-                            background: "rgba(224,99,99,0.08)",
+                            background: risk.dangerBg,
                             borderRadius: 7,
                             border: "1px solid rgba(224,99,99,0.25)",
                             fontSize: 12,
-                            color: "#e06363",
+                            color: risk.danger,
                             lineHeight: 1.55,
                           }}
                         >
@@ -900,7 +907,7 @@ export default function STRUnderwritingPage({
                             result.legality.status === "CLEAR"
                               ? dc.emerald
                               : result.legality.status === "RESTRICTED"
-                              ? "#e06363"
+                              ? risk.danger
                               : dc.lemon,
                           letterSpacing: "-0.02em",
                         }}
@@ -927,8 +934,8 @@ export default function STRUnderwritingPage({
                         background: result.legality.incomeEnabled
                           ? "rgba(77,189,151,0.15)"
                           : "rgba(211,47,47,0.15)",
-                        border: `1px solid ${result.legality.incomeEnabled ? dc.emerald : "#e06363"}`,
-                        color: result.legality.incomeEnabled ? dc.emerald : "#e06363",
+                        border: `1px solid ${result.legality.incomeEnabled ? dc.emerald : risk.danger}`,
+                        color: result.legality.incomeEnabled ? dc.emerald : risk.danger,
                         fontSize: 12,
                         fontWeight: 700,
                         letterSpacing: "0.06em",
@@ -956,7 +963,7 @@ export default function STRUnderwritingPage({
                           fontWeight: 600,
                           letterSpacing: "0.04em",
                           textTransform: "uppercase",
-                          color: "#e06363",
+                          color: risk.danger,
                           marginBottom: 4,
                         }}
                       >
@@ -997,10 +1004,10 @@ export default function STRUnderwritingPage({
                         </div>
                         <div style={{ fontSize: 20, color: "rgba(238,239,211,0.3)" }}>→</div>
                         <div style={{ textAlign: "center" }}>
-                          <div style={{ fontSize: 11, color: "#e06363", marginBottom: 4, fontWeight: 600 }}>
+                          <div style={{ fontSize: 11, color: risk.danger, marginBottom: 4, fontWeight: 600 }}>
                             Withholding (15%)
                           </div>
-                          <Mono style={{ fontSize: 18, fontWeight: 600, color: "#e06363" }}>
+                          <Mono style={{ fontSize: 18, fontWeight: 600, color: risk.danger }}>
                             −{fmt(result.firpta.federalWithholdingAmount)}
                           </Mono>
                         </div>

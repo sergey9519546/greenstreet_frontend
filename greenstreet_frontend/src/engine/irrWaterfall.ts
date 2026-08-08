@@ -45,6 +45,7 @@ import type {
   WaterfallSign,
 } from './types';
 import { calculatePI } from './engine';
+import { computeTcoRate, mapToTcoType } from './tcoDscr';
 
 // ============================================================
 // MAIN ENTRY POINT
@@ -58,7 +59,7 @@ import { calculatePI } from './engine';
  * @param loan         Loan structure (for LTV reference)
  * @param strategy     Rental strategy (drives vacancy assumption)
  * @param solvedRate   Solved interest rate (%)
- * @param qualifyingRent  Monthly qualifying rent
+ * @param monthlyGrossRent  Raw monthly strategy rent before Track 1 or Track 2 haircuts
  * @param loanAmount   Loan principal
  * @param cashInvested Initial cash outflow (down payment + closing costs)
  * @param prepayPenaltyAtExit  Prepay penalty paid at exit
@@ -70,28 +71,50 @@ export function computeIRRWaterfall(
   loan: LoanStructure,
   strategy: RentalStrategy,
   solvedRate: number,
-  qualifyingRent: number,
+  monthlyGrossRent: number,
   loanAmount: number,
   cashInvested: number,
   prepayPenaltyAtExit: number,
 ): IRRWaterfallResult {
-  // ── Track 2 haircut assumptions (per strategy) ──
-  const vacancyPct = 8;
-  const managementPct = 8;
-  const maintenancePct = 5;
+  // ── Track 2 expense assumptions (TCO single source of truth) ──
+  // This waterfall is an investor cash-flow view, so it must start with the
+  // raw strategy rent. `solveDSCR().track1.qualifyingRent` is already reduced
+  // for STR/MTR lender qualification and would apply a second vacancy haircut
+  // here. Management and maintenance also follow Track 2 and are calculated
+  // from gross scheduled rent, not rent remaining after vacancy.
+  //
+  // Rates come from tcoDscr.computeTcoRate — the same call engine.buildTrack2
+  // makes — so the waterfall and the Track 2 DSCR can never drift apart. The
+  // legacy flat TRACK2_* constants (8% vac / 8% mgmt / 5% maint) were removed
+  // in the TCO reconciliation.
+  //
+  // CapEx (rate.capex) is deliberately NOT a waterfall stage: this waterfall
+  // decomposes NOI → debt service → tax → after-tax CF, and under standard
+  // real-estate convention NOI excludes capital expenditure. Adding it here
+  // would also break the tie-out to `afterTaxIRR.yearByYear`, which is computed
+  // by taxEngine from an NOI that carries no CapEx line. Track 2 DSCR keeps
+  // CapEx because it is a deliberately conservative survival metric.
+  const tcoRate = computeTcoRate({
+    propertyType: mapToTcoType(property.unitCount, strategy === 'STR'),
+  });
+  const vacancyPct = tcoRate.vacancy * 100;
+  const managementPct = tcoRate.management * 100;
+  const maintenancePct = tcoRate.maintenance * 100;
 
   const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
   const termMonths = termYears * 12;
 
   // ── Year 1 base figures ──
-  const monthlyGrossRent = qualifyingRent;
   const annualGrossRent = monthlyGrossRent * 12;
   const annualVacancy = annualGrossRent * (vacancyPct / 100);
   const grossEffectiveRent = annualGrossRent - annualVacancy;
   const annualTaxes = property.annualTaxes;
+  // Bug audit #1 (unit convention): property.floodInsurance and property.hoa are
+  // both already MONTHLY (see calculatePITIA in engine.ts) — ×12 annualizes them
+  // here so they combine correctly with the already-annual property.annualInsurance.
   const annualInsurance = property.annualInsurance + property.floodInsurance * 12 + property.hoa * 12;
-  const annualMgmt = grossEffectiveRent * (managementPct / 100);
-  const annualMaint = grossEffectiveRent * (maintenancePct / 100);
+  const annualMgmt = annualGrossRent * (managementPct / 100);
+  const annualMaint = annualGrossRent * (maintenancePct / 100);
   const noi = grossEffectiveRent - annualTaxes - annualInsurance - annualMgmt - annualMaint;
 
   // ── Debt service breakdown (Year 1) ──
@@ -142,48 +165,16 @@ export function computeIRRWaterfall(
 
   // Exit waterfall
   const exitYear = afterTaxIRR.yearByYear.length;
-  // Reconstruct exit values from totals
-  // cashFlows[last].amount = year N afterTaxNCF + exitAfterTax
-  // → exitAfterTax = (cashFlows[last].amount) - yearByYear[last].afterTaxNCF
-  // But we don't have direct access — derive from totalOperatingCF + exitAfterTax = totalReturn
-  // We DO have: afterTaxIRR gives preTaxIRR + afterTaxIRR (annualized), but not total $.
-  // We need to derive the exit proceeds.
-  // Approach: exitAfterTax = (cashInvested + totalProfit) - totalOperatingCF
-  // We don't have totalProfit directly either. So derive from IRR + cashFlows.
-  // Simpler: I'll just expose what we can compute and use afterTaxIRR data directly.
-
-  // Use the last year's afterTaxNCF vs the implied exit by reverse-engineering:
-  // The taxEngine sets cashFlows[last].amount = yearByYear[last].afterTaxNCF + exitAfterTaxCashFlow
-  // and exitAfterTaxCashFlow = recapture.afterTaxExitProceeds - remainingLoanBalance - prepayPenaltyAtExit
-  // We can compute this from the totalDepreciationShield + totalTaxOnExit + remainingBalance + prepayPenalty
-  // Actually, we have afterTaxIRR.totalTaxOnExit and afterTaxIRR.totalDepreciationShield.
-  // The recapture object is internal to computeAfterTaxIRR — not exposed.
-  // So we need to derive exitAfterTax differently.
-
-  // Reverse-engineer exit proceeds from IRR + cashflows
-  // Using XIRR: 0 = -cashInvested + Σ (CF_t / (1+IRR)^t)
-  // This is complex. Let me re-derive a simpler estimate:
-  // exitAfterTax ≈ (cashInvested × (1 + afterTaxIRR)^holdYears) - totalOperatingCF
-  // This is approximate because IRR solves the polynomial, but it's a reasonable estimate.
   const holdYears = exitYear;
-  const afterTaxIRR_pct = afterTaxIRR.afterTaxIRR / 100;
-  const preTaxIRR_pct = afterTaxIRR.preTaxIRR / 100;
 
-  // Solve for exitAfterTax that makes XIRR = afterTaxIRR
-  // Approximation: assume CFs are evenly distributed
-  // Better: use the actual year-by-year CFs
-  // Σ (CF_t / (1+r)^t) for t=1..N-1 = totalOperatingCF (approximately, ignoring TVM)
-  // exitAfterTax = (cashInvested × (1+r)^N) - Σ (CF_t × (1+r)^(N-t))
-  let operatingCFDiscounted = 0;
-  for (let t = 1; t <= holdYears; t++) {
-    const row = afterTaxIRR.yearByYear[t - 1];
-    operatingCFDiscounted += row.afterTaxNCF / Math.pow(1 + afterTaxIRR_pct, t);
-  }
-  const exitAfterTax = cashInvested - operatingCFDiscounted + 0; // Total inflow at time N
-  // Actually: PV(outflows) = PV(inflows)
-  // cashInvested = Σ CF_t/(1+r)^t + exitAfterTax/(1+r)^N
-  // → exitAfterTax = (cashInvested - Σ CF_t/(1+r)^t) × (1+r)^N
-  const exitAfterTaxImplied = (cashInvested - operatingCFDiscounted) * Math.pow(1 + afterTaxIRR_pct, holdYears);
+  // v11 FIX (bug audit #3 family, dead-code cleanup): a prior "reverse-engineer
+  // exit proceeds from the XIRR" attempt lived here. It divided the already-decimal
+  // afterTaxIRR.afterTaxIRR/preTaxIRR by 100 again (the same double-scaling bug
+  // fixed in v11Runner.ts), and its result (exitAfterTax / exitAfterTaxImplied) was
+  // never actually used — the real netAfterTaxExit below is computed directly from
+  // the sale-price waterfall (NOI_exit / capRate → sale proceeds → less loan
+  // payoff/prepay penalty/exit tax), not from an IRR-implied reverse solve. Removed
+  // rather than fixed in place, since it was dead code either way.
 
   // Exit waterfall components (best-effort decomposition)
   // We know:
@@ -220,13 +211,19 @@ export function computeIRRWaterfall(
   const totalGrossEff = totalGrossRent - totalVacancy;
   const totalTaxes = annualTaxes * holdYears;
   const totalIns = annualInsurance * holdYears;
-  const totalMgmt = annualMgmt * holdYears * (1 + rentGrowthPct);
-  const totalMaint = annualMaint * holdYears * (1 + rentGrowthPct);
+  const totalMgmt = totalGrossRent * (managementPct / 100);
+  const totalMaint = totalGrossRent * (maintenancePct / 100);
   const totalNOI = totalGrossEff - totalTaxes - totalIns - totalMgmt - totalMaint;
   const totalInterest = annualInterest * holdYears * 0.85;  // interest declines over time
   const totalPrincipal = annualADSPiOnly * holdYears - totalInterest;
   const totalADS = annualADSPiOnly * holdYears;
-  const totalTaxableIncome = totalNOI - totalDepreciation;
+  // v11 FIX (bug audit #2): derive from the real per-year taxable-income values
+  // (which now correctly subtract mortgage interest — see taxEngine.computeAfterTaxIRR)
+  // instead of re-deriving via totalNOI - totalDepreciation, which silently omitted
+  // interest and was inconsistent with totalOperatingCF/totalDepreciation/
+  // totalFederalTax/totalStateTax/totalPreTaxCF just above (all summed directly
+  // from afterTaxIRR.yearByYear).
+  const totalTaxableIncome = afterTaxIRR.yearByYear.reduce((sum, r) => sum + r.taxableIncome, 0);
   const totalReturn = totalOperatingCF + netAfterTaxExit;
   const totalProfit = totalReturn - cashInvested;
 
@@ -240,10 +237,15 @@ export function computeIRRWaterfall(
   );
 
   // ── Summary ──
+  // buildSummary's afterTaxIRR/preTaxIRR params are formatted as "X.XX%" (percent),
+  // but taxEngine's AfterTaxIRRResult.afterTaxIRR/preTaxIRR are DECIMAL fractions
+  // (0.15 = 15%; same convention fixed in v11Runner.ts — bug audit #3) — convert
+  // here, at the one place a percent-formatted string is produced, rather than
+  // changing the decimal convention used everywhere else in this file.
   const summary = buildSummary(
     holdYears, annualGrossRent, noi, year1AfterTaxCF,
     netAfterTaxExit, cashInvested, totalReturn, totalProfit,
-    afterTaxIRR.afterTaxIRR, afterTaxIRR.preTaxIRR,
+    afterTaxIRR.afterTaxIRR * 100, afterTaxIRR.preTaxIRR * 100,
     year1.effectiveTaxRate, year1.depreciationShieldPct,
     exit.exitMultiple,
   );
@@ -286,8 +288,14 @@ function buildYear1Stages(
 
   const push = (label: string, amount: number, sign: WaterfallSign, detail: string) => {
     step++;
-    if (sign === 'ADD' || sign === 'SUBTOTAL' || sign === 'TOTAL') cum += amount;
+    // v11 FIX (bug audit #4): SUBTOTAL/TOTAL rows carry the ACTUAL running total
+    // as `amount` (a precomputed checkpoint value, e.g. NOI, taxableIncome,
+    // afterTaxCF) — NOT a new delta to add on top of `cum`, which already
+    // reflects the preceding ADD/SUBTRACT stages. The old code did `cum += amount`
+    // here too, silently doubling the cumulative column at every subtotal/total.
+    if (sign === 'ADD') cum += amount;
     else if (sign === 'SUBTRACT') cum -= amount;
+    else cum = amount; // SUBTOTAL / TOTAL: reset to the known-correct checkpoint value
     stages.push({
       step,
       label,
@@ -301,19 +309,19 @@ function buildYear1Stages(
     });
   };
 
-  push('Gross Scheduled Rent', grossRent, 'ADD', `12 × $${(grossRent / 12).toFixed(0)}/mo qualifying rent`);
+  push('Gross Scheduled Rent', grossRent, 'ADD', `12 × $${(grossRent / 12).toFixed(0)}/mo raw strategy rent`);
   push('Vacancy Loss', vacancy, 'SUBTRACT', `${vacancy > grossRent * 0.15 ? '25%' : vacancy > grossRent * 0.08 ? '12%' : '8%'} vacancy assumption (Track 2 haircut)`);
   push('Gross Effective Rent', grossEff, 'SUBTOTAL', 'Rent actually collected after vacancy');
   push('Property Taxes', taxes, 'SUBTRACT', `Annual property tax bill`);
   push('Insurance + HOA + Flood', insurance, 'SUBTRACT', `Property insurance + HOA dues + flood insurance`);
-  push('Property Management', mgmt, 'SUBTRACT', `8% of gross effective rent`);
-  push('Maintenance & Repairs', maint, 'SUBTRACT', `5% of gross effective rent`);
+  push('Property Management', mgmt, 'SUBTRACT', `8% of gross scheduled rent`);
+  push('Maintenance & Repairs', maint, 'SUBTRACT', `5% of gross scheduled rent`);
   push('Net Operating Income (NOI)', noi, 'SUBTOTAL', 'Gross effective rent minus all operating expenses');
   push('Interest', interest, 'SUBTRACT', `Year-1 mortgage interest at solved rate`);
   push('Principal', principal, 'SUBTRACT', `Year-1 principal paydown (builds equity, but cash outflow)`);
   push('Pre-Tax Cash Flow', preTaxCF, 'SUBTOTAL', `NOI minus annual debt service (P&I only)`);
   push('Depreciation Deduction', depreciation, 'SUBTRACT', `Non-cash deduction (27.5yr S/L on structure basis)`);
-  push('Taxable Income', taxableIncome, 'SUBTOTAL', `NOI minus depreciation (cash flow is NOT taxed directly)`);
+  push('Taxable Income', taxableIncome, 'SUBTOTAL', `NOI minus mortgage interest minus depreciation (cash flow is NOT taxed directly)`);
   push('Federal Tax', federalTax, 'SUBTRACT', `Ordinary income tax at marginal bracket (with PAL rules)`);
   push('State Tax', stateTax, 'SUBTRACT', `State income tax at investor's state rate`);
   push('After-Tax Cash Flow', afterTaxCF, 'TOTAL', `What investor pockets in Year 1`);
@@ -341,8 +349,14 @@ function buildHoldTotalStages(
 
   const push = (label: string, amount: number, sign: WaterfallSign, detail: string) => {
     step++;
-    if (sign === 'ADD' || sign === 'SUBTOTAL' || sign === 'TOTAL') cum += amount;
+    // v11 FIX (bug audit #4): SUBTOTAL/TOTAL rows carry the ACTUAL running total
+    // as `amount` (a precomputed checkpoint value, e.g. NOI, taxableIncome,
+    // afterTaxCF) — NOT a new delta to add on top of `cum`, which already
+    // reflects the preceding ADD/SUBTRACT stages. The old code did `cum += amount`
+    // here too, silently doubling the cumulative column at every subtotal/total.
+    if (sign === 'ADD') cum += amount;
     else if (sign === 'SUBTRACT') cum -= amount;
+    else cum = amount; // SUBTOTAL / TOTAL: reset to the known-correct checkpoint value
     stages.push({
       step,
       label,
@@ -368,7 +382,7 @@ function buildHoldTotalStages(
   push('Total Principal', principal, 'SUBTRACT', `Cumulative principal paydown (equity build)`);
   push('Total Pre-Tax Cash Flow', preTaxCF, 'SUBTOTAL', `NOI minus total debt service`);
   push('Total Depreciation Deduction', depreciation, 'SUBTRACT', `Cumulative depreciation shield (non-cash)`);
-  push('Total Taxable Income', taxableIncome, 'SUBTOTAL', `Cumulative taxable income after depreciation`);
+  push('Total Taxable Income', taxableIncome, 'SUBTOTAL', `Cumulative taxable income after mortgage interest and depreciation`);
   push('Total Federal Tax', federalTax, 'SUBTRACT', `Cumulative federal income tax`);
   push('Total State Tax', stateTax, 'SUBTRACT', `Cumulative state income tax`);
   push('Total After-Tax Operating CF', operatingCF, 'TOTAL', `Sum of year-by-year after-tax NCF`);

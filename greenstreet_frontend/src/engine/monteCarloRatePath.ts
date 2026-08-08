@@ -13,13 +13,17 @@
 //     σ (sigma) = annual volatility
 //     dW(t)     = Brownian motion (Gaussian shock)
 //
+// PROVENANCE: the r0 / θ levels below are a dated snapshot, registered in
+// src/engine/dataVintage.ts as 'sofrModel' (asOf 2026-06-17, 30-day cadence).
+// Re-pull them and update that entry together.
+//
 // CALIBRATION (to 2020-2025 SOFR history):
 //   - Initial SOFR (r0): 3.59% (current, June 2026 snapshot)
 //   - Long-run mean (θ): 3.50% (Fed long-run neutral rate estimate, Jun 2026 SEP median)
 //   - Mean reversion (κ): 0.30 per year (typical for short rates; reaches θ in ~3 years)
 //   - Volatility (σ): 1.20% (calibrated to 2020-2025 SOFR realized vol —
 //     includes ZIRP era 0.05% and 2023 peak 5.33%)
-//   - Fed shock: 5% monthly probability of ±50bps jump (FOMC meeting shock)
+//   - Fed shock: 8.3% monthly probability of ±50bps jump (~1 shock/year; models unscheduled Fed action, not literal FOMC meeting dates)
 //
 // REPRODUCIBILITY:
 //   Uses Mulberry32 seeded PRNG (same as existing monteCarlo.ts).
@@ -81,7 +85,7 @@ export const DEFAULT_VASICEK_PARAMS: VasicekParameters = {
   meanReversionSpeed: 0.30,       // 3-year half-life to long-run mean
   volatility: 1.20,               // calibrated to 2020-2025 SOFR realized vol
   initialSOFR: 3.59,              // current SOFR (Jun 17, 2026 snapshot)
-  shockProbMonthly: 0.083,        // ~1 per year (12 FOMC meetings × 8.3%)
+  shockProbMonthly: 0.083,        // ~1 per year (12 monthly Bernoulli trials × 8.3%; FOMC itself meets ~8x/year — not modeled on real meeting dates)
   shockMagnitudeBps: 50,          // ±50bps typical FOMC move
 };
 

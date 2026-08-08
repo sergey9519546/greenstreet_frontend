@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { CANONICAL_PUBLIC_PATHS, PAGE_SEO, absoluteUrl } from "./seo";
 import { isKnownRoute } from "../router/resolve";
 import { NAV_MENUS } from "../design/navModel";
+import { TOOL_RELIABILITY_HOLDS } from "../components/toolReliabilityHolds";
 
 describe("site route and SEO registry", () => {
   it("keeps canonical public paths routable", () => {
@@ -22,10 +23,27 @@ describe("site route and SEO registry", () => {
     }
   });
 
-  it("keeps sitemap aligned with canonical public routes", () => {
+  // A canonical route is a route the site *intends* to publish; a reliability
+  // hold is a governance decision that it must not be published *yet*. The two
+  // registries overlap, so the sitemap must equal (canonical − held). This test
+  // originally asserted only the first half (every canonical path present),
+  // which predates TOOL_RELIABILITY_HOLDS and now directly contradicts
+  // src/seo/sitemap.test.ts. Asserting both directions keeps the sitemap pinned
+  // from both sides: a held route can never leak, and lifting a hold without
+  // adding the route back to the sitemap fails loudly.
+  it("keeps sitemap aligned with canonical public routes minus reliability holds", () => {
     const sitemap = readFileSync(resolve(process.cwd(), "public/sitemap.xml"), "utf8");
+    const heldPaths = new Set<string>(
+      Object.values(TOOL_RELIABILITY_HOLDS).map((definition) => definition.path),
+    );
+
     for (const path of CANONICAL_PUBLIC_PATHS) {
-      expect(sitemap, `${path} missing from sitemap`).toContain(`<loc>${absoluteUrl(path)}</loc>`);
+      if (heldPaths.has(path)) {
+        expect(sitemap, `${path} is on a reliability hold and must not be published`)
+          .not.toContain(`<loc>${absoluteUrl(path)}</loc>`);
+      } else {
+        expect(sitemap, `${path} missing from sitemap`).toContain(`<loc>${absoluteUrl(path)}</loc>`);
+      }
     }
     expect(sitemap).not.toContain("<loc>https://greenstreet.com/partners</loc>");
   });

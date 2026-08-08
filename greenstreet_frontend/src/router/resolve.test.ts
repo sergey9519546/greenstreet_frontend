@@ -63,8 +63,8 @@ describe('resolveRoute — canonical paths round-trip', () => {
     expect(resolveRoute('/case-studies/some-study')).toBe('case-studies');
   });
 
-  it('falls back to marketing for unknown internal paths', () => {
-    expect(resolveRoute('/this-route-does-not-exist')).toBe('marketing');
+  it('falls back to not-found for unknown internal paths', () => {
+    expect(resolveRoute('/this-route-does-not-exist')).toBe('not-found');
   });
 });
 

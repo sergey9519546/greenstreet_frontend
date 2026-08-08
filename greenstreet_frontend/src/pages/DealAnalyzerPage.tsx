@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { swatch, radius } from "../theme";
+import DataVintageLine from "../design/DataVintageLine";
+import { swatch, radius, risk } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeTcoRate } from "../engine/tcoDscr";
@@ -9,6 +10,7 @@ import { assessRentIntegrity } from "../engine/rentIntegrity";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
 import { generateCreditMemo } from "../engine/creditMemo";
+import { calculatePI } from "../engine";
 
 interface Props {
   onBack?: () => void;
@@ -51,8 +53,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
   // --- Engine computation ---
   const loan = price * (1 - down / 100);
-  const r = rate / 100 / 12;
-  const piMo = r > 0 ? (loan * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1) : 0;
+  // 30-yr amortising P&I from the golden-tested engine primitive. The `rate > 0`
+  // guard preserves this page's convention that a 0% rate shows no payment.
+  const piMo = rate > 0 ? calculatePI(loan, rate, 360) : 0;
   const pitia = piMo + tax / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
   const cashFlow = rent - pitia;
@@ -81,6 +84,18 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   // the qualifying DSCR will likely use market rent, not the stated number.
   const rentCheck = assessRentIntegrity({ leaseRent: rent, marketRent });
 
+  // --- State PPP rule ---
+  // Declared before the credit memo below, which reads `sa.ppp`.
+  const adjMap: Record<string, { adj: number; ppp: string; extra: string }> = {
+    NJ: { adj: 0.25, ppp: "PPP HIGH-RISK for LLC; C-Corp/S-Corp only.", extra: "Some lenders decline or reprice." },
+    MD: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
+    KS: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
+    MN: { adj: 0.1,  ppp: "Business-purpose ALLOWED (HF 3437 eff. 8/1/2026).", extra: "Consumer still prohibited." },
+    NY: { adj: 0.25, ppp: "Business-purpose ALLOWED; criminal usury cap 25%.", extra: "Banking Law 6-l." },
+    TX: { adj: 0,    ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." },
+  };
+  const sa = adjMap[stateCode.toUpperCase()] || { adj: 0, ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." };
+
   // --- Credit Memo Computation ---
   const creditMemo = generateCreditMemo({
     price,
@@ -101,9 +116,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
   // --- Verdict ---
   let vLabel = "DEAL BREAK";
-  let verdictColor = "#e06363";
+  let verdictColor : string = risk.danger;
   let verdictBg = "rgba(74,21,21,0.07)";
-  let verdictBorder = "#e06363";
+  let verdictBorder : string = risk.danger;
   let verdictHeadline = "Rent doesn't cover the payment — most lenders decline at this level.";
   let verdictNote =
     "DSCR below 0.75x — the rent doesn't come close to covering the payment. Consider a higher-rent property, more down payment, or a lower rate.";
@@ -127,26 +142,15 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
     nextStep = "Run the program matcher to confirm which lenders accept your deal at these numbers.";
   } else if (dscr >= 0.75) {
     vLabel = "SUB-1.0";
-    verdictColor = "#e6b84d";
-    verdictBg = "rgba(230,184,77,0.08)";
-    verdictBorder = "#e6b84d";
+    verdictColor = risk.warning;
+    verdictBg = risk.warningBg;
+    verdictBorder = risk.warning;
     verdictHeadline = "Below 1.0 — rent falls short, but sub-1.0 programs may apply.";
     verdictNote = "Some lenders accept 0.75–1.0x with strong credit (680+), lower LTV, or extra reserves. Not a dead end — but you'll need to bring compensating factors.";
     nextStep = "Ask your Greenstreet contact about sub-1.0 programs and what compensating factors they require.";
   }
 
   const riskLevel = riskFromDscr(dscr);
-
-  // --- State PPP rule ---
-  const adjMap: Record<string, { adj: number; ppp: string; extra: string }> = {
-    NJ: { adj: 0.25, ppp: "PPP HIGH-RISK for LLC; C-Corp/S-Corp only.", extra: "Some lenders decline or reprice." },
-    MD: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
-    KS: { adj: 0.5,  ppp: "PPP de facto prohibited.", extra: "Most DSCR lenders decline." },
-    MN: { adj: 0.1,  ppp: "Business-purpose ALLOWED (HF 3437 eff. 8/1/2026).", extra: "Consumer still prohibited." },
-    NY: { adj: 0.25, ppp: "Business-purpose ALLOWED; criminal usury cap 25%.", extra: "Banking Law 6-l." },
-    TX: { adj: 0,    ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." },
-  };
-  const sa = adjMap[stateCode.toUpperCase()] || { adj: 0, ppp: "No state PPP restrictions for business-purpose DSCR.", extra: "Standard pricing applies." };
 
   // --- Greenstreet programs ---
   const programs = [
@@ -273,7 +277,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
               <div style={{ width: "100%", height: 1, background: "rgba(238,239,211,0.1)", margin: "4px 0" }} />
               <div style={{ width: "100%", background: "rgba(238,239,211,0.06)", borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(238,239,211,0.62)", marginBottom: 4 }}>Cash flow / mo</div>
-                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : "#e06363", lineHeight: 1 }}>
+                <Mono style={{ fontSize: 22, fontWeight: 600, color: cashFlow >= 0 ? dc.emerald : risk.danger, lineHeight: 1 }}>
                   {(cashFlow >= 0 ? "+" : "") + fmt(cashFlow)}
                 </Mono>
               </div>
@@ -455,13 +459,13 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   {/* Dual-track "Qualifies but Dangerous": clears the lender (Track 1)
                       but loses money after operating costs (Track 2 < 1.0). */}
                   {dual.qualifiesButDangerous && (
-                    <div style={{ marginTop: 12, background: "rgba(224,99,99,0.07)", border: "1px solid rgba(224,99,99,0.3)", borderLeft: "3px solid #e06363", borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                    <div style={{ marginTop: 12, background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderLeft: `3px solid ${risk.danger}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                         <RiskFlame level="high" size={15} />
-                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#e06363" }}>Qualifies but dangerous</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: risk.danger }}>Qualifies but dangerous</span>
                       </div>
                       <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>
-                        Clears the lender at <strong style={{ color: dc.dark }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: "#e06363" }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal loses money each month.
+                        Clears the lender at <strong style={{ color: dc.dark }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: risk.danger }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal loses money each month.
                       </p>
                     </div>
                   )}
@@ -469,7 +473,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   {/* Positive vs negative leverage (RIDGE debt-tool) — does the
                       asset out-yield the debt? */}
                   {lev.state !== "NEUTRAL" && (
-                    <div style={{ marginTop: 12, background: lev.state === "NEGATIVE" ? "rgba(230,184,77,0.1)" : "rgba(77,189,151,0.1)", border: `1px solid ${lev.state === "NEGATIVE" ? "rgba(230,184,77,0.4)" : "rgba(77,189,151,0.4)"}`, borderLeft: `3px solid ${lev.state === "NEGATIVE" ? "#e6b84d" : dc.emerald}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                    <div style={{ marginTop: 12, background: lev.state === "NEGATIVE" ? risk.warningBg : "rgba(77,189,151,0.1)", border: `1px solid ${lev.state === "NEGATIVE" ? risk.warningBorder : "rgba(77,189,151,0.4)"}`, borderLeft: `3px solid ${lev.state === "NEGATIVE" ? risk.warning : dc.emerald}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
                       <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: lev.state === "NEGATIVE" ? "#b8901f" : "#1f7a5a", marginBottom: 4 }}>
                         {lev.state === "NEGATIVE" ? "Negative leverage" : "Positive leverage"} · {lev.loanConstantPct.toFixed(1)}% debt vs {lev.capRatePct.toFixed(1)}% cap
                       </div>
@@ -480,8 +484,8 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                   {/* Rent integrity (behavioral honesty) — stated rent well above
                       the appraiser's 1007 market rent; lenders use the lower figure. */}
                   {rentCheck.disposition !== "CLEAR" && (
-                    <div style={{ marginTop: 12, background: rentCheck.disposition === "ELEVATED" ? "rgba(224,99,99,0.07)" : "rgba(230,184,77,0.1)", border: `1px solid ${rentCheck.disposition === "ELEVATED" ? "rgba(224,99,99,0.3)" : "rgba(230,184,77,0.4)"}`, borderLeft: `3px solid ${rentCheck.disposition === "ELEVATED" ? "#e06363" : "#e6b84d"}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
-                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: rentCheck.disposition === "ELEVATED" ? "#e06363" : "#b8901f", marginBottom: 4 }}>
+                    <div style={{ marginTop: 12, background: rentCheck.disposition === "ELEVATED" ? risk.dangerBg : risk.warningBg, border: `1px solid ${rentCheck.disposition === "ELEVATED" ? risk.dangerBorder : risk.warningBorder}`, borderLeft: `3px solid ${rentCheck.disposition === "ELEVATED" ? risk.danger : risk.warning}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: rentCheck.disposition === "ELEVATED" ? risk.danger : "#b8901f", marginBottom: 4 }}>
                         Rent above market · stated {fmt(rent)} vs {fmt(marketRent)} market (+{rentCheck.leaseVsMarketPct.toFixed(0)}%)
                       </div>
                       {rentCheck.flags.map((fl, i) => (
@@ -513,9 +517,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 {/* 3-metric row */}
                 <div className="da-metrics-3" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
                   {[
-                    { val: (cashFlow >= 0 ? "+" : "") + fmt(cashFlow), label: "cash flow / mo", sub: cashFlow >= 0 ? "positive" : "shortfall", color: cashFlow >= 0 ? dc.emerald : "#e06363" },
-                    { val: (coc >= 0 ? "+" : "") + coc.toFixed(1) + "%", label: "cash-on-cash",  sub: coc >= 6 ? "strong" : coc >= 0 ? "thin" : "negative", color: coc >= 6 ? dc.emerald : coc >= 0 ? "#e6b84d" : "#e06363" },
-                    { val: capRate.toFixed(2) + "%",                    label: "cap rate",       sub: capRate >= 6 ? "healthy" : "thin",         color: capRate >= 6 ? dc.rain : "#e6b84d" },
+                    { val: (cashFlow >= 0 ? "+" : "") + fmt(cashFlow), label: "cash flow / mo", sub: cashFlow >= 0 ? "positive" : "shortfall", color: cashFlow >= 0 ? dc.emerald : risk.danger },
+                    { val: (coc >= 0 ? "+" : "") + coc.toFixed(1) + "%", label: "cash-on-cash",  sub: coc >= 6 ? "strong" : coc >= 0 ? "thin" : "negative", color: coc >= 6 ? dc.emerald : coc >= 0 ? risk.warning : risk.danger },
+                    { val: capRate.toFixed(2) + "%",                    label: "cap rate",       sub: capRate >= 6 ? "healthy" : "thin",         color: capRate >= 6 ? dc.rain : risk.warning },
                     { val: debtYield.toFixed(2) + "%",                  label: "debt yield",     sub: debtYield >= 10 ? "strong" : "marginal",   color: debtYield >= 10 ? dc.rain : "rgba(0,55,56,0.7)" },
                   ].map((m) => (
                     <div key={m.label} style={{ background: `${verdictBorder}14`, borderRadius: radius.sm, padding: "clamp(10px,1.2vw,14px)", textAlign: "center", border: `1px solid ${verdictBorder}22` }}>
@@ -598,7 +602,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
                 {creditMemo.riskFactors.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#e06363", marginBottom: 4 }}>Underwriting Risk Factors</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: risk.danger, marginBottom: 4 }}>Underwriting Risk Factors</div>
                     {creditMemo.riskFactors.map((r, idx) => (
                       <div key={idx} style={{ fontSize: 12, color: "rgba(0,55,56,0.7)", marginBottom: 3 }}>
                         ⚠️ {r}
@@ -642,6 +646,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
             Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Submit a scenario review for a formal quote.
           </p>
+          <DataVintageLine ground="light" />
         </div>
       </section>
 

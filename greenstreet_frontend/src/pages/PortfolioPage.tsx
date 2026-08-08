@@ -4,6 +4,8 @@ import { DscrGauge, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { analyzePortfolio, computePortfolioHealthScore } from "../engine/portfolio";
 import { buildEngineInputs } from "../engine/inputs";
 import { computeLeverageCheck } from "../engine/leverageCheck";
+import { calculatePI } from "../engine";
+import { risk } from "../theme";
 
 // Portfolio page uses pistachio nav (matching its mockup body color)
 const PF_ACCENT = "#eeefd3";
@@ -39,13 +41,6 @@ const SEED: RawProperty[] = [
 
 const fmt = (n: number) =>
   (n < 0 ? "-$" : "$") + Math.round(Math.abs(n)).toLocaleString("en-US");
-
-/** Monthly P&I for a 30-yr amortising loan */
-function pi(balance: number, annualRate: number): number {
-  const r = annualRate / 100 / 12;
-  if (r === 0) return balance / 360;
-  return (balance * r * Math.pow(1 + r, 360)) / (Math.pow(1 + r, 360) - 1);
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -86,7 +81,7 @@ export default function PortfolioPage({
   // ── Per-row computed ──────────────────────────────────────────────────────
   const computed = useMemo(() =>
     rows.map((p) => {
-      const piMo  = pi(p.balance, p.rate);
+      const piMo  = calculatePI(p.balance, p.rate, 360); // 30-yr amortising P&I, engine primitive
       const pitia = piMo + p.pitiaExtra;
       const dscr  = pitia > 0 ? p.rent / pitia : 0;
       const cf    = p.rent - pitia;
@@ -171,7 +166,7 @@ export default function PortfolioPage({
   // ── Colors ────────────────────────────────────────────────────────────────
   const MINT   = dc.emerald;
   const YELLOW = dc.lemon;
-  const RED    = "#e06363";
+  const RED    = risk.danger;
 
   const blendColor = agg.blend >= 1.25 ? MINT : agg.blend >= 1.0 ? YELLOW : RED;
   const cashColor  = agg.totCash >= 0  ? MINT : RED;
@@ -334,7 +329,7 @@ export default function PortfolioPage({
                     { label: "Cash Flow",     pts: healthScore.breakdown.cashFlowPts,      max: 20 },
                     { label: "Reserves",      pts: healthScore.breakdown.reservePts,       max: 20 },
                   ].map(({ label, pts, max }) => (
-                    <div key={label} style={{ fontSize: 11, fontWeight: 600, color: pts === max ? dc.lemon : pts === 0 ? "#e06363" : "#e6b84d", background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "3px 8px", letterSpacing: "0.03em" }}>
+                    <div key={label} style={{ fontSize: 11, fontWeight: 600, color: pts === max ? dc.lemon : pts === 0 ? risk.danger : risk.warning, background: "rgba(238,239,211,0.07)", borderRadius: 4, padding: "3px 8px", letterSpacing: "0.03em" }}>
                       {label} {pts}/{max}
                     </div>
                   ))}
@@ -397,7 +392,7 @@ export default function PortfolioPage({
                       key={v.id}
                       style={{
                         padding: "8px 12px",
-                        background: "rgba(224,99,99,0.08)",
+                        background: risk.dangerBg,
                         border: "1px solid rgba(224,99,99,0.2)",
                         borderRadius: dc.r.sm,
                         marginBottom: 6,

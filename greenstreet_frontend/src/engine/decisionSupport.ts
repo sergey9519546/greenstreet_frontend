@@ -347,11 +347,11 @@ export function computeExecutionRisk(
 
   const summary = `Execution Risk: ${verdict} (${finalScore}/100). ` +
     dimensions.map(d => `${d.name} ${d.score}`).join(' / ') +
-    `. ${verdict === 'Very Likely' ? 'Strong approval odds across all dimensions.' :
-        verdict === 'Likely' ? 'Approvable with standard documentation.' :
-        verdict === 'Moderate' ? 'Approvable but expect conditions or premium pricing.' :
-        verdict === 'Difficult' ? 'Will require structural changes or specialist lenders.' :
-        'Unlikely to qualify — restructure needed.'}`;
+    `. ${verdict === 'Very Likely' ? 'The modeled execution inputs are comparatively strong.' :
+        verdict === 'Likely' ? 'The modeled execution inputs show fewer identified constraints.' :
+        verdict === 'Moderate' ? 'The modeled execution inputs include material constraints requiring review.' :
+        verdict === 'Difficult' ? 'The modeled execution inputs indicate structural changes may be needed.' :
+        'The modeled execution inputs indicate substantial unresolved risk.'}`;
 
   return { verdict, score: finalScore, dimensions, summary };
 }
@@ -1080,7 +1080,7 @@ export function buildICMemo(input: ICMemoInput): ICMemo {
     riskStatement,
     assumptions: input.assumptions,
     sourceDates: input.sourceDates,
-    disclaimer: `PROFESSIONAL DECISION-SUPPORT — DATA AS OF JUNE 2026. Analytical recommendations for use by a licensed professional or sophisticated investor, who is the decision-maker of record. Not a loan commitment, credit decision, appraisal, tax opinion, or guarantee of approval; not a substitute for legal, tax, and financial counsel. Guidelines, rates, LTV, reserves, prepayment structures, and STR/insurance policies change without notice; verified items reflect their labeled source dates; market-pattern/unverified items require direct confirmation. Rates anchor to the 10yr/5yr Treasury and SOFR + a risk-tiered spread and must be re-priced as markets move. Annually indexed thresholds (OH/PA) re-confirmed each January. MN HF 3437 enacted April 23, 2026, effective August 1, 2026 — applies only to personal/family/household loans; business-purpose DSCR loans not reached. Tax outputs (depreciation, bonus-dep per OBBBA, recapture, NIIT, 1031, after-tax IRR) are estimates dependent on the investor's bracket, MAGI, REP status, filing status, entity, and cost-segregation election — confirm with a CPA. Return projections depend on forward assumptions (rent growth, exit cap, hold) that are estimates, not forecasts. Fit tiers are qualitative, not predictions. Scoring weights are suggested, not empirically calibrated.`,
+    disclaimer: `UNVALIDATED DECISION-SUPPORT MODEL. This output is an educational scenario based on user-entered assumptions and internally configured weights that are not empirically calibrated. It is not a loan commitment, credit decision, appraisal, rate quote, provider match, legal or tax conclusion, investment recommendation, or prediction. Rates, provider guidelines, jurisdiction rules, insurance, taxes, and transaction facts can change and require current primary sources plus review by the responsible licensed or qualified professional. Do not rely on this output for a financing, legal, tax, or investment decision.`,
   };
 }
 

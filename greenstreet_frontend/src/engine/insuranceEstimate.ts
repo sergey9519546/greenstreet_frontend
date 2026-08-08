@@ -6,6 +6,13 @@
 // Insurance has more DSCR impact per dollar than the interest rate, and
 // investors systematically underestimate it (behavioral overoptimism). No API:
 // a static per-$1,000 state table (NAIC/Bankrate-sourced) × coverage × factors.
+//
+// PROVENANCE GAP: this table carries NO pull date anywhere in the file, so it is
+// registered in src/engine/dataVintage.ts as 'insuranceTable' with asOf = null
+// (asOfConfidence 'undocumented') and always reports stale. Do not guess a date
+// here — re-pull the NAIC/Bankrate figures, then stamp the real date in both
+// places. Given insurance's outsized DSCR impact, this is the highest-value
+// refresh in the registry.
 
 /** Annual premium per $1,000 of dwelling coverage, by state. */
 export const INSURANCE_BASE_RATE_PER_1000: Record<string, number> = {

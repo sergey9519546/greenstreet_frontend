@@ -26,13 +26,18 @@ import type {
   RefiTriggerResult,
 } from './types';
 import { calculatePI, calculatePaymentFactor } from './engine';
+import { vintageAsOf } from './dataVintage';
 
 // ============================================================
 // CURRENT MARKET SNAPSHOT — Verified June 17, 2026
 // ============================================================
-
+// PROVENANCE: registered in src/engine/dataVintage.ts as 'sofrModel'
+// (30-day refresh cadence). asOfDate is read from the registry so the snapshot
+// and the registry can never disagree; the index levels below still have to be
+// re-pulled by hand when that date moves. The registry documents, it does not
+// gate — no number below is derived from it.
 export const CURRENT_MARKET_SNAPSHOT: MarketIndexSnapshot = {
-  asOfDate: '2026-06-17',
+  asOfDate: vintageAsOf('sofrModel'),
   treasury10Y: 4.47,
   treasury5Y: 4.26,
   sofr30Day: 3.59,

@@ -18,6 +18,9 @@ const ROUTES_TO_TEST = [
   '/tools/arm-reset',
   '/tools/tax-engine',
   '/tools/refi-tracker',
+  '/tools/commercial-dscr',
+  '/tools/construction-bridge',
+  '/tools/tco-threshold',
 ];
 
 async function runQA() {

@@ -5,12 +5,14 @@ import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
 import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy, computeDualTrackDSCR, computeShockWaterfall } from "../engine/stressMatrix";
 import type { WaterfallShock } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
+import { calculatePI } from "../engine";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import BottomCTA from "../design/BottomCTA";
 import { assessDscrCovenant } from "../engine/covenantCheck";
 import type { CovenantStatus } from "../engine/covenantCheck";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
+import { risk } from "../theme";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const MINT      = dc.mintBg;
@@ -32,9 +34,9 @@ const ZONE_COLORS: Record<StressRiskZone, { bg: string; ink: string }> = {
 const ZONE_ACCENT: Record<StressRiskZone, string> = {
   SAFE:        RAIN,
   COMFORTABLE: EMERALD,
-  MARGINAL:    "#d8d958",
-  FRAGILE:     "#e6b84d",
-  DEAL_BREAK:  "#e06363",
+  MARGINAL:    risk.caution,
+  FRAGILE:     risk.warning,
+  DEAL_BREAK:  risk.danger,
 };
 
 // ── Plain-English verdict copy ────────────────────────────────────────────────
@@ -44,13 +46,6 @@ function verdictCopy(dscr: number, zone: StressRiskZone): { headline: string; su
   if (zone === "MARGINAL")    return { headline: "Tight — rent just barely covers costs",        sub: `At ${dscr.toFixed(2)}x the deal clears 1.00, but there's little cushion.` };
   if (zone === "FRAGILE")     return { headline: "Cash-flow shortfall — stress this deal hard",  sub: `Rent falls short of the full monthly payment by about ${Math.round((1 - dscr) * 100)}%.` };
   return { headline: "Deal breaks — rent cannot cover costs in this scenario",                  sub: `DSCR of ${dscr.toFixed(2)}x means the property is cash-flow negative. Lenders won't approve below 1.00.` };
-}
-
-// ── Mini P&I calculator (used for live stress panel) ─────────────────────────
-function calcPI(loanAmt: number, annualRate: number, months = 360): number {
-  const r = annualRate / 100 / 12;
-  if (r === 0) return loanAmt / months;
-  return (loanAmt * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
 }
 
 function calcDSCR(
@@ -63,7 +58,7 @@ function calcDSCR(
   hoa: number
 ): number {
   const loanAmt = purchasePrice * (1 - downPct / 100);
-  const pi = calcPI(loanAmt, rate);
+  const pi = calculatePI(loanAmt, rate, 360);
   const fixed = annualTaxes / 12 + annualInsurance / 12 + hoa;
   const pitia = pi + fixed;
   return pitia > 0 ? rent / pitia : 0;
@@ -230,11 +225,11 @@ export default function StressMatrixPage({
 
   // PITIA for display
   const loanAmt         = purchasePrice * (1 - downPct / 100);
-  const basePIAmt       = calcPI(loanAmt, baseRate);
+  const basePIAmt       = calculatePI(loanAmt, baseRate, 360);
   const baseFixed       = annualTaxes / 12 + annualInsurance / 12 + hoa;
   const basePITIA       = basePIAmt + baseFixed;
   const stressedRate    = baseRate + rateOffsetBps / 100;
-  const stressedPIAmt   = calcPI(loanAmt, stressedRate);
+  const stressedPIAmt   = calculatePI(loanAmt, stressedRate, 360);
   const stressedTaxInsMo= (annualTaxes * (1 + taxBumpPct / 100) + annualInsurance * (1 + taxBumpPct / 100)) / 12;
   const stressedPITIA   = stressedPIAmt + stressedTaxInsMo + hoa;
   const effectiveRent   = monthlyRent * (1 + rentChangePct / 100) * (1 - vacancyPct / 100);
@@ -291,7 +286,7 @@ export default function StressMatrixPage({
     BPS_ROWS.forEach((bps) => {
       RENT_OFFSETS.forEach((rp) => {
         const rate = Math.max(0.5, baseRate + bps / 100);
-        const pi   = calcPI(loan, rate);
+        const pi   = calculatePI(loan, rate, 360);
         const d    = pi + fixed > 0 ? (monthlyRent * (1 + rp / 100)) / (pi + fixed) : 0;
         const zone = classifyRiskZone(d);
         cells.push({ ...ZONE_COLORS[zone], v: d.toFixed(1) });
@@ -318,7 +313,7 @@ export default function StressMatrixPage({
   function zoneLabel(z: StressRiskZone) { return z.replace("_", " "); }
 
   // ── DSCR change arrow color
-  const deltaColor = dscrDelta > 0.05 ? EMERALD : dscrDelta < -0.05 ? "#e06363" : LEMON;
+  const deltaColor = dscrDelta > 0.05 ? EMERALD : dscrDelta < -0.05 ? risk.danger : LEMON;
   const deltaArrow = dscrDelta > 0.01 ? "↑" : dscrDelta < -0.01 ? "↓" : "→";
 
 
@@ -535,7 +530,7 @@ export default function StressMatrixPage({
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>DEAL BREAK</div>
-                  <Mono style={{ fontSize: 18, fontWeight: 600, color: "#e06363" }}>{breakCount}</Mono>
+                  <Mono style={{ fontSize: 18, fontWeight: 600, color: risk.danger }}>{breakCount}</Mono>
                 </div>
                 <div>
                   <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginBottom: 2 }}>TOTAL</div>
@@ -566,7 +561,7 @@ export default function StressMatrixPage({
                   <button
                     onClick={() => applyPreset(PRESETS[0])}
                     style={{
-                      background: "rgba(216,217,88,0.12)", border: "1px solid rgba(216,217,88,0.25)",
+                      background: risk.cautionBg, border: "1px solid rgba(216,217,88,0.25)",
                       borderRadius: 6, color: LEMON, fontSize: 11, fontWeight: 600,
                       padding: "6px 14px", cursor: "pointer", letterSpacing: "0.03em",
                       transition: "background 0.15s",
@@ -623,7 +618,7 @@ export default function StressMatrixPage({
                     displayValue={`${rateOffsetBps >= 0 ? "+" : ""}${rateOffsetBps} bps`}
                     displaySub={`→ ${(baseRate + rateOffsetBps / 100).toFixed(3)}%`}
                     onChange={manual(setRateOffsetBps)}
-                    accentColor={rateOffsetBps > 100 ? "#e6b84d" : rateOffsetBps > 0 ? LEMON : EMERALD}
+                    accentColor={rateOffsetBps > 100 ? risk.warning : rateOffsetBps > 0 ? LEMON : EMERALD}
                     fillPct={(rateOffsetBps - (-150)) / (300 - (-150)) * 100}
                   />
                   <SliderField
@@ -634,7 +629,7 @@ export default function StressMatrixPage({
                     displayValue={`${rentChangePct >= 0 ? "+" : ""}${rentChangePct}%`}
                     displaySub={`→ $${Math.round(monthlyRent * (1 + rentChangePct / 100)).toLocaleString()}/mo`}
                     onChange={manual(setRentChangePct)}
-                    accentColor={rentChangePct < -10 ? "#e6b84d" : rentChangePct < 0 ? LEMON : EMERALD}
+                    accentColor={rentChangePct < -10 ? risk.warning : rentChangePct < 0 ? LEMON : EMERALD}
                     fillPct={(rentChangePct - (-25)) / (20 - (-25)) * 100}
                   />
                   <SliderField
@@ -645,7 +640,7 @@ export default function StressMatrixPage({
                     displayValue={`${vacancyPct}%`}
                     displaySub={`−$${Math.round(monthlyRent * (1 + rentChangePct / 100) * vacancyPct / 100).toLocaleString()}/mo lost`}
                     onChange={manual(setVacancyPct)}
-                    accentColor={vacancyPct > 15 ? "#e6b84d" : vacancyPct > 5 ? LEMON : EMERALD}
+                    accentColor={vacancyPct > 15 ? risk.warning : vacancyPct > 5 ? LEMON : EMERALD}
                     fillPct={vacancyPct / 30 * 100}
                   />
                   <SliderField
@@ -656,7 +651,7 @@ export default function StressMatrixPage({
                     displayValue={`+${taxBumpPct}%`}
                     displaySub={`→ $${Math.round((annualTaxes + annualInsurance) * (1 + taxBumpPct / 100) / 12).toLocaleString()}/mo`}
                     onChange={manual(setTaxBumpPct)}
-                    accentColor={taxBumpPct > 20 ? "#e6b84d" : taxBumpPct > 0 ? LEMON : EMERALD}
+                    accentColor={taxBumpPct > 20 ? risk.warning : taxBumpPct > 0 ? LEMON : EMERALD}
                     fillPct={taxBumpPct / 40 * 100}
                   />
                 </div>
@@ -703,11 +698,11 @@ export default function StressMatrixPage({
                   {/* Stressed case */}
                   <div style={{
                     flex: 1,
-                    background: stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.08)" :
+                    background: stressZone === "DEAL_BREAK" ? risk.dangerBg :
                                 stressZone === "FRAGILE"    ? "rgba(230,184,77,0.07)"  :
                                                              "rgba(238,239,211,0.04)",
                     borderRadius: dc.r.sm, padding: "16px 18px",
-                    border: `1px solid ${stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.3)" :
+                    border: `1px solid ${stressZone === "DEAL_BREAK" ? risk.dangerBorder :
                                          stressZone === "FRAGILE"    ? "rgba(230,184,77,0.25)" :
                                                                       "rgba(238,239,211,0.10)"}`,
                     transition: "background 0.3s, border-color 0.3s",
@@ -864,8 +859,8 @@ export default function StressMatrixPage({
                 {/* ── Plain-language verdict ─────────────────────── */}
                 <div style={{
                   marginTop: 16,
-                  background: stressZone === "DEAL_BREAK" ? "rgba(224,99,99,0.09)" :
-                              stressZone === "FRAGILE"    ? "rgba(230,184,77,0.08)"  :
+                  background: stressZone === "DEAL_BREAK" ? risk.dangerBg :
+                              stressZone === "FRAGILE"    ? risk.warningBg  :
                               stressZone === "MARGINAL"   ? "rgba(216,217,88,0.08)"  :
                                                            "rgba(77,189,151,0.08)",
                   border: `1px solid ${ZONE_ACCENT[stressZone]}33`,
@@ -912,14 +907,14 @@ export default function StressMatrixPage({
                   </div>
                   <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
                     <span style={{ fontSize: 11, fontWeight: 600, color: EMERALD }}>{passRate} pass</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#e06363" }}>{breakCount} breaks</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: risk.danger }}>{breakCount} breaks</span>
                   </div>
                 </button>
 
                 {showFullMatrix && (
                   <div style={{ marginTop: 20 }}>
                     {!result ? (
-                      <div style={{ padding: 32, textAlign: "center", color: "#e06363", background: "rgba(224,99,99,0.08)", borderRadius: 9, border: "1px solid rgba(224,99,99,0.3)" }}>
+                      <div style={{ padding: 32, textAlign: "center", color: risk.danger, background: risk.dangerBg, borderRadius: 9, border: `1px solid ${risk.dangerBorder}` }}>
                         Engine returned no result. Check inputs.
                       </div>
                     ) : (

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { DcShell, dc, H1, H2, Lead, Btn, HeroProof, Mono } from "../design/dc";
-import { PISTACHIO, MIDNIGHT, LEMON, font, swatch, radius } from "../theme";
+import DataVintageLine from "../design/DataVintageLine";
+import { PISTACHIO, MIDNIGHT, LEMON, font, swatch, radius, risk } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
+import { calculatePaymentFactor } from "../engine";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
 import { computeLossScenarios } from "../engine/lossFraming";
 import { computeTcoDscr } from "../engine/tcoDscr";
@@ -31,11 +33,12 @@ interface Props {
   onNavigate?: (view: any) => void;
 }
 
-const pf = (r: number) => {
-  if (r === 0) return 0;
-  const m = r / 12;
-  return (m * Math.pow(1 + m, 360)) / (Math.pow(1 + m, 360) - 1);
-};
+// 30-yr amortising payment factor. The math is the golden-tested engine
+// primitive (`calculatePaymentFactor`, pinned at 8.25%/30yr = 0.0075127) — this
+// wrapper only pins the term to 360 and keeps this page's display convention
+// that a 0% rate means "no payment" (the engine returns 1/n there).
+// NOTE: takes the rate as a PERCENT (7.25), matching the engine.
+const pf = (ratePct: number) => (ratePct === 0 ? 0 : calculatePaymentFactor(ratePct, 360));
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
 
@@ -46,14 +49,16 @@ const CARD  = swatch.midnight;
 // PURCHASE-YEAR reset bill — what the buyer actually pays after a CA Prop-13 / TX
 // / FL reassessment to the new basis — instead of the seller's stale bill that
 // silently overstates DSCR. National fallback below.
-const EFF_TAX_RATE: Record<string, number> = {
+// Exported for tests only — DSCRCalculatorPage.test.tsx recomputes the displayed
+// DSCR from the engine primitives and needs the same tax basis the page uses.
+export const EFF_TAX_RATE: Record<string, number> = {
   AL:0.0041,AK:0.0118,AZ:0.0063,AR:0.0064,CA:0.0075,CO:0.0051,CT:0.0179,DE:0.0058,DC:0.0057,FL:0.0091,
   GA:0.0092,HI:0.0029,ID:0.0067,IL:0.0208,IN:0.0085,IA:0.0152,KS:0.0141,KY:0.0086,LA:0.0055,ME:0.0124,
   MD:0.0105,MA:0.0114,MI:0.0148,MN:0.0112,MS:0.0079,MO:0.0097,MT:0.0074,NE:0.0163,NV:0.0055,NH:0.0186,
   NJ:0.0223,NM:0.0073,NY:0.0162,NC:0.0078,ND:0.0098,OH:0.0152,OK:0.0090,OR:0.0093,PA:0.0149,RI:0.0140,
   SC:0.0057,SD:0.0124,TN:0.0066,TX:0.0163,UT:0.0058,VT:0.0190,VA:0.0082,WA:0.0094,WV:0.0059,WI:0.0161,WY:0.0061,
 };
-const DEFAULT_EFF_TAX = 0.011;
+export const DEFAULT_EFF_TAX = 0.011;
 const US_STATES = Object.keys(EFF_TAX_RATE).sort();
 // Hurricane / wildfire markets where an UNCONFIRMED insurance quote is a stop,
 // not a footnote — bind coverage before committing scenario time.
@@ -65,9 +70,9 @@ function breakEvenRate(loan: number, targetPI: number): number {
   if (loan <= 0) return 0;
   const pfTarget = targetPI / loan;
   if (pfTarget <= 0) return 0;
-  let lo = 0, hi = 0.30;
+  let lo = 0, hi = 30; // percent space — pf() takes a percent rate
   for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; if (pf(mid) < pfTarget) lo = mid; else hi = mid; }
-  return ((lo + hi) / 2) * 100;
+  return (lo + hi) / 2;
 }
 
 export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
@@ -146,7 +151,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   const estIns = estimateAnnualInsurance(stateCode, price, { isInvestor: true });
   const taxYr = taxAuto ? estTax : tax;
   const loan = price * (1 - down / 100);
-  const pAndI = loan * pf(rate / 100);
+  const pAndI = loan * pf(rate);
   const pitia = pAndI + taxYr / 12 + ins / 12 + hoa;
   const dscr = pitia > 0 ? rent / pitia : 0;
   // Dual-track check: the lender DSCR above is Track 1. Track 2 nets out typical
@@ -312,8 +317,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
   // ── Verdict ─────────────────────────────────────────────────────────────────
   let verdictLabel = 'BELOW FLOOR';
-  let zoneColor    = '#e06363';
-  let zoneChipBg   = 'rgba(224,99,99,0.12)';
+  let zoneColor    : string = risk.danger;
+  let zoneChipBg   : string = risk.dangerBg;
   let verdictText  = 'Most lenders require DSCR ≥ 0.75. Restructure the deal or decline.';
   let verdictHeadline = 'Rent doesn\'t cover the payment — restructure or decline.';
 
@@ -321,19 +326,19 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   // (a 1.22x "GREEN DEAL" that can't get best-tier pricing reads as a bait).
   if (dscr >= 1.25) {
     verdictLabel = 'GREEN DEAL';
-    zoneColor    = '#4dbd97';
+    zoneColor    = risk.positive;
     zoneChipBg   = 'rgba(77,189,151,0.12)';
     verdictText  = 'Strong cushion. Qualifies with most DSCR lenders at standard pricing.';
     verdictHeadline = 'Strong coverage — qualifies at standard pricing.';
   } else if (dscr >= 1.00) {
     verdictLabel = 'QUALIFIES';
-    zoneColor    = '#d8d958';
-    zoneChipBg   = 'rgba(216,217,88,0.12)';
+    zoneColor    = risk.caution;
+    zoneChipBg   = risk.cautionBg;
     verdictText  = 'Meets the 1.00 floor. Verify lender minimums and compensating factors.';
     verdictHeadline = 'Meets the qualifying floor — check program minimums.';
   } else if (dscr >= 0.75) {
     verdictLabel = 'SUB-1.0';
-    zoneColor    = '#e6b84d';
+    zoneColor    = risk.warning;
     zoneChipBg   = 'rgba(230,184,77,0.12)';
     verdictText  = 'Some lenders accept 0.75+ with strong FICO, reserves, or a lower LTV.';
     verdictHeadline = 'Below 1.0 — sub-1.0 programs may still apply.';
@@ -346,11 +351,11 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
     const p = o.price ?? price, d = o.down ?? down, r = o.rent ?? rent;
     const rt = o.rate ?? rate, t = o.tax ?? taxYr, i = o.ins ?? ins;
     const l = p * (1 - d / 100);
-    const pit = l * pf(rt / 100) + t / 12 + i / 12 + hoa;
+    const pit = l * pf(rt) + t / 12 + i / 12 + hoa;
     return pit > 0 ? r / pit : 0;
   };
   const sd = (v: number) => { const x = v - dscr; return (x >= 0 ? '+' : '') + x.toFixed(2); };
-  const sc = (v: number) => v >= dscr ? '#4dbd97' : '#e88a8a';
+  const sc = (v: number) => v >= dscr ? risk.positive : risk.dangerOnDark;
   const sens = [
     { label: 'Rate −0.50%', delta: sd(dscrWith({ rate: rate - 0.5 })), color: sc(dscrWith({ rate: rate - 0.5 })) },
     { label: 'Rent +$250',        delta: sd(dscrWith({ rent: rent + 250 })),  color: sc(dscrWith({ rent: rent + 250 })) },
@@ -360,7 +365,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   // ── PITIA breakdown rows ────────────────────────────────────────────────────
   const rows = [
     { label: 'Loan amount',   val: fmt(loan),       color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, loan / price * 100).toFixed(0) + '%',          barColor: swatch.emerald },
-    { label: 'P&I monthly',   val: fmt(pAndI),      color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, pAndI / pitia * 100).toFixed(0) + '%',          barColor: '#4dbd97' },
+    { label: 'P&I monthly',   val: fmt(pAndI),      color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, pAndI / pitia * 100).toFixed(0) + '%',          barColor: swatch.emerald },
     { label: 'Taxes /mo',     val: fmt(taxYr / 12), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (taxYr / 12) / pitia * 100).toFixed(0) + '%',   barColor: '#9ab87b' },
     { label: 'Insurance /mo', val: fmt(ins / 12),   color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, (ins / 12) / pitia * 100).toFixed(0) + '%',     barColor: '#9ab87b' },
     ...(hoa > 0 ? [{ label: 'HOA /mo', val: fmt(hoa), color: 'rgba(238,239,211,0.6)', weight: 500, pct: Math.min(100, hoa / pitia * 100).toFixed(0) + '%', barColor: '#9ab87b' }] : []),
@@ -384,11 +389,11 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
   //   PITIA(price) = price·(1−d)·pf + price·taxRate/12 + price·insRate/12
   //   price = (rent / target) ÷ [ (1−d)·pf + taxRate/12 + insRate/12 ]
   const insPerDollar = estimateAnnualInsurance(stateCode, 1_000_000, { isInvestor: true }) / 1_000_000;
-  const mDenom   = (1 - mDown / 100) * pf(mRate / 100) + effTaxRate / 12 + insPerDollar / 12;
+  const mDenom   = (1 - mDown / 100) * pf(mRate) + effTaxRate / 12 + insPerDollar / 12;
   const maxPITIA = mRent / target;
   const maxPrice = mDenom > 0 ? maxPITIA / mDenom : 0;
   const maxLoan  = maxPrice * (1 - mDown / 100);
-  const maxPI    = maxLoan * pf(mRate / 100);
+  const maxPI    = maxLoan * pf(mRate);
   const mTaxYr   = maxPrice * effTaxRate;
   const mInsYr   = maxPrice * insPerDollar;
 
@@ -454,12 +459,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 Share this deal
               </button>
               {shareToast && (
-                <span role="status" style={{ fontSize: 13, fontWeight: 600, color: '#4dbd97' }}>{shareToast}</span>
+                <span role="status" style={{ fontSize: 13, fontWeight: 600, color: swatch.emerald }}>{shareToast}</span>
               )}
             </div>
             <div style={{ display: 'flex', gap: 'clamp(24px,4vw,52px)', flexWrap: 'wrap' }}>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>7</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>Greenstreet programs</div></div>
-              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>state rule sets</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1 }}>7</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>Greenstreet programs</div></div>
+              <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1 }}>50</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>state rule sets</div></div>
               <div><Mono style={{ fontSize: 'clamp(34px,4vw,50px)', fontWeight: 600, color: LEMON, lineHeight: 1 }}>&lt;2s</Mono><div style={{ fontSize: 13, fontWeight: 500, color: 'rgba(238,239,211,0.62)', marginTop: 4 }}>to a priced deal</div></div>
             </div>
           </div>
@@ -469,7 +474,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
             valueNum={dscr}
             track2Num={dual.track2}
             sub={`${fmt(rent)} rent ÷ ${fmt(pitia)} payment`}
-            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? "#e0635f" : zoneColor }}
+            chip={{ label: dual.qualifiesButDangerous ? "QUALIFIES — BUT" : verdictLabel, color: dual.qualifiesButDangerous ? risk.danger : zoneColor }}
           />
         </div>
       </section>
@@ -511,7 +516,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
               {/* INPUT RAIL */}
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
-                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Property inputs</div>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: swatch.emerald, marginBottom: 6 }}>Property inputs</div>
                 <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 20, lineHeight: 1.5 }}>Estimates are fine — adjust any number and results update instantly.</p>
                 <div style={{ display: 'grid', gap: 24 }}>
                   <div>
@@ -551,7 +556,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     <label style={{ display: 'block' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: 'rgba(238,239,211,0.62)' }}>Taxes /yr</span>
-                        <button type="button" onClick={() => { if (taxAuto) { setTax(estTax); setTaxAuto(false); } else { setTaxAuto(true); } }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: taxAuto ? '#4dbd97' : 'rgba(238,239,211,0.45)' }}>
+                        <button type="button" onClick={() => { if (taxAuto) { setTax(estTax); setTaxAuto(false); } else { setTaxAuto(true); } }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: taxAuto ? swatch.emerald : 'rgba(238,239,211,0.45)' }}>
                           {taxAuto ? '● Auto reset' : 'Manual'}
                         </button>
                       </div>
@@ -583,7 +588,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
               {/* PITIA breakdown — relocated beneath the input rail, always visible */}
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)' }}>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>PITIA breakdown</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: swatch.emerald, marginBottom: 4 }}>PITIA breakdown</div>
                 <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginBottom: 14, lineHeight: 1.4 }}>The full monthly payment — principal, interest, taxes, insurance, and any HOA dues. DSCR = monthly rent ÷ this total.</p>
                 {rows.map((r, i) => (
                   <div key={i} style={{ marginBottom: 12 }}>
@@ -600,21 +605,21 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
               {/* Matched programs — relocated beneath the input rail, always visible */}
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 24, border: '1px solid rgba(238,239,211,0.16)' }}>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 4 }}>Matched programs</div>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: swatch.emerald, marginBottom: 4 }}>Matched programs</div>
                 <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginBottom: 10, lineHeight: 1.4 }}>Indicative rate offsets from today's note rate. Best-tier pricing requires DSCR ≥ 1.25 and FICO ≥ 740.</p>
                 {lenderRows.map((lr, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '9px 0', borderBottom: '1px solid rgba(238,239,211,0.07)', opacity: lr.ok ? 1 : 0.45 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#eeefd3', lineHeight: 1.2 }}>
                       {lr.name}
                       {i === yourTierIdx && (
-                        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: '#4dbd97', borderRadius: 100, padding: '2px 8px' }}>your tier</span>
+                        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: MIDNIGHT, background: swatch.emerald, borderRadius: 100, padding: '2px 8px' }}>your tier</span>
                       )}
                     </span>
                     <Mono style={{ fontSize: lr.ok ? 14 : 12, fontWeight: 700, color: lr.ok ? LEMON : 'rgba(238,239,211,0.5)' }}>{lr.ok ? lr.rate : lr.req}</Mono>
                   </div>
                 ))}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
-                  <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#4dbd97', textDecoration: 'none' }}>
+                  <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: swatch.emerald, textDecoration: 'none' }}>
                     See all programs ranked by fit →
                   </a>
                 </div>
@@ -651,14 +656,14 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON, marginBottom: 8 }}>Binding constraint</div>
                       {dscr >= 1.0 ? (
                         <>
-                          <Mono style={{ fontSize: 'clamp(26px,3vw,38px)', fontWeight: 600, color: '#4dbd97', lineHeight: 1, display: 'block', marginBottom: 8 }}>+{headroomBps} bps</Mono>
+                          <Mono style={{ fontSize: 'clamp(26px,3vw,38px)', fontWeight: 600, color: swatch.emerald, lineHeight: 1, display: 'block', marginBottom: 8 }}>+{headroomBps} bps</Mono>
                           <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.7)', margin: 0, lineHeight: 1.5 }}>
                             Rate headroom before DSCR breaks 1.00x — the deal holds until the rate reaches ~{beRate.toFixed(2)}%. That's the number that governs this file, not the rate on the sheet.
                           </p>
                         </>
                       ) : (
                         <>
-                          <Mono style={{ fontSize: 'clamp(24px,2.8vw,34px)', fontWeight: 600, color: '#e88a8a', lineHeight: 1.05, display: 'block', marginBottom: 8 }}>rent ≥ {fmt(pitia)}</Mono>
+                          <Mono style={{ fontSize: 'clamp(24px,2.8vw,34px)', fontWeight: 600, color: risk.dangerOnDark, lineHeight: 1.05, display: 'block', marginBottom: 8 }}>rent ≥ {fmt(pitia)}</Mono>
                           <p style={{ fontSize: 14, fontWeight: 500, color: 'rgba(238,239,211,0.7)', margin: 0, lineHeight: 1.5 }}>
                             To clear the 1.00x floor: rent must reach {fmt(pitia)}/mo{beRate > 0 ? `, or the rate drop to ~${beRate.toFixed(2)}%` : ''}. Today rent covers {dscr.toFixed(2)}x.
                           </p>
@@ -666,15 +671,15 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       )}
                       <div style={{ display: 'flex', gap: 16, marginTop: 14, flexWrap: 'wrap', fontSize: 12, color: 'rgba(238,239,211,0.62)' }}>
                         <span>{fmt(rent)} rent</span><span>·</span><span>{fmt(pitia)} PITIA</span><span>·</span>
-                        <span style={{ color: cashFlow >= 0 ? '#4dbd97' : '#e88a8a', fontWeight: 600 }}>{(cashFlow >= 0 ? '+' : '') + fmt(cashFlow)}/mo</span>
+                        <span style={{ color: cashFlow >= 0 ? risk.positive : risk.dangerOnDark, fontWeight: 600 }}>{(cashFlow >= 0 ? '+' : '') + fmt(cashFlow)}/mo</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Niche / risk-discipline flag — honest about the hardest profile */}
                   {dscr < 1.0 && down < 25 && (
-                    <div style={{ marginTop: 20, background: 'rgba(230,184,77,0.08)', border: '1px solid rgba(230,184,77,0.3)', borderLeft: '3px solid #e6b84d', borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e6b84d', marginBottom: 4 }}>Hardest profile to place</div>
+                    <div style={{ marginTop: 20, background: risk.warningBg, border: `1px solid ${risk.warningBorder}`, borderLeft: `3px solid ${risk.warning}`, borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.warning, marginBottom: 4 }}>Hardest profile to place</div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.5 }}>
                         Sub-1.0 coverage at {100 - down}% LTV is the file that burns lender relationships. We&apos;ll be straight with you: lift the down payment or rent until it clears, or look at a sub-1.0 program with reserves — we don&apos;t chase deals that don&apos;t pencil.
                       </p>
@@ -685,29 +690,29 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       but loses money after operating costs (Track 2 < 1.0). The
                       product's core warning, surfaced on the flagship tool. */}
                   {dual.qualifiesButDangerous && (
-                    <div style={{ marginTop: 20, background: 'rgba(224,99,99,0.09)', border: '1px solid rgba(224,99,99,0.4)', borderLeft: '3px solid #e06363', borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
+                    <div style={{ marginTop: 20, background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderLeft: `3px solid ${risk.danger}`, borderRadius: '0 8px 8px 0', padding: '13px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                         <RiskFlame level="high" size={16} />
-                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e06363' }}>Qualifies but dangerous</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.danger }}>Qualifies but dangerous</span>
                       </div>
                       <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: 0, lineHeight: 1.55 }}>
-                        This clears the lender at <strong style={{ color: '#eeefd3' }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: '#e06363' }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal still loses money each month.{' '}
-                        <a href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.('stress-matrix'); }} style={{ color: '#4dbd97', fontWeight: 600, textDecoration: 'none' }}>Pressure-test it in the Stress Matrix →</a>
+                        This clears the lender at <strong style={{ color: '#eeefd3' }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: risk.danger }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal still loses money each month.{' '}
+                        <a href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.('stress-matrix'); }} style={{ color: swatch.emerald, fontWeight: 600, textDecoration: 'none' }}>Pressure-test it in the Stress Matrix →</a>
                       </p>
                     </div>
                   )}
 
                   {/* Execution Risk — approval likelihood scored 0-100 with 5-dimension breakdown */}
-                  <div style={{ marginTop: 20, background: 'rgba(77,189,151,0.06)', border: '1px solid rgba(77,189,151,0.25)', borderLeft: '3px solid #4dbd97', borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
+                  <div style={{ marginTop: 20, background: 'rgba(77,189,151,0.06)', border: '1px solid rgba(77,189,151,0.25)', borderLeft: `3px solid ${risk.positive}`, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
                     <button
                       onClick={() => setShowExecRisk(!showExecRisk)}
                       style={{ all: 'unset', width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#4dbd97' }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.positive }}>
                           {showExecRisk ? '▾' : '▸'} Execution Risk — {execRisk.verdict}
                         </span>
-                        <Mono style={{ fontSize: 18, fontWeight: 700, color: '#4dbd97' }}>{execRisk.score}/100</Mono>
+                        <Mono style={{ fontSize: 18, fontWeight: 700, color: risk.positive }}>{execRisk.score}/100</Mono>
                       </div>
                       <span style={{ fontSize: 11, color: 'rgba(238,239,211,0.55)' }}>
                         Approval likelihood
@@ -725,7 +730,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         <div style={{ display: 'grid', gap: 8 }}>
                           {execRisk.dimensions.map((dim) => {
                             const pct = dim.score;
-                            const barColor = pct >= 80 ? '#4dbd97' : pct >= 60 ? '#d8d958' : pct >= 40 ? '#e6b84d' : '#e06363';
+                            const barColor = pct >= 80 ? risk.positive : pct >= 60 ? risk.caution : pct >= 40 ? risk.warning : risk.danger;
                             return (
                               <div key={dim.name}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
@@ -749,16 +754,16 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       40-60% more tax than sellers). Using seller's bill silently overstates
                       DSCR by 0.10-0.30x. State-specific rules with provenance tracking. */}
                   {taxImpactMaterial && (
-                    <div style={{ marginTop: 20, background: 'rgba(230,184,77,0.08)', border: '1px solid rgba(230,184,77,0.3)', borderLeft: '3px solid #e6b84d', borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
+                    <div style={{ marginTop: 20, background: risk.warningBg, border: `1px solid ${risk.warningBorder}`, borderLeft: `3px solid ${risk.warning}`, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
                       <button
                         onClick={() => setShowTaxReassess(!showTaxReassess)}
                         style={{ all: 'unset', width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e6b84d' }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.warning }}>
                             {showTaxReassess ? '▾' : '▸'} Property Tax Reassessment Warning
                           </span>
-                          <Mono style={{ fontSize: 16, fontWeight: 700, color: '#e6b84d' }}>
+                          <Mono style={{ fontSize: 16, fontWeight: 700, color: risk.warning }}>
                             {taxReassess.dscrImpact >= 0 ? '+' : ''}{taxReassess.dscrImpact.toFixed(2)}x DSCR
                           </Mono>
                         </div>
@@ -769,7 +774,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       {showTaxReassess && (
                         <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(238,239,211,0.1)' }}>
                           <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: '0 0 14px', lineHeight: 1.55 }}>
-                            <strong style={{ color: '#eeefd3' }}>The seller's tax bill is NOT your bill.</strong> {stateCode} reassesses property at sale. Using the seller's bill ({fmt(taxYr)}/yr) silently overstates DSCR. Your first-year bill = <strong style={{ color: '#e6b84d' }}>{fmt(taxReassess.reassessedAnnualTax)}/yr</strong> ({fmt(taxReassess.taxDeltaMonthly)}/mo higher).
+                            <strong style={{ color: '#eeefd3' }}>The seller's tax bill is NOT your bill.</strong> {stateCode} reassesses property at sale. Using the seller's bill ({fmt(taxYr)}/yr) silently overstates DSCR. Your first-year bill = <strong style={{ color: risk.warning }}>{fmt(taxReassess.reassessedAnnualTax)}/yr</strong> ({fmt(taxReassess.taxDeltaMonthly)}/mo higher).
                           </p>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                             <div style={{ background: 'rgba(0,0,0,0.15)', borderRadius: 8, padding: '10px 12px' }}>
@@ -780,11 +785,11 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                                 {taxReassess.dscrBefore.toFixed(2)}x
                               </Mono>
                             </div>
-                            <div style={{ background: 'rgba(230,184,77,0.12)', borderRadius: 8, padding: '10px 12px', border: '1px solid rgba(230,184,77,0.3)' }}>
-                              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#e6b84d', marginBottom: 4 }}>
+                            <div style={{ background: 'rgba(230,184,77,0.12)', borderRadius: 8, padding: '10px 12px', border: `1px solid ${risk.warningBorder}` }}>
+                              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: risk.warning, marginBottom: 4 }}>
                                 Buyer's DSCR (actual)
                               </div>
-                              <Mono style={{ fontSize: 20, fontWeight: 700, color: '#e6b84d' }}>
+                              <Mono style={{ fontSize: 20, fontWeight: 700, color: risk.warning }}>
                                 {taxReassess.dscrAfter.toFixed(2)}x
                               </Mono>
                             </div>
@@ -799,7 +804,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                   {/* Fix My Deal — one-click levers when coverage is weak */}
                   {dealFixes.length > 0 && (
-                    <div style={{ marginTop: 20, background: 'rgba(216,217,88,0.06)', border: '1px solid rgba(216,217,88,0.28)', borderLeft: `3px solid ${LEMON}`, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
+                    <div style={{ marginTop: 20, background: 'rgba(216,217,88,0.06)', borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: 'rgba(216,217,88,0.28)', borderLeftColor: LEMON, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
                         <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: LEMON }}>
                           Fix my deal
@@ -817,8 +822,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                             <div style={{ flex: '1 1 220px', minWidth: 0 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: 14, fontWeight: 700, color: PISTACHIO }}>{fx.label}</span>
-                                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: fx.risk === 'LOW' ? '#4dbd97' : fx.risk === 'MODERATE' ? LEMON : '#e88a8a', background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>{fx.risk} risk</span>
-                                <Mono style={{ fontSize: 12, color: '#4dbd97' }}>{fx.impact}</Mono>
+                                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: fx.risk === 'LOW' ? risk.positive : fx.risk === 'MODERATE' ? LEMON : risk.dangerOnDark, background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>{fx.risk} risk</span>
+                                <Mono style={{ fontSize: 12, color: swatch.emerald }}>{fx.impact}</Mono>
                               </div>
                               <div style={{ fontSize: 12.5, color: 'rgba(238,239,211,0.65)', lineHeight: 1.45 }}>{fx.description}</div>
                             </div>
@@ -836,7 +841,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                             type="button"
                             onClick={() => setShowRescue((s) => !s)}
                             aria-expanded={showRescue}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 12.5, fontWeight: 700, color: '#4dbd97' }}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: font.family, fontSize: 12.5, fontWeight: 700, color: swatch.emerald }}
                           >
                             {showRescue ? '▾' : '▸'} Full rescue analysis — {rescue.fixes.length} ranked options
                           </button>
@@ -860,10 +865,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                                   <div key={i} style={{ background: 'rgba(0,0,0,0.15)', borderRadius: 8, padding: '11px 13px', border: '1px solid rgba(238,239,211,0.07)' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                                       <span style={{ fontSize: 13, fontWeight: 700, color: PISTACHIO }}>{f.action}</span>
-                                      <Mono style={{ fontSize: 12, color: f.track1Impact >= 0 ? '#4dbd97' : '#e88a8a' }}>
+                                      <Mono style={{ fontSize: 12, color: f.track1Impact >= 0 ? risk.positive : risk.dangerOnDark }}>
                                         {f.track1Impact >= 0 ? '+' : ''}{f.track1Impact.toFixed(2)}x
                                       </Mono>
-                                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: f.risk === 'LOW' ? '#4dbd97' : f.risk === 'MODERATE' ? LEMON : '#e88a8a' }}>{f.risk}</span>
+                                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: f.risk === 'LOW' ? risk.positive : f.risk === 'MODERATE' ? LEMON : risk.dangerOnDark }}>{f.risk}</span>
                                       {f.lenderConfirmation && (
                                         <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(238,239,211,0.5)' }}>· needs lender OK</span>
                                       )}
@@ -884,7 +889,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                   {/* Track 2 Rescue — investor cash flow fixes when Track 2 DSCR < 1.0 */}
                   {track2Rescue && dual.track2 < 1.0 && (
-                    <div style={{ marginTop: 20, background: 'rgba(224,99,99,0.07)', border: '1px solid rgba(224,99,99,0.32)', borderLeft: '3px solid #e06363', borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
+                    <div style={{ marginTop: 20, background: risk.dangerBg, borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: risk.dangerBorder, borderLeftColor: risk.danger, borderRadius: '0 10px 10px 0', padding: '16px 18px' }}>
                       <button
                         type="button"
                         onClick={() => setShowTrack2Rescue((s) => !s)}
@@ -892,10 +897,10 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                         style={{ all: 'unset', width: '100%', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#e06363' }}>
+                          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: risk.danger }}>
                             {showTrack2Rescue ? '▾' : '▸'} Track 2 Rescue — 4 fixes for negative cash flow
                           </span>
-                          <Mono style={{ fontSize: 16, fontWeight: 700, color: '#e06363' }}>
+                          <Mono style={{ fontSize: 16, fontWeight: 700, color: risk.danger }}>
                             {dual.track2.toFixed(2)}x
                           </Mono>
                         </div>
@@ -906,17 +911,17 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       {showTrack2Rescue && (
                         <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(238,239,211,0.1)' }}>
                           <p style={{ fontSize: 13, color: 'rgba(238,239,211,0.72)', margin: '0 0 14px', lineHeight: 1.55 }}>
-                            <strong style={{ color: '#e06363' }}>Track 2 DSCR is {dual.track2.toFixed(2)}x</strong> — after 8% vacancy, 10% management, and 3% maintenance, the property loses money each month. These are your investor survival levers.
+                            <strong style={{ color: risk.danger }}>Track 2 DSCR is {dual.track2.toFixed(2)}x</strong> — after 8% vacancy, 10% management, and 3% maintenance, the property loses money each month. These are your investor survival levers.
                           </p>
                           <div style={{ display: 'grid', gap: 10 }}>
                             {track2Rescue.fixes.map((fix, i) => (
                               <div key={i} style={{ background: 'rgba(0,0,0,0.18)', borderRadius: 8, padding: '12px 14px', border: '1px solid rgba(238,239,211,0.08)' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                                   <span style={{ fontSize: 13.5, fontWeight: 700, color: PISTACHIO }}>{fix.action}</span>
-                                  <Mono style={{ fontSize: 12, color: fix.track2Impact >= 0 ? '#4dbd97' : '#e88a8a' }}>
+                                  <Mono style={{ fontSize: 12, color: fix.track2Impact >= 0 ? risk.positive : risk.dangerOnDark }}>
                                     Track 2: {fix.track2Impact >= 0 ? '+' : ''}{fix.track2Impact.toFixed(2)}x
                                   </Mono>
-                                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: fix.risk === 'LOW' ? '#4dbd97' : fix.risk === 'MODERATE' ? LEMON : '#e88a8a', background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>
+                                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: fix.risk === 'LOW' ? risk.positive : fix.risk === 'MODERATE' ? LEMON : risk.dangerOnDark, background: 'rgba(238,239,211,0.06)', borderRadius: 100, padding: '2px 8px' }}>
                                     {fix.risk} risk
                                   </span>
                                 </div>
@@ -939,8 +944,8 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       {lossScenarios.map((s) => (
                         <div key={s.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: 13 }}>
                           <span style={{ color: 'rgba(238,239,211,0.8)', fontWeight: 600, minWidth: 120 }}>{s.label}</span>
-                          <Mono style={{ color: s.newDSCR >= 1.0 ? '#4dbd97' : '#e06363', fontWeight: 700 }}>{s.newDSCR.toFixed(2)}x</Mono>
-                          <span style={{ flex: 1, textAlign: 'right' as const, color: s.monthlyShortfall > 0 ? '#e06363' : 'rgba(238,239,211,0.55)' }}>
+                          <Mono style={{ color: s.newDSCR >= 1.0 ? risk.positive : risk.danger, fontWeight: 700 }}>{s.newDSCR.toFixed(2)}x</Mono>
+                          <span style={{ flex: 1, textAlign: 'right' as const, color: s.monthlyShortfall > 0 ? risk.danger : 'rgba(238,239,211,0.55)' }}>
                             {s.monthlyShortfall > 0
                               ? `−${fmt(s.monthlyShortfall)}/mo · ${fmt(s.annualOutOfPocket)}/yr from savings`
                               : `+${fmt(s.monthlyCashFlow)}/mo cushion`}
@@ -965,7 +970,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                     ].map((m) => (
                       <div key={m.l}>
                         <div style={{ fontSize: 10.5, color: 'rgba(238,239,211,0.5)', marginBottom: 3, letterSpacing: '0.02em' }}>{m.l}</div>
-                        <Mono style={{ fontSize: 'clamp(18px,2vw,22px)', fontWeight: 700, color: m.v >= 1.0 ? '#4dbd97' : '#e06363' }}>{m.v.toFixed(2)}x</Mono>
+                        <Mono style={{ fontSize: 'clamp(18px,2vw,22px)', fontWeight: 700, color: m.v >= 1.0 ? risk.positive : risk.danger }}>{m.v.toFixed(2)}x</Mono>
                       </div>
                     ))}
                   </div>
@@ -998,7 +1003,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
 
                 {/* ── INSURANCE GATE (high-risk markets only) ── */}
                 {insHighRisk && (
-                  <div style={{ background: 'rgba(224,99,99,0.08)', border: '1px solid rgba(224,99,99,0.3)', borderLeft: '3px solid #e06363', borderRadius: '0 12px 12px 0', padding: '15px 20px' }}>
+                  <div style={{ background: risk.dangerBg, borderWidth: '1px 1px 1px 3px', borderStyle: 'solid', borderColor: risk.dangerBorder, borderLeftColor: risk.danger, borderRadius: '0 12px 12px 0', padding: '15px 20px' }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#ff8a8a', marginBottom: 5 }}>Insurance gate · {stateCode}</div>
                     <p style={{ fontSize: 13.5, color: 'rgba(238,239,211,0.78)', margin: 0, lineHeight: 1.55 }}>
                       {stateCode} is a high-risk insurance market. Get a <strong style={{ color: '#eeefd3' }}>bindable quote before you commit</strong> to this deal — an unconfirmed premium here is a stop, not a footnote. It&apos;s the other silent DSCR killer, and the number above assumes coverage you can actually buy.
@@ -1010,12 +1015,12 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                 <div className="gs-reveal" style={{ background: CARD, borderRadius: radius.lg, padding: 'clamp(24px,2.5vw,32px)', border: '1px solid rgba(238,239,211,0.16)', display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div className="dc-band-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 14 }}>
                     {[
-                      { v: (cashFlow >= 0 ? '+' : '') + fmt(cashFlow), c: cashFlow >= 0 ? '#4dbd97' : '#e88a8a', l: 'monthly cash flow', s: cashFlow >= 0 ? 'rent exceeds PITIA' : 'rent falls short' },
-                      { v: capRate.toFixed(2) + '%', c: capRate >= 4.5 ? '#4dbd97' : capRate >= 3.5 ? LEMON : '#e6b84d', l: 'cap rate — after full costs', s: 'NOI nets all opex; 4.5%+ is healthy' },
-                      { v: (100 - down) + '%', c: '#4dbd97', l: 'LTV — loan ÷ value', s: 'lower is better; 75% standard' },
-                      { v: returns ? (returns.year1CashOnCash.toFixed(1) + '%') : '—', c: returns && returns.year1CashOnCash >= 8 ? '#4dbd97' : returns && returns.year1CashOnCash >= 0 ? LEMON : '#e88a8a', l: 'cash-on-cash (yr 1)', s: 'NOI − ADS ÷ cash in' },
-                      { v: returns ? (returns.debtYield.toFixed(1) + '%') : '—', c: returns && returns.debtYield >= 9 ? '#4dbd97' : LEMON, l: 'debt yield', s: 'NOI ÷ loan — lender lens' },
-                      { v: returns && Number.isFinite(returns.leveredIRR) ? (returns.leveredIRR.toFixed(1) + '%') : '—', c: returns && returns.leveredIRR >= 12 ? '#4dbd97' : returns && returns.leveredIRR >= 8 ? LEMON : '#e88a8a', l: 'levered IRR (5-yr)', s: 'pre-tax · exit-sensitive' },
+                      { v: (cashFlow >= 0 ? '+' : '') + fmt(cashFlow), c: cashFlow >= 0 ? risk.positive : risk.dangerOnDark, l: 'monthly cash flow', s: cashFlow >= 0 ? 'rent exceeds PITIA' : 'rent falls short' },
+                      { v: capRate.toFixed(2) + '%', c: capRate >= 4.5 ? risk.positive : capRate >= 3.5 ? LEMON : risk.warning, l: 'cap rate — after full costs', s: 'NOI nets all opex; 4.5%+ is healthy' },
+                      { v: (100 - down) + '%', c: risk.positive, l: 'LTV — loan ÷ value', s: 'lower is better; 75% standard' },
+                      { v: returns ? (returns.year1CashOnCash.toFixed(1) + '%') : '—', c: returns && returns.year1CashOnCash >= 8 ? risk.positive : returns && returns.year1CashOnCash >= 0 ? LEMON : risk.dangerOnDark, l: 'cash-on-cash (yr 1)', s: 'NOI − ADS ÷ cash in' },
+                      { v: returns ? (returns.debtYield.toFixed(1) + '%') : '—', c: returns && returns.debtYield >= 9 ? risk.positive : LEMON, l: 'debt yield', s: 'NOI ÷ loan — lender lens' },
+                      { v: returns && Number.isFinite(returns.leveredIRR) ? (returns.leveredIRR.toFixed(1) + '%') : '—', c: returns && returns.leveredIRR >= 12 ? risk.positive : returns && returns.leveredIRR >= 8 ? LEMON : risk.dangerOnDark, l: 'levered IRR (5-yr)', s: 'pre-tax · exit-sensitive' },
                     ].map((m, i) => (
                       <div key={i} style={{ background: PANEL, borderRadius: radius.sm, padding: '16px 18px', border: '1px solid rgba(238,239,211,0.08)' }}>
                         <Mono style={{ fontSize: 'clamp(22px,2.2vw,28px)', fontWeight: 600, color: m.c, lineHeight: 1 }}>{m.v}</Mono>
@@ -1027,7 +1032,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   {returns && (
                     <p style={{ fontSize: 11.5, color: 'rgba(238,239,211,0.5)', margin: '-8px 0 0', lineHeight: 1.45 }}>
                       Returns use Track-2 opex (vacancy/mgmt/maint). Cash in ≈ {fmt(cashInvested)}. Break-even occupancy ~{returns.breakEvenOccupancy.toFixed(0)}%.{' '}
-                      <a href="/tools/returns" onClick={(e) => { e.preventDefault(); onNavigate?.('returns'); }} style={{ color: '#4dbd97', fontWeight: 600, textDecoration: 'none' }}>Open full returns desk →</a>
+                      <a href="/tools/returns" onClick={(e) => { e.preventDefault(); onNavigate?.('returns'); }} style={{ color: swatch.emerald, fontWeight: 600, textDecoration: 'none' }}>Open full returns desk →</a>
                     </p>
                   )}
 
@@ -1058,13 +1063,13 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       <button type="button" onClick={onShare} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1.5px solid rgba(238,239,211,0.45)', color: 'rgba(238,239,211,0.85)', fontWeight: 600, fontSize: 14, fontFamily: font.family, padding: '12px 18px', borderRadius: radius.sm, cursor: 'pointer', minHeight: 44 }}>
                         Copy share link
                       </button>
-                      <a href="/tools/returns" onClick={(e) => { e.preventDefault(); onNavigate?.('returns'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#4dbd97', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+                      <a href="/tools/returns" onClick={(e) => { e.preventDefault(); onNavigate?.('returns'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: swatch.emerald, fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
                         Returns & hold matrix →
                       </a>
-                      <a href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.('stress-matrix'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#4dbd97', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+                      <a href="/tools/stress-matrix" onClick={(e) => { e.preventDefault(); onNavigate?.('stress-matrix'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: swatch.emerald, fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
                         Stress matrix →
                       </a>
-                      <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#4dbd97', fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
+                      <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.('lender-intel'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: swatch.emerald, fontWeight: 600, fontSize: 13, textDecoration: 'none' }}>
                         Lender fit →
                       </a>
                     </div>
@@ -1072,7 +1077,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                       Inputs stay in the URL and on this device — open another tool and the deal follows. Preliminary estimate — not a commitment to lend.
                     </span>
                     {shareToast && (
-                      <span role="status" style={{ fontSize: 13, fontWeight: 600, color: '#4dbd97' }}>{shareToast}</span>
+                      <span role="status" style={{ fontSize: 13, fontWeight: 600, color: swatch.emerald }}>{shareToast}</span>
                     )}
                   </div>
                 </div>
@@ -1084,7 +1089,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
           {tab === 'maxprice' && (
             <div className="gs-reveal calc-panel" style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 24, alignItems: 'start' }}>
               <div style={{ background: CARD, borderRadius: radius.lg, padding: 30, border: '1px solid rgba(238,239,211,0.16)' }}>
-                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#4dbd97', marginBottom: 6 }}>Work backwards from rent</div>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: swatch.emerald, marginBottom: 6 }}>Work backwards from rent</div>
                 <p style={{ fontSize: 12, color: 'rgba(238,239,211,0.62)', marginBottom: 18, lineHeight: 1.5 }}>Enter your expected rent and target DSCR (the ratio you want to hit — 1.25x is a strong approval threshold). We'll calculate the maximum price you can pay and still hit that ratio.</p>
                 <div style={{ display: 'grid', gap: 22 }}>
                   <label style={{ display: 'block' }}>
@@ -1155,6 +1160,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 14, lineHeight: 1.4 }}>
                     Preliminary estimate — not a commitment to lend. Subject to full underwriting, appraisal and credit approval.
                   </p>
+                  <DataVintageLine ground="dark" style={{ fontSize: 11, marginTop: 6 }} />
                 </div>
               </div>
             </div>

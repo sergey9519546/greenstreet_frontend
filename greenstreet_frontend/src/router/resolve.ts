@@ -24,9 +24,13 @@ export type PageView =
   | "returns"
   | "tax-engine"
   | "stress-matrix"
+  | "structure-optimizer"
   | "decision-support"
   | "str-underwriting"
   | "portfolio"
+  | "commercial-dscr"
+  | "construction-bridge"
+  | "tco-threshold"
   | "about"
   | "careers"
   | "legal"
@@ -34,7 +38,8 @@ export type PageView =
   | "platform"
   | "support"
   | "solutions"
-  | "book-demo";
+  | "book-demo"
+  | "not-found";
 
 const ROUTE_MAP: Record<string, PageView> = {
   // Root
@@ -44,8 +49,8 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/investgo": "portal",
   "/investgo/analyze": "portal",
   "/investgo/sensitivity": "portal",
-  "/investgo/optimize": "portal",
-  "/investgo/state": "portal",
+  "/investgo/optimize": "structure-optimizer",
+  "/investgo/state": "state-laws",
   "/investgo/history": "portal",
   "/investgo/settings": "portal",
 
@@ -62,6 +67,8 @@ const ROUTE_MAP: Record<string, PageView> = {
 
   // Core tools (canonical paths)
   "/dscr-calculator": "dscr-calculator",
+  // The standalone lender/programs page (LenderIntelPage) is live — keep the
+  // canonical path resolving to it rather than redirecting to Products.
   "/lender-intel": "lender-intel",
   "/state-laws": "state-laws",
   "/deal-analyzer": "deal-analyzer", // full-underwrite tool (distinct from the lender-intel matcher)
@@ -96,10 +103,13 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/tools/decision-support": "decision-support",
   "/tools/str-underwriting": "str-underwriting",
   "/tools/portfolio": "portfolio",
+  "/tools/commercial-dscr": "commercial-dscr",
+  "/tools/construction-bridge": "construction-bridge",
+  "/tools/tco-threshold": "tco-threshold",
   "/tools/workspace": "portal",
   "/tools/deal-workspace": "portal",
   "/tools/sensitivity": "portal",
-  "/tools/structure-optimizer": "portal",
+  "/tools/structure-optimizer": "structure-optimizer",
   "/tools/scenario-history": "portal",
 };
 
@@ -122,7 +132,7 @@ export function resolveRoute(href: string): PageView {
       const slug = path.replace("/tools/", "").replace(/\/$/, "");
       if (slug === "workspace" || slug === "deal-workspace") return "portal";
       if (slug === "sensitivity") return "portal";
-      if (slug === "structure-optimizer") return "portal";
+      if (slug === "structure-optimizer") return "structure-optimizer";
       if (slug === "scenario-history") return "portal";
       if (slug === "refi-tracker") return "refi-tracker";
       if (slug === "arm-reset" || slug === "arm") return "arm-reset";
@@ -133,16 +143,25 @@ export function resolveRoute(href: string): PageView {
       if (slug === "decision-support") return "decision-support";
       if (slug === "str-underwriting") return "str-underwriting";
       if (slug === "portfolio") return "portfolio";
+      if (slug === "commercial-dscr") return "commercial-dscr";
+      if (slug === "construction-bridge") return "construction-bridge";
+      if (slug === "tco-threshold") return "tco-threshold";
       if (slug === "dscr-calculator") return "dscr-calculator";
       if (slug === "lender-intel") return "lender-intel";
       if (slug === "state-laws") return "state-laws";
       if (slug === "deal-analyzer") return "deal-analyzer";
       if (slug === "borrower-profiles") return "borrower-profiles";
     }
-    if (url.hostname && url.hostname !== "localhost" && url.hostname !== window.location.hostname) return "external";
-    return "marketing";
+    if (
+      url.hostname &&
+      url.hostname !== "localhost" &&
+      (typeof window === "undefined" || url.hostname !== window.location.hostname)
+    ) {
+      return "external";
+    }
+    return "not-found";
   } catch {
-    return "marketing";
+    return "not-found";
   }
 }
 
@@ -186,6 +205,9 @@ export function isKnownRoute(href: string): boolean {
       "decision-support",
       "str-underwriting",
       "portfolio",
+      "commercial-dscr",
+      "construction-bridge",
+      "tco-threshold",
       "dscr-calculator",
       "lender-intel",
       "state-laws",

@@ -1,6 +1,11 @@
 // ============================================================
 // DSCR Loan Command Center v7.0 — Verified Lender Profiles
 // Provenance-honest labels, spec-exact data, dual-track matching
+//
+// PROVENANCE: registered in src/engine/dataVintage.ts as 'lenderDatabase'
+// (asOf 2026-06-01, quarterly cadence). Per-lender effectiveDate / verifiedDate
+// and per-field provenance stamps below are the authority; the registry records
+// the oldest of them so the UI can disclose one honest date.
 // ============================================================
 
 import type {

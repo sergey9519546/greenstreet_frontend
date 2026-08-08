@@ -77,6 +77,30 @@ export const PAGE_SEO: PageSeo[] = [
     primaryKeyword: "DSCR decision support",
     searchIntent: "Should I buy this rental property with a DSCR loan?",
   },
+  {
+    view: "commercial-dscr",
+    path: "/tools/commercial-dscr",
+    title: "Commercial DSCR | Greenstreet Finance",
+    description: "Calculate DSCR for 5+ unit commercial properties. Understand multifamily underwriting, gross rent multipliers, and vacancy factors.",
+    primaryKeyword: "commercial DSCR",
+    searchIntent: "How do I calculate DSCR for a 5+ unit commercial property?",
+  },
+  {
+    view: "construction-bridge",
+    path: "/tools/construction-bridge",
+    title: "Construction & Bridge Carry | Greenstreet Finance",
+    description: "Model the true cost of construction and bridge loans, carry costs, exit refinancing, and permanent DSCR takeout.",
+    primaryKeyword: "bridge loan carry",
+    searchIntent: "How much will a bridge loan carry cost me before refinancing?",
+  },
+  {
+    view: "tco-threshold",
+    path: "/tools/tco-threshold",
+    title: "TCO Threshold Converter | Greenstreet Finance",
+    description: "Convert standard DSCR targets to True Cost of Ownership (TCO) thresholds and see how reserve-loaded debt yields affect qualification.",
+    primaryKeyword: "TCO threshold",
+    searchIntent: "How do True Cost of Ownership rules change DSCR qualification?",
+  },
 ];
 
 export const CANONICAL_PUBLIC_PATHS = [
@@ -111,6 +135,9 @@ export const CANONICAL_PUBLIC_PATHS = [
   "/tools/decision-support",
   "/tools/str-underwriting",
   "/tools/portfolio",
+  "/tools/commercial-dscr",
+  "/tools/construction-bridge",
+  "/tools/tco-threshold",
 ] as const;
 
 export function absoluteUrl(path: string): string {

@@ -250,7 +250,7 @@ export function computeStressMatrix(
     property.annualTaxes / 12 +
     property.annualInsurance / 12 +
     property.hoa +
-    property.floodInsurance / 12;
+    property.floodInsurance; // MONTHLY — do not divide by 12 (bug audit #1)
 
   // Track 2 opex from the TCO single-source — property-type/age/market + CapEx.
   // Replaces the legacy flat 8% vac + 8% mgmt + 5% maint.

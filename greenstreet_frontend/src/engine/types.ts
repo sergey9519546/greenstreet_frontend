@@ -10,10 +10,10 @@ export interface PropertyInputs {
   marketRent: number;       // 1007/1025 appraiser market rent
   strProjectedRent: number; // AirDNA or projected STR gross
   strDocumentedRent: number; // 12-month actual STR history
-  hoa: number;
-  annualTaxes: number;
-  annualInsurance: number;
-  floodInsurance: number;
+  hoa: number;                // MONTHLY
+  annualTaxes: number;        // ANNUAL
+  annualInsurance: number;    // ANNUAL
+  floodInsurance: number;     // MONTHLY (bug audit #1 — do not divide by 12; see calculatePITIA)
   propertyType: PropertyType;
   state: string;
   unitCount: number;        // 1, 2, 3, or 4
@@ -177,7 +177,7 @@ export interface PPPStateLaw {
   reason: string;
   details: string;
   entityRestrictions?: EntityType[];
-  loanThreshold?: number;           // e.g., PA $329,411 for 1-2 unit
+  loanThreshold?: number;           // e.g., PA $319,777 for 1-2 unit (2026)
   thresholdIsIndexed?: boolean;     // PA/OH thresholds adjust annually
   thresholdYear?: number;           // 2026
   armRestriction?: boolean | 'UNVERIFIED';
@@ -191,6 +191,7 @@ export interface PPPStateLaw {
 }
 
 export type PPPStateStatus =
+  | 'UNKNOWN'              // state code is missing/unrecognized; verify before quoting
   | 'PROHIBITED'           // KS, NM, MD (effectively)
   | 'PRACTICALLY_PROHIBITED' // MN (so narrow it's effectively prohibited)
   | 'ENTITY_ONLY'          // NJ individuals restricted
@@ -217,7 +218,7 @@ export interface PITIABreakdown {
   taxes: number;
   insurance: number;
   hoa: number;
-  floodInsurance: number;
+  floodInsurance: number; // monthly (passthrough — see calculatePITIA unit convention)
   mortgageInsurance: number; // rare for DSCR
   total: number;
   // ITIA variant for IO
@@ -403,7 +404,6 @@ export interface StructureOption {
   prepayPenalty: string;
   prepaySchedule: PrepayPenaltySchedule;
   totalCostOfCapital: number;
-  bestLender: string;
   tags: string[];
   pppAllowed: boolean;
   pppStateNote: string;
@@ -436,8 +436,13 @@ export interface STRUnderwritingResult {
   marketDirectionWarning: string;
   /** v11.1 (AUDIT-FINAL issue 6): Monthly seasonality breakdown — 12 months
    *  of projected STR revenue, DSCR, and occupancy stress. Required by spec
-   *  Part G "monthly DSCR breakdown + off-season warning". */
-  monthlySeasonality?: STRMonthlySeasonality;
+   *  Part G "monthly DSCR breakdown + off-season warning".
+   *
+   *  Non-optional: evaluateSTRUnderwriting (the only producer) populates this on
+   *  both of its return paths, and the spec makes it mandatory. It was marked
+   *  optional while the field was being rolled out; leaving the `?` on forced
+   *  every consumer to null-check a value that is always present. */
+  monthlySeasonality: STRMonthlySeasonality;
 }
 
 /** v11.1: STR monthly seasonality projection.
@@ -1263,7 +1268,12 @@ export interface VerdictResult {
   returnGrade: ReturnGrade;
   returnGradeReason: string;
   track2AcknowledgmentRequired: boolean;
-  track2AcknowledgmentText: string;
+  /**
+   * Null when `track2AcknowledgmentRequired` is false — there is no ack copy to
+   * show. Callers must branch on the boolean (or null-check) rather than render
+   * this directly; an empty string would read as "ack exists but is blank".
+   */
+  track2AcknowledgmentText: string | null;
   killCriteriaTriggered: KillCriterion[];
   rescueOptions: RescueFix[];
   note: string;

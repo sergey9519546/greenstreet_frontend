@@ -47,7 +47,7 @@ function mFixed(
   hoa: number,
   floodInsurance: number,
 ): number {
-  return annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance / 12;
+  return annualTaxes / 12 + annualInsurance / 12 + hoa + floodInsurance;
 }
 
 /** Compute full PITIA for an amortizing loan (no IO) */
@@ -432,12 +432,18 @@ export function computeJointAppraisalRisk(
   const dscrAt5PctShock = qualifyingRent / pitiaAt5;
   const valueFailsAt5 = dscrAt5PctShock < 1.0;
 
+  // rentDropPercent is a cushion: larger values mean rent can fall farther
+  // before DSCR breaks. Risk must therefore decrease as this value rises.
+  // A deal already at/below break-even is critical regardless of appraisal
+  // behavior; a simultaneous rent/value weakness is also critical.
   let baseRating: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
-  if (rentDropPercent >= 15 || (valueFailsAt5 && rentDropPercent >= 10)) {
+  const rentAlreadyBreaks = rentDropPercent <= 0;
+  const thinRentCushion = rentDropPercent < 5;
+  if (rentAlreadyBreaks || (thinRentCushion && valueFailsAt5)) {
     baseRating = 'CRITICAL';
-  } else if (rentDropPercent >= 10 || valueFailsAt5) {
+  } else if (thinRentCushion || valueFailsAt5) {
     baseRating = 'HIGH';
-  } else if (rentDropPercent >= 5) {
+  } else if (rentDropPercent < 10) {
     baseRating = 'MODERATE';
   } else {
     baseRating = 'LOW';
@@ -804,10 +810,10 @@ export function computeBreakevenResult(
   // ── Tax / Insurance Breakeven ────────────────────────────────────────
   // How much would annual taxes need to decrease for DSCR = 1.0?
   const targetFixed1_0 = qualifyingRent - pi;
-  const targetTaxMo1_0 = targetFixed1_0 - (annualInsurance / 12) - hoa - (floodInsurance / 12);
+  const targetTaxMo1_0 = targetFixed1_0 - (annualInsurance / 12) - hoa - (floodInsurance);
   const taxAppealNeeded = r0(Math.max(0, (annualTaxes / 12 - targetTaxMo1_0) * 12));
 
-  const targetInsMo1_0 = targetFixed1_0 - (annualTaxes / 12) - hoa - (floodInsurance / 12);
+  const targetInsMo1_0 = targetFixed1_0 - (annualTaxes / 12) - hoa - (floodInsurance);
   const insuranceReshopNeeded = r0(Math.max(0, (annualInsurance / 12 - targetInsMo1_0) * 12));
 
   const taxInsuranceBreakeven = { taxAppealNeeded, insuranceReshopNeeded };

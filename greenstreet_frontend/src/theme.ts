@@ -33,10 +33,18 @@ export const risk = {
   caution: swatch.lemon,    // #d8d958 — watch / marginal
   warning: "#e6b84d",       // amber — fragile / sub-threshold
   danger: "#e06363",        // red — break / high-risk
+  // Dark-ground variants. On the midnight/dark-teal app surface the base red and
+  // lemon sit too close to the ground to read as an alert, so these lightened
+  // pairs are the dark-ground equivalents of `danger` / `caution`. Use ONLY on a
+  // dark surface — on the cream marketing ground they fail contrast.
+  dangerOnDark: "#e88a8a",
+  cautionOnDark: "#e6e76b",
   warningBg: "rgba(230,184,77,0.10)",
   warningBorder: "rgba(230,184,77,0.30)",
   dangerBg: "rgba(224,99,99,0.10)",
   dangerBorder: "rgba(224,99,99,0.30)",
+  cautionBg: "rgba(216,217,88,0.12)",
+  cautionBorder: "rgba(216,217,88,0.34)",
 } as const;
 
 export const font = {
@@ -102,7 +110,17 @@ export const themes = {
 } as const;
 
 export const radius = { sm: "8px", md: "12px", lg: "16px", pill: "999px" } as const;
-export const space = { section: "clamp(56px, 8vw, 128px)", gutter: "clamp(1.5rem, 4vw, 4rem)" } as const;
+// Layout primitives shared by every React-routed surface.  The homepage uses
+// open bands and a tight, deliberate mobile rail rather than nested card
+// padding.  Keep the rail token here so routed pages and shell chrome land on
+// the same x-axis at 390px without changing their desktop composition.
+export const space = {
+  section: "clamp(56px, 8vw, 128px)",
+  gutter: "clamp(1.5rem, 4vw, 4rem)",
+  pageGutter: "clamp(1rem, 4.6vw, 1.25rem)",
+  mobileSection: "clamp(3.5rem, 12vw, 5rem)",
+  touchTarget: "44px",
+} as const;
 
 // ── Design-system scales (Phase 0) — the single vocabulary for spacing, tracking,
 // text-opacity, and type. Pages must pull from these instead of inlining one-off

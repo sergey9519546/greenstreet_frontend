@@ -13,11 +13,12 @@
  *   • Mono+tabular numerics
  *   • Compliance: "preliminary estimate, not a commitment to lend"
  */
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono } from "../design/dc";
+import DataVintageLine from "../design/DataVintageLine";
 import { DscrGauge, RiskFlame } from "../design/artifacts";
-import { swatch, radius, font } from "../theme";
+import { swatch, radius, font, risk } from "../theme";
 
 interface Props {
   onBack?: () => void;
@@ -498,6 +499,13 @@ function UnderwritePreview({
 // Main page component
 // ─────────────────────────────────────────────────────────────────────────────
 export default function RateQuizPage({ onNavigate }: Props) {
+  // Title matches PUBLIC_PAGES["rate-quiz"] in src/seo/routeMetadata.ts. The
+  // route is currently behind a reliability hold, so ToolReliabilityHoldPage
+  // renders instead — this keeps the page from shipping untitled if that lifts.
+  useEffect(() => {
+    document.title = "DSCR Rate Estimate | Greenstreet Finance";
+  }, []);
+
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
@@ -593,7 +601,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
       ? swatch.emerald
       : result?.tier === "GOOD"
       ? swatch.lemon
-      : "#e6b84d";
+      : risk.warning;
 
   const tierLabel =
     result?.tier === "BEST"
@@ -1215,7 +1223,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                 {result.tier === "WEAK" && (
                   <div
                     style={{
-                      background: "rgba(230,184,77,0.08)",
+                      background: risk.warningBg,
                       border: "1px solid rgba(230,184,77,0.28)",
                       borderRadius: radius.sm,
                       padding: "14px 18px",
@@ -1228,7 +1236,7 @@ export default function RateQuizPage({ onNavigate }: Props) {
                         fontWeight: 700,
                         letterSpacing: "0.06em",
                         textTransform: "uppercase" as const,
-                        color: "#e6b84d",
+                        color: risk.warning,
                         marginBottom: 6,
                       }}
                     >
@@ -1279,12 +1287,13 @@ export default function RateQuizPage({ onNavigate }: Props) {
                   style={{
                     fontSize: 11,
                     color: "rgba(238,239,211,0.62)",
-                    margin: "8px 0 28px",
+                    margin: "8px 0 0",
                     lineHeight: 1.5,
                   }}
                 >
                   Preliminary estimate only — not a commitment to lend. Final terms subject to full underwriting, appraisal, and credit review. Self-reported credit is indicative only; no credit pull is performed.
                 </p>
+                <DataVintageLine ground="dark" style={{ fontSize: 11, margin: "6px 0 28px" }} />
 
                 {/* CTAs */}
                 <div

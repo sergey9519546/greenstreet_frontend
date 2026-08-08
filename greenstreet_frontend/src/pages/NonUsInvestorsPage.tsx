@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
-import { radius, font } from "../theme";
+import { radius, font, risk } from "../theme";
 import BottomCTA from "../design/BottomCTA";
 import { assessForeignNationalEligibility, type FnIdType } from "../engine/fnEngine";
 import { calculateFIRPTAImpact, nraEstateTaxNote } from "../engine/firpta";
+import { calculatePaymentFactor } from "../engine";
 
 // ── Who-We-Serve: Non-US Investor Investors ──────────────────────────────────
 // Bespoke dark page. Conversion core = the "Yes, you can" fear-grid. Positioning:
@@ -12,16 +13,16 @@ import { calculateFIRPTAImpact, nraEstateTaxNote } from "../engine/firpta";
 // can't deliver without a formation/banking/FX partner lined up.
 
 const BLUE = "#7ec8d3"; // sky — cross-border / data accent
-const RED = "#e06363";
+const RED = risk.danger;
 // Hero flight-path arc — shared by the SVG paths AND the CSS offset-path packet,
 // so the comet always rides the exact curve the arc draws.
 const ARC = "M40 132 C 120 30, 240 30, 320 132";
 
-const pf = (r: number) => {
-  if (r === 0) return 0;
-  const m = r / 12;
-  return (m * Math.pow(1 + m, 360)) / (Math.pow(1 + m, 360) - 1);
-};
+// 30-yr amortising payment factor, sourced from the golden-tested engine
+// primitive. The wrapper only pins the term to 360 and keeps this page's
+// display convention that a 0% rate means "no payment".
+// NOTE: takes the rate as a PERCENT (7.25), matching the engine.
+const pf = (ratePct: number) => (ratePct === 0 ? 0 : calculatePaymentFactor(ratePct, 360));
 const fmt$ = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
 
 // The fear-grid — mirror what they Google. `partner` rows need a real partner.
@@ -91,7 +92,7 @@ export default function NonUsInvestorsPage({
   const firpta = calculateFIRPTAImpact({ salePrice: price, adjustedBasis: price * 0.85, state: "TX", isUsResident: false });
   const nraEstate = nraEstateTaxNote(price);
   const loan = price * (1 - downPct / 100);
-  const pAndI = loan * pf(rate / 100);
+  const pAndI = loan * pf(rate);
   const pitia = pAndI + (price * 0.011) / 12 + (price * 0.005) / 12; // est. taxes + insurance
   const dscr = pitia > 0 ? rent / pitia : 0;
   const ltv = 100 - downPct;
@@ -365,7 +366,7 @@ export default function NonUsInvestorsPage({
                     {stat(`${fnElig.maxLTV.purchase}% / ${fnElig.maxLTV.cashOut}%`, "max LTV — purchase / cash-out", dc.cream)}
                   </div>
                 ) : (
-                  <div style={{ background: "rgba(224,99,99,0.1)", border: "1px solid rgba(224,99,99,0.4)", borderRadius: radius.sm, padding: "14px 16px", color: "#e0635f", fontSize: 14, fontWeight: 600 }}>{fnElig.note}</div>
+                  <div style={{ background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderRadius: radius.sm, padding: "14px 16px", color: risk.danger, fontSize: 14, fontWeight: 600 }}>{fnElig.note}</div>
                 )}
                 <div style={{ marginTop: 18, borderTop: "1px solid rgba(238,239,211,0.12)", paddingTop: 16, fontSize: 13, color: "rgba(238,239,211,0.66)", lineHeight: 1.55 }}>
                   <strong style={{ color: dc.cream }}>At sale (FIRPTA):</strong> 15% of the gross sale price is withheld — ≈{fmt$(firpta.federalWithholdingAmount)} on a {fmt$(price)} sale.{firpta.withholdingCertificateRecommended ? ` Apply for a withholding certificate (Form 8288-B) to free up the excess over the ~${fmt$(firpta.estimatedTaxOnGain)} actually owed on the gain.` : ""} Refinancing (rate-term or cash-out) is not a sale — no FIRPTA.

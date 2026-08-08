@@ -27,13 +27,7 @@ import type {
 } from './types';
 import {
   calculatePI,
-  calculatePITIA,
   calculatePaymentFactor,
-  getDSCRGradient,
-  solveDealBreakRate,
-  solveMaxPurchasePrice,
-  solveMinDownPayment,
-  estimateRate,
   solveDSCR,
 } from './engine';
 import { checkPPPLegal } from './statePppLaws';
@@ -218,13 +212,14 @@ export function rescueTrack1(
   loanAmount: number,
   rate: number,
   termYears: number,
+  strategy: RentalStrategy = 'LTR',
 ): RescueResult {
   const termMonths = termYears * 12;
   const fixedExpenses =
     property.annualTaxes / 12 +
     property.annualInsurance / 12 +
     property.hoa +
-    property.floodInsurance / 12;
+    property.floodInsurance; // MONTHLY — do not divide by 12 (bug audit #1)
   const currentPI = pitia - fixedExpenses;
   const currentRent = currentTrack1DSCR * pitia;
   const targetRent = targetDSCR * pitia;
@@ -240,7 +235,7 @@ export function rescueTrack1(
     description: `Raise monthly rent by $${requiredRentIncrease.toFixed(0)} to reach DSCR ${targetDSCR.toFixed(2)}. New rent: $${targetRent.toFixed(0)}/month.`,
     amount: requiredRentIncrease,
     track1Impact: targetDSCR - currentTrack1DSCR,
-    track2Impact: (targetRent * 0.79 - pitia) / pitia - currentTrack2DSCR,
+    track2Impact: (targetRent * TRACK2_NET_FACTOR - pitia) / pitia - currentTrack2DSCR,
     cashOnCashImpact: requiredRentIncrease * 12,
     risk: 'MODERATE' as const,
     cost: 0,
@@ -268,7 +263,7 @@ export function rescueTrack1(
       description: `Reduce price by $${priceReduction.toFixed(0)} to $${maxPriceAtTarget.toFixed(0)}. New loan: $${newLoanAmount.toFixed(0)}. DSCR becomes ${newDSCR.toFixed(2)}.`,
       amount: priceReduction,
       track1Impact: newDSCR - currentTrack1DSCR,
-      track2Impact: (currentRent * 0.79 - newPITIA) / newPITIA - currentTrack2DSCR,
+      track2Impact: (currentRent * TRACK2_NET_FACTOR - newPITIA) / newPITIA - currentTrack2DSCR,
       cashOnCashImpact: -priceReduction,
       risk: 'LOW' as const,
       cost: 0,
@@ -288,7 +283,7 @@ export function rescueTrack1(
       description: `Add $${additionalDown.toFixed(0)} to down payment. New loan: $${newLoanAmount.toFixed(0)}. DSCR becomes ${newDSCR.toFixed(2)}.`,
       amount: additionalDown,
       track1Impact: newDSCR - currentTrack1DSCR,
-      track2Impact: (currentRent * 0.79 - newPITIA) / newPITIA - currentTrack2DSCR,
+      track2Impact: (currentRent * TRACK2_NET_FACTOR - newPITIA) / newPITIA - currentTrack2DSCR,
       cashOnCashImpact: -additionalDown,
       risk: 'LOW' as const,
       cost: additionalDown,
@@ -305,7 +300,7 @@ export function rescueTrack1(
   //  fix to never trigger. Corrected to anchor on currentRent, not targetRent.)
   const targetPITIA = currentRent / targetDSCR;
   const targetPI = targetPITIA - fixedExpenses;
-  const dealBreakRate = solveDealBreakRateFromPI(loanAmount, termMonths, targetPI);
+  const dealBreakRate = solveDealBreakRateFromPI(loanAmount, termMonths, targetPI, loan.ioPeriod);
   const rateReductionNeeded = rate - dealBreakRate;
   if (rateReductionNeeded > 0) {
     const pointsCost = rateReductionNeeded * 100; // ~1 point per 0.25% buy-down
@@ -334,7 +329,7 @@ export function rescueTrack1(
       description: `IO payment drops P&I from $${currentPI.toFixed(0)} to $${ioPayment.toFixed(0)}/month. New PITIA: $${ioPITIA.toFixed(0)}. DSCR becomes ${ioDSCR.toFixed(2)}. WARNING: Payment recasts after IO period.`,
       amount: currentPI - ioPayment,
       track1Impact: ioDSCR - currentTrack1DSCR,
-      track2Impact: (currentRent * 0.79 - ioPITIA) / ioPITIA - currentTrack2DSCR,
+      track2Impact: (currentRent * TRACK2_NET_FACTOR - ioPITIA) / ioPITIA - currentTrack2DSCR,
       cashOnCashImpact: (currentPI - ioPayment) * 12,
       risk: 'MODERATE' as const,
       cost: rate * 0.005 * loanAmount,
@@ -371,7 +366,7 @@ export function rescueTrack1(
         description: `STR projected income ($${strRent.toFixed(0)}/month after 20% haircut) exceeds LT rent ($${ltrFallback.toFixed(0)}). DSCR becomes ${strDSCR.toFixed(2)}. Requires STR legality confirmation and lender acceptance.`,
         amount: strRent - currentRent,
         track1Impact: strDSCR - currentTrack1DSCR,
-        track2Impact: (strRent * 0.67 - pitia) / pitia - currentTrack2DSCR,
+        track2Impact: (strRent * TRACK2_NET_FACTOR - pitia) / pitia - currentTrack2DSCR,
         cashOnCashImpact: (strRent - currentRent) * 12,
         risk: 'HIGH' as const,
         cost: 0,
@@ -398,7 +393,7 @@ export function rescueTrack1(
         description: `Raise rent by $${comboRentIncrease.toFixed(0)} (50% of full increase needed). DSCR contribution: +${(comboDSCR - currentTrack1DSCR).toFixed(2)}x.`,
         amount: comboRentIncrease,
         track1Impact: comboDSCR - currentTrack1DSCR,
-        track2Impact: comboRentIncrease * 0.79 / pitia,
+        track2Impact: comboRentIncrease * TRACK2_NET_FACTOR / pitia,
         cashOnCashImpact: comboRentIncrease * 12,
         risk: 'LOW' as const,
         cost: 0,
@@ -717,11 +712,12 @@ export function generateStructureOptions(
       pppPremiumFee,
     );
 
-    const track2Vacancy = strategy === 'STR' ? 25 : strategy === 'MTR' ? 12 : 8;
-    const track2Management = 8;
-    const track2Maintenance = 5;
-    const track2Net = result.qualifyingRent * (1 - track2Vacancy / 100) - result.qualifyingRent * track2Management / 100 - result.qualifyingRent * track2Maintenance / 100;
-    const track2DSCR = monthlyPayment > 0 ? track2Net / monthlyPayment : 0;
+    // Reuse the Track2 DSCR solveDSCR() already computed above (engine.ts's
+    // buildTrack2, standardized to a flat 8% vacancy for LTR/STR/MTR alike)
+    // instead of re-deriving it locally with a divergent 25%/12%/8% vacancy
+    // schedule — the two used to disagree for the same deal (CRITICAL: same
+    // property/strategy showed two different Track 2 DSCR numbers in one session).
+    const track2DSCR = result.dualTrackDSCR.track2.dscr;
 
     const tags: string[] = [];
     if (struct.armType !== 'FIXED') tags.push('ARM');
@@ -758,7 +754,6 @@ export function generateStructureOptions(
       prepayPenalty: prepaySchedule.structure,
       prepaySchedule,
       totalCostOfCapital: Math.round(fiveYearCost),
-      bestLender: findBestLenderName(property, borrower, testLoan, strategy, result.dscr, structLoanAmount, adjustedRate),
       tags,
       pppAllowed: pppCheck.allowed,
       pppStateNote: pppCheck.legalWarning || pppCheck.reason,
@@ -801,6 +796,11 @@ function buildDefaultFix(currentDSCR: number, targetDSCR: number): RescueFix {
   };
 }
 
+// Track 2 net-income factor: 1 - 8% vacancy - 8% mgmt - 5% maint.
+// Matches engine.ts's buildTrack2 flat-8%-vacancy convention for LTR/STR/MTR alike
+// ("LTR vacancy: 8%, STR vacancy: 8%, MTR: 8% (standardized to 8%)").
+const TRACK2_NET_FACTOR = 0.79;
+
 function computeTrack2DSCR(grossRent: number, pitia: number): number {
   const vacancy = 0.08;
   const management = 0.08;
@@ -839,8 +839,17 @@ function solveDealBreakRateFromPI(
   loanAmount: number,
   termMonths: number,
   targetPI: number,
+  ioPeriod: string = 'NONE',
 ): number {
   if (targetPI <= 0) return 0;
+
+  const isIO = ioPeriod !== 'NONE';
+  if (isIO) {
+    // IO: targetPI = loanAmount * rate/12 → rate = targetPI * 12 / loanAmount * 100
+    // Mirrors engine.ts's solveDealBreakRate IO branch (bug audit: this local
+    // fork previously always ran the amortizing bisection, even for IO loans).
+    return Math.round((targetPI * 12 / loanAmount) * 100 * 100) / 100;
+  }
 
   let lowRate = 2.0;
   let highRate = 15.0;
@@ -903,44 +912,3 @@ function computeFiveYearCost(
   );
 }
 
-function findBestLenderName(
-  property: PropertyInputs,
-  borrower: BorrowerProfile,
-  loan: LoanStructure,
-  _strategy: RentalStrategy,
-  dscr: number,
-  loanAmount: number,
-  solvedRate: number,
-): string {
-  const lenderData: {
-    name: string;
-    rateAdjustment: number;
-    minFICO: number;
-    minDSCR: number;
-  }[] = [
-    { name: 'Griffin Funding', rateAdjustment: 0.25, minFICO: 0, minDSCR: 0.75 },
-    { name: 'Kiavi', rateAdjustment: 0.50, minFICO: 660, minDSCR: 1.1 },
-    { name: 'Visio Lending', rateAdjustment: -0.125, minFICO: 680, minDSCR: 0.75 },
-    { name: 'Lima One Capital', rateAdjustment: -0.375, minFICO: 660, minDSCR: 0.90 },
-    { name: 'Defy Mortgage', rateAdjustment: -0.125, minFICO: 640, minDSCR: 0.75 },
-    { name: 'Easy Street Capital', rateAdjustment: -0.25, minFICO: 620, minDSCR: 0 },
-    { name: 'New Silver', rateAdjustment: 0.75, minFICO: 660, minDSCR: 0.75 },
-    { name: 'Deephaven Mortgage', rateAdjustment: 0.25, minFICO: 660, minDSCR: 0.75 },
-  ];
-
-  let bestName = '\u2014';
-  let bestRate = solvedRate;
-
-  for (const lender of lenderData) {
-    if (borrower.ficoScore < lender.minFICO) continue;
-    if (dscr < lender.minDSCR) continue;
-
-    const lenderRate = solvedRate + lender.rateAdjustment;
-    if (lenderRate < bestRate) {
-      bestRate = lenderRate;
-      bestName = lender.name;
-    }
-  }
-
-  return bestName;
-}
