@@ -319,17 +319,11 @@ describe('DEFECT C — return-grade gate ordering', () => {
     expect(v.verdict).toBe('PASS');
   });
 
-  it('a BLOCKER still outranks a Grade A return ⇒ PASS', () => {
-    const r = computeVerdict({ ...clean, afterTaxIRR: 0.25, ficoScore: 600 } as typeof clean);
-    expect(r.returnGrade).toBe('A');
-    expect(r.verdict).toBe('PASS');
-  });
-
-  it('Grade F remains an unconditional PASS', () => {
-    const r = computeVerdict({ ...clean, afterTaxIRR: -0.05 } as typeof clean);
-    expect(r.returnGrade).toBe('F');
-    expect(r.verdict).toBe('PASS');
-  });
+  // 'a BLOCKER outranks a Grade A return' and 'Grade F is an unconditional
+  // PASS' are both covered above (lines ~309 and ~401 in this file) against
+  // this file's own CLEAN/verdictOf fixtures. This described the same two
+  // cases against a `clean` fixture that no longer exists here — true
+  // duplicate coverage, not a gap.
 });
 
 // ── every BLOCKER path ──────────────────────────────────────────────────────

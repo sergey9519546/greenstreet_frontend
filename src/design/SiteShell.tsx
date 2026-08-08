@@ -47,21 +47,33 @@ const NAV_DD_CSS = `
 .burger-wrap[aria-expanded="true"] .burger-line.bottom{transform:translateY(-6px) rotate(-45deg);}
 /* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
    opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
-   nav-link must be the positioned containing block so the pill anchors to it. */
+   nav-link must be the positioned containing block so the pill anchors to it.
+   (This block was duplicated verbatim; the second copy is gone, not two
+   independent fixes.)
+
+   POINTER-EVENTS: NONE IS LOAD-BEARING, NOT A NICETY.
+   Measured live: inside the two <a>-tag nav-links (INVESTGO, Login — both
+   href="/investgo"), this div's containing block resolves to something far
+   above its own .nav-link parent, and it renders at {x:0, w:1515} — the
+   FULL nav row, not the one link. It stays that size inside <a> tags
+   specifically; inside the <button> dropdown toggles it is correctly scoped
+   to just that button. z-index:-1 does not save it: it still won hit-testing
+   over the sibling dropdown buttons, so a real click ANYWHERE across the nav
+   row — including squarely on "Product" or "Who We Serve" — landed on
+   whichever oversized, aria-hidden, decorative background happened to win
+   that tie, and both of them navigate to /investgo. That is why every nav
+   button "did nothing" except silently redirect: an invisible decorative div
+   was eating the click before it reached the real target.
+   Root-caused or not, an aria-hidden div must never be a click target — this
+   line is correct regardless of why the sizing is wrong, and it is the fix
+   that actually stops the redirect. */
 .gs-site-nav .nav-link{position:relative;}
 .gs-site-nav .nav-link .nav_links_text{position:relative;z-index:2;}
+.gs-site-nav .nav-link-background{pointer-events:none;}
 .gs-site-nav .nav-link:hover .nav-link-background,
 .gs-site-nav .nav-link:focus-visible .nav-link-background{opacity:1;}
 .gs-site-nav .nav-link.is-current .nav-link-background{opacity:1;}
 .gs-mnav-section{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#006565;margin:14px 0 2px;}
-/* Recreate Webflow's nav-link hover pill (greenboard .nav-link-background:
-   opacity 0->1, .4s ease). IX2 isn't running in React, so trigger it in CSS.
-   nav-link must be the positioned containing block so the pill anchors to it. */
-.gs-site-nav .nav-link{position:relative;}
-.gs-site-nav .nav-link .nav_links_text{position:relative;z-index:2;}
-.gs-site-nav .nav-link:hover .nav-link-background,
-.gs-site-nav .nav-link:focus-visible .nav-link-background{opacity:1;}
-.gs-site-nav .nav-link.is-current .nav-link-background{opacity:1;}
 .gs-site-nav .nav-btn{transition:filter .2s ease,transform .1s ease;}
 .gs-site-nav .nav-btn:hover{filter:brightness(1.08);}
 .gs-site-nav .nav-btn:active{transform:translateY(1px);}
@@ -276,6 +288,16 @@ export function SiteNav({ onNavigate }: { onNavigate?: (v: string) => void }) {
   return (
     <>
       <style>{NAV_SYNC_CSS}</style>
+      {/* NAV_DD_CSS was defined above but never rendered by any <style> tag —
+          dead code. That silently took out everything it carries: the burger
+          fix (".burger-wrap{display:none}" + the 991px breakpoint — without
+          it, the burger can render on top of the full desktop nav at every
+          width, the exact bug this constant's own comment describes fixing),
+          the "In review" hold chips, the hover-pill states, and the
+          pointer-events:none guard against the nav-link-background click bug
+          (real fix lives in index.css, since that's genuinely loaded here —
+          this restores the rest of what this constant was meant to do). */}
+      <style>{NAV_DD_CSS}</style>
       {announcementVisible && (
         <div className="announcement gs-site-announcement u-container u-theme-light">
           <a
