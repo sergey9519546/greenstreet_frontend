@@ -39,6 +39,7 @@ export type PageView =
   | "support"
   | "solutions"
   | "book-demo"
+  | "perfect-property"
   | "not-found";
 
 const ROUTE_MAP: Record<string, PageView> = {
@@ -100,16 +101,18 @@ const ROUTE_MAP: Record<string, PageView> = {
   "/tools/returns": "returns",
   "/tools/tax-engine": "tax-engine",
   "/tools/stress-matrix": "stress-matrix",
+  "/tools/structure-optimizer": "structure-optimizer",
   "/tools/decision-support": "decision-support",
   "/tools/str-underwriting": "str-underwriting",
   "/tools/portfolio": "portfolio",
   "/tools/commercial-dscr": "commercial-dscr",
   "/tools/construction-bridge": "construction-bridge",
   "/tools/tco-threshold": "tco-threshold",
+  "/tools/perfect-property": "perfect-property",
+  "/perfect-property": "perfect-property",
   "/tools/workspace": "portal",
   "/tools/deal-workspace": "portal",
   "/tools/sensitivity": "portal",
-  "/tools/structure-optimizer": "structure-optimizer",
   "/tools/scenario-history": "portal",
 };
 

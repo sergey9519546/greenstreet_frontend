@@ -2662,25 +2662,50 @@ function computeBreakevenResult(qualifyingRent, pitia, loanAmount, rate, termYea
 function computePrepaySchedule(loanAmount, rate, termYears, prepayType, isSoftPrepay, partialAllowancePct) {
   const termMonths = termYears * 12;
   const structureLabel = getPrepayStructureLabel(prepayType);
-  const steps = getPrepayStepRates(prepayType);
-  const year1Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 12);
-  const year2Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 24);
-  const year3Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 36);
-  const year4Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 48);
-  const year5Remaining = computeRemainingBalance(loanAmount, rate, termMonths, 60);
-  const year6PlusRemaining = computeRemainingBalance(loanAmount, rate, termMonths, 72);
+  const penaltyAt = (monthsHeld, loanYear) => resolvePrepayPenalty({
+    prepayType,
+    remainingBalance: computeRemainingBalance(loanAmount, rate, termMonths, monthsHeld),
+    annualRatePct: rate,
+    loanYear
+  });
   return {
     structure: structureLabel,
-    year1: Math.round(year1Remaining * steps.year1 * 100) / 100,
-    year2: Math.round(year2Remaining * steps.year2 * 100) / 100,
-    year3: Math.round(year3Remaining * steps.year3 * 100) / 100,
-    year4: Math.round(year4Remaining * steps.year4 * 100) / 100,
-    year5: Math.round(year5Remaining * steps.year5 * 100) / 100,
-    year6Plus: Math.round(year6PlusRemaining * steps.year6Plus * 100) / 100,
+    year1: penaltyAt(12, 1),
+    year2: penaltyAt(24, 2),
+    year3: penaltyAt(36, 3),
+    year4: penaltyAt(48, 4),
+    year5: penaltyAt(60, 5),
+    year6Plus: penaltyAt(72, 6),
     partialAllowancePct,
     softPrepay: isSoftPrepay,
     softPrepaySaleExempt: isSoftPrepay ? "UNCONFIRMED" : false
   };
+}
+function getPrepayFormula(prepayType) {
+  switch (prepayType) {
+    case "SIX_MONTHS_INTEREST":
+      return { kind: "MONTHS_INTEREST", months: 6 };
+    case "SIX_MONTHS_80_PCT":
+      return { kind: "MONTHS_INTEREST", months: 4.8 };
+    default:
+      return { kind: "BALANCE_PCT", steps: getPrepayStepRates(prepayType) };
+  }
+}
+function stepRateForYear(steps, loanYear) {
+  if (loanYear <= 1) return steps.year1;
+  if (loanYear <= 2) return steps.year2;
+  if (loanYear <= 3) return steps.year3;
+  if (loanYear <= 4) return steps.year4;
+  if (loanYear <= 5) return steps.year5;
+  return steps.year6Plus;
+}
+function resolvePrepayPenalty(args) {
+  const { prepayType, remainingBalance, annualRatePct, loanYear } = args;
+  if (prepayType === "NONE") return 0;
+  if (!Number.isFinite(remainingBalance) || remainingBalance <= 0) return 0;
+  const formula = getPrepayFormula(prepayType);
+  const dollars = formula.kind === "MONTHS_INTEREST" ? remainingBalance * (annualRatePct / 100 / 12) * formula.months : remainingBalance * stepRateForYear(formula.steps, loanYear);
+  return Math.round(Math.max(0, dollars) * 100) / 100;
 }
 function getPrepayStructureLabel(prepayType) {
   switch (prepayType) {
@@ -2720,10 +2745,12 @@ function getPrepayStepRates(prepayType) {
       return { year1: 0.05, year2: 0.04, year3: 0.03, year4: 0.03, year5: 0.03, year6Plus: 0 };
     case "FLAT_5":
       return { year1: 0.05, year2: 0.05, year3: 0.05, year4: 0.05, year5: 0.05, year6Plus: 0 };
-    case "SIX_MONTHS_INTEREST":
-      return { year1: 0.5, year2: 0.5, year3: 0.5, year4: 0.5, year5: 0.5, year6Plus: 0.5 };
-    case "SIX_MONTHS_80_PCT":
-      return { year1: 0.4, year2: 0.4, year3: 0.4, year4: 0.4, year5: 0.4, year6Plus: 0.4 };
+    // SIX_MONTHS_INTEREST / SIX_MONTHS_80_PCT deliberately have NO entry here.
+    // They are months of interest, not a percent of balance, and the 0.50 /
+    // 0.40 that used to sit here were sentinels one caller read literally as
+    // 50% and 40%. getPrepayFormula routes them to MONTHS_INTEREST instead; if
+    // one reaches this table it falls through to zero rather than to a
+    // plausible-looking percentage.
     case "YIELD_MAINTENANCE":
       return { year1: 0.05, year2: 0.04, year3: 0.03, year4: 0.02, year5: 0.01, year6Plus: 0.01 };
     case "SOFT_PREPAY":
@@ -2760,21 +2787,12 @@ function computePrepayExitCost(loanAmount, rate, termYears, prepayType, holdYear
   const termMonths = termYears * 12;
   const holdMonths = holdYears * 12;
   const remainingBalance = computeRemainingBalance(loanAmount, rate, termMonths, holdMonths);
-  const steps = getPrepayStepRates(prepayType);
-  const yearIndex = Math.ceil(holdYears);
-  let stepRate;
-  if (yearIndex <= 1) stepRate = steps.year1;
-  else if (yearIndex <= 2) stepRate = steps.year2;
-  else if (yearIndex <= 3) stepRate = steps.year3;
-  else if (yearIndex <= 4) stepRate = steps.year4;
-  else if (yearIndex <= 5) stepRate = steps.year5;
-  else stepRate = steps.year6Plus;
-  if (prepayType === "SIX_MONTHS_INTEREST" || prepayType === "SIX_MONTHS_80_PCT") {
-    const monthlyRate = rate / 100 / 12;
-    const monthsOfInterest = prepayType === "SIX_MONTHS_80_PCT" ? 4.8 : 6;
-    return Math.round(remainingBalance * monthlyRate * monthsOfInterest * 100) / 100;
-  }
-  return Math.round(remainingBalance * stepRate * 100) / 100;
+  return resolvePrepayPenalty({
+    prepayType,
+    remainingBalance,
+    annualRatePct: rate,
+    loanYear: Math.ceil(holdYears)
+  });
 }
 function generateStructureOptions(property, borrower, loan, strategy) {
   const options = [];

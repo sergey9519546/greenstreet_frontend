@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { MotionWorkbench } from "../design/artifacts";
+import PropertyTypesGallery from "../components/PropertyTypesGallery";
 
 // ScrollTrigger is already registered in dc.tsx — calling it again here is a
 // no-op for GSAP but avoids the "Plugin already registered" warning in strict mode.
@@ -781,6 +782,9 @@ export default function ProductsPage({
           </button>
         </div>
       </section>
+
+      {/* Property Types Gallery with hand-drawn architectural line art */}
+      <PropertyTypesGallery onSelectType={() => onNavigate("dscr-calculator")} />
     </DcShell>
   );
 }

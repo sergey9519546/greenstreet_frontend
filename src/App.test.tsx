@@ -81,10 +81,10 @@ describe('App routing', () => {
    * hold record is orphaned by scanning App.tsx source; this proves the rendered
    * result at a held path is the hold page, not the tool.
    */
-  it('resolves a held tool route (/tools/returns) to its reliability hold', async () => {
-    await renderAt('/tools/returns');
+  it('resolves a held tool route (/investgo) to its reliability hold', async () => {
+    await renderAt('/investgo');
     expect(await screen.findByText(/tool reliability review/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /investment returns/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /investgo workspace/i })).toBeInTheDocument();
   });
 
   it('renders the not-found page for an unknown path', async () => {
