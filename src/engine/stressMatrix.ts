@@ -38,7 +38,8 @@ import type {
 } from './types';
 import { calculatePI } from './engine';
 import { computeTcoRate, mapToTcoType } from './tcoDscr';
-import type { TcoPropertyType, TcoPropertyAge, TcoMarketType } from './tcoDscr';
+import type { TcoPropertyType, TcoPropertyAge, TcoMarketType, TcoRateComponents, TcoRateOpts } from './tcoDscr';
+import { buildAmortizationSchedule, paymentAtMonth } from './amortization';
 
 // ============================================================
 // AXIS CONFIGURATION
@@ -220,6 +221,258 @@ export function computeShockWaterfall(
 }
 
 // ============================================================
+// CANONICAL BASE SCENARIO
+// ============================================================
+//
+// GATE ITEM 1 ("one canonical base scenario shared by every stress"):
+// before this section existed, the base case was derived independently in
+// THREE places that could silently disagree —
+//   1. computeStressMatrix's grid loop (implicitly, at the rateOffsetBps=0 /
+//      rentOffsetPct=0 cell),
+//   2. computeStressMatrix's own "Base case DSCR" block, re-running
+//      calculatePI + the monthlyFixed arithmetic a second time after the
+//      loop, and
+//   3. StressMatrixPage.tsx's local `calcDSCR` + `previewCells`, two MORE
+//      independent re-implementations (different term-months handling, no
+//      flood insurance, ad-hoc vacancy math) used for the live slider readout
+//      and the hero preview heatmap.
+// Nothing enforced that these agreed. buildStressBaseScenario() is now the
+// ONLY place the unshocked deal is derived; computeStressCell() is the ONLY
+// place a shock is applied to it. Every cell of the matrix, the page's live
+// "stressed DSCR" slider readout, and the hero preview heatmap all call
+// computeStressCell() against the SAME base object.
+
+function ioMonthsFromPeriod(ioPeriod: LoanStructure['ioPeriod']): number {
+  switch (ioPeriod) {
+    case 'NONE': return 0;
+    case '5_YR': return 60;
+    case '7_YR': return 84;
+    case '10_YR': return 120;
+    default:
+      // Fail closed: an unrecognized IO enum must not silently become NONE
+      // (understating the payment) or any other guessed duration.
+      throw new Error(`computeStressMatrix: unsupported interest-only period: ${String(ioPeriod)}`);
+  }
+}
+
+function termMonthsFromTerm(term: LoanStructure['term']): number {
+  switch (term) {
+    case '30_YR': return 360;
+    case '40_YR': return 480;
+    case '15_YR': return 180;
+    default:
+      throw new Error(`computeStressMatrix: unsupported loan term: ${String(term)}`);
+  }
+}
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+const round3 = (n: number) => Math.round(n * 1000) / 1000;
+
+/**
+ * The one unshocked deal every stress in this module is measured against.
+ * Every field a shock could touch — loan amount, term, IO period, fixed
+ * costs, the TCO opex rate — is resolved exactly once, here.
+ */
+export interface StressBaseScenario {
+  loanAmount: number;
+  /** LTV (%) the loan amount was sized from — carried through for display only. */
+  ltvPct: number;
+  termMonths: number;
+  ioMonths: number;
+  baseRatePct: number;
+  qualifyingRent: number;
+  /** Taxes + insurance only, monthly. Split out so an expense shock can hit exactly this. */
+  monthlyTaxesInsurance: number;
+  /** HOA + flood insurance, monthly. Not stressed by the expense shock (structural, not market-driven). */
+  monthlyHoaFlood: number;
+  /** monthlyTaxesInsurance + monthlyHoaFlood, unshocked. */
+  monthlyFixed: number;
+  /** The TCO opts used to build `tcoRate`, minus vacancy — so a vacancy override can rebuild consistently. */
+  tcoOpts: TcoRateOpts;
+  /** Canonical Track-2 opex rate at the base (no vacancy override). */
+  tcoRate: TcoRateComponents;
+  basePI: number;
+  basePITIA: number;
+  baseTrack1DSCR: number;
+  baseTrack2DSCR: number;
+}
+
+/**
+ * Build the ONE canonical base scenario. Fails closed: a missing or
+ * non-finite deal input must throw here rather than silently propagate as
+ * 0, Infinity, or NaN into every downstream cell.
+ */
+export function buildStressBaseScenario(
+  property: PropertyInputs,
+  loan: LoanStructure,
+  strategy: RentalStrategy,
+  baseRate: number,
+  qualifyingRent: number,
+): StressBaseScenario {
+  if (!Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0) {
+    throw new Error('buildStressBaseScenario: purchasePrice must be a positive, finite number.');
+  }
+  if (!Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100) {
+    throw new Error('buildStressBaseScenario: ltv must be a finite number in (0, 100].');
+  }
+  if (!Number.isFinite(baseRate) || baseRate < 0) {
+    throw new Error('buildStressBaseScenario: baseRate must be a non-negative, finite number.');
+  }
+  if (!Number.isFinite(qualifyingRent) || qualifyingRent < 0) {
+    throw new Error('buildStressBaseScenario: qualifyingRent must be a non-negative, finite number.');
+  }
+
+  const loanAmount = property.purchasePrice * (loan.ltv / 100);
+  const termMonths = termMonthsFromTerm(loan.term);
+  const ioMonths = ioMonthsFromPeriod(loan.ioPeriod);
+
+  const monthlyTaxesInsurance = property.annualTaxes / 12 + property.annualInsurance / 12;
+  // hoa and floodInsurance are both MONTHLY figures already (bug audit #1 — do not divide by 12).
+  const monthlyHoaFlood = property.hoa + property.floodInsurance;
+  const monthlyFixed = monthlyTaxesInsurance + monthlyHoaFlood;
+
+  // Track 2 opex from the TCO single-source — property-type/age/market + CapEx.
+  const tcoOpts: TcoRateOpts = { propertyType: mapToTcoType(property.unitCount, strategy === 'STR') };
+  const tcoRate = computeTcoRate(tcoOpts);
+
+  const schedule = buildAmortizationSchedule({
+    principal: loanAmount,
+    annualRatePct: baseRate,
+    termMonths,
+    ioMonths,
+  });
+  const basePI = paymentAtMonth(schedule, 1);
+  const basePITIA = basePI + monthlyFixed;
+  const baseTrack1DSCR = basePITIA > 0 ? qualifyingRent / basePITIA : 0;
+  const baseNOI = qualifyingRent * Math.max(0, 1 - tcoRate.total);
+  const baseTrack2DSCR = basePITIA > 0 ? baseNOI / basePITIA : 0;
+
+  return {
+    loanAmount,
+    ltvPct: loan.ltv,
+    termMonths,
+    ioMonths,
+    baseRatePct: baseRate,
+    qualifyingRent,
+    monthlyTaxesInsurance,
+    monthlyHoaFlood,
+    monthlyFixed,
+    tcoOpts,
+    tcoRate,
+    basePI,
+    basePITIA,
+    baseTrack1DSCR: round3(baseTrack1DSCR),
+    baseTrack2DSCR: round3(baseTrack2DSCR),
+  };
+}
+
+/**
+ * Documents every shock this module knows how to apply, all relative to the
+ * ONE shared base (GATE ITEM 2 — "documented rent, vacancy, expense, and
+ * rate shocks"):
+ *
+ *   • RATE   — rateOffsetBps: added to the base rate, in basis points. Modeled
+ *     as an amortization `rateSteps` entry effective at month 1 (folded into
+ *     origination per the kernel's own contract — see amortization.ts), so
+ *     the shocked payment comes from the SAME kernel every other tool in this
+ *     codebase uses, not a re-derived PI formula. Floored at 0.5% nominal.
+ *   • RENT   — rentOffsetPct: multiplies the base qualifying rent. Negative =
+ *     rent decline (vacancy-adjacent market softness); positive = rent growth.
+ *   • VACANCY — vacancyOverridePct: overrides the TCO table's vacancy
+ *     component (which otherwise defaults from property type + market),
+ *     changing the Track 2 (investor-survival) haircut only. Track 1 (lender)
+ *     is unaffected — the lender qualifies on gross rent, not net.
+ *   • EXPENSE — expenseShockPct: a % increase applied ONLY to the
+ *     taxes+insurance component of the fixed payment (a tax reassessment or
+ *     insurance-market spike). HOA and flood insurance are structural
+ *     obligations, not market-driven, so they are not stressed by this lever.
+ */
+export interface StressShockInput {
+  /** Rate offset from the base rate, in basis points. Default 0. */
+  rateOffsetBps?: number;
+  /** Rent change from the base qualifying rent, in percent. Default 0. */
+  rentOffsetPct?: number;
+  /** Overrides the TCO vacancy component (0–100). Omit to use the base's own. */
+  vacancyOverridePct?: number;
+  /** % increase applied to taxes + insurance only. Default 0. */
+  expenseShockPct?: number;
+}
+
+/**
+ * Apply ONE shock to the ONE shared base and return the resulting cell. This
+ * is the single function that computes a stressed outcome anywhere in the
+ * product — the 12×10 matrix grid, the page's live slider readout, and the
+ * hero preview heatmap all call this against the same StressBaseScenario, so
+ * they cannot silently disagree about the unshocked deal (GATE ITEM 1).
+ */
+export function computeStressCell(
+  base: StressBaseScenario,
+  shock: StressShockInput = {},
+): StressMatrixCell {
+  const rateOffsetBps = shock.rateOffsetBps ?? 0;
+  const rentOffsetPct = shock.rentOffsetPct ?? 0;
+  const expenseShockPct = Math.max(0, shock.expenseShockPct ?? 0);
+
+  const ratePct = Math.max(0.5, round2(base.baseRatePct + rateOffsetBps / 100));
+
+  // RATE shock: a rateSteps entry at month 1, folded into origination by the
+  // kernel — i.e. "what if this loan had originated at this rate" — rather
+  // than a re-derived PI formula (see amortization.ts's own docs on why a
+  // schedule, not a closed-form guess, is the shared primitive).
+  const schedule = buildAmortizationSchedule({
+    principal: base.loanAmount,
+    annualRatePct: base.baseRatePct,
+    termMonths: base.termMonths,
+    ioMonths: base.ioMonths,
+    rateSteps: [{ month: 1, annualRatePct: ratePct, label: 'Stress Matrix rate shock' }],
+  });
+  const piMonthly = paymentAtMonth(schedule, 1);
+
+  // EXPENSE shock: taxes + insurance only; HOA/flood pass through unshocked.
+  const stressedTaxesInsurance = base.monthlyTaxesInsurance * (1 + expenseShockPct / 100);
+  const monthlyFixed = stressedTaxesInsurance + base.monthlyHoaFlood;
+  const pitiaMonthly = piMonthly + monthlyFixed;
+
+  // RENT shock: multiplies the base qualifying (gross) rent.
+  const adjustedRent = base.qualifyingRent * (1 + rentOffsetPct / 100);
+
+  // Track 1: Lender Qualification DSCR (gross rent / PITIA, no haircuts).
+  const track1DSCR = pitiaMonthly > 0 ? adjustedRent / pitiaMonthly : 0;
+
+  // VACANCY shock: overrides only the TCO vacancy component, and only
+  // affects Track 2 — the lender's Track 1 basis is gross rent by definition.
+  const tcoRate = shock.vacancyOverridePct !== undefined
+    ? computeTcoRate({ ...base.tcoOpts, vacancyOverridePct: shock.vacancyOverridePct })
+    : base.tcoRate;
+
+  const noiMonthly = adjustedRent * Math.max(0, 1 - tcoRate.total);
+  const track2DSCR = pitiaMonthly > 0 ? noiMonthly / pitiaMonthly : 0;
+
+  const monthlyCashFlow = noiMonthly - pitiaMonthly;
+  const annualCashFlow = monthlyCashFlow * 12;
+
+  const riskZone = classifyRiskZone(track1DSCR);
+  const interpretation = buildInterpretation(
+    track1DSCR, track2DSCR, monthlyCashFlow, riskZone, rateOffsetBps, rentOffsetPct,
+  );
+
+  return {
+    ratePct: round2(ratePct),
+    rateOffsetBps,
+    rentOffsetPct,
+    adjustedRent: round2(adjustedRent),
+    piMonthly: round2(piMonthly),
+    pitiaMonthly: round2(pitiaMonthly),
+    track1DSCR: round3(track1DSCR),
+    track2DSCR: round3(track2DSCR),
+    monthlyCashFlow: round2(monthlyCashFlow),
+    annualCashFlow: Math.round(annualCashFlow),
+    riskZone,
+    interpretation,
+  };
+}
+
+// ============================================================
 // MAIN ENTRY POINT
 // ============================================================
 
@@ -241,31 +494,23 @@ export function computeStressMatrix(
   baseRate: number,
   qualifyingRent: number,
 ): StressMatrixResult {
-  const loanAmount = property.purchasePrice * (loan.ltv / 100);
-  const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
-  const termMonths = termYears * 12;
+  const base = buildStressBaseScenario(property, loan, strategy, baseRate, qualifyingRent);
+  return computeStressMatrixFromBase(base);
+}
 
-  // Monthly fixed expenses (T, I, HOA, flood — NOT P&I)
-  const monthlyFixed =
-    property.annualTaxes / 12 +
-    property.annualInsurance / 12 +
-    property.hoa +
-    property.floodInsurance; // MONTHLY — do not divide by 12 (bug audit #1)
-
-  // Track 2 opex from the TCO single-source — property-type/age/market + CapEx.
-  // Replaces the legacy flat 8% vac + 8% mgmt + 5% maint.
-  const tcoRate = computeTcoRate({ propertyType: mapToTcoType(property.unitCount, strategy === 'STR') });
-
-  // Build absolute rate axis
-  const rateAxis: number[] = RATE_OFFSETS_BPS.map(bps => {
-    const r = baseRate + bps / 100;
-    // Floor at 0.5% (nominal rates shouldn't go to zero in stress scenarios)
-    return Math.max(0.5, Math.round(r * 100) / 100);
-  });
-
+/**
+ * Same as computeStressMatrix(), but takes an already-built
+ * StressBaseScenario directly. This is what lets a caller (the Stress
+ * Matrix page) build ONE base object and use it for BOTH the full grid AND
+ * a single live-slider cell (via computeStressCell) — the same object
+ * reference, not two separately-constructed-but-hopefully-equal ones.
+ */
+export function computeStressMatrixFromBase(base: StressBaseScenario): StressMatrixResult {
+  const rateAxis: number[] = RATE_OFFSETS_BPS.map(bps => Math.max(0.5, round2(base.baseRatePct + bps / 100)));
   const rentAxis: number[] = RENT_OFFSETS_PCT;
 
-  // Build 2D cell grid
+  // Build 2D cell grid — every cell comes from computeStressCell() against
+  // the ONE shared `base` object above. No cell re-derives the base.
   const cells: StressMatrixCell[][] = [];
   const zoneCounts: Record<StressRiskZone, number> = {
     SAFE: 0,
@@ -278,51 +523,15 @@ export function computeStressMatrix(
   let worstCase: StressMatrixCell | null = null;
   let bestCase: StressMatrixCell | null = null;
 
-  for (let i = 0; i < rateAxis.length; i++) {
-    const ratePct = rateAxis[i];
+  for (let i = 0; i < RATE_OFFSETS_BPS.length; i++) {
     const rateOffsetBps = RATE_OFFSETS_BPS[i];
-
-    const piMonthly = calculatePI(loanAmount, ratePct, termMonths);
-    const pitiaMonthly = piMonthly + monthlyFixed;
-
     const row: StressMatrixCell[] = [];
 
-    for (let j = 0; j < rentAxis.length; j++) {
-      const rentOffsetPct = rentAxis[j];
-      const adjustedRent = qualifyingRent * (1 + rentOffsetPct / 100);
+    for (let j = 0; j < RENT_OFFSETS_PCT.length; j++) {
+      const rentOffsetPct = RENT_OFFSETS_PCT[j];
+      const cell = computeStressCell(base, { rateOffsetBps, rentOffsetPct });
 
-      // Track 1: Lender Qualification DSCR (qualifyingRent / PITIA, no haircuts)
-      const track1DSCR = pitiaMonthly > 0 ? adjustedRent / pitiaMonthly : 0;
-
-      // Track 2: Investor Survival DSCR (after the TCO opex haircut)
-      const noiMonthly = adjustedRent * Math.max(0, 1 - tcoRate.total);
-      const track2DSCR = pitiaMonthly > 0 ? noiMonthly / pitiaMonthly : 0;
-
-      const monthlyCashFlow = noiMonthly - pitiaMonthly;
-      const annualCashFlow = monthlyCashFlow * 12;
-
-      const riskZone = classifyRiskZone(track1DSCR);
-      zoneCounts[riskZone]++;
-
-      const interpretation = buildInterpretation(
-        track1DSCR, track2DSCR, monthlyCashFlow, riskZone, rateOffsetBps, rentOffsetPct,
-      );
-
-      const cell: StressMatrixCell = {
-        ratePct: Math.round(ratePct * 100) / 100,
-        rateOffsetBps,
-        rentOffsetPct,
-        adjustedRent: Math.round(adjustedRent * 100) / 100,
-        piMonthly: Math.round(piMonthly * 100) / 100,
-        pitiaMonthly: Math.round(pitiaMonthly * 100) / 100,
-        track1DSCR: Math.round(track1DSCR * 1000) / 1000,
-        track2DSCR: Math.round(track2DSCR * 1000) / 1000,
-        monthlyCashFlow: Math.round(monthlyCashFlow * 100) / 100,
-        annualCashFlow: Math.round(annualCashFlow),
-        riskZone,
-        interpretation,
-      };
-
+      zoneCounts[cell.riskZone]++;
       row.push(cell);
 
       // Track worst/best by Track 1 DSCR
@@ -339,31 +548,31 @@ export function computeStressMatrix(
 
   // Build break-even curve: for each rent offset, find the rate where DSCR = 1.0
   const breakEvenCurve: StressBreakEvenPoint[] = rentAxis.map(rentOffsetPct => {
-    const adjustedRent = qualifyingRent * (1 + rentOffsetPct / 100);
+    const adjustedRent = base.qualifyingRent * (1 + rentOffsetPct / 100);
     // DSCR = 1.0 when adjustedRent = PITIA = PI + monthlyFixed
     // → PI = adjustedRent - monthlyFixed
     // → solve for rate: PI(loanAmount, rate, termMonths) = adjustedRent - monthlyFixed
-    const targetPI = adjustedRent - monthlyFixed;
+    const targetPI = adjustedRent - base.monthlyFixed;
     if (targetPI <= 0) {
       // Even at 0% rate, PI > 0 (interest-only on principal / termMonths)
       // → check if 0% rate gives PI < targetPI; if so, DSCR stays > 1.0 across all rates
-      const piAtZero = loanAmount / termMonths;  // simple division at 0% rate
+      const piAtZero = base.loanAmount / base.termMonths;  // simple division at 0% rate
       if (piAtZero <= targetPI) {
         // Never breaks in any realistic stress
         return { rentOffsetPct, breakEvenRatePct: null, cushionBps: 99999 };
       }
       // Otherwise breaks below 0%
-      return { rentOffsetPct, breakEvenRatePct: 0, cushionBps: Math.round(baseRate * 100) };
+      return { rentOffsetPct, breakEvenRatePct: 0, cushionBps: Math.round(base.baseRatePct * 100) };
     }
     // Binary search for the rate
-    const breakEvenRate = solveBreakEvenRate(loanAmount, termMonths, targetPI);
+    const breakEvenRate = solveBreakEvenRate(base.loanAmount, base.termMonths, targetPI);
     if (breakEvenRate === null) {
       return { rentOffsetPct, breakEvenRatePct: null, cushionBps: 99999 };
     }
-    const cushionBps = Math.round((baseRate - breakEvenRate) * 100);
+    const cushionBps = Math.round((base.baseRatePct - breakEvenRate) * 100);
     return {
       rentOffsetPct,
-      breakEvenRatePct: Math.round(breakEvenRate * 100) / 100,
+      breakEvenRatePct: round2(breakEvenRate),
       cushionBps,
     };
   });
@@ -373,26 +582,20 @@ export function computeStressMatrix(
   const safeZonePct = (zoneCounts.SAFE + zoneCounts.COMFORTABLE) / totalCells;
   const fragileZonePct = (zoneCounts.FRAGILE + zoneCounts.DEAL_BREAK) / totalCells;
 
-  // Base case DSCR
-  const basePI = calculatePI(loanAmount, baseRate, termMonths);
-  const basePITIA = basePI + monthlyFixed;
-  const baseTrack1DSCR = basePITIA > 0 ? qualifyingRent / basePITIA : 0;
-  const baseNOI = qualifyingRent * Math.max(0, 1 - tcoRate.total);
-  const baseTrack2DSCR = basePITIA > 0 ? baseNOI / basePITIA : 0;
-
-  // Summary
+  // Summary — reads the base case from `base`, computed exactly once in
+  // buildStressBaseScenario(). No second "base case DSCR" re-derivation here.
   const summary = buildSummary(
-    baseRate, qualifyingRent, baseTrack1DSCR, baseTrack2DSCR,
+    base.baseRatePct, base.qualifyingRent, base.baseTrack1DSCR, base.baseTrack2DSCR,
     zoneCounts, totalCells, safeZonePct, fragileZonePct,
     worstCase!, bestCase!,
   );
 
   return {
-    baseRate: Math.round(baseRate * 100) / 100,
-    baseRent: Math.round(qualifyingRent * 100) / 100,
-    baseLTV: loan.ltv,
-    baseTrack1DSCR: Math.round(baseTrack1DSCR * 1000) / 1000,
-    baseTrack2DSCR: Math.round(baseTrack2DSCR * 1000) / 1000,
+    baseRate: round2(base.baseRatePct),
+    baseRent: round2(base.qualifyingRent),
+    baseLTV: base.ltvPct,
+    baseTrack1DSCR: base.baseTrack1DSCR,
+    baseTrack2DSCR: base.baseTrack2DSCR,
     rateAxis,
     rentAxis,
     cells,

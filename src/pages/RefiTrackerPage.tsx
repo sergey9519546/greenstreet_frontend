@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { DcShell, dc, Mono, H1, H2, Lead, Btn, useRevealOnView } from "../design/dc";
 import { RiskFlame, riskFromDscr } from "../design/artifacts";
-import { analyzeRefi } from "../engine/refiTracker";
+import { analyzeRefi, evaluateRefinance } from "../engine/refiTracker";
 import { computeSecondLienDscr } from "../engine/secondLienDscr";
 import { computeRefiProceedsGap } from "../engine/refiProceeds";
+import { computeRefiBreakEven, type HoldPeriodOutcome } from "../engine/amortization";
 import { assessDscrCovenant, assessDayOneVsStabilized } from "../engine/covenantCheck";
 import { radius, font, risk } from "../theme";
 import type { PropertyInputs, BorrowerProfile } from "../engine/types";
@@ -42,11 +43,30 @@ export default function RefiTrackerPage({
 
   // ── Inputs ──
   const [purchasePrice, setPurchasePrice] = useState(425000);
-  const [currentBalance, setCurrentBalance] = useState(340000);
+  // The existing note, not a remembered balance.
+  //
+  // This page used to take "Current Loan Balance" and "Current Monthly P&I" as
+  // typed numbers. Both are derivable from the note, and taking them by hand
+  // let the two disagree with each other and with the rate — a balance, a
+  // payment and a rate that do not describe the same loan produce a payoff
+  // figure nothing can reconcile. The release gate for this tool is "a complete
+  // current-loan amortization schedule", so the schedule is now built from the
+  // note terms and the balance and payment are read out of it.
+  // 70.6% of the $425K purchase. The old default was $340K — 80% LTV, above
+  // the 75% rate-term cap, so this page opened on a deal that could not
+  // refinance at all. Nothing said so, because nothing checked.
+  const [origLoanAmount, setOrigLoanAmount] = useState(300000);
+  const [currentTermYears, setCurrentTermYears] = useState(30);
   const [currentRate, setCurrentRate] = useState(7.25);
-  const [currentPayment, setCurrentPayment] = useState(2317);
   const [monthlyRent, setMonthlyRent] = useState(3000);
   const [monthsOwned, setMonthsOwned] = useState(8);
+  // New-loan costs and payoff requirements — gate 2. Zeroes here would quietly
+  // claim a refinance is free, so they are real inputs with real defaults.
+  const [newLenderFees, setNewLenderFees] = useState(1800);
+  const [newThirdPartyFees, setNewThirdPartyFees] = useState(2400);
+  const [newPrepaids, setNewPrepaids] = useState(1500);
+  const [prepayPenaltyPct, setPrepayPenaltyPct] = useState(0);
+  const [payoffFees, setPayoffFees] = useState(495);
   const [projectedRate, setProjectedRate] = useState(6.5);
   const [projectedAppreciation, setProjectedAppreciation] = useState(5);
   const [annualTaxes, setAnnualTaxes] = useState(5000);
@@ -59,7 +79,42 @@ export default function RefiTrackerPage({
   const [covenantDscr, setCovenantDscr] = useState(1.20);
   const [inPlaceRent, setInPlaceRent] = useState(3000);
   const currentValue = Math.round(purchasePrice * (1 + (projectedAppreciation / 100) * (monthsOwned / 12)));
-  const firstLienPITIA = currentPayment + (annualTaxes + annualInsurance) / 12 + hoa;
+  const escrowsMonthly = (annualTaxes + annualInsurance) / 12 + hoa;
+
+  // ── The existing loan, evaluated against the shared amortization kernel ──
+  // Balance and payment are READ from the schedule. Nothing here is typed.
+  const refi = useMemo(() => {
+    try {
+      return evaluateRefinance({
+        current: {
+          originalAmount: origLoanAmount,
+          annualRatePct: currentRate,
+          termMonths: Math.round(currentTermYears * 12),
+          monthsElapsed: monthsOwned,
+          prepaymentPenaltyPct: prepayPenaltyPct,
+          payoffFees,
+        },
+        proposed: {
+          annualRatePct: projectedRate,
+          termMonths: 360,
+          lenderFees: newLenderFees,
+          thirdPartyFees: newThirdPartyFees,
+          prepaidsAndEscrows: newPrepaids,
+        },
+        property: { value: currentValue, qualifyingRent: monthlyRent, monthlyEscrows: escrowsMonthly },
+      });
+    } catch {
+      return null;
+    }
+  }, [
+    origLoanAmount, currentRate, currentTermYears, monthsOwned, prepayPenaltyPct, payoffFees,
+    projectedRate, newLenderFees, newThirdPartyFees, newPrepaids,
+    currentValue, monthlyRent, escrowsMonthly,
+  ]);
+
+  const currentBalance = refi ? Math.round(refi.payoff.principalBalance) : 0;
+  const currentPayment = refi ? refi.currentPayment : 0;
+  const firstLienPITIA = currentPayment + escrowsMonthly;
   const secondLien = computeSecondLienDscr({
     monthlyRent, firstLienPITIA, firstLienBalance: currentBalance,
     propertyValue: currentValue, secondLienAmount: secondAmount, secondLienRate: secondRate,
@@ -70,7 +125,7 @@ export default function RefiTrackerPage({
     propertyValue: currentValue,
     currentBalance,
     qualifyingRent: monthlyRent,
-    escrowsMonthly: (annualTaxes + annualInsurance) / 12 + hoa,
+    escrowsMonthly,
     newRate: projectedRate,
   });
   // Maintenance-covenant test on the current loan + day-one (in-place rent) vs
@@ -160,14 +215,26 @@ export default function RefiTrackerPage({
   ]);
 
   const score = result?.totalScore ?? 0;
-  const vColor = result ? scoreColor(score) : risk.danger;
-  const vLabel = result
-    ? score >= 80
-      ? "REFI READY"
-      : score >= 55
-      ? "CONDITIONAL"
-      : "NOT READY"
-    : "INPUTS REQUIRED";
+
+  // THE HEADLINE IS THE DECISION, NOT THE READINESS SCORE.
+  //
+  // The score measures how ready the borrower looks — seasoning, equity, DSCR
+  // headroom, monthly saving. It cannot see whether the new loan actually
+  // raises enough to retire the existing lien, so a deal that is short at the
+  // closing table could still read "REFI READY". `evaluateRefinance` answers
+  // that question and refuses when the answer is no; its decision governs, and
+  // the score is reported underneath it as supporting detail.
+  const decision = refi?.decision ?? null;
+  const vColor =
+    decision === 'PROCEED' ? dc.emerald
+    : decision === 'CONDITIONAL' ? dc.lemon
+    : decision === 'REFUSED' ? risk.danger
+    : risk.danger;
+  const vLabel =
+    decision === 'PROCEED' ? 'REFI READY'
+    : decision === 'CONDITIONAL' ? 'CONDITIONAL'
+    : decision === 'REFUSED' ? 'NOT RECOMMENDED'
+    : 'INPUTS REQUIRED';
 
   const scrollToTool = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -179,61 +246,48 @@ export default function RefiTrackerPage({
       });
   };
 
-  // ── Break-even chart geometry (data-driven so the crossover is honest) ──
-  const beMonths = result?.breakEvenMonths ?? 36;
-  const ms = result?.monthlySavings ?? 0;
-  const bePct = Math.min(1, Math.max(0, beMonths / 60));
-  const beDotX = Math.round(bePct * 420);
-  const noBreakeven = result === null || ms <= 0 || beMonths >= 120;
-  const showDot = !noBreakeven;
-  // Cumulative-savings line passes through (0,178) and must cross the flat refi-cost
-  // line (y=40) exactly at beDotX — so the dot sits on the real intersection, not a
-  // decorative one. Slope therefore encodes how fast savings accrue.
-  const COST_Y = 40, BASE_Y = 178, TOP_Y = 20;
-  const crossX = Math.max(10, beDotX); // guard against a vertical/zero-width slope
-  const slope = (COST_Y - BASE_Y) / crossX; // SVG y is inverted → negative
-  let saveEndX = 420, saveEndY = BASE_Y + slope * 420;
-  if (saveEndY < TOP_Y) { saveEndX = (TOP_Y - BASE_Y) / slope; saveEndY = TOP_Y; }
-  const savePath = noBreakeven
-    ? "M 0,178 L 420,150" // savings never reach the cost line — no payoff yet
-    : `M 0,${BASE_Y} L ${Math.round(saveEndX)},${Math.round(saveEndY)}`;
+  // ── Break-even chart ──────────────────────────────────────────────────────
+  //
+  // The previous chart drew two abstract lines — a flat "refi cost" and a
+  // straight "cumulative savings" — and placed the crossover at
+  // `min(1, beMonths / 60) * 420`. At the default scenario break-even is month
+  // 84, so that clamped to 1.0 and pinned the marker to the right-hand edge of
+  // an axis labelled "mo 60", directly beneath a label reading "mo 84". The
+  // picture asserted month 60 while the text asserted month 84.
+  //
+  // It was also driven by `analyzeRefi.breakEvenMonths` — a payment-savings
+  // shortcut — while the verdict above it comes from `evaluateRefinance`, which
+  // measures total cost (payments made PLUS the balance still owed). Two
+  // different break-even numbers on one page.
+  //
+  // Now it plots the real thing: cumulative net advantage against staying, month
+  // by month, from the same evaluation the verdict uses. Zero is the baseline,
+  // so the crossover is where the curve reaches it — nothing to fake.
+  const chart = useMemo(() => {
+    if (!refi || !refi.proposedSchedule || !refi.breakEven) return null;
+    const horizon = Math.min(120, refi.breakEven.horizonMonths);
+    if (horizon < 6) return null;
 
-  // ── Draw-on chart lines via IntersectionObserver (never page-load GSAP) ──
-  // chartVisible flips true once the chart div enters the viewport (useRevealOnView).
-  // CSS transitions on strokeDashoffset handle the draw effect — reduced-motion safe.
-  useEffect(() => {
-    if (!chartVisible) return;
-    const cost = costLineRef.current;
-    const save = saveLineRef.current;
-    const dot = dotRef.current;
-    const lbl = lblRef.current;
-    if (!cost || !save) return;
-
-    const costLen = 420;
-    const saveLen = save.getTotalLength ? save.getTotalLength() : 420;
-
-    // Start hidden, then let CSS transition draw them in
-    cost.style.strokeDasharray = "6,4";
-    cost.style.strokeDashoffset = String(costLen);
-    save.style.strokeDasharray = String(saveLen);
-    save.style.strokeDashoffset = String(saveLen);
-    if (dot) { dot.style.opacity = "0"; }
-    if (lbl) { lbl.style.opacity = "0"; }
-
-    // rAF ensures the "hidden" state is painted before transition begins
-    requestAnimationFrame(() => {
-      cost.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.1s";
-      cost.style.strokeDashoffset = "0";
-      save.style.transition = "stroke-dashoffset 1.3s cubic-bezier(0.4,0,0.2,1) 0.3s";
-      save.style.strokeDashoffset = "0";
-      if (dot && lbl && showDot) {
-        dot.style.transition = "opacity 0.5s ease 1.3s";
-        lbl.style.transition = "opacity 0.5s ease 1.3s";
-        dot.style.opacity = "1";
-        lbl.style.opacity = "1";
-      }
+    const be = computeRefiBreakEven({
+      currentSchedule: refi.currentSchedule,
+      proposedSchedule: refi.proposedSchedule,
+      refinanceAtMonth: monthsOwned,
+      netCashAtClose: refi.sizing.netCashToBorrower,
+      holdPeriodsMonths: Array.from({ length: horizon }, (_, i) => i + 1),
     });
-  }, [chartVisible, showDot]);
+
+    const pts = be.holdPeriods.map((h: HoldPeriodOutcome) => ({ m: h.holdMonths, adv: h.netAdvantage }));
+    if (pts.length < 2) return null;
+
+    const advs = pts.map((p: { m: number; adv: number }) => p.adv);
+    // Zero is always in range: the whole question is which side of it the curve
+    // is on, and a scale that excluded it would hide the answer.
+    const maxUp = Math.max(0, ...advs);
+    const maxDown = Math.max(0, ...advs.map((a: number) => -a));
+    const span = Math.max(maxUp + maxDown, 1);
+
+    return { pts, horizon, span, maxUp, maxDown, breakEvenMonth: be.breakEvenMonth };
+  }, [refi, monthsOwned]);
 
   // Input field definitions
   const loanFields: Array<{
@@ -246,9 +300,9 @@ export default function RefiTrackerPage({
     suffix?: string;
   }> = [
     { label: "Purchase Price", hint: "What you originally paid — sets your equity baseline.", value: purchasePrice, set: setPurchasePrice, step: 5000, prefix: "$" },
-    { label: "Current Loan Balance", hint: "What you still owe today. Estimate is fine.", value: currentBalance, set: setCurrentBalance, step: 1000, prefix: "$" },
+    { label: "Original Loan Amount", hint: "What you borrowed at closing. The balance today is calculated from this, not estimated.", value: origLoanAmount, set: setOrigLoanAmount, step: 1000, prefix: "$" },
     { label: "Current Rate", hint: "Your existing interest rate — drives savings math.", value: currentRate, set: setCurrentRate, step: 0.125, suffix: "%" },
-    { label: "Current Monthly P&I", hint: "Principal + interest only (not taxes/insurance). Check your statement.", value: currentPayment, set: setCurrentPayment, step: 25, prefix: "$" },
+    { label: "Original Term", hint: "Years on the existing note. Sets the amortization your payoff is read from.", value: currentTermYears, set: setCurrentTermYears, step: 5, suffix: " yr" },
     { label: "Months Owned", hint: "Most lenders require 6 months before you can refi a DSCR loan.", value: monthsOwned, set: setMonthsOwned, step: 1 },
     { label: "Monthly Rent (qualifying)", hint: "The rent your lender will count — lease amount or appraised rent, whichever is lower.", value: monthlyRent, set: setMonthlyRent, step: 100, prefix: "$" },
     { label: "Projected Rate at Refi", hint: "The rate you expect to get on the new loan. Use today's market rate as your starting estimate.", value: projectedRate, set: setProjectedRate, step: 0.125, suffix: "%" },
@@ -256,6 +310,14 @@ export default function RefiTrackerPage({
     { label: "Annual Taxes", hint: "Your property tax bill per year. Find it on your last tax statement.", value: annualTaxes, set: setAnnualTaxes, step: 500, prefix: "$" },
     { label: "Annual Insurance", hint: "Homeowner's insurance premium per year.", value: annualInsurance, set: setAnnualInsurance, step: 250, prefix: "$" },
     { label: "Monthly HOA", hint: "Enter 0 if there is no HOA.", value: hoa, set: setHoa, step: 25, prefix: "$" },
+    // Costs. Leaving these out does not make a refinance free — it just stops
+    // the tool from counting what the refinance costs, which is the single
+    // largest input to whether it is worth doing.
+    { label: "New Lender Fees", hint: "Origination and underwriting charged by the new lender.", value: newLenderFees, set: setNewLenderFees, step: 100, prefix: "$" },
+    { label: "Title, Appraisal & Recording", hint: "Third-party costs at the new closing.", value: newThirdPartyFees, set: setNewThirdPartyFees, step: 100, prefix: "$" },
+    { label: "Prepaids & Escrow Deposits", hint: "Prepaid interest and escrow funded at close.", value: newPrepaids, set: setNewPrepaids, step: 100, prefix: "$" },
+    { label: "Prepayment Penalty", hint: "Percent of the payoff balance charged by your CURRENT lender. 0 if your penalty has expired.", value: prepayPenaltyPct, set: setPrepayPenaltyPct, step: 1, suffix: "%" },
+    { label: "Payoff / Demand Fees", hint: "Demand, recording and statement fees charged to retire the existing loan.", value: payoffFees, set: setPayoffFees, step: 50, prefix: "$" },
   ];
 
   return (
@@ -356,7 +418,7 @@ export default function RefiTrackerPage({
                     lineHeight: 1,
                   }}
                 >
-                  {result && beMonths < 120 ? Math.round(beMonths) + " mo" : "—"}
+                  {chart?.breakEvenMonth != null ? chart.breakEvenMonth + " mo" : "never"}
                 </Mono>
                 <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(238,239,211,0.62)", marginTop: 4 }}>
                   break-even
@@ -403,76 +465,75 @@ export default function RefiTrackerPage({
             >
               Break-even crossover
             </div>
-            <svg
-              id="rf-svg"
-              viewBox="0 0 420 200"
-              style={{ width: "100%", display: "block", overflow: "visible" }}
-            >
-              {/* Axes */}
-              <line x1="0" y1="180" x2="420" y2="180" stroke="rgba(238,239,211,0.2)" strokeWidth="1" />
-              <line x1="0" y1="20" x2="0" y2="180" stroke="rgba(238,239,211,0.2)" strokeWidth="1" />
-              {/* Refi cost line — flat dashed red, animated draw */}
-              <path
-                ref={costLineRef}
-                id="rf-cost"
-                d="M 0,40 L 420,40"
-                fill="none"
-                stroke={risk.danger}
-                strokeWidth="2.5"
-                strokeDasharray="6,4"
-              />
-              {/* Cumulative savings line — rising solid emerald, animated draw */}
-              <path
-                ref={saveLineRef}
-                id="rf-save"
-                d={savePath}
-                fill="none"
-                stroke={dc.emerald}
-                strokeWidth="3"
-                style={{ transition: "d 0.35s ease" }}
-              />
-              {/* Break-even intersection dot + label */}
-              <circle
-                ref={dotRef}
-                id="rf-dot"
-                cx={beDotX}
-                cy={40}
-                r={6}
-                fill={dc.lemon}
-                opacity={showDot ? 1 : 0}
-                style={{ transition: "cx 0.35s ease" }}
-              />
-              {showDot && (
-                <text
-                  ref={lblRef}
-                  id="rf-lbl"
-                  x={Math.min(beDotX + 8, 310)}
-                  y={36}
-                  fill={dc.lemon}
-                  fontSize={11}
-                  fontFamily={dc.mono}
-                  opacity={1}
-                >
-                  break-even ≈ mo {Math.round(beMonths)}
-                </text>
-              )}
-              {/* Static labels */}
-              <text x="6" y="34" fill="rgba(224,99,99,0.8)" fontSize={10} fontFamily={dc.mono}>refi cost</text>
-              <text x="6" y="170" fill="rgba(77,189,151,0.9)" fontSize={10} fontFamily={dc.mono}>cumulative savings →</text>
-            </svg>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 11,
-                color: "rgba(238,239,211,0.62)",
-                marginTop: 8,
-                fontFamily: dc.mono,
-              }}
-            >
-              <span>mo 0</span>
-              <span>mo 60</span>
-            </div>
+            {chart ? (
+              <svg
+                id="rf-svg"
+                viewBox="0 0 420 200"
+                style={{ width: "100%", display: "block", overflow: "visible" }}
+                role="img"
+                aria-label={
+                  chart.breakEvenMonth === null
+                    ? `Refinancing never costs less than staying within ${chart.horizon} months.`
+                    : `Refinancing costs less than staying from month ${chart.breakEvenMonth} onward, measured on total cost.`
+                }
+              >
+                {(() => {
+                  const padL = 6, padR = 6, padT = 22, padB = 26;
+                  const plotH = 200 - padT - padB;
+                  const zeroY = padT + (chart.maxUp / chart.span) * plotH;
+                  const X = (m: number) => padL + ((m - 1) / (chart.horizon - 1)) * (420 - padL - padR);
+                  const Y = (adv: number) => zeroY - (adv / chart.span) * plotH;
+
+                  const line = chart.pts.map((p: { m: number; adv: number }, i: number) => `${i === 0 ? "M" : "L"} ${X(p.m).toFixed(1)} ${Y(p.adv).toFixed(1)}`).join(" ");
+                  const beX = chart.breakEvenMonth === null ? null : X(chart.breakEvenMonth);
+
+                  return (
+                    <>
+                      {/* Zero is the axis: at or above it, refinancing is cheaper. */}
+                      <line x1={padL} x2={420 - padR} y1={zeroY} y2={zeroY} stroke={dc.lemon} strokeWidth="1.5" />
+                      <text x={padL} y={zeroY - 6} fill={dc.lemon} fontSize={10} fontWeight={700} fontFamily={dc.mono}>
+                        break even
+                      </text>
+
+                      {/* Behind zero the refinance is still down on the deal. */}
+                      <path d={`${line} L ${X(chart.pts[chart.pts.length - 1].m).toFixed(1)} ${zeroY} L ${X(chart.pts[0].m).toFixed(1)} ${zeroY} Z`}
+                        fill={dc.emerald} fillOpacity="0.14" />
+                      <path d={line} fill="none" stroke={dc.emerald} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+
+                      {beX !== null && (
+                        <>
+                          <line x1={beX} x2={beX} y1={padT} y2={200 - padB} stroke={dc.lemon} strokeWidth="1" strokeDasharray="4 4" />
+                          <circle cx={beX} cy={zeroY} r={4.5} fill={dc.lemon} />
+                          <text
+                            x={beX > 300 ? beX - 8 : beX + 8}
+                            y={padT + 10}
+                            textAnchor={beX > 300 ? "end" : "start"}
+                            fill={dc.lemon}
+                            fontSize={11}
+                            fontWeight={700}
+                            fontFamily={dc.mono}
+                          >
+                            month {chart.breakEvenMonth}
+                          </text>
+                        </>
+                      )}
+
+                      <text x={padL} y={200 - 8} fill="rgba(238,239,211,0.66)" fontSize={11} fontFamily={dc.mono}>mo 0</text>
+                      <text x={420 - padR} y={200 - 8} textAnchor="end" fill="rgba(238,239,211,0.66)" fontSize={11} fontFamily={dc.mono}>
+                        mo {chart.horizon}
+                      </text>
+                    </>
+                  );
+                })()}
+              </svg>
+            ) : (
+              <div style={{ padding: "28px 4px", fontSize: 13, color: "rgba(238,239,211,0.62)", lineHeight: 1.6 }}>
+                No crossover to plot — this refinance was refused, so there is no recommendation to
+                measure against staying.
+              </div>
+            )}
+            {/* The SVG carries its own axis, labelled with the real horizon. A second
+                strip here hardcoded "mo 60" and contradicted it. */}
 
             {/* Live driver — drag the refi rate, watch the crossover move */}
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(238,239,211,0.12)" }}>
@@ -495,20 +556,26 @@ export default function RefiTrackerPage({
                 style={{ width: "100%", accentColor: dc.emerald, cursor: "pointer" }}
               />
               <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 5, fontFamily: dc.mono }}>
-                {noBreakeven
-                  ? "no break-even at this rate — savings never recoup the cost"
-                  : `break-even ≈ month ${Math.round(beMonths)} · drag to move it`}
+                {chart?.breakEvenMonth == null
+                  ? "no break-even at this rate — total cost never favours refinancing"
+                  : `break-even at month ${chart.breakEvenMonth} · drag the rate to move it`}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── TOOL (slightly lighter dark, matches mockup #003a39) ── */}
+      {/* ── TOOL ──
+          This section was #003a39 and its cards were #004041, sitting on the
+          page's #003738 ground: three greens within six RGB points of each
+          other, stacked. Read as one muddy field rather than three surfaces.
+          DESIGN_SOURCE_OF_TRUTH allows exactly two surfaces — #003738 dark and
+          #eeefd3 light — and separates blocks with a border, not a near-miss
+          fill. Both extra greens are gone; the borders were already there. */}
       <section
         id="rf-tool"
         style={{
-          background: "#003a39",
+          background: dc.dark,
           color: dc.cream,
           padding: `clamp(52px,7vw,92px) clamp(1.5rem,4vw,3rem) clamp(64px,9vh,116px)`,
           borderTop: "1px solid rgba(238,239,211,0.07)",
@@ -562,7 +629,7 @@ export default function RefiTrackerPage({
             {/* ── INPUTS ── */}
             <div
               style={{
-                background: dc.teal,
+                background: dc.dark,
                 border: "1px solid rgba(238,239,211,0.12)",
                 borderRadius: 14,
                 padding: 24,
@@ -619,7 +686,7 @@ export default function RefiTrackerPage({
               {/* Score card */}
               <div
                 style={{
-                  background: dc.teal,
+                  background: dc.dark,
                   border: `1px solid ${vColor}`,
                   borderRadius: 14,
                   padding: 28,
@@ -637,30 +704,72 @@ export default function RefiTrackerPage({
                     marginBottom: 12,
                   }}
                 >
-                  Refi Readiness Score
+                  Refinance Decision
                 </div>
-                <Mono
-                  style={{
-                    display: "block",
-                    fontSize: 72,
-                    fontWeight: 700,
-                    color: vColor,
-                    lineHeight: 1,
-                  }}
-                >
-                  {result ? Math.round(score) : "—"}
-                </Mono>
                 <div
                   style={{
-                    fontSize: 13,
+                    fontSize: "clamp(28px,4vw,44px)",
                     fontWeight: 700,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
+                    letterSpacing: "-0.02em",
                     color: vColor,
-                    margin: "8px 0 14px",
+                    lineHeight: 1.05,
+                    fontFamily: font.family,
                   }}
                 >
                   {vLabel}
+                </div>
+
+                {/* The refusal, verbatim. When the proceeds cannot retire the
+                    existing lien there is no recommendation to soften — the
+                    number that decides it is stated instead. */}
+                {refi && refi.refusals.length > 0 && (
+                  <div
+                    style={{
+                      textAlign: "left",
+                      margin: "14px 0 0",
+                      padding: "12px 14px",
+                      borderRadius: radius.sm,
+                      background: risk.dangerBg,
+                      border: `1px solid ${risk.dangerBorder}`,
+                      fontSize: 13,
+                      lineHeight: 1.55,
+                      color: dc.cream,
+                    }}
+                  >
+                    {refi.refusals.map((r) => (
+                      <p key={r.code} style={{ margin: "0 0 6px" }}>{r.message}</p>
+                    ))}
+                  </div>
+                )}
+
+                {/* The three figures the decision rests on, always shown so the
+                    verdict can be checked rather than taken on trust. */}
+                {refi && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, margin: "16px 0 0" }}>
+                    {[
+                      { l: "Payoff today", v: fmt$(refi.payoff.totalPayoff) },
+                      { l: "New loan funds at", v: fmt$(refi.sizing.fundedAmount) },
+                      {
+                        l: refi.sizing.netCashToBorrower >= 0 ? "Cash to you" : "Cash to close",
+                        v: fmt$(Math.abs(refi.sizing.netCashToBorrower)),
+                      },
+                    ].map((c) => (
+                      <div key={c.l} style={{ background: "rgba(238,239,211,0.06)", borderRadius: radius.sm, padding: "10px 12px" }}>
+                        <Mono style={{ display: "block", fontSize: 16, fontWeight: 700, color: dc.cream }}>{c.v}</Mono>
+                        <div style={{ fontSize: 11, color: "rgba(238,239,211,0.62)", marginTop: 3 }}>{c.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Readiness is reported UNDER the decision, never as it. It
+                    cannot see whether the loan retires the lien. */}
+                <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", margin: "14px 0 12px" }}>
+                  Borrower readiness{" "}
+                  <Mono style={{ color: result ? scoreColor(score) : "inherit", fontWeight: 700 }}>
+                    {result ? Math.round(score) : "—"}/100
+                  </Mono>{" "}
+                  — seasoning, equity, coverage and saving. Separate from whether the proceeds clear the payoff.
                 </div>
                 <div style={{ fontSize: 14, color: "rgba(238,239,211,0.6)" }}>
                   {result?.refiType === "RATE_TERM" &&
@@ -676,7 +785,7 @@ export default function RefiTrackerPage({
               {/* Refi Math */}
               <div
                 style={{
-                  background: dc.teal,
+                  background: dc.dark,
                   border: "1px solid rgba(238,239,211,0.12)",
                   borderRadius: 14,
                   padding: 24,
@@ -720,13 +829,17 @@ export default function RefiTrackerPage({
                       color: result.monthlySavings >= 0 ? dc.emerald : risk.danger,
                     },
                     {
+                      // ONE break-even number on this page. This row used to quote
+                      // analyzeRefi's payment-savings shortcut while the chart and the
+                      // verdict quoted evaluateRefinance's total-cost measure — 84
+                      // months against 41 on the same deal, both on screen at once.
                       label: "Break-even",
-                      sub: result.breakEvenMonths > 120 ? "Savings never recoup refi costs at this rate — don't refi yet." : "Months until cumulative savings exceed refi closing costs. Under 24 is excellent.",
-                      val:
-                        result.breakEvenMonths > 120
-                          ? "120+ (don't refi)"
-                          : Math.round(result.breakEvenMonths) + " mo",
-                      color: result.breakEvenMonths < 36 ? dc.emerald : dc.lemon,
+                      sub:
+                        chart?.breakEvenMonth == null
+                          ? "Total cost never favours refinancing inside the remaining term — hold the existing loan."
+                          : "Month from which refinancing costs less in total — payments made PLUS the balance still owed, not payment saving alone.",
+                      val: chart?.breakEvenMonth == null ? "never" : chart.breakEvenMonth + " mo",
+                      color: chart?.breakEvenMonth == null ? risk.dangerOnDark : chart.breakEvenMonth < 36 ? dc.emerald : dc.lemon,
                     },
                     {
                       label: "Cash-out capacity",
@@ -779,7 +892,7 @@ export default function RefiTrackerPage({
               {/* Score Breakdown */}
               <div
                 style={{
-                  background: dc.teal,
+                  background: dc.dark,
                   border: "1px solid rgba(238,239,211,0.12)",
                   borderRadius: 14,
                   padding: 24,
@@ -909,7 +1022,7 @@ export default function RefiTrackerPage({
                   step={f.step}
                   prefix={f.pre}
                   suffix={f.suf}
-                  style={{ display: "inline-flex", background: dc.teal }}
+                  style={{ display: "inline-flex", background: dc.dark }}
                   adornmentStyle={{ fontSize: 14 }}
                   inputStyle={{ width: 140, fontWeight: 600, fontSize: 15, padding: "11px 6px" }}
                 />
@@ -923,7 +1036,7 @@ export default function RefiTrackerPage({
               { v: fmt$(secondLien.maxSecondLien), l: `max 2nd lien · ${secondLien.bindingConstraint}-bound`, c: dc.lemon },
               { v: secondLien.qualifies ? "QUALIFIES" : "TIGHT", l: `2nd pmt ${fmt$(secondLien.secondLienPayment)}/mo`, c: secondLien.qualifies ? dc.emerald : dc.lemon },
             ].map((s) => (
-              <div key={s.l} style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
+              <div key={s.l} style={{ background: dc.dark, border: "1px solid rgba(238,239,211,0.14)", borderRadius: radius.md, padding: "clamp(16px,2vw,22px)" }}>
                 <Mono style={{ fontSize: "clamp(20px,2.4vw,30px)", fontWeight: 700, color: s.c, letterSpacing: "-0.03em", display: "block", lineHeight: 1 }}>{s.v}</Mono>
                 <div style={{ fontSize: 12, color: "rgba(238,239,211,0.62)", marginTop: 8 }}>{s.l}</div>
               </div>

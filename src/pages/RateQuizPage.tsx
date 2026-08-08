@@ -22,7 +22,7 @@ import { swatch, radius, font, risk } from "../theme";
 
 interface Props {
   onBack?: () => void;
-  onNavigate?: (view: string) => void;
+  onNavigate?: (view: any) => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { DcShell, dc, H1, Lead, Mono } from "../design/dc";
+import { DcShell, dc, H1, Lead, Mono, useRevealOnView } from "../design/dc";
 import { radius, font, risk, onDark } from "../theme";
 import BottomCTA from "../design/BottomCTA";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
@@ -168,6 +168,13 @@ export default function NonUsInvestorsPage({
     window.scrollTo(0, 0);
   }, []);
 
+  // Objection grid entrance. One-shot: `shown` latches true the first time the
+  // grid scrolls into view and never flips back, so nothing loops or pulses.
+  // Under prefers-reduced-motion the hook starts at true, so the cards are fully
+  // visible on the very first paint, and the .fn-fear reduced-motion rule in the
+  // style block below removes the transition entirely.
+  const [fearRef, fearShown] = useRevealOnView<HTMLDivElement>();
+
   // ── live "check your buying power" — never asks for income ──
   const [rent, setRent] = useState(4000);
   const [price, setPrice] = useState(560000);
@@ -261,9 +268,38 @@ export default function NonUsInvestorsPage({
         }
         .fn-chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.01em;color:rgba(238,239,211,.85);background:rgba(238,239,211,.07);border:1px solid rgba(238,239,211,.16);border-radius:100px;padding:7px 14px;}
         .fn-chip b{color:${ACCENT};font-weight:700;}
-        .fn-fearwrap{display:grid;gap:12px;}
-        .fn-fear{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);gap:20px;align-items:center;}
-        @media(max-width:760px){.fn-fear{grid-template-columns:1fr !important;gap:10px;}}
+        /* ── the objection grid ────────────────────────────────────────────
+           Two equal columns, so eight pairs occupy four rows instead of eight.
+           The old layout put ONE card per 1232px row and then split that row
+           into 0.8fr/1.2fr, which spent maximum horizontal space on ~15 words
+           and cost a full viewport of scroll.
+
+           Nothing is hidden: no accordion, no carousel. A reader scanning for
+           THEIR objection has to be able to see all eight at once and find any
+           of them with ctrl-F, so every question and every answer stays in the
+           DOM and stays rendered.
+
+           Inside a card the pair now STACKS rather than splitting again — at
+           two columns a card is ~610px at a 1280 viewport, which is already a
+           sensible measure; sub-dividing it would give the question ~230px and
+           wrap it over three lines, undoing the saving. */
+        .fn-fearwrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch;}
+        .fn-fear{
+          display:grid;gap:4px;align-content:start;
+          background:${dc.teal};border:1px solid rgba(238,239,211,0.16);border-radius:${radius.md};
+          padding:clamp(12px,1.25vw,17px) clamp(15px,1.5vw,21px);
+          /* One-shot staggered entrance, driven by useRevealOnView state (a
+             transition, never a keyframe-on-mount) so it is idempotent across
+             re-renders and ALWAYS ends fully visible — the hook flips "shown"
+             true on intersection, on a 1.5s safety timer, or instantly under
+             reduced motion. Nothing here loops or floats. */
+          transition:opacity .38s cubic-bezier(.16,1,.3,1),transform .38s cubic-bezier(.16,1,.3,1);
+        }
+        @media(max-width:820px){.fn-fearwrap{grid-template-columns:minmax(0,1fr);}}
+        @media(prefers-reduced-motion:reduce){
+          .fn-fear{transition:none !important;opacity:1 !important;transform:none !important;transition-delay:0ms !important;}
+        }
+        @media print{.fn-fear{opacity:1 !important;transform:none !important;}}
       `}</style>
       {/* ── HERO ── */}
       <section style={{ position: "relative", background: dc.dark, color: dc.cream, overflow: "hidden", padding: `clamp(56px,8vh,104px) ${dc.pad} clamp(48px,7vh,84px)` }}>
@@ -348,27 +384,35 @@ export default function NonUsInvestorsPage({
       </section>
 
       {/* ── THE FEAR-GRID — conversion core ── */}
-      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vw,104px) ${dc.pad}` }}>
+      <section style={{ background: dc.dark, color: dc.cream, padding: `clamp(56px,7vh,92px) ${dc.pad}` }}>
         <div style={{ maxWidth: dc.maxW, margin: "0 auto" }}>
-          <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 12 }}>Yes, you can</div>
-          <h2 className="gs-reveal" style={{ fontSize: "clamp(30px,4vw,52px)", fontWeight: 600, letterSpacing: "-0.04em", lineHeight: 1.03, margin: "0 0 36px", maxWidth: "20ch" }}>
+          <div className="gs-reveal" style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 10 }}>Yes, you can</div>
+          <h2 className="gs-reveal" style={{ fontSize: "clamp(28px,3.4vw,44px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.1, margin: "0 0 22px", maxWidth: "46ch" }}>
             Every reason you think you can't — answered.
           </h2>
-          <div className="gs-reveal fn-fearwrap">
-            {FEARS.map((f) => (
-              <div key={f.worry} className="fn-fear" style={{ background: dc.teal, border: "1px solid rgba(238,239,211,0.16)", borderRadius: radius.md, padding: "clamp(18px,2.2vw,26px) clamp(20px,2.4vw,32px)" }}>
-                <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-                  <span style={{ flexShrink: 0, color: RED, fontWeight: 700, fontSize: 26, lineHeight: 1, marginTop: -2 }}>“</span>
-                  <span style={{ fontSize: "clamp(16px,1.7vw,20px)", fontWeight: 600, color: "rgba(238,239,211,0.78)", letterSpacing: "-0.015em", lineHeight: 1.3 }}>{f.worry}</span>
+          <div ref={fearRef} className="fn-fearwrap">
+            {FEARS.map((f, i) => (
+              <div
+                key={f.worry}
+                className="fn-fear"
+                style={{
+                  opacity: fearShown ? 1 : 0,
+                  transform: fearShown ? "none" : "translateY(9px)",
+                  transitionDelay: `${i * 45}ms`,
+                }}
+              >
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <span aria-hidden="true" style={{ flexShrink: 0, color: RED, fontWeight: 700, fontSize: 15, lineHeight: 1.25 }}>“</span>
+                  <span style={{ fontSize: "clamp(15px,1.3vw,18px)", fontWeight: 600, color: "rgba(238,239,211,0.78)", letterSpacing: "-0.02em", lineHeight: 1.25 }}>{f.worry}</span>
                 </div>
-                <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: "50%", background: "rgba(77,189,151,0.16)", border: `1px solid ${dc.emerald}`, color: dc.emerald, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>✓</span>
-                  <span style={{ fontSize: "clamp(15px,1.5vw,17px)", fontWeight: 500, color: dc.cream, lineHeight: 1.5 }}>{f.answer}{f.partner && partnerTag}</span>
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <span aria-hidden="true" style={{ flexShrink: 0, width: 16, height: 16, marginTop: 2, borderRadius: "50%", background: "rgba(77,189,151,0.16)", border: `1px solid ${dc.emerald}`, color: dc.emerald, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, lineHeight: 1 }}>✓</span>
+                  <span style={{ fontSize: "clamp(14px,1.15vw,16px)", fontWeight: 500, color: dc.cream, letterSpacing: "-0.02em", lineHeight: 1.45 }}>{f.answer}{f.partner && partnerTag}</span>
                 </div>
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 28 }}>
+          <div style={{ marginTop: 22 }}>
             <button onClick={() => onNavigate("dscr-calculator")} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: dc.emerald, color: dc.dark, fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", padding: "14px 26px", borderRadius: radius.sm, fontFamily: font.family }}>Find out what you qualify for →</button>
           </div>
         </div>

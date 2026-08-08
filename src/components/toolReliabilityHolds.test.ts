@@ -37,19 +37,6 @@ describe("tool reliability hold definitions", () => {
 
     expect(paths).toEqual([
       "/investgo",
-      "/tools/decision-support",
-      "/rate-quiz",
-      "/deal-analyzer",
-      "/state-laws",
-      "/tools/str-underwriting",
-      "/tools/tax-engine",
-      "/tools/refi-tracker",
-      "/tools/portfolio",
-      "/tools/monte-carlo",
-      "/tools/arm-reset",
-      "/tools/returns",
-      "/tools/stress-matrix",
-      "/tools/structure-optimizer",
     ]);
     expect(new Set(paths).size).toBe(paths.length);
   });

@@ -2,10 +2,16 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
 import { resolveInitialDeal } from "../lib/dealState";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
-import { computeStressMatrix, classifyRiskZone, computeBreakEvenVacancy, computeDualTrackDSCR, computeShockWaterfall } from "../engine/stressMatrix";
-import type { WaterfallShock } from "../engine/stressMatrix";
+import {
+  buildStressBaseScenario,
+  computeStressMatrixFromBase,
+  computeStressCell,
+  classifyRiskZone,
+  computeBreakEvenVacancy,
+  computeShockWaterfall,
+} from "../engine/stressMatrix";
+import type { StressBaseScenario, WaterfallShock } from "../engine/stressMatrix";
 import type { PropertyInputs, LoanStructure, StressRiskZone } from "../engine/types";
-import { calculatePI } from "../engine";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import BottomCTA from "../design/BottomCTA";
 import { assessDscrCovenant } from "../engine/covenantCheck";
@@ -48,21 +54,16 @@ function verdictCopy(dscr: number, zone: StressRiskZone): { headline: string; su
   return { headline: "Deal breaks — rent cannot cover costs in this scenario",                  sub: `DSCR of ${dscr.toFixed(2)}x means the property is cash-flow negative. Lenders won't approve below 1.00.` };
 }
 
-function calcDSCR(
-  purchasePrice: number,
-  downPct: number,
-  rate: number,
-  rent: number,
-  annualTaxes: number,
-  annualInsurance: number,
-  hoa: number
-): number {
-  const loanAmt = purchasePrice * (1 - downPct / 100);
-  const pi = calculatePI(loanAmt, rate, 360);
-  const fixed = annualTaxes / 12 + annualInsurance / 12 + hoa;
-  const pitia = pi + fixed;
-  return pitia > 0 ? rent / pitia : 0;
-}
+// NOTE: there used to be a page-local `calcDSCR` here — its own PI formula,
+// its own vacancy math, hardcoded to a 360-month term regardless of the base
+// deal's actual term, with no flood insurance line. It had no connection to
+// the engine's computeStressMatrix() below, which built the SAME kind of
+// numbers a second way. That was the "recomputes the base per stress" defect
+// the Stress Matrix release gate exists to catch: the live slider readout and
+// the 120-cell grid could — and, on term/flood-insurance edge cases, did —
+// disagree about the unshocked deal. Both now read a single
+// StressBaseScenario (see `base` below) through the engine's
+// computeStressCell(), so there is exactly one place a shock is applied.
 
 // ── Pinned cell shape ────────────────────────────────────────────────────────
 interface PinnedCell {
@@ -180,8 +181,12 @@ export default function StressMatrixPage({
 
   const matrixRef = useRef<HTMLDivElement>(null);
 
-  // ── Engine result (full matrix) ───────────────────────────────────────────
-  const result = useMemo(() => {
+  // ── ONE canonical base scenario (gate item 1) ─────────────────────────────
+  // Every stress below — the full 120-cell grid, the live slider readout, and
+  // the hero preview heatmap — is derived from THIS object via
+  // computeStressCell(). Nothing downstream re-enters purchasePrice / rate /
+  // rent / taxes on its own.
+  const base: StressBaseScenario | null = useMemo(() => {
     try {
       const property: PropertyInputs = {
         purchasePrice, leaseRent: monthlyRent, marketRent: monthlyRent,
@@ -196,23 +201,35 @@ export default function StressMatrixPage({
         armType: "FIXED", prepayPreference: "NONE", purpose: "PURCHASE",
         expectedHoldYears: 5, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0,
       };
-      return computeStressMatrix(property, loan, "LTR", baseRate, monthlyRent);
+      return buildStressBaseScenario(property, loan, "LTR", baseRate, monthlyRent);
     } catch { return null; }
   }, [purchasePrice, downPct, baseRate, monthlyRent, annualTaxes, annualInsurance, hoa]);
 
-  // ── Live stressed DSCR (slider-driven, instant) ───────────────────────────
-  const stressedDSCR = useMemo(() => {
-    const stressedRate = baseRate + rateOffsetBps / 100;
-    const effectiveRent =
-      monthlyRent * (1 + rentChangePct / 100) * (1 - vacancyPct / 100);
-    const stressedTaxes = annualTaxes * (1 + taxBumpPct / 100);
-    const stressedInsurance = annualInsurance * (1 + taxBumpPct / 100);
-    return calcDSCR(purchasePrice, downPct, stressedRate, effectiveRent, stressedTaxes, stressedInsurance, hoa);
-  }, [purchasePrice, downPct, baseRate, rateOffsetBps, monthlyRent, rentChangePct, vacancyPct, annualTaxes, annualInsurance, taxBumpPct, hoa]);
+  // ── Engine result (full matrix) — same `base`, no second derivation ──────
+  const result = useMemo(() => {
+    if (!base) return null;
+    try { return computeStressMatrixFromBase(base); } catch { return null; }
+  }, [base]);
 
-  const baseDSCR    = result?.baseTrack1DSCR ?? 0;
+  // ── Live stressed cell (slider-driven, instant) — same `base`, same
+  // computeStressCell() the grid above uses for every one of its 120 cells.
+  const stressedCell = useMemo(() => {
+    if (!base) return null;
+    return computeStressCell(base, {
+      rateOffsetBps,
+      rentOffsetPct: rentChangePct,
+      vacancyOverridePct: vacancyPct,
+      expenseShockPct: taxBumpPct,
+    });
+  }, [base, rateOffsetBps, rentChangePct, vacancyPct, taxBumpPct]);
+
+  // Track 1 (lender-qualification) is the basis for both gauges — the same
+  // basis result.baseTrack1DSCR already uses — so "base" and "stressed" are
+  // always the same metric under different shocks, never two different ones.
+  const baseDSCR    = base?.baseTrack1DSCR ?? 0;
+  const stressedDSCR = stressedCell?.track1DSCR ?? 0;
   const baseZone    = classifyRiskZone(baseDSCR);
-  const stressZone  = classifyRiskZone(stressedDSCR);
+  const stressZone  = stressedCell?.riskZone ?? classifyRiskZone(stressedDSCR);
   const stressRisk  = riskFromDscr(stressedDSCR);
   const verdict     = verdictCopy(stressedDSCR, stressZone);
   const dscrDelta   = stressedDSCR - baseDSCR;
@@ -223,35 +240,48 @@ export default function StressMatrixPage({
   const totalCells  = result?.totalCells ?? 1;
   const passRate    = Math.round((passCount / totalCells) * 100) + "%";
 
-  // PITIA for display
-  const loanAmt         = purchasePrice * (1 - downPct / 100);
-  const basePIAmt       = calculatePI(loanAmt, baseRate, 360);
-  const baseFixed       = annualTaxes / 12 + annualInsurance / 12 + hoa;
-  const basePITIA       = basePIAmt + baseFixed;
-  const stressedRate    = baseRate + rateOffsetBps / 100;
-  const stressedPIAmt   = calculatePI(loanAmt, stressedRate, 360);
-  const stressedTaxInsMo= (annualTaxes * (1 + taxBumpPct / 100) + annualInsurance * (1 + taxBumpPct / 100)) / 12;
-  const stressedPITIA   = stressedPIAmt + stressedTaxInsMo + hoa;
-  const effectiveRent   = monthlyRent * (1 + rentChangePct / 100) * (1 - vacancyPct / 100);
+  // PITIA for display — read off the base scenario / stressed cell, never
+  // recomputed with a page-local PI formula.
+  const basePITIA       = base?.basePITIA ?? 0;
+  const stressedPITIA   = stressedCell?.pitiaMonthly ?? 0;
+  const stressedRatePct = stressedCell?.ratePct ?? baseRate;
+  // Display-only: rent after both the rent shock AND the vacancy slider, so
+  // the reader can see what vacancy costs in dollars. Sourced from the
+  // canonical adjustedRent, not a second rent computation — the DSCR math
+  // itself (Track 1/2 above) never nets vacancy out of gross rent; only the
+  // TCO opex rate (Track 2) does, per the engine's own Track 1/2 split.
+  const effectiveRent   = (stressedCell?.adjustedRent ?? 0) * (1 - vacancyPct / 100);
   // Break-even vacancy at the CURRENT stressed rate + rent (the occupancy loss
   // the deal can absorb before its DSCR drops below 1.00). Uses the same lender
   // basis as the gauge: rent-after-rent-shock (pre-vacancy) ÷ stressed PITIA.
-  const breakEvenVac    = computeBreakEvenVacancy(monthlyRent * (1 + rentChangePct / 100), stressedPITIA);
-  // Dual-track at the current stressed state: lender (gross rent ÷ PITIA) vs
-  // investor survival (after the modeled vacancy + management + maintenance).
-  const dualTrack       = computeDualTrackDSCR(monthlyRent * (1 + rentChangePct / 100), stressedPITIA, { vacancyPct });
+  const breakEvenVac    = computeBreakEvenVacancy(stressedCell?.adjustedRent ?? 0, stressedPITIA);
+  // Dual-track at the current stressed state — read directly off the same
+  // stressedCell the headline gauge uses (it already carries both tracks
+  // under the vacancy slider's TCO override), not a second, separately-called
+  // computeDualTrackDSCR with its own copy of rent/PITIA/vacancy.
+  const dualTrack = useMemo(() => {
+    const track1 = stressedCell?.track1DSCR ?? 0;
+    const track2 = stressedCell?.track2DSCR ?? 0;
+    const delta = Math.round((track1 - track2) * 1000) / 1000;
+    return { track1, track2, delta, qualifiesButDangerous: track1 >= 1.0 && track2 < 1.0 && delta > 0.2 };
+  }, [stressedCell]);
   // Multi-shock waterfall — decompose the active sliders into each shock's
-  // marginal DSCR bite (Edge §7), so the user sees which lever breaks the deal.
-  const shockWaterfall  = (() => {
+  // marginal DSCR bite (Edge §7), so the user sees which lever breaks the
+  // deal. Deltas are read off `base` / `stressedCell`, the same fields
+  // computeStressCell() itself used to build the stressed PITIA — so the
+  // waterfall's steps cannot disagree with the headline number they explain.
+  const shockWaterfall  = useMemo(() => {
+    if (!base || !stressedCell) return computeShockWaterfall(0, 0, []);
     const shocks: WaterfallShock[] = [];
-    const rateDelta = stressedPIAmt - basePIAmt;
+    const rateDelta = stressedCell.piMonthly - base.basePI;
     if (Math.abs(rateDelta) > 0.5) shocks.push({ label: `Rate ${rateOffsetBps >= 0 ? "+" : ""}${(rateOffsetBps / 100).toFixed(2)}%`, pitiaDelta: rateDelta });
-    const taxDelta = stressedTaxInsMo - (baseFixed - hoa);
+    const stressedTaxesInsurance = base.monthlyTaxesInsurance * (1 + taxBumpPct / 100);
+    const taxDelta = stressedTaxesInsurance - base.monthlyTaxesInsurance;
     if (Math.abs(taxDelta) > 0.5) shocks.push({ label: `Tax & insurance +${taxBumpPct}%`, pitiaDelta: taxDelta });
     if (rentChangePct !== 0) shocks.push({ label: `Rent ${rentChangePct > 0 ? "+" : ""}${rentChangePct}%`, rentMultiplier: 1 + rentChangePct / 100 });
     if (vacancyPct !== 0) shocks.push({ label: `Vacancy ${vacancyPct}%`, rentMultiplier: 1 - vacancyPct / 100 });
-    return computeShockWaterfall(monthlyRent, basePITIA, shocks);
-  })();
+    return computeShockWaterfall(base.qualifyingRent, base.basePITIA, shocks);
+  }, [base, stressedCell, rateOffsetBps, taxBumpPct, rentChangePct, vacancyPct]);
 
   // Cell styles
   function cellStyle(zone: StressRiskZone, isBase: boolean, isHovered: boolean): React.CSSProperties {
@@ -276,24 +306,24 @@ export default function StressMatrixPage({
     };
   }
 
-  // Preview mini-heatmap (4×10)
+  // Preview mini-heatmap (4×10) — same `base` + computeStressCell() as the
+  // full matrix and the live slider readout. Previously this recomputed PI
+  // itself with its own `fixed` total that silently DROPPED HOA (the full
+  // matrix's monthlyFixed always included it) — a fourth independent
+  // derivation of the base deal, and the most wrong of the four.
   const previewCells = useMemo(() => {
     const RENT_OFFSETS = [-25, -20, -15, -10, -5, 0, 5, 10, 15, 20];
     const BPS_ROWS     = [-50, 0, 50, 100];
-    const loan = purchasePrice * (1 - downPct / 100);
-    const fixed = annualTaxes / 12 + annualInsurance / 12;
     const cells: { bg: string; ink: string; v: string }[] = [];
+    if (!base) return cells;
     BPS_ROWS.forEach((bps) => {
       RENT_OFFSETS.forEach((rp) => {
-        const rate = Math.max(0.5, baseRate + bps / 100);
-        const pi   = calculatePI(loan, rate, 360);
-        const d    = pi + fixed > 0 ? (monthlyRent * (1 + rp / 100)) / (pi + fixed) : 0;
-        const zone = classifyRiskZone(d);
-        cells.push({ ...ZONE_COLORS[zone], v: d.toFixed(1) });
+        const cell = computeStressCell(base, { rateOffsetBps: bps, rentOffsetPct: rp });
+        cells.push({ ...ZONE_COLORS[cell.riskZone], v: cell.track1DSCR.toFixed(1) });
       });
     });
     return cells;
-  }, [purchasePrice, downPct, baseRate, monthlyRent, annualTaxes, annualInsurance]);
+  }, [base]);
 
   const scrollToTool = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -546,7 +576,7 @@ export default function StressMatrixPage({
                   ║  INTERACTIVE STRESS SLIDERS                      ║
                   ╚══════════════════════════════════════════════════╝ */}
               <div style={{
-                background: "#001f20", borderRadius: dc.r.md, padding: "24px 28px",
+                background: dc.dark, borderRadius: dc.r.md, padding: "24px 28px",
                 border: "1px solid rgba(238,239,211,0.08)", marginBottom: 24,
               }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
@@ -616,7 +646,7 @@ export default function StressMatrixPage({
                     value={rateOffsetBps}
                     min={-150} max={300} step={25}
                     displayValue={`${rateOffsetBps >= 0 ? "+" : ""}${rateOffsetBps} bps`}
-                    displaySub={`→ ${(baseRate + rateOffsetBps / 100).toFixed(3)}%`}
+                    displaySub={`→ ${stressedRatePct.toFixed(3)}%`}
                     onChange={manual(setRateOffsetBps)}
                     accentColor={rateOffsetBps > 100 ? risk.warning : rateOffsetBps > 0 ? LEMON : EMERALD}
                     fillPct={(rateOffsetBps - (-150)) / (300 - (-150)) * 100}
@@ -888,7 +918,7 @@ export default function StressMatrixPage({
                   ║  FULL MATRIX — progressive disclosure            ║
                   ╚══════════════════════════════════════════════════╝ */}
               <div style={{
-                background: "#001a1b", borderRadius: dc.r.md, padding: "20px 24px",
+                background: dc.dark, borderRadius: dc.r.md, padding: "20px 24px",
                 border: "1px solid rgba(238,239,211,0.07)",
               }}>
                 {/* Accordion trigger */}
@@ -1001,7 +1031,7 @@ export default function StressMatrixPage({
                           {hoverCell && (
                             <div style={{
                               position: "absolute", left: hoverCell.x + 10, top: hoverCell.y - 8,
-                              pointerEvents: "none", background: "#001f20",
+                              pointerEvents: "none", background: dc.dark,
                               border: `1px solid ${ZONE_ACCENT[hoverCell.zone]}44`,
                               borderRadius: 8, padding: "10px 13px", minWidth: 176,
                               zIndex: 20,
@@ -1031,7 +1061,7 @@ export default function StressMatrixPage({
                         {/* Click-to-pin readout */}
                         {pinned && (
                           <div style={{
-                            marginTop: 16, background: "#001f20",
+                            marginTop: 16, background: dc.dark,
                             border: `1.5px solid ${ZONE_ACCENT[pinned.zone]}55`,
                             borderRadius: 10, padding: "18px 22px",
                             display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap",

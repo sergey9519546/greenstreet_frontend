@@ -440,8 +440,16 @@ export function evaluateRefinance(input: RefinanceEvaluationInput): RefinanceEva
     financed: financeClosingCosts,
   };
 
-  const netCashToBorrower =
-    fundedAmount - payoff.totalPayoff - (financeClosingCosts ? closingCosts.total : 0);
+  // Financing the closing costs makes the LOAN bigger; it does not make the
+  // costs disappear. Either way the borrower ends up with
+  // funded - payoff - costs, which is what this field documents itself as.
+  //
+  // This used to subtract the costs only when they were financed, so a borrower
+  // writing a cheque at the table was told they netted that cheque's full value
+  // more than they actually did — overstated by exactly closingCosts.total
+  // ($5,700 on the default scenario). It also disagreed with the figure fed to
+  // the break-even below, which always subtracted them.
+  const netCashToBorrower = fundedAmount - payoff.totalPayoff - closingCosts.total;
 
   const sizing: RefiSizing = {
     maxLoanByLtv: gap.maxLoanByLtv,
@@ -539,9 +547,12 @@ export function evaluateRefinance(input: RefinanceEvaluationInput): RefinanceEva
           currentSchedule,
           proposedSchedule,
           refinanceAtMonth: monthsElapsed,
-          netCashAtClose:
-            fundedAmount - payoff.totalPayoff - (financeClosingCosts ? 0 : closingCosts.total)
-            - (financeClosingCosts ? closingCosts.total : 0),
+          // The same figure the sizing publishes. This was written as two
+          // complementary ternaries that always summed to closingCosts.total,
+          // so the branch was a no-op wearing the costume of a decision — and
+          // it disagreed with `netCashToBorrower`, leaving the headline cash
+          // number and the break-even month describing different deals.
+          netCashAtClose: netCashToBorrower,
           holdPeriodsMonths: policy.holdPeriodsMonths ?? [...DEFAULT_HOLD_PERIODS_MONTHS],
         })
       : null;

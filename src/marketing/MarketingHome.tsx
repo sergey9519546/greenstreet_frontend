@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import PropertyInvestmentStrategySection from "../components/PropertyInvestmentStrategySection";
+import DSCRInvestorMindsetSection from "../components/DSCRInvestorMindsetSection";
 import homepageMarkup from "./home-markup.html?raw";
 
 const CLAIM_REPLACEMENTS = [
@@ -483,8 +485,11 @@ function startMarketingRuntime(runtime: MarketingRuntime) {
   runtime.__gsStartMarketing?.();
 }
 
-export default function MarketingHome() {
+export default function MarketingHome({ onNavigate }: { onNavigate?: (view: string) => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [propertySlot, setPropertySlot] = useState<HTMLElement | null>(null);
+  const [investorSlot, setInvestorSlot] = useState<HTMLElement | null>(null);
+
   const portalHost =
     typeof document === "undefined"
       ? null
@@ -493,6 +498,13 @@ export default function MarketingHome() {
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
+
+    // Find property types & investor mindset portal slots after markup is attached to DOM
+    const pSlot = root.querySelector<HTMLElement>("#gs-property-types-slot");
+    if (pSlot) setPropertySlot(pSlot);
+
+    const iSlot = root.querySelector<HTMLElement>("#gs-investor-mindset-slot");
+    if (iSlot) setInvestorSlot(iSlot);
 
     const runtime = window as MarketingRuntime;
     runEmbeddedScripts(root);
@@ -520,12 +532,26 @@ export default function MarketingHome() {
 
   if (!portalHost) return null;
 
-  return createPortal(
-    <div
-      id="webflow-root"
-      ref={rootRef}
-      dangerouslySetInnerHTML={{ __html: publicMarketingMarkup }}
-    />,
-    portalHost,
+  return (
+    <>
+      {createPortal(
+        <div
+          id="webflow-root"
+          ref={rootRef}
+          dangerouslySetInnerHTML={{ __html: publicMarketingMarkup }}
+        />,
+        portalHost,
+      )}
+      {propertySlot &&
+        createPortal(
+          <PropertyInvestmentStrategySection onNavigate={onNavigate} />,
+          propertySlot,
+        )}
+      {investorSlot &&
+        createPortal(
+          <DSCRInvestorMindsetSection onNavigate={onNavigate} />,
+          investorSlot,
+        )}
+    </>
   );
 }

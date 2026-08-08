@@ -910,6 +910,28 @@ html:not(.wf-design-mode) .nav_dropdown_component > .w-dropdown-list.w--open {
 .w-dropdown-toggle[aria-expanded="true"] .nav-link-background {
   opacity: 1;
 }
+/* This decorative, aria-hidden hover-pill div is positioned by the vendored
+   Webflow stylesheet (greenboard-00.shared.*.css, loaded from Webflow's CDN —
+   not a local file, not editable here). Measured live: inside the two <a>-tag
+   nav-links (INVESTGO, Login — both href="/investgo"), its containing block
+   resolves wrong and it renders at the FULL nav-row width (x:0, ~1515px) and
+   for those two it never has FEWER pixels than the rest of the row; inside the
+   <button> dropdown toggles (Product / Who We Serve / Resources) it is
+   correctly scoped to just that button. Despite z-index:-1, it still won
+   hit-testing over the sibling dropdown buttons, so a real click ANYWHERE
+   across the nav row — including squarely on "Product" — landed on whichever
+   oversized decorative background happened to win that tie, and both possible
+   winners point to /investgo. That is why every nav dropdown "did nothing" and
+   silently redirected instead: an invisible div was eating the click before it
+   reached the real target.
+   An earlier attempt fixed this in SiteShell.tsx's own NAV_DD_CSS constant —
+   which turned out to be dead code, never rendered by any <style> tag, so the
+   fix never shipped. This file is the one actually loaded; !important is
+   deliberate here, to reliably win over the external vendor stylesheet without
+   depending on `<link>`/`<style>` source order. */
+.nav-link-background {
+  pointer-events: none !important;
+}
 .nav_dropdown_link.is-desktop:hover .nav_dropdown_link_icon_wrap {
   background-color: var(--_theme---button-primary--background-hover);
 }

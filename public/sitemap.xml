@@ -19,9 +19,23 @@
   <url><loc>https://www.greenstreet.finance/book-demo</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/dscr-calculator</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://www.greenstreet.finance/lender-intel</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.greenstreet.finance/state-laws</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/tools/commercial-dscr</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/tools/construction-bridge</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/tools/tco-threshold</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/refi-tracker</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/arm-reset</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/stress-matrix</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/portfolio</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/rate-quiz</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/deal-analyzer</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/str-underwriting</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/tax-engine</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/returns</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/perfect-property</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/monte-carlo</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/structure-optimizer</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.greenstreet.finance/tools/decision-support</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
   <url><loc>https://www.greenstreet.finance/privacy-policy</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/terms-of-service</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.greenstreet.finance/blog/greenstreet-go-launch</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
