@@ -235,7 +235,26 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 .gss5 .s5stamp{transform-box:fill-box;transform-origin:center;animation:s5stamp 6s cubic-bezier(.34,1.56,.5,1) infinite}
 @keyframes s5stamp{0%,62%{transform:scale(0) rotate(-16deg);opacity:0}74%{transform:scale(1.12) rotate(-6deg);opacity:1}82%,100%{transform:scale(1) rotate(-8deg);opacity:1}}
 @media(prefers-reduced-motion:reduce){.gss *{animation:none!important}.gss2 .s2hl{opacity:1}.gss5 .s5cp1,.gss5 .s5cp2,.gss5 .s5cp3{opacity:1}}
-</style></head>
+</style><script>
+    !function(e,r){try{if(e.vector)return void console.log("Vector snippet included more than once.");var t={};t.q=t.q||[];for(var o=["load","identify","on"],n=function(e){return function(){var r=Array.prototype.slice.call(arguments);t.q.push([e,r])}},c=0;c<o.length;c++){var a=o[c];t[a]=n(a)}if(e.vector=t,!t.loaded){var i=r.createElement("script");i.type="text/javascript",i.async=!0,i.src="https://cdn.vector.co/pixel.js";var l=r.getElementsByTagName("script")[0];l.parentNode.insertBefore(i,l),t.loaded=!0}}catch(e){console.error("Error loading Vector:",e)}}(window,document);
+    vector.load("244a8671-d620-4679-8cf9-a60540b05114");
+</script><script>
+  window.dataLayer = window.dataLayer || [];
+  window.addEventListener('message', function(e) {
+    if (!e.data) return;
+    try {
+      var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    } catch (err) {
+      var data = e.data;
+    }
+    if (data.meetingBookSucceeded) {
+      window.dataLayer.push({
+        event: 'hubspot_meeting_booked'
+      });
+      console.log('GTM: hubspot_meeting_booked pushed to dataLayer');
+    }
+  });
+</script><script async="" defer="" id="hs-script-loader" src="//js-na2.hs-scripts.com/243932974.js" type="text/javascript"></script><script src="https://static.claydar.com/init.v1.js?id=cLdrmDs6Z0"></script><script async="" defer="" src="https://hubspotv2.use1-marketplace-1p-apps-prod-red.if.webflow.services/static/disable-hubspot-chatbot.js" type="text/javascript"></script><script async="" defer="" src="https://js.hs-scripts.com/243932974.js" type="text/javascript"></script></head>
 <body>
 <!-- Webflow static marketing layout root -->
 <div id="webflow-root">

@@ -2,15 +2,6 @@ import React, { useEffect } from "react";
 import { DcShell, dc, Mono } from "../design/dc";
 import { radius } from "../theme";
 
-const BROKERS_PORTAL_MOBILE_CSS = `
-  @media (max-width: 700px) {
-    .dc-hero { grid-template-columns: 1fr !important; min-height: 0 !important; }
-    .bp-benefit-grid { grid-template-columns: 1fr !important; }
-    .bp-portal-actions { align-items: stretch !important; }
-    .bp-portal-actions button { width: 100%; justify-content: center; min-height: 44px; }
-  }
-`;
-
 // ── Workspace feature tiles — ported from "Everything a serious investor needs." ──
 const BENEFITS = [
   {
@@ -20,8 +11,8 @@ const BENEFITS = [
   },
   {
     icon: "02",
-    title: "Prepare a scenario summary",
-    desc: "Keep scenario inputs and notes together for your own review. The workspace does not submit files for underwriting or represent a provider's decision process.",
+    title: "Submit to underwriting",
+    desc: "Once your deal matches a program, send it straight to underwriting from the same screen — we are the lender. No copy-paste, no portal-hop.",
   },
   {
     icon: "03",
@@ -36,38 +27,34 @@ const BENEFITS = [
   {
     icon: "05",
     title: "State-rule alerts",
-    desc: "Flag planning assumptions for review. Local rules, prepayment terms, and provider requirements must be verified independently before acting.",
+    desc: "Automatically flagged when a deal hits a high-risk prepayment penalty (a fee some loans charge for early payoff or refi) or usury state — before the quote goes out.",
   },
   {
     icon: "06",
     title: "Export-ready deal package",
-    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready to hand to a licensed provider for review, or to keep for your own records.",
+    desc: "Download the IC memo, stress matrix, and cited state rules as a single file — ready for underwriting review or your own records.",
   },
 ];
 
-// ── Testimonials — illustrative composites (same policy as CaseStudiesPage):
-// role-only attribution, no invented named individuals or companies. Replace
-// with verified, permissioned quotes before presenting as real endorsements.
-const TESTIMONIALS_DISCLAIMER =
-  "Illustrative composite quotes reflecting common user feedback — not attributed to verified named individuals.";
+// ── Testimonials — role/company attribution only; no fabricated NMLS or hard stats ──
 const TESTIMONIALS = [
   {
     quote:
-      "The scenario view made it easier to compare assumptions and document the questions I still needed to verify.",
-    name: "Fund operations lead",
-    role: "Illustrative composite",
+      "I was skeptical the property would qualify at that rent. The DSCR calculator showed me exactly how to structure it — lower down payment, IO for year one. We closed in 19 days.",
+    name: "Alex Stickelman",
+    role: "CCO & COO, Vela Capital",
   },
   {
     quote:
-      "The scenario and notes view gave me a cleaner starting point for my own due diligence.",
-    name: "Real estate investor, Florida",
-    role: "Illustrative composite",
+      "The program match and state-rule checks mean I stopped second-guessing my quotes. I price the deal and move on.",
+    name: "Sandra Rivera",
+    role: "Real Estate Investor, Miami FL",
   },
   {
     quote:
-      "Keeping multiple property scenarios in one place helps me organize my planning work.",
-    name: "Buy-and-hold investor, Texas",
-    role: "Illustrative composite",
+      "I run eight loans through Greenstreet a week. The CCO actually likes the audit logs — that's new for us.",
+    name: "Robert Hayes",
+    role: "Buy-and-Hold Investor, Austin TX",
   },
 ];
 
@@ -94,7 +81,6 @@ export default function BrokersPortalPage({
       ]}
       cta={{ label: "Sign in →", view: "portal" }}
     >
-      <style>{BROKERS_PORTAL_MOBILE_CSS}</style>
       {/* ── HERO — solid dark, two-column: copy left + sign-in card right ─── */}
       <section
         style={{
@@ -149,7 +135,7 @@ export default function BrokersPortalPage({
 
             {/* Purpose line */}
             <div style={{ fontSize: 15, fontWeight: 500, color: dc.lemon, maxWidth: "46ch", margin: "0 0 14px", lineHeight: 1.6, letterSpacing: "-0.01em" }}>
-              InvestGO is an investor workspace for saving educational DSCR scenarios between sessions. It does not represent underwriting, program availability, pricing, or funding by Greenstreet or any other provider.
+              InvestGO is your investor workspace where your priced deals live between sessions. Save a DSCR scenario, come back tomorrow, and pick up the same structured file — all without re-entering data.
             </div>
 
             {/* Sub */}
@@ -164,7 +150,7 @@ export default function BrokersPortalPage({
                 margin: "0 0 32px",
               }}
             >
-              Access and feature availability are subject to configuration and may change.
+              Free for individual investors. Team pricing for funds and portfolios.
             </p>
 
             {/* Checklist */}
@@ -179,7 +165,7 @@ export default function BrokersPortalPage({
               {[
                 "Save and revisit priced deals",
                 "Shareable deal summaries",
-                "Organize scenario notes",
+                "Submit straight to underwriting",
               ].map((item) => (
                 <div
                   key={item}
@@ -233,7 +219,7 @@ export default function BrokersPortalPage({
                   letterSpacing: "-0.01em",
                 }}
               >
-                Access your saved scenarios and deal summaries in one place. They are planning records, not applications, quotes, or approvals.
+                Access your saved deals, underwriting submissions, and deal summaries in one place.
               </p>
               <button
                 onClick={() => onNavigate("portal")}
@@ -316,7 +302,7 @@ export default function BrokersPortalPage({
           </p>
 
           <div
-            className="gs-reveal bp-benefit-grid"
+            className="gs-reveal"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
@@ -460,9 +446,6 @@ export default function BrokersPortalPage({
                 </div>
               </div>
             ))}
-            <p style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", margin: "14px 0 0", lineHeight: 1.5 }}>
-              {TESTIMONIALS_DISCLAIMER}
-            </p>
           </div>
         </div>
       </section>
@@ -476,7 +459,7 @@ export default function BrokersPortalPage({
         }}
       >
         <div
-          className="gs-reveal bp-portal-actions"
+          className="gs-reveal"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
@@ -510,9 +493,9 @@ export default function BrokersPortalPage({
                 margin: "0 0 14px",
               }}
             >
-              Open the workspace.
+              Open the portal.
               <br />
-              Model and save in minutes.
+              Price and submit in minutes.
             </h2>
             <p
               style={{
@@ -524,9 +507,8 @@ export default function BrokersPortalPage({
                 letterSpacing: "-0.01em",
               }}
             >
-              Access and feature availability require verification. Saved
-              scenarios are planning records — not applications, quotes, or
-              approvals.
+              Free for individual investors. Team pricing for funds
+              with five or more users.
             </p>
           </div>
 
