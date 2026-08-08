@@ -374,6 +374,24 @@ describe('every BLOCKER produces PASS and names itself as the binding constraint
     expect(v.killCriteriaTriggered.some(k => k.criterion === criterion && k.severity === 'BLOCKER')).toBe(true);
     expect(v.bindingConstraint).toContain(criterion);
   });
+
+  /**
+   * PRECEDENCE. The table above proves each blocker fires; this proves a
+   * blocker OUTRANKS the return, which is a separate claim. A 25% after-tax
+   * IRR grades A, and the deal must still PASS on a 600 FICO — no return is
+   * good enough to buy past a hard floor, and the binding constraint must name
+   * the blocker rather than the grade.
+   *
+   * Ported from ship4.bundle (a7df08f), which forked from the same base as this
+   * lineage. Its second test — grade F is an unconditional PASS — was already
+   * covered here with the identical input, so only this one was missing.
+   */
+  it('a BLOCKER outranks a Grade A return', () => {
+    const v = verdictOf({ afterTaxIRR: 0.25, ficoScore: 600 });
+    expect(v.returnGrade).toBe('A');
+    expect(v.verdict).toBe('PASS');
+    expect(v.bindingConstraint).toContain('FICO Below All Lender Floors');
+  });
 });
 
 // ── Monte-Carlo tail rules that are NOT blockers ────────────────────────────
