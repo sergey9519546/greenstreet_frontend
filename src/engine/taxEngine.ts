@@ -5,6 +5,9 @@
 //            Cost Segregation, After-Tax IRR
 // ============================================================
 //
+// PROVENANCE: registered in src/engine/dataVintage.ts as 'taxRules'
+// (asOf 2026-06-01, annual cadence — but re-check on any federal tax bill).
+//
 // SOURCES (verified June 2026):
 //   - IRC §167(c), §168(g)(2): 27.5-yr residential straight-line
 //   - OBBBA (signed Jan 2025): 100% bonus dep permanently for property

@@ -15,6 +15,8 @@
  */
 import React, { useState, useEffect, useRef, useCallback, useId } from "react";
 import { swatch, font, radius } from "../theme";
+import Notice from "./ui/Notice";
+import { captureException } from "../monitoring/sentry";
 import { qualify, fmtUsd, fmtRateRange, PPP_STATE_LAWS } from "../engine";
 import type {
   QuickDscrTier,
@@ -30,6 +32,13 @@ type FicoBand = "under-680" | "680-719" | "720-759" | "760-plus";
 type Role = "investor" | "foreign" | "str" | "vacation";
 type Experience = "0" | "1-3" | "4-9" | "10-plus";
 type Timeline = "exploring" | "under-30" | "30-90" | "refi-soon";
+
+/** A failed submit, split into the copy the user reads and whether retrying can help. */
+interface SubmissionError {
+  title: string;
+  message: string;
+  canRetry: boolean;
+}
 
 interface StepOneData {
   propertyValue: number;
@@ -126,7 +135,9 @@ function buildQualifyInput(s1: StepOneData, s2: StepTwoData): QualifyInput {
 // loan amount and entered rate. One calculation now drives the live preview,
 // result formula, levers, rate range, and persisted audit payload.
 
-function classifyQuickDscr(dscr: number): {
+// Exported (with dscrVerdict below) for tests: QualifyModal.test.tsx asserts the
+// tier the funnel SHOWS matches the DSCR it shows, instead of pinning copy.
+export function classifyQuickDscr(dscr: number): {
   tier: QuickDscrTier;
   label: string;
 } {
@@ -161,7 +172,7 @@ function dscrColor(dscr: number): string {
   return "#c25b4e";
 }
 
-function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
+export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
   tier: string;
   headline: string;
   detail: string;
@@ -507,11 +518,34 @@ const helperStyle: React.CSSProperties = {
   opacity: 0.8,
 };
 
+// Error ink. NOT theme `risk.danger` (#e06363): on this pistachio card that red
+// lands at ~2.9:1, which fails AA for 12px text. #c25b4e is the same red family
+// darkened to clear the cream ground — the risk tokens themselves still carry the
+// signal in the submission Notice below (tinted ground + colored border/icon).
+const DANGER_INK = "#c25b4e";
+
 const errorMsgStyle: React.CSSProperties = {
   fontSize: 12,
-  color: "#c25b4e",
+  color: DANGER_INK,
   marginTop: 4,
 };
+
+/**
+ * Always-mounted live region for a field's validation message.
+ *
+ * It renders even when there is no error (as an empty, zero-height div) on
+ * purpose: a live region that is inserted into the DOM at the same moment it
+ * gains content is frequently NOT announced by screen readers. Mounting it up
+ * front and only swapping its children makes the announcement reliable, and the
+ * stable `id` gives the control something to point `aria-describedby` at.
+ */
+function FieldError({ id, message }: { id: string; message?: string }) {
+  return (
+    <div id={id} aria-live="polite">
+      {message ? <p style={errorMsgStyle}>{message}</p> : null}
+    </div>
+  );
+}
 
 function FieldGroup({
   label,
@@ -524,15 +558,27 @@ function FieldGroup({
   error?: string;
   children: React.ReactNode;
 }) {
+  const uid = useId();
+  const errorId = `${uid}-error`;
+  // Link the control (a <select>, or the role="group" pill row) to its message so
+  // the error is announced with the field instead of floating unattached.
+  const described = React.isValidElement(children)
+    ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
+        "aria-describedby": [
+          (children as React.ReactElement<Record<string, unknown>>).props["aria-describedby"],
+          errorId,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        ...(error ? { "aria-invalid": true } : {}),
+      })
+    : children;
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={labelStyle}>{label}</label>
-      {children}
-      {error ? (
-        <p style={errorMsgStyle}>{error}</p>
-      ) : helper ? (
-        <p style={helperStyle}>{helper}</p>
-      ) : null}
+      {described}
+      <FieldError id={errorId} message={error} />
+      {!error && helper ? <p style={helperStyle}>{helper}</p> : null}
     </div>
   );
 }
@@ -697,6 +743,8 @@ function Step1({
   ];
 
   const ltv = data.propertyValue > 0 ? data.loanAmount / data.propertyValue : 0;
+  const loanExceedsValue =
+    attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0;
 
   const isValid =
     step2.purpose !== null &&
@@ -823,15 +871,15 @@ function Step1({
           step={5000}
           onChange={(e) => onChange({ loanAmount: Number(e.target.value) })}
           className="qm-input"
-          style={
-            attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0
-              ? inputErrorStyle
-              : inputStyle
-          }
+          aria-describedby={`${uid}-loan-error`}
+          aria-invalid={loanExceedsValue || undefined}
+          style={loanExceedsValue ? inputErrorStyle : inputStyle}
         />
-        {attempted && data.loanAmount >= data.propertyValue && data.propertyValue > 0 ? (
-          <p style={errorMsgStyle}>Loan amount can't equal or exceed the property value.</p>
-        ) : (
+        <FieldError
+          id={`${uid}-loan-error`}
+          message={loanExceedsValue ? "Loan amount can't equal or exceed the property value." : undefined}
+        />
+        {loanExceedsValue ? null : (
           <p style={helperStyle}>
             LTV (how the loan amount compares to the property value — lower = more equity = better terms):{" "}
             <strong style={{ color: ltv > 0.8 ? "#c25b4e" : swatch.midnight, fontFamily: font.mono }}>
@@ -1086,9 +1134,11 @@ function Step2({
           value={data.state}
           onChange={(e) => onChange({ state: e.target.value })}
           className="qm-input"
+          aria-describedby={`${idState}-error`}
+          aria-invalid={(attempted && !data.state) || undefined}
           style={
             attempted && !data.state
-              ? { ...inputStyle, marginTop: 4, borderColor: "#c25b4e" }
+              ? { ...inputStyle, marginTop: 4, borderColor: DANGER_INK }
               : { ...inputStyle, marginTop: 4 }
           }
         >
@@ -1099,9 +1149,11 @@ function Step2({
             </option>
           ))}
         </select>
-        {attempted && !data.state ? (
-          <p style={errorMsgStyle}>Please select the property state.</p>
-        ) : (
+        <FieldError
+          id={`${idState}-error`}
+          message={attempted && !data.state ? "Please select the property state." : undefined}
+        />
+        {attempted && !data.state ? null : (
           <p style={helperStyle}>Where the property is located — not where you live. State law and provider policies may affect a transaction; this estimate does not determine either.</p>
         )}
       </div>
@@ -1516,6 +1568,8 @@ function Step4({
   onSubmit,
   submitting,
   submissionError,
+  onDismissError,
+  onBookCall,
   headingId,
 }: {
   data: StepFourData;
@@ -1523,7 +1577,9 @@ function Step4({
   onBack: () => void;
   onSubmit: () => void;
   submitting: boolean;
-  submissionError: string | null;
+  submissionError: SubmissionError | null;
+  onDismissError: () => void;
+  onBookCall: () => void;
   headingId: string;
 }) {
   const uid = useId();
@@ -1549,6 +1605,9 @@ function Step4({
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim());
   const nameValid = data.name.trim().length >= 2;
   const isValid = nameValid && emailValid && data.contactConsent && data.timeline !== null;
+  const nameInvalid = Boolean(touched.name) && !nameValid;
+  const emailInvalid = Boolean(touched.email) && !emailValid;
+  const consentMissing = Boolean(touched.submit) && !data.contactConsent;
 
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -1596,13 +1655,13 @@ function Step4({
           onChange={(e) => onChange({ name: e.target.value })}
           onBlur={() => markTouched("name")}
           className="qm-input"
-          style={touched.name && !nameValid ? inputErrorStyle : inputStyle}
+          aria-describedby={`${idName}-error`}
+          aria-invalid={nameInvalid || undefined}
+          style={nameInvalid ? inputErrorStyle : inputStyle}
           autoComplete="name"
           maxLength={100}
         />
-        {touched.name && !nameValid && (
-          <p style={errorMsgStyle}>Please enter your full name.</p>
-        )}
+        <FieldError id={`${idName}-error`} message={nameInvalid ? "Please enter your full name." : undefined} />
       </div>
 
       <div style={{ marginBottom: 16 }}>
@@ -1615,14 +1674,15 @@ function Step4({
           onChange={(e) => onChange({ email: e.target.value })}
           onBlur={() => markTouched("email")}
           className="qm-input"
-          style={touched.email && !emailValid ? inputErrorStyle : inputStyle}
+          aria-describedby={`${idEmail}-error`}
+          aria-invalid={emailInvalid || undefined}
+          style={emailInvalid ? inputErrorStyle : inputStyle}
           autoComplete="email"
           maxLength={200}
           required
         />
-        {touched.email && !emailValid ? (
-          <p style={errorMsgStyle}>Please enter a valid email address.</p>
-        ) : (
+        <FieldError id={`${idEmail}-error`} message={emailInvalid ? "Please enter a valid email address." : undefined} />
+        {emailInvalid ? null : (
           <p style={helperStyle}>Use an address where you can receive a response to this request.</p>
         )}
       </div>
@@ -1700,6 +1760,8 @@ function Step4({
           type="checkbox"
           checked={data.contactConsent}
           onChange={(e) => onChange({ contactConsent: e.target.checked })}
+          aria-describedby={`${uid}-consent-error`}
+          aria-invalid={consentMissing || undefined}
           style={{ marginTop: 1, width: 16, height: 16, accentColor: swatch.rainforest, flexShrink: 0 }}
         />
         <span>
@@ -1708,9 +1770,11 @@ function Step4({
           <a href="/terms-of-service" target="_blank" rel="noopener" style={{ color: swatch.rainforest }}>Terms</a>.
         </span>
       </label>
-      {touched.submit && !data.contactConsent && (
-        <p style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so the team can respond to this request.</p>
-      )}
+      <div id={`${uid}-consent-error`} aria-live="polite">
+        {consentMissing && (
+          <p style={{ ...errorMsgStyle, marginTop: -4, marginBottom: 10 }}>Please agree to be contacted so the team can respond to this request.</p>
+        )}
+      </div>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <button className="qm-btn-secondary" style={btnSecondary} onClick={onBack}>
           ← Back
@@ -1729,9 +1793,18 @@ function Step4({
         </button>
       </div>
       {submissionError && (
-        <p role="alert" style={{ ...errorMsgStyle, marginTop: 12, marginBottom: 0 }}>
-          {submissionError}
-        </p>
+        <Notice
+          role="alert"
+          tone="danger"
+          ground="light"
+          title={submissionError.title}
+          onDismiss={onDismissError}
+          action={submissionError.canRetry ? { label: "Try again", onClick: onSubmit } : undefined}
+          secondaryAction={submissionError.canRetry ? { label: "Book a call instead", onClick: onBookCall } : undefined}
+          style={{ marginTop: 14 }}
+        >
+          {submissionError.message}
+        </Notice>
       )}
     </div>
   );
@@ -1866,7 +1939,10 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     website: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  // `canRetry` separates the two failure classes: a delivery failure is worth
+  // pressing again (and worth offering a human fallback), whereas missing
+  // scenario details need the user to walk back through the steps.
+  const [submissionError, setSubmissionError] = useState<SubmissionError | null>(null);
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -1987,6 +2063,15 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
     [onClose]
   );
 
+  // Human fallback when the lead POST fails: close the modal and hand the visitor
+  // to the booking page rather than leaving them staring at an error. (Same
+  // navigation shape Step5 uses — the app's global link/popstate router picks it up.)
+  const handleBookCallFallback = useCallback(() => {
+    onClose();
+    window.history.pushState({}, "", "/book-demo");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }, [onClose]);
+
   const handleSubmit = async () => {
     setSubmitting(true);
     setSubmissionError(null);
@@ -1999,9 +2084,12 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       !step2.experience ||
       !step4.timeline
     ) {
-      setSubmissionError(
-        "Some required scenario details are missing. Your information was not sent; please review the earlier steps."
-      );
+      setSubmissionError({
+        title: "Some scenario details are still missing",
+        message:
+          "Your information was not sent. Step back through the earlier questions and fill in anything left blank, then send again.",
+        canRetry: false,
+      });
       setSubmitting(false);
       return;
     }
@@ -2050,12 +2138,18 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
       // Do not store loan scenarios or contact details in a visitor's browser,
       // and do not show a success state unless the business received the lead.
       console.error(
-        "[QualifyModal] Firestore lead write failed; the lead was not delivered:",
+        "[QualifyModal] Lead write failed; the lead was not delivered:",
         err
       );
-      setSubmissionError(
-        "We could not securely deliver your request. Your information was not sent; please try again later."
-      );
+      captureException(err);
+      // Never dead-end the lead: the notice below carries a retry AND a live
+      // human path (book a call), so a failed POST is not the end of the funnel.
+      setSubmissionError({
+        title: "We couldn't send your request",
+        message:
+          "Your details were not delivered, and nothing was stored in this browser. Try again — or book a call and the review team will take your scenario live.",
+        canRetry: true,
+      });
     } finally {
       window.clearTimeout(timeout);
       setSubmitting(false);
@@ -2136,6 +2230,8 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
             onSubmit={handleSubmit}
             submitting={submitting}
             submissionError={submissionError}
+            onDismissError={() => setSubmissionError(null)}
+            onBookCall={handleBookCallFallback}
             headingId={headingId}
           />
         )}

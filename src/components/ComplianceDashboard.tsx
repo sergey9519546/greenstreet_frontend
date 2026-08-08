@@ -16,6 +16,20 @@ import STRUnderwritingPage from "../pages/STRUnderwritingPage";
 import PortfolioPage from "../pages/PortfolioPage";
 import { SiteNav } from "../design/SiteShell";
 import { DcEmbeddedContext } from "../design/dc";
+import Notice from "./ui/Notice";
+import { captureException } from "../monitoring/sentry";
+
+/**
+ * One client-side reporting path for workspace failures. The pino `logger` in
+ * src/logger.ts is server-only (it reads process.env and pulls a transport), so
+ * browser code reports through the console with a stable prefix plus Sentry when
+ * a DSN is configured. Every catch below either surfaces a Notice to the user or
+ * calls this — no failure is swallowed silently.
+ */
+function reportWorkspaceError(scope: string, err: unknown) {
+  console.error(`[InvestGO] ${scope}`, err);
+  captureException(err);
+}
 
 // Tabs that embed a full tool page (each wraps itself in DcShell). Inside the
 // workspace these must render bare — no duplicate marketing nav/footer.
@@ -303,6 +317,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const [brokerSaved, setBrokerSaved] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  // Dismissible failure surfaces for the three user-initiated Firestore paths
+  // (load/delete history, load/save settings, save a solved scenario). Each is
+  // cleared on the next successful attempt or by the user.
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [scenarioSaveWarning, setScenarioSaveWarning] = useState<string | null>(null);
 
   const [dealForm, setDealForm] = useState<DealForm>({
     purchasePrice: "450000", loanAmount: "337500", monthlyRent: "3200",
@@ -338,12 +358,22 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   useEffect(() => {
     if (!currentUser && !demoMode) return;
     const ref = collection(db, "artifacts", "default-app-id", "users", userUid, "audits");
-    const unsub = onSnapshot(ref, (snap) => {
-      const logs: AuditLog[] = [];
-      snap.forEach(d => logs.push({ id: d.id, ...d.data() } as AuditLog));
-      logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setAuditLogs(logs);
-    });
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const logs: AuditLog[] = [];
+        snap.forEach(d => logs.push({ id: d.id, ...d.data() } as AuditLog));
+        logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setAuditLogs(logs);
+        setHistoryError(null);
+      },
+      (err) => {
+        // Without this handler a permissions/offline failure left History showing
+        // the empty state — indistinguishable from "you have no scenarios".
+        reportWorkspaceError("Scenario history subscription failed", err);
+        setHistoryError("We couldn't load your saved scenarios. They're still stored — reload the page to try again.");
+      },
+    );
     return () => unsub();
   }, [currentUser, demoMode]);
 
@@ -351,8 +381,16 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     if (!currentUser && !demoMode) return;
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
     getDoc(ref)
-      .then(snap => { if (snap.exists()) setBrokerConfig(prev => ({ ...prev, ...(snap.data() as Partial<typeof prev>) })); })
-      .catch(err => console.error("Failed to load broker settings", err));
+      .then(snap => {
+        if (snap.exists()) setBrokerConfig(prev => ({ ...prev, ...(snap.data() as Partial<typeof prev>) }));
+        setSettingsError(null);
+      })
+      .catch(err => {
+        // Silently falling back to defaults here is dangerous: the user would see
+        // a blank profile and could overwrite their real saved settings on save.
+        reportWorkspaceError("Failed to load broker settings", err);
+        setSettingsError("We couldn't load your saved profile, so these fields show defaults. Reload before saving — otherwise you may overwrite what's on file.");
+      });
   }, [currentUser, demoMode]);
 
   const saveBrokerConfig = async (e: React.FormEvent) => {
@@ -361,10 +399,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     const ref = doc(db, "artifacts", "default-app-id", "users", userUid, "broker", "settings");
     try {
       await setDoc(ref, brokerConfig);
+      setSettingsError(null);
       setBrokerSaved(true);
       setTimeout(() => setBrokerSaved(false), 3000);
     } catch (err) {
-      console.error("Failed to save broker settings", err);
+      reportWorkspaceError("Failed to save broker settings", err);
+      setSettingsError("Your profile changes weren't saved. Check your connection and press Save Profile again — nothing you typed has been lost.");
     }
   };
 
@@ -374,8 +414,10 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     try {
       await deleteDoc(doc(db, "artifacts", "default-app-id", "users", userUid, "audits", id));
       if (selectedLog?.id === id) setSelectedLog(null);
+      setHistoryError(null);
     } catch (err) {
-      console.error("Failed to delete audit log", err);
+      reportWorkspaceError("Failed to delete audit log", err);
+      setHistoryError("That scenario couldn't be deleted — it's still in your history. Try again in a moment.");
     }
   };
 
@@ -402,6 +444,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
     setIsRunning(true);
     setSolveResult(null); setSensResult(null);
     setSolveError(null); setSensError(null);
+    setScenarioSaveWarning(null);
     try {
       const [solveRes, sensRes] = await Promise.all([
         fetch("/api/dscr/solve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }),
@@ -413,7 +456,12 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
       if (sensRes.ok) { setSensResult(sens); } else { setSensError(sens.error || "Sensitivity engine failed. Re-run from Deal Workspace."); }
       saveLog("analyze",
         `DSCR ${solve.deal.dscr.toFixed(2)}x — ${dealForm.propertyType} ${dealForm.state} ${dscrLabel(solve.deal.dscr)}`,
-        JSON.stringify(payload), solve).catch(err => console.error("Failed to save audit log", err));
+        JSON.stringify(payload), solve).catch(err => {
+          // The solve itself succeeded and is on screen; only the archive write
+          // failed. Warn (not error) so the user knows History will be missing it.
+          reportWorkspaceError("Failed to save audit log", err);
+          setScenarioSaveWarning("This analysis ran, but it couldn't be archived to Scenario History. The result below is still valid — export or re-run it if you need a saved copy.");
+        });
     } catch (err: any) {
       setSolveError(err.message || "Engine error. Check your inputs and try again.");
     } finally {
@@ -424,12 +472,19 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
   const handleStateRules = useCallback(async () => {
     if (!stateInput.trim()) return;
     setIsLoadingState(true); setStateResult(null); setStateError(null);
+    setScenarioSaveWarning(null);
     try {
       const res = await fetch("/api/dscr/state", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state: stateInput }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setStateResult(data);
-      await saveLog("state-rules", `State PPP: ${stateInput.toUpperCase()}`, stateInput, data);
+      // Archiving is a side effect of the lookup, so it gets its own handler —
+      // previously an archive failure surfaced as "State lookup failed" even
+      // though the rules had already rendered.
+      saveLog("state-rules", `State PPP: ${stateInput.toUpperCase()}`, stateInput, data).catch(err => {
+        reportWorkspaceError("Failed to save state-rules audit log", err);
+        setScenarioSaveWarning("This lookup ran, but it couldn't be archived to Scenario History. The rules below are still valid.");
+      });
     } catch (err: any) {
       setStateError(err.message || "State lookup failed. Try again.");
     } finally {
@@ -504,7 +559,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               onMouseLeave={e => { e.currentTarget.style.borderColor = T.cardBorder; e.currentTarget.style.color = T.muted; }}>
               Try demo mode — no account needed
             </button>
-            <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { setAuthError(e.message); } }}
+            <button onClick={async () => { try { setAuthError(""); await loginWithGoogle(); } catch (e: any) { reportWorkspaceError("Google sign-in failed", e); setAuthError(e?.message || "Google sign-in didn't complete. Try again, or use email below."); } }}
               className="w-full py-3 flex items-center justify-center gap-3 text-sm font-semibold transition"
               style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: radius.sm, background: "#ffffff", color: "#1f2430" }}
               onMouseEnter={e => { e.currentTarget.style.background = "#f1f2ee"; }}
@@ -521,7 +576,7 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
               <div className="absolute inset-x-0 top-1/2 h-px" style={{ background: T.cardBorder }} />
               <span className="relative px-3 font-semibold uppercase tracking-wider" style={{ background: T.cardBg }}>or email</span>
             </div>
-            <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { setAuthError(err.message); } }}
+            <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { isSignUpMode ? await createUserWithEmailAndPassword(auth, authEmail, authPassword) : await signInWithEmailAndPassword(auth, authEmail, authPassword); } catch (err: any) { reportWorkspaceError("Email sign-in failed", err); setAuthError(err?.message || "We couldn't sign you in. Check your email and password and try again."); } }}
               className="space-y-3">
               <div>
                 <label htmlFor="investgo-email" className="block text-[11px] font-bold uppercase tracking-[0.08em] mb-1.5" style={{ color: T.muted }}>Email</label>
@@ -884,6 +939,18 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
 
                       {/* Error */}
                       {solveError && <ErrorBanner message={solveError} onRetry={handleAnalyze} />}
+
+                      {/* Degraded, not failed: the solve is on screen but wasn't archived. */}
+                      {scenarioSaveWarning && (
+                        <Notice
+                          tone="warning"
+                          ground="dark"
+                          title="Not saved to Scenario History"
+                          onDismiss={() => setScenarioSaveWarning(null)}
+                        >
+                          {scenarioSaveWarning}
+                        </Notice>
+                      )}
 
                       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
@@ -1406,6 +1473,17 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                       {/* Error */}
                       {stateError && !isLoadingState && <ErrorBanner message={stateError} onRetry={handleStateRules} />}
 
+                      {scenarioSaveWarning && !isLoadingState && (
+                        <Notice
+                          tone="warning"
+                          ground="dark"
+                          title="Not saved to Scenario History"
+                          onDismiss={() => setScenarioSaveWarning(null)}
+                        >
+                          {scenarioSaveWarning}
+                        </Notice>
+                      )}
+
                       {stateResult && !isLoadingState && (
                         <div className="space-y-4">
                           {/* Verdict */}
@@ -1481,6 +1559,16 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── HISTORY ── */}
                   {activeTab === "history" && (
                     <TabPane id="history">
+                      {historyError && (
+                        <Notice
+                          tone="danger"
+                          ground="dark"
+                          title="Scenario history is out of sync"
+                          onDismiss={() => setHistoryError(null)}
+                        >
+                          {historyError}
+                        </Notice>
+                      )}
                       <div className="pb-1">
                         <p className="text-sm" style={{ color: T.muted }}>
                           Every deal you've analyzed and every state lookup, in chronological order. Click a row to inspect the full result.
@@ -1574,6 +1662,17 @@ export default function ComplianceDashboard({ onBackToMarketing, initialEmail, i
                   {/* ── SETTINGS ── */}
                   {activeTab === "settings" && (
                     <TabPane id="settings">
+                      {settingsError && (
+                        <Notice
+                          tone="danger"
+                          ground="dark"
+                          title="Your profile didn't sync"
+                          onDismiss={() => setSettingsError(null)}
+                          style={{ maxWidth: 576 }}
+                        >
+                          {settingsError}
+                        </Notice>
+                      )}
                       <WhiteCard className="max-w-xl" style={{ padding: "32px" }}>
                         <h2 className="font-bold text-lg mb-1" style={{ color: T.ink }}>Your Profile</h2>
                         <p className="text-xs mb-6" style={{ color: T.muted }}>

@@ -84,21 +84,52 @@ const StressMatrixPage = lazy(routeModules.StressMatrixPage);
 const DecisionSupportPage = lazy(routeModules.DecisionSupportPage);
 
 // ─── Error Boundary ────────────────────────────────────────────────────────────
+// Users get a plain-language recovery message; the raw error text lives behind a
+// collapsed <details> for anyone who wants to paste it into a support thread. The
+// full error + component stack always goes to the console and Sentry (if wired),
+// so hiding it from the page costs nothing diagnostically.
 class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Error | null }> {
-  state = { error: null };
+  state: { error: Error | null } = { error: null };
   static getDerivedStateFromError(error: Error) { return { error }; }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("[Greenstreet] Unhandled UI error:", error, info?.componentStack);
+    captureException(error);
+  }
+
   render() {
-    if (this.state.error) {
+    const error = this.state.error;
+    if (error) {
+      const technical = [
+        `${error.name || "Error"}: ${error.message || "(no message)"}`,
+        error.stack ? error.stack.split("\n").slice(1, 6).join("\n") : "",
+      ].filter(Boolean).join("\n");
       return (
-        <div style={{ minHeight: "100vh", background: "#eeefd3", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Outfit, sans-serif" }}>
-          <div style={{ maxWidth: "480px", padding: "40px", textAlign: "center" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠</div>
-            <h2 style={{ color: "#003738", fontSize: "24px", marginBottom: "12px" }}>Something went wrong</h2>
-            <p style={{ color: "#006565", marginBottom: "24px" }}>{(this.state.error as Error).message}</p>
+        <div style={{ minHeight: "100vh", background: depth.browse.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font.family }}>
+          <div style={{ maxWidth: "520px", padding: "40px", textAlign: "center" }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }} aria-hidden="true">⚠</div>
+            <h2 style={{ color: depth.browse.ink, fontSize: "24px", marginBottom: "12px" }}>This page didn't load</h2>
+            <p style={{ color: swatch.rainforest, marginBottom: "24px", lineHeight: 1.55 }}>
+              Something went wrong on our side — nothing you did caused it, and no information you entered was sent
+              anywhere. Going back and retrying usually clears it.
+            </p>
             <button onClick={() => { this.setState({ error: null }); window.history.back(); }}
-              style={{ background: "#d8d958", color: "#003738", border: "none", borderRadius: "8px", padding: "12px 28px", fontWeight: 700, cursor: "pointer", fontSize: "15px" }}>
+              style={{ background: swatch.lemon, color: swatch.midnight, border: "none", borderRadius: radius.sm, padding: "12px 28px", fontWeight: 700, cursor: "pointer", fontSize: "15px" }}>
               Go back
             </button>
+            <details style={{ marginTop: "28px", textAlign: "left" }}>
+              <summary style={{ cursor: "pointer", fontSize: "13px", color: swatch.rainforest, fontWeight: 600 }}>
+                Technical details
+              </summary>
+              <pre style={{
+                marginTop: "10px", padding: "12px", fontSize: "11px", lineHeight: 1.5,
+                fontFamily: font.mono, color: swatch.rainforest, background: "rgba(0,55,56,0.06)",
+                border: `1px solid ${swatch.midnightFaded}`, borderRadius: radius.sm,
+                whiteSpace: "pre-wrap", wordBreak: "break-word", overflowX: "auto", maxHeight: "220px",
+              }}>
+                {technical}
+              </pre>
+            </details>
           </div>
         </div>
       );
@@ -108,7 +139,82 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
 }
 
 import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
-import { depth } from "./theme";
+import { depth, swatch, radius, font } from "./theme";
+import { captureException } from "./monitoring/sentry";
+
+// ─── Route loading fallback ────────────────────────────────────────────────────
+// warmAllRoutes() means navigation almost never suspends — but "almost never" is
+// not never: a cold first paint on a slow link, or a route change that beats the
+// idle warm, still hits Suspense. fallback={null} turned that into a blank white
+// screen. This paints the SAME depth ground the incoming view will land on (cream
+// for marketing, midnight for the app), so the wait reads as the page settling
+// rather than as a broken tab, and there is no ground flash when content arrives.
+const ROUTE_FALLBACK_CSS = `
+  @keyframes gs-route-spin { to { transform: rotate(360deg); } }
+  .gs-route-spinner { animation: gs-route-spin 900ms linear infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .gs-route-spinner { animation: none; }
+  }
+`;
+
+/** The paired surface/ink stop for a view — marketing browses, everything else underwrites. */
+function depthStopFor(view: PageView) {
+  return view === "marketing" ? depth.browse : depth.underwrite;
+}
+
+function RouteFallback({ view }: { view: PageView }) {
+  const stop = depthStopFor(view);
+  const onDark = stop.bg === depth.underwrite.bg;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      // Fixed rather than in-flow: the fallback can never contribute layout, so
+      // swapping it for the real page cannot shift anything or toggle a scrollbar.
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 40,
+        background: stop.bg,
+        color: stop.ink,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "18px",
+        fontFamily: font.family,
+      }}
+    >
+      <style>{ROUTE_FALLBACK_CSS}</style>
+      <span
+        aria-hidden="true"
+        style={{
+          width: 44, height: 44, borderRadius: radius.md,
+          display: "grid", placeItems: "center",
+          background: onDark ? "rgba(216,217,88,0.12)" : "rgba(0,55,56,0.05)",
+          border: `1px solid ${onDark ? "rgba(216,217,88,0.28)" : swatch.midnightFaded}`,
+          color: onDark ? swatch.lemon : swatch.midnight,
+          fontWeight: 800, fontSize: 20, letterSpacing: "-0.04em",
+        }}
+      >
+        G
+      </span>
+      <span
+        className="gs-route-spinner"
+        aria-hidden="true"
+        style={{
+          width: 16, height: 16, borderRadius: "50%",
+          border: `2px solid ${onDark ? "rgba(238,239,211,0.18)" : "rgba(0,55,56,0.14)"}`,
+          borderTopColor: onDark ? swatch.lemon : swatch.rainforest,
+        }}
+      />
+      {/* Visually hidden — the mark above is the visual; this is for screen readers. */}
+      <span style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0 }}>
+        Loading…
+      </span>
+    </div>
+  );
+}
 
 const CLIENT_WORKSPACE_CONFIGURED = Boolean(
   import.meta.env.VITE_FIREBASE_API_KEY &&
@@ -309,7 +415,7 @@ export default function App() {
     // cutting between two color worlds — and the cream ground stops flashing
     // behind the dark app. Surface+ink come from the same stop so contrast can
     // never invert mid-ramp.
-    const stop = view === "marketing" ? depth.browse : depth.underwrite;
+    const stop = depthStopFor(view);
     const root = document.documentElement;
     if (!depthFirstPaint.current) {
       const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -443,7 +549,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className="font-sans antialiased text-slate-800">
-        <Suspense fallback={null}>
+        <Suspense fallback={<RouteFallback view={view} />}>
           <PageRenderer />
         </Suspense>
         {view === "marketing" ||

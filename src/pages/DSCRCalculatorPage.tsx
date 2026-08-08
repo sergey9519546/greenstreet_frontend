@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { DcShell, dc, H1, H2, Lead, Btn, HeroProof, Mono } from "../design/dc";
+import DataVintageLine from "../design/DataVintageLine";
 import { PISTACHIO, MIDNIGHT, LEMON, font, swatch, radius, risk } from "../theme";
 import { ClaudeDscrGauge, BalanceScale, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
 import { calculatePaymentFactor } from "../engine";
@@ -48,14 +49,16 @@ const CARD  = swatch.midnight;
 // PURCHASE-YEAR reset bill — what the buyer actually pays after a CA Prop-13 / TX
 // / FL reassessment to the new basis — instead of the seller's stale bill that
 // silently overstates DSCR. National fallback below.
-const EFF_TAX_RATE: Record<string, number> = {
+// Exported for tests only — DSCRCalculatorPage.test.tsx recomputes the displayed
+// DSCR from the engine primitives and needs the same tax basis the page uses.
+export const EFF_TAX_RATE: Record<string, number> = {
   AL:0.0041,AK:0.0118,AZ:0.0063,AR:0.0064,CA:0.0075,CO:0.0051,CT:0.0179,DE:0.0058,DC:0.0057,FL:0.0091,
   GA:0.0092,HI:0.0029,ID:0.0067,IL:0.0208,IN:0.0085,IA:0.0152,KS:0.0141,KY:0.0086,LA:0.0055,ME:0.0124,
   MD:0.0105,MA:0.0114,MI:0.0148,MN:0.0112,MS:0.0079,MO:0.0097,MT:0.0074,NE:0.0163,NV:0.0055,NH:0.0186,
   NJ:0.0223,NM:0.0073,NY:0.0162,NC:0.0078,ND:0.0098,OH:0.0152,OK:0.0090,OR:0.0093,PA:0.0149,RI:0.0140,
   SC:0.0057,SD:0.0124,TN:0.0066,TX:0.0163,UT:0.0058,VT:0.0190,VA:0.0082,WA:0.0094,WV:0.0059,WI:0.0161,WY:0.0061,
 };
-const DEFAULT_EFF_TAX = 0.011;
+export const DEFAULT_EFF_TAX = 0.011;
 const US_STATES = Object.keys(EFF_TAX_RATE).sort();
 // Hurricane / wildfire markets where an UNCONFIRMED insurance quote is a stop,
 // not a footnote — bind coverage before committing scenario time.
@@ -1157,6 +1160,7 @@ export default function DscrCalculatorPage({ onBack, onNavigate }: Props) {
                   <p style={{ fontSize: 11, color: 'rgba(238,239,211,0.62)', marginTop: 14, lineHeight: 1.4 }}>
                     Preliminary estimate — not a commitment to lend. Subject to full underwriting, appraisal and credit approval.
                   </p>
+                  <DataVintageLine ground="dark" style={{ fontSize: 11, marginTop: 6 }} />
                 </div>
               </div>
             </div>

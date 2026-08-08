@@ -13,6 +13,10 @@
 //     σ (sigma) = annual volatility
 //     dW(t)     = Brownian motion (Gaussian shock)
 //
+// PROVENANCE: the r0 / θ levels below are a dated snapshot, registered in
+// src/engine/dataVintage.ts as 'sofrModel' (asOf 2026-06-17, 30-day cadence).
+// Re-pull them and update that entry together.
+//
 // CALIBRATION (to 2020-2025 SOFR history):
 //   - Initial SOFR (r0): 3.59% (current, June 2026 snapshot)
 //   - Long-run mean (θ): 3.50% (Fed long-run neutral rate estimate, Jun 2026 SEP median)

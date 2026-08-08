@@ -306,7 +306,132 @@ function mapToTcoType(unitCount, isShortTerm) {
   return "SFR";
 }
 
+// src/engine/dataVintage.ts
+var MONTHLY = 30;
+var QUARTERLY = 90;
+var SEMIANNUAL = 180;
+var ANNUAL = 365;
+var DATA_VINTAGE = [
+  {
+    key: "rateAnchor",
+    label: "DSCR rate anchor & pricing grid",
+    asOf: "2026-06-17",
+    asOfConfidence: "documented",
+    refreshCadenceDays: MONTHLY,
+    sourceFile: "src/engine/engine.ts",
+    source: 'engine.ts \xA76 "RATE CALIBRATION \u2014 JUNE 2026 (verified 2026-06-17)"; BASE_RATE_ANCHOR = 6.125% par at 740 FICO / 70% LTV.',
+    notes: 'Also fixes TYPICAL_SPREAD (0.875) and FULL_MARKET_SPREAD (4.625, ~10.75%), the RATE_FLOOR_PCT 5.0 / RATE_CEILING_PCT 12.0 bounds, and the "June 2026" dateStamp returned on tripleRate. The lender FICO-overlay list in the same section is dated June 2026 as well. Rate data ages fastest of anything here \u2014 monthly cadence.'
+  },
+  {
+    key: "sofrModel",
+    label: "SOFR / Treasury market snapshot & Vasicek calibration",
+    asOf: "2026-06-17",
+    asOfConfidence: "documented",
+    refreshCadenceDays: MONTHLY,
+    sourceFile: "src/engine/armResetEngine.ts, src/engine/monteCarloRatePath.ts",
+    source: 'armResetEngine.ts CURRENT_MARKET_SNAPSHOT.asOfDate = "2026-06-17" (FRED DGS10 Jun 15-17; FRB H.15 Jun 16; Northmarq Jun 2026). monteCarloRatePath.ts DEFAULT_VASICEK_PARAMS: r0 = 3.59% (Jun 17 2026 SOFR), \u03B8 = 3.50% (Jun 2026 Fed SEP median long-run neutral).',
+    notes: "\u03C3 = 1.20% and \u03BA are calibrated to 2020-2025 SOFR realized vol \u2014 that calibration window is a modelling choice with a longer half-life than the r0/\u03B8 levels, but r0 and the index snapshot (5yr UST 4.26%, 30-day SOFR 3.59%, Fed funds eff 3.62%, Freddie 30yr 6.53%) are point-in-time and stale within weeks."
+  },
+  {
+    key: "lenderDatabase",
+    label: "Lender profile database",
+    asOf: "2026-06-01",
+    asOfConfidence: "documented",
+    refreshCadenceDays: QUARTERLY,
+    sourceFile: "src/engine/lenders.ts",
+    source: 'lenders.ts per-lender effectiveDate / verifiedDate = "2026-06-01"; per-field provenance datapoints stamped "2026-06"; sourceSnapshot cites May 2026 production data.',
+    notes: "Mixed provenance by design \u2014 VERIFIED_PRIMARY (lender sites), VERIFIED_SECONDARY (3rd-party review) and explicit UNVERIFIED fields coexist and are labelled per-field. Refreshing the file means re-pulling rate sheets, not just bumping the date."
+  },
+  {
+    key: "statePppLaws",
+    label: "State prepayment-penalty law matrix",
+    asOf: "2026-01-01",
+    asOfConfidence: "documented",
+    refreshCadenceDays: SEMIANNUAL,
+    sourceFile: "src/engine/statePppLaws.ts",
+    source: 'statePppLaws.ts per-state lastVerified fields. Two cohorts exist: 35 entries at "2026-06" and 13 entries at "2026-01". This registry records the OLDEST (2026-01) because the matrix is only as current as its least-recently-checked state.',
+    notes: "The 2026-06 cohort covers the MN HF 3437 change (enacted Apr 23 2026, effective Aug 1 2026) which narrows Minn. Stat. \xA758.137 to consumer-purpose loans. States still at 2026-01 have not been re-read since January. WA ARM ban remains UNVERIFIED and is deliberately not encoded as a blanket rule."
+  },
+  {
+    key: "dscrPrograms",
+    label: "Greenstreet / Cake DSCR program matrices",
+    asOf: "2026-06-24",
+    asOfConfidence: "documented",
+    refreshCadenceDays: QUARTERLY,
+    sourceFile: "src/data/dscrPrograms.ts",
+    source: 'dscrPrograms.ts header: "pulled 2026-06-24" from caketpo.com/products (DSCR tab); exported as DSCR_PROGRAMS_AS_OF = "Jun 24, 2026".',
+    notes: "Full FICO \xD7 loan-amount LTV grids per program, used by Deal Analyzer, Lender Intel and Rate Quiz. Wholesale matrices move without notice \u2014 treat any grid cell older than a quarter as indicative only."
+  },
+  {
+    key: "taxRules",
+    label: "Federal tax rules (OBBBA bonus depreciation, \xA71250 recapture)",
+    asOf: "2026-06-01",
+    asOfConfidence: "documented",
+    refreshCadenceDays: ANNUAL,
+    sourceFile: "src/engine/taxEngine.ts",
+    source: 'taxEngine.ts header: "SOURCES (verified June 2026)". OBBBA_EFFECTIVE_DATE = "2025-01-19" is the statutory acquisition cutoff (100% bonus depreciation, permanent), not a verification date; IRC \xA7168(k).',
+    notes: "Statute-driven, so it changes on a legislative clock rather than a market one \u2014 annual cadence, but re-check immediately on any federal tax bill. The phase-down ladder (60/40/20%) for pre-2025-01-19 acquisitions is TCJA legacy and stable."
+  },
+  {
+    key: "insuranceTable",
+    label: "State property-insurance base-rate table",
+    asOf: null,
+    asOfConfidence: "undocumented",
+    refreshCadenceDays: ANNUAL,
+    sourceFile: "src/engine/insuranceEstimate.ts",
+    source: 'insuranceEstimate.ts INSURANCE_BASE_RATE_PER_1000 \u2014 described only as "NAIC/Bankrate-sourced". No pull date, vintage year, or citation date appears anywhere in the file, and repo history is squashed so commit dates prove nothing.',
+    notes: "DELIBERATELY UNDATED: `asOf` is null rather than guessed, so this entry always reports stale until someone re-pulls the NAIC/Bankrate table and stamps a real date. Insurance has more DSCR impact per dollar than the interest rate, so an undated table is the highest-value fix in this registry."
+  },
+  {
+    key: "reassessmentRules",
+    label: "State property-tax reassessment rules",
+    asOf: "2026-06-01",
+    asOfConfidence: "documented",
+    refreshCadenceDays: ANNUAL,
+    sourceFile: "src/engine/reassessmentEngine.ts",
+    source: 'reassessmentEngine.ts "VERIFIED STATE REASSESSMENT RULES (June 2026)"; every state rule carries asOfDate: "2026-06". Sources: CA BOE (Prop 13), TX Comptroller, FL DOR (\xA7193.155 / \xA7193.1554), NJ Treasury, NY ORPTS, IL DOR.',
+    notes: "The national-median fallback row is VERIFIED_SECONDARY, not primary. NJ carries a flagged caveat about post-2024 AFFH-driven revaluation changes still pending."
+  },
+  {
+    key: "indexedThresholds",
+    label: "PA / OH indexed PPP loan thresholds",
+    asOf: "2026-01-01",
+    asOfConfidence: "documented",
+    refreshCadenceDays: ANNUAL,
+    sourceFile: "src/engine/statePppLaws.ts",
+    source: 'statePppLaws.ts PA_PPP_THRESHOLD_2026 = $319,777 and OH_PPP_THRESHOLD_2026 = $116,356, THRESHOLD_YEAR = 2026; PA/OH entries carry lastVerified "2026-01".',
+    notes: 'Tracked separately from statePppLaws because these are ANNUALLY INDEXED dollar figures with a hard calendar trigger \u2014 the source file says "Annually re-confirmed each January per Part E.3". A January reconfirmation is required even if no statute changed.'
+  }
+];
+function getDataVintage(key) {
+  const entry = DATA_VINTAGE.find((e) => e.key === key);
+  if (!entry) throw new Error(`Unknown data vintage key: ${key}`);
+  return entry;
+}
+function parseIsoDate(iso) {
+  return /* @__PURE__ */ new Date(`${iso}T00:00:00.000Z`);
+}
+function oldestAsOf() {
+  const dated = DATA_VINTAGE.map((e) => e.asOf).filter((d) => d !== null);
+  if (dated.length === 0) return null;
+  return dated.reduce((oldest, d) => d < oldest ? d : oldest);
+}
+function formatVintage(iso) {
+  const d = parseIsoDate(iso);
+  return `${d.toLocaleString("en-US", { month: "long", timeZone: "UTC" })} ${d.getUTCFullYear()}`;
+}
+function vintageLabel(key) {
+  const { asOf } = getDataVintage(key);
+  return asOf ? formatVintage(asOf) : "undated";
+}
+function marketDataAsOfLabel() {
+  const oldest = oldestAsOf();
+  return oldest ? formatVintage(oldest) : "an undocumented date";
+}
+var DATA_VINTAGE_DISCLOSURE = `Market data as of ${marketDataAsOfLabel()}. Rates, lender terms, and state rules are dated research \u2014 verify with current sources before relying on them.`;
+
 // src/engine/engine.ts
+var RATE_DATE_STAMP = vintageLabel("rateAnchor");
 function calculatePaymentFactor(annualRate, termMonths) {
   const r = annualRate / 100 / 12;
   if (r === 0) return 1 / termMonths;
@@ -707,7 +832,7 @@ function computeTripleRate(solvedRate) {
     competitive: Math.max(Math.round((solvedRate - 0.875) * 1e3) / 1e3, 5.125),
     typical: Math.round(solvedRate * 1e3) / 1e3,
     fullMarket: Math.round(Math.min(solvedRate + FULL_MARKET_SPREAD, 12) * 1e3) / 1e3,
-    dateStamp: "June 2026",
+    dateStamp: RATE_DATE_STAMP,
     treasurySpread: "10yr + ~200-225 bps"
   };
 }
@@ -761,7 +886,7 @@ function solveDSCR(property, borrower, loan, strategy, vacancyHaircutEnabled = f
       dscr: 0,
       dscrGradient: noRatioGradient,
       solvedRate: 0,
-      tripleRate: { competitive: 0, typical: 0, fullMarket: 0, dateStamp: "June 2026", treasurySpread: "" },
+      tripleRate: { competitive: 0, typical: 0, fullMarket: 0, dateStamp: RATE_DATE_STAMP, treasurySpread: "" },
       loanAmount: 0,
       debtYield: 0,
       cashToClose: { downPayment: 0, closingCosts: 0, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0, reserveRequirement: 0, reserveConservative: 0, furnishingBudget: 0, credits: 0, total: 0, totalConservative: 0, totalStress: 0 },

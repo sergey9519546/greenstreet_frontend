@@ -32,3 +32,44 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Guards the production cold-start path. api/index.js require()s a bundle
+      # emitted by `npm run build`; nothing else in CI ever resolves that
+      # specifier, so a build-output rename silently 500s every /health and
+      # /api/* request on Vercel with MODULE_NOT_FOUND. This step fails the
+      # build instead.
+      - name: Verify Vercel function entry resolves
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const entry = "api/index.js";
+            const source = fs.readFileSync(entry, "utf8");
+
+            // Static check: every require() target in the entry exists on disk.
+            const targets = [...source.matchAll(/require\(\s*["\x27](\.[^"\x27]+)["\x27]\s*\)/g)].map((m) => m[1]);
+            if (targets.length === 0) {
+              console.error(`No relative require() found in ${entry}; the guard can no longer verify it.`);
+              process.exit(1);
+            }
+            for (const target of targets) {
+              const resolved = path.resolve(path.dirname(entry), target);
+              if (!fs.existsSync(resolved)) {
+                console.error(`${entry} requires "${target}", which does not exist at ${resolved} after npm run build.`);
+                process.exit(1);
+              }
+              console.log(`ok: ${entry} -> ${target} exists at ${resolved}`);
+            }
+
+            // Dynamic check: the entry actually loads and exports a handler.
+            import(path.resolve(entry)).then((mod) => {
+              if (typeof mod.default !== "function") {
+                console.error(`${entry} must default-export a request handler; got ${typeof mod.default}.`);
+                process.exit(1);
+              }
+              console.log(`ok: ${entry} loaded and default-exports a request handler`);
+            }).catch((err) => {
+              console.error(`${entry} failed to load:`, err);
+              process.exit(1);
+            });
+          '

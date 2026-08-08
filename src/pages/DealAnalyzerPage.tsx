@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead, Btn } from "../design/dc";
+import DataVintageLine from "../design/DataVintageLine";
 import { swatch, radius, risk } from "../theme";
 import { DscrGauge, BalanceScale, RiskFlame, riskFromDscr } from "../design/artifacts";
 import { computeDualTrackDSCR } from "../engine/stressMatrix";
@@ -645,6 +646,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
             Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Submit a scenario review for a formal quote.
           </p>
+          <DataVintageLine ground="light" />
         </div>
       </section>
 

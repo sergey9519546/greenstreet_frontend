@@ -179,7 +179,13 @@ const LEGAL_ALIAS_METADATA: Record<string, PublicPageDefinition> = {
   },
 };
 
-const ARTICLE_TITLES: Record<string, string> = {
+/**
+ * Indexed article titles. Every entry must stay identical to the title the blog
+ * actually renders for that slug (BlogPage `POSTS`, i.e. the authored title with
+ * any `EDITORIAL_REVISIONS` overlay applied). `articleTitles.test.ts` pins the
+ * two together — change a displayed title and this map has to move with it.
+ */
+export const ARTICLE_TITLES: Record<string, string> = {
   "greenstreet-go-launch": "InvestGO: an educational DSCR workflow concept",
   "what-is-dscr-how-it-works": "What is DSCR? The complete guide to how the ratio works and why it matters",
   "dscr-pitia-breakdown-qualifying-income": "PITIA breakdown: five inputs to verify in a DSCR scenario",

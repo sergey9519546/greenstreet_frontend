@@ -1,6 +1,7 @@
 import React from "react";
 import { dc } from "./dc";
 import { radius } from "../theme";
+import DataVintageLine from "./DataVintageLine";
 
 // Compliance / disclaimer callout. A flat bordered note that flags illustrative
 // numbers, legal caveats, or sourcing. `color: inherit` so it reads on either a
@@ -17,11 +18,18 @@ const TONE_LABEL: Record<Tone, string> = {
 export default function ComplianceNote({
   tone = "verify",
   label,
+  dataVintage = false,
   children,
 }: {
   tone?: Tone;
   /** Optional eyebrow override; defaults to a sensible per-tone label. */
   label?: string;
+  /**
+   * Append the shared market-data vintage line (src/engine/dataVintage.ts).
+   * Set this wherever the note sits next to rates, lender terms or state rules
+   * so the age of the underlying research is disclosed alongside the caveat.
+   */
+  dataVintage?: boolean;
   children: React.ReactNode;
 }) {
   const legal = tone === "legal";
@@ -50,6 +58,7 @@ export default function ComplianceNote({
         {label || TONE_LABEL[tone]}
       </div>
       {children}
+      {dataVintage && <DataVintageLine ground="inherit" />}
     </div>
   );
 }

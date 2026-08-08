@@ -26,6 +26,12 @@ import type {
 // -----------------------------------------------------------
 // Indexed threshold values (2026)
 // Annually re-confirmed each January per Part E.3
+//
+// PROVENANCE: registered in src/engine/dataVintage.ts as 'indexedThresholds'
+// (asOf 2026-01-01, annual cadence with a hard January calendar trigger). The
+// per-state law matrix below is registered separately as 'statePppLaws', dated
+// to its OLDEST lastVerified (2026-01) rather than its newest — the matrix is
+// only as current as its least-recently-checked state.
 // -----------------------------------------------------------
 const PA_PPP_THRESHOLD_2026 = 319_777;
 const OH_PPP_THRESHOLD_2026 = 116_356;

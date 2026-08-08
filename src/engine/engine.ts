@@ -35,6 +35,13 @@ import type {
   IOPeriod,
 } from './types';
 import { computeTcoRate, mapToTcoType } from './tcoDscr';
+// Data-vintage registry — the single source of truth for how old this engine's
+// dated inputs are. Imported here so the rate anchor's provenance lives in one
+// place and the "June 2026" stamp on every quote is derived, not retyped.
+import { vintageLabel } from './dataVintage';
+
+/** Month-year stamp for the rate calibration, read from the vintage registry. */
+const RATE_DATE_STAMP = vintageLabel('rateAnchor');
 
 // ============================================================
 // SECTION 5.2: CORRECTED PAYMENT FACTOR CALCULATION
@@ -99,6 +106,11 @@ function ioPeriodYears(ioPeriod: IOPeriod): number {
 //   See lenders.ts minFICO field for per-lender verification.
 // ============================================================
 
+// PROVENANCE: the anchor and spreads below are a dated snapshot, registered in
+// src/engine/dataVintage.ts under key 'rateAnchor' (asOf 2026-06-17, 30-day
+// refresh cadence). The registry documents; it does not gate — nothing here
+// reads it to change the math. When you re-pull rates, update BOTH this section
+// and that entry's asOf.
 const BASE_RATE_ANCHOR = 6.125; // June 2026 competitive anchor
 const TYPICAL_SPREAD = 0.875;   // 7.00% typical = 6.125% + 0.875%
 const FULL_MARKET_SPREAD = 4.625; // ~10.75%
@@ -701,7 +713,7 @@ export function computeTripleRate(solvedRate: number): TripleRate {
     competitive: Math.max(Math.round((solvedRate - 0.875) * 1000) / 1000, 5.125),
     typical: Math.round(solvedRate * 1000) / 1000,
     fullMarket: Math.round(Math.min(solvedRate + FULL_MARKET_SPREAD, 12.0) * 1000) / 1000,
-    dateStamp: 'June 2026',
+    dateStamp: RATE_DATE_STAMP,
     treasurySpread: '10yr + ~200-225 bps',
   };
 }
@@ -883,7 +895,7 @@ export function solveDSCR(
       },
       qualifyingRent: 0, rentSource: 'NEEDS_REVIEW',
       monthlyPITIA: zeroPITIA, dscr: 0, dscrGradient: noRatioGradient,
-      solvedRate: 0, tripleRate: { competitive: 0, typical: 0, fullMarket: 0, dateStamp: 'June 2026', treasurySpread: '' },
+      solvedRate: 0, tripleRate: { competitive: 0, typical: 0, fullMarket: 0, dateStamp: RATE_DATE_STAMP, treasurySpread: '' },
       loanAmount: 0, debtYield: 0,
       cashToClose: { downPayment: 0, closingCosts: 0, points: 0, lenderFees: 0, brokerFees: 0, rateLockCost: 0, reserveRequirement: 0, reserveConservative: 0, furnishingBudget: 0, credits: 0, total: 0, totalConservative: 0, totalStress: 0 },
       appraisalBreakpointRent: 0, appraisalBreakpointPercent: 0,

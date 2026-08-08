@@ -8,10 +8,36 @@ domain redirects to it. Git integration builds preview deployments for branches
 and promotes `main` to production.
 
 The Vercel function entry point is `api/index.js`. It loads the explicitly
-bundled Express application in `dist/vercel.cjs`, so the serverless runtime does
-not depend on extensionless TypeScript imports. `vercel.json` routes `/api` and
-`/api/*` to that function, `/health` to the health handler, and all remaining
-paths to the SPA entry point.
+bundled Express application in `api/_app.cjs`, so the serverless runtime does
+not depend on extensionless TypeScript imports. That bundle is emitted by
+`npm run build` (`esbuild src/serverApp.ts ... --outfile=api/_app.cjs`); the
+leading underscore keeps Vercel from routing to it as a second serverless
+function. `vercel.json` routes `/api` and `/api/*` to that function, `/health`
+to the health handler, and all remaining paths to the SPA entry point.
+
+`vercel.json` sets `functions["api/index.js"].includeFiles` to
+`{api/_app.cjs,dist/engineWorker.cjs}`:
+
+- `api/_app.cjs` is the app bundle the entry point requires. Vercel's file
+  tracer normally follows that `require`, but it is listed explicitly so the
+  function bundle never depends on the tracer resolving a `createRequire`
+  specifier.
+- `dist/engineWorker.cjs` is resolved at runtime by `src/engineService.ts` as
+  `path.join(process.cwd(), "dist", "engineWorker.cjs")` when the worker pool is
+  enabled. With the documented `WORKER_POOL_SIZE=0` the pool never initializes
+  and the file is never loaded — and even if the variable were unset,
+  `engineService` defaults the pool to `0` whenever `VERCEL` is present. It is
+  kept in `includeFiles` anyway: it costs ~175 KB in a 250 MB bundle limit, and
+  without it an operator who raises `WORKER_POOL_SIZE` to debug would get a
+  worker crash loop that degrades to inline execution rather than a working
+  pool.
+
+Because nothing in the test suite resolves that `require`, CI runs a
+"Verify Vercel function entry resolves" step after `npm run build`. It checks
+that every relative `require()` target in `api/index.js` exists on disk and that
+the entry loads and default-exports a request handler. Renaming a build output
+without updating `api/index.js` now fails CI instead of 500ing production at
+cold start.
 
 ## Production runtime configuration
 

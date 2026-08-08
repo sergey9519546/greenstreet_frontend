@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { gsap } from "gsap";
 import { DcShell, dc, Mono, CountUp, H1, Lead } from "../design/dc";
+import DataVintageLine from "../design/DataVintageLine";
 import { swatch, radius, risk } from "../theme";
 import { DSCR_PROGRAMS, DSCR_PROGRAMS_AS_OF, lookupMaxLTV } from "../data/dscrPrograms";
 import { DscrGauge, RiskFlame, riskFromDscr, dscrColor } from "../design/artifacts";
@@ -765,6 +766,7 @@ export default function LenderIntelPage({ onBack, onNavigate }: { onBack?: () =>
             indicative only; FICO &times; LTV pricing grids determine final terms. Not a rate lock or credit
             approval.
           </p>
+          <DataVintageLine ground="dark" />
         </div>
       </section>
 

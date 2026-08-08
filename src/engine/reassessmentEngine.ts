@@ -23,6 +23,8 @@ import type { StateReassessmentRule, ReassessmentResult, ProvenanceLabel } from 
 
 // ============================================================
 // VERIFIED STATE REASSESSMENT RULES (June 2026)
+// PROVENANCE: registered in src/engine/dataVintage.ts as 'reassessmentRules'
+// (asOf 2026-06-01, annual cadence).
 // effectiveMillRatePct = effective annual tax as % of market value
 // ============================================================
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, CountUp, Btn } from "../design/dc";
 import { radius, risk } from "../theme";
 import { evaluateSTRUnderwriting, checkSTRLegality } from "../engine/strUnderwriting";
@@ -282,6 +282,13 @@ export default function STRUnderwritingPage({
   onBack: () => void;
   onNavigate: (v: any) => void;
 }) {
+  // Title matches PUBLIC_PAGES["str-underwriting"] in src/seo/routeMetadata.ts.
+  // The route is currently behind a reliability hold, so ToolReliabilityHoldPage
+  // renders instead — this keeps the page from shipping untitled if that lifts.
+  useEffect(() => {
+    document.title = "STR Underwriting | Greenstreet Finance";
+  }, []);
+
   // ── inputs ───────────────────────────────────────────────────────────────
   const [state, setState] = useState("TX");
   const [purchasePrice, setPurchasePrice] = useState(480000);

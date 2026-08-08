@@ -1491,10 +1491,18 @@ const EDUCATIONAL_REVIEW_BODY = [
   },
 ] satisfies BlogPost["body"];
 
+// `body` is optional: some slugs only need the headline claim softened, so they
+// override title/summary and keep the authored body. Titles here are the single
+// source of truth for what the reader sees AND for src/seo/routeMetadata.ts
+// ARTICLE_TITLES — the two are pinned together by src/seo/articleTitles.test.ts.
 const EDITORIAL_REVISIONS: Record<
   string,
-  { title: string; summary: string; body: BlogPost["body"] }
+  { title: string; summary: string; body?: BlogPost["body"] }
 > = {
+  "greenstreet-go-launch": {
+    title: "InvestGO: an educational DSCR workflow concept",
+    summary: "InvestGO is an educational workflow concept for organizing DSCR pricing, program-fit, state-rule, and stress-test questions. It is not a pricing, eligibility, or approval system.",
+  },
   "dscr-pitia-breakdown-qualifying-income": {
     title: "PITIA breakdown: five inputs to verify in a DSCR scenario",
     summary: "Learn how principal, interest, taxes, insurance, and HOA assumptions affect payment coverage, then verify the transaction facts with the responsible provider.",
@@ -1519,6 +1527,38 @@ const EDITORIAL_REVISIONS: Record<
     title: "Foreign-national and ITIN DSCR scenarios: questions to verify",
     summary: "Documentation, entity, reserve, sanctions, tax, and eligibility questions require provider-specific and professional review.",
     body: EDUCATIONAL_REVIEW_BODY,
+  },
+  "obbba-2025-real-estate-tax-changes": {
+    title: "Tax-law changes and real estate models: questions to verify",
+    summary: "Tax-law changes can affect after-tax modeling assumptions. Confirm current provisions, thresholds, and effective dates with a tax professional using primary sources.",
+  },
+  "mn-hf3437-business-purpose": {
+    title: "Minnesota DSCR loans: questions to verify before structuring",
+    summary: "State treatment of business-purpose lending depends on current statutes, effective dates, and the facts of the transaction. Verify jurisdiction questions with qualified counsel.",
+  },
+  "qoz-qrof-permanent-obbba": {
+    title: "Opportunity Zone investing: questions to verify before modeling",
+    summary: "Opportunity Zone tiers, deadlines, and basis treatment change over time. Confirm every provision and date with a tax professional before modeling an investment.",
+  },
+  "section-1071-final-rule-dscr": {
+    title: "Section 1071 and DSCR lending: questions to verify",
+    summary: "Small-business lending data-collection obligations depend on the entity, its volume, and current regulatory guidance. Confirm applicability and timing with qualified counsel.",
+  },
+  "june-2026-rate-sheet": {
+    title: "How to read a DSCR rate quote",
+    summary: "Learn which components make up a quoted DSCR rate. This site does not publish current pricing, rate sheets, program tiers, or specials.",
+  },
+  "fema-rr2-coastal-dscr": {
+    title: "Flood insurance and coastal DSCR scenarios: what to verify",
+    summary: "Flood-zone determinations, premiums, and lender requirements are property-specific. Verify coverage, cost, and program details with the insurer and the responsible provider.",
+  },
+  "why-no-llm-number-path": {
+    title: "Why deterministic models matter for numerical estimates",
+    summary: "Deterministic calculations make an estimate reproducible and auditable. Every figure on this site remains an educational estimate, not a quote or approval.",
+  },
+  "dscr-str-airbnb-qualifying-income": {
+    title: "Short-term rental (STR) income in a DSCR scenario",
+    summary: "Short-term-rental income treatment varies by provider, data source, and jurisdiction. Confirm which income evidence and program rules apply with the responsible provider.",
   },
   "dscr-loan-document-checklist": {
     title: "DSCR documentation: a provider-confirmation checklist",

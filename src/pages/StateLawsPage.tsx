@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
+import DataVintageLine from "../design/DataVintageLine";
 import { US_PATHS, US_VIEWBOX } from "../data/usMapPaths";
 import { PPP_STATE_LAWS, getNoPPPPremium } from "../engine";
 import type { PPPStateStatus } from "../engine";
@@ -285,6 +286,14 @@ export default function StateLawsPage({ onBack, onNavigate }: { onBack: () => vo
               </button>
             </div>
           </div>
+
+          {/* Disclaimer */}
+          <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
+            Statutory research, not legal advice. Prepayment-penalty treatment turns on entity
+            vesting, loan purpose and the specific lender matrix — confirm with your lender or
+            counsel before relying on any entry here.
+          </p>
+          <DataVintageLine ground="light" />
         </div>
       </section>
     </DcShell>
