@@ -95,3 +95,12 @@ lerna-debug.log*
 
 # Agent worktrees (never commit)
 .claude/worktrees/
+
+# ── Re-root leftovers (2026-08-08) ───────────────────────────────────────────
+# The old duplicate tree. Its content is archived on audit-remediation-2026-08-08.
+# _to_delete/ holds 291 MB of hand-rolled git bundles and sync tarballs, two of
+# them over GitHub's 100 MB hard limit — committing them fails the push outright.
+greenstreet_frontend/
+_to_delete/
+*.bundle
+*.tar.gz

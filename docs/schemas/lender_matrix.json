@@ -1,0 +1,109 @@
+{
+  "version": "2026.1",
+  "updated_at": "2026-08-08",
+  "lenders": [
+    {
+      "name": "Kiavi",
+      "max_ltv_purchase": 0.8,
+      "min_fico": 660,
+      "min_dscr": 1.1,
+      "min_dscr_flex": 1.0,
+      "reserves_months": "3-6",
+      "str_policy": "AirDNA accepted (110% 1007 rule)",
+      "prepay_stance": "3-2-1 soft standard",
+      "niche": "Fast close 7-14d, SSN required"
+    },
+    {
+      "name": "Lima One Capital",
+      "max_ltv_purchase": 0.8,
+      "max_ltv_reserves": 0.85,
+      "min_fico": 660,
+      "min_dscr": 0.75,
+      "reserves_months": "3-6",
+      "str_policy": "AirDNA accepted",
+      "prepay_stance": "No-PPP option to 3/5/7-yr",
+      "niche": "Portfolio loans to , strong 720+ FICO rates"
+    },
+    {
+      "name": "Visio Lending",
+      "max_ltv_purchase": 0.8,
+      "min_fico": 680,
+      "min_dscr": 0.75,
+      "reserves_months": "3-6",
+      "str_policy": "Broad STR (A-frames/cabins)",
+      "prepay_stance": "5-4-3-2-1 base (+0.625% No-PPP)",
+      "niche": "No vacancy haircut on Track 1"
+    },
+    {
+      "name": "Griffin Funding",
+      "max_ltv_purchase": 0.8,
+      "max_loan": 4000000,
+      "min_fico": 640,
+      "min_dscr": 0.75,
+      "reserves_months": "3-12",
+      "str_policy": "Market rent; 400 sq ft condo min",
+      "prepay_stance": "ARMs no PPP; Fixed 0-5 yr",
+      "niche": "50 states + DC, Sub-1.0 & No-Ratio specialist"
+    },
+    {
+      "name": "Easy Street Capital",
+      "max_ltv_purchase": 0.8,
+      "min_fico": 640,
+      "min_dscr": 0.0,
+      "reserves_months": "3-6",
+      "str_policy": "AirDNA 100% pro STR",
+      "prepay_stance": "Flexible options",
+      "niche": "Waives 12-mo STR refi seasoning"
+    },
+    {
+      "name": "theLender (NONI)",
+      "max_ltv_purchase": 0.8,
+      "min_fico": 620,
+      "min_dscr": 0.99,
+      "reserves_months": "6",
+      "str_policy": "3 STR methods (1007, AirDNA, STR analysis)",
+      "prepay_stance": "Fee-free options available",
+      "niche": "3 STR income calculation pathways"
+    },
+    {
+      "name": "Angel Oak",
+      "max_ltv_purchase": 0.85,
+      "min_fico": 620,
+      "min_dscr": 1.0,
+      "reserves_months": "6",
+      "str_policy": "Market rent; non-warrantable condos",
+      "prepay_stance": "5-4-3-2-1 standard (+0.625% No-PPP)",
+      "niche": "85% LTV purchase leader"
+    },
+    {
+      "name": "LendingOne",
+      "max_ltv_purchase": 0.8,
+      "min_fico": 620,
+      "min_dscr": 0.75,
+      "reserves_months": "6",
+      "str_policy": "STR eligible",
+      "prepay_stance": "3-5 yr declining stepdown",
+      "niche": "Broad nationwide footprint"
+    },
+    {
+      "name": "RCN Capital",
+      "max_ltv_purchase": 0.8,
+      "min_fico": 660,
+      "min_dscr": 1.0,
+      "reserves_months": "3-6",
+      "str_policy": "STR eligible",
+      "prepay_stance": "Delayed financing ok",
+      "niche": "BRRRR delayed financing specialist"
+    },
+    {
+      "name": "CoreVest",
+      "max_ltv_purchase": 0.8,
+      "min_fico": 680,
+      "min_dscr": 1.0,
+      "reserves_months": "3-6",
+      "str_policy": "STR eligible",
+      "prepay_stance": "Portfolio DSCR",
+      "niche": "5-10 props under single portfolio loan"
+    }
+  ]
+}

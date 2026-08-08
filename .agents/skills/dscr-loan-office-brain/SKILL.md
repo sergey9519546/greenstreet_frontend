@@ -5,10 +5,10 @@ description: Complete knowledge base, underwriting doctrine, 110+ lender guideli
 
 # DSCR Loan Office Project Brain & Intelligence Skill
 
-This skill equips the AI agent with full context and direct access to **1,011 research documents, master blueprints, lender matrices, 50-state legal frameworks, and real estate datasets** stored across the project and local environment.
+This skill equips the AI agent with full context and direct access to **146 curated research documents, master blueprints, lender matrices, 50-state legal frameworks, and real estate datasets** stored across the project and local environment.
 
 ## 1. Quick Knowledge Lookup CLI Tool
-When working on any task or answering user requests, you can search the 1,011 research files by running:
+When working on any task or answering user requests, you can search the 146 curated research files by running:
 
 ```bash
 python scripts/query_project_brain.py "<search_terms>"
@@ -24,10 +24,10 @@ Example queries:
 ## 2. Core Knowledge Map
 
 ### **Master Research & Architecture Blueprints**
-- [`docs/dscr_loan_office/DSCR_Sovereign_OS_Definitive_Master_Blueprint_v3.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/DSCR_Sovereign_OS_Definitive_Master_Blueprint_v3.md) — Autonomous loan office architecture.
-- [`docs/dscr_loan_office/DSCR_Engine_Master_Specification.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/DSCR_Engine_Master_Specification.md) — Technical spec for calculation engines.
-- [`docs/dscr_loan_office/THE COMPLETE SOVEREIGN MASTER DOCUMENT.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/THE%20COMPLETE%20SOVEREIGN%20MASTER%20DOCUMENT.md) — Comprehensive domain rules.
-- [`docs/dscr_loan_office/AEGIS_DSCR_Complete_Usable_Master_Doc_v3.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/AEGIS_DSCR_Complete_Usable_Master_Doc_v3.md) — AEGIS loan advisor decision engine.
+- [`docs/dscr_loan_office/01_MASTER_SOVEREIGN_ARCHITECTURE.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/01_MASTER_SOVEREIGN_ARCHITECTURE.md) — Autonomous loan office architecture and Six-Function doctrine.
+- [`docs/dscr_loan_office/02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md) — Technical specs for CQR, DSCR math, returns, and AEGIS logic.
+- [`docs/dscr_loan_office/03_MASTER_LENDER_AND_COMPLIANCE.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/03_MASTER_LENDER_AND_COMPLIANCE.md) — 50-state PPP laws, lender requirements, and BRRRR refi seasoning.
+- [`docs/dscr_loan_office/04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md) — Unabridged compilation of all playbooks, datasets, CSV audit gaps, and AgentOS memory state.
 
 ### **Technical White Papers & Market Blueprints (Downloads)**
 - [`Perfect_Property_Engine...v13...md`](file:///C:/Users/serge/Downloads/Perfect_Property_Engine_Consolidated_Master_Document_v13_Technical_White_Paper_CQR_Certainty_Equivalent_Hierarchical_Governor_Comparative_Merge.md) — CQR Certainty-Equivalent math & hierarchical governor.

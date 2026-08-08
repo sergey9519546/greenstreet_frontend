@@ -1,169 +1,154 @@
 # DSCR Sovereign OS - Project Brain Master Knowledge Vault
 
-This master vault indexes all **1,000+ research papers, technical white papers, lender matrices, 50-state legal frameworks, and real estate datasets** across the system.
+This vault indexes verified, core research documents strictly. Source code and fluff files are excluded.
 
-## Knowledge Categories
+Total documents: **146**
 
-### Whitepapers (4 items)
+## Verified Knowledge Files
 
-- [Perfect_Property_Engine_Consolidated_Master_Document_v11_Simulation_Prophecy_Accuracy_Guardrails_Merge.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Perfect_Property_Engine_Consolidated_Master_Document_v11_Simulation_Prophecy_Accuracy_Guardrails_Merge.md) (251 KB) - *Keywords: loan, lender, underwrit, perfect property, mortgage*
-- [Perfect_Property_Engine_Consolidated_Master_Document_v12_Florida_First_Final_Blueprint_Comparative_Merge.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Perfect_Property_Engine_Consolidated_Master_Document_v12_Florida_First_Final_Blueprint_Comparative_Merge.md) (274 KB) - *Keywords: loan, lender, underwrit, perfect property, mortgage*
-- [Perfect_Property_Engine_Consolidated_Master_Document_v12_Florida_First_Final_Blueprint_Comparative_Merge.md](file:///C:/Users/serge/Downloads/Perfect_Property_Engine_Consolidated_Master_Document_v12_Florida_First_Final_Blueprint_Comparative_Merge.md) (274 KB) - *Keywords: loan, lender, underwrit, perfect property, mortgage*
-- [Perfect_Property_Engine_Consolidated_Master_Document_v13_Technical_White_Paper_CQR_Certainty_Equivalent_Hierarchical_Governor_Comparative_Merge.md](file:///C:/Users/serge/Downloads/Perfect_Property_Engine_Consolidated_Master_Document_v13_Technical_White_Paper_CQR_Certainty_Equivalent_Hierarchical_Governor_Comparative_Merge.md) (305 KB) - *Keywords: loan, lender, underwrit, perfect property, mortgage*
-
-### Underwriting Specs (212 items)
-
-- [DSCR_CLIFF_DETECTOR_SPEC.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/DSCR_CLIFF_DETECTOR_SPEC.md) (26 KB) - *Keywords: dscr, loan*
-- [Actionable Next Steps for the 20X DSCR Deal Engine.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/Actionable Next Steps for the 20X DSCR Deal Engine.md) (3 KB) - *Keywords: dscr, loan*
-- [Advisor_Grade_DSCR_Decision_Engine_Organized_Research.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/Advisor_Grade_DSCR_Decision_Engine_Organized_Research.md) (38 KB) - *Keywords: dscr, loan*
-- [Advisor_Grade_DSCR_Decision_Engine_Usable_Master_Spec.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/Advisor_Grade_DSCR_Decision_Engine_Usable_Master_Spec.md) (29 KB) - *Keywords: dscr, loan*
-- [Deep Research Report_ Critical Areas for the 20X DSCR Deal Engine.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/Deep Research Report_ Critical Areas for the 20X DSCR Deal Engine.md) (26 KB) - *Keywords: dscr, loan*
-- [DSCR DUAL TRUTH ENGINE CHATGPT RESEARCH.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR DUAL TRUTH ENGINE CHATGPT RESEARCH.md) (35 KB) - *Keywords: dscr, loan*
-- [DSCR SOVEREIGN OS_ THE DEFINITIVE PRODUCT SPECIFICATION.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR SOVEREIGN OS_ THE DEFINITIVE PRODUCT SPECIFICATION.md) (9 KB) - *Keywords: dscr, loan, sovereign*
-- [DSCR_Engine_Master_Specification.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR_Engine_Master_Specification.md) (76 KB) - *Keywords: dscr, loan*
-- [DSCR_Sovereign_OS_Feature_Engineering_Blueprint.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR_Sovereign_OS_Feature_Engineering_Blueprint.md) (36 KB) - *Keywords: dscr, loan, sovereign*
-- [DSCR_Underwriting_Engine_Master_Consolidated_v16.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR_Underwriting_Engine_Master_Consolidated_v16.md) (49 KB) - *Keywords: dscr, loan, underwrit*
-- [DSCR_Underwriting_Engine_v14_Complete_Master_Document.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR_Underwriting_Engine_v14_Complete_Master_Document.md) (56 KB) - *Keywords: dscr, loan, underwrit*
-- [The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md) (23 KB) - *Keywords: dscr, loan*
-- [TimesFM_LoRA_Complete_Engineering_Spec.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/TimesFM_LoRA_Complete_Engineering_Spec.md) (48 KB) - *Keywords: dscr, loan*
-- [05-engine-correctness.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/docs/audit-2026-07-23/05-engine-correctness.md) (24 KB) - *Keywords: dscr, loan, greenstreet*
-- [engineService.test.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/engineService.test.ts) (2 KB) - *Keywords: dscr, loan, greenstreet*
-- [engineService.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/engineService.ts) (11 KB) - *Keywords: dscr, loan, greenstreet*
-- [engineWorker.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/engineWorker.ts) (2 KB) - *Keywords: dscr, loan, greenstreet*
-- [advisory.test.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/engine/advisory.test.ts) (25 KB) - *Keywords: dscr, loan, greenstreet*
-- [armResetEngine.test.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/engine/armResetEngine.test.ts) (3 KB) - *Keywords: dscr, loan, greenstreet*
-- [armResetEngine.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/engine/armResetEngine.ts) (33 KB) - *Keywords: dscr, loan, greenstreet*
-- *... +192 more files indexed in MASTER_RESEARCH_INDEX.json*
-
-### Lender Intelligence (22 items)
-
-- [DSCR Lender Intelligence  Deep Research on Topics Not Previously Covered.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR Lender Intelligence  Deep Research on Topics Not Previously Covered.md) (49 KB) - *Keywords: dscr, loan, lender*
-- [DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md) (52 KB) - *Keywords: dscr, loan, lender, wholesale, non-qm*
-- [THE DEFINITIVE BLUEPRINT_ BUILDING THE BEST NON-QM WHOLESALE LENDER.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/THE DEFINITIVE BLUEPRINT_ BUILDING THE BEST NON-QM WHOLESALE LENDER.md) (9 KB) - *Keywords: dscr, loan, lender, wholesale, non-qm*
-- [THE MISSING PIECES_ NON-QM WHOLESALE LENDER GAP ANALYSIS.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/THE MISSING PIECES_ NON-QM WHOLESALE LENDER GAP ANALYSIS.md) (7 KB) - *Keywords: dscr, loan, lender, wholesale, non-qm*
-- [AGENTS.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-lender/AGENTS.md) (5 KB) - *Keywords: dscr, loan, lender*
-- [CLAUDE.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-lender/CLAUDE.md) (5 KB) - *Keywords: dscr, loan, lender*
-- [hyperframes.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-lender/hyperframes.json) (0 KB) - *Keywords: dscr, loan, lender*
-- [index.html](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-lender/index.html) (12 KB) - *Keywords: dscr, loan, lender*
-- [meta.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-lender/meta.json) (0 KB) - *Keywords: dscr, loan, lender*
-- [package.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-lender/package.json) (0 KB) - *Keywords: dscr, loan, lender*
-- [lender_tapes.py](file:///C:/Users/serge/Documents/antigravity/radiant-borg/scrapers/lender_tapes.py) (5 KB) - *Keywords: lender*
-- [lender_tape_template.csv](file:///C:/Users/serge/Documents/antigravity/radiant-borg/scrapers/lender_tape_template.csv) (0 KB) - *Keywords: lender*
-- [DSCR Lender Intelligence  Deep Research on Topics Not Previously Covered.md](file:///C:/Users/serge/Projects/greenstreet-finance/docs/dscr_loan_office/DSCR Lender Intelligence  Deep Research on Topics Not Previously Covered.md) (49 KB) - *Keywords: dscr, loan, lender, greenstreet*
-- [DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md](file:///C:/Users/serge/Projects/greenstreet-finance/docs/dscr_loan_office/DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md) (52 KB) - *Keywords: dscr, loan, lender, wholesale, non-qm*
-- [THE DEFINITIVE BLUEPRINT_ BUILDING THE BEST NON-QM WHOLESALE LENDER.md](file:///C:/Users/serge/Projects/greenstreet-finance/docs/dscr_loan_office/THE DEFINITIVE BLUEPRINT_ BUILDING THE BEST NON-QM WHOLESALE LENDER.md) (9 KB) - *Keywords: dscr, loan, lender, wholesale, non-qm*
-- [THE MISSING PIECES_ NON-QM WHOLESALE LENDER GAP ANALYSIS.md](file:///C:/Users/serge/Projects/greenstreet-finance/docs/dscr_loan_office/THE MISSING PIECES_ NON-QM WHOLESALE LENDER GAP ANALYSIS.md) (7 KB) - *Keywords: dscr, loan, lender, wholesale, non-qm*
-- [AGENTS.md](file:///C:/Users/serge/Projects/greenstreet-finance/hf-lender/AGENTS.md) (5 KB) - *Keywords: lender, greenstreet*
-- [CLAUDE.md](file:///C:/Users/serge/Projects/greenstreet-finance/hf-lender/CLAUDE.md) (5 KB) - *Keywords: lender, greenstreet*
-- [hyperframes.json](file:///C:/Users/serge/Projects/greenstreet-finance/hf-lender/hyperframes.json) (0 KB) - *Keywords: lender, greenstreet*
-- [index.html](file:///C:/Users/serge/Projects/greenstreet-finance/hf-lender/index.html) (12 KB) - *Keywords: lender, greenstreet*
-- *... +2 more files indexed in MASTER_RESEARCH_INDEX.json*
-
-### Compliance Laws (16 items)
-
-- [07-content-compliance.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/docs/audit-2026-07-23/07-content-compliance.md) (20 KB) - *Keywords: dscr, loan, greenstreet*
-- [AGENTS.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-statelaws/AGENTS.md) (5 KB) - *Keywords: dscr, loan*
-- [CLAUDE.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-statelaws/CLAUDE.md) (5 KB) - *Keywords: dscr, loan*
-- [hyperframes.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-statelaws/hyperframes.json) (0 KB) - *Keywords: dscr, loan*
-- [index.html](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-statelaws/index.html) (8 KB) - *Keywords: dscr, loan*
-- [meta.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-statelaws/meta.json) (0 KB) - *Keywords: dscr, loan*
-- [package.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/hf-statelaws/package.json) (0 KB) - *Keywords: dscr, loan*
-- [dscr-compliance-framework.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/dscr-compliance-framework.md) (2 KB) - *Keywords: dscr*
-- [compliance-workflow.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/compliance-workflow.md) (2 KB) - *Keywords: dscr, loan*
-- [07-content-compliance.md](file:///C:/Users/serge/Projects/greenstreet-finance/docs/audit-2026-07-23/07-content-compliance.md) (20 KB) - *Keywords: greenstreet*
-- [AGENTS.md](file:///C:/Users/serge/Projects/greenstreet-finance/hf-statelaws/AGENTS.md) (5 KB) - *Keywords: greenstreet*
-- [CLAUDE.md](file:///C:/Users/serge/Projects/greenstreet-finance/hf-statelaws/CLAUDE.md) (5 KB) - *Keywords: greenstreet*
-- [hyperframes.json](file:///C:/Users/serge/Projects/greenstreet-finance/hf-statelaws/hyperframes.json) (0 KB) - *Keywords: greenstreet*
-- [index.html](file:///C:/Users/serge/Projects/greenstreet-finance/hf-statelaws/index.html) (8 KB) - *Keywords: greenstreet*
-- [meta.json](file:///C:/Users/serge/Projects/greenstreet-finance/hf-statelaws/meta.json) (0 KB) - *Keywords: greenstreet*
-- [package.json](file:///C:/Users/serge/Projects/greenstreet-finance/hf-statelaws/package.json) (0 KB) - *Keywords: greenstreet*
-
-### Market Datasets (108 items)
-
-- [MortgagePPC-Execution-Playbook-Vol-II.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Execution-Playbook-Vol-II.pdf) (456 KB) - *Keywords: mortgage*
-- [MortgagePPC-Final-BugCheck-Vol-IV.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Final-BugCheck-Vol-IV.pdf) (283 KB) - *Keywords: mortgage*
-- [MortgagePPC-Lead-Generation-Teardown.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Lead-Generation-Teardown.pdf) (1218 KB) - *Keywords: mortgage*
-- [MortgagePPC-Missed-Content-Audit-Vol-V.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Missed-Content-Audit-Vol-V.pdf) (293 KB) - *Keywords: mortgage*
-- [all_archive_summaries.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/all_archive_summaries.json) (94 KB) - *Keywords: dscr, loan, mortgage*
-- [data_use_catalog_sources.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/data_use_catalog_sources.json) (24 KB) - *Keywords: dscr, loan, lender, underwrit, mortgage*
-- [data_use_summary.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/data_use_summary.json) (1 KB) - *Keywords: underwrit, mortgage*
-- [markdown_profiles.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/markdown_profiles.json) (25 KB) - *Keywords: lender, underwrit, perfect property*
-- [pdf_profiles.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/pdf_profiles.json) (16 KB) - *Keywords: dscr, loan, lender, non-qm, bridge loan*
-- [workspace_summary.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/workspace_summary.json) (11 KB) - *Keywords: dscr, loan, mortgage*
-- [zip_members.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/zip_members.json) (61 KB) - *Keywords: dscr, loan, mortgage*
-- [zip_summaries.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/zip_summaries.json) (20 KB) - *Keywords: dscr, loan, mortgage*
-- [build_summary.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_canonical/build_summary.json) (1 KB) - *Keywords: cmbs*
-- [independent_validation.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_canonical/independent_validation.json) (0 KB) - *Keywords: cmbs*
-- [lineage_manifest.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_canonical/lineage_manifest.json) (1 KB) - *Keywords: cmbs*
-- [quality_evidence.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_canonical/quality_evidence.json) (4 KB) - *Keywords: cmbs*
-- [source_file_manifest.csv](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_canonical/source_file_manifest.csv) (1345 KB) - *Keywords: cmbs*
-- [build_summary.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_longitudinal/build_summary.json) (1 KB) - *Keywords: cmbs*
-- [validation_report.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_longitudinal/validation_report.json) (0 KB) - *Keywords: cmbs*
-- [build_summary.json](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/analysis_outputs/cmbs_surveillance/build_summary.json) (1 KB) - *Keywords: cmbs*
-- *... +88 more files indexed in MASTER_RESEARCH_INDEX.json*
-
-### Code Engines (214 items)
-
-- [build_standalone_review.py](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/build_standalone_review.py) (4 KB) - *Keywords: dscr, loan*
-- [chroma_key.py](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/chroma_key.py) (1 KB) - *Keywords: dscr, loan*
-- [generate_flux.py](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/generate_flux.py) (8 KB) - *Keywords: dscr, loan*
-- [regen_logos.py](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/regen_logos.py) (9 KB) - *Keywords: dscr, loan*
-- [server.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/server.ts) (2 KB) - *Keywords: dscr, loan*
-- [vite.config.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/vite.config.ts) (2 KB) - *Keywords: dscr, loan*
-- [index.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/api/index.ts) (0 KB) - *Keywords: dscr, loan*
-- [server.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/server.ts) (2 KB) - *Keywords: dscr, loan, greenstreet*
-- [vite.config.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/vite.config.ts) (6 KB) - *Keywords: dscr, loan, greenstreet*
-- [vitest.config.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/vitest.config.ts) (2 KB) - *Keywords: dscr, loan, greenstreet*
-- [firebase.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/firebase.ts) (1 KB) - *Keywords: dscr, loan, greenstreet*
-- [function.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/function.ts) (0 KB) - *Keywords: dscr, loan, greenstreet*
-- [logger.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/logger.ts) (1 KB) - *Keywords: dscr, loan, greenstreet*
-- [serverApp.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/serverApp.ts) (7 KB) - *Keywords: dscr, loan, greenstreet*
-- [theme.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/theme.ts) (7 KB) - *Keywords: dscr, loan, greenstreet*
-- [vite-env.d.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/vite-env.d.ts) (0 KB) - *Keywords: dscr, loan, greenstreet*
-- [toolReliabilityHolds.test.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/components/toolReliabilityHolds.test.ts) (1 KB) - *Keywords: dscr, loan, greenstreet*
-- [toolReliabilityHolds.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/components/toolReliabilityHolds.ts) (7 KB) - *Keywords: dscr, loan, greenstreet*
-- [index.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/config/index.ts) (1 KB) - *Keywords: dscr, loan, greenstreet*
-- [dscrPrograms.test.ts](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/greenstreet_frontend/src/data/dscrPrograms.test.ts) (2 KB) - *Keywords: dscr, loan, greenstreet*
-- *... +194 more files indexed in MASTER_RESEARCH_INDEX.json*
-
-### Obsidian Vault (14 items)
-
-- [.manifest.json](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/.manifest.json) (7 KB) - *Keywords: dscr, loan, sovereign, greenstreet*
-- [hot.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/hot.md) (1 KB) - *Keywords: dscr, loan, sovereign, greenstreet*
-- [index.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/index.md) (3 KB) - *Keywords: dscr, loan, lender, underwrit, sovereign*
-- [log.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/log.md) (0 KB) - *Keywords: dscr, loan, sovereign, greenstreet*
-- [dscr-platform-architecture.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/dscr-platform-architecture.md) (3 KB) - *Keywords: dscr*
-- [operating-principles.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/operating-principles.md) (2 KB) - *Keywords: dscr, loan*
-- [user-serge.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/entities/user-serge.md) (3 KB) - *Keywords: dscr, loan, lender, wholesale, non-qm*
-- [build-scripts.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/build-scripts.md) (2 KB) - *Keywords: dscr, loan*
-- [frontend-greenstreet.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/frontend-greenstreet.md) (2 KB) - *Keywords: dscr, loan, greenstreet*
-- [master-dscr-knowledge.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/master-dscr-knowledge.md) (3 KB) - *Keywords: dscr, loan*
-- [project-overview.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/project-overview.md) (3 KB) - *Keywords: dscr, loan*
-- [sovereign-os.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/sovereign-os.md) (2 KB) - *Keywords: dscr, loan, sovereign*
-- [greenstreet-finance.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/greenstreet-finance/greenstreet-finance.md) (1 KB) - *Keywords: greenstreet*
-- [Tag - azure sovereign sky.md](file:///C:/Users/serge/OneDrive/Documents/William joyce/Projects/inspo.studio/obsidian_vault/Tags/Tag - azure sovereign sky.md) (0 KB) - *Keywords: sovereign*
-
-### General Research (421 items)
-
-- [ad-script-60-seconds.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/ad-script-60-seconds.md) (8 KB) - *Keywords: dscr, loan*
-- [firebase-applet-config.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/firebase-applet-config.json) (0 KB) - *Keywords: dscr, loan*
-- [firebase.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/firebase.json) (1 KB) - *Keywords: dscr, loan*
-- [firestore.indexes.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/firestore.indexes.json) (0 KB) - *Keywords: dscr, loan*
-- [FULL_STACK_AUDIT.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/FULL_STACK_AUDIT.md) (41 KB) - *Keywords: dscr, loan*
-- [index.html](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/index.html) (218 KB) - *Keywords: dscr, loan*
-- [lint_output.txt](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/lint_output.txt) (0 KB) - *Keywords: dscr, loan*
-- [metadata.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/metadata.json) (0 KB) - *Keywords: dscr, loan*
-- [package-lock.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/package-lock.json) (333 KB) - *Keywords: dscr, loan*
-- [package.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/package.json) (1 KB) - *Keywords: dscr, loan*
-- [QA_FIXPLAN.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/QA_FIXPLAN.md) (11 KB) - *Keywords: dscr, loan*
-- [QA_REPORT_DEFINITIVE_2026-06-24.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/QA_REPORT_DEFINITIVE_2026-06-24.md) (43 KB) - *Keywords: dscr, loan*
-- [README.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/README.md) (1 KB) - *Keywords: dscr, loan*
-- [review-logos-standalone.html](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/review-logos-standalone.html) (3998 KB) - *Keywords: dscr, loan*
-- [review-logos.html](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/review-logos.html) (25 KB) - *Keywords: dscr, loan*
-- [skills-lock.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/skills-lock.json) (7 KB) - *Keywords: dscr, loan*
-- [tsconfig.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/tsconfig.json) (0 KB) - *Keywords: dscr, loan*
-- [ULTRA_REVIEW_2026-06-24.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/ULTRA_REVIEW_2026-06-24.md) (30 KB) - *Keywords: dscr, loan*
-- [vercel.json](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/vercel.json) (0 KB) - *Keywords: dscr, loan*
-- [voiceover-script-60-seconds.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/voiceover-script-60-seconds.md) (4 KB) - *Keywords: dscr, loan*
-- *... +401 more files indexed in MASTER_RESEARCH_INDEX.json*
-
+- [01_MASTER_SOVEREIGN_ARCHITECTURE.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/01_MASTER_SOVEREIGN_ARCHITECTURE.md) (4 KB)
+- [02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md) (6 KB)
+- [03_MASTER_LENDER_AND_COMPLIANCE.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/03_MASTER_LENDER_AND_COMPLIANCE.md) (8 KB)
+- [04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md](file:///C:/Users/serge/OneDrive/Documents/DSCR_LOAN OFFICE/docs/dscr_loan_office/04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md) (276 KB)
+- [MortgagePPC-Execution-Playbook-Vol-II.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Execution-Playbook-Vol-II.pdf) (456 KB)
+- [MortgagePPC-Final-BugCheck-Vol-IV.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Final-BugCheck-Vol-IV.pdf) (283 KB)
+- [MortgagePPC-Lead-Generation-Teardown.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Lead-Generation-Teardown.pdf) (1218 KB)
+- [MortgagePPC-Missed-Content-Audit-Vol-V.pdf](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/MortgagePPC-Missed-Content-Audit-Vol-V.pdf) (293 KB)
+- [Perfect_Property_Engine_Consolidated_Master_Document_v11_Simulation_Prophecy_Accuracy_Guardrails_Merge.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Perfect_Property_Engine_Consolidated_Master_Document_v11_Simulation_Prophecy_Accuracy_Guardrails_Merge.md) (251 KB)
+- [Perfect_Property_Engine_Consolidated_Master_Document_v12_Florida_First_Final_Blueprint_Comparative_Merge.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Perfect_Property_Engine_Consolidated_Master_Document_v12_Florida_First_Final_Blueprint_Comparative_Merge.md) (274 KB)
+- [hot.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/hot.md) (2 KB)
+- [index.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/index.md) (13 KB)
+- [log.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/log.md) (2 KB)
+- [florida-first-property-engine.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/florida-first-property-engine.md) (1 KB)
+- [gbrain-gstack-agent-memory.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/gbrain-gstack-agent-memory.md) (1 KB)
+- [hazard-insurance-and-climate-risk.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/hazard-insurance-and-climate-risk.md) (1 KB)
+- [market-and-rent-signals.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/market-and-rent-signals.md) (1 KB)
+- [mortgage-dscr-loan-data.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/mortgage-dscr-loan-data.md) (1 KB)
+- [mortgage-ppc-retainer-opportunity.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/mortgage-ppc-retainer-opportunity.md) (1 KB)
+- [real-estate-data-source-stack.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/real-estate-data-source-stack.md) (1 KB)
+- [short-term-rental-airdna-rentalizer.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/short-term-rental-airdna-rentalizer.md) (1 KB)
+- [source-catalog-and-procurement.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/source-catalog-and-procurement.md) (1 KB)
+- [ultra-data-expansion.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/concepts/ultra-data-expansion.md) (1 KB)
+- [airdna.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/airdna.md) (0 KB)
+- [fema.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/fema.md) (0 KB)
+- [fhfa.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/fhfa.md) (0 KB)
+- [gbrain.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/gbrain.md) (0 KB)
+- [gstack.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/gstack.md) (0 KB)
+- [hmda.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/hmda.md) (0 KB)
+- [inside-airbnb.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/inside-airbnb.md) (0 KB)
+- [mortgageppc.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/mortgageppc.md) (0 KB)
+- [zillow.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/entities/zillow.md) (0 KB)
+- [real-estate-intelligence.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/projects/real-estate-intelligence/real-estate-intelligence.md) (2 KB)
+- [absolute-complete-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/absolute-complete-zip.md) (8 KB)
+- [absolute-mega-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/absolute-mega-zip.md) (6 KB)
+- [advanced-analyses-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/advanced-analyses-zip.md) (1 KB)
+- [airdna-mimoclaw-workspace-2-tar-gz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/airdna-mimoclaw-workspace-2-tar-gz.md) (19 KB)
+- [airdna-rentalizer-mimoclaw-workspace-tar-gz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/airdna-rentalizer-mimoclaw-workspace-tar-gz.md) (24 KB)
+- [all-20-sources-package-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/all-20-sources-package-zip.md) (4 KB)
+- [bonus-analyses-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/bonus-analyses-zip.md) (1 KB)
+- [complete-master-archive-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/complete-master-archive-zip.md) (17 KB)
+- [everything-session-complete-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/everything-session-complete-zip.md) (13 KB)
+- [final-grand-archive-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/final-grand-archive-zip.md) (21 KB)
+- [grand-complete-archive-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/grand-complete-archive-zip.md) (20 KB)
+- [listings-csv-gz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/listings-csv-gz.md) (1 KB)
+- [mega-package-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/mega-package-zip.md) (6 KB)
+- [mimoclaw-workspace-tar-gz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/mimoclaw-workspace-tar-gz.md) (31 KB)
+- [re-data-package-1-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/re-data-package-1-zip.md) (3 KB)
+- [re-data-package-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/re-data-package-zip.md) (1 KB)
+- [truly-final-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/truly-final-zip.md) (12 KB)
+- [ultra-data-v2-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/archive-inventories/ultra-data-v2-zip.md) (3 KB)
+- [absolute-complete-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/absolute-complete-zip.md) (2 KB)
+- [absolute-mega-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/absolute-mega-zip.md) (2 KB)
+- [advanced-analyses-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/advanced-analyses-zip.md) (1 KB)
+- [airdna-mimoclaw-workspace-2-tar-targz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/airdna-mimoclaw-workspace-2-tar-targz.md) (2 KB)
+- [airdna-rentalizer-mimoclaw-workspace-tar-targz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/airdna-rentalizer-mimoclaw-workspace-tar-targz.md) (3 KB)
+- [all-20-sources-package-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/all-20-sources-package-zip.md) (2 KB)
+- [bonus-analyses-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/bonus-analyses-zip.md) (1 KB)
+- [complete-master-archive-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/complete-master-archive-zip.md) (2 KB)
+- [everything-session-complete-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/everything-session-complete-zip.md) (3 KB)
+- [final-grand-archive-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/final-grand-archive-zip.md) (2 KB)
+- [grand-complete-archive-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/grand-complete-archive-zip.md) (2 KB)
+- [listings-csv-csvgz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/listings-csv-csvgz.md) (1 KB)
+- [mega-package-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/mega-package-zip.md) (2 KB)
+- [mimoclaw-workspace-tar-targz.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/mimoclaw-workspace-tar-targz.md) (3 KB)
+- [mortgageppc-execution-playbook-vol-ii-pdf.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/mortgageppc-execution-playbook-vol-ii-pdf.md) (0 KB)
+- [mortgageppc-final-bugcheck-vol-iv-pdf.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/mortgageppc-final-bugcheck-vol-iv-pdf.md) (0 KB)
+- [mortgageppc-lead-generation-teardown-pdf.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/mortgageppc-lead-generation-teardown-pdf.md) (0 KB)
+- [mortgageppc-missed-content-audit-vol-v-pdf.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/mortgageppc-missed-content-audit-vol-v-pdf.md) (0 KB)
+- [perfect-property-engine-consolidated-master-document-v11-simulation-prophecy-accuracy-guar.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/perfect-property-engine-consolidated-master-document-v11-simulation-prophecy-accuracy-guar.md) (1 KB)
+- [perfect-property-engine-consolidated-master-document-v12-florida-first-final-blueprint-com.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/perfect-property-engine-consolidated-master-document-v12-florida-first-final-blueprint-com.md) (1 KB)
+- [re-data-package-1-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-package-1-zip.md) (2 KB)
+- [re-data-package-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-package-zip.md) (1 KB)
+- [re-data-sources-dossier-1-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-1-xlsx.md) (0 KB)
+- [re-data-sources-dossier-2-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-2-xlsx.md) (0 KB)
+- [re-data-sources-dossier-3-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-3-xlsx.md) (0 KB)
+- [re-data-sources-dossier-4-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-4-xlsx.md) (0 KB)
+- [re-data-sources-dossier-5-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-5-xlsx.md) (0 KB)
+- [re-data-sources-dossier-6-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-6-xlsx.md) (0 KB)
+- [re-data-sources-dossier-7-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-7-xlsx.md) (0 KB)
+- [re-data-sources-dossier-xlsx.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/re-data-sources-dossier-xlsx.md) (0 KB)
+- [truly-final-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/truly-final-zip.md) (2 KB)
+- [ultra-data-v2-zip.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/ultra-data-v2-zip.md) (2 KB)
+- [using-gbrain-with-gstack-md.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/references/source-files/using-gbrain-with-gstack-md.md) (0 KB)
+- [archive-lineage-and-deduplication.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/archive-lineage-and-deduplication.md) (1 KB)
+- [california-housing-insurance-and-wildfire.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/california-housing-insurance-and-wildfire.md) (3 KB)
+- [data-domains-and-next-actions.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/data-domains-and-next-actions.md) (2 KB)
+- [data-quality-risk-register.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/data-quality-risk-register.md) (2 KB)
+- [dscr-data-repository-and-product-use.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/dscr-data-repository-and-product-use.md) (3 KB)
+- [exhaustive-archive-read-and-data-assessment.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/exhaustive-archive-read-and-data-assessment.md) (9 KB)
+- [florida-exposure-pilot.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/florida-exposure-pilot.md) (2 KB)
+- [full-folder-inventory.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/full-folder-inventory.md) (7 KB)
+- [master-data-portfolio-and-retention.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/master-data-portfolio-and-retention.md) (8 KB)
+- [ml-readiness-and-label-sufficiency.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/ml-readiness-and-label-sufficiency.md) (0 KB)
+- [mortgage-market-access-and-portfolio-context.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/mortgage-market-access-and-portfolio-context.md) (2 KB)
+- [operating-program-after-exhaustive-review.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/operating-program-after-exhaustive-review.md) (7 KB)
+- [organized-data-room-map.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/organized-data-room-map.md) (1 KB)
+- [residual-data-lanes-and-release-controls.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/residual-data-lanes-and-release-controls.md) (7 KB)
+- [source-procurement-registry.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/source-procurement-registry.md) (3 KB)
+- [source-quality-and-commercial-moat.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/source-quality-and-commercial-moat.md) (2 KB)
+- [str-market-intelligence-and-rights-boundary.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/str-market-intelligence-and-rights-boundary.md) (2 KB)
+- [verified-three-drive-data-room.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/synthesis/verified-three-drive-data-room.md) (1 KB)
+- [taxonomy.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/Obsidian_Brain/_meta/taxonomy.md) (0 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/README.md) (2 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/00_quarantine/README.md) (0 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/10_landing/README.md) (0 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/20_standardized/README.md) (0 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/20_standardized/florida/README.md) (1 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/30_curated/README.md) (0 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/30_curated/florida_exposure/README.md) (1 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/80_restricted/README.md) (0 KB)
+- [README.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/90_reference/README.md) (0 KB)
+- [DATA_ROOM_INDEX.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/DATA_ROOM_INDEX.md) (2 KB)
+- [ML_READINESS.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/ML_READINESS.md) (2 KB)
+- [cmbs.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/cmbs.md) (0 KB)
+- [demographics_and_geography.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/demographics_and_geography.md) (0 KB)
+- [gse.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/gse.md) (0 KB)
+- [housing_and_rent.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/housing_and_rent.md) (0 KB)
+- [insurance_and_hazard.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/insurance_and_hazard.md) (0 KB)
+- [macroeconomic.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/macroeconomic.md) (0 KB)
+- [mortgage_market.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/mortgage_market.md) (0 KB)
+- [procurement.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/procurement.md) (0 KB)
+- [product_research.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/product_research.md) (0 KB)
+- [reference_and_other.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/reference_and_other.md) (0 KB)
+- [software_models.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/software_models.md) (0 KB)
+- [str.md](file:///C:/Users/serge/OneDrive/Documents/FINANCE DATASETS/organized_data/catalog/domains/str.md) (0 KB)
+- [hot.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/hot.md) (1 KB)
+- [index.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/index.md) (3 KB)
+- [log.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/log.md) (0 KB)
+- [ai-art-collection-pipeline.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/ai-art-collection-pipeline.md) (2 KB)
+- [dscr-compliance-framework.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/dscr-compliance-framework.md) (2 KB)
+- [dscr-platform-architecture.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/dscr-platform-architecture.md) (3 KB)
+- [operating-principles.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/operating-principles.md) (2 KB)
+- [skill-management-strategy.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/concepts/skill-management-strategy.md) (1 KB)
+- [user-serge.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/entities/user-serge.md) (3 KB)
+- [2026-06-23-hermes-desktop-troubleshooting.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/journal/2026-06-23-hermes-desktop-troubleshooting.md) (1 KB)
+- [pipeline.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/ai-art-collection/pipeline.md) (2 KB)
+- [retagging-pipeline.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/ai-art-collection/retagging-pipeline.md) (2 KB)
+- [build-scripts.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/build-scripts.md) (2 KB)
+- [compliance-workflow.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/compliance-workflow.md) (2 KB)
+- [frontend-greenstreet.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/frontend-greenstreet.md) (2 KB)
+- [master-dscr-knowledge.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/master-dscr-knowledge.md) (3 KB)
+- [project-overview.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/project-overview.md) (3 KB)
+- [sovereign-os.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/dscr-loan-office/sovereign-os.md) (2 KB)
+- [greenstreet-finance.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/projects/greenstreet-finance/greenstreet-finance.md) (1 KB)
+- [ai-video-api-resellers.md](file:///C:/Users/serge/OneDrive/Documents/obsidian-wiki-vault/research/ai-video-api-resellers.md) (1 KB)
