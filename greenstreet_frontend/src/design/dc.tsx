@@ -14,7 +14,7 @@ import React, { useRef, useState, useEffect, useContext, createContext } from "r
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius, scale, tracking, onDark, onLight, risk, size as typeScale } from "../theme";
+import { PISTACHIO, MINT_BG, MIDNIGHT, RAINFOREST, LEMON, FADED, font, swatch, radius, space, scale, tracking, onDark, onLight, risk, size as typeScale } from "../theme";
 import { SiteNav, SiteFooter } from "./SiteShell";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -53,7 +53,11 @@ export function useRevealOnView<T extends HTMLElement = HTMLDivElement>() {
 // down. Controlled-input safe — writes through the native value setter then fires
 // an `input` event so React's onChange fires and state updates. Range sliders and
 // non-number fields are ignored; respects step/min/max.
-export function useWheelScrub(scope: React.RefObject<HTMLElement>) {
+// NOTE: `RefObject<HTMLElement | null>` (not `RefObject<HTMLElement>`) — under
+// React 19 typings `useRef<HTMLDivElement>(null)` yields a nullable-current ref,
+// which is what every caller passes. The hook already null-checks `scope.current`,
+// so widening the parameter is the correct fix (matches useDcGsap below).
+export function useWheelScrub(scope: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const root = scope.current;
     if (!root) return;
@@ -103,7 +107,9 @@ export const dc = {
   // ~20px side padding) so page bodies line up edge-to-edge with the shared
   // nav/footer and carry the home's full-width feel.
   maxW: 1728,
-  pad: "clamp(1.1rem, 2.4vw, 1.25rem)",
+  // The 16–20px mobile rail is the homepage's recurring visual anchor.  Use
+  // this for page bands, panels and shell chrome instead of ad-hoc page pads.
+  pad: space.pageGutter,
   r: radius,
   // Phase-0 scales (single vocabulary — see theme.ts)
   scale,          // spacing: dc.scale.lg etc.
@@ -111,6 +117,17 @@ export const dc = {
   ink: onDark,    // text-on-dark opacity ladder (AA-considered)
   inkLight: onLight,
   type: typeScale, // px ramp anchors
+
+  // ── Surface/ink aliases for tool pages rendered on the dark shell ───────────
+  // The commercial/bridge/TCO tool pages were authored against these names. They
+  // are ALIASES ONLY — every value below already exists above or in theme.ts, so
+  // no new color enters the system (see the risk-ramp rule: one restrained ramp,
+  // never reintroduce #ff6b6b / #f97316).
+  card: swatch.darkTeal,               // #004041 — card surface on midnight
+  panel: RAINFOREST,                   // #006565 — nested panel, one step lighter
+  border: "rgba(238,239,211,0.18)",    // same subtle cream hairline as .gs-range
+  light: onDark.primary,               // #eeefd3 — primary value ink on dark
+  muted: onDark.secondary,             // rgba(238,239,211,0.62) — label/eyebrow ink
 } as const;
 
 // Shared CSS injected once per page.
@@ -158,6 +175,23 @@ input[type="number"]{cursor:ns-resize;}
   .hp-card{min-height:680px !important;aspect-ratio:auto !important;}
   .hp-main-grid,.hp-input-grid,.hp-logic-row,.hp-logic-grid{grid-template-columns:1fr !important;}
 }
+/* Mobile contracts for React routes.  These are deliberately opt-in class
+   hooks, so individual pages can inherit the homepage rhythm without a
+   fragile selector that turns every dense tool panel into a card stack. */
+.dc-mobile-band{padding-inline:var(--gs-page-gutter,${space.pageGutter});}
+.dc-mobile-stack{min-width:0;}
+.dc-mobile-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.dc-mobile-card{border-radius:${radius.md};box-shadow:none;}
+@media (max-width:767px){
+  .dc-mobile-stack,.dc-mobile-grid-2,.dc-mobile-grid-3{grid-template-columns:minmax(0,1fr) !important;}
+  .dc-mobile-actions{align-items:stretch;flex-direction:column;}
+  .dc-mobile-actions>*{width:100%;min-height:${space.touchTarget};}
+  .dc-shell main>*{min-width:0;}
+  .dc-shell :where(img,svg,canvas){max-width:100%;}
+  .dc-shell :where(p,h1,h2,h3,h4,li,a,button){overflow-wrap:anywhere;}
+  .dc-shell :where(button,[role="button"],.btn_main_wrap,.g_clickable_link,.dc-cta){min-height:${space.touchTarget};}
+  .dc-shell .gs-range{min-height:${space.touchTarget};}
+}
 @media (prefers-reduced-motion:reduce){
   [class*="gsFloat"],.gs-bar{animation:none !important;}
   *{animation-duration:.001ms !important;}
@@ -169,7 +203,7 @@ input[type="number"]{cursor:ns-resize;}
 // Scroll/entrance animation over a scope. Pages add className="gs-reveal" to sections,
 // id="gs-hero-content" to the hero column, and data-count="N" to count-up numbers.
 // Honors prefers-reduced-motion: numbers snap to final, sections stay fully visible.
-export function useDcGsap(scope: React.RefObject<HTMLElement>) {
+export function useDcGsap(scope: React.RefObject<HTMLElement | null>) {
   useGSAP(
     () => {
       const reduce = prefersReducedMotion();
@@ -412,7 +446,7 @@ export function HeroProof({
   const t2NumRef = useRef<HTMLSpanElement>(null);
   const fmtNum = valueFmt || ((n: number) => n.toFixed(2) + "x");
 
-  const CORAL = "#e0635f";
+  const CORAL = risk.danger;
   const ARC_LEN = Math.PI * 110;            // semicircle gauge, r=110
   const t1 = valueNum ?? (typeof value === "string" ? parseFloat(value) : 0);
   const hasDual = track2Num !== undefined && track2Num < t1 - 0.001;
@@ -589,13 +623,25 @@ export function DcShell({
     );
   }
   return (
-    <div ref={scope} className="dc-shell" style={{ background: PISTACHIO, color: MIDNIGHT, fontFamily: font.family, minHeight: "100vh", overflowX: "hidden", letterSpacing: "-0.02em" }}>
+    <div
+      ref={scope}
+      className="dc-shell"
+      style={{
+        background: PISTACHIO,
+        color: MIDNIGHT,
+        fontFamily: font.family,
+        minHeight: "100vh",
+        overflowX: "hidden",
+        letterSpacing: "-0.02em",
+        "--gs-page-gutter": dc.pad,
+      } as React.CSSProperties}
+    >
       <style>{DC_CSS}</style>
       {/* Shared site chrome (same nav + footer as the marketing home) so every
           page is framed identically. Per-page navLinks/cta/accent are no longer
           used for the shell — kept in the signature for back-compat only. */}
       <SiteNav onNavigate={onNavigate} />
-      <main>{children}</main>
+      <main className="dc-main">{children}</main>
       <SiteFooter onNavigate={onNavigate} />
     </div>
   );
