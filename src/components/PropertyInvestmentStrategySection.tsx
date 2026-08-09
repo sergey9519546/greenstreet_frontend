@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { dc, Mono, H2, Lead } from "../design/dc";
-import { radius } from "../theme";
 import "./PropertyInvestmentStrategySection.css";
 
 export interface PropertyStrategyDetail {
@@ -399,6 +397,7 @@ export default function PropertyInvestmentStrategySection({
 }) {
   const [selectedId, setSelectedId] = useState<string>("SFR");
   const activeStrategy = PROPERTY_STRATEGIES.find((s) => s.id === selectedId) || PROPERTY_STRATEGIES[0];
+  const activeIndex = PROPERTY_STRATEGIES.findIndex((strategy) => strategy.id === activeStrategy.id);
   const tabIdPrefix = variant === "homepage" ? "home-property-strategy" : "property-strategy";
 
   const revealTab = (button: HTMLButtonElement | null) => {
@@ -482,6 +481,10 @@ export default function PropertyInvestmentStrategySection({
               <button type="button" onClick={() => handleCtaClick("investors")}>
                 Explore the complete investor guide <span aria-hidden="true">→</span>
               </button>
+              <div className="gs-property-home__position" aria-live="polite">
+                <span>{String(activeIndex + 1).padStart(2, "0")}</span>
+                <span>of {PROPERTY_STRATEGIES.length} property lenses</span>
+              </div>
             </div>
           </header>
 
@@ -593,364 +596,194 @@ export default function PropertyInvestmentStrategySection({
 
   return (
     <section
-      style={{
-        background: dc.dark,
-        color: dc.cream,
-        padding: "clamp(56px, 8vw, 104px) clamp(1.5rem, 4vw, 3rem)",
-        borderTop: "1px solid rgba(238,239,211,0.08)",
-        borderBottom: "1px solid rgba(238,239,211,0.08)",
-      }}
+      className="gs-property-guide"
       id="property-strategy-section"
+      aria-labelledby="property-strategy-heading"
     >
-      <div style={{ maxWidth: 1320, margin: "0 auto" }}>
-        <style>{`
-          .property-strategy-tabs { scrollbar-width: thin; scrollbar-color: rgba(238,239,211,.32) transparent; }
-          .property-strategy-tab { scroll-snap-align: start; }
-          @media (max-width: 900px) {
-            .property-strategy-tabs {
-              flex-wrap: nowrap !important;
-              justify-content: flex-start !important;
-              overflow-x: auto;
-              scroll-snap-type: x proximity;
-              padding-bottom: 10px;
-            }
-            .property-strategy-tab { flex: 0 0 auto; }
-            .property-strategy-layout { grid-template-columns: minmax(0, 1fr) !important; }
-            .property-strategy-art { height: min(62vw, 360px) !important; }
-          }
-          @media (max-width: 640px) {
-            .property-strategy-detail-grid,
-            .property-strategy-decision-grid { grid-template-columns: minmax(0, 1fr) !important; }
-            .property-strategy-art { height: 64vw !important; min-height: 220px; }
-          }
-        `}</style>
+      <div className="gs-property-guide__backdrop" aria-hidden="true">
+        <img
+          key={activeStrategy.id}
+          src={activeStrategy.image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div className="gs-property-guide__wash" aria-hidden="true" />
 
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 44 }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: dc.lemon,
-              marginBottom: 10,
-            }}
-          >
-            Property & Investment Strategy Master Guide
-          </div>
-          <H2 style={{ color: dc.cream, fontSize: "clamp(30px, 4vw, 54px)", marginBottom: 16, lineHeight: 1.05 }}>
-            Which Property Class Are You Financing?
-          </H2>
-          <Lead style={{ color: "rgba(238,239,211,0.68)", maxWidth: "62ch", margin: "0 auto" }}>
-            Every property type has its own optimal DSCR loan structure, income qualification basis, and leverage ceiling. Select a property class below to see how to structure your deal.
-          </Lead>
-        </div>
-
-        {/* Property Type Selector Tabs */}
-        <div
-          className="property-strategy-tabs"
-          role="tablist"
-          aria-label="Investment property types"
-          style={{
-            display: "flex",
-            gap: 10,
-            justifyContent: "center",
-            flexWrap: "wrap",
-            marginBottom: 44,
-          }}
-        >
-          {PROPERTY_STRATEGIES.map((item, index) => {
-            const isActive = item.id === selectedId;
-            return (
-              <button
-                key={item.id}
-                id={`property-strategy-tab-${item.id}`}
-                className="property-strategy-tab"
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                aria-controls="property-strategy-panel"
-                tabIndex={isActive ? 0 : -1}
-                onClick={(event) => selectStrategy(item.id, event.currentTarget)}
-                onKeyDown={(event) => handleTabKeyDown(event, index)}
-                style={{
-                  padding: "12px 20px",
-                  borderRadius: radius.sm,
-                  background: isActive ? dc.lemon : "rgba(238, 239, 211, 0.06)",
-                  color: isActive ? dc.dark : "rgba(238, 239, 211, 0.8)",
-                  border: isActive ? `1px solid ${dc.lemon}` : "1px solid rgba(238, 239, 211, 0.16)",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  fontFamily: dc.sans,
-                  minHeight: 44,
-                }}
-              >
-                {item.tabLabel}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Active Property Investment Strategy Card Container */}
-        <div
-          id="property-strategy-panel"
-          className="property-strategy-layout"
-          role="tabpanel"
-          aria-labelledby={`property-strategy-tab-${activeStrategy.id}`}
-          style={{
-            background: "rgba(0, 55, 56, 0.5)",
-            borderRadius: radius.lg,
-            border: "1px solid rgba(238, 239, 211, 0.18)",
-            padding: "clamp(24px, 4vw, 44px)",
-            display: "grid",
-            gridTemplateColumns: "minmax(300px, 440px) 1fr",
-            gap: "clamp(24px, 4vw, 48px)",
-            alignItems: "start",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
-          }}
-        >
-          {/* Left Column: Hand-Drawn Architectural Artwork Frame */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div
-              style={{
-                position: "relative",
-                borderRadius: radius.md,
-                overflow: "hidden",
-                border: `2px solid ${dc.lemon}`,
-                background: "#f7f6f0", // Warm cream architectural paper
-                boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
-              }}
-            >
-              <img
-                className="property-strategy-art"
-                src={activeStrategy.image}
-                alt={activeStrategy.title}
-                style={{ width: "100%", height: 320, objectFit: "cover" }}
-                loading="lazy"
-                decoding="async"
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  top: 14,
-                  right: 14,
-                  background: dc.dark,
-                  color: dc.lemon,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  padding: "5px 12px",
-                  borderRadius: 100,
-                  border: `1px solid ${dc.lemon}`,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {activeStrategy.badge}
-              </div>
+      <div className="gs-property-guide__shell">
+        <header className="gs-property-guide__intro">
+          <div>
+            <div className="gs-property-guide__eyebrow">
+              Property &amp; investment strategy field guide
             </div>
-
-            {/* Quick Metrics Callout Box */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                background: "rgba(238, 239, 211, 0.05)",
-                padding: "16px 18px",
-                borderRadius: radius.sm,
-                border: "1px solid rgba(238, 239, 211, 0.12)",
-              }}
-            >
-              <div>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.5)", textTransform: "uppercase", fontWeight: 600 }}>
-                  Max Purchase LTV
-                </span>
-                <Mono style={{ fontSize: 20, fontWeight: 700, color: dc.rain }}>
-                  {activeStrategy.maxLtv}
-                </Mono>
-              </div>
-              <div style={{ borderLeft: "1px solid rgba(238,239,211,0.12)", paddingLeft: 14 }}>
-                <span style={{ display: "block", fontSize: 11, color: "rgba(238,239,211,0.5)", textTransform: "uppercase", fontWeight: 600 }}>
-                  Min Coverage Floor
-                </span>
-                <Mono style={{ fontSize: 20, fontWeight: 700, color: dc.lemon }}>
-                  {activeStrategy.minDscr}
-                </Mono>
-              </div>
-            </div>
+            <h2 id="property-strategy-heading">
+              Choose the property. Then choose the debt.
+            </h2>
           </div>
 
-          {/* Right Column: Deep Underwriting Strategy & Integrated CTA */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: dc.lemon, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>
-                Underwriting Blueprint
-              </div>
-              <h3 style={{ fontSize: "clamp(24px, 2.5vw, 36px)", fontWeight: 700, color: dc.cream, margin: "0 0 8px" }}>
-                {activeStrategy.title}
-              </h3>
-              <div style={{ fontSize: 14, color: "rgba(238,239,211,0.65)", fontWeight: 500 }}>
-                {activeStrategy.subtitle}
-              </div>
-            </div>
-
-            <p style={{ fontSize: 15, color: "rgba(238,239,211,0.85)", lineHeight: 1.6, margin: 0 }}>
-              {activeStrategy.strategySummary}
+          <div className="gs-property-guide__lede">
+            <p>
+              Every rental model has a different income story, operating burden,
+              and leverage ceiling. Select a property lens to see the case for it,
+              the friction against it, and the evidence an underwriter will ask for.
             </p>
-
-            {/* Structuring Details Grid */}
-            <div className="property-strategy-detail-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
-              <div style={{ background: "rgba(0, 55, 56, 0.6)", padding: "14px 16px", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: dc.emerald, textTransform: "uppercase", marginBottom: 4 }}>Recommended Debt Structure</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream }}>{activeStrategy.bestLoanStructure}</div>
-              </div>
-              <div style={{ background: "rgba(0, 55, 56, 0.6)", padding: "14px 16px", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: dc.emerald, textTransform: "uppercase", marginBottom: 4 }}>Income Qualification Basis</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: dc.cream }}>{activeStrategy.qualifyingIncomeBasis}</div>
-              </div>
+            <div className="gs-property-guide__counter" aria-live="polite">
+              <strong>{String(activeIndex + 1).padStart(2, "0")}</strong>
+              <span>/ {String(PROPERTY_STRATEGIES.length).padStart(2, "0")} lenses</span>
             </div>
+          </div>
+        </header>
 
-            {/* Why This Loan Fits & Tax Edge */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ fontSize: 13, color: "rgba(238,239,211,0.8)", lineHeight: 1.5 }}>
-                <strong style={{ color: dc.lemon }}>Loan Fit: </strong> {activeStrategy.whyThisLoanFits}
-              </div>
-              <div style={{ fontSize: 13, color: "rgba(238,239,211,0.8)", lineHeight: 1.5 }}>
-                <strong style={{ color: dc.rain }}>Tax & Depreciation Edge: </strong> {activeStrategy.taxEdge}
-              </div>
-            </div>
-
-            {/* Investor decision support: the upside and the tradeoffs are shown together. */}
-            <div
-              className="property-strategy-decision-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                gap: 20,
-                padding: "4px 0",
-              }}
-            >
-              <div style={{ borderLeft: `2px solid ${dc.risk.positive}`, paddingLeft: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.risk.positive, marginBottom: 10 }}>
-                  The upside
-                </div>
-                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
-                  {activeStrategy.advantages.map((advantage) => (
-                    <li key={advantage} style={{ display: "flex", gap: 8, alignItems: "flex-start", color: "rgba(238,239,211,0.82)", fontSize: 13, lineHeight: 1.5 }}>
-                      <span aria-hidden="true" style={{ color: dc.risk.positive, fontWeight: 800 }}>+</span>
-                      <span>{advantage}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div style={{ borderLeft: `2px solid ${dc.risk.dangerOnDark}`, paddingLeft: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.risk.dangerOnDark, marginBottom: 10 }}>
-                  The tradeoffs
-                </div>
-                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
-                  {activeStrategy.tradeoffs.map((tradeoff) => (
-                    <li key={tradeoff} style={{ display: "flex", gap: 8, alignItems: "flex-start", color: "rgba(238,239,211,0.82)", fontSize: 13, lineHeight: 1.5 }}>
-                      <span aria-hidden="true" style={{ color: dc.risk.dangerOnDark, fontWeight: 800 }}>−</span>
-                      <span>{tradeoff}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div style={{ borderLeft: `2px solid ${dc.lemon}`, padding: "2px 0 2px 16px", fontSize: 13, color: "rgba(238,239,211,0.78)", lineHeight: 1.55 }}>
-              <strong style={{ color: dc.lemon }}>Decision checkpoint: </strong>
-              {activeStrategy.dueDiligence}
-            </div>
-
-            {/* Key Guidelines Checklist */}
-            <div style={{ background: "rgba(238,239,211,0.04)", padding: "18px 20px", borderRadius: radius.sm, border: "1px solid rgba(238,239,211,0.1)" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: dc.cream, marginBottom: 10, textTransform: "uppercase" }}>
-                Underwriting & Eligibility Check
-              </div>
-              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
-                {activeStrategy.keyGuidelines.map((rule, idx) => (
-                  <li key={idx} style={{ fontSize: 13, color: "rgba(238,239,211,0.78)", display: "flex", alignItems: "flex-start", gap: 8 }}>
-                    <span style={{ color: dc.lemon, fontWeight: "bold" }}>✓</span>
-                    <span>{rule}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* ── MERGED MASTER CALL TO ACTION (CTA) ── */}
-            <div
-              style={{
-                marginTop: 10,
-                padding: "24px 28px",
-                background: "linear-gradient(135deg, rgba(216, 217, 88, 0.12) 0%, rgba(0, 101, 101, 0.25) 100%)",
-                borderRadius: radius.md,
-                border: `1.5px solid ${dc.lemon}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-                gap: 20,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: dc.cream, marginBottom: 4 }}>
-                  Ready to price a {activeStrategy.title}?
-                </div>
-                <div style={{ fontSize: 13, color: "rgba(238,239,211,0.7)" }}>
-                  Run live DSCR coverage, PITIA payment breakdown, and lender program matching instantly.
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div className="gs-property-guide__workspace">
+          <div
+            className="gs-property-guide__index"
+            role="tablist"
+            aria-label="Investment property types"
+            aria-orientation="vertical"
+          >
+            {PROPERTY_STRATEGIES.map((item, index) => {
+              const isActive = item.id === selectedId;
+              return (
                 <button
+                  key={item.id}
+                  id={`property-strategy-tab-${item.id}`}
+                  className="gs-property-guide__tab"
+                  type="button"
+                  role="tab"
+                  aria-label={item.tabLabel}
+                  aria-selected={isActive}
+                  aria-controls="property-strategy-panel"
+                  tabIndex={isActive ? 0 : -1}
+                  data-active={isActive ? "true" : "false"}
+                  onClick={(event) => selectStrategy(item.id, event.currentTarget)}
+                  onKeyDown={(event) => handleTabKeyDown(event, index)}
+                >
+                  <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{item.tabLabel}</strong>
+                </button>
+              );
+            })}
+          </div>
+
+          <article
+            className="gs-property-guide__canvas"
+            id="property-strategy-panel"
+            role="tabpanel"
+            aria-labelledby={`property-strategy-tab-${activeStrategy.id}`}
+          >
+            <header className="gs-property-guide__identity">
+              <div className="gs-property-guide__eyebrow is-accent">
+                Lens {String(activeIndex + 1).padStart(2, "0")} · {activeStrategy.badge}
+              </div>
+              <h3>{activeStrategy.title}</h3>
+              <div className="gs-property-guide__subtitle">{activeStrategy.subtitle}</div>
+              <p>{activeStrategy.strategySummary}</p>
+            </header>
+
+            <dl className="gs-property-guide__metrics">
+              <div>
+                <dt>Leverage signal</dt>
+                <dd>{activeStrategy.maxLtv}</dd>
+              </div>
+              <div>
+                <dt>Coverage floor</dt>
+                <dd>{activeStrategy.minDscr}</dd>
+              </div>
+              <div>
+                <dt>Liquidity posture</dt>
+                <dd>{activeStrategy.reservesNeeded}</dd>
+              </div>
+            </dl>
+
+            <div className="gs-property-guide__debt">
+              <section>
+                <span>Debt path</span>
+                <strong>{activeStrategy.bestLoanStructure}</strong>
+              </section>
+              <section>
+                <span>Income evidence</span>
+                <strong>{activeStrategy.qualifyingIncomeBasis}</strong>
+              </section>
+            </div>
+
+            <div className="gs-property-guide__principles">
+              <p>
+                <strong>Why this loan fits</strong>
+                {activeStrategy.whyThisLoanFits}
+              </p>
+              <p>
+                <strong>Tax and depreciation note</strong>
+                {activeStrategy.taxEdge}
+              </p>
+            </div>
+
+            <div className="gs-property-guide__balance">
+              <section aria-labelledby="property-guide-upside-heading">
+                <h4 id="property-guide-upside-heading">The investment case</h4>
+                <ul>
+                  {activeStrategy.advantages.map((advantage) => (
+                    <li key={advantage}>{advantage}</li>
+                  ))}
+                </ul>
+              </section>
+              <section aria-labelledby="property-guide-tradeoffs-heading">
+                <h4 id="property-guide-tradeoffs-heading">The operating friction</h4>
+                <ul>
+                  {activeStrategy.tradeoffs.map((tradeoff) => (
+                    <li key={tradeoff}>{tradeoff}</li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+
+            <div className="gs-property-guide__desk-notes">
+              <aside className="gs-property-guide__checkpoint">
+                <span>Decision checkpoint</span>
+                <p>{activeStrategy.dueDiligence}</p>
+              </aside>
+
+              <section className="gs-property-guide__eligibility">
+                <div className="gs-property-guide__eyebrow">Underwriting desk notes</div>
+                <ol>
+                  {activeStrategy.keyGuidelines.map((rule, index) => (
+                    <li key={rule}>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <p>{rule}</p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            </div>
+
+            <footer className="gs-property-guide__cta">
+              <div>
+                <div className="gs-property-guide__eyebrow is-accent">Take the next step</div>
+                <h4>Pressure-test this {activeStrategy.title.toLowerCase()}.</h4>
+                <p>
+                  Run coverage, payment, and lender-program logic against the
+                  actual deal—not the headline rent.
+                </p>
+              </div>
+              <div className="gs-property-guide__actions">
+                <button
+                  className="gs-property-guide__primary"
                   type="button"
                   onClick={() => handleCtaClick(activeStrategy.ctaPrimaryTarget)}
-                  style={{
-                    background: dc.lemon,
-                    color: dc.dark,
-                    fontWeight: 700,
-                    fontSize: 15,
-                    padding: "14px 26px",
-                    borderRadius: radius.sm,
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily: dc.sans,
-                    boxShadow: "0 4px 14px rgba(216, 217, 88, 0.3)",
-                    transition: "transform 0.15s ease",
-                    minHeight: 44,
-                  }}
                 >
                   {activeStrategy.ctaPrimaryText}
                 </button>
-
                 <button
+                  className="gs-property-guide__secondary"
                   type="button"
                   onClick={() => handleCtaClick("book-demo")}
-                  style={{
-                    background: "transparent",
-                    color: dc.cream,
-                    fontWeight: 600,
-                    fontSize: 14,
-                    padding: "13px 20px",
-                    borderRadius: radius.sm,
-                    border: "1px solid rgba(238,239,211,0.3)",
-                    cursor: "pointer",
-                    fontFamily: dc.sans,
-                    minHeight: 44,
-                  }}
                 >
-                  Book 15-Min Strategy Session →
+                  Review it with Greenstreet <span aria-hidden="true">→</span>
                 </button>
               </div>
-            </div>
-
-          </div>
+            </footer>
+          </article>
         </div>
-
       </div>
     </section>
   );
