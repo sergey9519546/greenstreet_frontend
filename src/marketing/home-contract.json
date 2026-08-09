@@ -1,6 +1,6 @@
 {
-  "source": "src/marketing/home-markup.html reviewed 2026-08-08",
-  "sha256": "ffb1ec15356e78499d29fa1860683257a48f7638d9d77c2e0cd0675919f2ba37",
+  "source": "src/marketing/home-markup.html reviewed 2026-08-08 after homepage property-guide integration",
+  "sha256": "28eaab6d53e255161363493e737dada54fbaadfe848786771f3c51f694cef8d7",
   "requiredMarkers": [
     "class=\"page_wrap\"",
     "class=\"nav-wrap\"",
