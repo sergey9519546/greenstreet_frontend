@@ -76,6 +76,14 @@ A full scan of the rendered homepage found **exactly one** element with a
 
 Any soft shadow in the app is a divergence, not a style choice.
 
+### Property imagery — no gradients
+
+Property illustrations sit directly on one of the two canonical surfaces. Use a
+transparent asset when available, or `mix-blend-mode: multiply` so the image's
+paper background takes on the cream or green beneath it. Do not add atmospheric
+gradients, gradient washes, gradient transitions, or fade an image into a new
+surface. When the section changes from cream to green, use a clean hard band.
+
 ---
 
 ## 5. Risk colour ramp

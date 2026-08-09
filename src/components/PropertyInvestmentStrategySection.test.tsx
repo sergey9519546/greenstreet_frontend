@@ -46,6 +46,18 @@ describe("PropertyInvestmentStrategySection", () => {
     expect(document.querySelector(".property-strategy-layout")).toBeNull();
     expect(document.querySelector(".property-strategy-art")).toBeNull();
     expect(document.querySelector(".gs-property-guide__eligibility")).toBeVisible();
+    expect(screen.getByRole("tablist")).toHaveAttribute(
+      "aria-orientation",
+      "horizontal",
+    );
+    expect(document.querySelector(".gs-property-guide")).toHaveClass(
+      "u-theme-dark",
+    );
+    expect(
+      screen.getByRole("heading", {
+        name: "Choose the property. Then choose the debt.",
+      }),
+    ).toHaveClass("u-text-style-h2");
     expect(screen.getByText("The investment case")).toBeVisible();
     expect(screen.getByText("The operating friction")).toBeVisible();
     expect(screen.getByText(/Confirm permits, certificate of occupancy/)).toBeVisible();
@@ -71,7 +83,13 @@ describe("PropertyInvestmentStrategySection", () => {
 
     expect(
       screen.getByRole("heading", { name: "Which rental model fits the deal?" }),
-    ).toBeVisible();
+    ).toHaveClass("u-text-style-h2");
+    expect(document.querySelector(".gs-property-home")).toHaveClass(
+      "u-theme-light",
+    );
+    expect(document.querySelector(".gs-property-home__inner")).toHaveClass(
+      "u-container",
+    );
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(10);
     expect(screen.getByRole("tablist").querySelector("img")).toBeNull();
