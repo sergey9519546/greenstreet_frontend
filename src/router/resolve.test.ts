@@ -97,6 +97,15 @@ describe('isKnownRoute — interceptor coverage', () => {
     expect(isKnownRoute('/case-studies/x')).toBe(true);
   });
 
+  it.each([
+    '/book-demofoo',
+    '/blogger',
+    '/case-studies-fake',
+  ])('rejects route-prefix collision %s', (path) => {
+    expect(resolveRoute(path)).toBe('not-found');
+    expect(isKnownRoute(path)).toBe(false);
+  });
+
   it('rejects external / unknown and non-rooted hrefs', () => {
     expect(isKnownRoute('/nope')).toBe(false);
     expect(isKnownRoute('https://example.com/foo')).toBe(false);

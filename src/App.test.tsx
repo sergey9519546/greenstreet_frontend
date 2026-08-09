@@ -25,7 +25,14 @@ vi.hoisted(() => {
 // Sentinels for the heavy route modules App pulls in via React.lazy / dynamic
 // import. vi.mock intercepts dynamic imports, so the real chunks never load.
 vi.mock('./marketing/MarketingHome', () => ({
-  default: () => <div data-testid="route-marketing-home" />,
+  default: () => (
+    <div data-testid="route-marketing-home">
+      <a href="/blog/what-is-dscr-how-it-works">read the DSCR article</a>
+    </div>
+  ),
+}));
+vi.mock('./pages/BlogPostPage', () => ({
+  default: () => <div data-testid="route-blog-post" />,
 }));
 vi.mock('./pages/DSCRCalculatorPage', () => ({
   default: (props: { onNavigate?: (v: string) => void }) => (
@@ -132,5 +139,15 @@ describe('App routing', () => {
     expect(window.location.pathname).toBe('/tools/commercial-dscr');
     expect(await screen.findByTestId('route-commercial-dscr')).toBeInTheDocument();
     expect(screen.queryByTestId('route-dscr-calculator')).toBeNull();
+  });
+
+  it('preserves a blog article pathname during intercepted SPA navigation', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup();
+    await renderAt('/');
+
+    await user.click(screen.getByRole('link', { name: /read the dscr article/i }));
+
+    expect(window.location.pathname).toBe('/blog/what-is-dscr-how-it-works');
+    expect(await screen.findByTestId('route-blog-post')).toBeInTheDocument();
   });
 });

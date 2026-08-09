@@ -411,8 +411,7 @@ function portalTabFromPath(pathname: string): string | undefined {
   return undefined;
 }
 
-function navigateTo(view: PageView) {
-  const path = viewToPath(view);
+function navigateTo(view: PageView, path = viewToPath(view)) {
   if (typeof window !== "undefined") {
     window.history.pushState({}, "", path);
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -513,10 +512,10 @@ export default function App() {
   }, []);
 
   // Global link interceptor: any <a href="/internal"> click navigates via
-  // React Router instead of doing a full page reload. Unknown paths fall
+  // the app's History API router instead of doing a full page reload. Unknown paths fall
   // through so external links (HubSpot booking, asset files, etc.) keep working.
-  const goTo = (nextView: PageView) => {
-    navigateTo(nextView);
+  const goTo = (nextView: PageView, path?: string) => {
+    navigateTo(nextView, path);
     setView(nextView);
     if (typeof window !== "undefined") {
       setPathname(window.location.pathname);
@@ -559,7 +558,7 @@ export default function App() {
       if (!isKnownRoute(href)) return;
 
       e.preventDefault();
-      goToRef.current(resolveRoute(href));
+      goToRef.current(resolveRoute(href), href);
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);
