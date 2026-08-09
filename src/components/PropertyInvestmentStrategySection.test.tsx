@@ -52,7 +52,7 @@ describe("PropertyInvestmentStrategySection", () => {
     );
   });
 
-  it("offers a compact image-led comparison for the homepage", async () => {
+  it("uses one full-background image and unframed property controls on the homepage", async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn();
     render(
@@ -65,16 +65,25 @@ describe("PropertyInvestmentStrategySection", () => {
     expect(
       screen.getByRole("heading", { name: "Which rental model fits the deal?" }),
     ).toBeVisible();
-    expect(screen.getAllByRole("tab")).toHaveLength(10);
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs).toHaveLength(10);
+    expect(screen.getByRole("tablist").querySelector("img")).toBeNull();
+    expect(document.querySelector(".gs-property-home__dossier")).toBeNull();
+    expect(document.querySelector(".gs-property-home__visual")).toBeNull();
 
     await user.click(screen.getByRole("tab", { name: "Manufactured & Modular" }));
     const panel = screen.getByRole("tabpanel");
     expect(panel).toHaveTextContent("Manufactured & Modular Rental Homes");
     expect(panel).toHaveTextContent("The upside");
     expect(panel).toHaveTextContent("The tradeoffs");
-    expect(
-      screen.getByRole("img", { name: "Manufactured & Modular Rental Homes" }),
-    ).toHaveAttribute("src", "/img/properties/manufactured_modular.jpg");
+    const backdrop = document.querySelector<HTMLImageElement>(
+      ".gs-property-home__backdrop img",
+    );
+    expect(backdrop).toHaveAttribute(
+      "src",
+      "/img/properties/manufactured_modular.jpg",
+    );
+    expect(backdrop).toHaveAttribute("alt", "");
 
     await user.click(
       screen.getByRole("button", { name: /Explore the complete investor guide/ }),
