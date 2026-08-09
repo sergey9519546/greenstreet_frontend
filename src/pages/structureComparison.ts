@@ -13,6 +13,17 @@ export interface StructureComparisonInput {
   ficoScore: number;
 }
 
+export const STRUCTURE_COMPARISON_ASSUMPTIONS = {
+  state: "TX",
+  propertyType: "SFR",
+  annualPropertyTaxRatePct: 1.5,
+  annualInsurance: 2_000,
+  monthlyHoa: 0,
+  exitCapRatePct: 6.5,
+  holdYears: 5,
+  taxProfile: "returns-engine-default",
+} as const;
+
 function annualCashOnCash(
   monthlyCashFlow: number,
   cashToClose: number,
@@ -25,12 +36,14 @@ export function compareLoanStructures(input: StructureComparisonInput) {
     purchasePrice: input.purchasePrice,
     loanAmount: input.purchasePrice * (1 - input.downPaymentPct / 100),
     monthlyRent: input.monthlyRent,
-    state: "TX",
+    state: STRUCTURE_COMPARISON_ASSUMPTIONS.state,
     ficoScore: input.ficoScore,
-    propertyType: "SFR" as const,
-    annualTaxes: input.purchasePrice * 0.015,
-    annualInsurance: 2_000,
-    hoa: 0,
+    propertyType: STRUCTURE_COMPARISON_ASSUMPTIONS.propertyType,
+    annualTaxes:
+      input.purchasePrice *
+      (STRUCTURE_COMPARISON_ASSUMPTIONS.annualPropertyTaxRatePct / 100),
+    annualInsurance: STRUCTURE_COMPARISON_ASSUMPTIONS.annualInsurance,
+    hoa: STRUCTURE_COMPARISON_ASSUMPTIONS.monthlyHoa,
   });
 
   const fixed = solveDSCR(
@@ -66,8 +79,8 @@ export function compareLoanStructures(input: StructureComparisonInput) {
       0,
       fixed.cashToClose.total,
     ),
-    exitCapRatePct: 6.5,
-    holdYears: 5,
+    exitCapRatePct: STRUCTURE_COMPARISON_ASSUMPTIONS.exitCapRatePct,
+    holdYears: STRUCTURE_COMPARISON_ASSUMPTIONS.holdYears,
     tax: { ...DEFAULT_TAX_ASSUMPTIONS, enabled: true },
   });
 
@@ -77,7 +90,7 @@ export function compareLoanStructures(input: StructureComparisonInput) {
       name: "30-Year Fixed",
       deal: fixed,
       cashOnCashPct: annualCashOnCash(
-        fixed.dualTrackDSCR.track1.monthlyCashFlow,
+        fixed.dualTrackDSCR.track2.monthlyCashFlow,
         fixed.cashToClose.total,
       ),
       afterTaxIrrPct: fixedSchedule.metrics.afterTaxIrrPct,
@@ -87,7 +100,7 @@ export function compareLoanStructures(input: StructureComparisonInput) {
       name: "10-Year Interest Only",
       deal: interestOnly,
       cashOnCashPct: annualCashOnCash(
-        interestOnly.dualTrackDSCR.track1.monthlyCashFlow,
+        interestOnly.dualTrackDSCR.track2.monthlyCashFlow,
         interestOnly.cashToClose.total,
       ),
       afterTaxIrrPct: null,
@@ -97,7 +110,7 @@ export function compareLoanStructures(input: StructureComparisonInput) {
       name: "5/6 ARM",
       deal: arm,
       cashOnCashPct: annualCashOnCash(
-        arm.dualTrackDSCR.track1.monthlyCashFlow,
+        arm.dualTrackDSCR.track2.monthlyCashFlow,
         arm.cashToClose.total,
       ),
       afterTaxIrrPct: null,

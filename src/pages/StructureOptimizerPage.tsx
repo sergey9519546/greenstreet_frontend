@@ -2,7 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import { DcShell, dc, Mono, H1, Lead } from "../design/dc";
 import { swatch, radius, font } from "../theme";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
-import { compareLoanStructures } from "./structureComparison";
+import {
+  compareLoanStructures,
+  STRUCTURE_COMPARISON_ASSUMPTIONS,
+} from "./structureComparison";
 
 const BAND = dc.dark;
 const CARD = swatch.darkTeal;
@@ -113,7 +116,7 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
                 </div>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                    <span style={{ color: INK_DIM, fontSize: 14 }}>Year 1 Cash-on-Cash</span>
+                    <span style={{ color: INK_DIM, fontSize: 14 }}>Year 1 Cash-on-Cash (after expenses)</span>
                     <Mono style={{ fontWeight: 600 }}>{pct(struct.cashOnCashPct, 2)}</Mono>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
@@ -127,6 +130,21 @@ export default function StructureOptimizerPage({ onNavigate }: { onBack?: () => 
           <p style={{ color: INK_DIM, fontSize: 12, lineHeight: 1.6, margin: "4px 0 0" }}>
             Five-year after-tax IRR is shown only for the fixed-rate structure. It is not established for the interest-only or ARM examples because this returns model does not simulate their payment changes.
           </p>
+          <aside
+            aria-label="Illustrative comparison assumptions"
+            style={{
+              color: INK_DIM,
+              fontSize: 12,
+              lineHeight: 1.7,
+              border: HAIRLINE,
+              borderRadius: radius.sm,
+              padding: "14px 16px",
+              marginTop: 4,
+            }}
+          >
+            <strong style={{ color: INK }}>Illustrative assumptions:</strong>{" "}
+            Texas single-family rental; property tax {STRUCTURE_COMPARISON_ASSUMPTIONS.annualPropertyTaxRatePct}% of purchase price annually; insurance {money(STRUCTURE_COMPARISON_ASSUMPTIONS.annualInsurance)} annually; {money(STRUCTURE_COMPARISON_ASSUMPTIONS.monthlyHoa)} monthly HOA; {STRUCTURE_COMPARISON_ASSUMPTIONS.exitCapRatePct}% exit cap; {STRUCTURE_COMPARISON_ASSUMPTIONS.holdYears}-year hold; and the returns engine&apos;s default tax profile. Cash-on-cash uses expense-aware modeled cash flow. Results are educational estimates, not a rate quote, approval, tax advice, or provider commitment.
+          </aside>
         </div>
       </section>
     </DcShell>
