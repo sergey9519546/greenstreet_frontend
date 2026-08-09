@@ -46,7 +46,7 @@ const RAW_POSTS = [
       { p: "Investors can stress-test the acquisition before wiring earnest money, and review the logic behind program fit, state rules, and rate-path assumptions in one place." },
     ],
     glyph: "GO", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Greenstreet",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -82,7 +82,7 @@ const RAW_POSTS = [
       { p: "→ Estimate the DSCR on your property using Greenstreet's Deal Analyzer: open the DSCR Calculator from any page." },
     ],
     glyph: "÷", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -105,7 +105,7 @@ const RAW_POSTS = [
       { quote: "Tax and insurance are the two PITIA components that sink deals at underwriting. Model both from real sources — county records and an actual insurance quote — before you go to contract." },
     ],
     glyph: "Σ", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -137,7 +137,7 @@ const RAW_POSTS = [
       { quote: "A useful comparison starts with the same assumptions and a current written quote from each provider." },
     ],
     glyph: "LTV", glyphColor: dc.rain, bg: dc.mintBg,
-    author: "Sara López",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -173,7 +173,7 @@ const RAW_POSTS = [
       { quote: "The break-even month is the number that makes the refinance decision rational instead of emotional. Run it before you pay the appraisal." },
     ],
     glyph: "↺", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -204,7 +204,7 @@ const RAW_POSTS = [
       { quote: "The six problems above recur in roughly that order of frequency. Check your file against all six before submission, not after the underwriter calls." },
     ],
     glyph: "✕→✓", glyphColor: dc.emerald, bg: dc.teal,
-    author: "Sara López",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -236,7 +236,7 @@ const RAW_POSTS = [
       { quote: "Treat every foreign-national scenario as lender- and borrower-specific, with tax and legal advice obtained before closing." },
     ],
     glyph: "FN", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -264,7 +264,7 @@ const RAW_POSTS = [
     ],
     // mockup glyph metadata
     glyph: "%", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -285,7 +285,7 @@ const RAW_POSTS = [
       { quote: "The affidavit is the deal. In MN it always was — now it's in statute." },
     ],
     glyph: "§", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Sara López",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -311,7 +311,7 @@ const RAW_POSTS = [
       { quote: "Rural Opportunity Zones now carry a 30% step-up. For the right DSCR deal in a rural market, the tax structure is as important as the rate." },
     ],
     glyph: "⊕", glyphColor: dc.rain, bg: dc.mintBg,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -342,7 +342,7 @@ const RAW_POSTS = [
       { quote: "1071 data collection doesn't start until 2028. If you're under 1,000 originations, the clock isn't running yet — but you should know exactly when it starts." },
     ],
     glyph: "§", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Sara López",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -363,7 +363,7 @@ const RAW_POSTS = [
       { quote: "A 6.125% you can't qualify for isn't a rate. It's bait." },
     ],
     glyph: "∿", glyphColor: dc.rain, bg: dc.mintBg,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -387,7 +387,7 @@ const RAW_POSTS = [
       { quote: "Flood insurance is no longer a closing-day line item. In coastal markets, it's often the underwriting variable that kills the deal — or the one that saves it if you price it right." },
     ],
     glyph: "☼", glyphColor: dc.emerald, bg: dc.teal,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   // Featured post (why-no-llm) drives the Featured block; listed separately below
@@ -412,7 +412,7 @@ const RAW_POSTS = [
       { quote: "Determinism is a feature. Every figure Greenstreet produces is auditable — the same inputs produce the same output, every time." },
     ],
     glyph: "det()", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: true,
   },
 
@@ -452,7 +452,7 @@ const RAW_POSTS = [
       { quote: "The 1007 long-term rent is the floor. Without 12 months of documented STR history, that's your qualifying income — regardless of what AirDNA says the property could earn." },
     ],
     glyph: "STR", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Sara López",
+    author: "Greenstreet Research",
     featured: false,
   },
 
@@ -510,7 +510,7 @@ const RAW_POSTS = [
       { quote: "No W-2s, no tax returns — but the appraisal, the insurance, and the bank statements are where DSCR files actually get held up. Have all three ready before you submit." },
     ],
     glyph: "✓", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
 
@@ -572,7 +572,7 @@ const RAW_POSTS = [
       { quote: "The appraisal is the critical path. Everything else can move in parallel — docs, insurance, LLC verification. Order the appraisal as early as possible." },
     ],
     glyph: "→", glyphColor: dc.dark, bg: dc.emerald,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
 
@@ -613,7 +613,7 @@ const RAW_POSTS = [
       { quote: "DSCR improvement is arithmetic. Identify which component of PITIA is largest, and decide which lever(s) move it most efficiently given the investor's capital and risk tolerance." },
     ],
     glyph: "↑", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   // ── INVESTOR DECISION GUIDES (added 2026-07-18) ────────────────────────────
@@ -672,7 +672,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "IO", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -740,7 +740,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "$", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -795,7 +795,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "1%", glyphColor: dc.cream, bg: dc.rain,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   // ── EVERGREEN DSCR FIELD GUIDES (added 2026-07-18) ──────────────────────
@@ -848,7 +848,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "CF", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -897,7 +897,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "1007", glyphColor: dc.cream, bg: dc.rain,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -950,7 +950,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "6M", glyphColor: dc.dark, bg: dc.mintBg,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1010,7 +1010,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "VS", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1065,7 +1065,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "01", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1119,7 +1119,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "2–4", glyphColor: dc.cream, bg: dc.rain,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   // ── DEAL-STRUCTURE LAB (added 2026-07-18) ───────────────────────────────
@@ -1168,7 +1168,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "EXIT", glyphColor: dc.lemon, bg: dc.dark,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1221,7 +1221,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "LOCK", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1270,7 +1270,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "RISK", glyphColor: dc.cream, bg: dc.rain,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1324,7 +1324,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "LLC", glyphColor: dc.dark, bg: dc.mintBg,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1377,7 +1377,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "TAX", glyphColor: dc.cream, bg: dc.rain,
-    author: "Marcus Chen",
+    author: "Greenstreet Research",
     featured: false,
   },
   {
@@ -1431,7 +1431,7 @@ const RAW_POSTS = [
       ]},
     ],
     glyph: "±100", glyphColor: dc.dark, bg: dc.lemon,
-    author: "Priya Rao",
+    author: "Greenstreet Research",
     featured: false,
   },
 ];
@@ -1819,10 +1819,10 @@ function BlogIndex({ onNavigate }: { onNavigate: (v: string) => void }) {
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ width: 34, height: 34, borderRadius: "50%", background: dc.emerald, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: dc.dark, flexShrink: 0 }}>
-                PR
+                GS
               </span>
               <span style={{ fontSize: 14, fontWeight: 500, color: "rgba(238,239,211,0.7)", letterSpacing: "-0.01em" }}>
-                Priya Rao · Head of Quant
+                Greenstreet Research
               </span>
             </div>
           </div>

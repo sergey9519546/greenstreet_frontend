@@ -44,10 +44,10 @@ const SEGMENTS: Segment[] = [
   },
   {
     tag: "Short-term & vacation rental investors",
-    title: "STR income counts. Full stop.",
+    title: "Model STR and non-US scenarios",
     desc:
-      "Airbnb gross revenue or vacation-rental income qualifies under our STR program — we use actual platform data, not hypothetical long-term-lease assumptions. Non-US investors qualify too: passport + alternative credit, no SSN required. Every file runs Dual-Track DSCR: lender qualifying (Track 1) and investor cash-flow survival (Track 2) in one pass.",
-    cta: "Explore STR & global programs →",
+      "Short-term-rental income and non-US borrower documentation can be considered under some published programs, but the evidence and overlays vary. Use Dual-Track DSCR to compare a lender-style rent-coverage scenario with investor cash-flow survival, then verify the current program rules for the specific file.",
+    cta: "Explore STR & non-US scenarios →",
     view: "borrower-profiles",
     panelBg: dc.dark,
     panelAccent: dc.lemon,
@@ -57,9 +57,9 @@ const SEGMENTS: Segment[] = [
     dscrPreview: 1.18,
     stats: [
       { v: "STR", k: "income accepted" },
-      { v: "Global", k: "non-US investor program" },
+      { v: "Cross-border", k: "provider-specific review" },
       { v: "Dual-Track", k: "DSCR analysis" },
-      { v: "3 min", k: "ITIN approval path" },
+      { v: "Current", k: "ITIN evidence required" },
     ],
   },
   {

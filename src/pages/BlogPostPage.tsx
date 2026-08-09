@@ -4,10 +4,7 @@ import { DcShell, dc, Mono } from "../design/dc";
 
 // ── Author registry ───────────────────────────────────────────────────────────
 const AUTHOR_META: Record<string, { initials: string; role: string }> = {
-  "Priya Rao":    { initials: "PR", role: "Cofounder & Head of Quant" },
-  "Sara López":   { initials: "SL", role: "Compliance & State Law" },
-  "Marcus Chen":  { initials: "MC", role: "Lending Programs" },
-  "Greenstreet":  { initials: "GS", role: "Greenstreet Finance" },
+  "Greenstreet Research": { initials: "GS", role: "Greenstreet Research" },
 };
 
 // ── Article-body prose styles (typography only; no shell/nav/glass) ───────────
@@ -93,7 +90,7 @@ export default function BlogPostPage({
         headline: post.title,
         description,
         datePublished: new Date(post.date).toISOString().slice(0, 10),
-        author: { "@type": authorName === "Greenstreet" ? "Organization" : "Person", name: authorName },
+        author: { "@type": "Organization", name: authorName },
         publisher: { "@type": "Organization", name: "Greenstreet Finance", url: "https://www.greenstreet.finance" },
         mainEntityOfPage: canonicalUrl,
       });
@@ -155,8 +152,8 @@ export default function BlogPostPage({
     .slice(0, 3)
     .map((r, i) => ({ ...r, ...RELATED_PALETTES[i % 3] }));
 
-  const authorName = (post as any).author ?? "Greenstreet";
-  const authorMeta = AUTHOR_META[authorName] ?? AUTHOR_META["Greenstreet"];
+  const authorName = (post as any).author ?? "Greenstreet Research";
+  const authorMeta = AUTHOR_META[authorName] ?? AUTHOR_META["Greenstreet Research"];
   const tableOfContents = post.body
     .filter((block: any) => block.h)
     .map((block: any) => ({ label: block.h as string, id: sectionId(block.h) }));

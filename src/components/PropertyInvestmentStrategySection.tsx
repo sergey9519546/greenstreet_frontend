@@ -30,7 +30,7 @@ export const PROPERTY_STRATEGIES: PropertyStrategyDetail[] = [
     title: "Single Family Rental (SFR)",
     subtitle: "1-Unit Detached Homes, Townhomes & PUDs",
     image: "/img/properties/sfr_bungalow.jpg",
-    badge: "Core DSCR Asset",
+    badge: "Rental DSCR Scenario",
     maxLtv: "80% LTV",
     minDscr: "0.75x Min DSCR",
     bestLoanStructure: "30-Year Fixed or 5/6 ARM",

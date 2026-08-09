@@ -68,14 +68,14 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "What credit score do I need?",
-    a: "Greenstreet's Core program requires 660+. The Flex program goes to 640 with compensating factors. Going from 660 to 740+ can save 0.75–1.50% in rate and unlock the Premier tier. ITIN borrowers and non-US investors without a U.S. Social Security Number qualify on the Global program.",
-    src: "Greenstreet program matrix · Q2 2026 sweep · 7 programs verified",
+    a: "The published Greenstreet program matrix includes minimum FICO scores from 620 to 660, but that headline number does not establish eligibility. The applicable floor also depends on loan amount, leverage, transaction type, property type, DSCR, borrower status, and the current program grid. Higher credit and lower leverage generally improve the available structure; verify the exact current matrix before relying on a threshold or pricing assumption.",
+    src: "Greenstreet published program matrix · reviewed Aug 2026 · 7 programs",
   },
   {
     group: "Qualification",
     q: "How much do I need to put down?",
-    a: "The standard minimum is 20% down (80% LTV — how the loan amount compares to the property value). Greenstreet prices its best rates at 75% LTV (25% down). A strong file (740+ FICO, DSCR at or above 1.0, SFR purchase) accesses the Premier tier at that level. Going from 80% to 75% LTV typically saves 0.25–0.50% in rate.",
-    src: "Greenstreet lender matrix · Apr 2026",
+    a: "Published purchase maximums reach 80–85% LTV in some Greenstreet program scenarios, but the applicable grid cell depends on credit, loan amount, DSCR, transaction type, property type, and borrower profile. More equity can improve payment coverage and may expand available structures. Treat any down-payment figure as a scenario input until the current program matrix is reviewed for the specific deal.",
+    src: "Greenstreet published program matrix · reviewed Aug 2026",
   },
   {
     group: "Qualification",
@@ -92,8 +92,8 @@ const FAQS: { q: string; a: string; src: string; group?: string; cta?: { label: 
   {
     group: "Qualification",
     q: "Can a non-US investor or ITIN borrower get a DSCR loan?",
-    a: "Yes. DSCR qualification is property-based, not borrower-income-based, which makes it one of the most accessible U.S. loan products for international investors. ITIN borrowers access most standard DSCR programs with minor overlays. Non-US investors with no U.S. credit access the Greenstreet Global program. Additional requirements: international credit report or bank letter, 6–12 months foreign bank statements for reserves, LTV typically capped at 70–75%, and a +6-month reserves overlay. FIRPTA withholding applies on sale — coordinate with a cross-border CPA.",
-    src: "Greenstreet Global program matrix · FIRPTA IRC §897 · Q2 2026",
+    a: "Potentially. Several published Greenstreet programs identify foreign-national paths, and one identifies ITIN tiers, but documentation, credit alternatives, leverage, reserves, entity requirements, and sanctions review vary by program and transaction. Confirm the current program matrix and required evidence before treating a scenario as eligible. FIRPTA may affect a later sale, so coordinate transaction-specific tax questions with a qualified cross-border tax professional.",
+    src: "Greenstreet published program matrix · FIRPTA IRC §897 · reviewed Aug 2026",
     cta: { label: "See if your file qualifies →", action: "qualify" },
   },
   {

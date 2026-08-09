@@ -2451,7 +2451,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if(prop==="multi")return "DSCR Multi-Family";
     if(prop==="2-4unit")return "DSCR 1–4 unit";
     if(fico==="740+")return "DSCR Best-Tier";
-    if(fico==="<660")return "DSCR Flex";
+    if(fico==="<660")return "DSCR expanded-review scenario";
     return "DSCR 30-yr fixed";
   }
   function init(){
@@ -2461,27 +2461,27 @@ document.addEventListener('DOMContentLoaded', function() {
     [].forEach.call(wrap.querySelectorAll(".w-form-done,.w-form-fail"),function(n){n.style.display="none";});
     var card=document.createElement("div");card.className="gs-lead";
     card.innerHTML=
-      '<div class="gs-lead-eyebrow"><span class="gs-lead-dot"></span>Instant pre-qual · 30 sec</div>'+
-      '<div class="gs-lead-title">See which DSCR program fits.</div>'+
+      '<div class="gs-lead-eyebrow"><span class="gs-lead-dot"></span>Illustrative screen · 30 sec</div>'+
+      '<div class="gs-lead-title">Review a preliminary DSCR scenario.</div>'+
       '<div class="gs-lead-fields">'+
         '<div class="gs-lead-2col">'+
           '<select class="gs-lead-sel is-empty" id="gsl-fico" aria-label="Credit score"><option value="" disabled selected>Credit score</option><option value="740+">740+</option><option value="700-739">700–739</option><option value="660-699">660–699</option><option value="<660">Below 660</option></select>'+
           '<select class="gs-lead-sel is-empty" id="gsl-prop" aria-label="Property type"><option value="" disabled selected>Property type</option><option value="sfr">Single-family</option><option value="2-4unit">2–4 unit</option><option value="multi">5+ unit</option><option value="str">Short-term rental</option></select>'+
         '</div>'+
       '</div>'+
-      '<div class="gs-lead-match" id="gsl-match"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.2" fill="#4dbd97"/><path d="M5 8.2l2 2 4-4.4" stroke="#003738" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Likely fit: <b id="gsl-prog"></b></span></div>'+
+      '<div class="gs-lead-match" id="gsl-match"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.2" fill="#4dbd97"/><path d="M5 8.2l2 2 4-4.4" stroke="#003738" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Scenario to review: <b id="gsl-prog"></b></span></div>'+
       '<div class="gs-lead-2col" style="margin-top:10px;margin-bottom:8px;">'+
         '<input class="gs-lead-in" id="gsl-name" type="text" placeholder="First name" autocomplete="given-name"/>'+
         '<input class="gs-lead-in" id="gsl-email" type="email" placeholder="Email" autocomplete="email"/>'+
       '</div>'+
-      '<button class="gs-lead-cta" type="button">See my rate <span aria-hidden="true">→</span></button>'+
+      '<button class="gs-lead-cta" type="button">Review my scenario <span aria-hidden="true">→</span></button>'+
       '<div class="gs-lead-err" id="gsl-err"></div>'+
       '<div class="gs-lead-trust"><span>No credit pull</span><i></i><span>No SSN</span><i></i><span>50-state rules</span></div>';
     wrap.appendChild(card);
     var fico=card.querySelector("#gsl-fico"),prop=card.querySelector("#gsl-prop"),matchRow=card.querySelector("#gsl-match"),progEl=card.querySelector("#gsl-prog");
     function updateMatch(){
       var p=programFor(fico.value,prop.value);
-      if(p){progEl.textContent="Greenstreet "+p;if(!matchRow.classList.contains("is-on")){matchRow.classList.add("is-on");if(window.gsap){window.gsap.from(matchRow,{y:7,opacity:0,duration:.34,ease:"power2.out"});}}}
+      if(p){progEl.textContent=p;if(!matchRow.classList.contains("is-on")){matchRow.classList.add("is-on");if(window.gsap){window.gsap.from(matchRow,{y:7,opacity:0,duration:.34,ease:"power2.out"});}}}
       else{matchRow.classList.remove("is-on");}
     }
     [fico,prop].forEach(function(s){s.addEventListener("change",function(){s.classList.toggle("is-empty",!s.value);updateMatch();});});

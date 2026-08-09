@@ -115,50 +115,50 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
   });
 
   // --- Verdict ---
-  let vLabel = "DEAL BREAK";
+  let vLabel = "HIGH CONSTRAINT";
   let verdictColor : string = risk.danger;
   let verdictBg = "rgba(74,21,21,0.07)";
   let verdictBorder : string = risk.danger;
-  let verdictHeadline = "Rent doesn't cover the payment — most lenders decline at this level.";
+  let verdictHeadline = "Modeled rent does not cover the full payment at these inputs.";
   let verdictNote =
-    "DSCR below 0.75x — the rent doesn't come close to covering the payment. Consider a higher-rent property, more down payment, or a lower rate.";
-  let nextStep = "A Greenstreet specialist can review sub-0.75 situations and explore structuring options — don't assume it's a dead end.";
+    "DSCR below 0.75x is a high-constraint scenario. Change one input at a time, then verify any current program path with the full transaction facts.";
+  let nextStep = "Review rent evidence, payment inputs, leverage, and reserves before requesting a provider-specific scenario review.";
 
   if (dscr >= 1.25) {
-    vLabel = "STRONG";
+    vLabel = "STRONG COVERAGE";
     verdictColor = dc.rain;
     verdictBg = "rgba(0,101,101,0.06)";
     verdictBorder = dc.rain;
     verdictHeadline = "Strong deal — rent comfortably covers the full monthly payment.";
-    verdictNote = "DSCR ≥ 1.25x qualifies at best-tier pricing with most DSCR programs. Good cap rate and debt yield are a bonus.";
-    nextStep = "Get a rate quote — this deal should move quickly.";
+    verdictNote = "DSCR at or above 1.25x creates modeled payment-coverage headroom. It does not establish program eligibility or pricing.";
+    nextStep = "Verify rent, PITIA, credit, leverage, loan amount, transaction type, and the current program grid.";
   } else if (dscr >= 1.0) {
-    vLabel = "QUALIFIES";
+    vLabel = "COVERED";
     verdictColor = dc.lemon;
     verdictBg = "rgba(216,217,88,0.10)";
     verdictBorder = dc.lemon;
-    verdictHeadline = "Qualifies — rent meets or exceeds the full monthly payment.";
-    verdictNote = "Meets the 1.0x floor. Check lender-specific minimums, reserve requirements, and compensating factors (higher FICO, lower LTV) before locking.";
-    nextStep = "Run the program matcher to confirm which lenders accept your deal at these numbers.";
+    verdictHeadline = "Modeled rent meets or exceeds the full monthly payment.";
+    verdictNote = "The modeled ratio is at or above 1.0x. Current program minimums, reserves, credit, leverage, and transaction facts still require review.";
+    nextStep = "Screen the complete scenario against the current published program grid before relying on a structure.";
   } else if (dscr >= 0.75) {
     vLabel = "SUB-1.0";
     verdictColor = risk.warning;
     verdictBg = risk.warningBg;
     verdictBorder = risk.warning;
-    verdictHeadline = "Below 1.0 — rent falls short, but sub-1.0 programs may apply.";
-    verdictNote = "Some lenders accept 0.75–1.0x with strong credit (680+), lower LTV, or extra reserves. Not a dead end — but you'll need to bring compensating factors.";
-    nextStep = "Ask your Greenstreet contact about sub-1.0 programs and what compensating factors they require.";
+    verdictHeadline = "Below 1.0 — modeled rent falls short of the full payment.";
+    verdictNote = "Some published grids include sub-1.0 paths, but credit, leverage, loan amount, reserves, and transaction details determine whether a current path exists.";
+    nextStep = "Review the exact inputs and current program grid; do not treat this ratio alone as an eligibility decision.";
   }
 
   const riskLevel = riskFromDscr(dscr);
 
-  // --- Greenstreet programs ---
-  const programs = [
-    { name: "Greenstreet DSCR — Best tier",    rateStr: (rate + sa.adj - 0.875).toFixed(3) + "%" },
-    { name: "Greenstreet DSCR — Standard",     rateStr: (rate + sa.adj - 0.5).toFixed(3) + "%" },
-    { name: "Greenstreet DSCR — Sub-1.0",      rateStr: (rate + sa.adj - 0.1).toFixed(3) + "%" },
-    { name: "Greenstreet DSCR — Multi-Family", rateStr: (rate + sa.adj).toFixed(3) + "%" },
-    { name: "Greenstreet DSCR — Global",       rateStr: (rate + sa.adj + 0.1).toFixed(3) + "%" },
+  // These rows summarize the user's modeled inputs. They deliberately avoid
+  // selecting a program because this page has no verified credit, transaction
+  // type, appraisal, reserve, or full borrower evidence.
+  const illustrativeScenarios = [
+    { name: "Current rate input", detail: `${rate.toFixed(3)}% assumption` },
+    { name: "Modeled payment coverage", detail: `${dscr.toFixed(2)}x DSCR` },
+    { name: "Modeled leverage", detail: `${ltv.toFixed(1)}% LTV` },
   ];
 
   const scrollToTool = (e: React.MouseEvent) => {
@@ -320,7 +320,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
             <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 12 }}>Live deal analyzer</div>
             <h2 style={{ fontSize: "clamp(30px,3.8vw,52px)", fontWeight: 600, letterSpacing: "-0.02em", lineHeight: 1.0, margin: "0 0 14px" }}>Seven fields in. Full underwrite out.</h2>
             <p style={{ fontSize: 15, color: "rgba(0,55,56,0.6)", margin: 0, lineHeight: 1.6, maxWidth: "60ch" }}>
-              Adjust any number and the DSCR, cash flow, and matched programs update instantly. Estimates are fine.
+              Adjust any number and the DSCR, cash flow, and educational screening notes update instantly. Estimates are fine.
             </p>
           </div>
 
@@ -442,16 +442,16 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                     <strong style={{ color: "rgba(0,55,56,0.75)" }}>Next step: </strong>{nextStep}
                   </p>
 
-                  {/* Dual-track "Qualifies but Dangerous": clears the lender (Track 1)
-                      but loses money after operating costs (Track 2 < 1.0). */}
+                  {/* Dual-track warning: gross coverage clears 1.0 while the
+                      operating-cost view falls below 1.0. */}
                   {dual.qualifiesButDangerous && (
                     <div style={{ marginTop: 12, background: risk.dangerBg, border: `1px solid ${risk.dangerBorder}`, borderLeft: `3px solid ${risk.danger}`, borderRadius: `0 ${radius.sm} ${radius.sm} 0`, padding: "11px 15px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                         <RiskFlame level="high" size={15} />
-                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: risk.danger }}>Qualifies but dangerous</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: risk.danger }}>Gross coverage, negative economics</span>
                       </div>
                       <p style={{ fontSize: 13, color: "rgba(0,55,56,0.7)", margin: 0, lineHeight: 1.5 }}>
-                        Clears the lender at <strong style={{ color: dc.dark }}>{dual.track1.toFixed(2)}x</strong>, but after typical vacancy, management, and maintenance it nets <strong style={{ color: risk.danger }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. The lender approves; the deal loses money each month.
+                        Gross rent ÷ PITIA is <strong style={{ color: dc.dark }}>{dual.track1.toFixed(2)}x</strong>, but after modeled vacancy, management, and maintenance the ratio is <strong style={{ color: risk.danger }}>{dual.track2.toFixed(2)}x</strong> — below 1.00. This is a modeled warning, not an approval or provider decision.
                       </p>
                     </div>
                   )}
@@ -487,7 +487,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                     <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(0,55,56,0.45)", marginBottom: 4 }}>DSCR — rent ÷ payment</div>
                     <DscrGauge value={dscr} size={160} />
                     <div style={{ fontSize: 11, color: "rgba(0,55,56,0.45)", textAlign: "center" }}>
-                      {dscr >= 1.25 ? "≥ 1.25x = strong approval tier" : dscr >= 1.0 ? "1.0–1.25x = qualifies, limited" : dscr >= 0.75 ? "0.75–1.0x = sub-1.0 programs only" : "< 0.75x = most lenders decline"}
+                      {dscr >= 1.25 ? "≥ 1.25x = stronger modeled coverage" : dscr >= 1.0 ? "1.0–1.25x = modeled rent covers payment" : dscr >= 0.75 ? "0.75–1.0x = modeled payment shortfall" : "< 0.75x = larger modeled payment shortfall"}
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -609,19 +609,19 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
                 )}
               </div>
 
-              {/* MATCHED PROGRAMS */}
+              {/* ILLUSTRATIVE SCENARIO SUMMARY */}
               <div className="gs-reveal" style={{ background: swatch.white, borderRadius: radius.md, padding: "clamp(20px,2.4vw,28px)", border: `1px solid ${swatch.midnightFaded}` }}>
-                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 4 }}>Matched programs</div>
-                <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 12px", lineHeight: 1.4 }}>Indicative rate offsets from the input rate. Best-tier pricing requires DSCR ≥ 1.25 and FICO ≥ 740.</p>
-                {programs.map((p, i) => (
-                  <div key={i} className="da-program-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: dc.dark }}>{p.name}</span>
-                    <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.rain }}>{p.rateStr}</Mono>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: dc.rain, marginBottom: 4 }}>Illustrative scenarios</div>
+                <p style={{ fontSize: 12, color: "rgba(0,55,56,0.45)", margin: "0 0 12px", lineHeight: 1.4 }}>Educational summary only — not a program match, eligibility decision, rate quote, or approval.</p>
+                {illustrativeScenarios.map((scenario) => (
+                  <div key={scenario.name} className="da-program-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: dc.dark }}>{scenario.name}</span>
+                    <Mono style={{ fontSize: 14, fontWeight: 700, color: dc.rain }}>{scenario.detail}</Mono>
                   </div>
                 ))}
                 <div style={{ marginTop: 14 }}>
                   <a href="/lender-intel" onClick={(e) => { e.preventDefault(); onNavigate?.("lender-intel"); }} style={{ fontSize: 13, fontWeight: 600, color: dc.rain, textDecoration: "none" }}>
-                    Full program matcher with FICO + LTV filters →
+                    Screen the full scenario against published programs →
                   </a>
                 </div>
               </div>
@@ -630,7 +630,7 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
 
           {/* Disclaimer */}
           <p style={{ color: "rgba(0,55,56,0.45)", fontSize: 12, marginTop: 24, lineHeight: 1.6 }}>
-            Preliminary estimate — not a commitment to lend. All outputs are indicative; final terms subject to full underwriting, appraisal and credit approval. Rates shown are illustrative offsets only. Submit a scenario review for a formal quote.
+            Preliminary educational estimate — not a commitment to lend, program match, eligibility decision, or rate quote. Verify all inputs and current program terms through a provider-specific review.
           </p>
           <DataVintageLine ground="light" />
         </div>
@@ -642,9 +642,9 @@ export default function DealAnalyzerPage({ onBack, onNavigate }: Props) {
           <div className="dc-split" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center" }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: dc.lemon, marginBottom: 16 }}>Next step</div>
-              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers look good? Get your rate.</h2>
+              <h2 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 600, letterSpacing: "-0.02em", margin: "0 0 16px", color: dc.cream, lineHeight: 1.05 }}>Numbers modeled? Verify the scenario.</h2>
               <p style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.55, color: "rgba(238,239,211,0.65)", margin: 0, maxWidth: "52ch" }}>
-                One application. We match your file to the best-fit Greenstreet program and take it to funding — no portal-hopping, no repeated paperwork.
+                This screen organizes modeled inputs. A complete review still needs verified borrower, property, appraisal, reserves, transaction, and current program information.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 200 }}>
