@@ -20,6 +20,11 @@
     var list   = document.querySelector(".step-cards-list");
     if (!height || !stage || !layout || !list) return;
     if (layout.__stepScroll) return;
+    var motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var narrowViewport = window.matchMedia("(max-width: 767px)");
+    function useStaticLayout() {
+      return motionPreference.matches || narrowViewport.matches;
+    }
     var wraps = Array.prototype.slice.call(document.querySelectorAll(".step_tab_content_list_wrap")).slice(0, 5);
     var tabs  = Array.prototype.slice.call(document.querySelectorAll(".step_tab_link")).slice(0, 5);
     if (wraps.length < 2) return;
@@ -29,7 +34,6 @@
       return { bg: "#" + (w.getAttribute("data-background") || "003738"), fg: "#" + (w.getAttribute("data-color") || "E8E9BF") };
     });
     var n = colors.length;
-    layout.style.transition = "background-color .45s ease, color .45s ease";
     var lastActive = -1;
 
     function maxOffset() {
@@ -40,6 +44,12 @@
     function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 
     function update() {
+      if (useStaticLayout()) {
+        list.style.transform = "none";
+        layout.style.transition = "none";
+        return;
+      }
+      layout.style.transition = "background-color .45s ease, color .45s ease";
       var stickyTop = parseFloat(getComputedStyle(stage).top) || 0;
       var stageH = stage.offsetHeight;
       var rect = height.getBoundingClientRect();
@@ -71,6 +81,8 @@
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", update);
+    motionPreference.addEventListener("change", update);
+    narrowViewport.addEventListener("change", update);
     update();
     setTimeout(update, 400);
   }

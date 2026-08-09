@@ -281,6 +281,8 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             // Render a group heading before the first item in each group
             const prevGroup = i > 0 ? FAQS[i - 1].group : null;
             const showGroupHead = faq.group && faq.group !== prevGroup;
+            const questionId = `faq-question-${i}`;
+            const panelId = `faq-answer-${i}`;
             return (
             <React.Fragment key={i}>
               {showGroupHead && (
@@ -301,8 +303,12 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
             >
               {/* Question row */}
               <button
+                id={questionId}
+                type="button"
                 className="faq-btn"
                 onClick={() => setOpen(open === i ? null : i)}
+                aria-expanded={open === i}
+                aria-controls={panelId}
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -348,6 +354,11 @@ export default function FAQPage({ onBack, onNavigate }: { onBack: () => void; on
 
               {/* Answer panel */}
               <div
+                id={panelId}
+                role="region"
+                aria-labelledby={questionId}
+                aria-hidden={open !== i}
+                inert={open !== i}
                 className={open === i ? "faq-answer faq-answer-open" : "faq-answer faq-answer-closed"}
               >
                 <div

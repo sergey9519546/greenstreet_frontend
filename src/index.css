@@ -263,6 +263,71 @@ body {
 .step-cards-list {
   margin-right: -100vw;
 }
+
+/* The exported homepage uses a tall sticky track and a translated horizontal
+   card row on desktop. Small screens and reduced-motion users get the same
+   content in normal document flow, with no off-canvas rail or scroll scrub. */
+@media screen and (max-width: 767px), (prefers-reduced-motion: reduce) {
+  .step_height,
+  .step_wrap,
+  .step_contain,
+  .step_layout,
+  .step_layout-cs,
+  .step_tab,
+  .step-cards-track {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .step_wrap {
+    position: relative !important;
+    inset: auto !important;
+  }
+
+  .step-cards-track {
+    overflow: hidden !important;
+  }
+
+  .step-cards-list {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+    margin-right: 0 !important;
+    transform: none !important;
+  }
+
+  .step_tab_content_list_wrap,
+  .step_tab_content_list,
+  .step_tab_content_item {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .step_tab_content_item {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .step_height .div-block-23 {
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .step_height .cs-home-scroll-cards {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .step_layout,
+  .step_layout-cs,
+  .step-cards-list,
+  .gs-hf-frame {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 .link-item {
   pointer-events: auto;
 }

@@ -10,7 +10,12 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { resolveRoute, isKnownRoute, type PageView } from './resolve';
+import {
+  isKnownRoute,
+  normalizeInternalRouteHref,
+  resolveRoute,
+  type PageView,
+} from './resolve';
 
 // Canonical path → expected view. These are the paths the app's viewToPath()
 // emits; each must round-trip back to the same view on reload / deep-link.
@@ -110,5 +115,22 @@ describe('isKnownRoute — interceptor coverage', () => {
     expect(isKnownRoute('/nope')).toBe(false);
     expect(isKnownRoute('https://example.com/foo')).toBe(false);
     expect(isKnownRoute('mailto:hi@greenstreet.com')).toBe(false);
+  });
+
+  it.each([
+    'https://example.com/',
+    '//example.com/',
+    '/\\\\example.com',
+    '/blog\\\\example.com/post',
+  ])('rejects hrefs that normalize outside the current origin: %s', (href) => {
+    expect(resolveRoute(href)).toBe('external');
+    expect(isKnownRoute(href)).toBe(false);
+    expect(normalizeInternalRouteHref(href)).toBeNull();
+  });
+
+  it('returns the normalized same-origin path used by history.pushState', () => {
+    expect(normalizeInternalRouteHref('/blog/post/?preview=1#summary')).toBe(
+      '/blog/post/?preview=1#summary',
+    );
   });
 });

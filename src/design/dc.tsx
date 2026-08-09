@@ -618,12 +618,12 @@ export function DcShell({
       <div ref={scope} className="dc-embedded" style={{ color: MIDNIGHT, fontFamily: font.family, overflowX: "hidden", letterSpacing: "-0.02em" }}>
         <style>{DC_CSS}</style>
         <style>{`
-          .dc-embedded main > section{background:transparent !important;background-image:none !important;border:none !important;border-top:none !important;border-bottom:none !important;padding-left:0 !important;padding-right:0 !important;padding-top:0 !important;padding-bottom:clamp(28px,5vh,56px) !important;}
-          .dc-embedded main > section + section{padding-top:clamp(20px,3vh,40px) !important;border-top:1px solid rgba(238,239,211,0.16) !important;}
-          .dc-embedded main > section > div{max-width:100% !important;}
+          .dc-embedded .dc-embedded-content > section{background:transparent !important;background-image:none !important;border:none !important;border-top:none !important;border-bottom:none !important;padding-left:0 !important;padding-right:0 !important;padding-top:0 !important;padding-bottom:clamp(28px,5vh,56px) !important;}
+          .dc-embedded .dc-embedded-content > section + section{padding-top:clamp(20px,3vh,40px) !important;border-top:1px solid rgba(238,239,211,0.16) !important;}
+          .dc-embedded .dc-embedded-content > section > div{max-width:100% !important;}
           .dc-embedded .gs-dot-grid{display:none !important;}
         `}</style>
-        <main>{children}</main>
+        <div className="dc-embedded-content">{children}</div>
       </div>
     );
   }

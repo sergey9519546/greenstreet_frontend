@@ -320,6 +320,7 @@ export default function LegalPage({
         }
         .lg-toc-link:hover { color: ${MIDNIGHT} !important; }
         @media (max-width: 767px) {
+          .lg-content-grid { grid-template-columns: 1fr !important; }
           .lg-toc-col { display: none !important; }
           .lg-toc-link { min-height: 44px; display: flex; align-items: center; }
         }
@@ -380,6 +381,7 @@ export default function LegalPage({
         }}
       >
         <div
+          className="lg-content-grid"
           style={{
             maxWidth: 1080,
             margin: "0 auto",

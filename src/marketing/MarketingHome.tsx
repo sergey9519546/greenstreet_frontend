@@ -311,7 +311,7 @@ function repairHomepageSemantics(markup: string): string {
     )
     .replace(
       /<div class="page_main"([^>]*)>/,
-      '<main class="page_main" id="main-content"$1>',
+      '<main class="page_main" id="main-content" tabindex="-1"$1>',
     )
     .replace(
       '</div><div class="footer_component">',

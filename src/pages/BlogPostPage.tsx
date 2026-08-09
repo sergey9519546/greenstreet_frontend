@@ -289,15 +289,12 @@ export default function BlogPostPage({
                     ? `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`
                     : `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`;
                 return (
-                  <span
+                  <a
                     key={label}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => window.open(href, "_blank", "noopener")}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ")
-                        window.open(href, "_blank", "noopener");
-                    }}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label === "in" ? "Share on LinkedIn" : "Share on X"}
                     style={{
                       width: 44,
                       height: 44,
@@ -311,10 +308,11 @@ export default function BlogPostPage({
                       fontWeight: 700,
                       color: "rgba(238,239,211,0.65)",
                       cursor: "pointer",
+                      textDecoration: "none",
                     }}
                   >
                     {label}
-                  </span>
+                  </a>
                 );
               })}
             </div>
@@ -597,15 +595,12 @@ export default function BlogPostPage({
                   ? `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`
                   : `https://twitter.com/intent/tweet?url=${shareUrl}&text=${shareTitle}`;
               return (
-                <span
+                <a
                   key={label}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => window.open(href, "_blank", "noopener")}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ")
-                      window.open(href, "_blank", "noopener");
-                  }}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label === "LinkedIn" ? "Share on LinkedIn" : "Share on X"}
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
@@ -614,10 +609,11 @@ export default function BlogPostPage({
                     cursor: "pointer",
                     borderBottom: `1px solid ${dc.rain}`,
                     paddingBottom: 1,
+                    textDecoration: "none",
                   }}
                 >
                   {label}
-                </span>
+                </a>
               );
             })}
           </div>

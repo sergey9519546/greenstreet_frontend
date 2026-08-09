@@ -242,10 +242,10 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
       // offering it here would be offering an action that cannot work.
       const stale = isChunkLoadError(error);
       return (
-        <div style={{ minHeight: "100vh", background: depth.browse.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font.family }}>
+        <main aria-labelledby="application-error-heading" style={{ minHeight: "100vh", background: depth.browse.bg, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font.family }}>
           <div style={{ maxWidth: "520px", padding: "40px", textAlign: "center" }}>
             <div style={{ fontSize: "48px", marginBottom: "16px" }} aria-hidden="true">⚠</div>
-            <h2 style={{ color: depth.browse.ink, fontSize: "24px", marginBottom: "12px" }}>
+            <h2 id="application-error-heading" style={{ color: depth.browse.ink, fontSize: "24px", marginBottom: "12px" }}>
               {stale ? "This tab is running an older version" : "This page didn't load"}
             </h2>
             <p style={{ color: swatch.rainforest, marginBottom: "24px", lineHeight: 1.55 }}>
@@ -276,14 +276,19 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, { error: Er
               </pre>
             </details>
           </div>
-        </div>
+        </main>
       );
     }
     return this.props.children;
   }
 }
 
-import { resolveRoute, isKnownRoute, PageView } from "./router/resolve";
+import {
+  isKnownRoute,
+  normalizeInternalRouteHref,
+  resolveRoute,
+  PageView,
+} from "./router/resolve";
 import { depth, swatch, radius, font } from "./theme";
 import { captureException } from "./monitoring/sentry";
 
@@ -555,10 +560,11 @@ export default function App() {
       if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
       if (!href.startsWith("/")) return;
       if (href.startsWith("//")) return;
-      if (!isKnownRoute(href)) return;
+      const normalizedHref = normalizeInternalRouteHref(href);
+      if (!normalizedHref || !isKnownRoute(normalizedHref)) return;
 
       e.preventDefault();
-      goToRef.current(resolveRoute(href), href);
+      goToRef.current(resolveRoute(normalizedHref), normalizedHref);
     };
     document.addEventListener("click", onClick);
     return () => document.removeEventListener("click", onClick);

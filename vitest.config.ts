@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 // Two projects, one command. `npm run test` (vitest run) executes BOTH.
@@ -11,14 +12,15 @@ import { defineConfig } from 'vitest/config';
 //
 // `projects` (not the removed `environmentMatchGlobs`) is the supported way to
 // split environments in Vitest 4.
+const configDir = path.dirname(fileURLToPath(import.meta.url));
 const alias = {
-  '@': path.resolve(__dirname, './src'),
+  '@': path.resolve(configDir, './src'),
 };
 
 // DOM tests must never reach the network. Aliasing the SDK entry points (rather
 // than vi.mock-ing src/firebase.ts per file) makes that guarantee hold no matter
 // which module in a rendered tree pulls Firebase in.
-const firebaseStub = path.resolve(__dirname, './src/test/firebaseStub.ts');
+const firebaseStub = path.resolve(configDir, './src/test/firebaseStub.ts');
 const domAlias = {
   ...alias,
   'firebase/app': firebaseStub,

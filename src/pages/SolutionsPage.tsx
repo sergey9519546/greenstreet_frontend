@@ -317,6 +317,7 @@ export default function SolutionsPage({
         @media (max-width: 991px) {
           .so-feat { grid-template-columns: 1fr !important; }
           .so-feat > * { order: unset !important; }
+          .so-close-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
@@ -429,6 +430,7 @@ export default function SolutionsPage({
         }}
       >
         <div
+          className="so-close-grid"
           style={{
             maxWidth: dc.maxW,
             margin: "0 auto",
