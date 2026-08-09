@@ -7,7 +7,7 @@ import { logger } from "../logger";
 
 const LEAD_STATES = [
   "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
+  "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho",
   "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
   "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
   "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
@@ -41,7 +41,7 @@ export const LeadSubmissionSchema = z
     name: nameSchema,
     email: z.string().trim().toLowerCase().email().max(254),
     phone: phoneSchema.optional().default(""),
-    role: z.enum(["investor", "foreign", "str", "vacation"]).optional(),
+    role: z.enum(["investor", "broker", "foreign", "str", "vacation"]).optional(),
     timeline: z.enum(["exploring", "under-30", "30-90", "refi-soon"]),
     propertyType: z.enum(["sfr", "2-4-unit", "condo", "townhouse", "5-8-unit", "short-term-rental"]),
     propertyValue: z.number().finite().min(50_000).max(100_000_000),

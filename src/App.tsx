@@ -723,7 +723,6 @@ export default function App() {
         QUALIFY_WIDGET_SUPPRESSED_VIEWS.has(view) ? null : (
           <QualifyWidget
             showTrigger={view !== "book-demo"}
-            autoOpen={view !== "book-demo"}
           />
         )}
       </div>

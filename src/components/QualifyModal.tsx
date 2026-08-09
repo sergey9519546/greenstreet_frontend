@@ -6,8 +6,7 @@
  * Step 4: Contact capture
  * Step 5: Confirmation
  *
- * PRESERVED: DSCR calc formula, trigger pill + window.openQualify +
- * one-time auto-open + localStorage gate.
+ * PRESERVED: DSCR calc formula and trigger pill + window.openQualify.
  *
  * ADDED: step-enter animation, progress bar transition, result reveal (count-up),
  * submit loading spinner, shake-on-error, DSCR color transition, pill hover states,
@@ -25,11 +24,15 @@ import type {
   EngineFicoBand,
   QualifyInput,
 } from "../engine";
+import {
+  sanitizeQualificationScenarioDraft,
+  type QualificationScenarioDraft,
+} from "../conversion/qualificationScenario";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Purpose = "purchase" | "rate-term" | "cash-out";
 type FicoBand = "under-680" | "680-719" | "720-759" | "760-plus";
-type Role = "investor" | "foreign" | "str" | "vacation";
+type Role = "investor" | "broker" | "foreign" | "str" | "vacation";
 type Experience = "0" | "1-3" | "4-9" | "10-plus";
 type Timeline = "exploring" | "under-30" | "30-90" | "refi-soon";
 
@@ -79,7 +82,7 @@ const FICO_TO_ENGINE: Record<FicoBand, EngineFicoBand> = {
 // "FL") — convert before lookup so PPP tier detection actually matches.
 const STATE_NAME_TO_CODE: Record<string, string> = {
   Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
-  Colorado: "CO", Connecticut: "CT", Delaware: "DE", Florida: "FL", Georgia: "GA",
+  Colorado: "CO", Connecticut: "CT", Delaware: "DE", "District of Columbia": "DC", Florida: "FL", Georgia: "GA",
   Hawaii: "HI", Idaho: "ID", Illinois: "IL", Indiana: "IN", Iowa: "IA",
   Kansas: "KS", Kentucky: "KY", Louisiana: "LA", Maine: "ME", Maryland: "MD",
   Massachusetts: "MA", Michigan: "MI", Minnesota: "MN", Mississippi: "MS",
@@ -244,19 +247,20 @@ export function dscrVerdict(tier: QuickDscrTier, purpose?: Purpose | null): {
 // ─── US States ────────────────────────────────────────────────────────────────
 const US_STATES = [
   "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
-  "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
+  "Delaware","District of Columbia","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
   "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
   "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada",
   "New Hampshire","New Jersey","New Mexico","New York","North Carolina",
   "North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island",
   "South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont",
-  "Virginia","Washington","West Virginia","Wisconsin","Wyoming","Other",
+  "Virginia","Washington","West Virginia","Wisconsin","Wyoming",
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 interface QualifyModalProps {
   open: boolean;
   onClose: () => void;
+  initialDraft?: QualificationScenarioDraft | null;
 }
 
 // ─── Animation CSS injected once ─────────────────────────────────────────────
@@ -1591,6 +1595,7 @@ function Step4({
 
   const roles: { val: Role; label: string; helper: string }[] = [
     { val: "investor", label: "Buy & hold investor", helper: "Long-term rental income." },
+    { val: "broker", label: "Broker or loan officer", helper: "Reviewing a scenario for a client." },
     { val: "foreign", label: "Non-US investor", helper: "Investing from outside the U.S." },
     { val: "str", label: "STR / Airbnb host", helper: "Short-term / vacation rental." },
     { val: "vacation", label: "Second / vacation home", helper: "A second home I'll also rent." },
@@ -1912,7 +1917,7 @@ const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
-export default function QualifyModal({ open, onClose }: QualifyModalProps) {
+export default function QualifyModal({ open, onClose, initialDraft = null }: QualifyModalProps) {
   const [step, setStep] = useState(1);
   const [step1, setStep1] = useState<StepOneData>({
     propertyValue: 425000,
@@ -1943,6 +1948,28 @@ export default function QualifyModal({ open, onClose }: QualifyModalProps) {
   // pressing again (and worth offering a human fallback), whereas missing
   // scenario details need the user to walk back through the steps.
   const [submissionError, setSubmissionError] = useState<SubmissionError | null>(null);
+
+  // Carry only whitelisted, non-PII scenario values from a public tool. The
+  // draft lives in component memory; no financial inputs are written here to
+  // localStorage or sessionStorage.
+  useEffect(() => {
+    if (!open || !initialDraft) return;
+    const draft = sanitizeQualificationScenarioDraft(initialDraft);
+    if (!draft) return;
+
+    setStep1((current) => ({
+      ...current,
+      ...(draft.propertyValue !== undefined
+        ? { propertyValue: draft.propertyValue }
+        : {}),
+      ...(draft.loanAmount !== undefined ? { loanAmount: draft.loanAmount } : {}),
+      ...(draft.rent !== undefined ? { rent: draft.rent } : {}),
+      ...(draft.rate !== undefined ? { rate: draft.rate } : {}),
+    }));
+    if (draft.purpose) {
+      setStep2((current) => ({ ...current, purpose: draft.purpose ?? current.purpose }));
+    }
+  }, [initialDraft, open]);
 
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);

@@ -142,6 +142,52 @@ describe('QualifyModal — lead funnel', () => {
     expect(within(dialog()).getAllByText(expectedTier).length).toBeGreaterThan(0);
   });
 
+  it('hydrates the opening step from an in-memory non-PII scenario draft', async () => {
+    render(
+      <QualifyModal
+        open
+        onClose={() => {}}
+        initialDraft={{
+          propertyValue: 610_000,
+          loanAmount: 427_000,
+          rent: 4_900,
+          rate: 6.875,
+          purpose: 'cash-out',
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(within(dialog()).getByLabelText(/estimated property value/i)).toHaveValue(610_000);
+      expect(within(dialog()).getByLabelText(/desired loan amount/i)).toHaveValue(427_000);
+      expect(within(dialog()).getByLabelText(/expected monthly rent/i)).toHaveValue(4_900);
+      expect(within(dialog()).getByLabelText(/estimated interest rate/i)).toHaveValue(6.875);
+    });
+    expect(
+      within(within(dialog()).getByRole('group', { name: /loan purpose/i })).getByRole(
+        'button',
+        { name: /cash-out refi/i },
+      ),
+    ).toHaveClass('qm-pill-active');
+  });
+
+  it('supports District of Columbia properties and broker contacts', async () => {
+    const user = userEvent.setup();
+    render(<QualifyModal open onClose={() => {}} />);
+
+    await completeStep1(user);
+    await completeStep2(user, 'District of Columbia');
+    await user.click(primaryCta()); // step 3 → step 4
+    await waitFor(() => expect(currentStep()).toBe(4));
+
+    expect(
+      within(within(dialog()).getByRole('group', { name: /i am a/i })).getByRole(
+        'button',
+        { name: /broker or loan officer/i },
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('submits the entered contact data to the lead endpoint and confirms', async () => {
     const fetchMock = mockFetch(okResponse);
     const user = userEvent.setup();

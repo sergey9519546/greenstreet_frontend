@@ -85,6 +85,19 @@ describe("scenario-review lead schema", () => {
     expect(parsed.email).toBe("codex-production-qa@example.com");
   });
 
+  it("accepts broker submissions and District of Columbia properties", () => {
+    const parsed = LeadSubmissionSchema.parse({
+      ...VALID,
+      role: "broker",
+      state: "District of Columbia",
+    });
+
+    expect(parsed).toMatchObject({
+      role: "broker",
+      state: "District of Columbia",
+    });
+  });
+
   it("rejects result snapshots, client timestamps, and extra fields", () => {
     for (const extra of [
       { dscr: 1.24 },
