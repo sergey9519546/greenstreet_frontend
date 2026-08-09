@@ -90,8 +90,15 @@ describe("PropertyInvestmentStrategySection", () => {
     expect(document.querySelector(".gs-property-home__inner")).toHaveClass(
       "u-container",
     );
+    expect(document.querySelector(".gs-property-home__stage")).toHaveClass(
+      "u-theme-dark",
+    );
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(10);
+    expect(screen.getByRole("tablist")).toHaveAttribute(
+      "aria-orientation",
+      "horizontal",
+    );
     expect(screen.getByRole("tablist").querySelector("img")).toBeNull();
     expect(document.querySelector(".gs-property-home__dossier")).toBeNull();
     expect(document.querySelector(".gs-property-home__visual")).toBeNull();
