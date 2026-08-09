@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import PropertyInvestmentStrategySection, {
   PROPERTY_STRATEGIES,
 } from "./PropertyInvestmentStrategySection";
@@ -50,5 +50,35 @@ describe("PropertyInvestmentStrategySection", () => {
     expect(screen.getByRole("tabpanel")).toHaveTextContent(
       "Student Housing & Co-Living Rentals",
     );
+  });
+
+  it("offers a compact image-led comparison for the homepage", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    render(
+      <PropertyInvestmentStrategySection
+        variant="homepage"
+        onNavigate={onNavigate}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Which rental model fits the deal?" }),
+    ).toBeVisible();
+    expect(screen.getAllByRole("tab")).toHaveLength(10);
+
+    await user.click(screen.getByRole("tab", { name: "Manufactured & Modular" }));
+    const panel = screen.getByRole("tabpanel");
+    expect(panel).toHaveTextContent("Manufactured & Modular Rental Homes");
+    expect(panel).toHaveTextContent("The upside");
+    expect(panel).toHaveTextContent("The tradeoffs");
+    expect(
+      screen.getByRole("img", { name: "Manufactured & Modular Rental Homes" }),
+    ).toHaveAttribute("src", "/img/properties/manufactured_modular.jpg");
+
+    await user.click(
+      screen.getByRole("button", { name: /Explore the complete investor guide/ }),
+    );
+    expect(onNavigate).toHaveBeenCalledWith("investors");
   });
 });

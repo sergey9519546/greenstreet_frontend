@@ -604,7 +604,7 @@ export default function App() {
   const renderPage = () => {
     switch (view) {
       case "marketing":
-        return <MarketingHome />;
+        return <MarketingHome onNavigate={navigateFromReliabilityHold} />;
       case "portal":
         if (!CLIENT_WORKSPACE_CONFIGURED) {
           return (
