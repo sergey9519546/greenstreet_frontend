@@ -1,8 +1,9 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 
+import { logger } from "./logger";
 import { app } from "./serverApp";
 
 const trustedOrigin = "http://localhost:3000";
@@ -32,6 +33,7 @@ const syntheticLead = {
   investmentConfirmed: true,
   contactConsent: true,
   page: "/book-demo",
+  submissionId: "00000000-0000-4000-8000-000000000002",
 } as const;
 
 let server: Server | undefined;
@@ -65,6 +67,22 @@ function expectNoSyntheticPii(responseBody: string) {
   }
 }
 
+function expectApiSecurityHeaders(response: Response) {
+  expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+  expect(response.headers.get("x-frame-options")).toBe("DENY");
+  expect(response.headers.get("referrer-policy")).toBe(
+    "strict-origin-when-cross-origin",
+  );
+  expect(response.headers.get("x-dns-prefetch-control")).toBe("off");
+  expect(response.headers.get("content-security-policy")).toBe(
+    "default-src 'none'",
+  );
+  expect(response.headers.get("permissions-policy")).toBe(
+    "camera=(), microphone=(), geolocation=()",
+  );
+  expect(response.headers.get("x-powered-by")).toBeNull();
+}
+
 afterAll(async () => {
   if (server) {
     await new Promise<void>((resolve, reject) => {
@@ -74,6 +92,72 @@ afterAll(async () => {
 });
 
 describe("server API preservation contracts", () => {
+  it("never logs malformed request bodies, headers, or synthetic PII", async () => {
+    const syntheticToken = "synthetic-bearer-token-for-log-regression";
+    const malformedBody = JSON.stringify({
+      name: syntheticPii[0],
+      email: syntheticPii[1],
+      phone: syntheticPii[2],
+    }).slice(0, -1);
+    const errorSpy = vi.spyOn(logger, "error").mockImplementation(() => undefined);
+
+    try {
+      const response = await request("/api/dscr/solve", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${syntheticToken}`,
+          "content-type": "application/json",
+          "x-synthetic-private-header": syntheticPii[1],
+        },
+        body: malformedBody,
+      });
+
+      expect(response.status).toBe(400);
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
+        {
+          errorType: "malformed_json",
+          requestId: expect.any(String),
+          status: 400,
+        },
+        "Unhandled express error",
+      );
+
+      const serializedCalls = JSON.stringify(errorSpy.mock.calls).toLowerCase();
+      for (const privateValue of [
+        ...syntheticPii,
+        syntheticToken,
+        malformedBody,
+      ]) {
+        expect(serializedCalls).not.toContain(privateValue.toLowerCase());
+      }
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it("adds baseline security headers before malformed JSON parsing", async () => {
+    const response = await request("/api/dscr/solve", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{",
+    });
+
+    expect(response.status).toBe(400);
+    expectApiSecurityHeaders(response);
+  });
+
+  it("adds baseline security headers before rejecting an invalid bearer token", async () => {
+    const response = await postJson(
+      "/api/dscr/solve",
+      {},
+      { authorization: "Bearer not-a-valid-jwt" },
+    );
+
+    expect(response.status).toBe(401);
+    expectApiSecurityHeaders(response);
+  });
+
   it("keeps anonymous narration unreachable without reflecting its request body", async () => {
     const response = await postJson("/api/narrate", {
       deal: { dscr: 1.25, solvedRate: 7.125 },
@@ -160,17 +244,6 @@ describe("server API preservation contracts", () => {
     expect(preflight.headers.get("access-control-allow-credentials")).toBeNull();
 
     expect(apiResponse.headers.get("access-control-allow-origin")).toBe(trustedOrigin);
-    expect(apiResponse.headers.get("x-content-type-options")).toBe("nosniff");
-    expect(apiResponse.headers.get("x-frame-options")).toBe("DENY");
-    expect(apiResponse.headers.get("referrer-policy")).toBe(
-      "strict-origin-when-cross-origin",
-    );
-    expect(apiResponse.headers.get("content-security-policy")).toBe(
-      "default-src 'none'",
-    );
-    expect(apiResponse.headers.get("permissions-policy")).toBe(
-      "camera=(), microphone=(), geolocation=()",
-    );
-    expect(apiResponse.headers.get("x-powered-by")).toBeNull();
+    expectApiSecurityHeaders(apiResponse);
   });
 });

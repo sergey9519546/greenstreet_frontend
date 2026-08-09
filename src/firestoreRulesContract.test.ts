@@ -6,6 +6,39 @@ import { describe, expect, it } from "vitest";
 const rulesPath = resolve(process.cwd(), "firestore.rules");
 const rulesSource = readFileSync(rulesPath, "utf8");
 
+const reviewedAllowOperationSets = [
+  // users
+  ["read"],
+  ["create"],
+  ["update"],
+  ["delete"],
+  // deals
+  ["read"],
+  ["create"],
+  ["update"],
+  ["delete"],
+  // auditLogs
+  ["read"],
+  ["create"],
+  ["update"],
+  ["delete"],
+  // artifacts, leads, and the global catch-all
+  ["read", "write"],
+  ["read", "write"],
+  ["read", "write"],
+] as const;
+
+function allowOperationSets(source: string): string[][] {
+  const sourceWithoutComments = source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "");
+  const allowStatement = /\ballow\s+((?:read|write|get|list|create|update|delete)(?:\s*,\s*(?:read|write|get|list|create|update|delete))*)\s*:\s*if\b[\s\S]*?;/g;
+
+  return [...sourceWithoutComments.matchAll(allowStatement)].map((match) =>
+    match[1].split(",").map((operation) => operation.trim()),
+  );
+}
+
 function matchBody(matchDeclaration: string): string {
   const declarationOffset = rulesSource.indexOf(matchDeclaration);
   if (declarationOffset === -1) {
@@ -35,6 +68,26 @@ function matchBody(matchDeclaration: string): string {
 // Static source preservation only. Emulator authorization and deployed IAM
 // behavior require separate integration verification.
 describe("Firestore rules preservation contract", () => {
+  it("requires review for every additive allow statement", () => {
+    expect(allowOperationSets(rulesSource)).toEqual(reviewedAllowOperationSets);
+  });
+
+  it("detects an overlapping permissive allow even when a deny remains", () => {
+    const additiveAllow = `
+      match /shadow/{document=**} {
+        allow get: if isAuthenticated();
+      }
+    `;
+    const mutatedRules = rulesSource.replace(
+      "    // ── Block everything else",
+      `${additiveAllow}\n    // ── Block everything else`,
+    );
+
+    expect(allowOperationSets(mutatedRules)).not.toEqual(
+      reviewedAllowOperationSets,
+    );
+  });
+
   it("keeps the global catch-all and browser lead access fail closed", () => {
     expect(matchBody("match /{document=**}")).toMatch(
       /allow\s+read\s*,\s*write\s*:\s*if\s+false\s*;/,
@@ -44,7 +97,7 @@ describe("Firestore rules preservation contract", () => {
     );
   });
 
-  it("keeps audit logs immutable after creation", () => {
+  it("denies browser updates and deletes for audit-log documents", () => {
     const auditLogRules = matchBody("match /auditLogs/{logId}");
     expect(auditLogRules).toMatch(/allow\s+update\s*:\s*if\s+false\s*;/);
     expect(auditLogRules).toMatch(/allow\s+delete\s*:\s*if\s+false\s*;/);
@@ -75,8 +128,8 @@ describe("Firestore rules preservation contract", () => {
   });
 
   it("contains no unconditional or always-true broad allow statement", () => {
-    const unconditionalAllow = /\ballow\s+(?:read|write|create|update|delete)(?:\s*,\s*(?:read|write|create|update|delete))*\s*;/g;
-    const alwaysTrueAllow = /\ballow\s+(?:read|write|create|update|delete)(?:\s*,\s*(?:read|write|create|update|delete))*\s*:\s*if\s+true\s*;/g;
+    const unconditionalAllow = /\ballow\s+(?:read|write|get|list|create|update|delete)(?:\s*,\s*(?:read|write|get|list|create|update|delete))*\s*;/g;
+    const alwaysTrueAllow = /\ballow\s+(?:read|write|get|list|create|update|delete)(?:\s*,\s*(?:read|write|get|list|create|update|delete))*\s*:\s*if\s+true\s*;/g;
 
     expect([...rulesSource.matchAll(unconditionalAllow)]).toEqual([]);
     expect([...rulesSource.matchAll(alwaysTrueAllow)]).toEqual([]);
