@@ -71,7 +71,7 @@ describe("PropertyInvestmentStrategySection", () => {
     );
   });
 
-  it("uses one full-background image and unframed property controls on the homepage", async () => {
+  it("uses one integrated property field with unframed imagery on the homepage", async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn();
     render(
@@ -91,6 +91,9 @@ describe("PropertyInvestmentStrategySection", () => {
       "u-container",
     );
     expect(document.querySelector(".gs-property-home__stage")).toHaveClass(
+      "u-theme-light",
+    );
+    expect(document.querySelector(".gs-property-home__stage-head")).toHaveClass(
       "u-theme-dark",
     );
     const tabs = screen.getAllByRole("tab");
@@ -102,6 +105,14 @@ describe("PropertyInvestmentStrategySection", () => {
     expect(screen.getByRole("tablist").querySelector("img")).toBeNull();
     expect(document.querySelector(".gs-property-home__dossier")).toBeNull();
     expect(document.querySelector(".gs-property-home__visual")).toBeNull();
+
+    const sfrTab = screen.getByRole("tab", { name: "Single Family (1-Unit)" });
+    sfrTab.focus();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("tab", { name: "2–4 Unit Multi-Family" })).toHaveFocus();
+    expect(screen.getByRole("tabpanel")).toHaveTextContent(
+      "2–4 Unit Residential Multi-Family",
+    );
 
     await user.click(screen.getByRole("tab", { name: "Manufactured & Modular" }));
     const panel = screen.getByRole("tabpanel");

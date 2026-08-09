@@ -474,7 +474,7 @@ export default function PropertyInvestmentStrategySection({
             </div>
           </header>
 
-          <div className="gs-property-home__stage u-theme-dark">
+          <div className="gs-property-home__stage u-theme-light">
             <div className="gs-property-home__backdrop" aria-hidden="true">
               <img
                 key={activeStrategy.id}
@@ -485,10 +485,10 @@ export default function PropertyInvestmentStrategySection({
               />
             </div>
 
-            <div className="gs-property-home__stage-head">
+            <div className="gs-property-home__stage-head u-theme-dark">
               <div className="gs-property-home__position" aria-live="polite">
                 <span>{String(activeIndex + 1).padStart(2, "0")}</span>
-                <span>of {PROPERTY_STRATEGIES.length} property lenses</span>
+                <span>/ {PROPERTY_STRATEGIES.length}</span>
               </div>
 
               <div
