@@ -79,10 +79,16 @@ Any soft shadow in the app is a divergence, not a style choice.
 ### Property imagery — no gradients
 
 Property illustrations sit directly on one of the two canonical surfaces. Use a
-transparent asset when available, or `mix-blend-mode: multiply` so the image's
-paper background takes on the cream or green beneath it. Do not add atmospheric
+transparent asset when available, or a surface-aware blend mode (`darken` on
+cream; `multiply` on green) so the image's paper takes on the exact surface
+color beneath it. Do not add atmospheric
 gradients, gradient washes, gradient transitions, or fade an image into a new
 surface. When the section changes from cream to green, use a clean hard band.
+
+Property artwork is never cropped, framed, or placed inside a visible image
+tile. Use `object-fit: contain`, preserve the complete silhouette, and make the
+asset's paper resolve to the exact surrounding surface color. Content and data
+must sit beside or below the artwork—never in a box layered over the building.
 
 ---
 
