@@ -77,4 +77,52 @@ describe("public content integrity", () => {
     );
     expect(products).not.toMatch(/\b19 published Greenstreet DSCR program profiles\b/);
   });
+
+  it("does not present illustrative homepage workflows as verified customers", () => {
+    const home = source("index.html");
+
+    expect(home).toContain("Illustrative workflow examples");
+    expect(home).not.toContain("/img/logos/trust-");
+    expect(home).not.toMatch(
+      /Maya Reynolds|David Chen|Carlos Martinez|Emma Wallace|Layla Kabbani/,
+    );
+    expect(home).not.toMatch(
+      /Nexus Financial|Hadley Capital Partners|Marlowe Asset Group|Sterling Bridge Partners|Cedar Funding/,
+    );
+    expect(home).not.toContain("Composite, based on real Greenstreet broker data");
+    expect(home).not.toMatch(
+      /Greenstreet users|adding headcount|headcount growth enabled|21–30 days|typical close time|pricing a DSCR file in 40 minutes|under 5|sampled user sessions|cycle times across a sample of customers|annual customer retention/i,
+    );
+  });
+
+  it("keeps InvestGO feedback role-only and explicitly illustrative", () => {
+    const portal = source("src/pages/BrokersPortalPage.tsx");
+
+    expect(portal).toContain("Illustrative composite scenarios for educational purposes");
+    expect(portal).toContain("Illustrative investor scenarios.");
+    expect(portal).not.toMatch(
+      /Alex Stickelman|Sandra Rivera|Robert Hayes|Vela Capital/,
+    );
+    expect(portal).not.toMatch(/closed in 19 days|eight loans through Greenstreet/i);
+  });
+
+  it("keeps homepage scenario routing free of name and email PII", () => {
+    const home = source("index.html");
+    const start = home.indexOf('<script id="gs-lead-js">');
+    const heroScript = home.slice(start, home.indexOf("</script>", start));
+
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(heroScript).not.toMatch(/gsl-name|gsl-email|given-name|autocomplete="email"/);
+    expect(heroScript).not.toMatch(/\b(?:name|email)\s*:/);
+    expect(heroScript).toContain(
+      'new URLSearchParams({source:"home_hero",fico:fico.value,property:prop.value,scenario:programFor(fico.value,prop.value)||""})',
+    );
+  });
+
+  it("describes the deal-analyzer handoff as another illustrative screen", () => {
+    const analyzer = source("src/pages/DealAnalyzerPage.tsx");
+
+    expect(analyzer).toContain("Review an illustrative scenario →");
+    expect(analyzer).not.toContain("Get my rate →");
+  });
 });
