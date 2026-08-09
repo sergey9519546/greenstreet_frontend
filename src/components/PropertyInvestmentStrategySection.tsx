@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Btn } from "../design/dc";
 import "./PropertyInvestmentStrategySection.css";
 
 export interface PropertyStrategyDetail {
@@ -449,7 +450,7 @@ export default function PropertyInvestmentStrategySection({
   if (variant === "homepage") {
     return (
       <section
-        className="gs-property-home"
+        className="gs-property-home u-theme-light"
         id="property-strategy-home-section"
         aria-labelledby="property-strategy-home-heading"
       >
@@ -462,18 +463,17 @@ export default function PropertyInvestmentStrategySection({
             decoding="async"
           />
         </div>
-        <div className="gs-property-home__atmosphere" aria-hidden="true" />
 
-        <div className="gs-property-home__inner">
+        <div className="gs-property-home__inner u-container">
           <header className="gs-property-home__intro">
             <div className="gs-property-home__headline">
-              <div className="gs-property-home__eyebrow">Property field guide</div>
-              <h2 id="property-strategy-home-heading">
+              <div className="gs-property-home__eyebrow u-text-style-h5">Property field guide</div>
+              <h2 className="u-text-style-h2" id="property-strategy-home-heading">
                 Which rental model fits the deal?
               </h2>
             </div>
             <div className="gs-property-home__lede">
-              <p>
+              <p className="u-text-style-large">
                 Property type changes the income story, operating workload, and
                 financing path. Compare the upside and the friction before you
                 underwrite the headline rent.
@@ -530,25 +530,21 @@ export default function PropertyInvestmentStrategySection({
                 <div className="gs-property-home__eyebrow is-dark">
                   {activeStrategy.badge} · {activeStrategy.subtitle}
                 </div>
-                <h3>{activeStrategy.title}</h3>
+                <h3 className="u-text-style-h2">{activeStrategy.title}</h3>
                 <p>{activeStrategy.strategySummary}</p>
               </div>
 
               <div className="gs-property-home__actions">
-                <button
-                  className="gs-property-home__primary"
-                  type="button"
+                <Btn
+                  label="Model this property"
                   onClick={() => handleCtaClick(activeStrategy.ctaPrimaryTarget)}
-                >
-                  Model this property <span aria-hidden="true">→</span>
-                </button>
-                <button
-                  className="gs-property-home__secondary"
-                  type="button"
+                />
+                <Btn
+                  label="See all investor criteria"
+                  variant="secondary"
+                  arrow={false}
                   onClick={() => handleCtaClick("investors")}
-                >
-                  See all investor criteria
-                </button>
+                />
               </div>
             </div>
 
@@ -596,7 +592,7 @@ export default function PropertyInvestmentStrategySection({
 
   return (
     <section
-      className="gs-property-guide"
+      className="gs-property-guide u-theme-dark"
       id="property-strategy-section"
       aria-labelledby="property-strategy-heading"
     >
@@ -609,21 +605,20 @@ export default function PropertyInvestmentStrategySection({
           decoding="async"
         />
       </div>
-      <div className="gs-property-guide__wash" aria-hidden="true" />
 
-      <div className="gs-property-guide__shell">
+      <div className="gs-property-guide__shell u-container">
         <header className="gs-property-guide__intro">
           <div>
-            <div className="gs-property-guide__eyebrow">
+            <div className="gs-property-guide__eyebrow u-text-style-h5">
               Property &amp; investment strategy field guide
             </div>
-            <h2 id="property-strategy-heading">
+            <h2 className="u-text-style-h2" id="property-strategy-heading">
               Choose the property. Then choose the debt.
             </h2>
           </div>
 
           <div className="gs-property-guide__lede">
-            <p>
+            <p className="u-text-style-large">
               Every rental model has a different income story, operating burden,
               and leverage ceiling. Select a property lens to see the case for it,
               the friction against it, and the evidence an underwriter will ask for.
@@ -640,7 +635,7 @@ export default function PropertyInvestmentStrategySection({
             className="gs-property-guide__index"
             role="tablist"
             aria-label="Investment property types"
-            aria-orientation="vertical"
+            aria-orientation="horizontal"
           >
             {PROPERTY_STRATEGIES.map((item, index) => {
               const isActive = item.id === selectedId;
@@ -676,8 +671,8 @@ export default function PropertyInvestmentStrategySection({
               <div className="gs-property-guide__eyebrow is-accent">
                 Lens {String(activeIndex + 1).padStart(2, "0")} · {activeStrategy.badge}
               </div>
-              <h3>{activeStrategy.title}</h3>
-              <div className="gs-property-guide__subtitle">{activeStrategy.subtitle}</div>
+              <h3 className="u-text-style-h2">{activeStrategy.title}</h3>
+              <div className="gs-property-guide__subtitle u-text-style-large">{activeStrategy.subtitle}</div>
               <p>{activeStrategy.strategySummary}</p>
             </header>
 
@@ -759,27 +754,22 @@ export default function PropertyInvestmentStrategySection({
             <footer className="gs-property-guide__cta">
               <div>
                 <div className="gs-property-guide__eyebrow is-accent">Take the next step</div>
-                <h4>Pressure-test this {activeStrategy.title.toLowerCase()}.</h4>
+                <h4 className="u-text-style-h2">Pressure-test this {activeStrategy.title.toLowerCase()}.</h4>
                 <p>
                   Run coverage, payment, and lender-program logic against the
                   actual deal—not the headline rent.
                 </p>
               </div>
               <div className="gs-property-guide__actions">
-                <button
-                  className="gs-property-guide__primary"
-                  type="button"
+                <Btn
+                  label={activeStrategy.ctaPrimaryText.replace(/\s*→$/, "")}
                   onClick={() => handleCtaClick(activeStrategy.ctaPrimaryTarget)}
-                >
-                  {activeStrategy.ctaPrimaryText}
-                </button>
-                <button
-                  className="gs-property-guide__secondary"
-                  type="button"
+                />
+                <Btn
+                  label="Review it with Greenstreet"
+                  variant="secondary"
                   onClick={() => handleCtaClick("book-demo")}
-                >
-                  Review it with Greenstreet <span aria-hidden="true">→</span>
-                </button>
+                />
               </div>
             </footer>
           </article>
