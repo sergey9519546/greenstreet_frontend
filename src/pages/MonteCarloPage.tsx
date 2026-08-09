@@ -5,6 +5,7 @@ import { runMonteCarloRatePath, DEFAULT_VASICEK_PARAMS, CURRENT_MARKET_SNAPSHOT 
 import { DEFAULT_ARM_PROGRAMS } from "../engine/armResetEngine";
 import { DscrGauge, RiskFlame, riskFromDscr, MotionWorkbench } from "../design/artifacts";
 import { PremiumSlider } from "../components/ui/PremiumSlider";
+import DataVintageLine from "../design/DataVintageLine";
 import { risk } from "../theme";
 
 // ─── color helpers ────────────────────────────────────────────────────────────
@@ -389,14 +390,6 @@ export default function MonteCarloPage({
   // risk level based on pD1
   const riskLevel = pD1 > 20 ? "high" : pD1 > 5 ? "med" : pD1 > 1 ? "low" : "none";
 
-  // ── market data freshness — CURRENT_MARKET_SNAPSHOT.asOfDate is a static
-  // snapshot (SOFR/Treasury/Freddie); flag it in the UI once it's more than
-  // ~14 days old instead of silently presenting stale rates as current.
-  const marketDataAsOf = new Date(CURRENT_MARKET_SNAPSHOT.asOfDate);
-  const marketDataAgeDays = Math.floor((Date.now() - marketDataAsOf.getTime()) / 86400000);
-  const marketDataStale = marketDataAgeDays > 14;
-  const marketDataAsOfLabel = marketDataAsOf.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-
   // headline verdict text
   const verdictText = pD1 > 20
     ? `High risk — ${pD1.toFixed(1)}% chance the property can't cover its own costs in some rate scenarios. Consider raising rent, reducing the loan, or choosing a fixed-rate program.`
@@ -567,23 +560,18 @@ export default function MonteCarloPage({
                 Rate assumptions
               </div>
 
-              {marketDataStale && (
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: YELLOW,
-                    background: "rgba(154,123,0,0.08)",
-                    border: "1px solid rgba(154,123,0,0.25)",
-                    borderRadius: dc.r.sm,
-                    padding: "8px 10px",
-                    marginBottom: 16,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Market data as of {marketDataAsOfLabel} — verify current rates before relying on this simulation.
-                </div>
-              )}
+              <DataVintageLine
+                datasetKey="sofrModel"
+                ground="dark"
+                style={{
+                  color: YELLOW,
+                  background: "rgba(154,123,0,0.08)",
+                  border: "1px solid rgba(154,123,0,0.25)",
+                  borderRadius: dc.r.sm,
+                  padding: "8px 10px",
+                  marginBottom: 16,
+                }}
+              />
 
               <div style={hl("initialSofr")}>
                 <SliderField label="Initial SOFR %" hint="Today's short-term rate index. ARM resets float off this after the fixed period ends." value={initialSofr} set={onRateSlider("initialSofr", setInitialSofr)} min={0} max={10} step={0.05} suffix="%" fmt={(v) => v.toFixed(2)} />
