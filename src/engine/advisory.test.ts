@@ -498,3 +498,50 @@ describe('bug audit #6 — estimateReserveMonths applies the FICO and loan->$1M 
     );
   });
 });
+
+describe('malformed DSCR inputs fail closed with finite outputs', () => {
+  it('returns a finite needs-review result when projected STR rent is NaN', () => {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 450_000,
+      monthlyRent: 3_200,
+      state: 'TX',
+      strProjectedRent: 5_000,
+      strategy: 'STR',
+    });
+
+    const result = solveDSCR(
+      { ...property, strProjectedRent: Number.NaN },
+      borrower,
+      loan,
+      strategy,
+    );
+
+    expect(result.dscr).toBe(0);
+    expect(Number.isFinite(result.dscr)).toBe(true);
+    expect(Number.isFinite(result.dualTrackDSCR.track1.dscr)).toBe(true);
+    expect(Number.isFinite(result.dualTrackDSCR.track2.dscr)).toBe(true);
+  });
+
+  it.each(['annualTaxes', 'annualInsurance', 'hoa', 'floodInsurance'] as const)(
+    'returns a finite needs-review result when %s is NaN',
+    (field) => {
+      const { property, borrower, loan, strategy } = buildEngineInputs({
+        purchasePrice: 400_000,
+        monthlyRent: 3_000,
+        state: 'TX',
+      });
+
+      const result = solveDSCR(
+        { ...property, [field]: Number.NaN },
+        borrower,
+        loan,
+        strategy,
+      );
+
+      expect(result.dscr).toBe(0);
+      expect(Number.isFinite(result.dscr)).toBe(true);
+      expect(Number.isFinite(result.dualTrackDSCR.track1.dscr)).toBe(true);
+      expect(Number.isFinite(result.dualTrackDSCR.track2.dscr)).toBe(true);
+    },
+  );
+});

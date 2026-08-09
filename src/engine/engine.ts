@@ -870,7 +870,12 @@ export function solveDSCR(
   if (
     !Number.isFinite(property.purchasePrice) || property.purchasePrice <= 0 ||
     !Number.isFinite(property.leaseRent) || property.leaseRent < 0 ||
-    !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100
+    !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100 ||
+    !Number.isFinite(property.strProjectedRent) ||
+    !Number.isFinite(property.annualTaxes) || property.annualTaxes < 0 ||
+    !Number.isFinite(property.annualInsurance) || property.annualInsurance < 0 ||
+    !Number.isFinite(property.hoa) || property.hoa < 0 ||
+    !Number.isFinite(property.floodInsurance) || property.floodInsurance < 0
   ) {
     const zeroPITIA: PITIABreakdown = {
       principalAndInterest: 0, taxes: 0, insurance: 0, hoa: 0,

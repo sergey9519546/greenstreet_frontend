@@ -264,4 +264,24 @@ describe("v11Runner — the verdict is fed real matrix data, never house constan
       expect(result.verdict.verdict).not.toBe("PROCEED");
     }
   });
+
+  it('normalizes percent-scale return IRRs before placing them in the decimal-scale memo stack', () => {
+    const result = runV11Analysis(base);
+
+    expect(result.memo.returnStack.preTaxIRR).toBeCloseTo(result.returns.leveredIRR / 100, 10);
+    expect(result.memo.returnStack.preTaxP10).toBeCloseTo((result.returns.leveredIRR * 0.8) / 100, 10);
+    expect(result.memo.returnStack.preTaxP90).toBeCloseTo((result.returns.leveredIRR * 1.2) / 100, 10);
+    expect(Math.abs(result.memo.returnStack.preTaxIRR)).toBeLessThan(1);
+  });
+
+  it('normalizes caller-supplied Monte Carlo IRR percentiles to memo decimals', () => {
+    const result = runV11Analysis({
+      ...base,
+      monteCarloP10IRR: 8,
+      monteCarloP90IRR: 24,
+    });
+
+    expect(result.memo.returnStack.preTaxP10).toBeCloseTo(0.08, 10);
+    expect(result.memo.returnStack.preTaxP90).toBeCloseTo(0.24, 10);
+  });
 });
