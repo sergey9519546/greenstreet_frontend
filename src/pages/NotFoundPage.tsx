@@ -29,7 +29,7 @@ export default function NotFoundPage({
 
   return (
     <DcShell onNavigate={onNavigate}>
-      <main
+      <div
         style={{
           minHeight: "68vh",
           display: "grid",
@@ -38,7 +38,7 @@ export default function NotFoundPage({
           background: swatch.pistachio,
         }}
       >
-        <section style={{ width: "100%", maxWidth: 920 }}>
+        <section aria-labelledby="not-found-heading" style={{ width: "100%", maxWidth: 920 }}>
           <Mono
             style={{
               display: "block",
@@ -53,6 +53,7 @@ export default function NotFoundPage({
             404 / Route not found
           </Mono>
           <h1
+            id="not-found-heading"
             style={{
               maxWidth: "12ch",
               margin: 0,
@@ -122,7 +123,7 @@ export default function NotFoundPage({
             </a>
           </div>
         </section>
-      </main>
+      </div>
     </DcShell>
   );
 }

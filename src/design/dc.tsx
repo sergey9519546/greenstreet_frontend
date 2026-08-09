@@ -304,11 +304,11 @@ export function Btn({ label, onClick, href, variant = "primary", size = "md", ar
       <div className="g_clickable_wrap" style={{ display: "contents" }}>
         {clickable}
       </div>
-      <div className="btn_main_text" style={{ color: "inherit", fontWeight: 700, fontSize: S.fs, letterSpacing: tracking.snug }}>{label}</div>
+      <div className="btn_main_text" aria-hidden="true" style={{ color: "inherit", fontWeight: 700, fontSize: S.fs, letterSpacing: tracking.snug }}>{label}</div>
       {arrow && (
         <div className="btn-arrow-wrap" style={{ display: "inline-flex", color: "inherit" }}>
           <div className="btn_main_icon w-embed" style={{ width: S.ic, height: S.ic }}>
-            <svg fill="none" height="100%" viewBox="0 0 24 25" width="100%" xmlns="http://www.w3.org/2000/svg"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path></svg>
+            <svg aria-hidden="true" focusable="false" fill="none" height="100%" viewBox="0 0 24 25" width="100%" xmlns="http://www.w3.org/2000/svg"><path d="M17 19.5L15.6 18.05L19.15 14.5H7V12.5H19.15L15.6 8.95L17 7.5L23 13.5L17 19.5Z" fill="currentColor"></path></svg>
           </div>
         </div>
       )}
@@ -645,8 +645,9 @@ export function DcShell({
       {/* Shared site chrome (same nav + footer as the marketing home) so every
           page is framed identically. Per-page navLinks/cta/accent are no longer
           used for the shell — kept in the signature for back-compat only. */}
+      <a className="gs-skip-link" href="#main-content">Skip to main content</a>
       <SiteNav onNavigate={onNavigate} />
-      <main className="dc-main">{children}</main>
+      <main id="main-content" tabIndex={-1} className="dc-main">{children}</main>
       <SiteFooter onNavigate={onNavigate} />
     </div>
   );

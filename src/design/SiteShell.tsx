@@ -390,7 +390,7 @@ export function SiteFooter({ onNavigate }: { onNavigate?: (v: string) => void })
   const go = (v: string) => (e: React.MouseEvent) => { e.preventDefault(); onNavigate?.(v); };
   const goPath = (p: string) => (e: React.MouseEvent) => { e.preventDefault(); window.history.pushState({}, "", p); window.dispatchEvent(new PopStateEvent("popstate")); };
   const path = typeof window !== "undefined" ? (window.location.pathname.replace(/\/$/, "") || "/") : "/";
-  const current = (href: string) => path === href.split("#")[0].replace(/\/$/, "") ? "page" : undefined;
+  const current = (href: string) => href.includes("#") ? undefined : path === href.replace(/\/$/, "") ? "page" : undefined;
   return (
     <div className="footer_component">
       <footer className="footer_wrap">
