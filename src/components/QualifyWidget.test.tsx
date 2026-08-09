@@ -97,4 +97,24 @@ describe("QualifyWidget — visitor-controlled opening", () => {
       purpose: "purchase",
     });
   });
+
+  it("clears the in-memory draft when the modal closes", () => {
+    render(<QualifyWidget />);
+
+    act(() => {
+      window.openQualify?.({ propertyValue: 525_000, rent: 3_650 });
+    });
+    expect(JSON.parse(screen.getByTestId("qualify-modal-state").textContent ?? "null")).toEqual({
+      propertyValue: 525_000,
+      rent: 3_650,
+    });
+
+    act(() => {
+      window.closeQualify?.();
+    });
+
+    const modal = screen.getByTestId("qualify-modal-state");
+    expect(modal).toHaveAttribute("data-open", "false");
+    expect(JSON.parse(modal.textContent ?? "null")).toBeNull();
+  });
 });

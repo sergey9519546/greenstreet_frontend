@@ -56,6 +56,7 @@ export const LeadSubmissionSchema = z
     investmentConfirmed: z.literal(true),
     contactConsent: z.literal(true),
     page: z.string().trim().regex(/^\/[a-z0-9/_-]*$/i).max(100),
+    submissionId: z.string().uuid(),
     // Honeypot. It is accepted only so spam can receive an indistinguishable
     // acknowledgement without creating a document.
     website: z.string().trim().max(200).optional().default(""),
@@ -68,7 +69,16 @@ export const LeadSubmissionSchema = z
 
 export type LeadSubmission = z.infer<typeof LeadSubmissionSchema>;
 
-type PersistLead = (lead: Omit<LeadSubmission, "website">) => Promise<void>;
+type PublicLead = Omit<LeadSubmission, "website">;
+type PersistLead = (lead: PublicLead) => Promise<void>;
+
+interface LeadStore {
+  collection(name: string): {
+    doc(id: string): {
+      create(data: Record<string, unknown>): Promise<unknown>;
+    };
+  };
+}
 
 export interface LeadsRouterOptions {
   allowedOrigins: readonly string[];
@@ -78,19 +88,35 @@ export interface LeadsRouterOptions {
 const LEAD_BODY_LIMIT_BYTES = 8 * 1024;
 const ACCEPTED_RESPONSE = Object.freeze({ accepted: true });
 
-function defaultPersistLead(lead: Omit<LeadSubmission, "website">): Promise<void> {
-  return getAdminFirestore()
-    .collection("leads")
-    .add({
-      ...lead,
-      // Server-owned audit metadata. The client cannot choose or backdate it.
-      contactConsentAt: FieldValue.serverTimestamp(),
-      consentPolicyVersion: "2026-07",
-      submittedAt: FieldValue.serverTimestamp(),
-      source: "public-scenario-review-v1",
-      status: "new",
-    })
-    .then(() => undefined);
+function isAlreadyExists(error: unknown): boolean {
+  if (!error || typeof error !== "object" || !("code" in error)) return false;
+  const code = (error as { code?: unknown }).code;
+  return code === 6 || code === "6" || code === "already-exists" || code === "ALREADY_EXISTS";
+}
+
+export async function persistLeadIdempotently(
+  lead: PublicLead,
+  store: LeadStore = getAdminFirestore(),
+): Promise<void> {
+  try {
+    await store
+      .collection("leads")
+      .doc(lead.submissionId)
+      .create({
+        ...lead,
+        // Server-owned audit metadata. The client cannot choose or backdate it.
+        contactConsentAt: FieldValue.serverTimestamp(),
+        consentPolicyVersion: "2026-07",
+        submittedAt: FieldValue.serverTimestamp(),
+        source: "public-scenario-review-v1",
+        status: "new",
+      });
+  } catch (error) {
+    // Firestore create() is atomic. A retry using the same UUID therefore
+    // acknowledges the original record without duplicating or overwriting it.
+    if (isAlreadyExists(error)) return;
+    throw error;
+  }
 }
 
 function hasTrustedOrigin(req: Request, allowedOrigins: readonly string[]): boolean {
@@ -109,7 +135,7 @@ function invalidRequest(res: Response) {
  * alone: CORS prevents reading a response but does not stop a hostile site
  * from sending a request, so the Origin is enforced before parsing/writing.
  */
-export function createLeadsRouter({ allowedOrigins, persistLead = defaultPersistLead }: LeadsRouterOptions): Router {
+export function createLeadsRouter({ allowedOrigins, persistLead = persistLeadIdempotently }: LeadsRouterOptions): Router {
   const router = Router();
 
   router.post("/", async (req, res) => {

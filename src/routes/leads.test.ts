@@ -6,7 +6,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { errorHandler } from "../middleware/error";
 import { logger } from "../logger";
-import { createLeadsRouter, LeadSubmissionSchema } from "./leads";
+import {
+  createLeadsRouter,
+  LeadSubmissionSchema,
+  persistLeadIdempotently,
+} from "./leads";
 
 const ORIGIN = "https://www.greenstreet.finance";
 const VALID = {
@@ -28,6 +32,7 @@ const VALID = {
   investmentConfirmed: true,
   contactConsent: true,
   page: "/book-demo",
+  submissionId: "00000000-0000-4000-8000-000000000001",
   website: "",
 } as const;
 
@@ -114,6 +119,12 @@ describe("scenario-review lead schema", () => {
     expect(LeadSubmissionSchema.safeParse({ ...VALID, loanAmount: VALID.propertyValue }).success).toBe(false);
   });
 
+  it("requires a UUID idempotency key", () => {
+    expect(LeadSubmissionSchema.safeParse({ ...VALID, submissionId: "retry-1" }).success).toBe(false);
+    const { submissionId: _submissionId, ...missing } = VALID;
+    expect(LeadSubmissionSchema.safeParse(missing).success).toBe(false);
+  });
+
   it("rejects unknown values, unbounded PII, and invalid phone characters", () => {
     expect(LeadSubmissionSchema.safeParse({ ...VALID, state: "Other" }).success).toBe(false);
     expect(LeadSubmissionSchema.safeParse({ ...VALID, name: "x".repeat(101) }).success).toBe(false);
@@ -137,8 +148,33 @@ describe("anonymous lead intake route", () => {
       email: "codex-production-qa@example.com",
       ficoBand: "under-680",
       experience: "0",
+      submissionId: VALID.submissionId,
     }));
     expect(persistLead.mock.calls[0][0]).not.toHaveProperty("website");
+  });
+
+  it("uses an atomic document create keyed by submission id and accepts retries", async () => {
+    const create = vi.fn().mockResolvedValueOnce(undefined);
+    const doc = vi.fn(() => ({ create }));
+    const collection = vi.fn(() => ({ doc }));
+    const store = { collection };
+    const { website: _website, ...lead } = LeadSubmissionSchema.parse(VALID);
+
+    await persistLeadIdempotently(lead, store as never);
+    expect(collection).toHaveBeenCalledWith("leads");
+    expect(doc).toHaveBeenCalledWith(VALID.submissionId);
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      submissionId: VALID.submissionId,
+      status: "new",
+    }));
+
+    create.mockRejectedValueOnce({ code: 6 });
+    await expect(persistLeadIdempotently(lead, store as never)).resolves.toBeUndefined();
+
+    create.mockRejectedValueOnce(new Error("permission denied"));
+    await expect(persistLeadIdempotently(lead, store as never)).rejects.toThrow(
+      "permission denied",
+    );
   });
 
   it("rejects missing and cross-site origins before persistence", async () => {

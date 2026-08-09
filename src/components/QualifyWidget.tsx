@@ -83,6 +83,7 @@ export default function QualifyWidget({
 
   const closeModal = useCallback(() => {
     setOpen(false);
+    setInitialDraft(null);
   }, []);
 
   // Expose global helpers so any CTA on the page (including the Webflow
