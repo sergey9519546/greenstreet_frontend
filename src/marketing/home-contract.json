@@ -1,6 +1,6 @@
 {
-  "source": "index.html at origin/main@7d3274c",
-  "sha256": "1de6ce958b445a30b19a1a4bae1510bbdbaf9ae7ac90b14e8b5c1416be6ec99d",
+  "source": "src/marketing/home-markup.html reviewed 2026-08-08",
+  "sha256": "ffb1ec15356e78499d29fa1860683257a48f7638d9d77c2e0cd0675919f2ba37",
   "requiredMarkers": [
     "class=\"page_wrap\"",
     "class=\"nav-wrap\"",

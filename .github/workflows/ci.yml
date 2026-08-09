@@ -30,6 +30,9 @@ jobs:
       - name: Test (vitest run)
         run: npm test
 
+      - name: Verify homepage fidelity contract
+        run: npm run test:home-fidelity
+
       - name: Build
         run: npm run build
 
