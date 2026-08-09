@@ -92,6 +92,14 @@ afterAll(async () => {
 });
 
 describe("server API preservation contracts", () => {
+  it("keeps health checks independent from lead delivery configuration", async () => {
+    const response = await request("/health", { method: "GET" });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({ status: "ok" });
+  });
+
   it("never logs malformed request bodies, headers, or synthetic PII", async () => {
     const syntheticToken = "synthetic-bearer-token-for-log-regression";
     const malformedBody = JSON.stringify({

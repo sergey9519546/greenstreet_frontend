@@ -69,8 +69,9 @@ export const LeadSubmissionSchema = z
 
 export type LeadSubmission = z.infer<typeof LeadSubmissionSchema>;
 
-type PublicLead = Omit<LeadSubmission, "website">;
+export type PublicLead = Omit<LeadSubmission, "website">;
 type PersistLead = (lead: PublicLead) => Promise<void>;
+type RecordLeadDeliveryStatus = (lead: PublicLead) => Promise<unknown>;
 
 interface LeadStore {
   collection(name: string): {
@@ -80,9 +81,26 @@ interface LeadStore {
   };
 }
 
+interface LeadDeliveryStore {
+  collection(name: string): {
+    doc(id: string): {
+      create(data: Record<string, unknown>): Promise<unknown>;
+    };
+  };
+}
+
+export interface LeadDeliveryOutcome {
+  status: "not_configured" | "existing";
+}
+
+export interface LeadDeliveryFactoryOptions {
+  store?: LeadDeliveryStore;
+}
+
 export interface LeadsRouterOptions {
   allowedOrigins: readonly string[];
   persistLead?: PersistLead;
+  recordDeliveryStatus?: RecordLeadDeliveryStatus;
 }
 
 const LEAD_BODY_LIMIT_BYTES = 8 * 1024;
@@ -119,6 +137,36 @@ export async function persistLeadIdempotently(
   }
 }
 
+/**
+ * Records the truthful storage-only delivery state in a separate document.
+ * Creating the recorder does not initialize Firebase, so `/health` remains
+ * independent from lead persistence and any future delivery integration.
+ */
+export function createStorageOnlyLeadDeliveryRecorder(
+  options: LeadDeliveryFactoryOptions = {},
+): (lead: PublicLead) => Promise<LeadDeliveryOutcome> {
+  return async (lead) => {
+    const store = options.store ?? getAdminFirestore();
+    try {
+      await store
+        .collection("leadDelivery")
+        .doc(lead.submissionId)
+        .create({
+          attemptCount: 0,
+          channel: "none",
+          status: "not_configured",
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      return { status: "not_configured" };
+    } catch (error) {
+      // A retry must never reset a later/manual delivery result. Firestore's
+      // atomic create preserves whichever status already owns this UUID.
+      if (isAlreadyExists(error)) return { status: "existing" };
+      throw error;
+    }
+  };
+}
+
 function hasTrustedOrigin(req: Request, allowedOrigins: readonly string[]): boolean {
   const origin = req.get("origin");
   return Boolean(origin && allowedOrigins.includes(origin) && req.get("sec-fetch-site") !== "cross-site");
@@ -135,7 +183,11 @@ function invalidRequest(res: Response) {
  * alone: CORS prevents reading a response but does not stop a hostile site
  * from sending a request, so the Origin is enforced before parsing/writing.
  */
-export function createLeadsRouter({ allowedOrigins, persistLead = persistLeadIdempotently }: LeadsRouterOptions): Router {
+export function createLeadsRouter({
+  allowedOrigins,
+  persistLead = persistLeadIdempotently,
+  recordDeliveryStatus,
+}: LeadsRouterOptions): Router {
   const router = Router();
 
   router.post("/", async (req, res) => {
@@ -187,6 +239,23 @@ export function createLeadsRouter({ allowedOrigins, persistLead = persistLeadIde
 
     try {
       await persistLead(lead);
+      if (recordDeliveryStatus) {
+        try {
+          await recordDeliveryStatus(lead);
+        } catch (error) {
+          // Persistence is the intake contract. Delivery metadata is separate
+          // and must not turn a stored lead into a false "not received"
+          // response that encourages a new UUID/document.
+          logger.warn(
+            {
+              errorName: error instanceof Error ? error.name : "UnknownError",
+              route: "lead-intake",
+              stage: "delivery-status",
+            },
+            "Lead stored but delivery status could not be recorded",
+          );
+        }
+      }
       // Never return a Firestore id or a calculated/financial result snapshot.
       res.status(202).json(ACCEPTED_RESPONSE);
     } catch (error) {

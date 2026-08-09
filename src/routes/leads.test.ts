@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { errorHandler } from "../middleware/error";
 import { logger } from "../logger";
 import {
+  createStorageOnlyLeadDeliveryRecorder,
   createLeadsRouter,
   LeadSubmissionSchema,
   persistLeadIdempotently,
@@ -84,6 +85,13 @@ async function postMalformedLead() {
   });
 }
 
+function fakeDeliveryStore() {
+  const create = vi.fn().mockResolvedValue(undefined);
+  const doc = vi.fn(() => ({ create }));
+  const collection = vi.fn(() => ({ doc }));
+  return { store: { collection }, collection, doc, create };
+}
+
 describe("scenario-review lead schema", () => {
   it("accepts the bounded public intake shape and normalizes email", () => {
     const parsed = LeadSubmissionSchema.parse(VALID);
@@ -132,6 +140,50 @@ describe("scenario-review lead schema", () => {
   });
 });
 
+describe("optional lead delivery", () => {
+  it("records that a stored lead has no configured delivery without exposing PII", async () => {
+    const { website: _website, ...lead } = LeadSubmissionSchema.parse({
+      ...VALID,
+      phone: "+1 202 555 0188",
+    });
+    const { store, collection, doc, create } = fakeDeliveryStore();
+
+    const outcome = await createStorageOnlyLeadDeliveryRecorder({
+      store: store as never,
+    })(lead);
+
+    expect(outcome).toEqual({ status: "not_configured" });
+    expect(collection).toHaveBeenCalledWith("leadDelivery");
+    expect(doc).toHaveBeenCalledWith(VALID.submissionId);
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attemptCount: 0,
+        channel: "none",
+        status: "not_configured",
+        updatedAt: expect.anything(),
+      }),
+    );
+    const metadata = JSON.stringify(create.mock.calls);
+    expect(metadata).not.toContain(VALID.name);
+    expect(metadata).not.toContain(VALID.email.toLowerCase());
+    expect(metadata).not.toContain(lead.phone);
+  });
+
+  it("preserves an existing delivery outcome when the intake UUID is retried", async () => {
+    const { website: _website, ...lead } = LeadSubmissionSchema.parse(VALID);
+    const { store, create } = fakeDeliveryStore();
+    create.mockRejectedValueOnce({ code: "ALREADY_EXISTS" });
+
+    const outcome = await createStorageOnlyLeadDeliveryRecorder({
+      store: store as never,
+    })(lead);
+
+    expect(outcome).toEqual({ status: "existing" });
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+});
+
 describe("anonymous lead intake route", () => {
   const trustedOptions = (persistLead = vi.fn().mockResolvedValue(undefined)) => ({
     allowedOrigins: [ORIGIN],
@@ -151,6 +203,55 @@ describe("anonymous lead intake route", () => {
       submissionId: VALID.submissionId,
     }));
     expect(persistLead.mock.calls[0][0]).not.toHaveProperty("website");
+  });
+
+  it("attempts optional delivery only after the intake is stored", async () => {
+    const events: string[] = [];
+    const persistLead = vi.fn(async () => {
+      events.push("stored");
+    });
+    const recordDeliveryStatus = vi.fn(async () => {
+      events.push("delivery-status-recorded");
+    });
+    const options = {
+      ...trustedOptions(persistLead),
+      recordDeliveryStatus,
+    };
+
+    const response = await postLead(options, VALID);
+
+    expect(response.status).toBe(202);
+    expect(await response.json()).toEqual({ accepted: true });
+    expect(events).toEqual(["stored", "delivery-status-recorded"]);
+    expect(recordDeliveryStatus).toHaveBeenCalledWith(expect.objectContaining({
+      submissionId: VALID.submissionId,
+    }));
+  });
+
+  it("acknowledges stored intake without claiming delivery when delivery fails", async () => {
+    const warn = vi.spyOn(logger, "warn").mockImplementation(() => undefined);
+    vi.spyOn(logger, "error").mockImplementation(() => undefined);
+    const persistLead = vi.fn().mockResolvedValue(undefined);
+    const recordDeliveryStatus = vi.fn().mockRejectedValue(
+      new Error(`metadata unavailable for ${VALID.email}`),
+    );
+    const options = {
+      ...trustedOptions(persistLead),
+      recordDeliveryStatus,
+    };
+
+    const response = await postLead(options, VALID);
+    const body = await response.json();
+
+    expect(response.status).toBe(202);
+    expect(body).toEqual({ accepted: true });
+    expect(persistLead).toHaveBeenCalledTimes(1);
+    expect(recordDeliveryStatus).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      { errorName: "Error", route: "lead-intake", stage: "delivery-status" },
+      "Lead stored but delivery status could not be recorded",
+    );
+    expect(JSON.stringify(warn.mock.calls)).not.toContain(VALID.email);
   });
 
   it("uses an atomic document create keyed by submission id and accepts retries", async () => {

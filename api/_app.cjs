@@ -3480,6 +3480,23 @@ async function persistLeadIdempotently(lead, store = getAdminFirestore()) {
     throw error;
   }
 }
+function createStorageOnlyLeadDeliveryRecorder(options = {}) {
+  return async (lead) => {
+    const store = options.store ?? getAdminFirestore();
+    try {
+      await store.collection("leadDelivery").doc(lead.submissionId).create({
+        attemptCount: 0,
+        channel: "none",
+        status: "not_configured",
+        updatedAt: import_firestore2.FieldValue.serverTimestamp()
+      });
+      return { status: "not_configured" };
+    } catch (error) {
+      if (isAlreadyExists(error)) return { status: "existing" };
+      throw error;
+    }
+  };
+}
 function hasTrustedOrigin(req, allowedOrigins2) {
   const origin = req.get("origin");
   return Boolean(origin && allowedOrigins2.includes(origin) && req.get("sec-fetch-site") !== "cross-site");
@@ -3487,7 +3504,11 @@ function hasTrustedOrigin(req, allowedOrigins2) {
 function invalidRequest(res) {
   res.status(400).json({ error: "Invalid lead submission" });
 }
-function createLeadsRouter({ allowedOrigins: allowedOrigins2, persistLead = persistLeadIdempotently }) {
+function createLeadsRouter({
+  allowedOrigins: allowedOrigins2,
+  persistLead = persistLeadIdempotently,
+  recordDeliveryStatus
+}) {
   const router = (0, import_express3.Router)();
   router.post("/", async (req, res) => {
     if (allowedOrigins2.length === 0) {
@@ -3524,6 +3545,20 @@ function createLeadsRouter({ allowedOrigins: allowedOrigins2, persistLead = pers
     }
     try {
       await persistLead(lead);
+      if (recordDeliveryStatus) {
+        try {
+          await recordDeliveryStatus(lead);
+        } catch (error) {
+          logger.warn(
+            {
+              errorName: error instanceof Error ? error.name : "UnknownError",
+              route: "lead-intake",
+              stage: "delivery-status"
+            },
+            "Lead stored but delivery status could not be recorded"
+          );
+        }
+      }
       res.status(202).json(ACCEPTED_RESPONSE);
     } catch (error) {
       logger.error(
@@ -3844,7 +3879,14 @@ app.get("/health", (_req, res) => {
   });
 });
 app.use("/api/dscr", apiLimiter, dscrRouter);
-app.use("/api/leads", leadLimiter, createLeadsRouter({ allowedOrigins }));
+app.use(
+  "/api/leads",
+  leadLimiter,
+  createLeadsRouter({
+    allowedOrigins,
+    recordDeliveryStatus: createStorageOnlyLeadDeliveryRecorder()
+  })
+);
 app.use("/api/sdr", apiLimiter, sdrRouter);
 app.use("/api/narrate", narrateLimiter, requireAuth, narrateRouter);
 app.use(errorHandler);

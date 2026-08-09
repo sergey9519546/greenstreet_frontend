@@ -6,7 +6,10 @@ import { logger, logRequest } from "./logger";
 import { errorHandler } from "./middleware/error";
 import { dscrRouter } from "./routes/dscr";
 import { narrateRouter } from "./routes/narrate";
-import { createLeadsRouter } from "./routes/leads";
+import {
+  createLeadsRouter,
+  createStorageOnlyLeadDeliveryRecorder,
+} from "./routes/leads";
 import { sdrRouter } from "./routes/sdr";
 import { verifyFirebaseToken, requireAuth } from "./middleware/auth";
 import { createRateLimitStore } from "./middleware/rateLimitStore";
@@ -138,7 +141,14 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/dscr", apiLimiter, dscrRouter);
-app.use("/api/leads", leadLimiter, createLeadsRouter({ allowedOrigins }));
+app.use(
+  "/api/leads",
+  leadLimiter,
+  createLeadsRouter({
+    allowedOrigins,
+    recordDeliveryStatus: createStorageOnlyLeadDeliveryRecorder(),
+  }),
+);
 app.use("/api/sdr", apiLimiter, sdrRouter);
 // /api/narrate calls a paid third-party LLM. Beyond rate limiting, it must
 // never be reachable anonymously: requireAuth (src/middleware/auth.ts) 401s

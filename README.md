@@ -180,6 +180,8 @@ canonical public origin is `https://www.greenstreet.finance`.
 ## Security
 
 - **Firestore security rules** — browser lead writes fail closed; submissions use the server endpoint
+- **Idempotent lead intake** — `/api/leads` atomically creates `leads/{submissionId}` from the client UUID, so a retry cannot create or overwrite another intake record
+- **Truthful delivery state** — the separate `leadDelivery/{submissionId}` document records `not_configured`; `{ accepted: true }` means the intake was stored, not that staff, a CRM, or a webhook was notified
 - **Rate limiting** — Express middleware prevents abuse
 - **Input validation** — Zod schemas on all API endpoints
 - **Security headers** — deployment-specific CSP reporting and baseline browser protections
@@ -187,6 +189,11 @@ canonical public origin is `https://www.greenstreet.finance`.
 
 Server credentials belong only in local or deployment environment variables. Never commit
 service-account keys, webhook secrets, or AI provider tokens.
+
+Lead intake is storage-only until a specific outbound owner and HTTPS destination are
+approved. `/health` does not depend on lead-delivery configuration. Any future receiver
+must use the existing `submissionId` as its idempotency key and keep delivery-attempt
+metadata separate from the immutable intake document.
 
 ## Contributing
 
