@@ -454,16 +454,6 @@ export default function PropertyInvestmentStrategySection({
         id="property-strategy-home-section"
         aria-labelledby="property-strategy-home-heading"
       >
-        <div className="gs-property-home__backdrop" aria-hidden="true">
-          <img
-            key={activeStrategy.id}
-            src={activeStrategy.image}
-            alt=""
-            loading="eager"
-            decoding="async"
-          />
-        </div>
-
         <div className="gs-property-home__inner u-container">
           <header className="gs-property-home__intro">
             <div className="gs-property-home__headline">
@@ -481,110 +471,126 @@ export default function PropertyInvestmentStrategySection({
               <button type="button" onClick={() => handleCtaClick("investors")}>
                 Explore the complete investor guide <span aria-hidden="true">→</span>
               </button>
+            </div>
+          </header>
+
+          <div className="gs-property-home__stage u-theme-dark">
+            <div className="gs-property-home__backdrop" aria-hidden="true">
+              <img
+                key={activeStrategy.id}
+                src={activeStrategy.image}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+
+            <div className="gs-property-home__stage-head">
               <div className="gs-property-home__position" aria-live="polite">
                 <span>{String(activeIndex + 1).padStart(2, "0")}</span>
                 <span>of {PROPERTY_STRATEGIES.length} property lenses</span>
               </div>
-            </div>
-          </header>
 
-          <div
-            className="gs-property-home__rail"
-            role="tablist"
-            aria-label="Compare investment property types"
-          >
-            {PROPERTY_STRATEGIES.map((item, index) => {
-              const isActive = item.id === selectedId;
-              return (
-                <button
-                  key={item.id}
-                  id={`${tabIdPrefix}-tab-${item.id}`}
-                  className="gs-property-home__tab"
-                  type="button"
-                  role="tab"
-                  aria-label={item.tabLabel}
-                  aria-selected={isActive}
-                  aria-controls={`${tabIdPrefix}-panel`}
-                  tabIndex={isActive ? 0 : -1}
-                  data-active={isActive ? "true" : "false"}
-                  onClick={(event) => selectStrategy(item.id, event.currentTarget)}
-                  onKeyDown={(event) => handleTabKeyDown(event, index)}
-                >
-                  <span className="gs-property-home__tab-index">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="gs-property-home__tab-label">{item.tabLabel}</span>
-                </button>
-              );
-            })}
+              <div
+                className="gs-property-home__rail"
+                role="tablist"
+                aria-label="Compare investment property types"
+                aria-orientation="horizontal"
+              >
+                {PROPERTY_STRATEGIES.map((item, index) => {
+                  const isActive = item.id === selectedId;
+                  return (
+                    <button
+                      key={item.id}
+                      id={`${tabIdPrefix}-tab-${item.id}`}
+                      className="gs-property-home__tab"
+                      type="button"
+                      role="tab"
+                      aria-label={item.tabLabel}
+                      aria-selected={isActive}
+                      aria-controls={`${tabIdPrefix}-panel`}
+                      tabIndex={isActive ? 0 : -1}
+                      data-active={isActive ? "true" : "false"}
+                      onClick={(event) => selectStrategy(item.id, event.currentTarget)}
+                      onKeyDown={(event) => handleTabKeyDown(event, index)}
+                    >
+                      <span className="gs-property-home__tab-index">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="gs-property-home__tab-label">{item.tabLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <article
+              className="gs-property-home__story"
+              id={`${tabIdPrefix}-panel`}
+              role="tabpanel"
+              aria-labelledby={`${tabIdPrefix}-tab-${activeStrategy.id}`}
+            >
+              <div className="gs-property-home__narrative">
+                <div className="gs-property-home__content-heading">
+                  <div className="gs-property-home__eyebrow is-dark">
+                    {activeStrategy.badge} · {activeStrategy.subtitle}
+                  </div>
+                  <h3 className="u-text-style-h2">{activeStrategy.title}</h3>
+                  <p>{activeStrategy.strategySummary}</p>
+                </div>
+
+                <div className="gs-property-home__actions">
+                  <Btn
+                    label="Model this property"
+                    onClick={() => handleCtaClick(activeStrategy.ctaPrimaryTarget)}
+                  />
+                  <Btn
+                    label="See all investor criteria"
+                    variant="secondary"
+                    arrow={false}
+                    onClick={() => handleCtaClick("investors")}
+                  />
+                </div>
+              </div>
+
+              <div className="gs-property-home__details">
+                <div className="gs-property-home__underwriting">
+                  <div>
+                    <span>Debt path</span>
+                    <strong>{activeStrategy.bestLoanStructure}</strong>
+                  </div>
+                  <div>
+                    <span>Income evidence</span>
+                    <strong>{activeStrategy.qualifyingIncomeBasis}</strong>
+                  </div>
+                </div>
+
+                <div className="gs-property-home__balance">
+                  <section aria-labelledby="property-home-upside-heading">
+                    <h4 id="property-home-upside-heading">The upside</h4>
+                    <ul>
+                      {activeStrategy.advantages.slice(0, 2).map((advantage) => (
+                        <li key={advantage}>{advantage}</li>
+                      ))}
+                    </ul>
+                  </section>
+                  <section aria-labelledby="property-home-tradeoffs-heading">
+                    <h4 id="property-home-tradeoffs-heading">The tradeoffs</h4>
+                    <ul>
+                      {activeStrategy.tradeoffs.slice(0, 2).map((tradeoff) => (
+                        <li key={tradeoff}>{tradeoff}</li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
+
+                <aside className="gs-property-home__checkpoint">
+                  <span>Decision checkpoint</span>
+                  <p>{activeStrategy.dueDiligence}</p>
+                </aside>
+              </div>
+            </article>
           </div>
-
-          <article
-            className="gs-property-home__story"
-            id={`${tabIdPrefix}-panel`}
-            role="tabpanel"
-            aria-labelledby={`${tabIdPrefix}-tab-${activeStrategy.id}`}
-          >
-            <div className="gs-property-home__narrative">
-              <div className="gs-property-home__content-heading">
-                <div className="gs-property-home__eyebrow is-dark">
-                  {activeStrategy.badge} · {activeStrategy.subtitle}
-                </div>
-                <h3 className="u-text-style-h2">{activeStrategy.title}</h3>
-                <p>{activeStrategy.strategySummary}</p>
-              </div>
-
-              <div className="gs-property-home__actions">
-                <Btn
-                  label="Model this property"
-                  onClick={() => handleCtaClick(activeStrategy.ctaPrimaryTarget)}
-                />
-                <Btn
-                  label="See all investor criteria"
-                  variant="secondary"
-                  arrow={false}
-                  onClick={() => handleCtaClick("investors")}
-                />
-              </div>
-            </div>
-
-            <div className="gs-property-home__details">
-              <div className="gs-property-home__underwriting">
-                <div>
-                  <span>Debt path</span>
-                  <strong>{activeStrategy.bestLoanStructure}</strong>
-                </div>
-                <div>
-                  <span>Income evidence</span>
-                  <strong>{activeStrategy.qualifyingIncomeBasis}</strong>
-                </div>
-              </div>
-
-              <div className="gs-property-home__balance">
-                <section aria-labelledby="property-home-upside-heading">
-                  <h4 id="property-home-upside-heading">The upside</h4>
-                  <ul>
-                    {activeStrategy.advantages.map((advantage) => (
-                      <li key={advantage}>{advantage}</li>
-                    ))}
-                  </ul>
-                </section>
-                <section aria-labelledby="property-home-tradeoffs-heading">
-                  <h4 id="property-home-tradeoffs-heading">The tradeoffs</h4>
-                  <ul>
-                    {activeStrategy.tradeoffs.map((tradeoff) => (
-                      <li key={tradeoff}>{tradeoff}</li>
-                    ))}
-                  </ul>
-                </section>
-              </div>
-
-              <aside className="gs-property-home__checkpoint">
-                <span>Decision checkpoint</span>
-                <p>{activeStrategy.dueDiligence}</p>
-              </aside>
-            </div>
-          </article>
         </div>
       </section>
     );
