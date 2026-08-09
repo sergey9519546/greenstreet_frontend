@@ -35,12 +35,19 @@ describe("PropertyInvestmentStrategySection", () => {
     expect(screen.getByRole("tabpanel")).toHaveTextContent(
       "Primary Rental with an Accessory Dwelling Unit",
     );
-    expect(screen.getByRole("img", { name: "Primary Rental with an Accessory Dwelling Unit" })).toHaveAttribute(
+    const fullGuideBackdrop = document.querySelector<HTMLImageElement>(
+      ".gs-property-guide__backdrop img",
+    );
+    expect(fullGuideBackdrop).toHaveAttribute(
       "src",
       "/img/properties/adu_cottage.jpg",
     );
-    expect(screen.getByText("The upside")).toBeVisible();
-    expect(screen.getByText("The tradeoffs")).toBeVisible();
+    expect(fullGuideBackdrop).toHaveAttribute("alt", "");
+    expect(document.querySelector(".property-strategy-layout")).toBeNull();
+    expect(document.querySelector(".property-strategy-art")).toBeNull();
+    expect(document.querySelector(".gs-property-guide__eligibility")).toBeVisible();
+    expect(screen.getByText("The investment case")).toBeVisible();
+    expect(screen.getByText("The operating friction")).toBeVisible();
     expect(screen.getByText(/Confirm permits, certificate of occupancy/)).toBeVisible();
 
     await user.keyboard("{ArrowRight}");
