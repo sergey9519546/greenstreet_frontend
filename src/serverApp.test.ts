@@ -3,6 +3,18 @@ import type { AddressInfo } from "node:net";
 
 import { afterAll, describe, expect, it, vi } from "vitest";
 
+const firebaseAdmin = vi.hoisted(() => ({
+  verifyIdToken: vi.fn().mockRejectedValue(new Error("synthetic invalid Firebase ID token")),
+}));
+
+vi.mock("./services/firebaseAdmin", () => ({
+  getAdminApp: () => ({}),
+  getAdminAuth: () => ({ verifyIdToken: firebaseAdmin.verifyIdToken }),
+  getAdminFirestore: () => {
+    throw new Error("serverApp tests must not access Firestore");
+  },
+}));
+
 import { logger } from "./logger";
 import { app } from "./serverApp";
 
