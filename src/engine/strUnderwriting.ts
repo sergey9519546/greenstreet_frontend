@@ -403,6 +403,7 @@ export function evaluateSTRUnderwriting(
   // ── STEP 2: Validate payment and income inputs before calculating ──
   const hasValidPaymentInputs =
     (property.inputValidationIssues?.length ?? 0) === 0 &&
+    isFiniteInRange(property.purchasePrice, MODEL_AUTO_DECISION_FLOOR, MAX_LOAN_AMOUNT) &&
     isFiniteInRange(loanAmount, MODEL_AUTO_DECISION_FLOOR, MAX_LOAN_AMOUNT) &&
     isFiniteInRange(rate, MIN_MODELED_RATE_PCT, 30) &&
     isFiniteInRange(termYears, 1, 50) &&

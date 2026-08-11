@@ -213,6 +213,7 @@ describe("evaluateSTRUnderwriting", () => {
 
   it("does not select qualifying STR income for sub-floor loans or rates", () => {
     const results = [
+      evaluateSTRUnderwriting({ ...property, purchasePrice: 49_999 }, 50_000, 7, 30, "NONE", 0, 0, 0, 0),
       evaluateSTRUnderwriting(property, 2, 7, 30, "NONE", 0, 0, 0, 0),
       evaluateSTRUnderwriting(property, 350_000, 0, 30, "NONE", 0, 0, 0, 0),
       evaluateSTRUnderwriting(property, 350_000, Number.MIN_VALUE, 30, "NONE", 0, 0, 0, 0),
