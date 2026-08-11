@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { MemoryStore, type ClientRateLimitInfo, type Options, type Store } from "express-rate-limit";
 import { Timestamp } from "firebase-admin/firestore";
 
@@ -14,8 +15,10 @@ import { getAdminApp, getAdminFirestore } from "../services/firebaseAdmin";
  * instance". That is honest DoS mitigation only when it is written down.
  *
  * Set RATE_LIMIT_FIRESTORE=true to persist counters in Firestore instead, so
- * every instance shares one window. Requires firebase-admin to be initialized;
- * if it is not, we log and fall back to memory rather than failing startup.
+ * every instance shares one window. It also requires a 32-byte
+ * RATE_LIMIT_FIRESTORE_HMAC_SECRET: document IDs are opaque HMACs rather than
+ * client IPs or other rate-limit keys. If either prerequisite is unavailable,
+ * the store safely falls back to memory rather than failing startup.
  *
  * Deliberately dependency-free (no Redis) and deliberately naive: this is
  * abuse mitigation, not billing. A transaction retry that loses a hit is
@@ -25,15 +28,26 @@ import { getAdminApp, getAdminFirestore } from "../services/firebaseAdmin";
 
 /** Firestore collection holding one document per (bucket, client key) window. */
 const COLLECTION = process.env.RATE_LIMIT_FIRESTORE_COLLECTION || "apiRateLimits";
+const MIN_HMAC_SECRET_BYTES = 32;
+const MAX_CLIENT_KEY_BYTES = 1_024;
 
 /**
- * Firestore document IDs may not contain "/" and may not be "." or "..".
- * Client keys are IPs (v4 or v6) by default but are operator-configurable, so
- * normalize defensively and cap the length.
+ * Use an opaque, fixed-width ID in Firestore. Rate-limit keys are normally IP
+ * addresses, but callers can configure their own key generator; never persist
+ * those raw values (or a reversible sanitized version) in a document name.
  */
-function sanitizeKey(key: string): string {
-  const safe = key.replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 180);
-  return safe.length > 0 ? safe : "unknown";
+function isValidHmacSecret(secret: string | undefined): secret is string {
+  return typeof secret === "string" && Buffer.byteLength(secret, "utf8") >= MIN_HMAC_SECRET_BYTES;
+}
+
+function opaqueDocumentId(bucket: string, key: string, secret: string): string {
+  if (typeof key !== "string" || key.length === 0 || Buffer.byteLength(key, "utf8") > MAX_CLIENT_KEY_BYTES) {
+    throw new Error("Invalid rate-limit client key");
+  }
+
+  return `rl_${createHmac("sha256", secret)
+    .update(`rate-limit-store:v1:${JSON.stringify([bucket, key])}`, "utf8")
+    .digest("hex")}`;
 }
 
 export class FirestoreRateLimitStore implements Store {
@@ -45,7 +59,13 @@ export class FirestoreRateLimitStore implements Store {
   private readonly fallback = new MemoryStore();
   private degradedLogged = false;
 
-  constructor(private readonly bucket: string) {
+  constructor(
+    private readonly bucket: string,
+    private readonly hmacSecret: string,
+  ) {
+    if (!isValidHmacSecret(hmacSecret)) {
+      throw new Error("RATE_LIMIT_FIRESTORE_HMAC_SECRET must contain at least 32 bytes");
+    }
     this.prefix = `${bucket}:`;
   }
 
@@ -55,7 +75,7 @@ export class FirestoreRateLimitStore implements Store {
   }
 
   private docId(key: string): string {
-    return `${this.bucket}__${sanitizeKey(key)}`;
+    return opaqueDocumentId(this.bucket, key, this.hmacSecret);
   }
 
   /**
@@ -63,11 +83,11 @@ export class FirestoreRateLimitStore implements Store {
    * in-process counter for that call instead of 500-ing the request. Logged
    * once per store instance so a sustained outage cannot flood the logs.
    */
-  private degrade<T>(error: unknown, run: () => T): T {
+  private degrade<T>(run: () => T): T {
     if (!this.degradedLogged) {
       this.degradedLogged = true;
       logger.error(
-        { bucket: this.bucket, error: error instanceof Error ? error.message : String(error) },
+        { code: "RATE_LIMIT_FIRESTORE_UNAVAILABLE" },
         "Firestore rate-limit store unavailable; falling back to per-instance memory counters",
       );
     }
@@ -107,8 +127,8 @@ export class FirestoreRateLimitStore implements Store {
         });
         return { totalHits, resetTime: new Date(previousExpiry) };
       });
-    } catch (error) {
-      return this.degrade(error, () => this.fallback.increment(key));
+    } catch {
+      return this.degrade(() => this.fallback.increment(key));
     }
   }
 
@@ -124,16 +144,16 @@ export class FirestoreRateLimitStore implements Store {
         const totalHits = typeof data?.totalHits === "number" ? data.totalHits : 0;
         tx.set(ref, { ...data, totalHits: Math.max(0, totalHits - 1) });
       });
-    } catch (error) {
-      this.degrade(error, () => this.fallback.decrement(key));
+    } catch {
+      this.degrade(() => this.fallback.decrement(key));
     }
   }
 
   async resetKey(key: string): Promise<void> {
     try {
       await getAdminFirestore().collection(COLLECTION).doc(this.docId(key)).delete();
-    } catch (error) {
-      this.degrade(error, () => this.fallback.resetKey(key));
+    } catch {
+      this.degrade(() => this.fallback.resetKey(key));
     }
   }
 
@@ -163,16 +183,24 @@ function warnAboutMemoryStoreOnce(): void {
  */
 export function createRateLimitStore(bucket: string): Store | undefined {
   if (process.env.RATE_LIMIT_FIRESTORE === "true") {
-    try {
-      // Cheap probe: constructing the store is useless if admin never initialized.
-      getAdminApp();
-      logger.info({ bucket, collection: COLLECTION }, "Rate limiting using Firestore-backed store");
-      return new FirestoreRateLimitStore(bucket);
-    } catch (error) {
+    const hmacSecret = process.env.RATE_LIMIT_FIRESTORE_HMAC_SECRET;
+    if (!isValidHmacSecret(hmacSecret)) {
       logger.error(
-        { bucket, error: error instanceof Error ? error.message : String(error) },
-        "RATE_LIMIT_FIRESTORE=true but firebase-admin is not initialized; using in-memory rate limiting",
+        { code: "RATE_LIMIT_FIRESTORE_HMAC_SECRET_INVALID" },
+        "RATE_LIMIT_FIRESTORE=true requires a valid HMAC secret; using in-memory rate limiting",
       );
+    } else {
+      try {
+        // Cheap probe: constructing the store is useless if admin never initialized.
+        getAdminApp();
+        logger.info("Rate limiting using Firestore-backed store");
+        return new FirestoreRateLimitStore(bucket, hmacSecret);
+      } catch {
+        logger.error(
+          { code: "RATE_LIMIT_FIRESTORE_ADMIN_UNAVAILABLE" },
+          "RATE_LIMIT_FIRESTORE=true but firebase-admin is not initialized; using in-memory rate limiting",
+        );
+      }
     }
   }
 

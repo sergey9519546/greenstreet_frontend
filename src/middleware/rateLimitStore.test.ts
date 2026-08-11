@@ -25,7 +25,8 @@ vi.mock("../services/firebaseAdmin", () => ({
 const log = vi.hoisted(() => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(), fatal: vi.fn() }));
 vi.mock("../logger", () => ({ logger: log, logRequest: vi.fn() }));
 
-const ENV_KEYS = ["NODE_ENV", "RATE_LIMIT_FIRESTORE"] as const;
+const ENV_KEYS = ["NODE_ENV", "RATE_LIMIT_FIRESTORE", "RATE_LIMIT_FIRESTORE_HMAC_SECRET"] as const;
+const HMAC_SECRET = "0123456789abcdef0123456789abcdef";
 let savedEnv: Record<string, string | undefined>;
 
 beforeEach(() => {
@@ -77,6 +78,7 @@ describe("createRateLimitStore", () => {
 
   it("falls back to memory (and logs) when RATE_LIMIT_FIRESTORE=true but admin is not initialized", async () => {
     process.env.RATE_LIMIT_FIRESTORE = "true";
+    process.env.RATE_LIMIT_FIRESTORE_HMAC_SECRET = HMAC_SECRET;
     admin.initFails = true;
     const { createRateLimitStore } = await loadModule();
 
@@ -86,9 +88,23 @@ describe("createRateLimitStore", () => {
 
   it("returns the Firestore store when opted in and admin is available", async () => {
     process.env.RATE_LIMIT_FIRESTORE = "true";
+    process.env.RATE_LIMIT_FIRESTORE_HMAC_SECRET = HMAC_SECRET;
     const { createRateLimitStore, FirestoreRateLimitStore } = await loadModule();
 
     expect(createRateLimitStore("api")).toBeInstanceOf(FirestoreRateLimitStore);
+  });
+
+  it("keeps persistence disabled when its HMAC secret is absent or invalid", async () => {
+    process.env.RATE_LIMIT_FIRESTORE = "true";
+    process.env.RATE_LIMIT_FIRESTORE_HMAC_SECRET = "too-short-to-be-safe";
+    const { createRateLimitStore } = await loadModule();
+
+    expect(createRateLimitStore("api")).toBeUndefined();
+    expect(log.error).toHaveBeenCalledWith(
+      { code: "RATE_LIMIT_FIRESTORE_HMAC_SECRET_INVALID" },
+      expect.stringContaining("HMAC secret"),
+    );
+    expect(JSON.stringify(log.error.mock.calls)).not.toContain("too-short-to-be-safe");
   });
 });
 
@@ -118,7 +134,7 @@ describe("FirestoreRateLimitStore", () => {
     const { db, docs } = fakeFirestore();
     admin.firestore = db;
 
-    const store = new FirestoreRateLimitStore("api");
+    const store = new FirestoreRateLimitStore("api", HMAC_SECRET);
     store.init({ windowMs: 60_000 } as any);
 
     const first = await store.increment("1.2.3.4");
@@ -146,7 +162,7 @@ describe("FirestoreRateLimitStore", () => {
       },
     };
 
-    const store = new FirestoreRateLimitStore("api");
+    const store = new FirestoreRateLimitStore("api", HMAC_SECRET);
     store.init({ windowMs: 60_000 } as any);
 
     await expect(store.increment("1.2.3.4")).resolves.toMatchObject({ totalHits: 1 });
@@ -155,5 +171,49 @@ describe("FirestoreRateLimitStore", () => {
     expect(log.error).toHaveBeenCalledTimes(1);
 
     store.shutdown();
+  });
+
+  it("uses a fixed opaque document id instead of persisting a client key", async () => {
+    const { FirestoreRateLimitStore } = await loadModule();
+    const { db, docs } = fakeFirestore();
+    admin.firestore = db;
+
+    const store = new FirestoreRateLimitStore("api", HMAC_SECRET);
+    store.init({ windowMs: 60_000 } as any);
+    await store.increment("203.0.113.10");
+
+    expect([...docs.keys()]).toEqual([expect.stringMatching(/^rl_[a-f0-9]{64}$/)]);
+    expect([...docs.keys()][0]).not.toContain("203.0.113.10");
+    expect([...docs.keys()][0]).not.toContain("api");
+  });
+
+  it("does not create a Firestore document for an unbounded client key", async () => {
+    const { FirestoreRateLimitStore } = await loadModule();
+    const { db, docs } = fakeFirestore();
+    admin.firestore = db;
+    const oversizedKey = "x".repeat(4_097);
+
+    const store = new FirestoreRateLimitStore("api", HMAC_SECRET);
+    store.init({ windowMs: 60_000 } as any);
+
+    await expect(store.increment(oversizedKey)).resolves.toMatchObject({ totalHits: 1 });
+    expect([...docs.keys()]).toEqual([]);
+    expect(JSON.stringify(log.error.mock.calls)).not.toContain(oversizedKey);
+  });
+
+  it("does not include a client key when recording a persistence failure", async () => {
+    const { FirestoreRateLimitStore } = await loadModule();
+    const clientKey = "203.0.113.10";
+    admin.firestore = {
+      collection: () => {
+        throw new Error(`permission denied for ${clientKey}`);
+      },
+    };
+
+    const store = new FirestoreRateLimitStore("api", HMAC_SECRET);
+    store.init({ windowMs: 60_000 } as any);
+
+    await expect(store.increment(clientKey)).resolves.toMatchObject({ totalHits: 1 });
+    expect(JSON.stringify(log.error.mock.calls)).not.toContain(clientKey);
   });
 });
