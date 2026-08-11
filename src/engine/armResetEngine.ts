@@ -34,6 +34,103 @@ import {
   type RateStep,
 } from './amortization';
 
+// These are computation guards, not underwriting assumptions. They bound the
+// engine to values the amortization kernel can price without manufacturing a
+// non-finite payment or an unbounded reset loop.
+const MAX_ARM_RATE_PCT = 100;
+const MAX_ARM_TERM_MONTHS = 1_200;
+const MAX_ARM_LOAN_AMOUNT = Number.MAX_SAFE_INTEGER / 12;
+
+function assertFiniteInRange(
+  value: unknown,
+  name: string,
+  minimum: number,
+  maximum: number,
+): asserts value is number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new RangeError(`${name} must be a finite number between ${minimum} and ${maximum}.`);
+  }
+}
+
+function assertIntegerInRange(
+  value: unknown,
+  name: string,
+  minimum: number,
+  maximum: number,
+): asserts value is number {
+  assertFiniteInRange(value, name, minimum, maximum);
+  if (!Number.isInteger(value)) {
+    throw new RangeError(`${name} must be an integer between ${minimum} and ${maximum}.`);
+  }
+}
+
+/**
+ * Report invalid note terms without silently substituting a different contract.
+ * Consumers that need a no-throw status (such as the Monte Carlo screen) can
+ * surface these exact reasons instead of presenting invented projections.
+ */
+export function validateARMTerms(armTerms: ARMTerms | null | undefined): string[] {
+  if (!armTerms || typeof armTerms !== 'object') return ['ARM terms are required'];
+
+  const issues: string[] = [];
+  const rate = (value: unknown, name: string, maximum = MAX_ARM_RATE_PCT) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > maximum) {
+      issues.push(`${name} must be a finite rate between 0 and ${maximum}`);
+    }
+  };
+  const months = (value: unknown, name: string) => {
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < 1 || value > MAX_ARM_TERM_MONTHS) {
+      issues.push(`${name} must be an integer between 1 and ${MAX_ARM_TERM_MONTHS}`);
+    }
+  };
+
+  rate(armTerms.marginPct, 'marginPct');
+  rate(armTerms.initialRate, 'initialRate');
+  rate(armTerms.initialCapPct, 'initialCapPct');
+  rate(armTerms.periodicCapPct, 'periodicCapPct');
+  rate(armTerms.lifetimeCapPct, 'lifetimeCapPct');
+  months(armTerms.fixedPeriodMonths, 'fixedPeriodMonths');
+  months(armTerms.resetFrequencyMonths, 'resetFrequencyMonths');
+
+  const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
+  if (Number.isFinite(lifetimeCapRate) && lifetimeCapRate > MAX_ARM_RATE_PCT) {
+    issues.push(`initialRate + lifetimeCapPct must not exceed ${MAX_ARM_RATE_PCT}`);
+  }
+  if (
+    typeof armTerms.floorRate !== 'number' ||
+    !Number.isFinite(armTerms.floorRate) ||
+    armTerms.floorRate < 0 ||
+    !Number.isFinite(lifetimeCapRate) ||
+    armTerms.floorRate > lifetimeCapRate
+  ) {
+    issues.push('floorRate must be a finite rate at or below the lifetime cap');
+  }
+  if (!['SOFR_30D', 'SOFR_30D_AVG', 'TREASURY_5YR', 'TREASURY_10YR'].includes(armTerms.index)) {
+    issues.push('index must be a supported ARM index');
+  }
+
+  return issues;
+}
+
+function assertValidARMTerms(armTerms: ARMTerms): void {
+  const issues = validateARMTerms(armTerms);
+  if (issues.length > 0) throw new RangeError(`ARM terms invalid: ${issues.join('; ')}.`);
+}
+
+function assertARMAnalysisInputs(
+  armTerms: ARMTerms,
+  loanBalanceAtReset: number,
+  remainingTermMonths: number,
+  qualifyingRent: number,
+  monthlyFixedExpenses: number,
+): void {
+  assertValidARMTerms(armTerms);
+  assertFiniteInRange(loanBalanceAtReset, 'loanBalanceAtReset', 0, MAX_ARM_LOAN_AMOUNT);
+  assertIntegerInRange(remainingTermMonths, 'remainingTermMonths', 1, MAX_ARM_TERM_MONTHS);
+  assertFiniteInRange(qualifyingRent, 'qualifyingRent', 0, MAX_ARM_LOAN_AMOUNT);
+  assertFiniteInRange(monthlyFixedExpenses, 'monthlyFixedExpenses', 0, MAX_ARM_LOAN_AMOUNT);
+}
+
 // ============================================================
 // CURRENT MARKET SNAPSHOT — Verified June 17, 2026
 // ============================================================
@@ -183,7 +280,7 @@ export interface ARMResetCapResult {
  * Reversing 1 and 2 would let a rate jump the full distance to the lifetime cap
  * in one reset, which no ARM contract permits.
  */
-export function applyResetCaps(
+function applyResetCapsUnchecked(
   armTerms: ARMTerms,
   prevRate: number,
   fullyIndexedRate: number,
@@ -223,18 +320,46 @@ export function applyResetCaps(
   return { rate, capBinding, direction, fullyIndexedRate };
 }
 
+export function applyResetCaps(
+  armTerms: ARMTerms,
+  prevRate: number,
+  fullyIndexedRate: number,
+  isFirstReset: boolean,
+): ARMResetCapResult {
+  assertValidARMTerms(armTerms);
+  assertFiniteInRange(prevRate, 'prevRate', 0, MAX_ARM_RATE_PCT);
+  assertFiniteInRange(fullyIndexedRate, 'fullyIndexedRate', 0, MAX_ARM_RATE_PCT * 2);
+  return applyResetCapsUnchecked(armTerms, prevRate, fullyIndexedRate, isFirstReset);
+}
+
 export function simulateARMResetLadder(
   armTerms: ARMTerms,
   sustainedIndexPct: number,
   horizonYears: number = 10,
 ): ARMResetLadderResult {
-  const resetPeriodYears = armTerms.resetFrequencyMonths / 12;
-  const maxResets = Math.max(
-    1,
-    Math.floor((horizonYears - armTerms.fixedPeriodMonths / 12) / resetPeriodYears),
-  );
+  assertValidARMTerms(armTerms);
+  assertFiniteInRange(sustainedIndexPct, 'sustainedIndexPct', 0, MAX_ARM_RATE_PCT);
+  assertFiniteInRange(horizonYears, 'horizonYears', 0, MAX_ARM_TERM_MONTHS / 12);
+
+  const horizonMonths = Math.floor(horizonYears * 12);
 
   const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
+  // The fixed period occupies months 1..fixedPeriodMonths; the first changed
+  // payment is month fixedPeriodMonths + 1, so a horizon ending on the fixed
+  // period contains no reset.
+  if (horizonMonths <= armTerms.fixedPeriodMonths) {
+    return {
+      trajectory: [],
+      stabilizedRate: armTerms.initialRate,
+      yearsToLifetimeCap: null,
+      lifetimeCapRate,
+    };
+  }
+
+  const maxResets = 1 + Math.floor(
+    (horizonMonths - armTerms.fixedPeriodMonths) / armTerms.resetFrequencyMonths,
+  );
+  const resetPeriodYears = armTerms.resetFrequencyMonths / 12;
   // NOTE: the floor is deliberately NOT folded in here. It is applied after the
   // caps inside applyResetCaps, which is the order the note uses.
   const fullyIndexedRate = sustainedIndexPct + armTerms.marginPct;
@@ -245,7 +370,7 @@ export function simulateARMResetLadder(
 
   for (let i = 1; i <= maxResets; i++) {
     const year = armTerms.fixedPeriodMonths / 12 + (i - 1) * resetPeriodYears;
-    const applied = applyResetCaps(armTerms, prevRate, fullyIndexedRate, i === 1);
+    const applied = applyResetCapsUnchecked(armTerms, prevRate, fullyIndexedRate, i === 1);
     const newRate = applied.rate;
 
     trajectory.push({
@@ -312,6 +437,14 @@ export function computeARMReset(
   ioPeriodMonths: number = 0,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): ARMResetResult {
+  assertARMAnalysisInputs(
+    armTerms,
+    loanBalanceAtReset,
+    remainingTermMonths,
+    qualifyingRent,
+    monthlyFixedExpenses,
+  );
+  assertIntegerInRange(ioPeriodMonths, 'ioPeriodMonths', 0, MAX_ARM_TERM_MONTHS);
   const currentIndex = getIndexValue(armTerms.index, marketSnapshot);
 
   // Scenario 1: First reset at current index — first-reset cap applied in BOTH
@@ -414,17 +547,21 @@ export function computeARMReset(
 }
 
 function getIndexValue(index: string, snapshot: MarketIndexSnapshot): number {
+  const value = (() => {
   switch (index) {
     case 'SOFR_30D':
     case 'SOFR_30D_AVG':
-      return snapshot.sofr30Day;
+      return snapshot?.sofr30Day;
     case 'TREASURY_5YR':
-      return snapshot.treasury5Y;
+      return snapshot?.treasury5Y;
     case 'TREASURY_10YR':
-      return snapshot.treasury10Y;
+      return snapshot?.treasury10Y;
     default:
-      return snapshot.sofr30Day;
+      return snapshot?.sofr30Day;
   }
+  })();
+  assertFiniteInRange(value, `market snapshot ${index}`, 0, MAX_ARM_RATE_PCT);
+  return value;
 }
 
 function solveDealBreakRate(
@@ -503,6 +640,10 @@ export function computeRemainingBalanceAtReset(
   totalTermMonths: number,
   monthsElapsed: number,
 ): number {
+  assertFiniteInRange(loanAmount, 'loanAmount', 0, MAX_ARM_LOAN_AMOUNT);
+  assertFiniteInRange(annualRate, 'annualRate', 0, MAX_ARM_RATE_PCT);
+  assertIntegerInRange(totalTermMonths, 'totalTermMonths', 1, MAX_ARM_TERM_MONTHS);
+  assertIntegerInRange(monthsElapsed, 'monthsElapsed', 0, totalTermMonths);
   const r = annualRate / 100 / 12;
   if (r === 0) return loanAmount * (1 - monthsElapsed / totalTermMonths);
 
@@ -510,7 +651,10 @@ export function computeRemainingBalanceAtReset(
   const elapsed = Math.pow(1 + r, monthsElapsed);
 
   const remaining = loanAmount * (factor - elapsed) / (factor - 1);
-  return Math.max(0, remaining);
+  if (!Number.isFinite(remaining)) {
+    throw new RangeError('computeRemainingBalanceAtReset produced a non-finite balance.');
+  }
+  return Math.max(0, Math.min(loanAmount, remaining));
 }
 
 // ============================================================
@@ -549,6 +693,7 @@ export function computeLenderStressRate(
   lifetimeCapRate: number;     // initial + lifetimeCap
   trajectory: ARMResetTrajectoryPoint[];
 } {
+  assertValidARMTerms(armTerms);
   const currentIndex = getIndexValue(armTerms.index, marketSnapshot);
   const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
   const resetRate = Math.max(currentIndex + armTerms.marginPct, armTerms.floorRate);
@@ -634,6 +779,19 @@ export function computeMultiScenarioARMReset(
   monthlyFixedExpenses: number,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): MultiScenarioARMResult {
+  assertARMAnalysisInputs(
+    armTerms,
+    loanBalanceAtReset,
+    remainingTermMonths,
+    qualifyingRent,
+    monthlyFixedExpenses,
+  );
+  assertFiniteInRange(
+    marketSnapshot?.freddieMac30YrFixed,
+    'market snapshot freddieMac30YrFixed',
+    0,
+    MAX_ARM_RATE_PCT,
+  );
   // Compute deal-break rate once (independent of scenario)
   const dealBreakRate = solveDealBreakRate(
     qualifyingRent, loanBalanceAtReset, remainingTermMonths, monthlyFixedExpenses,
@@ -726,6 +884,9 @@ export function computePaymentShockPct(
   remainingTermMonths: number,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): PaymentShockResult {
+  assertValidARMTerms(armTerms);
+  assertFiniteInRange(loanBalanceAtReset, 'loanBalanceAtReset', 0, MAX_ARM_LOAN_AMOUNT);
+  assertIntegerInRange(remainingTermMonths, 'remainingTermMonths', 1, MAX_ARM_TERM_MONTHS);
   // Initial payment at origination rate
   const initialPayment = calculatePI(
     loanBalanceAtReset, armTerms.initialRate, remainingTermMonths,
@@ -797,6 +958,17 @@ export function findDSCRBreakYear(
   threshold: number = 1.0,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): DSCRBreakYearResult {
+  assertARMAnalysisInputs(
+    armTerms,
+    loanBalanceAtReset,
+    remainingTermMonths,
+    qualifyingRent,
+    monthlyFixedExpenses,
+  );
+  assertFiniteInRange(threshold, 'threshold', 0, 100);
+  if (!Object.prototype.hasOwnProperty.call(ARM_SCENARIO_INDEXES, scenarioName)) {
+    throw new RangeError('scenarioName must be a supported ARM scenario.');
+  }
   const sustainedSOFR = ARM_SCENARIO_INDEXES[scenarioName];
   const ladder = simulateARMResetLadder(armTerms, sustainedSOFR, 10);
   const yearsToFirstReset = armTerms.fixedPeriodMonths / 12;
@@ -874,6 +1046,15 @@ export function computeRefiTriggerRate(
   remainingTermMonths: number,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): RefiTriggerResult {
+  assertValidARMTerms(armTerms);
+  assertFiniteInRange(loanBalanceAtReset, 'loanBalanceAtReset', 0, MAX_ARM_LOAN_AMOUNT);
+  assertIntegerInRange(remainingTermMonths, 'remainingTermMonths', 1, MAX_ARM_TERM_MONTHS);
+  assertFiniteInRange(
+    marketSnapshot?.freddieMac30YrFixed,
+    'market snapshot freddieMac30YrFixed',
+    0,
+    MAX_ARM_RATE_PCT,
+  );
   const currentFixedRate = marketSnapshot.freddieMac30YrFixed;
 
   // ARM stabilized rate at current SOFR
@@ -1022,17 +1203,23 @@ export interface ARMScheduleResult {
  * transition, and every capped reset, re-amortized over the remaining term.
  */
 export function buildARMSchedule(input: ARMScheduleInput): ARMScheduleResult {
-  const { armTerms } = input;
-  const termMonths = Math.max(1, Math.round(input.termMonths ?? 360));
-  const ioMonths = Math.min(Math.max(Math.round(input.ioMonths ?? 0), 0), termMonths);
-  const loanAmount = Number(input.loanAmount);
-
-  if (!Number.isFinite(loanAmount) || loanAmount <= 0) {
-    throw new Error('buildARMSchedule: loanAmount must be a positive, finite number.');
+  if (!input || typeof input !== 'object') {
+    throw new RangeError('buildARMSchedule: input is required.');
   }
+  const { armTerms } = input;
+  assertValidARMTerms(armTerms);
 
-  const resetFrequency = Math.max(1, Math.round(armTerms.resetFrequencyMonths || 6));
-  const firstResetMonth = Math.max(1, Math.round(armTerms.fixedPeriodMonths)) + 1;
+  const termMonths = input.termMonths ?? 360;
+  const ioMonths = input.ioMonths ?? 0;
+  const loanAmount = input.loanAmount;
+
+  assertFiniteInRange(loanAmount, 'loanAmount', Number.EPSILON, MAX_ARM_LOAN_AMOUNT);
+  assertIntegerInRange(termMonths, 'termMonths', 1, MAX_ARM_TERM_MONTHS);
+  assertIntegerInRange(ioMonths, 'ioMonths', 0, termMonths);
+  assertFiniteInRange(input.sustainedIndexPct, 'sustainedIndexPct', 0, MAX_ARM_RATE_PCT);
+
+  const resetFrequency = armTerms.resetFrequencyMonths;
+  const firstResetMonth = armTerms.fixedPeriodMonths + 1;
 
   // Walk the ladder over the WHOLE term, not a 10-year window, so a 30-year
   // schedule carries a rate for every month it actually has.

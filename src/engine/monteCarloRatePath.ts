@@ -38,7 +38,7 @@ import type {
   RatePathOutcome,
   MarketIndexSnapshot,
 } from './types';
-import { simulateARMResetLadder, CURRENT_MARKET_SNAPSHOT } from './armResetEngine';
+import { simulateARMResetLadder, CURRENT_MARKET_SNAPSHOT, validateARMTerms } from './armResetEngine';
 import { calculatePI } from './engine';
 
 // Re-export so pages can import the snapshot from this module
@@ -60,8 +60,8 @@ function mulberry32(seed: number): () => number {
 
 // Box-Muller transform for standard normal random variate
 function normalRandom(rng: () => number, mean: number, std: number): number {
-  const u1 = rng();
-  const u2 = rng();
+  const u1 = drawUnit(rng);
+  const u2 = drawUnit(rng);
   const z = Math.sqrt(-2.0 * Math.log(u1 || 0.0001)) * Math.cos(2.0 * Math.PI * u2);
   return mean + z * std;
 }
@@ -89,6 +89,133 @@ export const DEFAULT_VASICEK_PARAMS: VasicekParameters = {
   shockMagnitudeBps: 50,          // ±50bps typical FOMC move
 };
 
+const MAX_RATE_PATHS = 10_000;
+const MAX_HORIZON_MONTHS = 1_200;
+const MAX_MODEL_RATE_PCT = 25;
+const MAX_MODEL_MEAN_REVERSION = 10;
+const MAX_MODEL_SHOCK_BPS = 2_500;
+const MAX_MONTE_CARLO_AMOUNT = Number.MAX_SAFE_INTEGER / 12;
+
+function isFiniteInRange(value: unknown, minimum: number, maximum: number): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= minimum && value <= maximum;
+}
+
+function finiteIntegerInRange(value: unknown, minimum: number, maximum: number): value is number {
+  return isFiniteInRange(value, minimum, maximum) && Number.isInteger(value);
+}
+
+function validateVasicekParameters(params: VasicekParameters): string[] {
+  const issues: string[] = [];
+  const check = (value: unknown, name: string, minimum: number, maximum: number) => {
+    if (!isFiniteInRange(value, minimum, maximum)) {
+      issues.push(`${name} must be a finite value between ${minimum} and ${maximum}`);
+    }
+  };
+
+  check(params?.longRunMeanSOFR, 'longRunMeanSOFR', 0, MAX_MODEL_RATE_PCT);
+  check(params?.meanReversionSpeed, 'meanReversionSpeed', 0, MAX_MODEL_MEAN_REVERSION);
+  check(params?.volatility, 'volatility', 0, MAX_MODEL_RATE_PCT);
+  check(params?.initialSOFR, 'initialSOFR', 0, MAX_MODEL_RATE_PCT);
+  check(params?.shockProbMonthly, 'shockProbMonthly', 0, 1);
+  check(params?.shockMagnitudeBps, 'shockMagnitudeBps', 0, MAX_MODEL_SHOCK_BPS);
+  return issues;
+}
+
+function validateRatePathInputs(
+  armTerms: ARMTerms,
+  loanBalanceAtReset: number,
+  remainingTermMonths: number,
+  qualifyingRent: number,
+  monthlyFixedExpenses: number,
+  simulations: number,
+  horizonMonths: number,
+  seed: number,
+  params: VasicekParameters,
+): string[] {
+  const issues = [...validateARMTerms(armTerms), ...validateVasicekParameters(params)];
+  const check = (value: unknown, name: string, minimum: number, maximum: number) => {
+    if (!isFiniteInRange(value, minimum, maximum)) {
+      issues.push(`${name} must be a finite value between ${minimum} and ${maximum}`);
+    }
+  };
+
+  check(loanBalanceAtReset, 'loanBalanceAtReset', Number.EPSILON, MAX_MONTE_CARLO_AMOUNT);
+  if (!finiteIntegerInRange(remainingTermMonths, 1, MAX_HORIZON_MONTHS)) {
+    issues.push(`remainingTermMonths must be an integer between 1 and ${MAX_HORIZON_MONTHS}`);
+  }
+  check(qualifyingRent, 'qualifyingRent', 0, MAX_MONTE_CARLO_AMOUNT);
+  check(monthlyFixedExpenses, 'monthlyFixedExpenses', 0, MAX_MONTE_CARLO_AMOUNT);
+  if (!finiteIntegerInRange(simulations, 1, MAX_RATE_PATHS)) {
+    issues.push(`simulations must be an integer between 1 and ${MAX_RATE_PATHS}`);
+  }
+  if (!finiteIntegerInRange(horizonMonths, 1, MAX_HORIZON_MONTHS)) {
+    issues.push(`horizonMonths must be an integer between 1 and ${MAX_HORIZON_MONTHS}`);
+  }
+  if (!Number.isFinite(seed)) issues.push('seed must be finite');
+  return issues;
+}
+
+function normalizeSeed(seed: number): number {
+  return Number.isFinite(seed) ? Math.trunc(seed) >>> 0 : 0;
+}
+
+function emptyHorizonStats(): { mean: number; p10: number; p90: number } {
+  return { mean: 0, p10: 0, p90: 0 };
+}
+
+function invalidRatePathResult(issues: string[], seed: number): MonteCarloRatePathResult {
+  return {
+    analysisStatus: 'INVALID_ASSUMPTIONS',
+    analysisIssues: issues,
+    simulations: 0,
+    horizonMonths: 0,
+    seed: normalizeSeed(seed),
+    paths: [],
+    finalRateStats: { mean: 0, median: 0, p10: 0, p25: 0, p75: 0, p90: 0, stddev: 0 },
+    dscrStats: { mean: 0, median: 0, p10: 0, p25: 0, p75: 0, p90: 0, min: 0, max: 0 },
+    probabilityDSCRBelow1_0: 0,
+    probabilityDSCRBelow1_25: 0,
+    probabilityDSCRBelow1_50: 0,
+    probabilityRateAboveLifetimeCap: 0,
+    sofrAtHorizon: {
+      year1: emptyHorizonStats(),
+      year3: emptyHorizonStats(),
+      year5: emptyHorizonStats(),
+      year10: emptyHorizonStats(),
+    },
+    modelParameters: { process: 'VASICEK', ...DEFAULT_VASICEK_PARAMS },
+    summary: `Analysis unavailable: ${issues.join('; ')}. No rate-path recommendation was produced.`,
+  };
+}
+
+function assertValidPathSimulation(
+  params: VasicekParameters,
+  horizonMonths: number,
+  rng: () => number,
+  floorRate: number,
+): void {
+  const issues = validateVasicekParameters(params);
+  if (!finiteIntegerInRange(horizonMonths, 1, MAX_HORIZON_MONTHS)) {
+    issues.push(`horizonMonths must be an integer between 1 and ${MAX_HORIZON_MONTHS}`);
+  }
+  if (!isFiniteInRange(floorRate, 0, MAX_MODEL_RATE_PCT)) {
+    issues.push(`floorRate must be a finite rate between 0 and ${MAX_MODEL_RATE_PCT}`);
+  }
+  if (isFiniteInRange(params?.initialSOFR, 0, MAX_MODEL_RATE_PCT) && params.initialSOFR < floorRate) {
+    issues.push('initialSOFR must be at or above floorRate');
+  }
+  if (typeof rng !== 'function') issues.push('rng must be a function');
+  if (issues.length > 0) throw new RangeError(`Invalid SOFR path assumptions: ${issues.join('; ')}.`);
+}
+
+function drawUnit(rng: () => number): number {
+  const draw = rng();
+  if (!isFiniteInRange(draw, 0, 1) || draw === 1) {
+    throw new RangeError('rng must return a finite value in [0, 1).');
+  }
+  return draw;
+}
+
 // ============================================================
 // SINGLE-PATH SOFR SIMULATION (Vasicek + Fed shocks)
 // ============================================================
@@ -112,6 +239,7 @@ export function simulateSOFRPath(
   rng: () => number,
   floorRate: number = 0.0,
 ): number[] {
+  assertValidPathSimulation(params, horizonMonths, rng, floorRate);
   const dt = 1 / 12;
   const sqrtDt = Math.sqrt(dt);
   const path: number[] = [params.initialSOFR];
@@ -126,7 +254,7 @@ export function simulateSOFRPath(
 
     // Fed shock jump (Poisson-like — Bernoulli trial per month)
     let jump = 0;
-    if (rng() < params.shockProbMonthly) {
+    if (drawUnit(rng) < params.shockProbMonthly) {
       // Sign of jump determined by another Gaussian draw (can be ±)
       jump = (normalRandom(rng, 0, 1) >= 0 ? 1 : -1) * (params.shockMagnitudeBps / 100);
     }
@@ -186,7 +314,21 @@ export function runMonteCarloRatePath(
   params: VasicekParameters = DEFAULT_VASICEK_PARAMS,
   marketSnapshot: MarketIndexSnapshot = CURRENT_MARKET_SNAPSHOT,
 ): MonteCarloRatePathResult {
-  const rng = mulberry32(seed);
+  const issues = validateRatePathInputs(
+    armTerms,
+    loanBalanceAtReset,
+    remainingTermMonths,
+    qualifyingRent,
+    monthlyFixedExpenses,
+    simulations,
+    horizonMonths,
+    seed,
+    params,
+  );
+  if (issues.length > 0) return invalidRatePathResult(issues, seed);
+
+  const normalizedSeed = normalizeSeed(seed);
+  const rng = mulberry32(normalizedSeed);
   const paths: RatePathOutcome[] = [];
   const lifetimeCapRate = armTerms.initialRate + armTerms.lifetimeCapPct;
 
@@ -229,6 +371,18 @@ export function runMonteCarloRatePath(
     });
   }
 
+  if (
+    paths.length !== simulations ||
+    paths.some((path) =>
+      !isFiniteInRange(path.finalSOFR, 0, MAX_MODEL_RATE_PCT) ||
+      !isFiniteInRange(path.stabilizedRate, 0, 100) ||
+      !Number.isFinite(path.finalDSCR) ||
+      path.finalDSCR < 0,
+    )
+  ) {
+    return invalidRatePathResult(['Simulation produced a non-finite or out-of-domain path.'], seed);
+  }
+
   // Aggregate stats
   const finalRates = paths.map(p => p.stabilizedRate);
   const finalDSCRs = paths.map(p => p.finalDSCR);
@@ -242,6 +396,16 @@ export function runMonteCarloRatePath(
   const probabilityDSCRBelow1_50 = finalDSCRs.filter(d => d < 1.50).length / simulations;
   const probabilityRateAboveLifetimeCap =
     paths.filter(p => p.hitLifetimeCap).length / simulations;
+
+  const probabilities = [
+    probabilityDSCRBelow1_0,
+    probabilityDSCRBelow1_25,
+    probabilityDSCRBelow1_50,
+    probabilityRateAboveLifetimeCap,
+  ];
+  if (probabilities.some((probability) => !isFiniteInRange(probability, 0, 1))) {
+    return invalidRatePathResult(['Simulation produced an invalid probability.'], seed);
+  }
 
   // SOFR at horizons (mean, p10, p90)
   const sofrAtHorizon = {
@@ -292,9 +456,11 @@ export function runMonteCarloRatePath(
   const summary = summaryLines.join(' ');
 
   return {
+    analysisStatus: 'READY',
+    analysisIssues: [],
     simulations,
     horizonMonths,
-    seed,
+    seed: normalizedSeed,
     paths,
     finalRateStats,
     dscrStats,

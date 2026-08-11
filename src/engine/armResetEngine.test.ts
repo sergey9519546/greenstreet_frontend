@@ -16,6 +16,24 @@ import { calculatePI } from "./engine";
 const arm = DEFAULT_ARM_PROGRAMS["5_6_ARM"]; // initial 5.125, +2 first cap, +1/period, +5 lifetime
 
 describe("simulateARMResetLadder", () => {
+  it("does not invent a reset when the analysis horizon ends before the fixed period", () => {
+    const r = simulateARMResetLadder(arm, 5.0, 1);
+
+    expect(r.trajectory).toEqual([]);
+    expect(r.stabilizedRate).toBe(arm.initialRate);
+  });
+
+  it("does not place a month-61 reset inside a 60-month fixed-period horizon", () => {
+    const r = simulateARMResetLadder(arm, 5.0, 5);
+
+    expect(r.trajectory).toEqual([]);
+    expect(r.stabilizedRate).toBe(arm.initialRate);
+  });
+
+  it("fails closed when a note rate is not finite", () => {
+    expect(() => simulateARMResetLadder({ ...arm, marginPct: Number.NaN }, 5.0, 10)).toThrow(/ARM terms/i);
+  });
+
   it("first reset is bounded by the initial cap under sustained stress", () => {
     const r = simulateARMResetLadder(arm, 5.0, 10);
     expect(r.trajectory[0].rate).toBeCloseTo(arm.initialRate + arm.initialCapPct, 3); // 7.125
@@ -39,6 +57,10 @@ describe("simulateARMResetLadder", () => {
 });
 
 describe("computeRemainingBalanceAtReset", () => {
+  it("rejects a non-finite rate instead of returning a non-finite balance", () => {
+    expect(() => computeRemainingBalanceAtReset(300_000, Number.POSITIVE_INFINITY, 360, 60)).toThrow(/annualRate/i);
+  });
+
   it("returns full principal at month 0 and amortizes down over time", () => {
     expect(computeRemainingBalanceAtReset(300_000, 6, 360, 0)).toBeCloseTo(300_000, 0);
     const b60 = computeRemainingBalanceAtReset(300_000, 6, 360, 60);
@@ -305,6 +327,10 @@ describe("buildARMSchedule — reset boundaries walk the actual schedule", () =>
     expect(() => buildARMSchedule({ ...BASE_INPUT, loanAmount: 0, sustainedIndexPct: 5.0 })).toThrow();
     expect(() => buildARMSchedule({ ...BASE_INPUT, loanAmount: NaN, sustainedIndexPct: 5.0 })).toThrow();
     expect(() => buildARMSchedule({ ...BASE_INPUT, loanAmount: -50_000, sustainedIndexPct: 5.0 })).toThrow();
+  });
+
+  it("fails closed when the sustained index is not a finite rate", () => {
+    expect(() => buildARMSchedule({ ...BASE_INPUT, sustainedIndexPct: Number.NaN })).toThrow(/sustainedIndexPct/i);
   });
 });
 

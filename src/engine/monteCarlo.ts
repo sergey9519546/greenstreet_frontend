@@ -56,6 +56,11 @@ const VAC_SIGMA = 0.015;
 const CIR_A = 0.5;
 const CIR_B = 0.035;
 const CIR_SIGMA = 0.0075;
+// This model is calibrated to 2026. Keeping the age bucket on that vintage is
+// necessary for a seeded replay to mean the same thing next year.
+const CALIBRATION_YEAR = 2026;
+const MAX_SIMULATIONS = 10_000;
+const MAX_MONTE_CARLO_AMOUNT = Number.MAX_SAFE_INTEGER / 12;
 
 // Lower-Cholesky of corr[(rent, vacancy, rate)] =
 //   [[1, -0.48, 0.44], [-0.48, 1, -0.30], [0.44, -0.30, 1]]
@@ -82,11 +87,58 @@ function insuranceProfile(state: string): { muAnnual: number; jumpProb: number; 
 }
 
 function tcoAgeFromYear(yearBuilt: number): TcoPropertyAge {
-  const age = new Date().getFullYear() - (yearBuilt || 2000);
+  const age = CALIBRATION_YEAR - (Number.isFinite(yearBuilt) ? yearBuilt : 2000);
   if (age <= 5) return 'NEW';
   if (age <= 15) return 'AVERAGE';
   if (age <= 30) return 'AGING';
   return 'OLD';
+}
+
+function assertFiniteInRange(value: unknown, name: string, minimum: number, maximum: number): asserts value is number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new RangeError(`${name} must be a finite number between ${minimum} and ${maximum}.`);
+  }
+}
+
+function assertMonteCarloInputs(
+  property: PropertyInputs,
+  loan: LoanStructure,
+  strategy: RentalStrategy,
+  dscrResult: DSCRResult,
+  simulations: number,
+  seed: number,
+): void {
+  if (!Number.isInteger(simulations) || simulations < 1 || simulations > MAX_SIMULATIONS) {
+    throw new RangeError(`simulations must be an integer between 1 and ${MAX_SIMULATIONS}.`);
+  }
+  if (!Number.isFinite(seed)) throw new RangeError('seed must be finite.');
+  if (!['LTR', 'STR', 'MTR'].includes(strategy)) throw new RangeError('strategy must be LTR, STR, or MTR.');
+  if (!['30_YR', '40_YR', '15_YR'].includes(loan.term)) throw new RangeError('loan.term is invalid.');
+  if (!['FIXED', '5_6_ARM', '7_6_ARM', '10_6_ARM'].includes(loan.armType)) {
+    throw new RangeError('loan.armType is invalid.');
+  }
+
+  assertFiniteInRange(property.purchasePrice, 'property.purchasePrice', Number.EPSILON, MAX_MONTE_CARLO_AMOUNT);
+  assertFiniteInRange(property.unitCount, 'property.unitCount', 1, 10_000);
+  assertFiniteInRange(property.annualTaxes, 'property.annualTaxes', 0, MAX_MONTE_CARLO_AMOUNT);
+  assertFiniteInRange(property.annualInsurance, 'property.annualInsurance', 0, MAX_MONTE_CARLO_AMOUNT);
+  assertFiniteInRange(property.hoa, 'property.hoa', 0, MAX_MONTE_CARLO_AMOUNT);
+  assertFiniteInRange(property.floodInsurance, 'property.floodInsurance', 0, MAX_MONTE_CARLO_AMOUNT);
+  assertFiniteInRange(loan.ltv, 'loan.ltv', 0, 100);
+  assertFiniteInRange(dscrResult.qualifyingRent, 'dscrResult.qualifyingRent', 0, MAX_MONTE_CARLO_AMOUNT);
+  assertFiniteInRange(dscrResult.solvedRate, 'dscrResult.solvedRate', 0, 100);
+  assertFiniteInRange(
+    dscrResult.monthlyPITIA.principalAndInterest,
+    'dscrResult.monthlyPITIA.principalAndInterest',
+    0,
+    MAX_MONTE_CARLO_AMOUNT,
+  );
+  assertFiniteInRange(
+    dscrResult.cashToClose.reserveRequirement,
+    'dscrResult.cashToClose.reserveRequirement',
+    0,
+    MAX_MONTE_CARLO_AMOUNT,
+  );
 }
 
 export function runMonteCarlo(
@@ -95,8 +147,10 @@ export function runMonteCarlo(
   strategy: RentalStrategy,
   dscrResult: DSCRResult,
   simulations: number = 2500,
+  seed: number = 42,
 ): MonteCarloResult {
-  const rng = mulberry32(42);
+  assertMonteCarloInputs(property, loan, strategy, dscrResult, simulations, seed);
+  const rng = mulberry32(Math.trunc(seed) >>> 0);
   const isSTR = strategy === 'STR';
   const isMTR = strategy === 'MTR';
 

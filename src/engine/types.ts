@@ -603,7 +603,13 @@ export interface MonteCarloResult {
 }
 
 // v11.9 — Monte Carlo ARM/SOFR rate-path simulator (Vasicek mean-reverting process)
+export type MonteCarloRatePathAnalysisStatus = 'READY' | 'INVALID_ASSUMPTIONS';
+
 export interface MonteCarloRatePathResult {
+  /** READY only when every input and every generated outcome was finite and bounded. */
+  analysisStatus: MonteCarloRatePathAnalysisStatus;
+  /** Human-readable reasons when no analysis can be safely produced. */
+  analysisIssues: string[];
   simulations: number;                    // # of stochastic paths simulated
   horizonMonths: number;                  // simulation horizon (e.g., 120 = 10 years)
   seed: number;                           // RNG seed (for reproducibility)

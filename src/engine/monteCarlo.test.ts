@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { runMonteCarlo } from "./monteCarlo";
 import { solveDSCR } from "./engine";
 import { buildEngineInputs } from "./inputs";
@@ -12,6 +12,43 @@ function run(overrides: Record<string, unknown> = {}, sims = 600) {
 }
 
 describe("runMonteCarlo — regime-switching recalibration", () => {
+  it("rejects a fractional simulation count instead of dividing probabilities by it", () => {
+    expect(() => run({}, 1.5)).toThrow(/simulations/i);
+  });
+
+  it("uses a supplied seed reproducibly", () => {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 400_000, monthlyRent: 3_000, state: "TX", ltv: 75, ficoScore: 740,
+    });
+    const dscr = solveDSCR(property, borrower, loan, strategy);
+
+    const a = runMonteCarlo(property, loan, strategy, dscr, 80, 17);
+    const b = runMonteCarlo(property, loan, strategy, dscr, 80, 17);
+    const c = runMonteCarlo(property, loan, strategy, dscr, 80, 18);
+
+    expect(a).toEqual(b);
+    expect(c).not.toEqual(a);
+  });
+
+  it("keeps a seeded calibration reproducible when the wall clock changes", () => {
+    const { property, borrower, loan, strategy } = buildEngineInputs({
+      purchasePrice: 400_000, monthlyRent: 3_000, state: "TX", ltv: 75, ficoScore: 740, yearBuilt: 2015,
+    });
+    const dscr = solveDSCR(property, borrower, loan, strategy);
+
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-08-11T00:00:00Z"));
+      const atCalibrationDate = runMonteCarlo(property, loan, strategy, dscr, 80);
+      vi.setSystemTime(new Date("2034-08-11T00:00:00Z"));
+      const replayed = runMonteCarlo(property, loan, strategy, dscr, 80);
+
+      expect(replayed).toEqual(atCalibrationDate);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("is deterministic (seeded) — identical results across runs", () => {
     const a = run();
     const b = run();
