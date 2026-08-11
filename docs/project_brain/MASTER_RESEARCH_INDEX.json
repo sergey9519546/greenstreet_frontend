@@ -1,9 +1,18 @@
 {
   "documents": [
     {
+      "title": "00_MASTER_README.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\00_MASTER_README.md",
+      "size_bytes": 6502,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
       "title": "01_MASTER_SOVEREIGN_ARCHITECTURE.md",
       "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\01_MASTER_SOVEREIGN_ARCHITECTURE.md",
-      "size_bytes": 4173,
+      "size_bytes": 4223,
       "category": "Underwriting Spec",
       "keywords": [
         "finance"
@@ -12,7 +21,7 @@
     {
       "title": "02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md",
       "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md",
-      "size_bytes": 6769,
+      "size_bytes": 6895,
       "category": "Underwriting Spec",
       "keywords": [
         "finance"
@@ -21,7 +30,7 @@
     {
       "title": "03_MASTER_LENDER_AND_COMPLIANCE.md",
       "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\03_MASTER_LENDER_AND_COMPLIANCE.md",
-      "size_bytes": 8215,
+      "size_bytes": 8318,
       "category": "Compliance/Legal",
       "keywords": [
         "finance"
@@ -31,6 +40,543 @@
       "title": "04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md",
       "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md",
       "size_bytes": 283589,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "05_MASTER_IMPROVEMENTS_AND_EXPANSIONS.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\05_MASTER_IMPROVEMENTS_AND_EXPANSIONS.md",
+      "size_bytes": 26281,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "Actionable Next Steps for the 20X DSCR Deal Engine.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\Actionable Next Steps for the 20X DSCR Deal Engine.md",
+      "size_bytes": 3267,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "Advisor_Grade_DSCR_Decision_Engine_Organized_Research.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\Advisor_Grade_DSCR_Decision_Engine_Organized_Research.md",
+      "size_bytes": 39601,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "Advisor_Grade_DSCR_Decision_Engine_Usable_Master_Spec.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\Advisor_Grade_DSCR_Decision_Engine_Usable_Master_Spec.md",
+      "size_bytes": 30181,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "AEGIS_DSCR_Advisor_Grade_Operating_Model_Upgrade_Pack.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\AEGIS_DSCR_Advisor_Grade_Operating_Model_Upgrade_Pack.md",
+      "size_bytes": 35818,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "AEGIS_DSCR_Algorithm_Gap_Upgrade_Pack.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\AEGIS_DSCR_Algorithm_Gap_Upgrade_Pack.md",
+      "size_bytes": 36086,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "AEGIS_DSCR_Complete_Usable_Master_Doc_v3.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\AEGIS_DSCR_Complete_Usable_Master_Doc_v3.md",
+      "size_bytes": 40655,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "AEGIS_DSCR_Deterministic_Core_Keeps_Detailed.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\AEGIS_DSCR_Deterministic_Core_Keeps_Detailed.md",
+      "size_bytes": 41135,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "Deep Research Report_ Critical Areas for the 20X DSCR Deal Engine.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\Deep Research Report_ Critical Areas for the 20X DSCR Deal Engine.md",
+      "size_bytes": 27377,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "deep-research-report.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\deep-research-report.md",
+      "size_bytes": 5111,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "DSCR DUAL TRUTH ENGINE CHATGPT RESEARCH.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR DUAL TRUTH ENGINE CHATGPT RESEARCH.md",
+      "size_bytes": 36134,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Forumals.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Forumals.md",
+      "size_bytes": 3677,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Intelligence System  Complete Master Knowledge Synthesis.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Intelligence System  Complete Master Knowledge Synthesis.md",
+      "size_bytes": 53801,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Lender Intelligence  Deep Research on Topics Not Previously Covered.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Lender Intelligence  Deep Research on Topics Not Previously Covered.md",
+      "size_bytes": 50732,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Loan Approval and Borrower Profile Analysis.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Loan Approval and Borrower Profile Analysis.md",
+      "size_bytes": 85982,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR SOVEREIGN OPERATING SYSTEM_ THE MASTER BLUEPRINT.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR SOVEREIGN OPERATING SYSTEM_ THE MASTER BLUEPRINT.md",
+      "size_bytes": 5920,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Sovereign OS  Godmode Research Plan \u2014 Data, Algorithms & Computation That Beat All Competitors.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Sovereign OS  Godmode Research Plan \u2014 Data, Algorithms & Computation That Beat All Competitors.md",
+      "size_bytes": 59099,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Sovereign OS  Live Research Execution \u2014 Sprint 0 & 1 Findings.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Sovereign OS  Live Research Execution \u2014 Sprint 0 & 1 Findings.md",
+      "size_bytes": 41711,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Sovereign OS  Upgrade Intelligence Report \u2014 Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Sovereign OS  Upgrade Intelligence Report \u2014 Advanced Algorithms, Emerging Tools & Architecture Paths No Competitor Has Assembled.md",
+      "size_bytes": 38237,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR Sovereign OS & Non-QM Wholesale Lender  The Definitive Master Research Report.md",
+      "size_bytes": 53447,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR SOVEREIGN OS_ MASTER RESEARCH SYNTHESIS.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR SOVEREIGN OS_ MASTER RESEARCH SYNTHESIS.md",
+      "size_bytes": 27375,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR SOVEREIGN OS_ THE DEFINITIVE PRODUCT SPECIFICATION.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR SOVEREIGN OS_ THE DEFINITIVE PRODUCT SPECIFICATION.md",
+      "size_bytes": 9575,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Appendix_B_Research_Resolution_Report.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Appendix_B_Research_Resolution_Report.md",
+      "size_bytes": 18811,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Blueprint_Verification_Corrections_Log.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Blueprint_Verification_Corrections_Log.md",
+      "size_bytes": 7762,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Command_Center_v7_Master_Consolidated_Audit (1).md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Command_Center_v7_Master_Consolidated_Audit (1).md",
+      "size_bytes": 436276,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_deep-research-report.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_deep-research-report.md",
+      "size_bytes": 19853,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Engine_Master_Specification.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Engine_Master_Specification.md",
+      "size_bytes": 78603,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "dscr_research_v2_rigorous_2026-06-22.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\dscr_research_v2_rigorous_2026-06-22.md",
+      "size_bytes": 22098,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "dscr_sovereign_os_architectural_debt_and_math.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\dscr_sovereign_os_architectural_debt_and_math.md",
+      "size_bytes": 37316,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "dscr_sovereign_os_deep_debt_analysis.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\dscr_sovereign_os_deep_debt_analysis.md",
+      "size_bytes": 46801,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Sovereign_OS_Definitive_Master_Blueprint_v3.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Sovereign_OS_Definitive_Master_Blueprint_v3.md",
+      "size_bytes": 63455,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Sovereign_OS_Feature_Engineering_Blueprint.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Sovereign_OS_Feature_Engineering_Blueprint.md",
+      "size_bytes": 37182,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "dscr_sovereign_os_upgrade_intelligence_report (1).md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\dscr_sovereign_os_upgrade_intelligence_report (1).md",
+      "size_bytes": 25754,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "dscr_sovereign_os_upgrade_intelligence_report.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\dscr_sovereign_os_upgrade_intelligence_report.md",
+      "size_bytes": 24490,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Sovereign_OS_Upgrade_Intelligence_Report_v2.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Sovereign_OS_Upgrade_Intelligence_Report_v2.md",
+      "size_bytes": 48292,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Underwriting_Engine_Master_Consolidated_v16.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Underwriting_Engine_Master_Consolidated_v16.md",
+      "size_bytes": 50600,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "DSCR_Underwriting_Engine_v14_Complete_Master_Document.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\DSCR_Underwriting_Engine_v14_Complete_Master_Document.md",
+      "size_bytes": 58254,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "frontier_dscr_strategy_guide.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\frontier_dscr_strategy_guide.md",
+      "size_bytes": 127348,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "Master DSCR Knowledge Document.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\Master DSCR Knowledge Document.md",
+      "size_bytes": 21543,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "NEW_DSCR Deal Desk Build-Ready Research Report.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\NEW_DSCR Deal Desk Build-Ready Research Report.md",
+      "size_bytes": 33126,
+      "category": "General Research",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "recheck_deep-research-report.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\recheck_deep-research-report.md",
+      "size_bytes": 21226,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "SIMILARWEB ANALYTICS REPORT.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\SIMILARWEB ANALYTICS REPORT.md",
+      "size_bytes": 5901,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "six-function-doctrine.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\six-function-doctrine.md",
+      "size_bytes": 19844,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "SOVEREIGN_RESEARCH_REPORT.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\SOVEREIGN_RESEARCH_REPORT.md",
+      "size_bytes": 40684,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\The 2026 DSCR Master Knowledge Paper_ A Comprehensive Blueprint for the 20X DSCR Deal Engine.md",
+      "size_bytes": 24368,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "loan",
+        "dscr",
+        "underwriting"
+      ]
+    },
+    {
+      "title": "THE COMPLETE SOVEREIGN MASTER DOCUMENT.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\THE COMPLETE SOVEREIGN MASTER DOCUMENT.md",
+      "size_bytes": 79658,
+      "category": "Underwriting Spec",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "THE DEFINITIVE BLUEPRINT_ BUILDING THE BEST NON-QM WHOLESALE LENDER.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\THE DEFINITIVE BLUEPRINT_ BUILDING THE BEST NON-QM WHOLESALE LENDER.md",
+      "size_bytes": 9816,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "THE MISSING PIECES_ NON-QM WHOLESALE LENDER GAP ANALYSIS.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\THE MISSING PIECES_ NON-QM WHOLESALE LENDER GAP ANALYSIS.md",
+      "size_bytes": 7669,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "TimesFM 2.5 LoRA Upgrade Blueprint.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\TimesFM 2.5 LoRA Upgrade Blueprint.md",
+      "size_bytes": 9559,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "TimesFM_LoRA_Complete_Engineering_Spec.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\TimesFM_LoRA_Complete_Engineering_Spec.md",
+      "size_bytes": 50164,
+      "category": "General Research",
+      "keywords": [
+        "finance"
+      ]
+    },
+    {
+      "title": "UNIFIED_HUB.md",
+      "path": "C:\\Users\\serge\\OneDrive\\Documents\\DSCR_LOAN OFFICE\\docs\\dscr_loan_office\\UNIFIED_HUB.md",
+      "size_bytes": 120393,
       "category": "General Research",
       "keywords": [
         "finance"
@@ -1325,5 +1871,5 @@
       ]
     }
   ],
-  "count": 146
+  "count": 198
 }

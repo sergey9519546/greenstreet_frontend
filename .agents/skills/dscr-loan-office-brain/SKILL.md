@@ -28,6 +28,7 @@ Example queries:
 - [`docs/dscr_loan_office/02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/02_MASTER_UNDERWRITING_MATH_AND_AEGIS.md) — Technical specs for CQR, DSCR math, returns, and AEGIS logic.
 - [`docs/dscr_loan_office/03_MASTER_LENDER_AND_COMPLIANCE.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/03_MASTER_LENDER_AND_COMPLIANCE.md) — 50-state PPP laws, lender requirements, and BRRRR refi seasoning.
 - [`docs/dscr_loan_office/04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/04_COMPLETE_UNABRIDGED_KNOWLEDGE_VAULT.md) — Unabridged compilation of all playbooks, datasets, CSV audit gaps, and AgentOS memory state.
+- [`docs/dscr_loan_office/05_MASTER_IMPROVEMENTS_AND_EXPANSIONS.md`](file:///c:/Users/serge/OneDrive/Documents/DSCR_LOAN%20OFFICE/docs/dscr_loan_office/05_MASTER_IMPROVEMENTS_AND_EXPANSIONS.md) — 50 comprehensive improvements, edge-case fixes, legal overrides, and architectural expansions.
 
 ### **Technical White Papers & Market Blueprints (Downloads)**
 - [`Perfect_Property_Engine...v13...md`](file:///C:/Users/serge/Downloads/Perfect_Property_Engine_Consolidated_Master_Document_v13_Technical_White_Paper_CQR_Certainty_Equivalent_Hierarchical_Governor_Comparative_Merge.md) — CQR Certainty-Equivalent math & hierarchical governor.

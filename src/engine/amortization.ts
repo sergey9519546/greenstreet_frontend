@@ -177,6 +177,72 @@ function monthlyRate(annualRatePct: number): number {
 }
 
 /**
+ * Calculate the Year 11 IO Recast Shock payment when an IO period expires
+ * and the remaining principal balance amortizes over the remaining term (e.g. 240 months).
+ */
+export function calculateIORecastPayment(
+  principal: number,
+  annualRatePct: number,
+  remainingMonths: number = 240,
+): number {
+  if (remainingMonths <= 0 || principal <= 0) return 0;
+  const r = monthlyRate(annualRatePct);
+  if (r === 0) return principal / remainingMonths;
+  return calculatePI(principal, annualRatePct, remainingMonths);
+}
+
+/**
+ * Calculate 40-Year Amortization payment factor and monthly P&I for 480-month terms.
+ */
+export function calculate40YearPayment(
+  principal: number,
+  annualRatePct: number,
+): number {
+  if (principal <= 0) return 0;
+  return calculatePI(principal, annualRatePct, 480);
+}
+
+/**
+ * Calculate the exact breakeven horizon (in months) for upfront discount points purchase.
+ *
+ *   Breakeven Months = (Loan Amount * Points %) / (Par Monthly Payment - Buydown Monthly Payment)
+ */
+export interface PointsBuydownResult {
+  upfrontCostDollars: number;
+  monthlySavingsDollars: number;
+  breakevenMonths: number | null;
+  recommendedForHoldMonths: (holdMonths: number) => boolean;
+}
+
+export function calculatePointsBuydownBreakeven(
+  loanAmount: number,
+  pointsPct: number,
+  parMonthlyPayment: number,
+  buydownMonthlyPayment: number,
+): PointsBuydownResult {
+  const upfrontCost = Math.max(0, loanAmount * (pointsPct / 100));
+  const monthlySavings = Math.max(0, parMonthlyPayment - buydownMonthlyPayment);
+
+  if (monthlySavings <= 0 || upfrontCost <= 0) {
+    return {
+      upfrontCostDollars: upfrontCost,
+      monthlySavingsDollars: monthlySavings,
+      breakevenMonths: null,
+      recommendedForHoldMonths: () => false,
+    };
+  }
+
+  const breakeven = Math.ceil(upfrontCost / monthlySavings);
+
+  return {
+    upfrontCostDollars: Math.round(upfrontCost * 100) / 100,
+    monthlySavingsDollars: Math.round(monthlySavings * 100) / 100,
+    breakevenMonths: breakeven,
+    recommendedForHoldMonths: (holdMonths: number) => holdMonths >= breakeven,
+  };
+}
+
+/**
  * Build the full month-by-month schedule.
  *
  * Recast points — the payment is recomputed to fully amortize the CURRENT
