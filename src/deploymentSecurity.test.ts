@@ -17,6 +17,11 @@ const OPTIONAL_TRACKER_HOSTS = [
   "hubspotv2.use1-marketplace-1p-apps-prod-red.if.webflow.services",
 ] as const;
 
+const UNVERIFIED_BOOKING_HOSTS = [
+  "static.hsappstatic.net",
+  "meetings-na2.hubspot.com",
+] as const;
+
 function releaseHtml(): string {
   const source = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const configFactory = viteConfig as unknown as (environment: Record<string, unknown>) => {
@@ -61,6 +66,24 @@ function deploymentCsp(path: "../vercel.json" | "../firebase.json") {
 }
 
 describe("release HTML privacy boundary", () => {
+  it("keeps raw homepage sources free of the unverified booking integration", () => {
+    for (const path of ["../index.html", "./marketing/home-markup.html"] as const) {
+      const source = readFileSync(new URL(path, import.meta.url), "utf8");
+      for (const host of UNVERIFIED_BOOKING_HOSTS) {
+        expect(source, `${path} still references dead booking host ${host}`).not.toContain(host);
+      }
+      expect(source, `${path} still ships the legacy booking iframe`).not.toContain(
+        "meetings-iframe-container",
+      );
+      expect(source, `${path} still contains the legacy booking script`).not.toContain(
+        "getElementById('hs-booking')",
+      );
+    }
+
+    const entry = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+    expect(entry).not.toContain("hubspot_meeting_booked");
+  });
+
   it("removes optional analytics and de-anonymization scripts", () => {
     const html = releaseHtml();
 
@@ -70,13 +93,16 @@ describe("release HTML privacy boundary", () => {
     expect(html).not.toContain("google_tags_first_party");
     expect(html).not.toContain("GTM-WB2F5WH6");
     expect(html).not.toContain("hubspot_meeting_booked");
+    for (const host of UNVERIFIED_BOOKING_HOSTS) {
+      expect(html, `release HTML still references dead booking host ${host}`).not.toContain(host);
+    }
+    expect(html).not.toContain("meetings-iframe-container");
+    expect(html).toContain('class="booking-fallback-link" href="/book-demo"');
 
     for (const requiredHost of [
       "cdn.prod.website-files.com",
       "cdn.jsdelivr.net",
       "d3e54v103j8qbb.cloudfront.net",
-      "static.hsappstatic.net",
-      "meetings-na2.hubspot.com",
     ]) {
       expect(html, `release HTML removed required host ${requiredHost}`).toContain(requiredHost);
     }
@@ -111,6 +137,10 @@ describe("hosting content security policy", () => {
     );
     for (const host of OPTIONAL_TRACKER_HOSTS) {
       expect(vercel.value, `CSP still permits ${host}`).not.toContain(host);
+    }
+    for (const host of UNVERIFIED_BOOKING_HOSTS) {
+      expect(vercel.value, `Vercel CSP still permits dead booking host ${host}`).not.toContain(host);
+      expect(firebase.value, `Firebase CSP still permits dead booking host ${host}`).not.toContain(host);
     }
   });
 });

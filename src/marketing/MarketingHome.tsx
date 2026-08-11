@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropertyInvestmentStrategySection from "../components/PropertyInvestmentStrategySection";
+import { replaceUnverifiedBookingEmbeds } from "./bookingEmbed";
 import homepageMarkup from "./home-markup.html?raw";
 
 const CLAIM_REPLACEMENTS = [
@@ -232,8 +233,6 @@ function sanitizeUnsupportedHomepageClaims(markup: string): string {
 }
 
 function repairHomepageSemantics(markup: string): string {
-  let bookingIdIndex = 0;
-  let bookingScriptIndex = 0;
   let burgerControlIndex = 0;
   let featuredNavNodeIndex = 0;
   let burgerNodeIndex = 0;
@@ -316,15 +315,6 @@ function repairHomepageSemantics(markup: string): string {
       '</div><div class="footer_component">',
       '</main><div class="footer_component">',
     )
-    .replace(/#hs-booking/g, ".meetings-iframe-container")
-    .replace(/id="hs-booking"/g, () => {
-      bookingIdIndex += 1;
-      return `id="hs-booking-${bookingIdIndex}"`;
-    })
-    .replace(/getElementById\('hs-booking'\)/g, () => {
-      bookingScriptIndex += 1;
-      return `getElementById('hs-booking-${bookingScriptIndex}')`;
-    })
     .replace(
       / id="w-node-_099235b4-dc1c-00f9-c99c-0ba16fa92a7f-6fa92a72"/g,
       (attribute) => {
@@ -359,7 +349,7 @@ const HELD_STATE_MAP = `<section class="gs-statemap-section" aria-label="State r
  * before the markup reaches the DOM (and before embedded scripts can run).
  */
 export const publicMarketingMarkup = repairHomepageSemantics(
-  sanitizeUnsupportedHomepageClaims(homepageMarkup),
+  replaceUnverifiedBookingEmbeds(sanitizeUnsupportedHomepageClaims(homepageMarkup)),
 )
   .replace(/<section class="gs-rate-widget-section"[\s\S]*?<\/section><script>[\s\S]*?<\/script>/, HELD_RATE_WIDGET)
   .replace(/<section class="gs-statemap-section"[\s\S]*?<\/section>/, HELD_STATE_MAP);

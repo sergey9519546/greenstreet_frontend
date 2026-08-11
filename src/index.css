@@ -1742,17 +1742,37 @@ html:not(.wf-design-mode) .styleguide_guide_wrap {
   animation-play-state: running;
 }
 
-/* ---- Embedded Style ---- */
-
-@media (max-width: 767px) {
-  #hs-booking {
-    min-height: 900px !important;
-  }
+.booking-fallback-panel {
+  min-height: min(32rem, 70vh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: clamp(2rem, 7vw, 5rem);
+  color: #003738;
+  text-align: center;
+  background: #eeefd3;
 }
-@media (max-width: 479px) {
-  #hs-booking {
-    min-height: 1200px !important;
-  }
+
+.booking-fallback-panel p {
+  max-width: 34rem;
+  margin: 0;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.4;
+}
+
+.booking-fallback-link {
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  color: #eeefd3;
+  font-weight: 700;
+  text-decoration: none;
+  background: #003738;
 }
 
 /* ── WCAG 2.1 AA Accessibility Focus Rings ── */

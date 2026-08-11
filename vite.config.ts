@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 import type { UserConfig } from 'vite';
+import { replaceUnverifiedBookingEmbeds } from './src/marketing/bookingEmbed';
 import { injectSchemaPlugin } from './vite-plugins/inject-schema';
 
 const OPTIONAL_RELEASE_SCRIPT_MARKERS = [
@@ -17,14 +18,15 @@ const OPTIONAL_RELEASE_SCRIPT_MARKERS = [
   "google_tags_first_party",
   "G-JERVW0S7X4",
   "GTM-WB2F5WH6",
-  "hubspot_meeting_booked",
 ] as const;
 
 export function sanitizeReleaseHtml(html: string): string {
-  return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (script) =>
-    OPTIONAL_RELEASE_SCRIPT_MARKERS.some((marker) => script.includes(marker))
-      ? ""
-      : script
+  return replaceUnverifiedBookingEmbeds(
+    html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (script) =>
+      OPTIONAL_RELEASE_SCRIPT_MARKERS.some((marker) => script.includes(marker))
+        ? ""
+        : script
+    )
   );
 }
 
@@ -40,8 +42,8 @@ export default defineConfig(() => {
           return sanitizeReleaseHtml(html)
             // Optional analytics and de-anonymization are disabled until a
             // consent owner, retention policy, and verified production domain
-            // are configured. Essential behavior and the booking embed do not
-            // depend on those scripts.
+            // are configured. The unverified legacy booking embed is replaced
+            // by an owned /book-demo fallback before release.
             // A stale Webflow export contained an opaque path with no matching
             // asset. Leaving it in the document causes browsers to fetch the
             // SPA fallback as JavaScript and emit a production console error.
