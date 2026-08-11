@@ -109,11 +109,30 @@ export type PortfolioPropertyInput =
     monthlyPITIA?: number;
   };
 
+/**
+ * A lender-specific refinance quote for a newly originated subject. Every
+ * cost component is required so the portfolio scan never replaces a real
+ * quote with a generic market rate and assumed zero costs.
+ */
+export interface PortfolioRefinanceQuote {
+  annualRatePct: number;
+  pointsPct: number;
+  lenderFees: number;
+  thirdPartyFees: number;
+  prepaidsAndEscrows: number;
+  financeClosingCosts?: boolean;
+  requestedAmount?: number;
+  prepaymentPenaltyPct?: number;
+  payoffFees?: number;
+}
+
 /** The subject property being evaluated alongside an existing book. */
 export type NewPortfolioDeal = Omit<PortfolioLoanTerms, 'monthsElapsed'> & {
   monthlyRent: number;
   lender: string;
   isBlanket: boolean;
+  /** Optional because a newly originated subject normally has no refi quote. */
+  refinanceQuote?: PortfolioRefinanceQuote;
 };
 
 export interface PortfolioPropertyExclusion {
@@ -149,6 +168,84 @@ interface ComputedPortfolioProperty extends PortfolioProperty {
 
 function isFiniteNumber(n: unknown): n is number {
   return typeof n === 'number' && Number.isFinite(n);
+}
+
+// Keep portfolio math in a reliable numeric range. This limit preserves
+// cent-level arithmetic through an annualized value while normal deal inputs
+// remain entirely unaffected.
+const MAX_FINANCIAL_VALUE = Number.MAX_SAFE_INTEGER / 12;
+
+function finiteNonNegative(value: unknown): number {
+  if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) return 0;
+  if (value === Number.POSITIVE_INFINITY) return MAX_FINANCIAL_VALUE;
+  return Math.min(MAX_FINANCIAL_VALUE, value);
+}
+
+function finiteSigned(value: unknown): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) return 0;
+  if (value === Number.POSITIVE_INFINITY) return MAX_FINANCIAL_VALUE;
+  if (value === Number.NEGATIVE_INFINITY) return -MAX_FINANCIAL_VALUE;
+  return Math.max(-MAX_FINANCIAL_VALUE, Math.min(MAX_FINANCIAL_VALUE, value));
+}
+
+function finiteSum(values: Iterable<number>): number {
+  let total = 0;
+  for (const value of values) {
+    total = finiteNonNegative(total + finiteNonNegative(value));
+  }
+  return total;
+}
+
+function finiteSignedSum(values: Iterable<number>): number {
+  let total = 0;
+  for (const value of values) {
+    total = finiteSigned(total + finiteSigned(value));
+  }
+  return total;
+}
+
+function finiteRatio(numerator: number, denominator: number): number {
+  const safeDenominator = finiteNonNegative(denominator);
+  if (safeDenominator <= 0) return 0;
+  return finiteSigned(finiteSigned(numerator) / safeDenominator);
+}
+
+function hasOnlyFiniteNumericLeaves(value: unknown): boolean {
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(hasOnlyFiniteNumericLeaves);
+  if (value && typeof value === 'object') {
+    return Object.values(value).every(hasOnlyFiniteNumericLeaves);
+  }
+  return true;
+}
+
+function deterministicNewSubjectId(properties: readonly PortfolioPropertyInput[]): string {
+  const ids = new Set(properties.map(property => property.id));
+  let id = 'new-deal';
+  let suffix = 2;
+  while (ids.has(id)) id = `new-deal-${suffix++}`;
+  return id;
+}
+
+function hasExplicitSubjectRefinanceQuote(
+  quote: PortfolioRefinanceQuote | undefined,
+): quote is PortfolioRefinanceQuote {
+  if (!quote) return false;
+
+  const requiredNonNegative = [
+    quote.annualRatePct,
+    quote.pointsPct,
+    quote.lenderFees,
+    quote.thirdPartyFees,
+    quote.prepaidsAndEscrows,
+  ];
+  if (!requiredNonNegative.every(value => isFiniteNumber(value) && value >= 0)) return false;
+
+  return (
+    (quote.requestedAmount === undefined || (isFiniteNumber(quote.requestedAmount) && quote.requestedAmount >= 0)) &&
+    (quote.prepaymentPenaltyPct === undefined || (isFiniteNumber(quote.prepaymentPenaltyPct) && quote.prepaymentPenaltyPct >= 0)) &&
+    (quote.payoffFees === undefined || (isFiniteNumber(quote.payoffFees) && quote.payoffFees >= 0))
+  );
 }
 
 const TCO_PROPERTY_TYPES: readonly TcoPropertyType[] = ['SFR', 'SMALL_MULTI', 'MED_MULTI', 'CONDOTEL'];
@@ -278,18 +375,19 @@ function buildComputedProperty(
       return { ok: false, reason: e instanceof Error ? e.message : 'Could not build an amortization schedule.' };
     }
 
-    return {
-      ok: true,
-      property: finishComputedProperty(input, schedule, {
-        originalLoanAmount: input.originalLoanAmount,
-        annualRatePct: input.annualRatePct,
-        termMonths,
-        ioMonths,
-        monthsElapsed,
-        monthlyEscrows: input.monthlyEscrows,
-        propertyValue: input.propertyValue,
-      }),
-    };
+    const property = finishComputedProperty(input, schedule, {
+      originalLoanAmount: input.originalLoanAmount,
+      annualRatePct: input.annualRatePct,
+      termMonths,
+      ioMonths,
+      monthsElapsed,
+      monthlyEscrows: input.monthlyEscrows,
+      propertyValue: input.propertyValue,
+    });
+    if (!hasOnlyFiniteNumericLeaves(property)) {
+      return { ok: false, reason: 'Loan schedule or cash-flow calculations produced a non-finite value.' };
+    }
+    return { ok: true, property };
   }
 
   // ── Legacy snapshot path ────────────────────────────────────────────────
@@ -330,18 +428,19 @@ function buildComputedProperty(
   const piPayment = paymentAtMonth(schedule, 1);
   const monthlyEscrows = Math.max(0, input.monthlyPITIA - piPayment);
 
-  return {
-    ok: true,
-    property: finishComputedProperty(input, schedule, {
-      originalLoanAmount: input.loanBalance,
-      annualRatePct: input.rate,
-      termMonths,
-      ioMonths,
-      monthsElapsed,
-      monthlyEscrows,
-      propertyValue: input.value,
-    }),
-  };
+  const property = finishComputedProperty(input, schedule, {
+    originalLoanAmount: input.loanBalance,
+    annualRatePct: input.rate,
+    termMonths,
+    ioMonths,
+    monthsElapsed,
+    monthlyEscrows,
+    propertyValue: input.value,
+  });
+  if (!hasOnlyFiniteNumericLeaves(property)) {
+    return { ok: false, reason: 'Loan schedule or cash-flow calculations produced a non-finite value.' };
+  }
+  return { ok: true, property };
 }
 
 const SEASONING_REQUIRED_MONTHS_DEFAULT = 6;
@@ -359,10 +458,12 @@ const SEASONING_REQUIRED_MONTHS_DEFAULT = 6;
 function computeRefiOpportunity(
   p: ComputedPortfolioProperty,
   currentMarketRate: number,
+  quote?: PortfolioRefinanceQuote,
 ): RefiOpportunity | null {
-  if (!isFiniteNumber(currentMarketRate)) return null;
+  const proposedRate = quote?.annualRatePct ?? currentMarketRate;
+  if (!isFiniteNumber(proposedRate)) return null;
   // Only a rate above market is a rate-and-term opportunity at all.
-  if (!(p.annualRatePct > currentMarketRate)) return null;
+  if (!(p.annualRatePct > proposedRate)) return null;
 
   const evaluation = evaluateRefinance({
     current: {
@@ -371,13 +472,21 @@ function computeRefiOpportunity(
       termMonths: p.termMonths,
       ioMonths: p.ioMonths,
       monthsElapsed: p.monthsElapsed,
+      prepaymentPenaltyPct: quote?.prepaymentPenaltyPct,
+      payoffFees: quote?.payoffFees,
     },
     proposed: {
-      // Like-for-like: same term as the note being replaced. No closing-cost
-      // data exists at the portfolio-scan level, so none is assumed — the
-      // sizing floor is exactly payoff, not payoff-plus-guessed-fees.
-      annualRatePct: currentMarketRate,
+      // Like-for-like: same term as the note being replaced. Existing
+      // properties preserve their current market-rate evaluation. A subject
+      // is only routed here with an explicit lender quote and all costs.
+      annualRatePct: proposedRate,
       termMonths: p.termMonths,
+      pointsPct: quote?.pointsPct,
+      lenderFees: quote?.lenderFees,
+      thirdPartyFees: quote?.thirdPartyFees,
+      prepaidsAndEscrows: quote?.prepaidsAndEscrows,
+      financeClosingCosts: quote?.financeClosingCosts,
+      requestedAmount: quote?.requestedAmount,
     },
     property: {
       value: p.propertyValue,
@@ -393,7 +502,7 @@ function computeRefiOpportunity(
   return {
     propertyId: p.id,
     currentRate: p.annualRatePct,
-    projectedRate: currentMarketRate,
+    projectedRate: proposedRate,
     monthlySavings: evaluation.monthlyPaymentDelta,
     seasoningMonthsRemaining: evaluation.seasoningMonthsRemaining,
   };
@@ -406,9 +515,9 @@ export function analyzePortfolio(
   availableLiquidity: number,
   currentMarketRate: number = 7.0,
 ): PortfolioAnalysisResult {
-  const allInputs: PortfolioPropertyInput[] = newDeal
-    ? [...existingProperties, {
-        id: `new-${Date.now()}`,
+  const newSubject: PortfolioPropertyInput | null = newDeal
+    ? {
+        id: deterministicNewSubjectId(existingProperties),
         name: 'Subject Property',
         address: '',
         monthlyRent: newDeal.monthlyRent,
@@ -423,7 +532,11 @@ export function analyzePortfolio(
         monthlyEscrows: newDeal.monthlyEscrows,
         propertyValue: newDeal.propertyValue,
         propertyType: newDeal.propertyType,
-      }]
+      }
+    : null;
+  const newSubjectId = newSubject?.id ?? null;
+  const allInputs: PortfolioPropertyInput[] = newSubject
+    ? [...existingProperties, newSubject]
     : existingProperties;
 
   const excludedProperties: PortfolioPropertyExclusion[] = [];
@@ -437,28 +550,28 @@ export function analyzePortfolio(
     }
   }
 
-  const totalPITIA = allProperties.reduce((sum, p) => sum + p.monthlyPITIA, 0);
-  const totalRent = allProperties.reduce((sum, p) => sum + p.monthlyRent, 0);
+  const totalPITIA = finiteSum(allProperties.map(p => p.monthlyPITIA));
+  const totalRent = finiteSum(allProperties.map(p => p.monthlyRent));
 
   // NOI = Σ(monthlyNOI) × 12. `monthlyNOI` is the ONE per-property NOI figure
   // (see buildComputedProperty) — every property is summed on the same
   // basis, and each was evaluated against its OWN property type.
-  const totalNOI = allProperties.reduce((sum, p) => sum + p.monthlyNOI * 12, 0);
+  const totalNOI = finiteSignedSum(allProperties.map(p => p.monthlyNOI * 12));
 
   // Portfolio DSCR = ΣNOI / ΣDebt_Service (totals, NEVER averages)
-  const totalAnnualDebtService = totalPITIA * 12;
-  const globalDSCR = totalAnnualDebtService > 0 ? totalNOI / totalAnnualDebtService : 0;
+  const totalAnnualDebtService = finiteNonNegative(totalPITIA * 12);
+  const globalDSCR = finiteRatio(totalNOI, totalAnnualDebtService);
 
   // Debt Yield = NOI / Total Loan Balance (balance read from schedules)
-  const totalLoanBalance = allProperties.reduce((sum, p) => sum + p.loanBalance, 0);
-  const totalDebtYield = totalLoanBalance > 0 ? totalNOI / totalLoanBalance : 0;
+  const totalLoanBalance = finiteSum(allProperties.map(p => p.loanBalance));
+  const totalDebtYield = finiteRatio(totalNOI, totalLoanBalance);
 
   // Cash-on-Cash (Track 2 income). Down payment is estimated off the
   // ORIGINAL loan amount — the origination-time basis — never today's
   // paid-down balance, so the estimate doesn't drift as loans amortize.
-  const totalCashInvested = allProperties.reduce((sum, p) => sum + p.originalLoanAmount * (0.25 / 0.75), 0); // estimate 25% down at ~75% original LTV
-  const annualTrack2CF = totalNOI - totalAnnualDebtService;
-  const weightedCashOnCash = totalCashInvested > 0 ? annualTrack2CF / totalCashInvested : 0;
+  const totalCashInvested = finiteSum(allProperties.map(p => p.originalLoanAmount * (0.25 / 0.75))); // estimate 25% down at ~75% original LTV
+  const annualTrack2CF = finiteSigned(totalNOI - totalAnnualDebtService);
+  const weightedCashOnCash = finiteRatio(annualTrack2CF, totalCashInvested);
 
   // Reserve requirements by lender — auto-stacked, off the schedule-derived PITIA.
   const lenderGroups = new Map<string, { properties: ComputedPortfolioProperty[]; baseMonths: number }>();
@@ -471,12 +584,12 @@ export function analyzePortfolio(
   const totalReservesByLender = Array.from(lenderGroups.entries()).map(([lender, group]) => {
     // Base 6 months + 2 months per additional property with same lender, capped at 12
     const months = Math.min(12, group.baseMonths + (group.properties.length - 1) * 2);
-    const dollars = group.properties.reduce((sum, p) => sum + p.monthlyPITIA * months, 0);
+    const dollars = finiteSum(group.properties.map(p => p.monthlyPITIA * months));
     return { lender, months, dollars };
   });
 
-  const totalReservesRequired = totalReservesByLender.reduce((sum, r) => sum + r.dollars, 0);
-  const reserveShortfall = Math.max(0, totalReservesRequired - availableLiquidity);
+  const totalReservesRequired = finiteSum(totalReservesByLender.map(r => r.dollars));
+  const reserveShortfall = finiteNonNegative(totalReservesRequired - finiteNonNegative(availableLiquidity));
 
   // Blanket loan warning
   const hasBlanket = allProperties.some(p => p.isBlanket);
@@ -486,7 +599,15 @@ export function analyzePortfolio(
 
   // Refi scan (gate item 3) — composed from evaluateRefinance, per property.
   const refiOpportunities: RefiOpportunity[] = allProperties
-    .map(p => computeRefiOpportunity(p, currentMarketRate))
+    .map(p => {
+      const isNewSubject = p.id === newSubjectId;
+      if (isNewSubject && !hasExplicitSubjectRefinanceQuote(newDeal?.refinanceQuote)) return null;
+      return computeRefiOpportunity(
+        p,
+        currentMarketRate,
+        isNewSubject ? newDeal?.refinanceQuote : undefined,
+      );
+    })
     .filter((o): o is RefiOpportunity => o !== null);
 
   // ── v11.6 — Portfolio Analytics Depth ──
@@ -552,11 +673,11 @@ export function analyzePortfolio(
   };
 
   // DSCR distribution stats (Track 1) — schedule-derived dscr, not typed input
-  const dscrValues = allProperties.map(p => p.dscr).filter(v => typeof v === 'number' && !isNaN(v));
+  const dscrValues = allProperties.map(p => p.dscr).filter(Number.isFinite);
   const dscrDistribution = computeDistributionStats(dscrValues);
 
   // Track 2 DSCR distribution stats
-  const track2Values = allProperties.map(p => p.track2DSCR).filter(v => typeof v === 'number' && !isNaN(v));
+  const track2Values = allProperties.map(p => p.track2DSCR).filter(Number.isFinite);
   const track2DscrDistribution = computeDistributionStats(track2Values);
 
   // Negative cash flow bleed analysis
@@ -568,8 +689,8 @@ export function analyzePortfolio(
   for (const p of allProperties) {
     if (p.track2DSCR < 1.0) {
       negativeCashFlowPropertyIds.push(p.id);
-      const bleed = Math.max(0, p.monthlyPITIA - p.monthlyNOI);
-      totalMonthlyBleed += bleed;
+      const bleed = finiteNonNegative(p.monthlyPITIA - p.monthlyNOI);
+      totalMonthlyBleed = finiteNonNegative(totalMonthlyBleed + bleed);
     }
   }
   const negativeCashFlowProperties = {
@@ -621,13 +742,23 @@ function computeDistributionStats(values: number[]): {
   const sorted = [...values].sort((a, b) => a - b);
   const min = sorted[0];
   const max = sorted[sorted.length - 1];
-  const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+  // Incremental averaging avoids an overflowing intermediate sum for an
+  // otherwise finite distribution.
+  const mean = values.reduce((runningMean, value, index) => (
+    runningMean + (value - runningMean) / (index + 1)
+  ), 0);
   const mid = Math.floor(sorted.length / 2);
   const median =
     sorted.length % 2 === 0
-      ? (sorted[mid - 1] + sorted[mid]) / 2
+      ? sorted[mid - 1] + (sorted[mid] - sorted[mid - 1]) / 2
       : sorted[mid];
-  return { min, max, mean, median, count: values.length };
+  return {
+    min: finiteSigned(min),
+    max: finiteSigned(max),
+    mean: finiteSigned(mean),
+    median: finiteSigned(median),
+    count: values.length,
+  };
 }
 
 // ============================================================
@@ -646,6 +777,18 @@ export function computePortfolioHealthScore(result: ReturnType<typeof analyzePor
   color: string;
   breakdown: { dscrPts: number; concentrationPts: number; cashFlowPts: number; reservePts: number };
 } {
+  // No evaluated properties means there is no portfolio credit profile to
+  // score. Treat it as an explicit critical state instead of awarding points
+  // for absent concentrations, cash-flow events, or reserves.
+  if (Array.isArray(result.properties) && result.properties.length === 0) {
+    return {
+      score: 0,
+      label: 'CRITICAL',
+      color: risk.danger,
+      breakdown: { dscrPts: 0, concentrationPts: 0, cashFlowPts: 0, reservePts: 0 },
+    };
+  }
+
   // DSCR pillar (40 pts)
   const g = result.globalDSCR;
   const dscrPts = g >= 1.50 ? 40 : g >= 1.25 ? 30 : g >= 1.0 ? 18 : 0;

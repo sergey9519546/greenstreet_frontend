@@ -1,6 +1,26 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+const { tcoTotalOverride } = vi.hoisted(() => ({
+  tcoTotalOverride: { value: null as number | null },
+}));
+
+vi.mock('./tcoDscr', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./tcoDscr')>();
+  return {
+    ...actual,
+    computeTcoRate: (options: Parameters<typeof actual.computeTcoRate>[0] = {}) => {
+      const rate = actual.computeTcoRate(options);
+      return tcoTotalOverride.value === null ? rate : { ...rate, total: tcoTotalOverride.value };
+    },
+  };
+});
+
 import { analyzePortfolio, computePortfolioHealthScore } from './portfolio';
-import type { PortfolioPropertyInput } from './portfolio';
+import type {
+  NewPortfolioDeal,
+  PortfolioPropertyInput,
+  PortfolioRefinanceQuote,
+} from './portfolio';
 import type { BorrowerProfile } from './types';
 
 // ── Independent amortization math (textbook closed-form, NOT imported from
@@ -40,6 +60,33 @@ function prop(over: Partial<PortfolioPropertyInput>): PortfolioPropertyInput {
     propertyValue: 400_000,
     ...over,
   };
+}
+
+type NewDealWithExplicitRefiQuote = NewPortfolioDeal & {
+  refinanceQuote?: PortfolioRefinanceQuote;
+};
+
+function newDeal(over: Partial<NewDealWithExplicitRefiQuote> = {}): NewDealWithExplicitRefiQuote {
+  return {
+    monthlyRent: 3000,
+    lender: 'Kiavi',
+    isBlanket: false,
+    originalLoanAmount: 200_000,
+    annualRatePct: 9,
+    termMonths: 360,
+    monthlyEscrows: 300,
+    propertyValue: 300_000,
+    ...over,
+  };
+}
+
+function allNumericLeavesAreFinite(value: unknown): boolean {
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (Array.isArray(value)) return value.every(allNumericLeavesAreFinite);
+  if (value && typeof value === 'object') {
+    return Object.values(value).every(allNumericLeavesAreFinite);
+  }
+  return true;
 }
 
 // borrower is unused by analyzePortfolio's body; safe to stub.
@@ -159,6 +206,25 @@ describe('analyzePortfolio — consistent NOI across properties (gate 2)', () =>
     // max(0, PITIA - 3000*(1-0.21)) = 27.64..., a materially different
     // (and wrong) number for the exact same inputs.
     expect(r.negativeCashFlowProperties.totalMonthlyBleed).not.toBeCloseTo(27.64, 1);
+  });
+
+  it('preserves a negative Track-2 NOI aggregate instead of treating the loss as zero', () => {
+    tcoTotalOverride.value = 1.25;
+    try {
+      const result = analyzePortfolio([prop({ id: 'loss', monthlyRent: 3000 })], null, borrower, 0);
+      const expectedTotalNOI = 3000 * (1 - 1.25) * 12;
+      const expectedAnnualTrack2CashFlow = expectedTotalNOI - A_PITIA * 12;
+      const expectedCashInvested = 300_000 * (0.25 / 0.75);
+
+      expect(result.totalNOI).toBeCloseTo(expectedTotalNOI, 6);
+      expect(result.globalDSCR).toBeCloseTo(expectedTotalNOI / (A_PITIA * 12), 6);
+      expect(result.weightedCashOnCash).toBeCloseTo(
+        expectedAnnualTrack2CashFlow / expectedCashInvested,
+        6,
+      );
+    } finally {
+      tcoTotalOverride.value = null;
+    }
   });
 
   it('fires a CRITICAL blanket-loan warning when any property is blanket', () => {
@@ -346,5 +412,100 @@ describe('computePortfolioHealthScore', () => {
     expect(h.breakdown).toEqual({ dscrPts: 30, concentrationPts: 10, cashFlowPts: 12, reservePts: 20 });
     expect(h.score).toBe(72);
     expect(h.label).toBe('HEALTHY');
+  });
+});
+
+describe('analyzePortfolio — recovery safety rails', () => {
+  it('uses a deterministic collision-safe subject ID without reading the clock', () => {
+    const dateNow = vi.spyOn(Date, 'now');
+    const existing = [prop({ id: 'new-deal' }), prop({ id: 'new-deal-2' })];
+
+    try {
+      const first = analyzePortfolio(existing, newDeal(), borrower, 0);
+      const second = analyzePortfolio(existing, newDeal(), borrower, 0);
+
+      expect(first.properties.map(property => property.id)).toContain('new-deal-3');
+      expect(second.properties.map(property => property.id)).toContain('new-deal-3');
+      expect(dateNow).not.toHaveBeenCalled();
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+
+  it('does not emit an immediate refi for an unseasoned subject while retaining existing-property evaluations', () => {
+    const existing = prop({
+      id: 'seasoned-existing',
+      originalLoanAmount: 200_000,
+      annualRatePct: 9,
+      termMonths: 360,
+      monthsElapsed: 60,
+      monthlyEscrows: 300,
+      propertyValue: 300_000,
+      monthlyRent: 3000,
+    });
+
+    const result = analyzePortfolio([existing], newDeal(), borrower, 0, 6.5);
+
+    expect(result.refiOpportunities.map(opportunity => opportunity.propertyId)).toEqual(['seasoned-existing']);
+  });
+
+  it('does not treat a rate alone as a subject refinance quote', () => {
+    const result = analyzePortfolio(
+      [],
+      newDeal({
+        refinanceQuote: { annualRatePct: 6.5 } as NewDealWithExplicitRefiQuote['refinanceQuote'],
+      }),
+      borrower,
+      0,
+      5.5,
+    );
+
+    expect(result.refiOpportunities).toEqual([]);
+  });
+
+  it('uses an explicitly supplied subject quote and costs instead of the generic market rate', () => {
+    const result = analyzePortfolio(
+      [],
+      newDeal({
+        refinanceQuote: {
+          annualRatePct: 6.5,
+          pointsPct: 0,
+          lenderFees: 0,
+          thirdPartyFees: 0,
+          prepaidsAndEscrows: 0,
+        },
+      }),
+      borrower,
+      0,
+      5.5,
+    );
+
+    expect(result.refiOpportunities).toHaveLength(1);
+    expect(result.refiOpportunities[0]).toMatchObject({
+      propertyId: 'new-deal',
+      projectedRate: 6.5,
+      seasoningMonthsRemaining: 6,
+    });
+  });
+
+  it('scores an empty portfolio as 0 / CRITICAL', () => {
+    const empty = analyzePortfolio([], null, borrower, Number.NaN);
+
+    expect(computePortfolioHealthScore(empty)).toMatchObject({
+      score: 0,
+      label: 'CRITICAL',
+      breakdown: { dscrPts: 0, concentrationPts: 0, cashFlowPts: 0, reservePts: 0 },
+    });
+  });
+
+  it('keeps aggregate and returned numeric output finite when liquidity is NaN and rent overflows annual totals', () => {
+    const result = analyzePortfolio(
+      [prop({ id: 'extreme-rent', monthlyRent: Number.MAX_VALUE })],
+      null,
+      borrower,
+      Number.NaN,
+    );
+
+    expect(allNumericLeavesAreFinite(result)).toBe(true);
   });
 });
