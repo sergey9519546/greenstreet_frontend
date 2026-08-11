@@ -24,6 +24,8 @@ export interface PropertyInputs {
   isRural: boolean;
   isDecliningMarket: boolean; // CT, FL, IL, NJ, NY overlay
   hoaSTRPolicy: 'ALLOWS' | 'SILENT' | 'PROHIBITS' | 'UNKNOWN';
+  /** Mapper-created list of explicitly supplied numeric fields that require review. */
+  inputValidationIssues?: readonly string[];
 }
 
 export type PropertyType =

@@ -43,6 +43,8 @@ import {
   MAX_MONTHLY_PROPERTY_EXPENSE,
   MAX_MONTHLY_RENT,
   MAX_PURCHASE_PRICE,
+  MIN_MODELED_RATE_PCT,
+  MODEL_AUTO_DECISION_FLOOR,
 } from './inputs';
 // Data-vintage registry — the single source of truth for how old this engine's
 // dated inputs are. Imported here so the rate anchor's provenance lives in one
@@ -863,7 +865,6 @@ export interface QuickDscrEstimate {
 const MAX_QUICK_RATE_PCT = 100;
 const MAX_QUICK_TERM_MONTHS = 600;
 const MAX_QUICK_EXPENSE_RATE = 1;
-const MIN_QUICK_LOAN_AMOUNT = 1;
 
 /**
  * Lightweight DSCR estimate for quick-calculator surfaces.
@@ -890,9 +891,9 @@ export function quickDscrEstimate(
 ): QuickDscrEstimate {
   // Input validation — return needs-review state on bad data
   if (
-    !Number.isFinite(propertyValue) || propertyValue <= 0 || propertyValue > MAX_PURCHASE_PRICE ||
+    !Number.isFinite(propertyValue) || propertyValue < MODEL_AUTO_DECISION_FLOOR || propertyValue > MAX_PURCHASE_PRICE ||
     !Number.isFinite(monthlyRent) || monthlyRent <= 0 || monthlyRent > MAX_MONTHLY_RENT ||
-    !Number.isFinite(annualRatePct) || annualRatePct <= 0 || annualRatePct > MAX_QUICK_RATE_PCT ||
+    !Number.isFinite(annualRatePct) || annualRatePct < MIN_MODELED_RATE_PCT || annualRatePct > MAX_QUICK_RATE_PCT ||
     !Number.isFinite(ltv) || ltv <= 0 || ltv > 1 ||
     !Number.isFinite(annualTaxRate) || annualTaxRate < 0 || annualTaxRate > MAX_QUICK_EXPENSE_RATE ||
     !Number.isFinite(annualInsRate) || annualInsRate < 0 || annualInsRate > MAX_QUICK_EXPENSE_RATE ||
@@ -915,7 +916,7 @@ export function quickDscrEstimate(
   const insMo = (propertyValue * annualInsRate) / 12;
   const pitia = pi + taxesMo + insMo;
 
-  if (!Number.isFinite(loanAmount) || loanAmount < MIN_QUICK_LOAN_AMOUNT || !isFinitePositive(pi) || !Number.isFinite(taxesMo) || !Number.isFinite(insMo) || !isFinitePositive(pitia)) {
+  if (!Number.isFinite(loanAmount) || loanAmount < MODEL_AUTO_DECISION_FLOOR || !isFinitePositive(pi) || !Number.isFinite(taxesMo) || !Number.isFinite(insMo) || !isFinitePositive(pitia)) {
     return {
       dscr: 0,
       tier: 'UNLIKELY',
@@ -977,8 +978,11 @@ export function solveDSCR(
 ): DSCRResult {
   // ── Input guard: clamp / sanitise key numbers before any math ──────────────
   // Returns a safe zero-DSCR "needs review" result rather than NaN/Infinity.
+  const modeledLoanAmount = property.purchasePrice * (loan.ltv / 100);
   if (
+    (property.inputValidationIssues?.length ?? 0) > 0 ||
     !isFiniteAtMost(property.purchasePrice, MAX_PURCHASE_PRICE) || property.purchasePrice <= 0 ||
+    property.purchasePrice < MODEL_AUTO_DECISION_FLOOR ||
     !isFiniteAtMost(property.leaseRent, MAX_MONTHLY_RENT) ||
     !isFiniteAtMost(property.marketRent, MAX_MONTHLY_RENT) ||
     !isFiniteAtMost(property.strProjectedRent, MAX_MONTHLY_RENT) ||
@@ -990,6 +994,7 @@ export function solveDSCR(
     !Number.isFinite(property.unitCount) || property.unitCount <= 0 ||
     !Number.isFinite(borrower.ficoScore) || borrower.ficoScore < 300 || borrower.ficoScore > 850 ||
     !Number.isFinite(loan.ltv) || loan.ltv <= 0 || loan.ltv > 100 ||
+    !Number.isFinite(modeledLoanAmount) || modeledLoanAmount < MODEL_AUTO_DECISION_FLOOR || modeledLoanAmount > MAX_CURRENCY_INPUT ||
     !isFiniteAtMost(loan.lenderFees, MAX_CURRENCY_INPUT) ||
     !isFiniteAtMost(loan.brokerFees, MAX_CURRENCY_INPUT) ||
     !isFiniteAtMost(loan.rateLockCost, MAX_CURRENCY_INPUT) ||
@@ -1016,7 +1021,7 @@ export function solveDSCR(
       dualTrackDSCR: {
         track1: stub, track2: stub2,
         verdict: { track1Passes: false, track2Passes: false,
-          summary: 'NEEDS_REVIEW — one or more required inputs are missing or invalid. Provide purchase price, rent, and LTV before qualifying.',
+          summary: 'NEEDS_REVIEW — one or more required inputs are missing, invalid, or outside the automatic-analysis domain. Provide purchase price, rent, and LTV before qualifying.',
           warningRequired: true },
       },
       qualifyingRent: 0, rentSource: 'NEEDS_REVIEW',
@@ -1032,7 +1037,7 @@ export function solveDSCR(
 
   // v11 FIX: Use reassessed tax if provided; otherwise fall back to seller's bill
   const annualTaxes = reassessedAnnualTaxOverride ?? property.annualTaxes;
-  const loanAmount = property.purchasePrice * (loan.ltv / 100);
+  const loanAmount = modeledLoanAmount;
   const termYears = loan.term === '30_YR' ? 30 : loan.term === '40_YR' ? 40 : 15;
 
   // --- Iterative Rate-DSCR Solver ---

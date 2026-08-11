@@ -30,6 +30,13 @@ export const MAX_MONTHLY_RENT = 500_000;
 export const MAX_ANNUAL_PROPERTY_EXPENSE = 10_000_000;
 export const MAX_MONTHLY_PROPERTY_EXPENSE = 1_000_000;
 export const MAX_CURRENCY_INPUT = 100_000_000;
+// Below this existing manual-review boundary, the model must not make an
+// automatic qualification conclusion. This is a numerical/model-domain guard,
+// not a universal lender program minimum.
+export const MODEL_AUTO_DECISION_FLOOR = 50_000;
+// One basis point is the smallest rate the payment model treats as meaningfully
+// distinct from zero; lower values require review rather than 0%-like math.
+export const MIN_MODELED_RATE_PCT = 0.01;
 
 /** Thin, forgiving request shape accepted by the API. All fields optional except the few the UI always sends. */
 export interface DealRequest {
@@ -99,6 +106,52 @@ function positive(value: unknown, fallback: number, max = Number.MAX_SAFE_INTEGE
   return Number.isFinite(parsed) && parsed > 0 && parsed <= max ? parsed : fallback;
 }
 
+function isExplicitlyProvided(req: DealRequest, field: keyof DealRequest): boolean {
+  return Object.prototype.hasOwnProperty.call(req, field) && req[field] !== undefined;
+}
+
+function isFiniteWithin(value: unknown, min: number, max: number): boolean {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
+}
+
+function addIssue(issues: string[], field: string): void {
+  if (!issues.includes(field)) issues.push(field);
+}
+
+function collectExplicitNumericIssues(req: DealRequest): string[] {
+  const issues: string[] = [];
+  const validate = (field: keyof DealRequest, min: number, max: number) => {
+    if (isExplicitlyProvided(req, field) && !isFiniteWithin(req[field], min, max)) {
+      addIssue(issues, field);
+    }
+  };
+
+  validate('purchasePrice', MODEL_AUTO_DECISION_FLOOR, MAX_PURCHASE_PRICE);
+  validate('loanAmount', MODEL_AUTO_DECISION_FLOOR, MAX_LOAN_AMOUNT);
+  validate('ltv', Number.MIN_VALUE, 100);
+  validate('monthlyRent', 0, MAX_MONTHLY_RENT);
+  validate('marketRent', 0, MAX_MONTHLY_RENT);
+  validate('strProjectedRent', 0, MAX_MONTHLY_RENT);
+  validate('strDocumentedRent', 0, MAX_MONTHLY_RENT);
+  validate('annualTaxes', 0, MAX_ANNUAL_PROPERTY_EXPENSE);
+  validate('annualInsurance', 0, MAX_ANNUAL_PROPERTY_EXPENSE);
+  validate('hoa', 0, MAX_MONTHLY_PROPERTY_EXPENSE);
+  validate('floodInsurance', 0, MAX_MONTHLY_PROPERTY_EXPENSE);
+  validate('unitCount', 1, Number.MAX_SAFE_INTEGER);
+  validate('sqft', Number.MIN_VALUE, Number.MAX_SAFE_INTEGER);
+  validate('yearBuilt', Number.MIN_VALUE, Number.MAX_SAFE_INTEGER);
+  validate('ficoScore', 300, 850);
+  validate('existingFinancedProperties', 0, Number.MAX_SAFE_INTEGER);
+  validate('availableReserves', 0, MAX_CURRENCY_INPUT);
+  validate('expectedHoldYears', Number.MIN_VALUE, Number.MAX_SAFE_INTEGER);
+  validate('points', 0, 100);
+  validate('lenderFees', 0, MAX_CURRENCY_INPUT);
+  validate('brokerFees', 0, MAX_CURRENCY_INPUT);
+  validate('rateLockCost', 0, MAX_CURRENCY_INPUT);
+
+  return issues;
+}
+
 export interface EngineInputs {
   property: PropertyInputs;
   borrower: BorrowerProfile;
@@ -110,16 +163,38 @@ export interface EngineInputs {
 export function buildEngineInputs(req: DealRequest): EngineInputs {
   const purchasePrice = nonNegative(req.purchasePrice, 0, MAX_PURCHASE_PRICE);
   const monthlyRent = nonNegative(req.monthlyRent, 0, MAX_MONTHLY_RENT);
+  const inputValidationIssues = collectExplicitNumericIssues(req);
 
-  // LTV: prefer explicit ltv, else derive from loanAmount, else default 75%.
-  let ltv: number;
-  if (typeof req.ltv === 'number' && Number.isFinite(req.ltv) && req.ltv > 0 && req.ltv <= 100) {
-    ltv = req.ltv;
-  } else if (typeof req.loanAmount === 'number' && Number.isFinite(req.loanAmount) && req.loanAmount >= 0 && req.loanAmount <= MAX_LOAN_AMOUNT && purchasePrice > 0) {
-    ltv = (req.loanAmount / purchasePrice) * 100;
-    if (ltv <= 0 || ltv > 100) ltv = 75;
-  } else {
-    ltv = 75;
+  // LTV: prefer an explicit valid LTV, else derive from an explicit valid loan
+  // amount, else default only when both optional fields were omitted.
+  const hasExplicitLtv = isExplicitlyProvided(req, 'ltv');
+  const hasExplicitLoanAmount = isExplicitlyProvided(req, 'loanAmount');
+  const hasValidLtv = isFiniteWithin(req.ltv, Number.MIN_VALUE, 100);
+  const hasValidLoanAmount = isFiniteWithin(req.loanAmount, MODEL_AUTO_DECISION_FLOOR, MAX_LOAN_AMOUNT);
+  let ltv = 75;
+  if (hasExplicitLtv) {
+    if (hasValidLtv) {
+      ltv = req.ltv as number;
+    } else {
+      ltv = 0;
+    }
+  } else if (hasExplicitLoanAmount) {
+    if (hasValidLoanAmount && purchasePrice > 0) {
+      const derivedLtv = (req.loanAmount as number / purchasePrice) * 100;
+      if (isFiniteWithin(derivedLtv, Number.MIN_VALUE, 100)) {
+        ltv = derivedLtv;
+      } else {
+        ltv = 0;
+        addIssue(inputValidationIssues, 'loanAmount');
+      }
+    } else {
+      ltv = 0;
+    }
+  }
+
+  const modeledLoanAmount = purchasePrice * (ltv / 100);
+  if (hasExplicitLtv && (!Number.isFinite(modeledLoanAmount) || modeledLoanAmount < MODEL_AUTO_DECISION_FLOOR)) {
+    addIssue(inputValidationIssues, 'ltv');
   }
 
   const stateAbbrev = abbrevState(req.state);
@@ -145,6 +220,7 @@ export function buildEngineInputs(req: DealRequest): EngineInputs {
     isRural: req.isRural ?? false,
     isDecliningMarket: DECLINING_MARKET_STATES.has(stateAbbrev),
     hoaSTRPolicy: req.hoaSTRPolicy ?? 'UNKNOWN',
+    ...(inputValidationIssues.length > 0 ? { inputValidationIssues } : {}),
   };
 
   const borrower: BorrowerProfile = {

@@ -210,4 +210,26 @@ describe("evaluateSTRUnderwriting", () => {
     expect(r.bestQualifyingRent).toBe(0);
     expect(r.bestWorld).toMatch(/^Incomplete/);
   });
+
+  it("does not select qualifying STR income for sub-floor loans or rates", () => {
+    const results = [
+      evaluateSTRUnderwriting(property, 2, 7, 30, "NONE", 0, 0, 0, 0),
+      evaluateSTRUnderwriting(property, 350_000, 0, 30, "NONE", 0, 0, 0, 0),
+      evaluateSTRUnderwriting(property, 350_000, Number.MIN_VALUE, 30, "NONE", 0, 0, 0, 0),
+    ];
+
+    for (const result of results) {
+      const numericValues: number[] = [];
+      const collectNumbers = (value: unknown) => {
+        if (typeof value === "number") numericValues.push(value);
+        else if (Array.isArray(value)) value.forEach(collectNumbers);
+        else if (value && typeof value === "object") Object.values(value).forEach(collectNumbers);
+      };
+
+      collectNumbers(result);
+      expect(result.bestQualifyingRent).toBe(0);
+      expect(result.bestWorld).toMatch(/^Incomplete/);
+      expect(numericValues.every(Number.isFinite)).toBe(true);
+    }
+  });
 });

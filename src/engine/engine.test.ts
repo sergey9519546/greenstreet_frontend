@@ -412,7 +412,56 @@ describe('buildEngineInputs', () => {
     expect(property.leaseRent).toBe(0);
     expect(property.unitCount).toBe(1);
     expect(borrower.ficoScore).toBe(740);
-    expect(loan.ltv).toBe(75);
+    expect(loan.ltv).toBe(0);
+  });
+
+  it('marks explicitly invalid optional financial values instead of silently qualifying on defaults', () => {
+    const cases = [
+      { field: 'ltv', request: { ltv: 101 } },
+      { field: 'loanAmount', request: { loanAmount: 100_000_001 } },
+      { field: 'annualTaxes', request: { annualTaxes: 10_000_001 } },
+      { field: 'loanAmount', request: { loanAmount: 0 } },
+    ];
+
+    for (const { field, request } of cases) {
+      const inputs = buildEngineInputs({
+        purchasePrice: 400_000,
+        monthlyRent: 3_000,
+        state: 'TX',
+        ...request,
+      });
+      const issues = (inputs.property as typeof inputs.property & {
+        inputValidationIssues?: readonly string[];
+      }).inputValidationIssues;
+      const result = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
+
+      expect(issues).toContain(field);
+      expect(result.dscr).toBe(0);
+      expect(result.dualTrackDSCR.track1.passes).toBe(false);
+      expect(result.dualTrackDSCR.verdict.summary).toContain('NEEDS_REVIEW');
+    }
+  });
+
+  it('fails closed before tiny property values or derived loans can qualify', () => {
+    const cases = [
+      { label: 'subnormal LTV', request: { purchasePrice: 400_000, ltv: Number.MIN_VALUE } },
+      { label: 'tiny LTV', request: { purchasePrice: 400_000, ltv: 1e-12 } },
+      { label: 'tiny purchase price', request: { purchasePrice: 1e-12 } },
+      { label: 'subnormal purchase price', request: { purchasePrice: 1e-300 } },
+    ];
+
+    for (const { label, request } of cases) {
+      const inputs = buildEngineInputs({ monthlyRent: 3_000, state: 'TX', ...request });
+      const result = solveDSCR(inputs.property, inputs.borrower, inputs.loan, inputs.strategy);
+      const serialized = JSON.stringify(result, (_key, value) =>
+        typeof value === 'number' && !Number.isFinite(value) ? 'NON_FINITE' : value,
+      );
+
+      expect(result.dscr, label).toBe(0);
+      expect(result.dualTrackDSCR.track1.passes, label).toBe(false);
+      expect(result.dualTrackDSCR.verdict.summary, label).toContain('NEEDS_REVIEW');
+      expect(serialized, label).not.toContain('NON_FINITE');
+    }
   });
 });
 
@@ -526,6 +575,20 @@ describe('quickDscrEstimate', () => {
     expect(result.needsReview).toBe(true);
     expect(result.dscr).toBe(0);
     expect(result.pitia).toBe(0);
+  });
+
+  it('does not auto-qualify subnormal rates or values below the automatic-decision floor', () => {
+    const results = [
+      quickDscrEstimate(400_000, 3_000, Number.MIN_VALUE),
+      quickDscrEstimate(2, 3_000, 7),
+    ];
+
+    for (const result of results) {
+      expect(result.needsReview).toBe(true);
+      expect(result.dscr).toBe(0);
+      expect(result.pitia).toBe(0);
+      expect(result.tier).toBe('UNLIKELY');
+    }
   });
 
   it('marks finite but out-of-domain quick-calculator inputs for review', () => {

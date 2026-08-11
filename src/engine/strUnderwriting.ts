@@ -23,6 +23,7 @@ import type {
 } from './types';
 import { STR_RESTRICTION_STATES } from './types';
 import { calculatePI, calculatePITIA, getDSCRGradient } from './engine';
+import { MIN_MODELED_RATE_PCT, MODEL_AUTO_DECISION_FLOOR } from './inputs';
 
 // ============================================================
 // CONSTANTS
@@ -401,8 +402,9 @@ export function evaluateSTRUnderwriting(
 
   // ── STEP 2: Validate payment and income inputs before calculating ──
   const hasValidPaymentInputs =
-    isFiniteInRange(loanAmount, 0.01, MAX_LOAN_AMOUNT) &&
-    isFiniteInRange(rate, 0, 30) &&
+    (property.inputValidationIssues?.length ?? 0) === 0 &&
+    isFiniteInRange(loanAmount, MODEL_AUTO_DECISION_FLOOR, MAX_LOAN_AMOUNT) &&
+    isFiniteInRange(rate, MIN_MODELED_RATE_PCT, 30) &&
     isFiniteInRange(termYears, 1, 50) &&
     isFiniteInRange(annualTaxes, 0, MAX_ANNUAL_PROPERTY_COST) &&
     isFiniteInRange(annualInsurance, 0, MAX_ANNUAL_PROPERTY_COST) &&
