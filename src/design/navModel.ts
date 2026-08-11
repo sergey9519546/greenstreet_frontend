@@ -42,7 +42,7 @@ export const NAV_MENUS: NavMenu[] = [
       { label: "STR & Airbnb Hosts", view: "str-hosts", path: "/str-airbnb" },
       { label: "Vacation & Second Homes", view: "vacation-homes", path: "/vacation-homes" },
       { label: "Borrower Profiles", view: "borrower-profiles", path: "/borrower-profiles" },
-      { label: "Customer Stories", view: "case-studies", path: "/case-studies" },
+      { label: "Illustrative Scenarios", view: "case-studies", path: "/case-studies" },
     ],
   },
   {
