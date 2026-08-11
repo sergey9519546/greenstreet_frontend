@@ -9,6 +9,9 @@ export function errorHandler(err: any, req: Request, res: Response, _next: NextF
     req.path.startsWith("/api/leads") &&
     (err?.type === "entity.parse.failed" || err?.type === "entity.too.large")
   ) {
+    // Parsing failed before the lead router could set its no-store policy.
+    // Keep malformed/oversized intake attempts out of browser and proxy caches.
+    res.set("Cache-Control", "no-store");
     res.status(400).json({ error: "Invalid lead submission" });
     return;
   }

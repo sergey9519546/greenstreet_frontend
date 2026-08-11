@@ -330,6 +330,7 @@ describe("anonymous lead intake route", () => {
   it("keeps malformed JSON on the same stable validation response", async () => {
     const response = await postMalformedLead();
     expect(response.status).toBe(400);
+    expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toEqual({ error: "Invalid lead submission" });
   });
 
