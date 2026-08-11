@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type NextFunction, type Request, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import { logger } from "../logger";
 import { validateBody } from "../middleware/validate";
@@ -9,6 +9,91 @@ import { NarrateRequestSchema } from "./schemas";
 // router so it can never be reached by an anonymous caller. Do not remount
 // this router elsewhere without that guard; it calls a paid, rate-limited LLM.
 export const narrateRouter = Router();
+
+narrateRouter.use((_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
+
+export const SAFE_NARRATION_FALLBACK =
+  "This is a preliminary educational summary of the figures you provided. Review the complete analysis with an independent professional before making a financing decision.";
+
+function isSafeNarration(text: unknown): text is string {
+  if (typeof text !== "string" || text.trim().length === 0 || text.length > 800) return false;
+  return !(
+    /\d/.test(text) ||
+    /(?:https?:\/\/|www\.)/i.test(text) ||
+    /\b(?:anthropic|claude|openai|gemini|z\.ai)\b/i.test(text) ||
+    /\b(?:approv(?:e(?:d)?|als?)|qualif(?:y|ies|ied|ications?)|guarantee(?:d|s)?|commitment)\b/i.test(text)
+  );
+}
+
+function sendNarration(
+  res: import("express").Response,
+  narrative: string,
+  generated = narrative !== SAFE_NARRATION_FALLBACK,
+) {
+  res.json({
+    narrative,
+    generated,
+    preliminary: true,
+    analysisStatus: "preliminary",
+  });
+}
+
+function isFiniteInRange(value: unknown, minimum: number, maximum: number): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= minimum && value <= maximum;
+}
+
+function hasBoundedNarrationNumbers(deal: Record<string, unknown>): boolean {
+  if (!isFiniteInRange(deal.dscr, 0, 20) || !isFiniteInRange(deal.solvedRate, 0, 100)) {
+    return false;
+  }
+  if (deal.dealBreakRate != null && !isFiniteInRange(deal.dealBreakRate, 0, 100)) {
+    return false;
+  }
+  return deal.rateHeadroomBps == null || isFiniteInRange(deal.rateHeadroomBps, -10_000, 10_000);
+}
+
+function sanitizePromptText(value: unknown, maximumLength: number): string {
+  if (typeof value !== "string") return "";
+  return value
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maximumLength);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+function isBoundedPlainData(value: unknown): boolean {
+  let nodeCount = 0;
+
+  const visit = (entry: unknown, depth: number): boolean => {
+    nodeCount += 1;
+    if (nodeCount > 64 || depth > 6) return false;
+    if (entry == null || typeof entry === "boolean") return true;
+    if (typeof entry === "string") return entry.length <= 1_000;
+    if (typeof entry === "number") return Number.isFinite(entry) && Math.abs(entry) <= 100_000_000;
+    if (!isPlainRecord(entry)) return false;
+    return Object.values(entry).every((child) => visit(child, depth + 1));
+  };
+
+  return visit(value, 0);
+}
+
+function validateNarrationShape(req: Request, res: Response, next: NextFunction) {
+  if (!isBoundedPlainData(req.body)) {
+    res.status(400).json({ error: "Invalid narration request." });
+    return;
+  }
+  next();
+}
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -26,6 +111,51 @@ const isProd = process.env.NODE_ENV === "production";
 // ANTHROPIC_BASE_URL in the environment, never fallen into by omission.
 // ─────────────────────────────────────────────────────────────────────────
 const CONFIGURED_BASE_URL = process.env.ANTHROPIC_BASE_URL;
+const OFFICIAL_ANTHROPIC_ORIGIN = "https://api.anthropic.com";
+
+function parseAllowedProviderOrigins(value: string | undefined): Set<string> {
+  const allowed = new Set([OFFICIAL_ANTHROPIC_ORIGIN]);
+  for (const candidate of value?.split(",") ?? []) {
+    try {
+      const parsed = new URL(candidate.trim());
+      if (
+        parsed.protocol === "https:" &&
+        parsed.origin === candidate.trim() &&
+        !parsed.username &&
+        !parsed.password
+      ) {
+        allowed.add(parsed.origin);
+      }
+    } catch {
+      // Ignore malformed allowlist entries; they must never broaden egress.
+    }
+  }
+  return allowed;
+}
+
+const ALLOWED_PROVIDER_ORIGINS = parseAllowedProviderOrigins(
+  [
+    process.env.ANTHROPIC_BASE_URL_ALLOWLIST,
+    process.env.ANTHROPIC_ALLOWED_ORIGINS,
+  ].filter((value): value is string => Boolean(value?.trim())).join(","),
+);
+
+function hasAllowedConfiguredProviderUrl(): boolean {
+  if (!CONFIGURED_BASE_URL) return !isProd;
+  try {
+    const parsed = new URL(CONFIGURED_BASE_URL);
+    return (
+      parsed.protocol === "https:" &&
+      !parsed.username &&
+      !parsed.password &&
+      !parsed.search &&
+      !parsed.hash &&
+      ALLOWED_PROVIDER_ORIGINS.has(parsed.origin)
+    );
+  } catch {
+    return false;
+  }
+}
 
 let aiClient: Anthropic | null = null;
 function getClaudeClient(): Anthropic {
@@ -53,7 +183,7 @@ function getClaudeClient(): Anthropic {
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 
 // ── Narrate — LLM endpoint: plain-English explanation of computed results ─────
-narrateRouter.post("/", validateBody(NarrateRequestSchema), async (req, res, next) => {
+narrateRouter.post("/", validateNarrationShape, validateBody(NarrateRequestSchema), async (req, res) => {
   if (!process.env.ANTHROPIC_AUTH_TOKEN || process.env.ANTHROPIC_AUTH_TOKEN.startsWith("MY_")) {
     res.status(503).json({ error: "ANTHROPIC_AUTH_TOKEN not configured." });
     return;
@@ -69,10 +199,26 @@ narrateRouter.post("/", validateBody(NarrateRequestSchema), async (req, res, nex
     res.status(503).json({ error: "Narration is temporarily unavailable." });
     return;
   }
+  if (!hasAllowedConfiguredProviderUrl()) {
+    logger.error(
+      "ANTHROPIC_BASE_URL is not an approved HTTPS provider origin; disabling /api/narrate.",
+    );
+    res.status(503).json({ error: "Narration is temporarily unavailable." });
+    return;
+  }
   try {
     const { deal, context } = req.body;
+    if (
+      !hasBoundedNarrationNumbers(deal) ||
+      (typeof context === "string" && Array.from(context).length > 500)
+    ) {
+      res.status(400).json({ error: "Invalid narration request." });
+      return;
+    }
     const ai = getClaudeClient();
     const { dscr, solvedRate, dealBreakRate, rateHeadroomBps, dualTrackDSCR } = deal;
+    const summary = sanitizePromptText(dualTrackDSCR?.verdict?.summary, 500);
+    const safeContext = sanitizePromptText(context, 500);
 
     // Guard against NaN/Infinity from upstream computation — never let malformed
     // numbers reach the prompt string or the AI call.
@@ -92,8 +238,8 @@ DSCR underwriting result for a real estate investor evaluating this deal:
 - Deal-Break Rate: ${typeof dealBreakRate === "number" && Number.isFinite(dealBreakRate) ? dealBreakRate.toFixed(3) : "N/A"}% (${typeof rateHeadroomBps === "number" && Number.isFinite(rateHeadroomBps) ? rateHeadroomBps : "N/A"} bps headroom)
 - Track 1 (Lender Qualification): ${dualTrackDSCR?.track1?.passes ? "PASSES" : "FAILS"}
 - Track 2 (Investor Survival): ${dualTrackDSCR?.track2?.passes ? "PASSES" : "FAILS"}
-- Summary: ${dualTrackDSCR?.verdict?.summary ?? ""}
-${context ? `\nAdditional context: ${String(context).slice(0, 500)}` : ""}
+- Summary: ${summary}
+${safeContext ? `\nAdditional context: ${safeContext}` : ""}
 </untrusted-deal-data>
 
 Write 2-3 sentences in plain English directly to the real estate investor who owns this deal. They are NOT a finance expert. Focus on what this means for their deal. Do NOT recite the numbers back verbatim — interpret them. Do NOT mention Claude or AI.`;
@@ -107,9 +253,11 @@ Write 2-3 sentences in plain English directly to the real estate investor who ow
 
     // Only return the text content — never echo back the request body or any env vars
     const text = response.content[0].type === "text" ? response.content[0].text : "";
-    res.json({ narrative: text });
-  } catch (err) {
-    // Errors are forwarded to the global handler which strips internal details
-    next(err);
+    sendNarration(res, isSafeNarration(text) ? text.trim() : SAFE_NARRATION_FALLBACK);
+  } catch {
+    logger.warn(
+      "Narration provider unavailable; returned deterministic preliminary fallback",
+    );
+    sendNarration(res, SAFE_NARRATION_FALLBACK);
   }
 });

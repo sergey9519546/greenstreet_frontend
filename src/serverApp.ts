@@ -12,6 +12,7 @@ import {
 } from "./routes/leads";
 import { sdrRouter } from "./routes/sdr";
 import { verifyFirebaseToken, requireAuth } from "./middleware/auth";
+import { createNarrationQuota } from "./middleware/narrationQuota";
 import { createRateLimitStore } from "./middleware/rateLimitStore";
 
 export const app = express();
@@ -130,6 +131,7 @@ function createLimiter(bucket: string, windowMs: number, max: number) {
 const narrateLimiter = createLimiter("narrate", 60 * 1000, 10);
 const apiLimiter = createLimiter("api", 60 * 1000, 120);
 const leadLimiter = createLimiter("leads", 15 * 60 * 1000, 5);
+const narrationQuota = createNarrationQuota();
 
 // ── API Routes ────────────────────────────────────────────────────────────────
 app.get("/health", (_req, res) => {
@@ -154,7 +156,7 @@ app.use("/api/sdr", apiLimiter, sdrRouter);
 // never be reachable anonymously: requireAuth (src/middleware/auth.ts) 401s
 // any request that verifyFirebaseToken did not attach a user to (real, or the
 // explicit non-production dev-bypass mock).
-app.use("/api/narrate", narrateLimiter, requireAuth, narrateRouter);
+app.use("/api/narrate", narrateLimiter, requireAuth, narrationQuota, narrateRouter);
 
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use(errorHandler);

@@ -3,8 +3,28 @@ import type { AddressInfo } from "node:net";
 
 import { afterAll, describe, expect, it, vi } from "vitest";
 
+vi.hoisted(() => {
+  process.env.NODE_ENV = "test";
+  process.env.ANTHROPIC_AUTH_TOKEN = "server-app-test-token";
+  delete process.env.ANTHROPIC_BASE_URL;
+  delete process.env.ANTHROPIC_ALLOWED_ORIGINS;
+  delete process.env.ANTHROPIC_BASE_URL_ALLOWLIST;
+  delete process.env.NARRATION_QUOTA_MAX_REQUESTS;
+  delete process.env.NARRATION_QUOTA_WINDOW_SECONDS;
+});
+
 const firebaseAdmin = vi.hoisted(() => ({
   verifyIdToken: vi.fn().mockRejectedValue(new Error("synthetic invalid Firebase ID token")),
+}));
+
+const anthropic = vi.hoisted(() => ({
+  create: vi.fn(),
+}));
+
+vi.mock("@anthropic-ai/sdk", () => ({
+  default: class AnthropicMock {
+    messages = { create: anthropic.create };
+  },
 }));
 
 vi.mock("./services/firebaseAdmin", () => ({
@@ -190,6 +210,29 @@ describe("server API preservation contracts", () => {
       error: "Unauthorized: authentication required",
     });
     expectNoSyntheticPii(body);
+  });
+
+  it("enforces durable narration quota after authentication before model access", async () => {
+    firebaseAdmin.verifyIdToken.mockResolvedValueOnce({ uid: "narration-test-user" });
+    anthropic.create.mockResolvedValueOnce({
+      content: [{
+        type: "text",
+        text: "This is a preliminary review. Discuss the analysis with a lending professional.",
+      }],
+    });
+
+    const response = await postJson(
+      "/api/narrate",
+      { deal: { dscr: 1.25, solvedRate: 7.125 } },
+      { authorization: "Bearer valid-test-token" },
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    await expect(response.json()).resolves.toEqual({
+      error: "Narration is temporarily unavailable.",
+    });
+    expect(anthropic.create).not.toHaveBeenCalled();
   });
 
   it("keeps public DSCR validation reachable without global authentication", async () => {
